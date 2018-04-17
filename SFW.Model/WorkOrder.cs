@@ -14,7 +14,7 @@ namespace SFW.Model
         #region Properties
 
         public string ID { get; set; }
-        public 
+        public string Test { get; set; }
 
         #endregion
 
