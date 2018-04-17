@@ -5,8 +5,24 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:SFW"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="Shop Floor Workbench" Height="450" Width="800">
     <Grid>
+        
+        <!--#region Main Menu Usercontrol for all command-->
+
+        <Menu x:Name="MainMenu">
+            
+        </Menu>
+        
+        <!--#endregion-->
+        
+        <!--#region Main DataGrid Usercontrol for displaying a schedule view-->
+        
+        <DataGrid x:Name="MainDataGrid">
+            
+        </DataGrid>
+        
+        <!--#endregion-->
         
     </Grid>
 </Window>
