@@ -40,8 +40,15 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="MainWindow.cs" />
     <Compile Include="ViewModelBase.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\SFW.Model\SFW.Model.csproj">
+      <Project>{68A56A1D-33E8-44F4-8BA5-CA6F36F52BF9}</Project>
+      <Name>SFW.Model</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
