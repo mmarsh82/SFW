@@ -6,7 +6,7 @@ using System.Windows.Input;
 
 namespace SFW.Commands
 {
-    public class PartSearchCommand : ICommand
+    public class PartSearch : ICommand
     {
         public event EventHandler CanExecuteChanged;
 

@@ -19,9 +19,11 @@ namespace SFW.Model
         public string Seq { get; set; }
         public Skew Part { get; set; }
         public string Priority { get; set; }
-        public int Req_Qty { get; set; }
-        public int Comp_Qty { get; set; }
+        public int Start_Qty { get; set; }
+        public int Current_Qty { get; set; }
         public int Scrap_Qty { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime DueDate { get; set; }
 
         #endregion
 
@@ -46,13 +48,15 @@ namespace SFW.Model
                 try
                 {
                     using (SqlCommand cmd = new SqlCommand(@"SELECT 
-                                                                a.[ID], b.[Part_Wo_Desc], b.[Mgt_Priority_Code], b.[Qty_To_Start]
+                                                                a.[ID], b.[Part_Wo_Desc], b.[Mgt_Priority_Code], b.[Qty_To_Start], a.[Qty_Avail], a.[Qty_Scrap], a.[Date_Start], a.[Due_Date]
                                                             FROM
                                                                 [dbo].[WPO-INIT] a
                                                             RIGHT JOIN
                                                                 [dbo].[WP-INIT] b on a.[ID] LIKE CONCAT(b.[Wp_Nbr], '%')
                                                             WHERE
-                                                                b.[Status_Flag] = 'R' AND a.[Work_Center] = @p1;", sqlCon))
+                                                                (b.[Status_Flag] = 'R' or B.[Status_Flag] = 'A') AND a.[Qty_Avail] <> 0 AND a.[Work_Center] = @p1
+                                                            ORDER BY
+                                                                a.[Date_Start], a.[ID] ASC;", sqlCon))
                     {
                         cmd.Parameters.AddWithValue("p1", workCntNbr);
                         using (SqlDataReader reader = cmd.ExecuteReader())
@@ -68,7 +72,11 @@ namespace SFW.Model
                                         Seq = _id == null ? string.Empty : _id[1].Trim(),
                                         Part = reader.IsDBNull(1) ? null : new Skew(reader.GetString(1), sqlCon),
                                         Priority = reader.IsDBNull(2) ? "D" : reader.GetString(2),
-                                        Req_Qty = reader.IsDBNull(3) ? 0 : reader.GetInt32(3)
+                                        Start_Qty = reader.IsDBNull(3) ? 0 : reader.GetInt32(3),
+                                        Current_Qty = reader.IsDBNull(4) ? 0 : Convert.ToInt32(reader.GetValue(4)),
+                                        Scrap_Qty = reader.IsDBNull(5) ? 0 : reader.GetInt32(5),
+                                        StartDate = reader.IsDBNull(6) ? DateTime.MinValue : reader.GetDateTime(6),
+                                        DueDate = reader.IsDBNull(7) ? DateTime.MinValue : reader.GetDateTime(7)
                                     });
                                 }
                             }

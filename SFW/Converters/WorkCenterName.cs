@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Windows.Data;
 
-namespace SFW
+namespace SFW.Converters
 {
     public class WorkCenterNameConverter : IValueConverter
     {

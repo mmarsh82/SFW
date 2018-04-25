@@ -58,7 +58,7 @@ namespace SFW.Model
                                     Number = reader.IsDBNull(0) ? string.Empty : reader.GetString(0);
                                     Description = reader.IsDBNull(1) ? string.Empty : reader.GetString(1);
                                     Uom = reader.IsDBNull(2) ? string.Empty : reader.GetString(2);
-                                    Bom_Rev_Date = reader.IsDBNull(3) ? DateTime.MinValue : Convert.ToDateTime(reader.GetValue(3));
+                                    Bom_Rev_Date = reader.IsDBNull(3) ? DateTime.MinValue : DateTime.TryParse(reader.GetValue(3).ToString(), out DateTime _brd) ? _brd : DateTime.MinValue;
                                     OnHand = reader.IsDBNull(4) ? 0 : reader.GetInt32(4);
                                     MasterPrint = reader.IsDBNull(5) ? string.Empty : reader.GetString(5);
                                 }

@@ -1,27 +1,22 @@
-﻿using SFW.Model;
+﻿using SFW.Converters;
+using SFW.Model;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Windows.Data;
 
-//Created by Michael Marsh 4-19-18
-
-namespace SFW
+namespace SFW.Schedule
 {
-    public class MainWindowViewModel : ViewModelBase
+    public class ViewModel : ViewModelBase
     {
         #region Properties
 
         public IList<Machine> WorkCenterList { get; set; }
         public ICollectionView ScheduleView { get; set; }
-        
 
         #endregion
 
-        /// <summary>
-        /// Main Window View Default Constructor
-        /// </summary>
-        public MainWindowViewModel()
+        public ViewModel()
         {
             if (WorkCenterList == null)
             {

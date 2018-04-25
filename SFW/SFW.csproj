@@ -68,15 +68,22 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="Commands\PartSearchICommand.cs" />
-    <Compile Include="ExpanderState.cs" />
-    <Compile Include="MainWindowViewModel.cs" />
+    <Compile Include="Behaviors\ExpanderState.cs" />
+    <Compile Include="Commands\PartSearch.cs" />
+    <Compile Include="Converters\WorkCenterName.cs" />
+    <Compile Include="Schedule\View.xaml.cs">
+      <DependentUpon>View.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Schedule\ViewModel.cs" />
     <Compile Include="ViewModelBase.cs" />
-    <Compile Include="WorkCenterNameConverter.cs" />
-    <Resource Include="ButtonStyle.xaml">
+    <Page Include="Schedule\View.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
-    </Resource>
+    </Page>
+    <Page Include="Styles\Button.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
