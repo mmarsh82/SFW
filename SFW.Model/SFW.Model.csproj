@@ -41,10 +41,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Enumerations\Extensions.cs" />
+    <Compile Include="Enumerations\Tran_Code.cs" />
+    <Compile Include="Helpers\M2kConverters.cs" />
+    <Compile Include="Lot.cs" />
     <Compile Include="ModelBase.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SalesOrder.cs" />
-    <Compile Include="Skew.cs" />
+    <Compile Include="Sku.cs" />
     <Compile Include="Machine.cs" />
     <Compile Include="WorkOrder.cs" />
   </ItemGroup>

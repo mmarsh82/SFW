@@ -1,9 +1,10 @@
 ﻿using SFW.Converters;
 using SFW.Model;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Windows.Data;
+
+//Created by Michael Marsh 4-21-18
 
 namespace SFW.Schedule
 {
@@ -11,21 +12,16 @@ namespace SFW.Schedule
     {
         #region Properties
 
-        public IList<Machine> WorkCenterList { get; set; }
-        public ICollectionView ScheduleView { get; set; }
+        public static ICollectionView ScheduleView { get; set; }
 
         #endregion
 
         public ViewModel()
         {
-            if (WorkCenterList == null)
-            {
-                WorkCenterList = Machine.GetWorkCenterList(App.AppSqlCon);
-            }
             if (ScheduleView == null)
             {
-                ScheduleView = CollectionViewSource.GetDefaultView(WorkCenterList);
-                ScheduleView.GroupDescriptions.Add(new PropertyGroupDescription("MachineNumber", new WorkCenterNameConverter(WorkCenterList.ToList())));
+                ScheduleView = CollectionViewSource.GetDefaultView(Machine.GetWorkCenterList(App.AppSqlCon));
+                ScheduleView.GroupDescriptions.Add(new PropertyGroupDescription("MachineNumber", new WorkCenterNameConverter(ScheduleView.Cast<Machine>().ToList())));
             }
         }
     }

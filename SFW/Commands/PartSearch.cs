@@ -18,7 +18,7 @@ namespace SFW.Commands
         {
             try
             {
-                var _skew = parameter as Skew;
+                var _skew = parameter as Sku;
                 if (string.IsNullOrEmpty(_skew.MasterPrint))
                 {
                     ///TODO: Remove hard coded print location

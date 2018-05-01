@@ -17,7 +17,7 @@ namespace SFW.Model
 
         public string OrderNumber { get; set; }
         public string Seq { get; set; }
-        public Skew Part { get; set; }
+        public Sku Part { get; set; }
         public string Priority { get; set; }
         public int Start_Qty { get; set; }
         public int Current_Qty { get; set; }
@@ -54,7 +54,7 @@ namespace SFW.Model
                                                             RIGHT JOIN
                                                                 [dbo].[WP-INIT] b on a.[ID] LIKE CONCAT(b.[Wp_Nbr], '%')
                                                             WHERE
-                                                                (b.[Status_Flag] = 'R' or B.[Status_Flag] = 'A') AND a.[Qty_Avail] <> 0 AND a.[Work_Center] = @p1
+                                                                (b.[Status_Flag] = 'R' or B.[Status_Flag] = 'A') AND a.[Seq_Complete_Flag] IS NULL AND a.[Work_Center] = @p1
                                                             ORDER BY
                                                                 a.[Date_Start], a.[ID] ASC;", sqlCon))
                     {
@@ -70,7 +70,7 @@ namespace SFW.Model
                                     {
                                         OrderNumber = _id == null ? string.Empty : _id[0].Trim(),
                                         Seq = _id == null ? string.Empty : _id[1].Trim(),
-                                        Part = reader.IsDBNull(1) ? null : new Skew(reader.GetString(1), sqlCon),
+                                        Part = reader.IsDBNull(1) ? null : new Sku(reader.GetString(1), sqlCon),
                                         Priority = reader.IsDBNull(2) ? "D" : reader.GetString(2),
                                         Start_Qty = reader.IsDBNull(3) ? 0 : reader.GetInt32(3),
                                         Current_Qty = reader.IsDBNull(4) ? 0 : Convert.ToInt32(reader.GetValue(4)),

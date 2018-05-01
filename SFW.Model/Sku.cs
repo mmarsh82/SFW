@@ -6,7 +6,7 @@ using System.Data.SqlClient;
 
 namespace SFW.Model
 {
-    public class Skew : ModelBase
+    public class Sku : ModelBase
     {
         #region Properties
 
@@ -14,7 +14,7 @@ namespace SFW.Model
         public string Description { get; set; }
         public string Uom { get; set; }
         public DateTime Bom_Rev_Date { get; set; }
-        public int OnHand { get; set; }
+        public int TotalOnHand { get; set; }
         public string MasterPrint { get; set; }
 
         #endregion
@@ -22,7 +22,7 @@ namespace SFW.Model
         /// <summary>
         /// Skew Default Constructor
         /// </summary>
-        public Skew()
+        public Sku()
         {
 
         }
@@ -33,7 +33,7 @@ namespace SFW.Model
         /// </summary>
         /// <param name="nbr">Skew number to load</param>
         /// <param name="sqlCon">Sql Connection to use</param>
-        public Skew(string nbr, SqlConnection sqlCon)
+        public Sku(string nbr, SqlConnection sqlCon)
         {
             if (sqlCon != null || sqlCon.State != ConnectionState.Closed || sqlCon.State != ConnectionState.Broken)
             {
@@ -59,7 +59,7 @@ namespace SFW.Model
                                     Description = reader.IsDBNull(1) ? string.Empty : reader.GetString(1);
                                     Uom = reader.IsDBNull(2) ? string.Empty : reader.GetString(2);
                                     Bom_Rev_Date = reader.IsDBNull(3) ? DateTime.MinValue : DateTime.TryParse(reader.GetValue(3).ToString(), out DateTime _brd) ? _brd : DateTime.MinValue;
-                                    OnHand = reader.IsDBNull(4) ? 0 : reader.GetInt32(4);
+                                    TotalOnHand = reader.IsDBNull(4) ? 0 : reader.GetInt32(4);
                                     MasterPrint = reader.IsDBNull(5) ? string.Empty : reader.GetString(5);
                                 }
                             }

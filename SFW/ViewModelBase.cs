@@ -1,6 +1,8 @@
 ﻿using System;
 using System.ComponentModel;
 
+//Created by Michael Marsh 4-19-18
+
 namespace SFW
 {
     public abstract class ViewModelBase : INotifyPropertyChanged, IDisposable

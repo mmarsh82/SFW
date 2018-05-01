@@ -3,18 +3,23 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:cmd="clr-namespace:SFW.Commands"
     xmlns:local="clr-namespace:SFW"
     x:Class="SFW.MainWindow"
         mc:Ignorable="d"
         Title="Shop Floor Workbench" MinWidth="900" MinHeight="480" WindowState="Maximized" WindowStartupLocation="CenterOwner">
-    
+
     <Grid>
+
+        <Grid.Resources>
+            <cmd:PartInformation x:Key="PartInfoICommand"/>
+            <cmd:ScheduleLoad x:Key="ScheduleLoadICommand"/>
+        </Grid.Resources>
 
         <Grid.RowDefinitions>
             <RowDefinition Height="25"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-
 
         <!--#region Main Menu Usercontrol for all command-->
 
@@ -24,22 +29,16 @@
               FontWeight="Bold"
               VerticalAlignment="Stretch">
             <MenuItem Header="View">
-                <MenuItem Header="Work Order">
-                    <ListView ItemsSource="{Binding WorkCenterList.WorkOrderList}"
-                              DisplayMemberPath="OrderNumber"/>
+                <MenuItem Header="Work Center">
+                    <ListBox ItemsSource="{Binding MachineList}"
+                             DisplayMemberPath="MachineNumber"/>
                 </MenuItem>
-                <MenuItem Header="Schedule">
-                    
-                </MenuItem>
-                <CheckBox Content="Work Center"/>
+                <MenuItem Header="Schedule"
+                          Command="{StaticResource ScheduleLoadICommand}"/>
             </MenuItem>
             <MenuItem Header="Queries">
-                <MenuItem Header="ITEMS.LOT"
-                          Command=""
-                          CommandParameter=""/>
-                <MenuItem Header="ITH"
-                          Command=""
-                          CommandParameter=""/>
+                <MenuItem Header="Part Info"
+                          Command="{StaticResource PartInfoICommand}"/>
             </MenuItem>
             <MenuItem Header="Help">
                 

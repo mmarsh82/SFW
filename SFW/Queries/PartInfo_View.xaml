@@ -1,0 +1,147 @@
+﻿<UserControl x:Class="SFW.Queries.PartInfo_View"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:cvtr="clr-namespace:SFW.Converters"
+             xmlns:cmd="clr-namespace:SFW.Commands"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <Grid Background="LightGray">
+
+        <Grid.Resources>
+            <cvtr:ObjectToVisibility x:Key="ObjectToVisConverter"/>
+            <cvtr:InvertBoolToVisibility x:Key="InvertBoolToVisConverter"/>
+            <cvtr:NegativeIntToBool x:Key="NegIntToBoolConverter"/>
+            <cvtr:StringToVisibility x:Key="StringToVisConverter"/>
+            <BooleanToVisibilityConverter x:Key="BoolToVisConverter"/>
+            <cmd:M2kLookQuery x:Key="LookQueryCommand"/>
+        </Grid.Resources>
+
+        <Grid.InputBindings>
+            <KeyBinding Gesture="Enter" Command="{Binding SearchICommand}" CommandParameter="{Binding Path=Text, ElementName=SearchTextBox}"/>
+        </Grid.InputBindings>
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="30"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Orientation="Horizontal">
+            <TextBlock Text="Part Number"
+                       FontSize="16"
+                       FontWeight="Bold"
+                       VerticalAlignment="Center"/>
+            <TextBox x:Name="SearchTextBox"
+                     Width="150"
+                     FontSize="14"
+                     Margin="5"/>
+            <Button Content="Search"
+                    Command="{Binding SearchICommand}"
+                    CommandParameter="{Binding Path=Text, ElementName=SearchTextBox}"
+                    Width="75"
+                    Margin="2"
+                    Style="{DynamicResource DefaultButton}"/>
+        </StackPanel>
+
+        <StackPanel Grid.Row="1" Orientation="Horizontal">
+
+            <DataGrid x:Name="ILotResultsDataGrid"
+                      ItemsSource="{Binding ILotResultsList}"
+                      Visibility="{Binding NoResults, Converter={StaticResource InvertBoolToVisConverter}}"
+                      SelectedItem="{Binding SelectedILotRow}"
+                      HorizontalAlignment="Left"
+                      VerticalAlignment="Top"
+                      FontSize="18"
+                      FontWeight="Bold"
+                      AlternatingRowBackground="LightSteelBlue"
+                      AutoGenerateColumns="False"
+                      IsReadOnly="True">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Lot Number" Binding="{Binding LotNumber}"/>
+                    <DataGridTextColumn Header="On Hand Qty" Binding="{Binding Onhand}">
+                        <DataGridTextColumn.CellStyle>
+                            <Style TargetType="{x:Type DataGridCell}">
+                                <Setter Property="Foreground" Value="Black"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Onhand, Converter={StaticResource NegIntToBoolConverter}}" Value="true">
+                                        <Setter Property="Foreground" Value="Crimson"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </DataGridTextColumn.CellStyle>
+                    </DataGridTextColumn>
+                    <DataGridTextColumn Header="Location" Binding="{Binding Location}"/>
+                </DataGrid.Columns>
+            </DataGrid>
+
+            <DataGrid x:Name="IthResultsDataGrid"
+                      ItemsSource="{Binding IthResultsView}"
+                      Visibility="{Binding NoResults, Converter={StaticResource InvertBoolToVisConverter}}"
+                      HorizontalAlignment="Left"
+                      VerticalAlignment="Top"
+                      FontSize="18"
+                      FontWeight="Bold"
+                      AlternatingRowBackground="LightSteelBlue"
+                      AutoGenerateColumns="False"
+                      IsReadOnly="True"
+                      Margin="20,0,0,0">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Date" Binding="{Binding TransactionDate, StringFormat=MM/dd/yyyy}"/>
+                    <DataGridTextColumn Header="Time" Binding="{Binding TransactionDate, StringFormat=HH:mm}"/>
+                    <DataGridTextColumn Header="User" Binding="{Binding Submitter}"/>
+                    <DataGridTextColumn Header="Type" Binding="{Binding TransactionType}"/>
+                    <DataGridTextColumn Header="Code" Binding="{Binding TransactionCode}"/>
+                    <DataGridTextColumn Header="Lot Number" Binding="{Binding LotNumber}"/>
+                    <DataGridTextColumn Header="Location" Binding="{Binding Location}"/>
+                    <DataGridTextColumn Header="Quantity" Binding="{Binding TransactionQty}">
+                        <DataGridTextColumn.CellStyle>
+                            <Style TargetType="{x:Type DataGridCell}">
+                                <Setter Property="Foreground" Value="Black"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding TransactionQty, Converter={StaticResource NegIntToBoolConverter}}" Value="true">
+                                        <Setter Property="Foreground" Value="Crimson"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </DataGridTextColumn.CellStyle>
+                    </DataGridTextColumn>
+                    <DataGridTextColumn Header="Run Total" Binding="{Binding Onhand}"/>
+                    <DataGridTemplateColumn Header="Work Order">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Button Content="{Binding TransactionWorkOrder}"
+                                        Command="{StaticResource LookQueryCommand}"
+                                        CommandParameter="{Binding Content, RelativeSource={RelativeSource Self}}"
+                                        Style="{DynamicResource DefaultButton}"
+                                        Visibility="{Binding Content, RelativeSource={RelativeSource Self}, Converter={StaticResource StringToVisConverter}}"/>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTemplateColumn Header="Sales Order">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Button Content="{Binding TransactionSalesOrder}"
+                                        Command="{StaticResource LookQueryCommand}"
+                                        CommandParameter="{Binding Content, RelativeSource={RelativeSource Self}}"
+                                        Style="{DynamicResource DefaultButton}"
+                                        Visibility="{Binding Content, RelativeSource={RelativeSource Self}, Converter={StaticResource StringToVisConverter}}"/>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTextColumn Header="Reference Information" Binding="{Binding TransactionReference}"/>
+                </DataGrid.Columns>
+            </DataGrid>
+
+        </StackPanel>
+
+        <TextBlock Grid.Row="1"
+                   Text="No Results"
+                   FontSize="50"
+                   FontWeight="Bold"
+                   VerticalAlignment="Center"
+                   HorizontalAlignment="Center"
+                   Visibility="{Binding NoResults, Converter={StaticResource BoolToVisConverter}}"/>
+
+    </Grid>
+</UserControl>
