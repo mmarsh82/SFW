@@ -10,7 +10,14 @@ namespace SFW.Converters
     {
         public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
         {
-            return string.IsNullOrEmpty(value?.ToString()) ? Visibility.Hidden : Visibility.Visible;
+            if (parameter?.ToString() == "i")
+            {
+                return string.IsNullOrEmpty(value?.ToString()) ? Visibility.Visible : Visibility.Hidden;
+            }
+            else
+            {
+                return string.IsNullOrWhiteSpace(value?.ToString()) ? Visibility.Hidden : Visibility.Visible;
+            }
         }
         public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
         {

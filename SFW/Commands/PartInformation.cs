@@ -17,8 +17,8 @@ namespace SFW.Commands
         {
             try
             {
-                MainWindowViewModel.WorkSpaceGrid.Children.Clear();
-                MainWindowViewModel.WorkSpaceGrid.Children.Add(new Queries.PartInfo_View());
+                MainWindowViewModel.WorkSpaceDock.Children.Clear();
+                MainWindowViewModel.WorkSpaceDock.Children.Add(new Queries.PartInfo_View());
             }
             catch (Exception)
             {

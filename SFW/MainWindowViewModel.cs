@@ -9,17 +9,18 @@ namespace SFW
     {
         #region Properties
 
-        public static Grid WorkSpaceGrid { get; set; }
+        public static DockPanel WorkSpaceDock { get; set; }
         public List<Machine> MachineList { get; set; }
 
         #endregion
 
         public MainWindowViewModel()
         {
-            if (WorkSpaceGrid == null)
+            if (WorkSpaceDock == null)
             {
-                WorkSpaceGrid = ((MainWindow)Application.Current.Windows[0]).WorkSpaceGrid;
-                WorkSpaceGrid.Children.Add(new Schedule.View());
+                WorkSpaceDock = ((MainWindow)Application.Current.Windows[0]).WorkSpaceDock;
+                WorkSpaceDock.Children.Add(new Schedule.View());
+                WorkSpaceDock.Children.Add(new ShopRoute.View { DataContext = new ShopRoute.ViewModel() });
             }
             if (MachineList == null)
             {

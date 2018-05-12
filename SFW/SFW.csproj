@@ -15,6 +15,7 @@
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <TargetFrameworkProfile>
     </TargetFrameworkProfile>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
     <PublishUrl>publish\</PublishUrl>
     <Install>true</Install>
     <InstallFrom>Disk</InstallFrom>
@@ -27,7 +28,6 @@
     <MapFileExtensions>true</MapFileExtensions>
     <ApplicationRevision>0</ApplicationRevision>
     <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
-    <IsWebBootstrapper>false</IsWebBootstrapper>
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
   </PropertyGroup>
@@ -54,6 +54,9 @@
   </PropertyGroup>
   <PropertyGroup>
     <StartupObject>SFW.App</StartupObject>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>Icons\WCCO Belting.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.Expression.Interactions, Version=4.5.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
@@ -92,8 +95,10 @@
     <Compile Include="Converters\InvertBoolToVisibility.cs" />
     <Compile Include="Converters\NegativeIntToBool.cs" />
     <Compile Include="Converters\ObjectToVisibility.cs" />
+    <Compile Include="Converters\SkuMasterPrint.cs" />
     <Compile Include="Converters\StringToVisibility.cs" />
     <Compile Include="Converters\WorkCenterName.cs" />
+    <Compile Include="Converters\WorkOrderNumber.cs" />
     <Compile Include="MainWindowViewModel.cs" />
     <Compile Include="Queries\PartInfo_View.xaml.cs">
       <DependentUpon>PartInfo_View.xaml</DependentUpon>
@@ -104,10 +109,10 @@
     </Compile>
     <Compile Include="Schedule\ViewModel.cs" />
     <Compile Include="ViewModelBase.cs" />
-    <Compile Include="WorkOrder\View.xaml.cs">
+    <Compile Include="ShopRoute\View.xaml.cs">
       <DependentUpon>View.xaml</DependentUpon>
     </Compile>
-    <Compile Include="WorkOrder\ViewModel.cs" />
+    <Compile Include="ShopRoute\ViewModel.cs" />
     <Page Include="Queries\PartInfo_View.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -132,7 +137,11 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Page Include="WorkOrder\View.xaml">
+    <Page Include="ShopRoute\View.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Styles\TextBox.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -196,6 +205,12 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Icons\About.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Icons\WCCO Belting.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <SplashScreen Include="Icons\WCCO Splash.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

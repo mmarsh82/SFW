@@ -17,8 +17,9 @@ namespace SFW.Commands
         {
             try
             {
-                MainWindowViewModel.WorkSpaceGrid.Children.Clear();
-                MainWindowViewModel.WorkSpaceGrid.Children.Add(new Schedule.View());
+                MainWindowViewModel.WorkSpaceDock.Children.Clear();
+                MainWindowViewModel.WorkSpaceDock.Children.Add(new Schedule.View());
+                MainWindowViewModel.WorkSpaceDock.Children.Add(new ShopRoute.View { DataContext = new ShopRoute.ViewModel() });
             }
             catch (Exception)
             {

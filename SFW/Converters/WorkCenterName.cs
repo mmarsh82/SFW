@@ -2,7 +2,10 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Windows.Data;
+
+//Created by Michael Marsh 5-3-18
 
 namespace SFW.Converters
 {
@@ -10,7 +13,7 @@ namespace SFW.Converters
     {
         #region Properties
 
-        public List<Machine> WCList { get; private set; }
+        public static List<Machine> MachineList { get; private set; }
 
         #endregion
 
@@ -18,9 +21,7 @@ namespace SFW.Converters
 
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            var _mNbr = value.ToString();
-            var _name = WCList.Find(o => o.MachineNumber == _mNbr).Name;
-            return $"{_name} ({_mNbr})";
+            return value != null ? $"{MachineList.FirstOrDefault(o => o.MachineNumber == value.ToString()).MachineName} ({value.ToString()})" : string.Empty;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
@@ -34,9 +35,12 @@ namespace SFW.Converters
         /// Work Center Name Converter Default Constructor
         /// </summary>
         /// <param name="workOrderList"></param>
-        public WorkCenterNameConverter(List<Machine> workOrderList)
+        public WorkCenterNameConverter()
         {
-            WCList = workOrderList;
+            if (MachineList == null)
+            {
+                MachineList = Machine.GetMachineList(App.AppSqlCon);
+            }
         }
     }
 }

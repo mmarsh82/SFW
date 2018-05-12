@@ -1,8 +1,10 @@
-﻿using SFW.Model;
-using System;
+﻿using System;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Windows;
 using System.Windows.Input;
+
+//Created by Michael Marsh 4-19-18
 
 namespace SFW.Commands
 {
@@ -13,20 +15,23 @@ namespace SFW.Commands
         /// <summary>
         /// Part Search ICommand execution
         /// </summary>
-        /// <param name="parameter">Skew object</param>
+        /// <param name="parameter">SkuNumber or SkuNumber*MasterPrint</param>
         public void Execute(object parameter)
         {
             try
             {
-                var _skew = parameter as Sku;
-                if (string.IsNullOrEmpty(_skew.MasterPrint))
+                if (parameter.ToString().Contains("*"))
+                {
+                    parameter = parameter.ToString().Substring(parameter.ToString().IndexOf('*') + 1);
+                }
+                if (!string.IsNullOrEmpty(parameter?.ToString()))
                 {
                     ///TODO: Remove hard coded print location
-                    Process.Start($"\\\\manage2\\server\\Engineering\\Product\\Prints\\Controlled Production Prints\\{_skew.Number}.pdf");
+                    Process.Start($"\\\\manage2\\server\\Engineering\\Product\\Prints\\Controlled Production Prints\\{parameter}.pdf");
                 }
                 else
                 {
-                    Process.Start($"\\\\manage2\\server\\Engineering\\Product\\Prints\\Controlled Production Prints\\{_skew.MasterPrint}.pdf");
+                    MessageBox.Show("The part number that you have selected is either invalid or does not exist.", "Invalid or Missing Part Number", MessageBoxButton.OK, MessageBoxImage.Hand);
                 }
             }
             catch (Win32Exception)

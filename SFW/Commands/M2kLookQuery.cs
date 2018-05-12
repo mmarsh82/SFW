@@ -21,11 +21,10 @@ namespace SFW.Commands
                 if (parameter.ToString().Contains("*"))
                 {
                     var _soDetail = parameter.ToString().Split('*');
-                    Process.Start($"http://172.16.0.122/WCCO.MAIN/SOP/SoLineDetail/SoLineDetail.aspx?SoNbr={_soDetail[0]}&LineNbr={_soDetail[1]}");
                 }
                 else
                 {
-                    Process.Start($"http://172.16.0.122/WCCO.MAIN/ROIPortals/WoStatus/WoStatus.aspx?WorkOrder={parameter.ToString()}");
+                    
                 }
             }
             catch (Exception)

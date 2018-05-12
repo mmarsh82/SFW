@@ -14,6 +14,7 @@
         <Grid.Resources>
             <cmd:PartInformation x:Key="PartInfoICommand"/>
             <cmd:ScheduleLoad x:Key="ScheduleLoadICommand"/>
+            <cmd:PartSearch x:Key="PartSearchCommand"/>
         </Grid.Resources>
 
         <Grid.RowDefinitions>
@@ -28,13 +29,20 @@
               FontSize="16"
               FontWeight="Bold"
               VerticalAlignment="Stretch">
+            <MenuItem Header="File">
+                <MenuItem Header="Print"/>
+                <MenuItem Header="Exit"/>
+            </MenuItem>
             <MenuItem Header="View">
                 <MenuItem Header="Work Center">
-                    <ListBox ItemsSource="{Binding MachineList}"
-                             DisplayMemberPath="MachineNumber"/>
+                    <ListView ItemsSource="{Binding MachineList}"
+                              
+                              DisplayMemberPath="MachineNumber"/>
                 </MenuItem>
                 <MenuItem Header="Schedule"
                           Command="{StaticResource ScheduleLoadICommand}"/>
+                <MenuItem Header="Setup Prints"/>
+                <MenuItem Header="Work Instructions"/>
             </MenuItem>
             <MenuItem Header="Queries">
                 <MenuItem Header="Part Info"
@@ -49,7 +57,7 @@
         
         <!--#region WorkSpace Grid-->
 
-        <Grid x:Name="WorkSpaceGrid"
+        <DockPanel x:Name="WorkSpaceDock"
               Grid.Row="1"/>
 
         <!--#endregion-->

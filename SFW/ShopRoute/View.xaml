@@ -1,0 +1,553 @@
+﻿<UserControl x:Class="SFW.ShopRoute.View"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:sys="clr-namespace:System;assembly=mscorlib"
+             xmlns:cvtr="clr-namespace:SFW.Converters"
+             xmlns:cmd="clr-namespace:SFW.Commands"
+             xmlns:local="clr-namespace:SFW.ShopRoute"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <Grid>
+        <Grid.Resources>
+            <cvtr:StringToVisibility x:Key="StringToVisConverter"/>
+            <cvtr:CountToVisibility x:Key="IntToVisConverter"/>
+            <cvtr:SkuMasterPrint x:Key="PartSearchConverter"/>
+            <cmd:M2kLookQuery x:Key="ShowQuery"/>
+            <cmd:PartSearch x:Key="PartSearchICommand"/>
+        </Grid.Resources>
+
+        <TextBlock Text="Nothing Selected"
+                   FontSize="32"
+                   FontWeight="Bold"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center"
+                   Visibility="{Binding ShopOrder.OrderNumber, Converter={StaticResource StringToVisConverter}, ConverterParameter=i}"/>
+
+        <Grid Margin="10,0,10,0" Visibility="{Binding ShopOrder.OrderNumber, Converter={StaticResource StringToVisConverter}}">
+
+            <Grid.RowDefinitions>
+                <RowDefinition x:Name="Row0" Height="60"/>
+                <RowDefinition x:Name="Row1" Height="40"/>
+                <RowDefinition x:Name="Row2" Height="30"/>
+                <RowDefinition x:Name="Row3" Height="30"/>
+                <RowDefinition x:Name="Row4" Height="70"/>
+                <RowDefinition x:Name="Row5" Height="50"/>
+                <RowDefinition x:Name="Row6" Height="175"/>
+                <RowDefinition x:Name="Row7" Height="50"/>
+                <RowDefinition x:Name="Row8" Height="30"/>
+                <RowDefinition x:Name="Row9" Height="50"/>
+                <RowDefinition x:Name="Row10" Height="*"/>
+            </Grid.RowDefinitions>
+
+            <!--#region Grid.Row 0-->
+
+            <StackPanel Grid.Row="0" Orientation="Horizontal"
+                        HorizontalAlignment="Left" VerticalAlignment="Center">
+
+                <TextBlock Text="Shop Routing For Work Order:"
+                           FontSize="32"
+                           FontWeight="Bold"
+                           Foreground="#FF135185"
+                           TextDecorations="Underline"/>
+
+                <TextBlock Text="{Binding ShopOrder.OrderNumber}"
+                           FontSize="32"
+                           FontWeight="Bold"
+                           Margin="10,0,0,0"/>
+                
+            </StackPanel>
+
+            <TextBlock Grid.Row="0"
+                       Text="{Binding Source={x:Static sys:DateTime.Now}, StringFormat='dddd, MMM-dd-yyyy HH:mm'}"
+                       FontSize="16"
+                       HorizontalAlignment="Right"
+                       VerticalAlignment="Center"/>
+            
+            <!--#endregion-->
+            
+            <!--#region Grid.Row 1-->
+
+            <StackPanel Grid.Row="1" Orientation="Horizontal">
+                
+                <TextBlock Text="Part Number:"
+                           FontSize="24"
+                           FontWeight="Bold"
+                           TextDecorations="UnderLine"
+                           Foreground="#FF135185"/>
+                
+                <TextBlock Text="{Binding ShopOrder.SkuNumber}"
+                           FontSize="24"
+                           FontWeight="Bold"
+                           Margin="10,0,0,0"/>
+                
+                <TextBlock Text="{Binding ShopOrder.SkuDescription}"
+                           FontSize="24"
+                           FontWeight="Bold"
+                           Margin="10,0,0,0"/>
+
+                <TextBlock Text="Unit of Measure:"
+                           FontSize="24"
+                           FontWeight="Bold"
+                           Margin="50,0,0,0"
+                           TextDecorations="Underline"
+                           Foreground="#FF135185"/>
+
+                <TextBlock Text="{Binding ShopOrder.Uom}"
+                           FontSize="24"
+                           FontWeight="Bold"
+                           Margin="10,0,0,0"/>
+                
+            </StackPanel>
+
+            <!--#endregion-->
+            
+            <!--#region Grid.Row 2-->
+
+            <StackPanel Grid.Row="2" Orientation="Horizontal">
+                
+                <TextBlock Text="Extended Description:"
+                           FontSize="18"
+                           Margin="30,0,0,0"
+                           TextDecorations="Underline"
+                           Foreground="#FF135185"/>
+
+                <TextBlock Text="TODO put extended description here"
+                           FontSize="18"
+                           Margin="10,0,0,0"/>
+            </StackPanel>
+
+            <!--#endregion-->
+            
+            <!--#region Grid.Row 3 (Used as a spacer)-->
+            <!--#endregion-->
+            
+            <!--#region Grid.Row 4-->
+
+            <Grid Grid.Row="4">
+
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="300"/>
+                    <ColumnDefinition Width="300"/>
+                    <ColumnDefinition Width="300"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" Orientation="Vertical">
+
+                    <StackPanel Orientation="Horizontal">
+
+                        <TextBlock Text="Start Date:"
+                                   FontSize="18"
+                                   TextDecorations="Underline"
+                                   Foreground="#FF135185"/>
+
+                        <TextBlock Text="{Binding ShopOrder.StartDate, StringFormat=d}"
+                                   FontSize="18"
+                                   FontWeight="Bold"
+                                   Margin="10,0,0,0"/>
+
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal">
+
+                        <TextBlock Text="Due Date:"
+                                   FontSize="18"
+                                   TextDecorations="Underline"
+                                   Foreground="#FF135185"/>
+
+                        <TextBlock Text="{Binding ShopOrder.DueDate, StringFormat=d}"
+                                   FontSize="18"
+                                   FontWeight="Bold"
+                                   Margin="10,0,0,0"/>
+
+                    </StackPanel>
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Orientation="Vertical">
+
+                    <StackPanel Orientation="Horizontal">
+
+                        <TextBlock Text="Required Qty:"
+                                   FontSize="18"
+                                   TextDecorations="Underline"
+                                   Foreground="#FF135185"/>
+
+                        <TextBlock Text="{Binding ShopOrder.StartQty}"
+                                   FontSize="18"
+                                   FontWeight="Bold"
+                                   Margin="10,0,0,0"/>
+
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal">
+
+                        <TextBlock Text="Balance Qty:"
+                                   FontSize="18"
+                                   TextDecorations="Underline"
+                                   Foreground="#FF135185"/>
+
+                        <TextBlock Text="{Binding ShopOrder.CurrentQty}"
+                                   FontSize="18"
+                                   FontWeight="Bold"
+                                   Margin="10,0,0,0"/>
+
+                    </StackPanel>
+                </StackPanel>
+
+                <StackPanel Grid.Column="2" Orientation="Vertical">
+
+                    <StackPanel Orientation="Horizontal" Visibility="{Binding ShopOrder.BomRevLevel, Converter={StaticResource StringToVisConverter}}">
+
+                        <TextBlock Text="BOM Rev Level:"
+                                   FontSize="18"
+                                   TextDecorations="Underline"
+                                   Foreground="#FF135185"/>
+
+                        <TextBlock Text="{Binding ShopOrder.BomRevLevel}"
+                                   FontSize="18"
+                                   FontWeight="Bold"
+                                   Margin="10,0,0,0"/>
+
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal">
+
+                        <TextBlock Text="BOM Rev Date:"
+                                   FontSize="18"
+                                   TextDecorations="Underline"
+                                   Foreground="#FF135185"/>
+
+                        <TextBlock Text="{Binding ShopOrder.BomRevDate, StringFormat=d}"
+                                   FontSize="18"
+                                   FontWeight="Bold"
+                                   Margin="10,0,0,0"/>
+
+                    </StackPanel>
+                </StackPanel>
+
+            </Grid>
+
+            <!--#endregion-->
+            
+            <!--#region Grid.Row 5-->
+
+            <TextBlock Grid.Row="5"
+                       Text="* 1ST PIECE SAMPLE MUST BE TURNED IN *"
+                       FontSize="28"
+                       FontWeight="Bold"
+                       FontStyle="Italic"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center"
+                       Foreground="Crimson"
+                       Panel.ZIndex="3"/>
+
+            <Rectangle Grid.Row="5"
+                       HorizontalAlignment="Stretch"
+                       VerticalAlignment="Stretch"
+                       Stroke="Crimson"
+                       StrokeThickness="2"
+                       StrokeDashArray="4,4"
+                       Panel.ZIndex="2"/>
+
+            <TextBlock Grid.Row="5"
+                       HorizontalAlignment="Stretch"
+                       VerticalAlignment="Stretch"
+                       Panel.ZIndex="1">
+                <TextBlock.Background>
+                    <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                        <GradientStop Color="White" Offset="0.25"/>
+                        <GradientStop Color="Bisque" Offset="1"/>
+                    </LinearGradientBrush>
+                </TextBlock.Background>
+            </TextBlock>
+
+            <!--#endregion-->
+            
+            <!--#region Grid.Row 6-->
+
+            <Grid Grid.Row="6">
+
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" Orientation="Vertical">
+
+                    <TextBox Text="Work Order Notes"
+                             FontSize="18"
+                             FontWeight="Bold"
+                             Foreground="WhiteSmoke"
+                             Background="#FF135185"
+                             BorderBrush="Black"
+                             HorizontalContentAlignment="Center"
+                             VerticalContentAlignment="Center"
+                             Height="35"
+                             Margin="0,10,10,0"
+                             Style="{DynamicResource DisabledTextBox}"/>
+
+                    <TextBox Text="TODO Add in the work order notes"
+                             FontSize="18"
+                             BorderBrush="Black"
+                             Height="130"
+                             Margin="0,0,10,0"
+                             Style="{DynamicResource DisabledTextBox}"/>
+
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Orientation="Vertical">
+
+                    <TextBox Text="Shop Floor Notes"
+                             FontSize="18"
+                             FontWeight="Bold"
+                             Foreground="WhiteSmoke"
+                             Background="#FF135185"
+                             BorderBrush="Black"
+                             HorizontalContentAlignment="Center"
+                             VerticalContentAlignment="Center"
+                             Height="35"
+                             Margin="10,10,0,0"
+                             Style="{DynamicResource DisabledTextBox}"/>
+
+                    <TextBox Text="TODO Add in the shop floor notes"
+                             FontSize="18"
+                             BorderBrush="Black"
+                             Height="130"
+                             Margin="10,0,0,0"
+                             Style="{DynamicResource DisabledTextBox}"/>
+
+                </StackPanel>
+
+            </Grid>
+
+            <!--#endregion-->
+            
+            <!--#region Grid.Row 7-->
+
+            <StackPanel Grid.Row="7" Orientation="Horizontal"
+                        HorizontalAlignment="Left" VerticalAlignment="Center"
+                        Visibility="{Binding ShopOrder.SalesOrder.SalesNumber, Converter={StaticResource StringToVisConverter}}">
+
+                <TextBlock Text="Sales Order:"
+                           FontSize="24"
+                           FontWeight="Bold"
+                           Foreground="#FF135185"
+                           TextDecorations="Underline"/>
+
+                <TextBlock Text="{Binding ShopOrder.SalesOrder.SalesNumber}"
+                           FontSize="24"
+                           FontWeight="Bold"
+                           Margin="10,0,0,0"/>
+
+                <Button Content="Open"
+                        FontSize="18"
+                        Margin="20,0,0,0"
+                        Width="75"
+                        Command="{StaticResource ShowQuery}"
+                        CommandParameter="{Binding FqSalesOrder}"
+                        Style="{DynamicResource DefaultButton}"/>
+
+            </StackPanel>
+
+            <!--#endregion-->
+            
+            <!--#region Grid.Row 8-->
+
+            <Grid Grid.Row="8" Visibility="{Binding ShopOrder.SalesOrder.SalesNumber, Converter={StaticResource StringToVisConverter}}">
+
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="130"/>
+                    <ColumnDefinition Width="500"/>
+                    <ColumnDefinition Width="350"/>
+                    <ColumnDefinition Width="300"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" Orientation="Horizontal">
+
+                    <TextBlock Text="Line Item:"
+                               FontSize="18"
+                               TextDecorations="Underline"
+                               Foreground="#FF135185"/>
+
+                    <TextBlock Text="{Binding ShopOrder.SalesOrder.LineNumber}"
+                               FontSize="18"
+                               FontWeight="Bold"
+                               Margin="10,0,0,0"/>
+
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Orientation="Horizontal">
+
+                    <TextBlock Text="Customer:"
+                               FontSize="18"
+                               TextDecorations="Underline"
+                               Foreground="#FF135185"/>
+
+                    <TextBlock Text="{Binding ShopOrder.SalesOrder.CustomerName}"
+                               FontSize="18"
+                               FontWeight="Bold"
+                               Margin="10,0,0,0"/>
+
+                    <TextBlock Text="{Binding ShopOrder.SalesOrder.CustomerNumber, StringFormat='({0})'}"
+                               FontSize="18"
+                               FontWeight="Bold"
+                               Margin="5,0,0,0"/>
+
+                </StackPanel>
+
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Visibility="{Binding ShopOrder.SalesOrder.CustomerPart, Converter={StaticResource StringToVisConverter}}">
+
+                    <TextBlock Text="Customer Part Number:"
+                               FontSize="18"
+                               TextDecorations="Underline"
+                               Foreground="#FF135185"/>
+
+                    <TextBlock Text="{Binding ShopOrder.SalesOrder.CustomerPart}"
+                               FontSize="18"
+                               FontWeight="Bold"
+                               Margin="10,0,0,0"/>
+
+                </StackPanel>
+
+                <StackPanel Grid.Column="3" Orientation="Horizontal">
+
+                    <TextBlock Text="Promise Date"
+                               FontSize="18"
+                               TextDecorations="Underline"
+                               Foreground="#FF135185"/>
+
+                    <TextBlock Text="{Binding ShopOrder.SalesOrder.PromiseDate, StringFormat=d}"
+                               FontSize="18"
+                               FontWeight="Bold"
+                               Margin="10,0,0,0"/>
+
+                </StackPanel>
+
+            </Grid>
+
+            <!--#endregion-->
+            
+            <!--#region Grid.Row 9-->
+
+            <TextBlock Grid.Row="9"
+                       Text="Picklist Parts (BOM)"
+                       FontSize="24"
+                       FontWeight="Bold"
+                       Foreground="#FF135185"
+                       HorizontalAlignment="Left"
+                       VerticalAlignment="Center"
+                       TextDecorations="Underline"/>
+
+            <!--#endregion-->
+
+            <!--#region Grid.Row 10-->
+
+            <DataGrid Grid.Row="10"
+                      x:Name="dgBom"
+                      ItemsSource="{Binding ShopOrder.Bom}"
+                      IsReadOnly="True"
+                      FontSize="18"
+                      FontWeight="Bold"
+                      AlternatingRowBackground="LightGray"
+                      SelectionMode="Single"
+                      RowDetailsVisibilityMode="Visible"
+                      AutoGenerateColumns="False"
+                      RowHeaderWidth="0"
+                      HorizontalAlignment="Left"
+                      VerticalAlignment="Top">
+
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Part Number" Binding="{Binding CompNumber}"/>
+                    <DataGridTextColumn Header="Description" Binding="{Binding CompDescription}"/>
+                    <DataGridTextColumn Header="On Hand">
+                        <DataGridTextColumn.Binding>
+                            <MultiBinding StringFormat="{}{0}  {1}">
+                                <Binding Path="CurrentOnHand"/>
+                                <Binding Path="CompUom"/>
+                            </MultiBinding>
+                        </DataGridTextColumn.Binding>
+                    </DataGridTextColumn>
+                    <DataGridTextColumn Header="Required Qty">
+                        <DataGridTextColumn.Binding>
+                            <MultiBinding StringFormat="{}{0}  {1}">
+                                <Binding Path="RequiredQty"/>
+                                <Binding Path="CompUom"/>
+                            </MultiBinding>
+                        </DataGridTextColumn.Binding>
+                    </DataGridTextColumn>
+                    <DataGridTextColumn Header="Assembly Qty">
+                        <DataGridTextColumn.Binding>
+                            <MultiBinding StringFormat="{}{0}  {1}">
+                                <Binding Path="AssemblyQty"/>
+                                <Binding Path="CompUom"/>
+                            </MultiBinding>
+                        </DataGridTextColumn.Binding>
+                    </DataGridTextColumn>
+                    <DataGridTextColumn Header="Issued Qty">
+                        <DataGridTextColumn.Binding>
+                            <MultiBinding StringFormat="{}{0}  {1}">
+                                <Binding Path="IssuedQty"/>
+                                <Binding Path="CompUom"/>
+                            </MultiBinding>
+                        </DataGridTextColumn.Binding>
+                    </DataGridTextColumn>
+                    <DataGridTemplateColumn>
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Button Command="{StaticResource PartSearchICommand}"
+                                        Height="20"
+                                        Style="{DynamicResource ResourceKey=DefaultButton}">
+                                    <Image Source="/SFW;component/Icons/PartSearch.ico"/>
+                                    <Button.CommandParameter>
+                                        <MultiBinding Converter="{StaticResource PartSearchConverter}">
+                                            <Binding Path="CompNumber"/>
+                                            <Binding Path="CompMasterPrint"/>
+                                        </MultiBinding>
+                                    </Button.CommandParameter>
+                                </Button>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                </DataGrid.Columns>
+
+                <DataGrid.RowDetailsTemplate>
+                    <DataTemplate>
+
+                        <Grid Background="Gray">
+
+                            <DataGrid x:Name="dgBomLots"
+                                      ItemsSource="{Binding LotList}"
+                                      Visibility="{Binding LotList.Count, Converter={StaticResource IntToVisConverter}}"
+                                      MaxHeight="115"
+                                      IsReadOnly="True"
+                                      FontSize="14"
+                                      FontWeight="SemiBold"
+                                      AlternatingRowBackground="LightGray"
+                                      SelectionMode="Single"
+                                      AutoGenerateColumns="False"
+                                      RowHeaderWidth="0"
+                                      HorizontalAlignment="Left"
+                                      VerticalAlignment="Top">
+
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Lot Number" Binding="{Binding LotNumber}"/>
+                                    <DataGridTextColumn Header="On Hand" Binding="{Binding Onhand}"/>
+                                    <DataGridTextColumn Header="Location" Binding="{Binding Location}"/>
+                                </DataGrid.Columns>
+
+                            </DataGrid>
+
+                        </Grid>
+                        
+                    </DataTemplate>
+                </DataGrid.RowDetailsTemplate>
+
+            </DataGrid>
+
+            <!--#endregion-->
+
+        </Grid>
+
+    </Grid>
+</UserControl>
