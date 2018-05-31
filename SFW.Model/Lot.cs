@@ -1,15 +1,13 @@
-﻿using SFW.Model.Enumerations;
-using SFW.Model.Helpers;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.SqlClient;
-using System.Linq;
 
 //Created by Michael Marsh 4-25-18
 
 namespace SFW.Model
 {
-    public class Lot
+    public class Lot : ModelBase
     {
         #region Properties
 
@@ -25,6 +23,7 @@ namespace SFW.Model
         public string TransactionWorkOrder { get; set; }
         public string TransactionSalesOrder { get; set; }
         public string Submitter { get; set; }
+        public string TransactionCrew { get; set; }
 
         #endregion
 
@@ -37,6 +36,7 @@ namespace SFW.Model
         /// Get a List of lot numbers associated with a part number
         /// </summary>
         /// <param name="partNbr">SKU Part Number</param>
+        /// <param name="sqlCon">Sql Connection to use</param>
         /// <returns>List of lots associated with the part number</returns>
         public static List<Lot> GetOnHandLotList(string partNbr, SqlConnection sqlCon)
         {
@@ -46,7 +46,8 @@ namespace SFW.Model
                 if (!string.IsNullOrEmpty(partNbr))
                 {
                     using (SqlCommand cmd = new SqlCommand(@"SELECT 
-                                                                a.[Lot_Number], b.[Oh_Qtys], b.[Loc] 
+                                                                SUBSTRING(a.[Lot_Number], 0, CHARINDEX('|',a.[Lot_Number],0)) as 'LotNumber',
+                                                                b.[Oh_Qtys], b.[Loc] 
                                                             FROM 
                                                                 [dbo].[LOT-INIT] a 
                                                             RIGHT JOIN 
@@ -63,9 +64,9 @@ namespace SFW.Model
                                 {
                                     _tempList.Add(new Lot
                                     {
-                                        LotNumber = reader.IsDBNull(0) ? string.Empty : reader.GetString(0),
-                                        Onhand = reader.IsDBNull(1) ? 0 : Convert.ToInt32(reader.GetValue(1)),
-                                        Location = reader.IsDBNull(2) ? string.Empty : reader.GetString(2)
+                                        LotNumber = reader.SafeGetString("LotNumber"),
+                                        Onhand = reader.SafeGetInt32("Oh_Qtys"),
+                                        Location = reader.SafeGetString("Loc")
                                     });
                                 }
                             }
@@ -76,124 +77,75 @@ namespace SFW.Model
             }
             catch (Exception)
             {
-                return null;
+                return new List<Lot>();
             }
         }
 
         /// <summary>
-        /// Get a list of historical transactions of lots based on part number
+        /// Get a DataTable of historical transactions of lots based on part number
         /// </summary>
         /// <param name="partNbr">SKU Part Number</param>
-        /// <returns>List of historical lot transactions</returns>
-        public static List<Lot> GetLotHistoryList(string partNbr, SqlConnection sqlCon)
+        /// <param name="sqlCon">Sql Connection to use</param>
+        /// <returns>DataTable of historical lot transactions</returns>
+        public static DataTable GetLotHistoryTable(string partNbr, SqlConnection sqlCon)
         {
             try
             {
-                var _tempList = new List<Lot>();
-                if (!string.IsNullOrEmpty(partNbr))
+                using (DataTable dt = new DataTable())
                 {
-                    using (SqlCommand cmd = new SqlCommand(@"SELECT
-	                                                            a.[ID], a.[Process_Time_Date], a.[Logon], a.[Tran_Code], a.[Lot_Number], a.[From_Loc], a.[To_Loc], a.[Qty], a.[Prior_On_Hand], a.[Reference], b.[Wp_Nbr], c.[So_Reference]
-                                                            FROM
-	                                                            [dbo].[IT-INIT] a
-                                                            RIGHT JOIN 
-	                                                            [dbo].[WP-INIT_Lot_Entered] b ON b.[Lot_Entered] = a.[Lot_Number]
-                                                            RIGHT JOIN
-	                                                            [dbo].[WP-INIT] c ON c.[Wp_Nbr] = b.[Wp_Nbr]
-                                                            WHERE
-	                                                            a.[ID] LIKE CONCAT('1005050', '%')
-                                                            ORDER BY
-	                                                            a.[Tran_Date] DESC;", sqlCon))
+                    if (!string.IsNullOrEmpty(partNbr))
                     {
-                        cmd.Parameters.AddWithValue("p1", partNbr);
-                        using (SqlDataReader reader = cmd.ExecuteReader())
+                        using (SqlDataAdapter adapter = new SqlDataAdapter(@"SELECT
+	                                                                            CAST(SUBSTRING(a.[ID], CHARINDEX('*', a.[ID], 0) + 1, LEN(a.[ID])) as int) as 'TranKey',
+	                                                                            a.[Process_Time_Date],
+	                                                                            CASE WHEN a.[Scan_Station_ID] IS NOT NULL THEN
+		                                                                            CASE WHEN ISNUMERIC(a.[Scan_Station_ID]) = 0 THEN a.[Scan_Station_ID]
+		                                                                            ELSE (SELECT
+					                                                                            CONCAT(b1.[First_Name], ' ', b1.[Last_Name])
+				                                                                            FROM
+					                                                                            [dbo].[WIP_HIST-INIT] a1
+				                                                                            RIGHT JOIN
+					                                                                            [dbo].[EMPLOYEE_MASTER-INIT] b1 on b1.[Emp_No] = a1.[Crew_Leader]
+				                                                                            WHERE
+					                                                                            a1.[ID] = a.[Scan_Station_ID]) END
+	                                                                            ELSE SUBSTRING(a.[Logon], 0, CHARINDEX(':', a.[Logon], 0)) END as 'Submitter',
+	                                                                            d.[Ext_Desc] as 'TranType',
+	                                                                            CASE WHEN a.[Tran_Code] = 44 OR a.[Tran_Code] = 50 THEN SUBSTRING(a.[Reference], 0, CHARINDEX('*',a.[Reference], 0))
+		                                                                            ELSE '' END as 'TranCode',
+	                                                                            SUBSTRING(a.[Lot_Number], 0, CHARINDEX('|',a.[Lot_Number],0)) as 'LotNumber',
+	                                                                            CASE WHEN a.[From_Loc] IS NULL THEN a.[To_Loc]
+		                                                                            WHEN a.[To_Loc] IS NULL THEN a.[From_Loc]
+		                                                                            ELSE CONCAT(a.[From_Loc], ' --> ', a.[To_Loc]) END as 'TranLoc',
+	                                                                            CAST(CASE WHEN a.[Tran_Code] = 44 OR a.[Tran_Code] = 49 THEN a.[Qty] * -1
+		                                                                            ELSE a.[Qty] END as int) as 'TranQty', 
+	                                                                            CAST(a.[Prior_On_Hand] as int) as 'OnHand',
+	                                                                            CASE WHEN a.[Tran_Code] = 44 OR a.[Tran_Code] = 50 THEN SUBSTRING(a.[Reference], CHARINDEX('*',a.[Reference], 0) + 1, LEN(a.[Reference]))
+		                                                                            ELSE '' END as 'Reference',
+	                                                                            b.[Wp_Nbr],
+	                                                                            ISNULL(SUBSTRING(c.[So_Reference], 0, LEN(c.[So_Reference]) - 1), '') as 'SalesOrder'
+                                                                            FROM
+	                                                                            [dbo].[IT-INIT] a
+                                                                            RIGHT JOIN
+	                                                                            [dbo].[WP-INIT_Lot_Entered] b ON b.[Lot_Entered] = a.[Lot_Number]
+                                                                            RIGHT JOIN
+	                                                                            [dbo].[WP-INIT] c ON c.[Wp_Nbr] = b.[Wp_Nbr]
+                                                                            RIGHT JOIN
+	                                                                            [dbo].[IT-INIT_Tran_Code] d ON d.[ID] = a.[Tran_Code]
+                                                                            WHERE
+	                                                                            a.[ID] LIKE CONCAT(@p1, '%')
+                                                                            ORDER BY
+	                                                                            a.[Tran_Date] DESC, TranKey ASC", sqlCon))
                         {
-                            if (reader.HasRows)
-                            {
-                                while (reader.Read())
-                                {
-                                    #region Define Transaction Parameters
-
-                                    //Defining the transaction type, do not want to display any value that is not cataloged in the enumeration
-                                    var _verifyValue = Tran_Code.NA;
-                                    var _typeVerify = reader.IsDBNull(3) ? false : Enum.TryParse(reader.GetString(3), out _verifyValue);
-                                    if (_typeVerify && Enum.IsDefined(typeof(Tran_Code), _verifyValue))
-                                    {
-                                        //Defining the transaction reference and code based on the transaction type being adjust
-                                        var _tranRef = string.Empty;
-                                        var _tranCode = string.Empty;
-                                        if ((_verifyValue == Tran_Code.ADJUST || _verifyValue == Tran_Code.ISSUE) && !reader.IsDBNull(9) && reader.GetString(9).Contains("*"))
-                                        {
-                                            var _tranArray = reader.GetString(9).Split('*');
-                                            _tranCode = _tranArray[0];
-                                            if(_tranArray.Count() == 2)
-                                            {
-                                                _tranRef = _tranArray[1];
-                                            }
-                                            else
-                                            {
-                                                foreach(string s in _tranArray)
-                                                {
-                                                    _tranRef = s == _tranCode ? string.Empty : _tranRef + s;
-                                                }
-                                            }
-                                        }
-                                        else
-                                        {
-                                            _tranRef = reader.IsDBNull(9) ? string.Empty : reader.GetString(9);
-                                        }
-
-                                        //Defining the transaction quantity based on the transaction type
-                                        var _tranQty = 0;
-                                        if (_verifyValue == Tran_Code.ISSUE || _verifyValue == Tran_Code.SALE)
-                                        {
-                                            _tranQty = reader.IsDBNull(7) ? 0 : Convert.ToInt32(reader.GetValue(7)) * -1;
-                                        }
-                                        else
-                                        {
-                                            _tranQty = reader.IsDBNull(7) ? 0 : Convert.ToInt32(reader.GetValue(7));
-                                        }
-
-                                        //Define the transaction date for use with a converter
-                                        var _tranDateTime = reader.IsDBNull(1) ? null : reader.GetString(1).Split('*');
-
-                                        //Define the location based off the database's to and from locations
-                                        var _tranLoc = string.Empty;
-                                        if (!reader.IsDBNull(5) || !reader.IsDBNull(6))
-                                        {
-                                            _tranLoc = reader.IsDBNull(5) ? reader.GetString(6) : reader.IsDBNull(6) ? reader.GetString(5) : $"{reader.GetString(5)} --> {reader.GetString(6)}";
-                                        }
-
-                                        #endregion
-
-                                        _tempList.Add(new Lot
-                                        {
-                                            TransactionKey = reader.IsDBNull(0) ? 0 : Convert.ToInt32(reader.GetString(0).Substring(reader.GetString(0).IndexOf('*') + 1)),
-                                            Submitter = reader.IsDBNull(2) ? string.Empty : reader.GetString(2).Substring(0, reader.GetString(2).IndexOf(':')),
-                                            TransactionType = _verifyValue.GetEnumDescription(),
-                                            LotNumber = reader.IsDBNull(4) ? string.Empty : reader.GetString(4),
-                                            Location = _tranLoc,
-                                            TransactionDate = _tranDateTime == null ? DateTime.MinValue : M2kConverters.GetTimeStamp(Convert.ToInt32(_tranDateTime[0]), Convert.ToInt32(_tranDateTime[1])),
-                                            TransactionQty = _tranQty,
-                                            Onhand = reader.IsDBNull(8) ? 0 : Convert.ToInt32(reader.GetValue(8)),
-                                            TransactionReference = _tranRef,
-                                            TransactionCode = _tranCode,
-                                            TransactionWorkOrder = reader.IsDBNull(10) ? string.Empty : reader.GetString(10),
-                                            TransactionSalesOrder = reader.IsDBNull(11) ? string.Empty : reader.GetString(11)
-                                        });
-                                    }
-                                }
-                            }
+                            adapter.SelectCommand.Parameters.AddWithValue("p1", partNbr);
+                            adapter.Fill(dt);
                         }
                     }
+                    return dt;
                 }
-                _tempList = _tempList.OrderBy(o => o.TransactionKey).ToList();
-                _tempList.Reverse();
-                return _tempList;
             }
             catch (Exception)
             {
-                return null;
+                return new DataTable();
             }
         }
     }

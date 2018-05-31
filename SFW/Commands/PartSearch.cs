@@ -36,7 +36,7 @@ namespace SFW.Commands
             }
             catch (Win32Exception)
             {
-                throw new Win32Exception(404, "The Print for this part number was not found.\nPlease contact engineering for further support.");
+                MessageBox.Show("The Print for this part number was not found.\nPlease contact engineering for further support.", "Missing Print Document", MessageBoxButton.OK, MessageBoxImage.Hand);
             }
             catch (Exception)
             {

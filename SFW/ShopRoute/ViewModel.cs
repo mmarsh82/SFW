@@ -10,7 +10,7 @@ namespace SFW.ShopRoute
         public WorkOrder ShopOrder
         {
             get { return shopOrder; }
-            set { shopOrder = value; OnPropertyChanged(nameof(ShopOrder)); }
+            set { shopOrder = value; OnPropertyChanged(nameof(ShopOrder)); OnPropertyChanged(nameof(FqSalesOrder)); }
         }
 
         public string FqSalesOrder

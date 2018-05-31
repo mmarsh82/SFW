@@ -17,7 +17,6 @@ namespace SFW.Model
         public int LineNumber { get; set; }
         public int LineQuantity { get; set; }
         public string LineNotes { get; set; }
-        public DateTime PromiseDate { get; set; }
 
         #endregion
 
@@ -43,19 +42,20 @@ namespace SFW.Model
                     {
                         var soNbrArray = soNbr.Split('*');
                         soNbr = $"{soNbrArray[0]}*{soNbrArray[1]}";
+                        SalesNumber = soNbrArray[0];
+                        LineNumber = Convert.ToInt32(soNbrArray[1]);
                     }
                     try
                     {
                         using (SqlCommand cmd = new SqlCommand(@"SELECT
-	                                                            c.[ID], a.[Cust_Nbr], b.[Name], c.[Cust_Part_Nbr], c.[Ln_Bal_Qty], a.[Promise_Date20] 
-                                                            FROM
-	                                                            [dbo].[SOH-INIT] a
-                                                            RIGHT JOIN
-	                                                            [dbo].[CM-INIT] b ON b.[Cust_Nbr] = a.[Cust_Nbr]
-                                                            RIGHT JOIN
-	                                                            [dbo].[SOD-INIT] c ON c.[So_Nbr] = a.[So_Nbr]
-                                                            WHERE
-	                                                            c.[ID] = @p1;", sqlCon))
+	                                                                a.[Cust_Nbr], a.[Cust_Part_Nbr], a.[Ln_Bal_Qty],
+	                                                                b.[Name] as 'Cust_Name'
+                                                                FROM
+	                                                                [dbo].[SOD-INIT] a
+                                                                RIGHT JOIN
+	                                                                [dbo].[CM-INIT] b ON b.[Cust_Nbr] = a.[Cust_Nbr]
+                                                                WHERE
+	                                                                a.[ID] = @p1;", sqlCon))
                         {
                             cmd.Parameters.AddWithValue("p1", soNbr);
                             using (SqlDataReader reader = cmd.ExecuteReader())
@@ -64,15 +64,11 @@ namespace SFW.Model
                                 {
                                     while (reader.Read())
                                     {
-                                        var _tempID = reader.IsDBNull(0) ? null : reader.GetString(0).Split('*');
-                                        SalesNumber = _tempID == null ? string.Empty : _tempID[0];
-                                        CustomerNumber = reader.IsDBNull(1) ? string.Empty : reader.GetString(1);
-                                        CustomerName = reader.IsDBNull(2) ? string.Empty : reader.GetString(2);
-                                        CustomerPart = reader.IsDBNull(3) ? string.Empty : reader.GetString(3);
-                                        LineNumber = _tempID == null ? 0 : Convert.ToInt32(_tempID[1]);
-                                        LineQuantity = reader.IsDBNull(4) ? 0 : Convert.ToInt32(reader.GetValue(4));
-
-                                        PromiseDate = reader.IsDBNull(5) ? DateTime.MinValue : Convert.ToDateTime(reader.GetValue(5));
+                                        CustomerNumber = reader.SafeGetString("Cust_Nbr");
+                                        CustomerName = reader.SafeGetString("Cust_Name");
+                                        CustomerPart = reader.SafeGetString("Cust_Part_Nbr");
+                                        LineQuantity = reader.SafeGetInt32("Ln_Bal_Qty");
+                                        LineNotes = string.Empty;
                                     }
                                 }
                             }

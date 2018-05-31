@@ -27,6 +27,13 @@ namespace SFW.Model
         public Component()
         { }
 
+        /// <summary>
+        /// Retrieve a list of components for a work order
+        /// </summary>
+        /// <param name="woNbr">Work Order Number</param>
+        /// <param name="balQty">Balance quantity left on the work order</param>
+        /// <param name="sqlCon">Sql Connection to use</param>
+        /// <returns></returns>
         public static List<Component> GetComponentList(string woNbr, int balQty, SqlConnection sqlCon)
         {
             var _tempList = new List<Component>();
@@ -54,17 +61,16 @@ namespace SFW.Model
                             {
                                 while (reader.Read())
                                 {
-                                    var _id = reader.IsDBNull(0) ? null : reader.GetString(0).Split('*');
                                     _tempList.Add(new Component
                                     {
-                                        CompNumber = reader.IsDBNull(0) ? string.Empty : reader.GetString(0),
-                                        AssemblyQty = reader.IsDBNull(1) ? 0 : Convert.ToDouble(reader.GetDecimal(1)),
-                                        RequiredQty = reader.IsDBNull(2) ? 0 : Convert.ToInt32(reader.GetValue(2)),
-                                        CurrentOnHand = reader.IsDBNull(3) ? 0 : Convert.ToInt32(reader.GetValue(3)),
-                                        CompDescription = reader.IsDBNull(4) ? string.Empty : reader.GetString(4),
-                                        IssuedQty = reader.IsDBNull(1) ? 0 : balQty * Convert.ToInt32(reader.GetValue(1)),
-                                        CompMasterPrint = reader.IsDBNull(5) ? string.Empty : reader.GetString(5),
-                                        CompUom = reader.IsDBNull(6) ? string.Empty : reader.GetString(6),
+                                        CompNumber = reader.SafeGetString("Component"),
+                                        AssemblyQty = reader.SafeGetDouble("Qty Per"),
+                                        RequiredQty = reader.SafeGetInt32("Req Qty"),
+                                        CurrentOnHand = reader.SafeGetInt32("On Hand"),
+                                        CompDescription = reader.SafeGetString("Description"),
+                                        IssuedQty = reader.SafeGetInt32("Qty Per") * balQty,
+                                        CompMasterPrint = reader.SafeGetString("Drawing_Nbrs"),
+                                        CompUom = reader.SafeGetString("Um"),
                                         LotList = reader.IsDBNull(0) ? new List<Lot>() : Lot.GetOnHandLotList(reader.GetString(0), sqlCon)
                                     });
                                 }

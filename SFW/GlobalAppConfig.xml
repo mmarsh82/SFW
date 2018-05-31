@@ -1,0 +1,7 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Properties>
+  <SqlConnection>
+    <Server XName="Server" Value="SQL-WCCO"/>
+    <DataBase XName="DataBase" Value="WCCO_MAIN"/>
+  </SqlConnection>
+</Properties>

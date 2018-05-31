@@ -30,11 +30,27 @@ namespace SFW.Schedule
 
         #endregion
 
+        /// <summary>
+        /// Schedule ViewModel default constructor
+        /// </summary>
         public ViewModel()
         {
             if (ScheduleView == null)
             {
                 ScheduleView = CollectionViewSource.GetDefaultView(Machine.GetScheduleData(App.AppSqlCon));
+                ScheduleView.GroupDescriptions.Add(new PropertyGroupDescription("MachineNumber", new WorkCenterNameConverter()));
+            }
+        }
+
+        /// <summary>
+        /// Schedule ViewModel constructor for loading in a specific workcenter
+        /// </summary>
+        /// <param name="machineNumber">Machine Number to load into the schedule</param>
+        public ViewModel(string machineNumber)
+        {
+            if (ScheduleView == null)
+            {
+                ScheduleView = CollectionViewSource.GetDefaultView(Machine.GetScheduleData(App.AppSqlCon, machineNumber));
                 ScheduleView.GroupDescriptions.Add(new PropertyGroupDescription("MachineNumber", new WorkCenterNameConverter()));
             }
         }

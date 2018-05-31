@@ -1,8 +1,10 @@
 ﻿using Microsoft.Win32;
 using System;
 using System.Data.SqlClient;
+using System.IO;
 using System.Windows;
 using System.Windows.Threading;
+using System.Xml.Linq;
 
 namespace SFW
 {
@@ -13,13 +15,13 @@ namespace SFW
     {
         #region Properties
 
-        public static SqlConnection AppSqlCon { get; set; }
+        public static SqlConnection AppSqlCon { get; private set; }
 
         #endregion
 
         public App()
         {
-            AppSqlCon = new SqlConnection("Server=SQL-WCCO;User ID=omni;Password=Public2017@WORK!;Database=WCCO_MAIN;Connection Timeout=5;MultipleActiveResultSets=True");
+            AppSqlCon = new SqlConnection("Server=SQL-WCCO;User ID=omni;Password=Public2017@WORK!;DataBase=WCCO_MAIN;Connection Timeout=5;MultipleActiveResultSets=True");
             AppSqlCon.OpenAsync();
             Current.Exit += App_Exit;
             AppDomain.CurrentDomain.UnhandledException += App_ExceptionCrash;
@@ -163,6 +165,36 @@ namespace SFW
             }
         }
 
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        private bool LoadGlobalAppConfig()
+        {
+            if (File.Exists("C:\\Users\\michaelm\\Desktop\\AppConfig.xml"))
+            {
+                var test = XDocument.Load("C:\\Users\\michaelm\\Desktop\\AppConfig.xml");
+                var test2 = test.Descendants();
+                foreach (var x in test2)
+                {
+                    var test3 = x.Value;
+                }
+                return true;
+            }
+            else
+            {
+                try
+                {
+                    var xDoc = new XDocument();
+                    var xWrite = xDoc.CreateWriter();
+                    //TODO create a default config file and test against the true if condition
+                    return true;
+                }
+                catch(Exception ex)
+                {
+                    return false;
+                }
+            }
+        }
     }
 }

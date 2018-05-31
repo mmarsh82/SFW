@@ -13,7 +13,7 @@
 
         <Grid.Resources>
             <cmd:PartInformation x:Key="PartInfoICommand"/>
-            <cmd:ScheduleLoad x:Key="ScheduleLoadICommand"/>
+            <cmd:ViewLoad x:Key="ViewLoadICommand"/>
             <cmd:PartSearch x:Key="PartSearchCommand"/>
         </Grid.Resources>
 
@@ -28,19 +28,29 @@
               Grid.Row="0"
               FontSize="16"
               FontWeight="Bold"
-              VerticalAlignment="Stretch">
+              VerticalAlignment="Stretch"
+              IsMainMenu="True">
             <MenuItem Header="File">
                 <MenuItem Header="Print"/>
                 <MenuItem Header="Exit"/>
             </MenuItem>
             <MenuItem Header="View">
-                <MenuItem Header="Work Center">
-                    <ListView ItemsSource="{Binding MachineList}"
-                              
-                              DisplayMemberPath="MachineNumber"/>
+                <MenuItem Header="Work Center"
+                          ItemsSource="{Binding MachineList}"
+                          DisplayMemberPath="MachineName">
+                    <MenuItem.ItemContainerStyle>
+                        <Style TargetType="{x:Type MenuItem}">
+                            <Setter Property="Command" Value="{StaticResource ViewLoadICommand}"/>
+                            <Setter Property="CommandParameter" Value="{Binding MachineNumber}"/>
+                        </Style>
+                    </MenuItem.ItemContainerStyle>
                 </MenuItem>
                 <MenuItem Header="Schedule"
-                          Command="{StaticResource ScheduleLoadICommand}"/>
+                          Command="{StaticResource ViewLoadICommand}"
+                          CommandParameter="Schedule"/>
+                <MenuItem Header="Scheduler"
+                          Command="{StaticResource ViewLoadICommand}"
+                          CommandParameter="Scheduler"/>
                 <MenuItem Header="Setup Prints"/>
                 <MenuItem Header="Work Instructions"/>
             </MenuItem>
@@ -58,7 +68,7 @@
         <!--#region WorkSpace Grid-->
 
         <DockPanel x:Name="WorkSpaceDock"
-              Grid.Row="1"/>
+                   Grid.Row="1"/>
 
         <!--#endregion-->
         

@@ -2,10 +2,7 @@
 using SFW.Model;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
-using System.Linq;
-using System.Windows.Data;
 using System.Windows.Input;
 
 //Created by Michael Marsh 4-25-18
@@ -26,8 +23,7 @@ namespace SFW.Queries
                 selectedILotRow = value;
                 try
                 {
-                    IthResultsView = CollectionViewSource.GetDefaultView(IthResultsList.Where(o => o.LotNumber == selectedILotRow.LotNumber));
-                    OnPropertyChanged(nameof(IthResultsView));
+                    IthResultsTable.DefaultView.RowFilter = $"LotNumber = '{value.LotNumber}'";
                 }
                 catch (NullReferenceException)
                 {
@@ -36,14 +32,20 @@ namespace SFW.Queries
             }
         }
 
-        public List<Lot> IthResultsList { get; set; }
-        public ICollectionView IthResultsView { get; set; }
+        public DataTable IthResultsTable { get; set; }
 
         private bool results;
         public bool NoResults
         {
             get { return results; }
             set { results = value; OnPropertyChanged(nameof(NoResults)); }
+        }
+
+        private int loadProgress;
+        public int LoadProgress
+        {
+            get { return loadProgress; }
+            set { loadProgress = value; OnPropertyChanged(nameof(LoadProgress)); }
         }
 
         private RelayCommand _search;
@@ -56,6 +58,7 @@ namespace SFW.Queries
         public PartInfo_ViewModel()
         {
             NoResults = true;
+            LoadProgress = -1;
         }
 
         /// <summary>
@@ -65,6 +68,7 @@ namespace SFW.Queries
         public PartInfo_ViewModel(string partNrb)
         {
             SearchICommand.Execute(partNrb);
+            LoadProgress = -1;
         }
 
         #region Search ICommand
@@ -93,9 +97,8 @@ namespace SFW.Queries
             ILotResultsList = Lot.GetOnHandLotList(parameter.ToString(), App.AppSqlCon);
             OnPropertyChanged(nameof(ILotResultsList));
             NoResults = ILotResultsList?.Count == 0;
-            IthResultsList = Lot.GetLotHistoryList(parameter.ToString(), App.AppSqlCon);
-            IthResultsView = CollectionViewSource.GetDefaultView(IthResultsList);
-            OnPropertyChanged(nameof(IthResultsView));
+            IthResultsTable = Lot.GetLotHistoryTable(parameter.ToString(), App.AppSqlCon);
+            OnPropertyChanged(nameof(IthResultsTable));
         }
         private bool SearchCanExecute(object parameter) => !string.IsNullOrWhiteSpace(parameter.ToString());
 

@@ -12,7 +12,7 @@ namespace SFW.Converters
         {
             if (value != null)
             {
-                return (int)value > 0 ? Visibility.Visible : Visibility.Collapsed;
+                return System.Convert.ToInt32(value) > 0 ? Visibility.Visible : Visibility.Collapsed;
             }
             else
             {

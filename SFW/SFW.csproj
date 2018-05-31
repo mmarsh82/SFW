@@ -64,6 +64,8 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
+    <Reference Include="System.DirectoryServices" />
+    <Reference Include="System.DirectoryServices.AccountManagement" />
     <Reference Include="System.Windows.Interactivity, Version=4.5.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Expression.Interaction.3.0.40218.0\lib\net46\System.Windows.Interactivity.dll</HintPath>
     </Reference>
@@ -90,9 +92,10 @@
     <Compile Include="Commands\PartInformation.cs" />
     <Compile Include="Commands\PartSearch.cs" />
     <Compile Include="Commands\RelayCommand.cs" />
-    <Compile Include="Commands\ScheduleLoad.cs" />
+    <Compile Include="Commands\ViewLoad.cs" />
     <Compile Include="Converters\CountToVisibility.cs" />
     <Compile Include="Converters\InvertBoolToVisibility.cs" />
+    <Compile Include="Converters\M2kDataToDateTime.cs" />
     <Compile Include="Converters\NegativeIntToBool.cs" />
     <Compile Include="Converters\ObjectToVisibility.cs" />
     <Compile Include="Converters\SkuMasterPrint.cs" />
@@ -104,6 +107,10 @@
       <DependentUpon>PartInfo_View.xaml</DependentUpon>
     </Compile>
     <Compile Include="Queries\PartInfo_ViewModel.cs" />
+    <Compile Include="Scheduler\View.xaml.cs">
+      <DependentUpon>View.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Scheduler\ViewModel.cs" />
     <Compile Include="Schedule\View.xaml.cs">
       <DependentUpon>View.xaml</DependentUpon>
     </Compile>
@@ -114,6 +121,10 @@
     </Compile>
     <Compile Include="ShopRoute\ViewModel.cs" />
     <Page Include="Queries\PartInfo_View.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Scheduler\View.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -211,6 +222,12 @@
   </ItemGroup>
   <ItemGroup>
     <SplashScreen Include="Icons\WCCO Splash.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="GlobalAppConfig.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Icons\Delete.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
