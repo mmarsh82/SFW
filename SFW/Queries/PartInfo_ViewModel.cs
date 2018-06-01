@@ -41,14 +41,19 @@ namespace SFW.Queries
             set { results = value; OnPropertyChanged(nameof(NoResults)); }
         }
 
-        private int loadProgress;
-        public int LoadProgress
+        private bool loading;
+        public bool IsLoading
         {
-            get { return loadProgress; }
-            set { loadProgress = value; OnPropertyChanged(nameof(LoadProgress)); }
+            get { return loading; }
+            set { loading = value; OnPropertyChanged(nameof(IsLoading)); }
         }
 
+        public delegate void ResultsDelegate(string s);
+        public ResultsDelegate ResultsAsyncDelegate { get; private set; }
+        public IAsyncResult SearchAsyncResult { get; set; }
+
         private RelayCommand _search;
+        private RelayCommand _filter;
 
         #endregion
 
@@ -58,7 +63,8 @@ namespace SFW.Queries
         public PartInfo_ViewModel()
         {
             NoResults = true;
-            LoadProgress = -1;
+            IsLoading = false;
+            ResultsAsyncDelegate = new ResultsDelegate(ResultsLoading);
         }
 
         /// <summary>
@@ -67,9 +73,28 @@ namespace SFW.Queries
         /// <param name="partNrb">Part number to pre-load</param>
         public PartInfo_ViewModel(string partNrb)
         {
+            IsLoading = false;
+            ResultsAsyncDelegate = new ResultsDelegate(ResultsLoading);
             SearchICommand.Execute(partNrb);
-            LoadProgress = -1;
         }
+
+        #region Load Search Results Async Delegation Implementation
+
+        public void ResultsLoading(string partNbr)
+        {
+            IsLoading = true;
+            ILotResultsList = Lot.GetOnHandLotList(partNbr, App.AppSqlCon);
+            IthResultsTable = Lot.GetLotHistoryTable(partNbr, App.AppSqlCon);
+        }
+        public void ResultsLoaded(IAsyncResult r)
+        {
+            IsLoading = false;
+            NoResults = ILotResultsList?.Count == 0;
+            OnPropertyChanged(nameof(ILotResultsList));
+            OnPropertyChanged(nameof(IthResultsTable));
+        }
+
+        #endregion
 
         #region Search ICommand
 
@@ -94,13 +119,41 @@ namespace SFW.Queries
         /// <param name="parameter">User input</param>
         private void SearchExecute(object parameter)
         {
-            ILotResultsList = Lot.GetOnHandLotList(parameter.ToString(), App.AppSqlCon);
-            OnPropertyChanged(nameof(ILotResultsList));
-            NoResults = ILotResultsList?.Count == 0;
-            IthResultsTable = Lot.GetLotHistoryTable(parameter.ToString(), App.AppSqlCon);
-            OnPropertyChanged(nameof(IthResultsTable));
+            NoResults = false;
+            IthResultsTable = null;
+            ILotResultsList = null;
+            SearchAsyncResult = ResultsAsyncDelegate.BeginInvoke(parameter.ToString(), new AsyncCallback(ResultsLoaded), null);
         }
         private bool SearchCanExecute(object parameter) => !string.IsNullOrWhiteSpace(parameter.ToString());
+
+        #endregion
+
+        #region Filter ICommand
+
+        /// <summary>
+        /// Search ICommand Instantiation
+        /// </summary>
+        public ICommand FilterICommand
+        {
+            get
+            {
+                if (_filter == null)
+                {
+                    _filter = new RelayCommand(FilterExecute, FilterCanExecute);
+                }
+                return _filter;
+            }
+        }
+
+        /// <summary>
+        /// Filter ICommand Validation and Execution
+        /// </summary>
+        /// <param name="parameter">User input</param>
+        private void FilterExecute(object parameter)
+        {
+            IthResultsTable.Search(parameter.ToString());
+        }
+        private bool FilterCanExecute(object parameter) => !string.IsNullOrEmpty(parameter.ToString()) && IthResultsTable != null;
 
         #endregion
     }
