@@ -13,179 +13,195 @@
 
     <UserControl.Resources>
         <cmd:PartSearch x:Key="PartSearchCommand"/>
+        <BooleanToVisibilityConverter x:Key="BoolToVisConverter"/>
         <cvtr:WorkOrderNumber x:Key="WorkOrderConverter"/>
         <cvtr:SkuMasterPrint x:Key="PartSearchConverter"/>
+        <cvtr:InvertBoolToVisibility x:Key="InvertedBoolToVisConverter"/>
     </UserControl.Resources>
 
-    <DataGrid x:Name="WorkCenterSchedule"
-              Grid.Row="1"
-              ItemsSource="{Binding ScheduleView, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-              SelectedItem="{Binding SelectedWorkOrder}"
-              Width="524"
-              HorizontalAlignment="Left"
-              HeadersVisibility="None"
-              AutoGenerateColumns="False"
-              CanUserAddRows="False"
-              IsReadOnly="True"
-              SelectionMode="Single"
-              IsSynchronizedWithCurrentItem="True"
-              EnableRowVirtualization="True"
-              VirtualizingPanel.IsVirtualizing="True"
-              VirtualizingPanel.VirtualizationMode="Recycling">
+    <Grid>
 
-        <DataGrid.Columns>
-            <DataGridTemplateColumn>
-                <DataGridTemplateColumn.CellTemplate>
-                    <DataTemplate>
-                        <StackPanel Orientation="Vertical" Width="500">
-                            <Grid>
-                                <TextBlock Text="{Binding WO_Number, Converter={StaticResource WorkOrderConverter}}" FontSize="24" FontWeight="Bold"/>
-                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                                    <TextBlock Text="Seq:" Margin="0,0,5,0" TextDecorations="Underline" VerticalAlignment="Center"/>
-                                    <TextBlock Text="{Binding WO_Number, Converter={StaticResource WorkOrderConverter}, ConverterParameter=Seq}" FontSize="20" FontWeight="Bold" Margin="0,0,10,0" VerticalAlignment="Center"/>
-                                </StackPanel>
-                            </Grid>
-                            <StackPanel Orientation="Horizontal">
-                                <Button Command="{StaticResource PartSearchCommand}"
+        <TextBlock Text="Loading..."
+                   FontSize="32"
+                   FontWeight="Bold"
+                   Margin="100,0,100,0"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center"
+                   Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisConverter}}"/>
+
+        <DataGrid x:Name="WorkCenterSchedule"
+                  ItemsSource="{Binding ScheduleView, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                  SelectedItem="{Binding SelectedWorkOrder}"
+                  Width="524"
+                  HorizontalAlignment="Left"
+                  HeadersVisibility="None"
+                  AutoGenerateColumns="False"
+                  CanUserAddRows="False"
+                  IsReadOnly="True"
+                  SelectionMode="Single"
+                  IsSynchronizedWithCurrentItem="True"
+                  EnableRowVirtualization="True"
+                  VirtualizingPanel.IsVirtualizing="True"
+                  VirtualizingPanel.VirtualizationMode="Recycling"
+                  Visibility="{Binding IsLoading, Converter={StaticResource InvertedBoolToVisConverter}}">
+
+            <DataGrid.Columns>
+                <DataGridTemplateColumn>
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Vertical" Width="500">
+                                <Grid>
+                                    <TextBlock Text="{Binding WO_Number, Converter={StaticResource WorkOrderConverter}}" FontSize="24" FontWeight="Bold"/>
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                        <TextBlock Text="Seq:" Margin="0,0,5,0" TextDecorations="Underline" VerticalAlignment="Center"/>
+                                        <TextBlock Text="{Binding WO_Number, Converter={StaticResource WorkOrderConverter}, ConverterParameter=Seq}" FontSize="20" FontWeight="Bold" Margin="0,0,10,0" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Grid>
+                                <StackPanel Orientation="Horizontal">
+                                    <Button Command="{StaticResource PartSearchCommand}"
                                         Margin="10,0,10,0"
                                         Height="30"
                                         IsTabStop="False"
                                         Style="{DynamicResource ResourceKey=DefaultButton}">
-                                    <Image Source="/SFW;component/Icons/PartSearch.ico"/>
-                                    <Button.CommandParameter>
-                                        <MultiBinding Converter="{StaticResource PartSearchConverter}">
-                                            <Binding Path="SkuNumber"/>
-                                            <Binding Path="SkuMasterPrint"/>
-                                        </MultiBinding>
-                                    </Button.CommandParameter>
-                                </Button>
-                                <TextBlock Text="{Binding SkuNumber}" VerticalAlignment="Center"/>
-                                <TextBlock Text="{Binding SkuDesc}" Margin="10,0,10,0" VerticalAlignment="Center"/>
+                                        <Image Source="/SFW;component/Icons/PartSearch.ico"/>
+                                        <Button.CommandParameter>
+                                            <MultiBinding Converter="{StaticResource PartSearchConverter}">
+                                                <Binding Path="SkuNumber"/>
+                                                <Binding Path="SkuMasterPrint"/>
+                                            </MultiBinding>
+                                        </Button.CommandParameter>
+                                    </Button>
+                                    <TextBlock Text="{Binding SkuNumber}" VerticalAlignment="Center"/>
+                                    <TextBlock Text="{Binding SkuDesc}" Margin="10,0,10,0" VerticalAlignment="Center"/>
+                                </StackPanel>
+                                <Grid>
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                        <TextBlock Text="Start:" TextDecorations="Underline"/>
+                                        <TextBlock Text="{Binding WO_StartDate, StringFormat=d}" Margin="5,0,0,0"/>
+                                        <TextBlock Text="Due:" Margin="20,0,0,0" TextDecorations="Underline"/>
+                                        <TextBlock Text="{Binding WO_DueDate, StringFormat=d}" Margin="5,0,0,0"/>
+                                    </StackPanel>
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding WO_CurrentQty, StringFormat=n0}"/>
+                                        <TextBlock Text="{Binding SkuUom}" Margin="5,0,0,0"/>
+                                    </StackPanel>
+                                </Grid>
                             </StackPanel>
-                            <Grid>
-                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
-                                    <TextBlock Text="Start:" TextDecorations="Underline"/>
-                                    <TextBlock Text="{Binding WO_StartDate, StringFormat=d}" Margin="5,0,0,0"/>
-                                    <TextBlock Text="Due:" Margin="20,0,0,0" TextDecorations="Underline"/>
-                                    <TextBlock Text="{Binding WO_DueDate, StringFormat=d}" Margin="5,0,0,0"/>
-                                </StackPanel>
-                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                                    <TextBlock Text="{Binding WO_CurrentQty, StringFormat=n0}"/>
-                                    <TextBlock Text="{Binding SkuUom}" Margin="5,0,0,0"/>
-                                </StackPanel>
-                            </Grid>
-                        </StackPanel>
-                    </DataTemplate>
-                </DataGridTemplateColumn.CellTemplate>
-            </DataGridTemplateColumn>
-        </DataGrid.Columns>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+            </DataGrid.Columns>
 
-        <DataGrid.RowStyle>
-            <Style TargetType="{x:Type DataGridRow}">
-                <Setter Property="FontWeight" Value="Bold"/>
-                <Setter Property="FontSize" Value="18"/>
-                <Style.Triggers>
+            <DataGrid.RowStyle>
+                <Style TargetType="{x:Type DataGridRow}">
+                    <Setter Property="FontWeight" Value="Bold"/>
+                    <Setter Property="FontSize" Value="18"/>
+                    <Style.Triggers>
 
-                    <DataTrigger Binding="{Binding WO_Priority}" Value="D">
-                        <Setter Property="Background">
-                            <Setter.Value>
-                                <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
-                                    <GradientStop Color="White" Offset="0"/>
-                                    <GradientStop Color="GhostWhite" Offset="1"/>
-                                </LinearGradientBrush>
-                            </Setter.Value>
-                        </Setter>
-                    </DataTrigger>
-                    <DataTrigger Binding="{Binding WO_Priority}" Value="A">
-                        <Setter Property="Background">
-                            <Setter.Value>
-                                <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
-                                    <GradientStop Color="White" Offset="0"/>
-                                    <GradientStop Color="#FFF3321F" Offset="1"/>
-                                </LinearGradientBrush>
-                            </Setter.Value>
-                        </Setter>
-                    </DataTrigger>
-                    <DataTrigger Binding="{Binding WO_Priority}" Value="B">
-                        <Setter Property="Background">
-                            <Setter.Value>
-                                <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
-                                    <GradientStop Color="White" Offset="0"/>
-                                    <GradientStop Color="#FF29D129" Offset="1"/>
-                                </LinearGradientBrush>
-                            </Setter.Value>
-                        </Setter>
-                    </DataTrigger>
-                    <DataTrigger Binding="{Binding WO_Priority}" Value="C">
-                        <Setter Property="Background">
-                            <Setter.Value>
-                                <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
-                                    <GradientStop Color="White" Offset="0"/>
-                                    <GradientStop Color="LightSlateGray" Offset="1"/>
-                                </LinearGradientBrush>
-                            </Setter.Value>
-                        </Setter>
-                    </DataTrigger>
-                </Style.Triggers>
-            </Style>
-        </DataGrid.RowStyle>
+                        <DataTrigger Binding="{Binding WO_Priority}" Value="D">
+                            <Setter Property="Background">
+                                <Setter.Value>
+                                    <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                                        <GradientStop Color="White" Offset="0"/>
+                                        <GradientStop Color="GhostWhite" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </Setter.Value>
+                            </Setter>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding WO_Priority}" Value="A">
+                            <Setter Property="Background">
+                                <Setter.Value>
+                                    <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                                        <GradientStop Color="White" Offset="0"/>
+                                        <GradientStop Color="#FFF3321F" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </Setter.Value>
+                            </Setter>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding WO_Priority}" Value="B">
+                            <Setter Property="Background">
+                                <Setter.Value>
+                                    <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                                        <GradientStop Color="White" Offset="0"/>
+                                        <GradientStop Color="#FF29D129" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </Setter.Value>
+                            </Setter>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding WO_Priority}" Value="C">
+                            <Setter Property="Background">
+                                <Setter.Value>
+                                    <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                                        <GradientStop Color="White" Offset="0"/>
+                                        <GradientStop Color="LightSlateGray" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </Setter.Value>
+                            </Setter>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </DataGrid.RowStyle>
 
-        <DataGrid.CellStyle>
-            <Style TargetType="{x:Type DataGridCell}">
-                <Style.Triggers>
-                    <MultiDataTrigger>
-                        <MultiDataTrigger.Conditions>
-                            <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsKeyboardFocusWithin}" Value="True"/>
-                            <Condition Binding="{Binding WO_Priority}" Value="B"/>
-                        </MultiDataTrigger.Conditions>
-                        <Setter Property="Background" Value="DarkSeaGreen"/>
-                        <Setter Property="Foreground" Value="Black"/>
-                    </MultiDataTrigger>
-                    <MultiDataTrigger>
-                        <MultiDataTrigger.Conditions>
-                            <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsKeyboardFocusWithin}" Value="True"/>
-                            <Condition Binding="{Binding WO_Priority}" Value="C"/>
-                        </MultiDataTrigger.Conditions>
-                        <Setter Property="Background" Value="Gray"/>
-                        <Setter Property="Foreground" Value="Black"/>
-                    </MultiDataTrigger>
-                    <MultiDataTrigger>
-                        <MultiDataTrigger.Conditions>
-                            <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsKeyboardFocusWithin}" Value="True"/>
-                            <Condition Binding="{Binding WO_Priority}" Value="D"/>
-                        </MultiDataTrigger.Conditions>
-                        <Setter Property="Background" Value="Beige"/>
-                        <Setter Property="Foreground" Value="Black"/>
-                    </MultiDataTrigger>
-                </Style.Triggers>
-            </Style>
-        </DataGrid.CellStyle>
+            <DataGrid.CellStyle>
+                <Style TargetType="{x:Type DataGridCell}">
+                    <Style.Resources>
+                        <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightBrushKey}" Color="Transparent"/>
+                    </Style.Resources>
+                    <Style.Triggers>
+                        <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                                <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsKeyboardFocusWithin}" Value="True"/>
+                                <Condition Binding="{Binding WO_Priority}" Value="B"/>
+                            </MultiDataTrigger.Conditions>
+                            <Setter Property="Background" Value="DarkSeaGreen"/>
+                            <Setter Property="Foreground" Value="Black"/>
+                        </MultiDataTrigger>
+                        <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                                <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsKeyboardFocusWithin}" Value="True"/>
+                                <Condition Binding="{Binding WO_Priority}" Value="C"/>
+                            </MultiDataTrigger.Conditions>
+                            <Setter Property="Background" Value="Gray"/>
+                            <Setter Property="Foreground" Value="Black"/>
+                        </MultiDataTrigger>
+                        <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                                <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsKeyboardFocusWithin}" Value="True"/>
+                                <Condition Binding="{Binding WO_Priority}" Value="D"/>
+                            </MultiDataTrigger.Conditions>
+                            <Setter Property="Background" Value="Beige"/>
+                            <Setter Property="Foreground" Value="Black"/>
+                        </MultiDataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </DataGrid.CellStyle>
 
-        <DataGrid.GroupStyle>
-            <GroupStyle>
-                <GroupStyle.ContainerStyle>
-                    <Style TargetType="{x:Type GroupItem}">
-                        <Setter Property="Template">
-                            <Setter.Value>
-                                <ControlTemplate TargetType="{x:Type GroupItem}">
-                                    <Expander BorderBrush="Black" IsExpanded="True" Background="#FF135185" Foreground="Black" BorderThickness="1">
-                                        <i:Interaction.Behaviors>
-                                            <bhvr:ExpanderState GroupName="{Binding Name}"/>
-                                        </i:Interaction.Behaviors>
-                                        <Expander.Header>
-                                            <Grid Width="250">
-                                                <TextBlock x:Name="ExpanderName" HorizontalAlignment="Left" FontWeight="Bold" Foreground="WhiteSmoke" FontSize="24" Text="{Binding Name, StringFormat=d}"/>
-                                            </Grid>
-                                        </Expander.Header>
-                                        <ItemsPresenter/>
-                                    </Expander>
-                                </ControlTemplate>
-                            </Setter.Value>
-                        </Setter>
-                    </Style>
-                </GroupStyle.ContainerStyle>
-            </GroupStyle>
-        </DataGrid.GroupStyle>
+            <DataGrid.GroupStyle>
+                <GroupStyle>
+                    <GroupStyle.ContainerStyle>
+                        <Style TargetType="{x:Type GroupItem}">
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="{x:Type GroupItem}">
+                                        <Expander BorderBrush="Black" IsExpanded="True" Background="#FF135185" Foreground="Black" BorderThickness="1">
+                                            <i:Interaction.Behaviors>
+                                                <bhvr:ExpanderState GroupName="{Binding Name}"/>
+                                            </i:Interaction.Behaviors>
+                                            <Expander.Header>
+                                                <Grid Width="250">
+                                                    <TextBlock x:Name="ExpanderName" HorizontalAlignment="Left" FontWeight="Bold" Foreground="WhiteSmoke" FontSize="24" Text="{Binding Name, StringFormat=d}"/>
+                                                </Grid>
+                                            </Expander.Header>
+                                            <ItemsPresenter/>
+                                        </Expander>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </GroupStyle.ContainerStyle>
+                </GroupStyle>
+            </DataGrid.GroupStyle>
 
-    </DataGrid>
+        </DataGrid>
+    </Grid>
 </UserControl>

@@ -131,7 +131,16 @@ namespace SFW.Model
                                                                                     ELSE ''
 	                                                                            END AS 'Reference',
                                                                                 b.[Wp_Nbr],
-                                                                                ISNULL(SUBSTRING(c.[So_Reference], 0, LEN(c.[So_Reference]) - 1), '') AS 'SalesOrder'
+                                                                                ISNULL(SUBSTRING(c.[So_Reference], 0, LEN(c.[So_Reference]) - 1), '') AS 'SalesOrder',
+                                                                                STUFF((SELECT
+				                                                                            CONCAT(', ', b2.[First_Name], ' ', b2.[Last_Name])
+			                                                                            FROM
+				                                                                            [dbo].[WIP_HIST-INIT_YCrew_Data] a2
+			                                                                            RIGHT JOIN
+				                                                                            [dbo].[EMPLOYEE_MASTER-INIT] b2 ON b2.[Emp_No] = a2.[Crew_Members]
+			                                                                            WHERE 
+				                                                                            a2.[ID1] = a.[Scan_Station_ID]
+			                                                                            FOR XML PATH('')), 1, 2, '') as 'Crew'
                                                                             FROM
                                                                                 dbo.[IT-INIT] AS a 
                                                                             RIGHT OUTER JOIN
@@ -152,7 +161,7 @@ namespace SFW.Model
                     return dt;
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 return new DataTable();
             }

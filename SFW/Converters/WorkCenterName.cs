@@ -34,13 +34,10 @@ namespace SFW.Converters
         /// <summary>
         /// Work Center Name Converter Default Constructor
         /// </summary>
-        /// <param name="workOrderList"></param>
-        public WorkCenterNameConverter()
+        /// <param name="machList">List of machine objects</param>
+        public WorkCenterNameConverter(List<Machine> machList)
         {
-            if (MachineList == null)
-            {
-                MachineList = Machine.GetMachineList(App.AppSqlCon);
-            }
+            MachineList = machList;
         }
     }
 }

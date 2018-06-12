@@ -24,6 +24,7 @@ namespace SFW.Queries
                 try
                 {
                     IthResultsTable.DefaultView.RowFilter = $"LotNumber = '{value.LotNumber}'";
+                    Filter = value.LotNumber;
                 }
                 catch (NullReferenceException)
                 {
@@ -31,6 +32,22 @@ namespace SFW.Queries
                 }
             }
         }
+
+        private string part;
+        public string PartNbr
+        {
+            get { return part; }
+            set { part = value; OnPropertyChanged(nameof(PartNbr)); }
+        }
+        public string PartNbrText { get; set; }
+        private string filter;
+        public string Filter
+        {
+            get { return filter; }
+            set { filter = value; OnPropertyChanged(nameof(Filter)); }
+        }
+        public string FilterText { get; set; }
+        private string PreFilter;
 
         public DataTable IthResultsTable { get; set; }
 
@@ -75,10 +92,23 @@ namespace SFW.Queries
         {
             IsLoading = false;
             ResultsAsyncDelegate = new ResultsDelegate(ResultsLoading);
-            SearchICommand.Execute(partNrb);
+            SearchAsyncResult = ResultsAsyncDelegate.BeginInvoke(partNrb, new AsyncCallback(ResultsLoaded), null);
         }
 
-        #region Load Search Results Async Delegation Implementation
+        /// <summary>
+        /// Pre loaded constructor to show the view with results already loaded
+        /// </summary>
+        /// <param name="wo">Work Order to load</param>
+        public PartInfo_ViewModel(WorkOrder wo)
+        {
+            IsLoading = false;
+            ResultsAsyncDelegate = new ResultsDelegate(ResultsLoading);
+            Filter = PreFilter = wo.OrderNumber;
+            PartNbr = wo.SkuNumber;
+            SearchICommand.Execute(wo.SkuNumber);
+        }
+
+        #region Load Results Async Delegation Implementation
 
         public void ResultsLoading(string partNbr)
         {
@@ -90,6 +120,14 @@ namespace SFW.Queries
         {
             IsLoading = false;
             NoResults = ILotResultsList?.Count == 0;
+            if (!string.IsNullOrEmpty(PreFilter))
+            {
+                FilterICommand.Execute(PreFilter);
+                PreFilter = null;
+            }
+            PartNbrText = PartNbr;
+            PartNbr = null;
+            OnPropertyChanged(nameof(PartNbrText));
             OnPropertyChanged(nameof(ILotResultsList));
             OnPropertyChanged(nameof(IthResultsTable));
         }
@@ -122,9 +160,11 @@ namespace SFW.Queries
             NoResults = false;
             IthResultsTable = null;
             ILotResultsList = null;
+            Filter = FilterText = null;
+            OnPropertyChanged(nameof(FilterText));
             SearchAsyncResult = ResultsAsyncDelegate.BeginInvoke(parameter.ToString(), new AsyncCallback(ResultsLoaded), null);
         }
-        private bool SearchCanExecute(object parameter) => !string.IsNullOrWhiteSpace(parameter.ToString());
+        private bool SearchCanExecute(object parameter) => !string.IsNullOrWhiteSpace(parameter?.ToString());
 
         #endregion
 
@@ -152,8 +192,11 @@ namespace SFW.Queries
         private void FilterExecute(object parameter)
         {
             IthResultsTable.Search(parameter.ToString());
+            FilterText = parameter.ToString();
+            OnPropertyChanged(nameof(FilterText));
+            Filter = null;
         }
-        private bool FilterCanExecute(object parameter) => !string.IsNullOrEmpty(parameter.ToString()) && IthResultsTable != null;
+        private bool FilterCanExecute(object parameter) => !string.IsNullOrEmpty(parameter?.ToString()) && IthResultsTable != null;
 
         #endregion
     }

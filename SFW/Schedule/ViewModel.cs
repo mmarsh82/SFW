@@ -1,5 +1,6 @@
 ﻿using SFW.Converters;
 using SFW.Model;
+using System;
 using System.ComponentModel;
 using System.Data;
 using System.Windows.Data;
@@ -12,7 +13,7 @@ namespace SFW.Schedule
     {
         #region Properties
 
-        public static ICollectionView ScheduleView { get; set; }
+        public ICollectionView ScheduleView { get; set; }
         private DataRowView _selectedWO;
         public DataRowView SelectedWorkOrder
         {
@@ -28,6 +29,17 @@ namespace SFW.Schedule
             }
         }
 
+        private bool isLoading;
+        public bool IsLoading
+        {
+            get { return isLoading; }
+            set { isLoading = value; OnPropertyChanged(nameof(IsLoading)); }
+        }
+
+        public delegate void LoadDelegate(string s);
+        public LoadDelegate LoadAsyncDelegate { get; private set; }
+        public IAsyncResult LoadAsyncComplete { get; set; }
+
         #endregion
 
         /// <summary>
@@ -35,11 +47,8 @@ namespace SFW.Schedule
         /// </summary>
         public ViewModel()
         {
-            if (ScheduleView == null)
-            {
-                ScheduleView = CollectionViewSource.GetDefaultView(Machine.GetScheduleData(App.AppSqlCon));
-                ScheduleView.GroupDescriptions.Add(new PropertyGroupDescription("MachineNumber", new WorkCenterNameConverter()));
-            }
+            LoadAsyncDelegate = new LoadDelegate(ViewLoading);
+            LoadAsyncComplete = LoadAsyncDelegate.BeginInvoke(null, new AsyncCallback(ViewLoaded), null);
         }
 
         /// <summary>
@@ -48,11 +57,26 @@ namespace SFW.Schedule
         /// <param name="machineNumber">Machine Number to load into the schedule</param>
         public ViewModel(string machineNumber)
         {
-            if (ScheduleView == null)
-            {
-                ScheduleView = CollectionViewSource.GetDefaultView(Machine.GetScheduleData(App.AppSqlCon, machineNumber));
-                ScheduleView.GroupDescriptions.Add(new PropertyGroupDescription("MachineNumber", new WorkCenterNameConverter()));
-            }
+            LoadAsyncDelegate = new LoadDelegate(ViewLoading);
+            LoadAsyncComplete = LoadAsyncDelegate.BeginInvoke(machineNumber, new AsyncCallback(ViewLoaded), null);
         }
+
+        #region Loading Async Delegation Implementation
+
+        public void ViewLoading(string machineNbr)
+        {
+            IsLoading = true;
+            ScheduleView = string.IsNullOrEmpty(machineNbr) 
+                ? CollectionViewSource.GetDefaultView(Machine.GetScheduleData(App.AppSqlCon))
+                : CollectionViewSource.GetDefaultView(Machine.GetScheduleData(App.AppSqlCon, machineNbr));
+            ScheduleView.GroupDescriptions.Add(new PropertyGroupDescription("MachineNumber", new WorkCenterNameConverter(Machine.GetMachineList(App.AppSqlCon))));
+        }
+        public void ViewLoaded(IAsyncResult r)
+        {
+            IsLoading = false;
+            OnPropertyChanged(nameof(ScheduleView));
+        }
+
+        #endregion
     }
 }

@@ -24,6 +24,8 @@ namespace SFW.Model
         public DateTime StartDate { get; set; }
         public DateTime DueDate { get; set; }
         public SalesOrder SalesOrder { get; set; }
+        public string Notes { get; set; }
+        public string ShopNotes { get; set; }
 
         #endregion
 
@@ -60,6 +62,8 @@ namespace SFW.Model
                 BomRevLevel = drow.Field<string>("BomRevLvl");
                 SalesOrder = new SalesOrder(drow.Field<string>("WO_SalesRef"), sqlCon);
                 Bom = Component.GetComponentList(_wo[0], StartQty - CurrentQty, sqlCon);
+                Notes = drow.Field<string>("WO_Notes");
+                ShopNotes = drow.Field<string>("WO_ShopNotes");
             }
         }
 
@@ -77,15 +81,18 @@ namespace SFW.Model
                 try
                 {
                     using (SqlCommand cmd = new SqlCommand(@"SELECT 
-                                                                a.[ID], b.[Part_Wo_Desc], b.[Mgt_Priority_Code], b.[Qty_To_Start], a.[Qty_Avail], a.[Qty_Scrap], a.[Date_Start], a.[Due_Date], b.[So_Reference]
+                                                                SUBSTRING(a.[ID], 0, CHARINDEX('*',a.[ID],0)) as 'WoNumber',
+	                                                            SUBSTRING(a.[ID], CHARINDEX('*',a.[ID],0) + 1, LEN(a.[ID])) as 'Seq',
+	                                                            a.[Qty_Avail] as 'CurrentQty', ISNULL(a.[Qty_Scrap], 0) as 'Scrap', a.[Date_Start] as 'StartDate', a.[Due_Date] as 'DueDate',
+	                                                            b.[Part_Wo_Desc] as 'WoDesc', ISNULL(b.[Mgt_Priority_Code], 'D') as 'Priority', b.[Qty_To_Start] as 'StartQty', b.[So_Reference] as 'SalesOrder'
                                                             FROM
                                                                 [dbo].[WPO-INIT] a
                                                             RIGHT JOIN
                                                                 [dbo].[WP-INIT] b on a.[ID] LIKE CONCAT(b.[Wp_Nbr], '%')
                                                             WHERE
-                                                                (b.[Status_Flag] = 'R' or B.[Status_Flag] = 'A') AND a.[Seq_Complete_Flag] IS NULL AND a.[Work_Center] = @p1
+                                                                (b.[Status_Flag] = 'R' or b.[Status_Flag] = 'A') AND a.[Seq_Complete_Flag] IS NULL AND a.[Work_Center] = '41061'
                                                             ORDER BY
-                                                                a.[Date_Start], a.[ID] ASC;", sqlCon))
+                                                                StartDate, WoNumber ASC;", sqlCon))
                     {
                         cmd.Parameters.AddWithValue("p1", workCntNbr);
                         using (SqlDataReader reader = cmd.ExecuteReader())
@@ -94,19 +101,49 @@ namespace SFW.Model
                             {
                                 while (reader.Read())
                                 {
-                                    var _id = reader.IsDBNull(0) ? null : reader.GetString(0).Split('*');
                                     _tempList.Add(new WorkOrder
                                     {
-                                        OrderNumber = _id == null ? string.Empty : _id[0].Trim(),
-                                        Seq = _id == null ? string.Empty : _id[1].Trim(),
-                                        Priority = reader.IsDBNull(2) ? "D" : reader.GetString(2),
-                                        StartQty = reader.IsDBNull(3) ? 0 : reader.GetInt32(3),
-                                        CurrentQty = reader.IsDBNull(4) ? 0 : Convert.ToInt32(reader.GetValue(4)),
-                                        ScrapQty = reader.IsDBNull(5) ? 0 : reader.GetInt32(5),
-                                        StartDate = reader.IsDBNull(6) ? DateTime.MinValue : reader.GetDateTime(6),
-                                        DueDate = reader.IsDBNull(7) ? DateTime.MinValue : reader.GetDateTime(7),
-                                        SalesOrder = reader.IsDBNull(8) ? new SalesOrder() : new SalesOrder(reader.GetString(8), sqlCon)
+                                        OrderNumber = reader.SafeGetString("WoNumber"),
+                                        Seq = reader.SafeGetString("Seq"),
+                                        Priority = reader.SafeGetString("Priority"),
+                                        StartQty = reader.SafeGetInt32("StartQty"),
+                                        CurrentQty = reader.SafeGetInt32("CurrentQty"),
+                                        ScrapQty = reader.SafeGetInt32("Scrap"),
+                                        StartDate = reader.SafeGetDateTime("StartDate"),
+                                        DueDate = reader.SafeGetDateTime("DueDate"),
+                                        SalesOrder = new SalesOrder(reader.SafeGetString("SalesOrder"), sqlCon)
                                     });
+                                }
+                            }
+                        }
+                    }
+                    foreach(var o in _tempList)
+                    {
+                        using (SqlCommand nCmd = new SqlCommand("SELECT * FROM [dbo].[WP-INIT_Wo_Notes] WHERE [ID] = @p1;", sqlCon))
+                        {
+                            nCmd.Parameters.AddWithValue("p1", o.OrderNumber);
+                            using (SqlDataReader reader = nCmd.ExecuteReader())
+                            {
+                                if (reader.HasRows)
+                                {
+                                    while (reader.Read())
+                                    {
+                                        o.Notes += reader.SafeGetString("");
+                                    }
+                                }
+                            }
+                        }
+                        using (SqlCommand sCmd = new SqlCommand("SELECT [Wo_Sf_Notes] FROM [dbo].[WP-INIT_Wo_Sf_Notes] WHERE [ID] = @p1;", sqlCon))
+                        {
+                            sCmd.Parameters.AddWithValue("p1", o.OrderNumber);
+                            using (SqlDataReader reader = sCmd.ExecuteReader())
+                            {
+                                if (reader.HasRows)
+                                {
+                                    while (reader.Read())
+                                    {
+                                        o.ShopNotes += reader.SafeGetString("");
+                                    }
                                 }
                             }
                         }

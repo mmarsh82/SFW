@@ -15,13 +15,13 @@ namespace SFW
     {
         #region Properties
 
-        public static SqlConnection AppSqlCon { get; private set; }
+        public static SqlConnection AppSqlCon { get; set; }
 
         #endregion
 
         public App()
         {
-            AppSqlCon = new SqlConnection("Server=SQL-WCCO;User ID=omni;Password=Public2017@WORK!;DataBase=WCCO_MAIN;Connection Timeout=5;MultipleActiveResultSets=True");
+            AppSqlCon = new SqlConnection("Server=SQL-WCCO;User ID=omni;Password=Public2017@WORK!;DataBase=CSI_MAIN;Connection Timeout=5;MultipleActiveResultSets=True");
             AppSqlCon.OpenAsync();
             Current.Exit += App_Exit;
             AppDomain.CurrentDomain.UnhandledException += App_ExceptionCrash;
@@ -59,7 +59,7 @@ namespace SFW
         }
 
         /// <summary>
-        /// MySQLConnection state change watch
+        /// SQLConnection state change watch
         /// Will try 10 times to reconnect and if unsuccessful will terminate the connection
         /// </summary>
         /// <param name="sender">empty object</param>
@@ -71,6 +71,31 @@ namespace SFW
             {
                 await AppSqlCon.OpenAsync();
                 count++;
+            }
+        }
+
+        /// <summary>
+        /// SQLConnection Database change request
+        /// </summary>
+        /// <param name="dbName">Name of database to use</param>
+        /// <returns>bool value for connection status; True = Pass, False = Failure</returns>
+        public static bool SqlCon_DataBaseChange(string dbName)
+        {
+            try
+            {
+                AppSqlCon.Close();
+                AppSqlCon.Dispose();
+                AppSqlCon = new SqlConnection($"Server=SQL-WCCO;User ID=omni;Password=Public2017@WORK!;DataBase={dbName};Connection Timeout=5;MultipleActiveResultSets=True");
+                AppSqlCon.OpenAsync();
+                while (AppSqlCon.State == System.Data.ConnectionState.Connecting)
+                {
+
+                }
+                return AppSqlCon.State == System.Data.ConnectionState.Open ? true : false;
+            }
+            catch (Exception)
+            {
+                return false;
             }
         }
 

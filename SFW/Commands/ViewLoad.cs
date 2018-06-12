@@ -17,19 +17,36 @@ namespace SFW.Commands
         {
             try
             {
+                MainWindowViewModel.WorkSpaceDock.Children.Clear();
+                var _temp = App.AppSqlCon.Database;
                 switch (parameter.ToString())
                 {
                     case "Schedule":
-                        MainWindowViewModel.WorkSpaceDock.Children.Clear();
                         MainWindowViewModel.WorkSpaceDock.Children.Add(new Schedule.View());
                         MainWindowViewModel.WorkSpaceDock.Children.Add(new ShopRoute.View { DataContext = new ShopRoute.ViewModel() });
                         break;
                     case "Scheduler":
-                        MainWindowViewModel.WorkSpaceDock.Children.Clear();
                         MainWindowViewModel.WorkSpaceDock.Children.Add(new Scheduler.View { DataContext = new Scheduler.ViewModel() });
                         break;
+                    case "SiteCsi":
+                        if (!App.SqlCon_DataBaseChange("CSI_MAIN"))
+                        {
+                            App.SqlCon_DataBaseChange(_temp);
+                        }
+                        MainWindowViewModel.UpdateProperties();
+                        MainWindowViewModel.WorkSpaceDock.Children.Add(new Schedule.View());
+                        MainWindowViewModel.WorkSpaceDock.Children.Add(new ShopRoute.View { DataContext = new ShopRoute.ViewModel() });
+                        break;
+                    case "SiteWcco":
+                        if (!App.SqlCon_DataBaseChange("WCCO_MAIN"))
+                        {
+                            App.SqlCon_DataBaseChange(_temp);
+                        }
+                        MainWindowViewModel.UpdateProperties();
+                        MainWindowViewModel.WorkSpaceDock.Children.Add(new Schedule.View());
+                        MainWindowViewModel.WorkSpaceDock.Children.Add(new ShopRoute.View { DataContext = new ShopRoute.ViewModel() });
+                        break;
                     default:
-                        MainWindowViewModel.WorkSpaceDock.Children.Clear();
                         MainWindowViewModel.WorkSpaceDock.Children.Add(new Schedule.View { DataContext = new Schedule.ViewModel(parameter.ToString()) });
                         MainWindowViewModel.WorkSpaceDock.Children.Add(new ShopRoute.View { DataContext = new ShopRoute.ViewModel() });
                         break;

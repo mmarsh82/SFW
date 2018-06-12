@@ -35,6 +35,14 @@
                 <MenuItem Header="Exit"/>
             </MenuItem>
             <MenuItem Header="View">
+                <MenuItem Header="Site">
+                    <MenuItem Header="CSI"
+                              Command="{StaticResource ViewLoadICommand}"
+                              CommandParameter="SiteCsi"/>
+                    <MenuItem Header="WCCO"
+                              Command="{StaticResource ViewLoadICommand}"
+                              CommandParameter="SiteWcco"/>
+                </MenuItem>
                 <MenuItem Header="Work Center"
                           ItemsSource="{Binding MachineList}"
                           DisplayMemberPath="MachineName">

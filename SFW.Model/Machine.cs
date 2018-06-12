@@ -139,7 +139,9 @@ namespace SFW.Model
                                                                                 b.[ID] as 'WO_Number', ISNULL(b.[Qty_Avail], 0) as 'WO_CurrentQty', ISNULL(b.[Date_Start], '1999-01-01') as 'WO_StartDate', b.[Due_Date] as 'WO_DueDate',
                                                                                 ISNULL(c.[Mgt_Priority_Code], 'D') as 'WO_Priority', c.[Qty_To_Start] as 'WO_StartQty', c.[So_Reference] as 'WO_SalesRef',
                                                                                 d.[Part_Number]as 'SkuNumber', d.[Description] as 'SkuDesc', d.[Um] as 'SkuUom', d.[Drawing_Nbrs] as 'SkuMasterPrint', ISNULL(d.[Bom_Rev_Date], '1999-01-01') as 'BomRevDate', ISNULL(d.[Bom_Rev_Level], '') as 'BomRevLvl',
-                                                                                ISNULL(e.[Qty_On_Hand], 0) as 'SkuOnHand'
+                                                                                ISNULL(e.[Qty_On_Hand], 0) as 'SkuOnHand',
+	                                                                            (SELECT ' ' + f.[Wo_Notes] FROM [dbo].[WP-INIT_Wo_Notes] f WHERE b.[ID] LIKE CONCAT(f.[ID], '%') FOR XML PATH('')) as 'WO_Notes',
+	                                                                            (SELECT ' ' + g.[Wo_Sf_Notes] FROM [dbo].[WP-INIT_Wo_Sf_Notes] g WHERE b.[ID] LIKE CONCAT(g.[ID], '%') FOR XML PATH('')) as 'WO_ShopNotes'
                                                                             FROM
                                                                                 [dbo].[WC-INIT] a
                                                                             RIGHT JOIN
@@ -194,7 +196,9 @@ namespace SFW.Model
                                                                                 b.[ID] as 'WO_Number', ISNULL(b.[Qty_Avail], 0) as 'WO_CurrentQty', ISNULL(b.[Date_Start], '1999-01-01') as 'WO_StartDate', b.[Due_Date] as 'WO_DueDate',
                                                                                 ISNULL(c.[Mgt_Priority_Code], 'D') as 'WO_Priority', c.[Qty_To_Start] as 'WO_StartQty', c.[So_Reference] as 'WO_SalesRef',
                                                                                 d.[Part_Number]as 'SkuNumber', d.[Description] as 'SkuDesc', d.[Um] as 'SkuUom', d.[Drawing_Nbrs] as 'SkuMasterPrint', ISNULL(d.[Bom_Rev_Date], '1999-01-01') as 'BomRevDate', ISNULL(d.[Bom_Rev_Level], '') as 'BomRevLvl',
-                                                                                ISNULL(e.[Qty_On_Hand], 0) as 'SkuOnHand'
+                                                                                ISNULL(e.[Qty_On_Hand], 0) as 'SkuOnHand',
+	                                                                            (SELECT ' ' + f.[Wo_Notes] FROM [dbo].[WP-INIT_Wo_Notes] f WHERE b.[ID] LIKE CONCAT(f.[ID], '%') FOR XML PATH('')) as 'WO_Notes',
+	                                                                            (SELECT ' ' + g.[Wo_Sf_Notes] FROM [dbo].[WP-INIT_Wo_Sf_Notes] g WHERE b.[ID] LIKE CONCAT(g.[ID], '%') FOR XML PATH('')) as 'WO_ShopNotes'
                                                                             FROM
                                                                                 [dbo].[WC-INIT] a
                                                                             RIGHT JOIN
