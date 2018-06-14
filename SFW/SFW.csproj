@@ -111,6 +111,7 @@
     <Compile Include="Commands\PartSearch.cs" />
     <Compile Include="Commands\RelayCommand.cs" />
     <Compile Include="Commands\ViewLoad.cs" />
+    <Compile Include="Controls\WorkSpaceDock.cs" />
     <Compile Include="Converters\CountToVisibility.cs" />
     <Compile Include="Converters\InvertBoolToVisibility.cs" />
     <Compile Include="Converters\NegativeIntToBool.cs" />

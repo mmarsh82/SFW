@@ -1,9 +1,8 @@
-﻿using SFW.Model;
+﻿using SFW.Controls;
+using SFW.Model;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Windows;
-using System.Windows.Controls;
 
 namespace SFW
 {
@@ -11,7 +10,6 @@ namespace SFW
     {
         #region Properties
 
-        public static DockPanel WorkSpaceDock { get; set; }
         public static List<Machine> MachineList { get; set; }
 
         public static event EventHandler<PropertyChangedEventArgs> StaticPropertyChanged;
@@ -20,12 +18,7 @@ namespace SFW
 
         public MainWindowViewModel()
         {
-            if (WorkSpaceDock == null)
-            {
-                WorkSpaceDock = ((MainWindow)Application.Current.Windows[0]).WorkSpaceDock;
-                WorkSpaceDock.Children.Add(new Schedule.View());
-                WorkSpaceDock.Children.Add(new ShopRoute.View { DataContext = new ShopRoute.ViewModel() });
-            }
+            new WorkSpaceDock();
             if (MachineList == null)
             {
                 MachineList = Machine.GetMachineList(App.AppSqlCon);

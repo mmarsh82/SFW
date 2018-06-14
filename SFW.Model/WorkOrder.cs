@@ -90,7 +90,7 @@ namespace SFW.Model
                                                             RIGHT JOIN
                                                                 [dbo].[WP-INIT] b on a.[ID] LIKE CONCAT(b.[Wp_Nbr], '%')
                                                             WHERE
-                                                                (b.[Status_Flag] = 'R' or b.[Status_Flag] = 'A') AND a.[Seq_Complete_Flag] IS NULL AND a.[Work_Center] = '41061'
+                                                                (b.[Status_Flag] = 'R' or b.[Status_Flag] = 'A') AND a.[Seq_Complete_Flag] IS NULL AND a.[Work_Center] = @p1
                                                             ORDER BY
                                                                 StartDate, WoNumber ASC;", sqlCon))
                     {

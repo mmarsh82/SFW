@@ -1,4 +1,6 @@
-﻿using System;
+﻿using SFW.Controls;
+using System;
+using System.Windows;
 using System.Windows.Input;
 
 //Created by Michael Marsh 4-19-18
@@ -17,16 +19,14 @@ namespace SFW.Commands
         {
             try
             {
-                MainWindowViewModel.WorkSpaceDock.Children.Clear();
                 var _temp = App.AppSqlCon.Database;
                 switch (parameter.ToString())
                 {
                     case "Schedule":
-                        MainWindowViewModel.WorkSpaceDock.Children.Add(new Schedule.View());
-                        MainWindowViewModel.WorkSpaceDock.Children.Add(new ShopRoute.View { DataContext = new ShopRoute.ViewModel() });
+                        WorkSpaceDock.SwitchView(0, null);
                         break;
                     case "Scheduler":
-                        MainWindowViewModel.WorkSpaceDock.Children.Add(new Scheduler.View { DataContext = new Scheduler.ViewModel() });
+                        WorkSpaceDock.SwitchView(2, new Scheduler.ViewModel());
                         break;
                     case "SiteCsi":
                         if (!App.SqlCon_DataBaseChange("CSI_MAIN"))
@@ -34,8 +34,7 @@ namespace SFW.Commands
                             App.SqlCon_DataBaseChange(_temp);
                         }
                         MainWindowViewModel.UpdateProperties();
-                        MainWindowViewModel.WorkSpaceDock.Children.Add(new Schedule.View());
-                        MainWindowViewModel.WorkSpaceDock.Children.Add(new ShopRoute.View { DataContext = new ShopRoute.ViewModel() });
+                        WorkSpaceDock.RefreshMainDock();
                         break;
                     case "SiteWcco":
                         if (!App.SqlCon_DataBaseChange("WCCO_MAIN"))
@@ -43,12 +42,10 @@ namespace SFW.Commands
                             App.SqlCon_DataBaseChange(_temp);
                         }
                         MainWindowViewModel.UpdateProperties();
-                        MainWindowViewModel.WorkSpaceDock.Children.Add(new Schedule.View());
-                        MainWindowViewModel.WorkSpaceDock.Children.Add(new ShopRoute.View { DataContext = new ShopRoute.ViewModel() });
+                        WorkSpaceDock.RefreshMainDock();
                         break;
                     default:
-                        MainWindowViewModel.WorkSpaceDock.Children.Add(new Schedule.View { DataContext = new Schedule.ViewModel(parameter.ToString()) });
-                        MainWindowViewModel.WorkSpaceDock.Children.Add(new ShopRoute.View { DataContext = new ShopRoute.ViewModel() });
+                        WorkSpaceDock.SwitchView(0, new Schedule.ViewModel(parameter.ToString()));
                         break;
                 }
             }

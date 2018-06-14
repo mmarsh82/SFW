@@ -1,4 +1,5 @@
-﻿using SFW.Queries;
+﻿using SFW.Controls;
+using SFW.Queries;
 using System;
 using System.Windows.Input;
 
@@ -18,21 +19,20 @@ namespace SFW.Commands
         {
             try
             {
-                MainWindowViewModel.WorkSpaceDock.Children.Clear();
                 if (parameter != null)
                 {
                     if(parameter.GetType() == typeof(Model.WorkOrder))
                     {
-                        MainWindowViewModel.WorkSpaceDock.Children.Add(new PartInfo_View { DataContext = new PartInfo_ViewModel((Model.WorkOrder)parameter) });
+                        WorkSpaceDock.SwitchView(3, new PartInfo_ViewModel((Model.WorkOrder)parameter));
                     }
                     else
                     {
-                        MainWindowViewModel.WorkSpaceDock.Children.Add(new PartInfo_View { DataContext = new PartInfo_ViewModel(parameter.ToString()) });
+                        WorkSpaceDock.SwitchView(3, new PartInfo_ViewModel(parameter.ToString()));
                     }
                 }
                 else
                 {
-                    MainWindowViewModel.WorkSpaceDock.Children.Add(new PartInfo_View());
+                    WorkSpaceDock.SwitchView(3, null);
                 }
             }
             catch (Exception)

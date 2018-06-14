@@ -1,4 +1,5 @@
-﻿using SFW.Converters;
+﻿using SFW.Controls;
+using SFW.Converters;
 using SFW.Model;
 using System;
 using System.ComponentModel;
@@ -23,7 +24,7 @@ namespace SFW.Schedule
                 _selectedWO = value;
                 if (value != null)
                 {
-                    ((ShopRoute.ViewModel)((ShopRoute.View)MainWindowViewModel.WorkSpaceDock.Children[1]).DataContext).ShopOrder = new WorkOrder(value.Row, App.AppSqlCon);
+                    ((ShopRoute.ViewModel)((ShopRoute.View)WorkSpaceDock.MainDock.Children[1]).DataContext).ShopOrder = new WorkOrder(value.Row, App.AppSqlCon);
                 }
                 OnPropertyChanged(nameof(SelectedWorkOrder));
             }
