@@ -39,6 +39,7 @@ namespace SFW.Schedule
 
         public delegate void LoadDelegate(string s);
         public LoadDelegate LoadAsyncDelegate { get; private set; }
+        public LoadDelegate FilterAsyncDelegate { get; private set; }
         public IAsyncResult LoadAsyncComplete { get; set; }
 
         #endregion
@@ -49,6 +50,7 @@ namespace SFW.Schedule
         public ViewModel()
         {
             LoadAsyncDelegate = new LoadDelegate(ViewLoading);
+            FilterAsyncDelegate = new LoadDelegate(FilterView);
             LoadAsyncComplete = LoadAsyncDelegate.BeginInvoke(null, new AsyncCallback(ViewLoaded), null);
         }
 
@@ -59,10 +61,34 @@ namespace SFW.Schedule
         public ViewModel(string machineNumber)
         {
             LoadAsyncDelegate = new LoadDelegate(ViewLoading);
+            FilterAsyncDelegate = new LoadDelegate(FilterView);
             LoadAsyncComplete = LoadAsyncDelegate.BeginInvoke(machineNumber, new AsyncCallback(ViewLoaded), null);
         }
 
+        /// <summary>
+        /// Async filter the schedule view
+        /// </summary>
+        /// <param name="filter">Filter string to use on the default view</param>
+        public void FilterSchedule(string filter)
+        {
+            LoadAsyncComplete = FilterAsyncDelegate.BeginInvoke(filter, new AsyncCallback(ViewLoaded), null);
+        }
+
         #region Loading Async Delegation Implementation
+
+        public void FilterView(string filter)
+        {
+            IsLoading = true;
+            if (string.IsNullOrEmpty(filter))
+            {
+                ViewLoading(string.Empty);
+            }
+            else
+            {
+                ((DataView)ScheduleView.SourceCollection).RowFilter = $"MachineNumber = '{filter}'";
+                OnPropertyChanged(nameof(ScheduleView));
+            }
+        }
 
         public void ViewLoading(string machineNbr)
         {

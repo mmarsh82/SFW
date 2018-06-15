@@ -1,6 +1,6 @@
 ﻿using SFW.Controls;
 using System;
-using System.Windows;
+using System.Data;
 using System.Windows.Input;
 
 //Created by Michael Marsh 4-19-18
@@ -22,8 +22,11 @@ namespace SFW.Commands
                 var _temp = App.AppSqlCon.Database;
                 switch (parameter.ToString())
                 {
-                    case "Schedule":
+                    case "Back":
                         WorkSpaceDock.SwitchView(0, null);
+                        break;
+                    case "Schedule":
+                        WorkSpaceDock.SwitchView(0, new Schedule.ViewModel());
                         break;
                     case "Scheduler":
                         WorkSpaceDock.SwitchView(2, new Scheduler.ViewModel());
@@ -45,7 +48,8 @@ namespace SFW.Commands
                         WorkSpaceDock.RefreshMainDock();
                         break;
                     default:
-                        WorkSpaceDock.SwitchView(0, new Schedule.ViewModel(parameter.ToString()));
+                        WorkSpaceDock.SwitchView(0, null);
+                        ((DataView)((Schedule.ViewModel)((Schedule.View)WorkSpaceDock.MainDock.Children[0]).DataContext).ScheduleView.SourceCollection).RowFilter = $"MachineNumber = {parameter.ToString()}";
                         break;
                 }
             }

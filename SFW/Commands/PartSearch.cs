@@ -22,7 +22,8 @@ namespace SFW.Commands
             {
                 if (parameter.ToString().Contains("*"))
                 {
-                    parameter = parameter.ToString().Substring(parameter.ToString().IndexOf('*') + 1);
+                    var _temp = parameter.ToString().Split('*');
+                    parameter = !string.IsNullOrEmpty(_temp[1]) && _temp[1] != DependencyProperty.UnsetValue.ToString() ? _temp[1] : _temp[0];
                 }
                 if (!string.IsNullOrEmpty(parameter?.ToString()))
                 {

@@ -53,7 +53,7 @@
                         </Style>
                     </MenuItem.ItemContainerStyle>
                 </MenuItem>
-                <MenuItem Header="Schedule"
+                <MenuItem Header="Reload Schedule"
                           Command="{StaticResource ViewLoadICommand}"
                           CommandParameter="Schedule"/>
                 <MenuItem Header="Scheduler"
@@ -70,7 +70,10 @@
                 
             </MenuItem>
         </Menu>
-        
+        <TextBlock Text="Connected To:"
+                   HorizontalAlignment="Right"
+                   VerticalAlignment="Center"/>
+
         <!--#endregion-->
         
         <!--#region WorkSpace Grid-->

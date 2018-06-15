@@ -92,6 +92,7 @@ namespace SFW.Queries
         {
             IsLoading = false;
             ResultsAsyncDelegate = new ResultsDelegate(ResultsLoading);
+            PartNbr = partNrb;
             SearchAsyncResult = ResultsAsyncDelegate.BeginInvoke(partNrb, new AsyncCallback(ResultsLoaded), null);
         }
 
@@ -191,6 +192,10 @@ namespace SFW.Queries
         /// <param name="parameter">User input</param>
         private void FilterExecute(object parameter)
         {
+            if (parameter.ToString() == "r")
+            {
+                parameter = string.Empty;
+            }
             IthResultsTable.Search(parameter.ToString());
             FilterText = parameter.ToString();
             OnPropertyChanged(nameof(FilterText));
