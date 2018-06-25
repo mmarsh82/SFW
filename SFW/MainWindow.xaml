@@ -7,20 +7,26 @@
     xmlns:local="clr-namespace:SFW"
     x:Class="SFW.MainWindow"
         mc:Ignorable="d"
-        Title="Shop Floor Workbench" MinWidth="900" MinHeight="480" WindowState="Maximized" WindowStartupLocation="CenterOwner">
+        Title="Shop Floor Workbench" MinWidth="1520" MinHeight="600" WindowState="Maximized" WindowStartupLocation="CenterOwner">
 
     <Grid>
 
         <Grid.Resources>
             <cmd:PartInformation x:Key="PartInfoICommand"/>
             <cmd:ViewLoad x:Key="ViewLoadICommand"/>
-            <cmd:PartSearch x:Key="PartSearchCommand"/>
+            <cmd:SafeShutdown x:Key="ExitICommand"/>
         </Grid.Resources>
 
         <Grid.RowDefinitions>
             <RowDefinition Height="25"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
+
+        <Grid.InputBindings>
+            <KeyBinding Gesture="Ctrl+I" Command="{StaticResource PartInfoICommand}"/>
+            <KeyBinding Gesture="Alt+F4" Command="{StaticResource ExitICommand}"/>
+            <KeyBinding Gesture="F5" Command="{StaticResource ViewLoadICommand}" CommandParameter="Schedule"/>
+        </Grid.InputBindings>
 
         <!--#region Main Menu Usercontrol for all command-->
 
@@ -31,8 +37,15 @@
               VerticalAlignment="Stretch"
               IsMainMenu="True">
             <MenuItem Header="File">
+                <MenuItem Header="Default Work Centers"/>
                 <MenuItem Header="Print"/>
-                <MenuItem Header="Exit"/>
+                <MenuItem Header="Exit"
+                          Command="{StaticResource ExitICommand}"
+                          InputGestureText="Alt+F4">
+                    <MenuItem.Icon>
+                        <Image Source="Icons/Exit.ico"/>
+                    </MenuItem.Icon>
+                </MenuItem>
             </MenuItem>
             <MenuItem Header="View">
                 <MenuItem Header="Site">
@@ -43,19 +56,10 @@
                               Command="{StaticResource ViewLoadICommand}"
                               CommandParameter="SiteWcco"/>
                 </MenuItem>
-                <MenuItem Header="Work Center"
-                          ItemsSource="{Binding MachineList}"
-                          DisplayMemberPath="MachineName">
-                    <MenuItem.ItemContainerStyle>
-                        <Style TargetType="{x:Type MenuItem}">
-                            <Setter Property="Command" Value="{StaticResource ViewLoadICommand}"/>
-                            <Setter Property="CommandParameter" Value="{Binding MachineNumber}"/>
-                        </Style>
-                    </MenuItem.ItemContainerStyle>
-                </MenuItem>
                 <MenuItem Header="Reload Schedule"
                           Command="{StaticResource ViewLoadICommand}"
-                          CommandParameter="Schedule"/>
+                          CommandParameter="Schedule"
+                          InputGestureText="F5"/>
                 <MenuItem Header="Scheduler"
                           Command="{StaticResource ViewLoadICommand}"
                           CommandParameter="Scheduler"/>
@@ -64,13 +68,41 @@
             </MenuItem>
             <MenuItem Header="Queries">
                 <MenuItem Header="Part Info"
-                          Command="{StaticResource PartInfoICommand}"/>
+                          Command="{StaticResource PartInfoICommand}"
+                          InputGestureText="Ctrl+I"/>
             </MenuItem>
             <MenuItem Header="Help">
-                
+                <MenuItem Header="Color Legend">
+                    <MenuItem Header="Daily Sales Order" Background="#FFF3321F" Focusable="False" IsHitTestVisible="False"/>
+                    <MenuItem Header="Repair Work Order" Background="SteelBlue" Focusable="False" IsHitTestVisible="False"/>
+                    <MenuItem Header="Released Work Order" Background="#FF29D129" Focusable="False" IsHitTestVisible="False"/>
+                    <MenuItem Header="Verified Work Order" Background="LightSlateGray" Focusable="False" IsHitTestVisible="False"/>
+                    <MenuItem Header="Pending Work Order" Background="WhiteSmoke" Focusable="False" IsHitTestVisible="False"/>
+                    <Separator/>
+                </MenuItem>
             </MenuItem>
         </Menu>
-        <TextBlock Text="Connected To:"
+        <StackPanel Orientation="Horizontal"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Margin="1">
+            <ComboBox ItemsSource="{Binding MachineList}"
+                      DisplayMemberPath="MachineName"
+                      SelectedItem="{Binding SelectedMachine, NotifyOnSourceUpdated=True, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                      Width="150"
+                      FontSize="14"
+                      FontWeight="Bold"/>
+            <ComboBox ItemsSource="{Binding MachineGroupList}"
+                      SelectedItem="{Binding SelectedMachineGroup, NotifyOnSourceUpdated=True, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                      Width="100"
+                      FontSize="14"
+                      FontWeight="Bold"/>
+        </StackPanel>
+        <TextBlock Text="{Binding CurrentSite, StringFormat='Connected To: {0}'}"
+                   Margin="0,0,20,0"
+                   FontSize="14"
+                   FontWeight="Bold"
+                   Foreground="Crimson"
                    HorizontalAlignment="Right"
                    VerticalAlignment="Center"/>
 

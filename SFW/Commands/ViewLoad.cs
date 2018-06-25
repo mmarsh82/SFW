@@ -49,7 +49,14 @@ namespace SFW.Commands
                         break;
                     default:
                         WorkSpaceDock.SwitchView(0, null);
-                        ((DataView)((Schedule.ViewModel)((Schedule.View)WorkSpaceDock.MainDock.Children[0]).DataContext).ScheduleView.SourceCollection).RowFilter = $"MachineNumber = {parameter.ToString()}";
+                        if (int.TryParse(parameter.ToString(), out int i))
+                        {
+                            ((DataView)((Schedule.ViewModel)((Schedule.View)WorkSpaceDock.MainDock.Children[0]).DataContext).ScheduleView.SourceCollection).RowFilter = $"MachineNumber = {parameter.ToString()}";
+                        }
+                        else
+                        {
+                            ((DataView)((Schedule.ViewModel)((Schedule.View)WorkSpaceDock.MainDock.Children[0]).DataContext).ScheduleView.SourceCollection).RowFilter = $"MachineGroup = '{parameter.ToString()}'";
+                        }
                         break;
                 }
             }

@@ -1,5 +1,6 @@
 ﻿using Microsoft.Win32;
 using System;
+using System.ComponentModel;
 using System.Data.SqlClient;
 using System.IO;
 using System.Windows;
@@ -15,14 +16,25 @@ namespace SFW
     {
         #region Properties
 
+        public static string _site;
+        public static string Site
+        {
+            get { return _site; }
+            set { _site = value; StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(Site)); }
+        }
+
         public static SqlConnection AppSqlCon { get; set; }
+
+        public static event EventHandler<PropertyChangedEventArgs> StaticPropertyChanged;
 
         #endregion
 
         public App()
         {
-            AppSqlCon = new SqlConnection("Server=SQL-WCCO;User ID=omni;Password=Public2017@WORK!;DataBase=CSI_MAIN;Connection Timeout=5;MultipleActiveResultSets=True");
+            Site = "CSI_MAIN";
+            AppSqlCon = new SqlConnection($"Server=SQL-WCCO;User ID=omni;Password=Public2017@WORK!;DataBase={Site};Connection Timeout=5;MultipleActiveResultSets=True");
             AppSqlCon.OpenAsync();
+            while (AppSqlCon.State == System.Data.ConnectionState.Connecting) { }
             Current.Exit += App_Exit;
             AppDomain.CurrentDomain.UnhandledException += App_ExceptionCrash;
             Current.DispatcherUnhandledException += App_DispatherCrash;
@@ -85,15 +97,13 @@ namespace SFW
             {
                 AppSqlCon.Close();
                 AppSqlCon.Dispose();
-                AppSqlCon = new SqlConnection($"Server=SQL-WCCO;User ID=omni;Password=Public2017@WORK!;DataBase={dbName};Connection Timeout=5;MultipleActiveResultSets=True");
+                Site = dbName;
+                AppSqlCon = new SqlConnection($"Server=SQL-WCCO;User ID=omni;Password=Public2017@WORK!;DataBase={Site};Connection Timeout=5;MultipleActiveResultSets=True");
                 AppSqlCon.OpenAsync();
-                while (AppSqlCon.State == System.Data.ConnectionState.Connecting)
-                {
-
-                }
+                while (AppSqlCon.State == System.Data.ConnectionState.Connecting) { }
                 return AppSqlCon.State == System.Data.ConnectionState.Open ? true : false;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 return false;
             }

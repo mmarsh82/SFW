@@ -30,8 +30,8 @@
     <PublisherName>Michael Marsh</PublisherName>
     <SuiteName>WCCO Belting Inc.</SuiteName>
     <AutorunEnabled>true</AutorunEnabled>
-    <ApplicationRevision>13</ApplicationRevision>
-    <ApplicationVersion>1.0.1.13</ApplicationVersion>
+    <ApplicationRevision>27</ApplicationRevision>
+    <ApplicationVersion>1.0.2.27</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <CreateDesktopShortcut>true</CreateDesktopShortcut>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -110,6 +110,7 @@
     <Compile Include="Commands\PartInformation.cs" />
     <Compile Include="Commands\PartSearch.cs" />
     <Compile Include="Commands\RelayCommand.cs" />
+    <Compile Include="Commands\SafeShutdown.cs" />
     <Compile Include="Commands\ViewLoad.cs" />
     <Compile Include="Controls\WorkSpaceDock.cs" />
     <Compile Include="Converters\CountToVisibility.cs" />
@@ -264,6 +265,9 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Icons\Search.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Icons\Exit.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -90,16 +90,16 @@
             <StackPanel Grid.Row="1" Orientation="Horizontal">
 
                 <DataGrid x:Name="ILotResultsDataGrid"
-                      ItemsSource="{Binding ILotResultsList}"
-                      Visibility="{Binding NoResults, Converter={StaticResource InvertBoolToVisConverter}}"
-                      SelectedItem="{Binding SelectedILotRow}"
-                      HorizontalAlignment="Left"
-                      VerticalAlignment="Top"
-                      FontSize="18"
-                      FontWeight="Bold"
-                      AlternatingRowBackground="LightSteelBlue"
-                      AutoGenerateColumns="False"
-                      IsReadOnly="True">
+                          ItemsSource="{Binding ILotResultsList}"
+                          Visibility="{Binding NoResults, Converter={StaticResource InvertBoolToVisConverter}}"
+                          SelectedItem="{Binding SelectedILotRow}"
+                          HorizontalAlignment="Left"
+                          VerticalAlignment="Top"
+                          FontSize="18"
+                          FontWeight="Bold"
+                          AlternatingRowBackground="LightSteelBlue"
+                          AutoGenerateColumns="False"
+                          IsReadOnly="True">
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="Lot Number" Binding="{Binding LotNumber}"/>
                         <DataGridTextColumn Header="On Hand" Binding="{Binding Onhand}">

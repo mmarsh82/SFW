@@ -25,6 +25,8 @@ namespace SFW.Controls
 
             //Add the Schedule View to [0]
             MainDock.Children.Add(new Schedule.View());
+
+            //Add the ShopRoute View to [1]
             MainDock.Children.Add(new ShopRoute.View { DataContext = new ShopRoute.ViewModel() });
 
             //Add the Scheduler View to [2]
