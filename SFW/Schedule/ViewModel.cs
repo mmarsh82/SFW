@@ -92,8 +92,6 @@ namespace SFW.Schedule
 
         public void ViewLoading(string machineNbr)
         {
-            //Currently receiving an InvalidOperationException since the calling thread is reaching the addition of group descriptions before the processing thread can finish
-            //TODO: work out a proper thread check with out using a blanket Thread.Sleep
             IsLoading = true;
             ScheduleView = string.IsNullOrEmpty(machineNbr)
                 ? CollectionViewSource.GetDefaultView(Machine.GetScheduleData(App.AppSqlCon))

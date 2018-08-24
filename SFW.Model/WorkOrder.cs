@@ -26,6 +26,8 @@ namespace SFW.Model
         public SalesOrder SalesOrder { get; set; }
         public string Notes { get; set; }
         public string ShopNotes { get; set; }
+        public bool IsLate { get { return DueDate < DateTime.Today; } }
+        public bool IsStartedLate { get { return StartDate < DateTime.Today && CurrentQty == StartQty; } }
 
         #endregion
 

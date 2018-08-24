@@ -30,8 +30,8 @@
     <PublisherName>Michael Marsh</PublisherName>
     <SuiteName>WCCO Belting Inc.</SuiteName>
     <AutorunEnabled>true</AutorunEnabled>
-    <ApplicationRevision>27</ApplicationRevision>
-    <ApplicationVersion>1.0.2.27</ApplicationVersion>
+    <ApplicationRevision>39</ApplicationRevision>
+    <ApplicationVersion>1.0.4.39</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <CreateDesktopShortcut>true</CreateDesktopShortcut>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -113,8 +113,11 @@
     <Compile Include="Commands\SafeShutdown.cs" />
     <Compile Include="Commands\ViewLoad.cs" />
     <Compile Include="Controls\WorkSpaceDock.cs" />
+    <Compile Include="Converters\BoolToVisibility.cs" />
     <Compile Include="Converters\CountToVisibility.cs" />
+    <Compile Include="Converters\DateToVisibility.cs" />
     <Compile Include="Converters\InvertBoolToVisibility.cs" />
+    <Compile Include="Converters\Multi_EqualIntToVisibility.cs" />
     <Compile Include="Converters\NegativeIntToBool.cs" />
     <Compile Include="Converters\ObjectToVisibility.cs" />
     <Compile Include="Converters\SkuMasterPrint.cs" />
@@ -268,6 +271,9 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Icons\Exit.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Icons\Late.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

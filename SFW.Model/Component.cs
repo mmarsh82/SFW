@@ -68,7 +68,7 @@ namespace SFW.Model
                                         RequiredQty = reader.SafeGetInt32("Req Qty"),
                                         CurrentOnHand = reader.SafeGetInt32("On Hand"),
                                         CompDescription = reader.SafeGetString("Description"),
-                                        IssuedQty = reader.SafeGetInt32("Qty Per") * balQty,
+                                        IssuedQty = Convert.ToInt32(Math.Round(reader.SafeGetDouble("Qty Per") * balQty,0,MidpointRounding.AwayFromZero)),
                                         CompMasterPrint = reader.SafeGetString("Drawing_Nbrs"),
                                         CompUom = reader.SafeGetString("Um"),
                                         LotList = reader.IsDBNull(0) ? new List<Lot>() : Lot.GetOnHandLotList(reader.GetString(0), sqlCon)

@@ -5,14 +5,17 @@
              xmlns:bhvr="clr-namespace:SFW.Behaviors"
              xmlns:cmd="clr-namespace:SFW.Commands"
              xmlns:cvtr="clr-namespace:SFW.Converters"
+             xmlns:sys="clr-namespace:System;assembly=mscorlib"
              xmlns:local="clr-namespace:SFW.Schedule">
 
     <UserControl.Resources>
         <cmd:PartSearch x:Key="PartSearchCommand"/>
-        <BooleanToVisibilityConverter x:Key="BoolToVisConverter"/>
+        <cvtr:BoolToVisibility x:Key="BoolToVisConverter"/>
         <cvtr:WorkOrderNumber x:Key="WorkOrderConverter"/>
         <cvtr:SkuMasterPrint x:Key="PartSearchConverter"/>
         <cvtr:InvertBoolToVisibility x:Key="InvertedBoolToVisConverter"/>
+        <cvtr:DateToVisibility x:Key="DateToVisConverter"/>
+        <cvtr:Multi_EqualIntToVisibility x:Key="IntEqualConverter"/>
     </UserControl.Resources>
 
     <Grid>
@@ -44,31 +47,37 @@
                 <DataGridTemplateColumn>
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
-                            <StackPanel Orientation="Vertical" MinWidth="450" MaxWidth="500">
+                            <StackPanel Orientation="Vertical" MinWidth="600" MaxWidth="500">
                                 <Grid>
-                                    <TextBlock Text="{Binding WO_Number, Converter={StaticResource WorkOrderConverter}}" FontSize="24" FontWeight="Bold"/>
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Left">
+                                        <TextBlock Text="{Binding WO_Number, Converter={StaticResource WorkOrderConverter}}" FontSize="24" FontWeight="Bold"/>
+                                        <Image Source="/SFW;component/Icons/Late.ico"
+                                               Visibility="{Binding IsLate, Converter={StaticResource BoolToVisConverter}}"
+                                               ToolTip="Work Order is currently past the due date!"
+                                               Margin="10,0,0,0" Height="25" Width="25"/>
+                                        <Image Source="/SFW;component/Icons/Warning.ico"
+                                               Visibility="{Binding IsStartLate, Converter={StaticResource BoolToVisConverter}}"
+                                               ToolTip="Work Order has currently went past it's expected start date."
+                                               Margin="10,0,0,0" Height="25" Width="25"/>
+                                    </StackPanel>
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                                        <TextBlock Text="Seq:" Margin="0,0,5,0" TextDecorations="Underline" VerticalAlignment="Center"/>
-                                        <TextBlock Text="{Binding WO_Number, Converter={StaticResource WorkOrderConverter}, ConverterParameter=Seq}" FontSize="20" FontWeight="Bold" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="{Binding SkuNumber}" VerticalAlignment="Center"/>
+                                        <TextBlock Text="{Binding SkuDesc}" Margin="10,0,10,0" VerticalAlignment="Center"/>
+                                        <Button Command="{StaticResource PartSearchCommand}"
+                                                Margin="0,0,10,0"
+                                                Height="30"
+                                                IsTabStop="False"
+                                                Style="{DynamicResource ResourceKey=DefaultButton}">
+                                            <Image Source="/SFW;component/Icons/PartSearch.ico"/>
+                                            <Button.CommandParameter>
+                                                <MultiBinding Converter="{StaticResource PartSearchConverter}">
+                                                    <Binding Path="SkuNumber"/>
+                                                    <Binding Path="SkuMasterPrint"/>
+                                                </MultiBinding>
+                                            </Button.CommandParameter>
+                                        </Button>
                                     </StackPanel>
                                 </Grid>
-                                <StackPanel Orientation="Horizontal">
-                                    <Button Command="{StaticResource PartSearchCommand}"
-                                        Margin="0,0,10,0"
-                                        Height="30"
-                                        IsTabStop="False"
-                                        Style="{DynamicResource ResourceKey=DefaultButton}">
-                                        <Image Source="/SFW;component/Icons/PartSearch.ico"/>
-                                        <Button.CommandParameter>
-                                            <MultiBinding Converter="{StaticResource PartSearchConverter}">
-                                                <Binding Path="SkuNumber"/>
-                                                <Binding Path="SkuMasterPrint"/>
-                                            </MultiBinding>
-                                        </Button.CommandParameter>
-                                    </Button>
-                                    <TextBlock Text="{Binding SkuNumber}" VerticalAlignment="Center"/>
-                                    <TextBlock Text="{Binding SkuDesc}" Margin="10,0,10,0" VerticalAlignment="Center"/>
-                                </StackPanel>
                                 <Grid>
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
                                         <TextBlock Text="Start:" TextDecorations="Underline"/>
@@ -77,7 +86,39 @@
                                         <TextBlock Text="{Binding WO_DueDate, StringFormat=d}" Margin="5,0,0,0"/>
                                     </StackPanel>
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                                        <TextBlock Text="{Binding WO_CurrentQty, StringFormat=n0}"/>
+                                        <TextBlock Text="Need" Margin="0,0,5,0">
+                                            <TextBlock.Visibility>
+                                                <MultiBinding Converter="{StaticResource IntEqualConverter}">
+                                                    <Binding Path="WO_StartQty"/>
+                                                    <Binding Path="WO_CurrentQty"/>
+                                                </MultiBinding>
+                                            </TextBlock.Visibility>
+                                        </TextBlock>
+                                        <TextBlock Text="{Binding WO_CurrentQty, StringFormat=n0}">
+                                            <TextBlock.Visibility>
+                                                <MultiBinding Converter="{StaticResource IntEqualConverter}">
+                                                    <Binding Path="WO_StartQty"/>
+                                                    <Binding Path="WO_CurrentQty"/>
+                                                </MultiBinding>
+                                            </TextBlock.Visibility>
+                                        </TextBlock>
+                                        <TextBlock Text="{Binding SkuUom}" Margin="5,0,5,0">
+                                            <TextBlock.Visibility>
+                                                <MultiBinding Converter="{StaticResource IntEqualConverter}">
+                                                    <Binding Path="WO_StartQty"/>
+                                                    <Binding Path="WO_CurrentQty"/>
+                                                </MultiBinding>
+                                            </TextBlock.Visibility>
+                                        </TextBlock>
+                                        <TextBlock Text="of">
+                                            <TextBlock.Visibility>
+                                                <MultiBinding Converter="{StaticResource IntEqualConverter}">
+                                                    <Binding Path="WO_StartQty"/>
+                                                    <Binding Path="WO_CurrentQty"/>
+                                                </MultiBinding>
+                                            </TextBlock.Visibility>
+                                        </TextBlock>
+                                        <TextBlock Text="{Binding WO_StartQty, StringFormat=n0}" Margin="5,0,0,0"/>
                                         <TextBlock Text="{Binding SkuUom}" Margin="5,0,5,0"/>
                                     </StackPanel>
                                 </Grid>

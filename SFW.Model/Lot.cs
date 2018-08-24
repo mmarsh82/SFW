@@ -161,7 +161,7 @@ namespace SFW.Model
                     return dt;
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return new DataTable();
             }
