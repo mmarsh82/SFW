@@ -20,7 +20,13 @@ namespace SFW
         public static string Site
         {
             get { return _site; }
-            set { _site = value; StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(Site)); }
+            set { _site = value; StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(Site))); }
+        }
+        public static int _siteNbr;
+        public static int SiteNumber
+        {
+            get { return _siteNbr; }
+            set { _siteNbr = value; StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(SiteNumber))); }
         }
 
         public static SqlConnection AppSqlCon { get; set; }
@@ -32,7 +38,7 @@ namespace SFW
         public App()
         {
             Site = "CSI_MAIN";
-            AppSqlCon = new SqlConnection($"Server=SQL-WCCO;User ID=omni;Password=Public2017@WORK!;DataBase={Site};Connection Timeout=5;MultipleActiveResultSets=True");
+            AppSqlCon = new SqlConnection($"Server=SQL-WCCO;User ID=omni;Password=Public2017@WORK!;DataBase={Site};Connection Timeout=60;MultipleActiveResultSets=True");
             AppSqlCon.OpenAsync();
             while (AppSqlCon.State == System.Data.ConnectionState.Connecting) { }
             Current.Exit += App_Exit;
@@ -40,6 +46,7 @@ namespace SFW
             Current.DispatcherUnhandledException += App_DispatherCrash;
             SystemEvents.PowerModeChanged += OnPowerChange;
             AppSqlCon.StateChange += SqlCon_StateChangeAsync;
+            RefreshTimer.Start(new TimeSpan(0, 0, 60));
         }
 
         /// <summary>
@@ -98,6 +105,7 @@ namespace SFW
                 AppSqlCon.Close();
                 AppSqlCon.Dispose();
                 Site = dbName;
+                SiteNumber = dbName == "CSI_MAIN" ? 0 : 2;
                 AppSqlCon = new SqlConnection($"Server=SQL-WCCO;User ID=omni;Password=Public2017@WORK!;DataBase={Site};Connection Timeout=5;MultipleActiveResultSets=True");
                 AppSqlCon.OpenAsync();
                 while (AppSqlCon.State == System.Data.ConnectionState.Connecting) { }

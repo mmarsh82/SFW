@@ -23,16 +23,16 @@ namespace SFW.Commands
                 {
                     if(parameter.GetType() == typeof(Model.WorkOrder))
                     {
-                        WorkSpaceDock.SwitchView(3, new PartInfo_ViewModel((Model.WorkOrder)parameter));
+                        WorkSpaceDock.SwitchView(5, new PartInfo_ViewModel((Model.WorkOrder)parameter));
                     }
                     else
                     {
-                        WorkSpaceDock.SwitchView(3, new PartInfo_ViewModel(parameter.ToString()));
+                        WorkSpaceDock.SwitchView(5, new PartInfo_ViewModel(parameter.ToString()));
                     }
                 }
                 else
                 {
-                    WorkSpaceDock.SwitchView(3, null);
+                    WorkSpaceDock.SwitchView(5, null);
                 }
             }
             catch (Exception)

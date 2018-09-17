@@ -30,8 +30,8 @@
     <PublisherName>Michael Marsh</PublisherName>
     <SuiteName>WCCO Belting Inc.</SuiteName>
     <AutorunEnabled>true</AutorunEnabled>
-    <ApplicationRevision>39</ApplicationRevision>
-    <ApplicationVersion>1.0.4.39</ApplicationVersion>
+    <ApplicationRevision>64</ApplicationRevision>
+    <ApplicationVersion>1.0.5.64</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <CreateDesktopShortcut>true</CreateDesktopShortcut>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -105,6 +105,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="RefreshTimer.cs" />
     <Compile Include="Behaviors\ExpanderState.cs" />
     <Compile Include="Commands\M2kLookQuery.cs" />
     <Compile Include="Commands\PartInformation.cs" />
@@ -124,12 +125,17 @@
     <Compile Include="Converters\StringToVisibility.cs" />
     <Compile Include="Converters\WorkCenterName.cs" />
     <Compile Include="Converters\WorkOrderNumber.cs" />
+    <Compile Include="Enumerations\UsersControls.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="MainWindowViewModel.cs" />
     <Compile Include="Queries\PartInfo_View.xaml.cs">
       <DependentUpon>PartInfo_View.xaml</DependentUpon>
     </Compile>
     <Compile Include="Queries\PartInfo_ViewModel.cs" />
+    <Compile Include="Reports\Press_View.xaml.cs">
+      <DependentUpon>Press_View.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Reports\Press_ViewModel.cs" />
     <Compile Include="Scheduler\View.xaml.cs">
       <DependentUpon>View.xaml</DependentUpon>
     </Compile>
@@ -144,6 +150,10 @@
     </Compile>
     <Compile Include="ShopRoute\ViewModel.cs" />
     <Page Include="Queries\PartInfo_View.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Reports\Press_View.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

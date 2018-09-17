@@ -160,9 +160,7 @@ namespace SFW.Model
 	                                                                            ISNULL(d.[Bom_Rev_Level], '') as 'BomRevLvl',
                                                                                 ISNULL(e.[Qty_On_Hand], 0) as 'SkuOnHand',
                                                                                 CASE WHEN b.[Due_Date] < GETDATE() THEN 1 ELSE 0 END as 'IsLate',
-	                                                                            CASE WHEN b.[Date_Start] < GETDATE() AND c.[Qty_To_Start] = b.[Qty_Avail] THEN 1 ELSE 0 END as 'IsStartLate',
-	                                                                            (SELECT ' ' + a1.[Wo_Notes] FROM [dbo].[WP-INIT_Wo_Notes] a1 WHERE b.[ID] LIKE CONCAT(a1.[ID], '%') FOR XML PATH('')) as 'WO_Notes',
-	                                                                            (SELECT ' ' + b1.[Wo_Sf_Notes] FROM [dbo].[WP-INIT_Wo_Sf_Notes] b1 WHERE b.[ID] LIKE CONCAT(b1.[ID], '%') FOR XML PATH('')) as 'WO_ShopNotes'
+	                                                                            CASE WHEN b.[Date_Start] < GETDATE() AND c.[Qty_To_Start] = b.[Qty_Avail] THEN 1 ELSE 0 END as 'IsStartLate'
                                                                             FROM
                                                                                 [dbo].[WC-INIT] a
                                                                             RIGHT JOIN
@@ -186,7 +184,7 @@ namespace SFW.Model
                     }
                     catch (SqlException sqlEx)
                     {
-                        throw sqlEx;
+                        throw new Exception(sqlEx.Message);
                     }
                     catch (Exception ex)
                     {

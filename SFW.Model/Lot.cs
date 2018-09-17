@@ -24,12 +24,54 @@ namespace SFW.Model
         public string TransactionSalesOrder { get; set; }
         public string Submitter { get; set; }
         public string TransactionCrew { get; set; }
+        public IDictionary<string, int> Dedication { get; set; }
 
         #endregion
 
+        /// <summary>
+        /// Default Constructor
+        /// </summary>
         public Lot()
         {
 
+        }
+
+        /// <summary>
+        /// Lot Constructor for dedication population
+        /// </summary>
+        /// <param name="lotNbr">Lot Number</param>
+        public Lot(string lotNbr, SqlConnection sqlCon)
+        {
+            if (Dedication == null)
+            {
+                Dedication = new Dictionary<string, int>();
+            }
+            try
+            {
+                using (SqlCommand cmd = new SqlCommand(@"SELECT
+	                                                        [Dedicated_Wo] as 'WorkOrder', [Ded_Wo_Qty] as 'Qty'
+                                                        FROM
+	                                                        [dbo].[LOT-INIT_Dedicated_Wo_Data]
+                                                        WHERE
+	                                                        [ID1] = @p1;", sqlCon))
+                {
+                    cmd.Parameters.AddWithValue("p1", lotNbr);
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        if (reader.HasRows)
+                        {
+                            while (reader.Read())
+                            {
+                                Dedication.Add(reader.SafeGetString("WorkOrder"), reader.SafeGetInt32("Qty"));
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                Dedication = null;
+            }
         }
 
         /// <summary>
@@ -95,64 +137,15 @@ namespace SFW.Model
                 {
                     if (!string.IsNullOrEmpty(partNbr))
                     {
-                        using (SqlDataAdapter adapter = new SqlDataAdapter(@"SELECT
-                                                                                a.[TranDateTime], 
-                                                                                CASE WHEN a.[Scan_Station_ID] IS NOT NULL 
-		                                                                            THEN CASE WHEN ISNUMERIC(a.[Scan_Station_ID]) = 0
-				                                                                            THEN a.[Scan_Station_ID] 
-				                                                                            ELSE (SELECT        
-						                                                                            CONCAT(b1.[First_Name], ' ', b1.[Last_Name])
-					                                                                            FROM
-						                                                                            [dbo].[WIP_HIST-INIT] a1 
-					                                                                            RIGHT JOIN
-						                                                                            [dbo].[EMPLOYEE_MASTER-INIT] b1 ON b1.[Emp_No] = a1.[Crew_Leader]
-					                                                                            WHERE        
-						                                                                            a1.[ID] = a.[Scan_Station_ID]) END 
-		                                                                            ELSE SUBSTRING(a.[Logon], 0, CHARINDEX(':', a.[Logon], 0))
-	                                                                            END AS 'Submitter', 
-                                                                                d.[Ext_Desc] AS 'TranType', 
-                                                                                CASE WHEN a.[Tran_Code] = 44 OR a.[Tran_Code] = 50 
-                                                                                    THEN SUBSTRING(a.[Reference], 0, CHARINDEX('*', a.[Reference], 0)) 
-                                                                                    ELSE ''
-	                                                                            END AS 'TranCode',
-                                                                                SUBSTRING(a.[Lot_Number], 0, CHARINDEX('|', a.[Lot_Number], 0)) AS 'LotNumber', 
-                                                                                CASE WHEN a.[From_Loc] IS NULL
-                                                                                    THEN a.[To_Loc]
-                                                                                    ELSE CASE WHEN a.[To_Loc] IS NULL
-			                                                                            THEN a.[From_Loc]
-			                                                                            ELSE CONCAT(a.[From_Loc], ' --> ', a.[To_Loc]) END
-	                                                                            END AS 'TranLoc',
-                                                                                CAST (CASE WHEN a.[Tran_Code] = 44 OR a.[Tran_Code] = 49 
-                                                                                    THEN a.[Qty] * - 1 
-                                                                                    ELSE a.[Qty] END AS int) AS 'TranQty',
-                                                                                CAST(a.[Prior_On_Hand] AS int) AS 'OnHand',
-                                                                                CASE WHEN a.[Tran_Code] = 44 OR a.[Tran_Code] = 50
-                                                                                    THEN SUBSTRING(a.[Reference], CHARINDEX('*', a.[Reference], 0) + 1, LEN(a.[Reference]))
-                                                                                    ELSE ''
-	                                                                            END AS 'Reference',
-                                                                                b.[Wp_Nbr],
-                                                                                ISNULL(SUBSTRING(c.[So_Reference], 0, LEN(c.[So_Reference]) - 1), '') AS 'SalesOrder',
-                                                                                STUFF((SELECT
-				                                                                            CONCAT(', ', b2.[First_Name], ' ', b2.[Last_Name])
-			                                                                            FROM
-				                                                                            [dbo].[WIP_HIST-INIT_YCrew_Data] a2
-			                                                                            RIGHT JOIN
-				                                                                            [dbo].[EMPLOYEE_MASTER-INIT] b2 ON b2.[Emp_No] = a2.[Crew_Members]
-			                                                                            WHERE 
-				                                                                            a2.[ID1] = a.[Scan_Station_ID]
-			                                                                            FOR XML PATH('')), 1, 2, '') as 'Crew'
+
+                        using (SqlDataAdapter adapter = new SqlDataAdapter(@"SELECT 
+                                                                                *
                                                                             FROM
-                                                                                dbo.[IT-INIT] AS a 
-                                                                            RIGHT OUTER JOIN
-                                                                                dbo.[WP-INIT_Lot_Entered] AS b ON b.[Lot_Entered] = a.[Lot_Number]
-                                                                            RIGHT OUTER JOIN
-                                                                                dbo.[WP-INIT] AS c ON c.[Wp_Nbr] = b.[Wp_Nbr]
-                                                                            RIGHT OUTER JOIN
-                                                                                dbo.[IT-INIT_Tran_Code] AS d ON d.[ID] = a.[Tran_Code]
+                                                                                [dbo].[LotHistory]
                                                                             WHERE
-                                                                                a.[ID] LIKE CONCAT(@p1,'%') AND (a.[Tran_Date] > DATEADD(YEAR, -3, GETDATE()))
+                                                                                [PartNbr] = @p1 AND (CAST([TranDateTime] as DATE) > DATEADD(YEAR, -3, GETDATE()))
                                                                             ORDER BY
-                                                                                a.[TranDateTime] DESC;", sqlCon))
+                                                                                [TranDateTime] DESC;", sqlCon))
                         {
                             adapter.SelectCommand.Parameters.AddWithValue("p1", partNbr);
                             adapter.Fill(dt);
@@ -164,6 +157,55 @@ namespace SFW.Model
             catch (Exception)
             {
                 return new DataTable();
+            }
+        }
+
+        /// <summary>
+        /// Get a list of lots for work order dedication
+        /// </summary>
+        /// <param name="partNbr">SKU Part Number</param>
+        /// <param name="woNbr">Lot Number</param>
+        /// <param name="sqlCon">Sql Connection to use</param>
+        public static List<Lot> GetDedicatedLotList(string partNbr, string woNbr, SqlConnection sqlCon)
+        {
+            var _temp = new List<Lot>();
+            try
+            {
+                using (SqlCommand cmd = new SqlCommand(@"SELECT
+	                                                        SUBSTRING(a.[ID1], 0, LEN(a.[ID1]) - 1) as 'LotNbr', a.[Ded_Wo_Qty] as 'Qty',
+	                                                        b.[Loc] as 'Location'
+                                                        FROM
+	                                                        [dbo].[LOT-INIT_Dedicated_Wo_Data] a
+                                                        LEFT OUTER JOIN
+	                                                        [dbo].[LOT-INIT_Lot_Loc_Qtys] b ON b.[ID1] = a.[ID1]
+                                                        LEFT OUTER JOIN
+	                                                        [dbo].[LOT-INIT] c ON c.[Lot_Number] = a.[ID1]
+                                                        WHERE
+	                                                        a.[Dedicated_Wo] = @p1 AND c.[Part_Nbr] = @p2;", sqlCon))
+                {
+                    cmd.Parameters.AddWithValue("p1", woNbr);
+                    cmd.Parameters.AddWithValue("p2", partNbr);
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        if (reader.HasRows)
+                        {
+                            while (reader.Read())
+                            {
+                                _temp.Add(new Lot
+                                {
+                                    LotNumber = reader.SafeGetString("LotNbr"),
+                                    Onhand = reader.SafeGetInt32("Qty"),
+                                    Location = reader.SafeGetString("Location")
+                                });
+                            }
+                        }
+                    }
+                }
+                return _temp;
+            }
+            catch (Exception)
+            {
+                return new List<Lot>();
             }
         }
     }

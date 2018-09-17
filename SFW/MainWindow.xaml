@@ -6,8 +6,7 @@
     xmlns:cmd="clr-namespace:SFW.Commands"
     xmlns:local="clr-namespace:SFW"
     x:Class="SFW.MainWindow"
-        mc:Ignorable="d"
-        Title="Shop Floor Workbench" MinWidth="1520" MinHeight="600" WindowState="Maximized" WindowStartupLocation="CenterOwner">
+    Title="Shop Floor Workbench" MinWidth="1520" MinHeight="600" WindowState="Maximized" WindowStartupLocation="CenterOwner">
 
     <Grid>
 
@@ -37,8 +36,10 @@
               VerticalAlignment="Stretch"
               IsMainMenu="True">
             <MenuItem Header="File">
-                <MenuItem Header="Default Work Centers"/>
-                <MenuItem Header="Print"/>
+                <MenuItem Header="Default Work Centers"
+                          IsEnabled="False"/>
+                <MenuItem Header="Print"
+                          IsEnabled="False"/>
                 <MenuItem Header="Exit"
                           Command="{StaticResource ExitICommand}"
                           InputGestureText="Alt+F4">
@@ -62,9 +63,12 @@
                           InputGestureText="F5"/>
                 <MenuItem Header="Scheduler"
                           Command="{StaticResource ViewLoadICommand}"
-                          CommandParameter="Scheduler"/>
-                <MenuItem Header="Setup Prints"/>
-                <MenuItem Header="Work Instructions"/>
+                          CommandParameter="Scheduler"
+                          IsEnabled="False"/>
+                <MenuItem Header="Setup Prints"
+                          IsEnabled="False"/>
+                <MenuItem Header="Work Instructions"
+                          IsEnabled="False"/>
             </MenuItem>
             <MenuItem Header="Queries">
                 <MenuItem Header="Part Info"

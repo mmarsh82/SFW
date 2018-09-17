@@ -24,7 +24,8 @@ namespace SFW.Queries
                 try
                 {
                     IthResultsTable.DefaultView.RowFilter = $"LotNumber = '{value.LotNumber}'";
-                    Filter = value.LotNumber;
+                    FilterText = value.LotNumber;
+                    OnPropertyChanged(nameof(FilterText));
                 }
                 catch (NullReferenceException)
                 {
@@ -37,7 +38,7 @@ namespace SFW.Queries
         public string PartNbr
         {
             get { return part; }
-            set { part = value; OnPropertyChanged(nameof(PartNbr)); }
+            set { part = value?.ToUpper(); OnPropertyChanged(nameof(PartNbr)); }
         }
         public string PartNbrText { get; set; }
         private string filter;
@@ -51,11 +52,22 @@ namespace SFW.Queries
 
         public DataTable IthResultsTable { get; set; }
 
-        private bool results;
         public bool NoResults
         {
-            get { return results; }
-            set { results = value; OnPropertyChanged(nameof(NoResults)); }
+            get { return NoLotResults && NoHistoryResults; }
+        }
+
+        private bool lotResults;
+        public bool NoLotResults
+        {
+            get { return lotResults; }
+            set { lotResults = value; OnPropertyChanged(nameof(NoLotResults)); }
+        }
+        private bool lhResults;
+        public bool NoHistoryResults
+        {
+            get { return lhResults; }
+            set { lhResults = value; OnPropertyChanged(nameof(NoHistoryResults)); }
         }
 
         private bool loading;
@@ -79,7 +91,8 @@ namespace SFW.Queries
         /// </summary>
         public PartInfo_ViewModel()
         {
-            NoResults = true;
+            NoLotResults = true;
+            NoHistoryResults = true;
             IsLoading = false;
             ResultsAsyncDelegate = new ResultsDelegate(ResultsLoading);
         }
@@ -120,7 +133,8 @@ namespace SFW.Queries
         public void ResultsLoaded(IAsyncResult r)
         {
             IsLoading = false;
-            NoResults = ILotResultsList?.Count == 0;
+            NoLotResults = ILotResultsList?.Count == 0;
+            NoHistoryResults = IthResultsTable?.Rows?.Count == 0;
             if (!string.IsNullOrEmpty(PreFilter))
             {
                 FilterICommand.Execute(PreFilter);
@@ -131,6 +145,7 @@ namespace SFW.Queries
             OnPropertyChanged(nameof(PartNbrText));
             OnPropertyChanged(nameof(ILotResultsList));
             OnPropertyChanged(nameof(IthResultsTable));
+            OnPropertyChanged(nameof(NoResults));
         }
 
         #endregion
@@ -158,7 +173,8 @@ namespace SFW.Queries
         /// <param name="parameter">User input</param>
         private void SearchExecute(object parameter)
         {
-            NoResults = false;
+            NoLotResults = false;
+            NoHistoryResults = false;
             IthResultsTable = null;
             ILotResultsList = null;
             Filter = FilterText = null;

@@ -4,9 +4,7 @@
              xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
              xmlns:bhvr="clr-namespace:SFW.Behaviors"
              xmlns:cmd="clr-namespace:SFW.Commands"
-             xmlns:cvtr="clr-namespace:SFW.Converters"
-             xmlns:sys="clr-namespace:System;assembly=mscorlib"
-             xmlns:local="clr-namespace:SFW.Schedule">
+             xmlns:cvtr="clr-namespace:SFW.Converters">
 
     <UserControl.Resources>
         <cmd:PartSearch x:Key="PartSearchCommand"/>

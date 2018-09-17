@@ -2,6 +2,7 @@
 using SFW.Converters;
 using SFW.Model;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Windows.Data;
@@ -24,7 +25,7 @@ namespace SFW.Schedule
                 _selectedWO = value;
                 if (value != null)
                 {
-                    ((ShopRoute.ViewModel)((ShopRoute.View)WorkSpaceDock.MainDock.Children[1]).DataContext).ShopOrder = new WorkOrder(value.Row, App.AppSqlCon);
+                    ((ShopRoute.ViewModel)((ShopRoute.View)WorkSpaceDock.MainDock.Children[App.SiteNumber + 1]).DataContext).ShopOrder = new WorkOrder(value.Row, App.AppSqlCon);
                 }
                 OnPropertyChanged(nameof(SelectedWorkOrder));
             }
@@ -42,6 +43,9 @@ namespace SFW.Schedule
         public LoadDelegate FilterAsyncDelegate { get; private set; }
         public IAsyncResult LoadAsyncComplete { get; set; }
 
+        public List<Machine> MachineList { get; set; }
+        public List<string> MachineGroupList { get; set; }
+
         #endregion
 
         /// <summary>
@@ -52,6 +56,9 @@ namespace SFW.Schedule
             LoadAsyncDelegate = new LoadDelegate(ViewLoading);
             FilterAsyncDelegate = new LoadDelegate(FilterView);
             LoadAsyncComplete = LoadAsyncDelegate.BeginInvoke(null, new AsyncCallback(ViewLoaded), null);
+            MachineList = Machine.GetMachineList(App.AppSqlCon, true);
+            MachineGroupList = Machine.GetMachineGroupList(App.AppSqlCon, true);
+            RefreshTimer.Add(RefreshSchedule);
         }
 
         /// <summary>
@@ -96,7 +103,7 @@ namespace SFW.Schedule
             ScheduleView = string.IsNullOrEmpty(machineNbr)
                 ? CollectionViewSource.GetDefaultView(Machine.GetScheduleData(App.AppSqlCon))
                 : CollectionViewSource.GetDefaultView(Machine.GetScheduleData(App.AppSqlCon, machineNbr));
-            ScheduleView.GroupDescriptions.Add(new PropertyGroupDescription("MachineNumber", new WorkCenterNameConverter(Machine.GetMachineList(App.AppSqlCon, false))));
+            ScheduleView.GroupDescriptions.Add(new PropertyGroupDescription("MachineNumber", new WorkCenterNameConverter(MachineList)));
         }
         public void ViewLoaded(IAsyncResult r)
         {
@@ -105,5 +112,35 @@ namespace SFW.Schedule
         }
 
         #endregion
+
+        /// <summary>
+        /// Refresh action for the schedule data
+        /// </summary>
+        public void RefreshSchedule()
+        {
+            if (!IsLoading)
+            {
+                IsLoading = true;
+                var _selection = SelectedWorkOrder;
+                var _filter = string.Empty;
+                if (MainWindowViewModel.SelectedMachine?.MachineName != "All")
+                {
+                    _filter = MainWindowViewModel.SelectedMachine.MachineName;
+                }
+                else if (MainWindowViewModel.SelectedMachineGroup != "All")
+                {
+                    _filter = MainWindowViewModel.SelectedMachineGroup;
+                }
+                MainWindowViewModel.SelectedMachine = MainWindowViewModel.SelectedMachine ?? MainWindowViewModel.MachineList[0];
+                MainWindowViewModel.SelectedMachineGroup = MainWindowViewModel.SelectedMachineGroup ?? MainWindowViewModel.MachineGroupList[0];
+                ScheduleView = string.IsNullOrEmpty(_filter)
+                    ? CollectionViewSource.GetDefaultView(Machine.GetScheduleData(App.AppSqlCon))
+                    : CollectionViewSource.GetDefaultView(Machine.GetScheduleData(App.AppSqlCon, _filter));
+                ScheduleView.GroupDescriptions.Add(new PropertyGroupDescription("MachineNumber", new WorkCenterNameConverter(MachineList)));
+                OnPropertyChanged(nameof(ScheduleView));
+                SelectedWorkOrder = _selection;
+                IsLoading = false;
+            }
+        }
     }
 }

@@ -23,39 +23,39 @@ namespace SFW.Commands
                 switch (parameter.ToString())
                 {
                     case "Back":
-                        WorkSpaceDock.SwitchView(0, null);
+                        WorkSpaceDock.SwitchView(App.SiteNumber, null);
                         break;
                     case "Schedule":
-                        WorkSpaceDock.SwitchView(0, new Schedule.ViewModel());
+                        WorkSpaceDock.SwitchView(App.SiteNumber, new Schedule.ViewModel());
                         break;
                     case "Scheduler":
-                        WorkSpaceDock.SwitchView(2, new Scheduler.ViewModel());
+                        WorkSpaceDock.SwitchView(4, new Scheduler.ViewModel());
                         break;
                     case "SiteCsi":
                         if (!App.SqlCon_DataBaseChange("CSI_MAIN"))
                         {
                             App.SqlCon_DataBaseChange(_temp);
                         }
-                        MainWindowViewModel.UpdateProperties();
-                        WorkSpaceDock.RefreshMainDock();
+                        WorkSpaceDock.SwitchView(0, null);
+                        MainWindowViewModel.CurrentSite = "";
                         break;
                     case "SiteWcco":
                         if (!App.SqlCon_DataBaseChange("WCCO_MAIN"))
                         {
                             App.SqlCon_DataBaseChange(_temp);
                         }
-                        MainWindowViewModel.UpdateProperties();
-                        WorkSpaceDock.RefreshMainDock();
+                        WorkSpaceDock.SwitchView(2, null);
+                        MainWindowViewModel.CurrentSite = "";
                         break;
                     default:
-                        WorkSpaceDock.SwitchView(0, null);
+                        WorkSpaceDock.SwitchView(App.SiteNumber, null);
                         if (int.TryParse(parameter.ToString(), out int i))
                         {
-                            ((DataView)((Schedule.ViewModel)((Schedule.View)WorkSpaceDock.MainDock.Children[0]).DataContext).ScheduleView.SourceCollection).RowFilter = $"MachineNumber = {parameter.ToString()}";
+                            ((DataView)((Schedule.ViewModel)((Schedule.View)WorkSpaceDock.MainDock.Children[App.SiteNumber]).DataContext).ScheduleView.SourceCollection).RowFilter = $"MachineNumber = {parameter.ToString()}";
                         }
                         else
                         {
-                            ((DataView)((Schedule.ViewModel)((Schedule.View)WorkSpaceDock.MainDock.Children[0]).DataContext).ScheduleView.SourceCollection).RowFilter = $"MachineGroup = '{parameter.ToString()}'";
+                            ((DataView)((Schedule.ViewModel)((Schedule.View)WorkSpaceDock.MainDock.Children[App.SiteNumber]).DataContext).ScheduleView.SourceCollection).RowFilter = $"MachineGroup = '{parameter.ToString()}'";
                         }
                         break;
                 }

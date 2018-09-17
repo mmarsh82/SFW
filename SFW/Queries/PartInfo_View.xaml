@@ -12,7 +12,7 @@
                 <cvtr:NegativeIntToBool x:Key="NegIntToBoolConverter"/>
                 <cvtr:StringToVisibility x:Key="StringToVisConverter"/>
                 <cvtr:CountToVisibility x:Key="CountToVisConverter"/>
-                <BooleanToVisibilityConverter x:Key="BoolToVisConverter"/>
+                <cvtr:BoolToVisibility x:Key="BoolToVisConverter"/>
                 <cmd:M2kLookQuery x:Key="LookQueryCommand"/>
                 <cmd:ViewLoad x:Key="Back"/>
             </Grid.Resources>
@@ -91,7 +91,7 @@
 
                 <DataGrid x:Name="ILotResultsDataGrid"
                           ItemsSource="{Binding ILotResultsList}"
-                          Visibility="{Binding NoResults, Converter={StaticResource InvertBoolToVisConverter}}"
+                          Visibility="{Binding NoLotResults, Converter={StaticResource InvertBoolToVisConverter}}"
                           SelectedItem="{Binding SelectedILotRow}"
                           HorizontalAlignment="Left"
                           VerticalAlignment="Top"
@@ -120,8 +120,7 @@
 
                 <DataGrid x:Name="IthResultsDataGrid"
                           ItemsSource="{Binding IthResultsTable}"
-                          Visibility="{Binding NoResults, Converter={StaticResource InvertBoolToVisConverter}}"
-                          IsSynchronizedWithCurrentItem="True"
+                          Visibility="{Binding NoHistoryResults, Converter={StaticResource InvertBoolToVisConverter}}"
                           HorizontalAlignment="Left"
                           VerticalAlignment="Top"
                           FontSize="16"
@@ -129,8 +128,7 @@
                           AlternatingRowBackground="LightSteelBlue"
                           AutoGenerateColumns="False"
                           IsReadOnly="True"
-                          Margin="20,0,0,0"
-                          RowDetailsVisibilityMode="Visible">
+                          Margin="20,0,0,0">
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="Date and Time" Binding="{Binding TranDateTime, StringFormat='MM/dd/yyyy       HH:mm'}"/>
                         <DataGridTextColumn Header="User" Binding="{Binding Submitter}"/>
@@ -160,19 +158,8 @@
                                              IsReadOnly="True"
                                              Background="Transparent"
                                              BorderThickness="0"
-                                             MaxWidth="165"
+                                             MaxWidth="200"
                                              TextWrapping="Wrap"/>
-                                </DataTemplate>
-                            </DataGridTemplateColumn.CellTemplate>
-                        </DataGridTemplateColumn>
-                        <DataGridTemplateColumn Header="Work Order">
-                            <DataGridTemplateColumn.CellTemplate>
-                                <DataTemplate>
-                                    <Button Content="{Binding Wp_Nbr}"
-                                            Command="{StaticResource LookQueryCommand}"
-                                            CommandParameter="{Binding Content, RelativeSource={RelativeSource Self}}"
-                                            Style="{DynamicResource DefaultButton}"
-                                            Visibility="{Binding Content, RelativeSource={RelativeSource Self}, Converter={StaticResource StringToVisConverter}}"/>
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
@@ -194,11 +181,11 @@
 
             <TextBlock Grid.Row="1"
                        Text="No Results"
+                       Visibility="{Binding NoResults, Converter={StaticResource BoolToVisConverter}}"
                        FontSize="50"
                        FontWeight="Bold"
                        VerticalAlignment="Center"
-                       HorizontalAlignment="Center"
-                       Visibility="{Binding NoResults, Converter={StaticResource BoolToVisConverter}}"/>
+                       HorizontalAlignment="Center"/>
 
             <Control Grid.Row="1"
                      Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisConverter}}"

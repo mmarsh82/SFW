@@ -14,7 +14,7 @@ namespace SFW.Converters
     {
         #region Properties
 
-        public static List<Machine> MachineList { get; private set; }
+        public List<Machine> MachineList { get; private set; }
 
         #endregion
 
@@ -22,7 +22,16 @@ namespace SFW.Converters
 
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            return value != null && value != DependencyProperty.UnsetValue ? $"{MachineList.FirstOrDefault(o => o.MachineNumber == value.ToString()).MachineName} ({value.ToString()})" : string.Empty;
+            try
+            {
+                return value != null && value != DependencyProperty.UnsetValue
+                        ? $"{MachineList.FirstOrDefault(o => o.MachineNumber == value.ToString()).MachineName} ({value.ToString()})"
+                        : string.Empty;
+            }
+            catch
+            {
+                return "Error in load";
+            }
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

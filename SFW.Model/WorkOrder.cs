@@ -64,8 +64,8 @@ namespace SFW.Model
                 BomRevLevel = drow.Field<string>("BomRevLvl");
                 SalesOrder = new SalesOrder(drow.Field<string>("WO_SalesRef"), sqlCon);
                 Bom = Component.GetComponentList(_wo[0], StartQty - CurrentQty, sqlCon);
-                Notes = drow.Field<string>("WO_Notes");
-                ShopNotes = drow.Field<string>("WO_ShopNotes");
+                Notes = GetNotes(_wo[0],sqlCon);
+                ShopNotes = GetShopNotes(_wo[0], sqlCon);
             }
         }
 
@@ -151,6 +151,94 @@ namespace SFW.Model
                         }
                     }
                     return _tempList.OrderBy(o => o.Priority).ToList();
+                }
+                catch (SqlException sqlEx)
+                {
+                    throw sqlEx;
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception(ex.Message);
+                }
+            }
+            else
+            {
+                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
+            }
+        }
+
+        /// <summary>
+        /// Get a work order's notes
+        /// </summary>
+        /// <param name="woNbr">Work Order Number</param>
+        /// <param name="sqlCon">Sql Connection to use</param>
+        /// <returns>A concatonation of notes into a string</returns>
+        public static string GetNotes(string woNbr, SqlConnection sqlCon)
+        {
+            var _notes = string.Empty;
+            if (sqlCon != null || sqlCon.State != ConnectionState.Closed || sqlCon.State != ConnectionState.Broken)
+            {
+                try
+                {
+                    using (SqlCommand cmd = new SqlCommand(@"SELECT [Wo_Notes] FROM [dbo].[WP-INIT_Wo_Notes] WHERE [ID] = @p1;", sqlCon))
+                    {
+                        cmd.Parameters.AddWithValue("p1", woNbr);
+                        using (SqlDataReader reader = cmd.ExecuteReader())
+                        {
+                            if (reader.HasRows)
+                            {
+                                while (reader.Read())
+                                {
+                                    _notes += $"{reader.SafeGetString("Wo_Notes")}\n";
+                                }
+                            }
+                        }
+                    }
+                    return _notes;
+                }
+                catch (SqlException sqlEx)
+                {
+                    throw sqlEx;
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception(ex.Message);
+                }
+            }
+            else
+            {
+                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
+            }
+        }
+
+        /// <summary>
+        /// Get a work order's shop floor notes
+        /// </summary>
+        /// <param name="woNbr">Work Order Number</param>
+        /// <param name="sqlCon">Sql Connection to use</param>
+        /// <returns>A concatonation of shop floor notes into a string</returns>
+        public static string GetShopNotes(string woNbr, SqlConnection sqlCon)
+        {
+            var _notes = string.Empty;
+            if (sqlCon != null || sqlCon.State != ConnectionState.Closed || sqlCon.State != ConnectionState.Broken)
+            {
+                try
+                {
+                    using (SqlCommand cmd = new SqlCommand(@"SELECT [Wo_Sf_Notes] FROM [dbo].[WP-INIT_Wo_Sf_Notes] WHERE [ID] = @p1;", sqlCon))
+                    {
+                        cmd.Parameters.AddWithValue("p1", woNbr);
+                        using (SqlDataReader reader = cmd.ExecuteReader())
+                        {
+                            if (reader.HasRows)
+                            {
+                                while (reader.Read())
+                                {
+                                    _notes += $"{reader.SafeGetString("Wo_Sf_Notes")}\n";
+                                }
+                            }
+                        }
+                    }
+                    return _notes;
                 }
                 catch (SqlException sqlEx)
                 {

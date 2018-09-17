@@ -5,7 +5,8 @@
     <Style x:Key="DisabledTextBox" TargetType="{x:Type TextBox}">
         <Setter Property="Background" Value="{Binding}"/>
         <Setter Property="Foreground" Value="{Binding}"/>
-        <Setter Property="IsEnabled" Value="False"/>
+        <Setter Property="IsReadOnly" Value="True"/>
+        <Setter Property="VerticalScrollBarVisibility" Value="Auto"/>
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type TextBox}">
@@ -17,7 +18,7 @@
                                           SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
                     </Border>
                     <ControlTemplate.Triggers>
-                        <Trigger Property="IsEnabled" Value="False">
+                        <Trigger Property="IsReadOnly" Value="True">
                             <Setter Property="Background" Value="{Binding}"/>
                             <Setter Property="Foreground" Value="{Binding}"/>
                             <Setter TargetName="PART_ContentHost" Property="Background" Value="{Binding}"/>

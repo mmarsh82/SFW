@@ -18,6 +18,7 @@ namespace SFW.Model
         public string CompMasterPrint { get; set; }
         public string CompUom { get; set; }
         public List<Lot> LotList { get; set; }
+        public List<Lot> DedicatedLotList { get; set; }
 
         #endregion
 
@@ -71,7 +72,8 @@ namespace SFW.Model
                                         IssuedQty = Convert.ToInt32(Math.Round(reader.SafeGetDouble("Qty Per") * balQty,0,MidpointRounding.AwayFromZero)),
                                         CompMasterPrint = reader.SafeGetString("Drawing_Nbrs"),
                                         CompUom = reader.SafeGetString("Um"),
-                                        LotList = reader.IsDBNull(0) ? new List<Lot>() : Lot.GetOnHandLotList(reader.GetString(0), sqlCon)
+                                        LotList = reader.IsDBNull(0) ? new List<Lot>() : Lot.GetOnHandLotList(reader.SafeGetString("Component"), sqlCon),
+                                        DedicatedLotList = reader.IsDBNull(0) ? new List<Lot>() : Lot.GetDedicatedLotList(reader.SafeGetString("Component"), woNbr, sqlCon)
                                     });
                                 }
                             }
