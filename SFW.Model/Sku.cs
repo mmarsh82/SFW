@@ -19,6 +19,7 @@ namespace SFW.Model
         public int TotalOnHand { get; set; }
         public string MasterPrint { get; set; }
         public List<Component> Bom { get; set; }
+        public QualityTask QTask { get; set; }
 
         #endregion
 

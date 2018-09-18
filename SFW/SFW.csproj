@@ -30,8 +30,8 @@
     <PublisherName>Michael Marsh</PublisherName>
     <SuiteName>WCCO Belting Inc.</SuiteName>
     <AutorunEnabled>true</AutorunEnabled>
-    <ApplicationRevision>64</ApplicationRevision>
-    <ApplicationVersion>1.0.5.64</ApplicationVersion>
+    <ApplicationRevision>77</ApplicationRevision>
+    <ApplicationVersion>1.0.6.77</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <CreateDesktopShortcut>true</CreateDesktopShortcut>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -105,6 +105,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Commands\SetUpInformation.cs" />
     <Compile Include="RefreshTimer.cs" />
     <Compile Include="Behaviors\ExpanderState.cs" />
     <Compile Include="Commands\M2kLookQuery.cs" />
@@ -136,6 +137,10 @@
       <DependentUpon>Press_View.xaml</DependentUpon>
     </Compile>
     <Compile Include="Reports\Press_ViewModel.cs" />
+    <Compile Include="Reports\ProcessSpec_View.xaml.cs">
+      <DependentUpon>ProcessSpec_View.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Reports\ProcessSpec_ViewModel.cs" />
     <Compile Include="Scheduler\View.xaml.cs">
       <DependentUpon>View.xaml</DependentUpon>
     </Compile>
@@ -154,6 +159,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Reports\Press_View.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Reports\ProcessSpec_View.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

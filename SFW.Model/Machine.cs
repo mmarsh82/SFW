@@ -134,6 +134,7 @@ namespace SFW.Model
         /// <returns>DataTable with the schedule data results</returns>
         public static DataTable GetScheduleData(SqlConnection sqlCon)
         {
+            //TODO: Needs to be rewritten to include a list rather than a datatable so that in the future async loading can be done
             using (var _tempTable = new DataTable())
             {
                 if (sqlCon != null || sqlCon.State != ConnectionState.Closed || sqlCon.State != ConnectionState.Broken)
@@ -206,6 +207,7 @@ namespace SFW.Model
         /// <returns>DataTable with the schedule data results</returns>
         public static DataTable GetScheduleData(SqlConnection sqlCon, string machineNumber)
         {
+            //TODO: See the note from the previous method
             using (var _tempTable = new DataTable())
             {
                 if (sqlCon != null || sqlCon.State != ConnectionState.Closed || sqlCon.State != ConnectionState.Broken)

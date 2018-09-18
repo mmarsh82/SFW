@@ -18,6 +18,7 @@ namespace SFW.Model
         public string OrderNumber { get; set; }
         public string Seq { get; set; }
         public string Priority { get; set; }
+        public string Status { get; set; }
         public int StartQty { get; set; }
         public int CurrentQty { get; set; }
         public int ScrapQty { get; set; }
@@ -30,7 +31,6 @@ namespace SFW.Model
         public bool IsStartedLate { get { return StartDate < DateTime.Today && CurrentQty == StartQty; } }
 
         #endregion
-
 
         /// <summary>
         /// WorkOrder object default constructor

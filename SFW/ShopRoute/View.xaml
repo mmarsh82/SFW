@@ -14,6 +14,7 @@
                 <cmd:M2kLookQuery x:Key="ShowQuery"/>
                 <cmd:PartSearch x:Key="PartSearchICommand"/>
                 <cmd:PartInformation x:Key="PartInfoCommand"/>
+                <cmd:SetUpInformation x:Key="SetupCommand"/>
             </Grid.Resources>
 
             <TextBlock Text="Nothing Selected"
@@ -28,7 +29,7 @@
                 <Grid.RowDefinitions>
                     <RowDefinition x:Name="Row0" Height="60"/>
                     <RowDefinition x:Name="Row1" Height="40"/>
-                    <RowDefinition x:Name="Row2" Height="30"/>
+                    <RowDefinition x:Name="Row2" Height="50"/>
                     <RowDefinition x:Name="Row3" Height="30"/>
                     <RowDefinition x:Name="Row4" Height="70"/>
                     <RowDefinition x:Name="Row5" Height="50"/>
@@ -54,14 +55,6 @@
                                FontSize="32"
                                FontWeight="Bold"
                                Margin="10,0,0,0"/>
-
-                    <Button Content="View Wip History"
-                            FontSize="18"
-                            Margin="50,5,5,5"
-                            Width="175"
-                            Command="{StaticResource PartInfoCommand}"
-                            CommandParameter="{Binding ShopOrder}"
-                            Style="{DynamicResource DefaultButton}"/>
 
                     <Button Content="Report View"
                             FontSize="18"
@@ -119,7 +112,20 @@
                 <!--#region Grid.Row 2  Empty-->
 
                 <StackPanel Grid.Row="2" Orientation="Horizontal">
-                    
+                    <Button Content="Wip History"
+                            FontSize="18"
+                            Margin="5"
+                            Width="150"
+                            Command="{StaticResource PartInfoCommand}"
+                            CommandParameter="{Binding ShopOrder}"
+                            Style="{DynamicResource DefaultButton}"/>
+                    <Button Content="Set-up Info"
+                            FontSize="18"
+                            Margin="5"
+                            Width="150"
+                            Command="{StaticResource SetupCommand}"
+                            CommandParameter="{Binding ShopOrder}"
+                            Style="{DynamicResource DefaultButton}"/>
                 </StackPanel>
 
                 <!--#endregion-->

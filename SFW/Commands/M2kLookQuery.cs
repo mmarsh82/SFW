@@ -21,7 +21,8 @@ namespace SFW.Commands
                 if (parameter.ToString().Contains("*"))
                 {
                     var _soDetail = parameter.ToString().Split('*');
-                    Process.Start($"http://172.16.0.122/WCCO.MAIN/SOP/SoLineDetail/SoLineDetail.aspx?SoNbr={_soDetail[0]}&LineNbr={_soDetail[1]}");
+                    var _loc = App.Site.Split('_')[0];
+                    Process.Start($"http://172.16.0.122/{_loc}.MAIN/SOP/SoLineDetail/SoLineDetail.aspx?SoNbr={_soDetail[0]}&LineNbr={_soDetail[1]}");
                 }
                 else
                 {
