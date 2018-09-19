@@ -51,6 +51,8 @@
     <Compile Include="SalesOrder.cs" />
     <Compile Include="Sku.cs" />
     <Compile Include="Machine.cs" />
+    <Compile Include="UdefSku.cs" />
+    <Compile Include="UdefSkuPass.cs" />
     <Compile Include="WorkOrder.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

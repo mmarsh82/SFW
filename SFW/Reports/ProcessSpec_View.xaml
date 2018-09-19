@@ -3,10 +3,15 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:cvtr="clr-namespace:SFW.Converters"
         xmlns:local="clr-namespace:SFW.Reports"
-        Title="LOOK.PROCESS.SPEC" Width="1000">
+        Title="LOOK.PROCESS.SPEC" MinWidth="1000" MinHeight="800" Topmost="True" WindowState="Maximized">
     <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
         <Grid>
+            <Grid.Resources>
+                <cvtr:StringToVisibility x:Key="StringToVisConverter"/>
+                <cvtr:CountToVisibility x:Key="CountToVisConverter"/>
+            </Grid.Resources>
             <Grid.RowDefinitions>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="*"/>
@@ -28,7 +33,7 @@
                            FontSize="24"
                            FontWeight="Bold"/>
 
-                <TextBlock Text="{Binding PartDesc, StringFormat='Spec Description: {0}'}"
+                <TextBlock Text="{Binding SkuSpec.SpecDesc, StringFormat='Spec Description: {0}'}"
                            HorizontalAlignment="Center"
                            FontSize="24"
                            FontWeight="Bold"/>
@@ -72,7 +77,7 @@
                                Margin="0,0,5,0"
                                TextDecorations="Underline"/>
 
-                    <TextBlock Text="{Binding ShopOrder}"
+                    <TextBlock Text="{Binding SkuSpec.SpecDesc}"
                                HorizontalAlignment="Left"
                                FontSize="18"/>
 
@@ -107,13 +112,39 @@
                                Margin="0,0,5,0"
                                TextDecorations="Underline"/>
 
-                    <TextBlock Text="{Binding ShopOrder}"
+                    <TextBlock Text="{Binding Compound}"
                                HorizontalAlignment="Left"
                                FontSize="18"/>
 
+                    <TextBlock Text="{Binding CompoundDesc}"
+                               HorizontalAlignment="Left"
+                               FontSize="18"
+                               Margin="10,0,0,0"/>
+
                 </StackPanel>
 
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left"
+                            Visibility="{Binding FrictionRoll, Converter={StaticResource StringToVisConverter}}">
+
+                    <TextBlock Text="Friction Roll:"
+                               FontSize="18"
+                               FontWeight="Bold"
+                               Margin="0,0,5,0"
+                               TextDecorations="Underline"/>
+
+                    <TextBlock Text="{Binding FrictionRoll}"
+                               HorizontalAlignment="Left"
+                               FontSize="18"/>
+
+                    <TextBlock Text="{Binding FrictionDesc}"
+                               HorizontalAlignment="Left"
+                               FontSize="18"
+                               Margin="10,0,0,0"/>
+
+                </StackPanel>
+
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left"
+                            Visibility="{Binding Fabric, Converter={StaticResource StringToVisConverter}}">
 
                     <TextBlock Text="Fabric:"
                                FontSize="18"
@@ -121,13 +152,19 @@
                                Margin="0,0,5,0"
                                TextDecorations="Underline"/>
 
-                    <TextBlock Text="{Binding ShopOrder}"
+                    <TextBlock Text="{Binding Fabric}"
                                HorizontalAlignment="Left"
                                FontSize="18"/>
 
+                    <TextBlock Text="{Binding FabricDesc}"
+                               HorizontalAlignment="Left"
+                               FontSize="18"
+                               Margin="10,0,0,0"/>
+
                 </StackPanel>
 
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left"
+                            Visibility="{Binding Poly, Converter={StaticResource StringToVisConverter}}">
 
                     <TextBlock Text="Poly:"
                                FontSize="18"
@@ -135,13 +172,19 @@
                                Margin="0,0,5,0"
                                TextDecorations="Underline"/>
 
-                    <TextBlock Text="{Binding ShopOrder}"
+                    <TextBlock Text="{Binding Poly}"
                                HorizontalAlignment="Left"
                                FontSize="18"/>
 
+                    <TextBlock Text="{Binding PolyDesc}"
+                               HorizontalAlignment="Left"
+                               FontSize="18"
+                               Margin="10,0,0,0"/>
+
                 </StackPanel>
 
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left"
+                            Visibility="{Binding SkuSpec.Core, Converter={StaticResource StringToVisConverter}}">
 
                     <TextBlock Text="Core:"
                                FontSize="18"
@@ -149,7 +192,7 @@
                                Margin="0,0,5,0"
                                TextDecorations="Underline"/>
 
-                    <TextBlock Text="{Binding ShopOrder}"
+                    <TextBlock Text="{Binding SkuSpec.Core}"
                                HorizontalAlignment="Left"
                                FontSize="18"/>
 
@@ -184,37 +227,41 @@
                                Margin="0,0,5,0"
                                TextDecorations="Underline"/>
 
-                    <TextBlock Text="{Binding ShopOrder}"
+                    <TextBlock Text="{Binding SkuSpec.HeatingCans}"
+                               Visibility="{Binding SkuSpec.HeatingCans, Converter={StaticResource StringToVisConverter}}"
                                HorizontalAlignment="Left"
                                FontSize="18"/>
 
                     <TextBlock Text="Cooling Cans:"
                                FontSize="18"
                                FontWeight="Bold"
-                               Margin="10,0,5,0"
+                               Margin="30,0,5,0"
                                TextDecorations="Underline"/>
 
-                    <TextBlock Text="{Binding ShopOrder}"
+                    <TextBlock Text="{Binding SkuSpec.CoolingCans}"
+                               Visibility="{Binding SkuSpec.CoolingCans, Converter={StaticResource StringToVisConverter}}"
                                HorizontalAlignment="Left"
                                FontSize="18"/>
 
                     <TextBlock Text="Spreader Bar:"
                                FontSize="18"
                                FontWeight="Bold"
-                               Margin="10,0,5,0"
+                               Margin="30,0,5,0"
                                TextDecorations="Underline"/>
 
-                    <TextBlock Text="{Binding ShopOrder}"
+                    <TextBlock Text="{Binding SkuSpec.SpreaderBar}"
+                               Visibility="{Binding SkuSpec.SpreaderBar, Converter={StaticResource StringToVisConverter}}"
                                HorizontalAlignment="Left"
                                FontSize="18"/>
 
                     <TextBlock Text="Duster:"
                                FontSize="18"
                                FontWeight="Bold"
-                               Margin="10,0,5,0"
+                               Margin="30,0,5,0"
                                TextDecorations="Underline"/>
 
-                    <TextBlock Text="{Binding ShopOrder}"
+                    <TextBlock Text="{Binding SkuSpec.Duster}"
+                               Visibility="{Binding SkuSpec.Duster, Converter={StaticResource StringToVisConverter}}"
                                HorizontalAlignment="Left"
                                FontSize="18"/>
 
@@ -236,7 +283,7 @@
                                Margin="0,0,5,0"
                                TextDecorations="Underline"/>
 
-                    <TextBlock Text="{Binding ShopOrder}"
+                    <TextBlock Text="{Binding SkuSpec.SetUpInstructions}"
                                HorizontalAlignment="Left"
                                FontSize="18"/>
 
@@ -248,7 +295,8 @@
 
             <!--#region Calendering Pass Info-->
 
-            <StackPanel Grid.Row="3" Orientation="Vertical">
+            <StackPanel Grid.Row="3" Orientation="Vertical"
+                        Visibility="{Binding SkuSpec.PassInformation.Count, Converter={StaticResource CountToVisConverter}}">
 
                 <TextBlock Text="*** CALENDERING PASS INFORMATION ***"
                            HorizontalAlignment="Center"
@@ -263,173 +311,184 @@
                            Panel.ZIndex="2"
                            Margin="0,10,0,10"/>
 
+                <ItemsControl ItemsSource="{Binding Path=SkuSpec.PassInformation}"
+                              FontSize="18"
+                              BorderThickness="0"
+                              Background="Transparent"
+                              Foreground="Black"
+                              Focusable="False">
+
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <VirtualizingStackPanel IsItemsHost="True" Orientation="Vertical"/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+
+                            <StackPanel Orientation="Vertical" HorizontalAlignment="Left">
+
+                                <TextBlock Text="{Binding Pass}"
+                                           HorizontalAlignment="Left"
+                                           FontSize="22"
+                                           FontWeight="Bold"
+                                           TextDecorations="Underline"/>
+
+                                <StackPanel Orientation="Horizontal">
+
+                                    <TextBlock Text="Temperature:"
+                                               FontSize="18"
+                                               FontWeight="Bold"
+                                               Margin="0,0,5,0"
+                                               TextDecorations="Underline"/>
+
+                                    <TextBlock Text="{Binding Temperature}"
+                                               HorizontalAlignment="Left"
+                                               FontSize="18"/>
+
+                                    <TextBlock Text="GumWall:"
+                                               FontSize="18"
+                                               FontWeight="Bold"
+                                               Margin="20,0,5,0"
+                                               TextDecorations="Underline"/>
+
+                                    <TextBlock Text="{Binding GumWall}"
+                                               HorizontalAlignment="Left"
+                                               FontSize="18"/>
+
+                                    <TextBlock Text="OAG:"
+                                               FontSize="18"
+                                               FontWeight="Bold"
+                                               Margin="20,0,5,0"
+                                               TextDecorations="Underline"/>
+
+                                    <TextBlock Text="{Binding OAG}"
+                                               HorizontalAlignment="Left"
+                                               FontSize="18"/>
+
+                                    <TextBlock Text="Line Speed:"
+                                               FontSize="18"
+                                               FontWeight="Bold"
+                                               Margin="20,0,5,0"
+                                               TextDecorations="Underline"/>
+
+                                    <TextBlock Text="{Binding LineSpeed}"
+                                               HorizontalAlignment="Left"
+                                               FontSize="18"/>
+
+                                    <TextBlock Text="AtTable:"
+                                               FontSize="18"
+                                               FontWeight="Bold"
+                                               Margin="20,0,5,0"
+                                               TextDecorations="Underline"/>
+
+                                    <TextBlock Text="{Binding AtTable}"
+                                               HorizontalAlignment="Left"
+                                               FontSize="18"/>
+
+                                    <TextBlock Text="Volume:"
+                                               FontSize="18"
+                                               FontWeight="Bold"
+                                               Margin="20,0,5,0"
+                                               TextDecorations="Underline"/>
+
+                                    <TextBlock Text="{Binding Volume}"
+                                               HorizontalAlignment="Left"
+                                               FontSize="18"/>
+
+                                    <TextBlock Text="Lb/Ft:"
+                                               FontSize="18"
+                                               FontWeight="Bold"
+                                               Margin="20,0,5,0"
+                                               TextDecorations="Underline"/>
+
+                                    <TextBlock Text="{Binding PoundPerFoot}"
+                                               HorizontalAlignment="Left"
+                                               FontSize="18"/>
+
+                                </StackPanel>
+
+                                <StackPanel Orientation="Horizontal">
+
+                                    <TextBlock Text="Top:"
+                                               FontSize="18"
+                                               FontWeight="Bold"
+                                               Margin="0,0,5,0"
+                                               TextDecorations="Underline"/>
+
+                                    <TextBlock Text="{Binding TopTemp}"
+                                               HorizontalAlignment="Left"
+                                               FontSize="18"/>
+
+                                    <TextBlock Text="Center:"
+                                               FontSize="18"
+                                               FontWeight="Bold"
+                                               Margin="30,0,5,0"
+                                               TextDecorations="Underline"/>
+
+                                    <TextBlock Text="{Binding CenterTemp}"
+                                               HorizontalAlignment="Left"
+                                               FontSize="18"/>
+
+                                    <TextBlock Text="Bottom:"
+                                               FontSize="18"
+                                               FontWeight="Bold"
+                                               Margin="30,0,5,0"
+                                               TextDecorations="Underline"/>
+
+                                    <TextBlock Text="{Binding BottomTemp}"
+                                               HorizontalAlignment="Left"
+                                               FontSize="18"/>
+
+                                </StackPanel>
+
+                                <StackPanel Orientation="Horizontal">
+
+                                    <TextBlock Text="Instructions:"
+                                               FontSize="18"
+                                               FontWeight="Bold"
+                                               Margin="0,0,5,0"
+                                               TextDecorations="Underline"/>
+
+                                    <TextBlock Text="{Binding Instructions}"
+                                               HorizontalAlignment="Left"
+                                               FontSize="18"/>
+
+                                </StackPanel>
+
+                                <Rectangle HorizontalAlignment="Stretch"
+                                           VerticalAlignment="Stretch"
+                                           Stroke="Crimson"
+                                           StrokeThickness="1"
+                                           StrokeDashArray="4,4"
+                                           Panel.ZIndex="2"
+                                           Margin="0,10,0,10"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+
+                </ItemsControl>
+
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
-
-                    <TextBlock Text="Temperature:"
-                               FontSize="18"
-                               FontWeight="Bold"
-                               Margin="0,0,5,0"
-                               TextDecorations="Underline"/>
-
-                    <TextBlock Text="{Binding ShopOrder}"
-                               HorizontalAlignment="Left"
-                               FontSize="18"/>
-
-                    <TextBlock Text="GumWall:"
-                               FontSize="18"
-                               FontWeight="Bold"
-                               Margin="10,0,5,0"
-                               TextDecorations="Underline"/>
-
-                    <TextBlock Text="{Binding ShopOrder}"
-                               HorizontalAlignment="Left"
-                               FontSize="18"/>
-
-                    <TextBlock Text="OAG:"
-                               FontSize="18"
-                               FontWeight="Bold"
-                               Margin="10,0,5,0"
-                               TextDecorations="Underline"/>
-
-                    <TextBlock Text="{Binding ShopOrder}"
-                               HorizontalAlignment="Left"
-                               FontSize="18"/>
-
-                </StackPanel>
-
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
-
-                    <TextBlock Text="Line Speed:"
-                               FontSize="18"
-                               FontWeight="Bold"
-                               Margin="0,0,5,0"
-                               TextDecorations="Underline"/>
-
-                    <TextBlock Text="{Binding ShopOrder}"
-                               HorizontalAlignment="Left"
-                               FontSize="18"/>
-
-                    <TextBlock Text="AtTable:"
-                               FontSize="18"
-                               FontWeight="Bold"
-                               Margin="10,0,5,0"
-                               TextDecorations="Underline"/>
-
-                    <TextBlock Text="{Binding ShopOrder}"
-                               HorizontalAlignment="Left"
-                               FontSize="18"/>
-
-                    <TextBlock Text="Volume:"
-                               FontSize="18"
-                               FontWeight="Bold"
-                               Margin="10,0,5,0"
-                               TextDecorations="Underline"/>
-
-                    <TextBlock Text="{Binding ShopOrder}"
-                               HorizontalAlignment="Left"
-                               FontSize="18"/>
-
-                    <TextBlock Text="Lb/Ft:"
-                               FontSize="18"
-                               FontWeight="Bold"
-                               Margin="10,0,5,0"
-                               TextDecorations="Underline"/>
-
-                    <TextBlock Text="{Binding ShopOrder}"
-                               HorizontalAlignment="Left"
-                               FontSize="18"/>
-
-                </StackPanel>
-
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
-
-                    <TextBlock Text="{Binding ShopOrder}"
-                               HorizontalAlignment="Left"
-                               FontSize="18"/>
-
-                    <TextBlock Text="Top:"
-                               FontSize="18"
-                               FontWeight="Bold"
-                               Margin="10,0,5,0"
-                               TextDecorations="Underline"/>
-
-                    <TextBlock Text="{Binding ShopOrder}"
-                               HorizontalAlignment="Left"
-                               FontSize="18"/>
-
-                    <TextBlock Text="Center:"
-                               FontSize="18"
-                               FontWeight="Bold"
-                               Margin="10,0,5,0"
-                               TextDecorations="Underline"/>
-
-                    <TextBlock Text="{Binding ShopOrder}"
-                               HorizontalAlignment="Left"
-                               FontSize="18"/>
-
-                    <TextBlock Text="Bottom:"
-                               FontSize="18"
-                               FontWeight="Bold"
-                               Margin="10,0,5,0"
-                               TextDecorations="Underline"/>
-
-                    <TextBlock Text="{Binding ShopOrder}"
-                               HorizontalAlignment="Left"
-                               FontSize="18"/>
-
-                </StackPanel>
-
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
-
-                    <TextBlock Text="Instructions:"
-                               FontSize="18"
-                               FontWeight="Bold"
-                               Margin="0,0,5,0"
-                               TextDecorations="Underline"/>
-
-                    <TextBlock Text="{Binding ShopOrder}"
-                               HorizontalAlignment="Left"
-                               FontSize="18"/>
-
-                </StackPanel>
-
-                <Rectangle HorizontalAlignment="Stretch"
-                           VerticalAlignment="Stretch"
-                           Stroke="Crimson"
-                           StrokeThickness="1"
-                           StrokeDashArray="4,4"
-                           Panel.ZIndex="2"
-                           Margin="0,10,0,10"/>
-
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
-
-                    <TextBlock Text="Roll-Up In:"
-                               FontSize="18"
-                               FontWeight="Bold"
-                               Margin="0,0,5,0"
-                               TextDecorations="Underline"/>
-
-                    <TextBlock Text="{Binding ShopOrder}"
-                               HorizontalAlignment="Left"
-                               FontSize="18"/>
 
                     <TextBlock Text="Tape Rolls:"
                                FontSize="18"
                                FontWeight="Bold"
-                               Margin="10,0,5,0"
+                               Margin="0,0,5,0"
                                TextDecorations="Underline"/>
 
-                    <TextBlock Text="{Binding ShopOrder}"
+                    <TextBlock Text="{Binding SkuSpec.Tape}"
                                HorizontalAlignment="Left"
                                FontSize="18"/>
 
                     <TextBlock Text="Send To:"
                                FontSize="18"
                                FontWeight="Bold"
-                               Margin="10,0,5,0"
+                               Margin="30,0,5,0"
                                TextDecorations="Underline"/>
 
-                    <TextBlock Text="{Binding ShopOrder}"
+                    <TextBlock Text="{Binding SkuSpec.SendTo}"
                                HorizontalAlignment="Left"
                                FontSize="18"/>
 
@@ -441,7 +500,8 @@
 
             <!--#region Package Instructions-->
 
-            <StackPanel Grid.Row="4" Orientation="Vertical">
+            <StackPanel Grid.Row="4" Orientation="Vertical"
+                        Visibility="{Binding SkuSpec.PackageInstructions, Converter={StaticResource StringToVisConverter}}">
 
                 <TextBlock Text="*** PACKAGE INSTRUCTIONS ***"
                            HorizontalAlignment="Center"
@@ -464,9 +524,10 @@
                                Margin="0,0,5,0"
                                TextDecorations="Underline"/>
 
-                    <TextBlock Text="{Binding ShopOrder}"
+                    <TextBlock Text="{Binding SkuSpec.PackageInstructions}"
                                HorizontalAlignment="Left"
-                               FontSize="18"/>
+                               FontSize="18"
+                               Margin="0,0,0,10"/>
 
                 </StackPanel>
 

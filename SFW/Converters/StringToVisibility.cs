@@ -12,11 +12,11 @@ namespace SFW.Converters
         {
             if (parameter?.ToString() == "i")
             {
-                return string.IsNullOrEmpty(value?.ToString()) ? Visibility.Visible : Visibility.Hidden;
+                return string.IsNullOrEmpty(value?.ToString()) ? Visibility.Visible : Visibility.Collapsed;
             }
             else
             {
-                return string.IsNullOrWhiteSpace(value?.ToString()) ? Visibility.Hidden : Visibility.Visible;
+                return string.IsNullOrWhiteSpace(value?.ToString()) ? Visibility.Collapsed : Visibility.Visible;
             }
         }
         public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)

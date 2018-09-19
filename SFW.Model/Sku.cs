@@ -20,6 +20,7 @@ namespace SFW.Model
         public string MasterPrint { get; set; }
         public List<Component> Bom { get; set; }
         public QualityTask QTask { get; set; }
+        public string InventoryType { get; set; }
 
         #endregion
 
@@ -42,7 +43,7 @@ namespace SFW.Model
                 try
                 {
                     using (SqlCommand cmd = new SqlCommand(@"SELECT 
-                                                                a.[Part_Number], a.[Description], a.[Um], a.[Bom_Rev_Date], b.[Qty_On_Hand], a.[Drawing_Nbrs]
+                                                                a.[Part_Number], a.[Description], a.[Um], a.[Bom_Rev_Date], b.[Qty_On_Hand], a.[Drawing_Nbrs], a.[Inventory_Type]
                                                             FROM
                                                                 [dbo].[IM-INIT] a
                                                             RIGHT JOIN
@@ -57,12 +58,13 @@ namespace SFW.Model
                             {
                                 while (reader.Read())
                                 {
-                                    SkuNumber = reader.IsDBNull(0) ? string.Empty : reader.GetString(0);
-                                    SkuDescription = reader.IsDBNull(1) ? string.Empty : reader.GetString(1);
-                                    Uom = reader.IsDBNull(2) ? string.Empty : reader.GetString(2);
-                                    BomRevDate = reader.IsDBNull(3) ? DateTime.MinValue : DateTime.TryParse(reader.GetValue(3).ToString(), out DateTime _brd) ? _brd : DateTime.MinValue;
-                                    TotalOnHand = reader.IsDBNull(4) ? 0 : reader.GetInt32(4);
-                                    MasterPrint = reader.IsDBNull(5) ? string.Empty : reader.GetString(5);
+                                    SkuNumber = reader.SafeGetString("Part_Number");
+                                    SkuDescription = reader.SafeGetString("Description");
+                                    Uom = reader.SafeGetString("Um");
+                                    BomRevDate = reader.SafeGetDateTime("Bom_Rev_Date");
+                                    TotalOnHand = reader.SafeGetInt32("Qty_On_Hand");
+                                    MasterPrint = reader.SafeGetString("Drawing_Nbrs");
+                                    InventoryType = reader.SafeGetString("Inventory_Type");
                                 }
                             }
                         }
