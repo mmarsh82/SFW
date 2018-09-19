@@ -69,7 +69,7 @@ namespace SFW
         public static void RefreshTimerTick(object sender, EventArgs e)
         {
             IsRefreshing = true;
-            RefreshActionGroup?.Invoke();
+            //RefreshActionGroup?.Invoke();
             LastRefresh = DateTime.Now;
             IsRefreshing = false;
         }

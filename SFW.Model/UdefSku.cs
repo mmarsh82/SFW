@@ -21,13 +21,17 @@ namespace SFW.Model
         public string SendTo { get; set; }
         public string PackageInstructions { get; set; }
         public List<UdefSkuPass> PassInformation { get; set; }
+        public UdefSkuPass SlitInformation { get; set; }
 
         #endregion
 
         /// <summary>
         /// UdefSku Object Constructor
         /// </summary>
-        public UdefSku(string partNbr, SqlConnection sqlCon)
+        /// <param name="partNbr">Part Number</param>
+        /// <param name="seq">Work Order Sequence</param>
+        /// <param name="sqlCon">Sql onnection Object to use</param>
+        public UdefSku(string partNbr, string seq, SqlConnection sqlCon)
         {
             if (sqlCon != null || sqlCon.State != ConnectionState.Closed || sqlCon.State != ConnectionState.Broken)
             {
@@ -46,9 +50,10 @@ namespace SFW.Model
                                                             FROM
 	                                                            [dbo].[IM-UDEF-SPEC-INIT] a
                                                             WHERE
-	                                                            a.[ID] LIKE CONCAT(@p1,'%');", sqlCon))
+	                                                            a.[ID] LIKE CONCAT(@p1,'*', @p2);", sqlCon))
                     {
                         cmd.Parameters.AddWithValue("p1", partNbr);
+                        cmd.Parameters.AddWithValue("p2", seq);
                         using (SqlDataReader reader = cmd.ExecuteReader())
                         {
                             if (reader.HasRows)
@@ -57,10 +62,15 @@ namespace SFW.Model
                                 {
                                     SpecDesc = reader.SafeGetString("Type");
                                     Core = reader.SafeGetString("Core");
-                                    HeatingCans = reader.SafeGetString("Heating_Cans").Replace(".", "").ToUpper(); ;
-                                    CoolingCans = reader.SafeGetString("Cooling_Cans").Replace(".", "").ToUpper(); ;
-                                    SpreaderBar = reader.SafeGetString("Spreader_Bar").Replace(".", "").ToUpper(); ;
-                                    Duster = reader.SafeGetString("Duster").Replace(".", "").ToUpper(); ;
+                                    Core = string.IsNullOrEmpty(Core) || Core == "NA" ? string.Empty : Core;
+                                    HeatingCans = reader.SafeGetString("Heating_Cans").Replace(".", "").ToUpper();
+                                    HeatingCans = string.IsNullOrEmpty(HeatingCans) || HeatingCans == "NA" ? "NO" : HeatingCans;
+                                    CoolingCans = reader.SafeGetString("Cooling_Cans").Replace(".", "").ToUpper();
+                                    CoolingCans = string.IsNullOrEmpty(CoolingCans) || CoolingCans == "NA" ? "NO" : CoolingCans;
+                                    SpreaderBar = reader.SafeGetString("Spreader_Bar").Replace(".", "").ToUpper();
+                                    SpreaderBar = string.IsNullOrEmpty(SpreaderBar) || SpreaderBar == "NA" ? "NO" : SpreaderBar;
+                                    Duster = reader.SafeGetString("Duster").Replace(".", "").ToUpper();
+                                    Duster = string.IsNullOrEmpty(Duster) || Duster == "NA" ? "NO" : Duster;
                                     RollUp = reader.SafeGetString("Rollup_In").ToUpper();
                                     Tape = reader.SafeGetString("Tape_Rolls").ToUpper();
                                     SendTo = reader.SafeGetString("SendTo").ToUpper();
@@ -68,9 +78,18 @@ namespace SFW.Model
                             }
                         }
                     }
-                    SetUpInstructions = GetSetUpInstructions(partNbr, sqlCon);
-                    PackageInstructions = GetPackInstructions(partNbr, sqlCon);
-                    PassInformation = UdefSkuPass.GetUdefPassList(partNbr, sqlCon);
+                    SetUpInstructions = GetSetUpInstructions(partNbr, seq, sqlCon);
+                    PackageInstructions = GetPackInstructions(partNbr, seq, sqlCon);
+                    if (SpecDesc.Contains("SLIT"))
+                    {
+                        SlitInformation = new UdefSkuPass(partNbr, seq, sqlCon);
+                        PassInformation = null;
+                    }
+                    else
+                    {
+                        PassInformation = UdefSkuPass.GetUdefPassList(partNbr, seq, sqlCon);
+                        SlitInformation = null;
+                    }
                 }
                 catch (SqlException sqlEx)
                 {
@@ -91,18 +110,20 @@ namespace SFW.Model
         /// Get the setup instructions for a work order
         /// </summary>
         /// <param name="partNbr">Part Number</param>
+        /// <param name="seq">Work Order Sequence</param>
         /// <param name="sqlCon">Sql connection object to use</param>
         /// <returns></returns>
-        public static string GetSetUpInstructions(string partNbr, SqlConnection sqlCon)
+        public static string GetSetUpInstructions(string partNbr, string seq, SqlConnection sqlCon)
         {
             var _temp = string.Empty;
             if (sqlCon != null || sqlCon.State != ConnectionState.Closed || sqlCon.State != ConnectionState.Broken)
             {
                 try
                 {
-                    using (SqlCommand cmd = new SqlCommand(@"SELECT [Instructions] FROM [dbo].[IM-UDEF-SPEC-INIT_Instructions] WHERE [ID] LIKE CONCAT(@p1, '%');", sqlCon))
+                    using (SqlCommand cmd = new SqlCommand(@"SELECT [Instructions] FROM [dbo].[IM-UDEF-SPEC-INIT_Instructions] WHERE [ID] LIKE CONCAT(@p1,'*',@p2);", sqlCon))
                     {
                         cmd.Parameters.AddWithValue("p1", partNbr);
+                        cmd.Parameters.AddWithValue("p2", seq);
                         using (SqlDataReader reader = cmd.ExecuteReader())
                         {
                             if (reader.HasRows)
@@ -135,18 +156,20 @@ namespace SFW.Model
         /// Get packaging instructions for a work order
         /// </summary>
         /// <param name="partNbr">Part Number</param>
+        /// <param name="seq">Work Order Sequence</param>
         /// <param name="sqlCon">Sql Connection object to use</param>
         /// <returns></returns>
-        public static string GetPackInstructions(string partNbr, SqlConnection sqlCon)
+        public static string GetPackInstructions(string partNbr, string seq, SqlConnection sqlCon)
         {
             var _temp = string.Empty;
             if (sqlCon != null || sqlCon.State != ConnectionState.Closed || sqlCon.State != ConnectionState.Broken)
             {
                 try
                 {
-                    using (SqlCommand cmd = new SqlCommand(@"SELECT [Package_Instr] FROM [dbo].[IM-UDEF-SPEC-INIT_Package_Instr] WHERE [ID] LIKE CONCAT(@p1, '%');", sqlCon))
+                    using (SqlCommand cmd = new SqlCommand(@"SELECT [Package_Instr] FROM [dbo].[IM-UDEF-SPEC-INIT_Package_Instr] WHERE [ID] LIKE CONCAT(@p1,'*',@p2);", sqlCon))
                     {
                         cmd.Parameters.AddWithValue("p1", partNbr);
+                        cmd.Parameters.AddWithValue("p2", seq);
                         using (SqlDataReader reader = cmd.ExecuteReader())
                         {
                             if (reader.HasRows)

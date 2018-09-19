@@ -24,10 +24,87 @@ namespace SFW.Model
 
         #endregion
 
+        /// <summary>
+        /// Default Constructor
+        /// </summary>
         public UdefSkuPass()
         { }
 
-        public static List<UdefSkuPass> GetUdefPassList(string partNbr, SqlConnection sqlCon)
+        /// <summary>
+        /// Udef Sku Pass object constructor for slit parts
+        /// </summary>
+        /// <param name="partNbr"></param>
+        /// <param name="seq"></param>
+        /// <param name="sqlCon"></param>
+        public UdefSkuPass(string partNbr, string seq, SqlConnection sqlCon)
+        {
+            if (sqlCon != null || sqlCon.State != ConnectionState.Closed || sqlCon.State != ConnectionState.Broken)
+            {
+                try
+                {
+                    using (SqlCommand cmd = new SqlCommand(@"SELECT
+	                                                            a.[Ps_Gum_Wall] as 'GumWall',
+	                                                            a.[Ps_Oag] as 'OAG',
+	                                                            a.[Ps_Lb_SQ_Ft] as 'PoundsToFeet'
+                                                            FROM
+	                                                            [dbo].[IM-UDEF-SPEC-INIT_Passes] a
+                                                            WHERE
+	                                                            a.[ID1] LIKE CONCAT(@p1,'*',@p2);", sqlCon))
+                    {
+                        cmd.Parameters.AddWithValue("p1", partNbr);
+                        cmd.Parameters.AddWithValue("p2", seq);
+                        using (SqlDataReader reader = cmd.ExecuteReader())
+                        {
+                            if (reader.HasRows)
+                            {
+                                while (reader.Read())
+                                {
+                                    GumWall = reader.SafeGetString("GumWall");
+                                    OAG = reader.SafeGetString("OAG");
+                                    PoundPerFoot = reader.SafeGetDouble("PoundsToFeet");
+                                }
+                            }
+                        }
+                    }
+                    using (SqlCommand cmd = new SqlCommand(@"SELECT [Slitter_Instr] as 'Instructions' FROM [IM-UDEF-SPEC-INIT_Slitter_Instr] WHERE [ID1] LIKE CONCAT(@p1,'*',@p2);", sqlCon))
+                    {
+                        cmd.Parameters.AddWithValue("p1", partNbr);
+                        cmd.Parameters.AddWithValue("p2", seq);
+                        using (SqlDataReader reader = cmd.ExecuteReader())
+                        {
+                            if (reader.HasRows)
+                            {
+                                while (reader.Read())
+                                {
+                                    Instructions += $"{reader.SafeGetString("Instructions")}\n";
+                                }
+                            }
+                        }
+                    }
+                }
+                catch (SqlException sqlEx)
+                {
+                    throw sqlEx;
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception(ex.Message);
+                }
+            }
+            else
+            {
+                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="partNbr">Part N</param>
+        /// <param name="seq">Work Order Sequence</param>
+        /// <param name="sqlCon"></param>
+        /// <returns></returns>
+        public static List<UdefSkuPass> GetUdefPassList(string partNbr, string seq, SqlConnection sqlCon)
         {
             var _temp = new List<UdefSkuPass>();
             if (sqlCon != null || sqlCon.State != ConnectionState.Closed || sqlCon.State != ConnectionState.Broken)
@@ -50,9 +127,10 @@ namespace SFW.Model
                                                             FROM
 	                                                            [dbo].[IM-UDEF-SPEC-INIT_Passes] a
                                                             WHERE
-	                                                            a.[ID1] LIKE CONCAT(@p1, '%');", sqlCon))
+	                                                            a.[ID1] LIKE CONCAT(@p1,'*',@p2);", sqlCon))
                     {
                         cmd.Parameters.AddWithValue("p1", partNbr);
+                        cmd.Parameters.AddWithValue("p2", seq);
                         using (SqlDataReader reader = cmd.ExecuteReader())
                         {
                             if (reader.HasRows)

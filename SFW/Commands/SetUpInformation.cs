@@ -24,7 +24,7 @@ namespace SFW.Commands
                         case 0:
                             new ProcessSpec_View { DataContext = new ProcessSpec_ViewModel((WorkOrder)parameter) }.ShowDialog();
                             break;
-                        case 1:
+                        case 2:
                             //TODO: Add in the WCCO setup information window
                             break;
                     }

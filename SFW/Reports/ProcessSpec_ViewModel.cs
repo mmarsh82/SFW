@@ -16,6 +16,8 @@ namespace SFW.Reports
         public string PolyDesc { get; set; }
         public string FrictionRoll { get; set; }
         public string FrictionDesc { get; set; }
+        public bool SlitSpec { get; set; }
+        public int PackLoc { get; set; }
 
         #endregion
 
@@ -26,7 +28,7 @@ namespace SFW.Reports
         public ProcessSpec_ViewModel(WorkOrder wo)
         {
             ShopOrder = wo;
-            SkuSpec = new UdefSku(wo.SkuNumber, App.AppSqlCon);
+            SkuSpec = new UdefSku(wo.SkuNumber, wo.Seq, App.AppSqlCon);
             foreach (var s in wo.Bom)
             {
                 switch (s.InventoryType)
@@ -49,6 +51,8 @@ namespace SFW.Reports
                         break;
                 }
             }
+            SlitSpec = SkuSpec.SpecDesc.Contains("SLIT");
+            PackLoc = SkuSpec.SpecDesc.Contains("SLIT") ? 3 : 4;
         }
     }
 }
