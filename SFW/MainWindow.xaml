@@ -14,6 +14,7 @@
             <cmd:PartInformation x:Key="PartInfoICommand"/>
             <cmd:ViewLoad x:Key="ViewLoadICommand"/>
             <cmd:SafeShutdown x:Key="ExitICommand"/>
+            <local:RefreshTimer x:Key="Refresh"/>
         </Grid.Resources>
 
         <Grid.RowDefinitions>
@@ -57,7 +58,7 @@
                               Command="{StaticResource ViewLoadICommand}"
                               CommandParameter="SiteWcco"/>
                 </MenuItem>
-                <MenuItem Header="Reload Schedule"
+                <MenuItem Header="Refresh Schedule"
                           Command="{StaticResource ViewLoadICommand}"
                           CommandParameter="Schedule"
                           InputGestureText="F5"/>
@@ -77,7 +78,7 @@
             </MenuItem>
             <MenuItem Header="Help">
                 <MenuItem Header="Color Legend">
-                    <MenuItem Header="Daily Sales Order" Background="#FFF3321F" Focusable="False" IsHitTestVisible="False"/>
+                    <MenuItem Header="Critical Work Order" Background="#FFF3321F" Focusable="False" IsHitTestVisible="False"/>
                     <MenuItem Header="Repair Work Order" Background="SteelBlue" Focusable="False" IsHitTestVisible="False"/>
                     <MenuItem Header="Released Work Order" Background="#FF29D129" Focusable="False" IsHitTestVisible="False"/>
                     <MenuItem Header="Verified Work Order" Background="LightSlateGray" Focusable="False" IsHitTestVisible="False"/>
@@ -102,13 +103,18 @@
                       FontSize="14"
                       FontWeight="Bold"/>
         </StackPanel>
-        <TextBlock Text="{Binding CurrentSite, StringFormat='Connected To: {0}'}"
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+            <TextBlock Text="{Binding Source={StaticResource Refresh}, Path=LastRefresh, StringFormat='Last Refresh: {0}'}"
+                   Margin="0,0,20,0"
+                   FontSize="12"
+                   Foreground="CornflowerBlue"/>
+            
+            <TextBlock Text="{Binding CurrentSite, StringFormat='Connected To: {0}'}"
                    Margin="0,0,20,0"
                    FontSize="14"
                    FontWeight="Bold"
-                   Foreground="Crimson"
-                   HorizontalAlignment="Right"
-                   VerticalAlignment="Center"/>
+                   Foreground="Crimson"/>
+        </StackPanel>
 
         <!--#endregion-->
         

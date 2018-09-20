@@ -38,19 +38,19 @@ namespace SFW.Model
                 try
                 {
                     using (SqlCommand cmd = new SqlCommand(@"SELECT
-	                                                            a.[Sequence_Desc] as 'Type',
-	                                                            a.[Core],
-	                                                            a.[Heating_Cans],
-	                                                            a.[Cooling_Cans],
-	                                                            a.[Spreader_Bar],
-	                                                            a.[Duster],
-	                                                            a.[Rollup_In],
-	                                                            a.[Tape_Rolls],
-	                                                            a.[Sendto] as 'SendTo'
+	                                                            [Sequence_Desc] as 'Type',
+	                                                            [Core],
+	                                                            [Heating_Cans],
+	                                                            [Cooling_Cans],
+	                                                            [Spreader_Bar],
+	                                                            [Duster],
+	                                                            [Rollup_In],
+	                                                            [Tape_Rolls],
+	                                                            [Sendto] as 'SendTo'
                                                             FROM
-	                                                            [dbo].[IM-UDEF-SPEC-INIT] a
+	                                                            [dbo].[IM-UDEF-SPEC-INIT]
                                                             WHERE
-	                                                            a.[ID] LIKE CONCAT(@p1,'*', @p2);", sqlCon))
+	                                                            [ID] LIKE CONCAT(@p1,'*', @p2);", sqlCon))
                     {
                         cmd.Parameters.AddWithValue("p1", partNbr);
                         cmd.Parameters.AddWithValue("p2", seq);

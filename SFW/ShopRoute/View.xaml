@@ -11,6 +11,7 @@
                 <cvtr:StringToVisibility x:Key="StringToVisConverter"/>
                 <cvtr:CountToVisibility x:Key="IntToVisConverter"/>
                 <cvtr:SkuMasterPrint x:Key="PartSearchConverter"/>
+                <cvtr:BoolToVisibility x:Key="BoolToVisConverter"/>
                 <cmd:M2kLookQuery x:Key="ShowQuery"/>
                 <cmd:PartSearch x:Key="PartSearchICommand"/>
                 <cmd:PartInformation x:Key="PartInfoCommand"/>
@@ -64,12 +65,6 @@
                             Style="{DynamicResource DefaultButton}"/>
 
                 </StackPanel>
-
-                <TextBlock Grid.Row="0"
-                           Text="{Binding Source={x:Static sys:DateTime.Now}, StringFormat='dddd, MMM-dd-yyyy HH:mm'}"
-                           FontSize="16"
-                           HorizontalAlignment="Right"
-                           VerticalAlignment="Center"/>
 
                 <!--#endregion-->
 
@@ -530,6 +525,7 @@
 
                                     <DataGrid x:Name="dgBomLots"
                                               ItemsSource="{Binding LotList}"
+                                              Visibility="{Binding DataContext.ViewLotList, Converter={StaticResource BoolToVisConverter}, ElementName=dgBom}"
                                               MaxHeight="115"
                                               IsReadOnly="True"
                                               FontSize="14"
@@ -540,13 +536,6 @@
                                               RowHeaderWidth="0"
                                               HorizontalAlignment="Left"
                                               VerticalAlignment="Top">
-                                        <DataGrid.Visibility>
-                                            <MultiBinding Converter="{StaticResource IntToVisConverter}">
-                                                <Binding Path="LotList.Count"/>
-                                                <Binding Path="DedicatedLotList.Count"/>
-                                            </MultiBinding>
-                                        </DataGrid.Visibility>
-
                                         <DataGrid.Columns>
                                             <DataGridTextColumn Header="Lot Number" Binding="{Binding LotNumber}"/>
                                             <DataGridTextColumn Header="On Hand" Binding="{Binding Onhand}"/>

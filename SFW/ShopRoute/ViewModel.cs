@@ -18,8 +18,21 @@ namespace SFW.ShopRoute
             get { return $"{ShopOrder?.SalesOrder?.SalesNumber}*{ShopOrder?.SalesOrder?.LineNumber}"; }
         }
 
+        public bool ViewLotList
+        {
+            get
+            { return App.SiteNumber != 0; }
+            set
+            {
+                value = App.SiteNumber != 0; OnPropertyChanged(nameof(ViewLotList));
+            }
+        }
+
         #endregion
 
+        /// <summary>
+        /// Shop Route Default Constructor
+        /// </summary>
         public ViewModel()
         {
             if (ShopOrder == null)
@@ -28,6 +41,10 @@ namespace SFW.ShopRoute
             }
         }
 
+        /// <summary>
+        /// Shop Route Constructor for loading work orders
+        /// </summary>
+        /// <param name="workOrder">Work Order Object</param>
         public ViewModel(WorkOrder workOrder)
         {
             ShopOrder = workOrder;

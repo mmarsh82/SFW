@@ -143,7 +143,7 @@ namespace SFW.Model
                                                                             FROM
                                                                                 [dbo].[LotHistory]
                                                                             WHERE
-                                                                                [PartNbr] = @p1 AND (CAST([TranDateTime] as DATE) > DATEADD(YEAR, -3, GETDATE()))
+                                                                                [PartNbr] = @p1 AND (CAST([TranDateTime] as DATE) > DATEADD(YEAR, -1, GETDATE()))
                                                                             ORDER BY
                                                                                 [TranDateTime] DESC;", sqlCon))
                         {

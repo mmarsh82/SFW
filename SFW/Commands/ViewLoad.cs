@@ -26,7 +26,7 @@ namespace SFW.Commands
                         WorkSpaceDock.SwitchView(App.SiteNumber, null);
                         break;
                     case "Schedule":
-                        WorkSpaceDock.SwitchView(App.SiteNumber, new Schedule.ViewModel());
+                        RefreshTimer.RefreshTimerTick();
                         break;
                     case "Scheduler":
                         WorkSpaceDock.SwitchView(4, new Scheduler.ViewModel());

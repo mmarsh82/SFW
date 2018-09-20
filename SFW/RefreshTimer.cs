@@ -1,6 +1,5 @@
 ﻿using System;
 using System.ComponentModel;
-using System.Threading.Tasks;
 using System.Windows.Threading;
 
 //Created by Michael Marsh 9-14-18
@@ -30,10 +29,10 @@ namespace SFW
         public static DateTime LastRefresh
         {
             get
-            { return lastRefresh; }
+            { return lastRefresh == DateTime.MinValue ? DateTime.Now : lastRefresh; }
             set
             {
-                lastRefresh = value;
+                lastRefresh = value == DateTime.MinValue ? DateTime.Now : value;
                 StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(LastRefresh)));
             }
         }
@@ -64,14 +63,31 @@ namespace SFW
         /// <summary>
         /// Tick event for the Action Dispatch Timer
         /// </summary>
+        public static void RefreshTimerTick()
+        {
+            if (!IsRefreshing)
+            {
+                IsRefreshing = true;
+                RefreshActionGroup?.Invoke();
+                LastRefresh = DateTime.Now;
+                IsRefreshing = false;
+            }
+        }
+
+        /// <summary>
+        /// Tick event for the Action Dispatch Timer
+        /// </summary>
         /// <param name="sender">Object call from the sending thread</param>
         /// <param name="e">Events that can be called on the sending object</param>
         public static void RefreshTimerTick(object sender, EventArgs e)
         {
-            IsRefreshing = true;
-            //RefreshActionGroup?.Invoke();
-            LastRefresh = DateTime.Now;
-            IsRefreshing = false;
+            if (!IsRefreshing)
+            {
+                IsRefreshing = true;
+                RefreshActionGroup?.Invoke();
+                LastRefresh = DateTime.Now;
+                IsRefreshing = false;
+            }
         }
 
         /// <summary>

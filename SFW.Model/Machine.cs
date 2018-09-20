@@ -150,7 +150,7 @@ namespace SFW.Model
                                                                                 ISNULL(b.[Qty_Avail], b.[Qty_Req] - ISNULL(b.[Qty_Compl], 0)) as 'WO_CurrentQty',
 	                                                                            ISNULL(b.[Date_Start], '1999-01-01') as 'WO_StartDate',
 	                                                                            ISNULL(b.[Due_Date], b.[Date_Start]) as 'WO_DueDate',
-	                                                                            ISNULL(CASE WHEN f.[Ord_Type] = 'DAI' THEN 'A' WHEN c.[Wo_Type] = 'R' THEN 'B' ELSE c.[Mgt_Priority_Code] END, 'D') as 'WO_Priority',
+	                                                                            ISNULL(CASE WHEN (SELECT [Ord_Type] FROM [dbo].[SOH-INIT] WHERE [So_Nbr] = SUBSTRING(c.[So_Reference],0,CHARINDEX('*',c.[So_Reference],0))) = 'DAI' THEN 'A' WHEN c.[Wo_Type] = 'R' THEN 'B' ELSE c.[Mgt_Priority_Code] END, 'D') as 'WO_Priority',
 	                                                                            c.[Wo_Type] as 'WO_Type',
 	                                                                            c.[Qty_To_Start] as 'WO_StartQty',
 	                                                                            c.[So_Reference] as 'WO_SalesRef',
@@ -172,8 +172,6 @@ namespace SFW.Model
                                                                                 [dbo].[IM-INIT] d ON d.[Part_Number] = c.[Part_Wo_Desc]
                                                                             RIGHT JOIN
                                                                                 [dbo].[IPL-INIT] e ON e.[Part_Nbr] = d.[Part_Number]
-                                                                            LEFT OUTER JOIN
-	                                                                            [dbo].[SOH-INIT] f ON c.[So_Reference] LIKE CONCAT(f.[So_Nbr], '%')
                                                                             WHERE
                                                                                 a.[D_esc] <> 'DO NOT USE' AND (c.[Status_Flag] = 'R' OR c.Status_Flag = 'A') AND b.[Seq_Complete_Flag] IS NULL AND b.[Alt_Seq_Status] IS NULL AND (b.[Qty_Avail] > 0 OR b.[Qty_Avail] IS NULL)
                                                                             ORDER BY
@@ -223,7 +221,7 @@ namespace SFW.Model
                                                                                 ISNULL(b.[Qty_Avail], b.[Qty_Req] - ISNULL(b.[Qty_Compl], 0)) as 'WO_CurrentQty',
 	                                                                            ISNULL(b.[Date_Start], '1999-01-01') as 'WO_StartDate',
 	                                                                            ISNULL(b.[Due_Date], b.[Date_Start]) as 'WO_DueDate',
-	                                                                            ISNULL(CASE WHEN f.[Ord_Type] = 'DAI' THEN 'A' WHEN c.[Wo_Type] = 'R' THEN 'B' ELSE c.[Mgt_Priority_Code] END, 'D') as 'WO_Priority',
+	                                                                            ISNULL(CASE WHEN (SELECT [Ord_Type] FROM [dbo].[SOH-INIT] WHERE [So_Nbr] = SUBSTRING(c.[So_Reference],0,CHARINDEX('*',c.[So_Reference],0))) = 'DAI' THEN 'A' WHEN c.[Wo_Type] = 'R' THEN 'B' ELSE c.[Mgt_Priority_Code] END, 'D') as 'WO_Priority',
 	                                                                            c.[Wo_Type] as 'WO_Type',
 	                                                                            c.[Qty_To_Start] as 'WO_StartQty',
 	                                                                            c.[So_Reference] as 'WO_SalesRef',
@@ -234,9 +232,7 @@ namespace SFW.Model
 	                                                                            ISNULL(d.[Bom_Rev_Level], '') as 'BomRevLvl',
                                                                                 ISNULL(e.[Qty_On_Hand], 0) as 'SkuOnHand',
                                                                                 CASE WHEN b.[Due_Date] < GETDATE() THEN 1 ELSE 0 END as 'IsLate',
-	                                                                            CASE WHEN b.[Date_Start] < GETDATE() AND c.[Qty_To_Start] = b.[Qty_Avail] THEN 1 ELSE 0 END as 'IsStartLate',
-	                                                                            (SELECT ' ' + a1.[Wo_Notes] FROM [dbo].[WP-INIT_Wo_Notes] a1 WHERE b.[ID] LIKE CONCAT(a1.[ID], '%') FOR XML PATH('')) as 'WO_Notes',
-	                                                                            (SELECT ' ' + b1.[Wo_Sf_Notes] FROM [dbo].[WP-INIT_Wo_Sf_Notes] b1 WHERE b.[ID] LIKE CONCAT(b1.[ID], '%') FOR XML PATH('')) as 'WO_ShopNotes'
+	                                                                            CASE WHEN b.[Date_Start] < GETDATE() AND c.[Qty_To_Start] = b.[Qty_Avail] THEN 1 ELSE 0 END as 'IsStartLate'
                                                                             FROM
                                                                                 [dbo].[WC-INIT] a
                                                                             RIGHT JOIN
@@ -247,10 +243,8 @@ namespace SFW.Model
                                                                                 [dbo].[IM-INIT] d ON d.[Part_Number] = c.[Part_Wo_Desc]
                                                                             RIGHT JOIN
                                                                                 [dbo].[IPL-INIT] e ON e.[Part_Nbr] = d.[Part_Number]
-                                                                            LEFT OUTER JOIN
-	                                                                            [dbo].[SOH-INIT] f ON c.[So_Reference] LIKE CONCAT(f.[So_Nbr], '%')
                                                                             WHERE
-                                                                                a.[D_esc] <> 'DO NOT USE' AND (c.[Status_Flag] = 'R' OR c.Status_Flag = 'A') AND b.[Seq_Complete_Flag] IS NULL AND b.[Alt_Seq_Status] IS NULL AND (b.[Qty_Avail] > 0 OR b.[Qty_Avail] IS NULL) AND a.[Wc_Nbr] = @p1
+                                                                                a.[D_esc] <> 'DO NOT USE' AND (c.[Status_Flag] = 'R' OR c.Status_Flag = 'A') AND b.[Seq_Complete_Flag] IS NULL AND b.[Alt_Seq_Status] IS NULL AND (b.[Qty_Avail] > 0 OR b.[Qty_Avail] IS NULL) AND a.[Wc_Nbr]=@p1
                                                                             ORDER BY
                                                                                 MachineNumber, WO_Priority, WO_StartDate, WO_Number ASC;", sqlCon))
                         {

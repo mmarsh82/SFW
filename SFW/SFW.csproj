@@ -30,8 +30,8 @@
     <PublisherName>Michael Marsh</PublisherName>
     <SuiteName>WCCO Belting Inc.</SuiteName>
     <AutorunEnabled>true</AutorunEnabled>
-    <ApplicationRevision>95</ApplicationRevision>
-    <ApplicationVersion>1.0.8.95</ApplicationVersion>
+    <ApplicationRevision>121</ApplicationRevision>
+    <ApplicationVersion>1.0.10.121</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <CreateDesktopShortcut>true</CreateDesktopShortcut>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -293,6 +293,9 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Icons\Late.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Icons\Critical.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

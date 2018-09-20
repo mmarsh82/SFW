@@ -46,6 +46,9 @@ namespace SFW.Schedule
         public List<Machine> MachineList { get; set; }
         public List<string> MachineGroupList { get; set; }
 
+        public bool WCCOSite { get; set; }
+        public bool CSISite { get; set; }
+
         #endregion
 
         /// <summary>
@@ -59,6 +62,16 @@ namespace SFW.Schedule
             MachineList = Machine.GetMachineList(App.AppSqlCon, true);
             MachineGroupList = Machine.GetMachineGroupList(App.AppSqlCon, true);
             RefreshTimer.Add(RefreshSchedule);
+            if (App.AppSqlCon.Database == "WCCO_MAIN")
+            {
+                WCCOSite = true;
+                CSISite = false;
+            }
+            else
+            {
+                WCCOSite = false;
+                CSISite = true;
+            }
         }
 
         /// <summary>
@@ -100,9 +113,7 @@ namespace SFW.Schedule
         public void ViewLoading(string machineNbr)
         {
             IsLoading = true;
-            ScheduleView = string.IsNullOrEmpty(machineNbr)
-                ? CollectionViewSource.GetDefaultView(Machine.GetScheduleData(App.AppSqlCon))
-                : CollectionViewSource.GetDefaultView(Machine.GetScheduleData(App.AppSqlCon, machineNbr));
+            ScheduleView = CollectionViewSource.GetDefaultView(Machine.GetScheduleData(App.AppSqlCon));
             ScheduleView.GroupDescriptions.Add(new PropertyGroupDescription("MachineNumber", new WorkCenterNameConverter(MachineList)));
         }
         public void ViewLoaded(IAsyncResult r)
@@ -120,25 +131,39 @@ namespace SFW.Schedule
         {
             if (!IsLoading)
             {
+                var _db = string.Empty;
                 IsLoading = true;
+                if (WCCOSite && App.Site != "WCCO_MAIN")
+                {
+                    _db = App.Site;
+                    App.SqlCon_DataBaseChange("WCCO_MAIN");
+                }
+                if (CSISite && App.Site != "CSI_MAIN")
+                {
+                    _db = App.Site;
+                    App.SqlCon_DataBaseChange("CSI_MAIN");
+                }
                 var _selection = SelectedWorkOrder;
-                var _filter = string.Empty;
-                if (MainWindowViewModel.SelectedMachine?.MachineName != "All")
-                {
-                    _filter = MainWindowViewModel.SelectedMachine.MachineName;
-                }
-                else if (MainWindowViewModel.SelectedMachineGroup != "All")
-                {
-                    _filter = MainWindowViewModel.SelectedMachineGroup;
-                }
-                MainWindowViewModel.SelectedMachine = MainWindowViewModel.SelectedMachine ?? MainWindowViewModel.MachineList[0];
-                MainWindowViewModel.SelectedMachineGroup = MainWindowViewModel.SelectedMachineGroup ?? MainWindowViewModel.MachineGroupList[0];
-                ScheduleView = string.IsNullOrEmpty(_filter)
-                    ? CollectionViewSource.GetDefaultView(Machine.GetScheduleData(App.AppSqlCon))
-                    : CollectionViewSource.GetDefaultView(Machine.GetScheduleData(App.AppSqlCon, _filter));
+                ScheduleView = CollectionViewSource.GetDefaultView(Machine.GetScheduleData(App.AppSqlCon));
                 ScheduleView.GroupDescriptions.Add(new PropertyGroupDescription("MachineNumber", new WorkCenterNameConverter(MachineList)));
+                if (MainWindowViewModel.SelectedMachine?.MachineName != "All" && string.IsNullOrEmpty(_db))
+                {
+                    MainWindowViewModel.SelectedMachine = MainWindowViewModel.SelectedMachine;
+                    MainWindowViewModel.SelectedMachineGroup = MainWindowViewModel.SelectedMachineGroup;
+                    ((DataView)ScheduleView.SourceCollection).RowFilter = $"MachineName = '{MainWindowViewModel.SelectedMachine.MachineName}'";
+                }
+                else if (MainWindowViewModel.SelectedMachineGroup != "All" && string.IsNullOrEmpty(_db))
+                {
+                    MainWindowViewModel.SelectedMachine = MainWindowViewModel.MachineList[0];
+                    MainWindowViewModel.SelectedMachineGroup = MainWindowViewModel.SelectedMachineGroup;
+                    ((DataView)ScheduleView.SourceCollection).RowFilter = $"MachineGroup = '{MainWindowViewModel.SelectedMachineGroup}'";
+                }
                 OnPropertyChanged(nameof(ScheduleView));
                 SelectedWorkOrder = _selection;
+                if (App.Site != _db && !string.IsNullOrEmpty(_db))
+                {
+                    App.SqlCon_DataBaseChange(_db);
+                }
                 IsLoading = false;
             }
         }
