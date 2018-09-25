@@ -14,6 +14,10 @@ namespace SFW.Converters
             {
                 return string.IsNullOrEmpty(value?.ToString()) ? Visibility.Visible : Visibility.Collapsed;
             }
+            else if(parameter?.ToString() == "Hide")
+            {
+                return string.IsNullOrEmpty(value?.ToString()) ? Visibility.Hidden : Visibility.Visible;
+            }
             else
             {
                 return string.IsNullOrWhiteSpace(value?.ToString()) ? Visibility.Collapsed : Visibility.Visible;

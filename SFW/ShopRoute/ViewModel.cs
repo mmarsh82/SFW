@@ -18,15 +18,7 @@ namespace SFW.ShopRoute
             get { return $"{ShopOrder?.SalesOrder?.SalesNumber}*{ShopOrder?.SalesOrder?.LineNumber}"; }
         }
 
-        public bool ViewLotList
-        {
-            get
-            { return App.SiteNumber != 0; }
-            set
-            {
-                value = App.SiteNumber != 0; OnPropertyChanged(nameof(ViewLotList));
-            }
-        }
+        public int CurrentSite { get { return App.SiteNumber; } }
 
         #endregion
 

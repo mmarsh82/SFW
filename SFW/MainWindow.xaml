@@ -4,6 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:cmd="clr-namespace:SFW.Commands"
+    xmlns:cvtr="clr-namespace:SFW.Converters"
     xmlns:local="clr-namespace:SFW"
     x:Class="SFW.MainWindow"
     Title="Shop Floor Workbench" MinWidth="1520" MinHeight="600" WindowState="Maximized" WindowStartupLocation="CenterOwner">
@@ -15,6 +16,7 @@
             <cmd:ViewLoad x:Key="ViewLoadICommand"/>
             <cmd:SafeShutdown x:Key="ExitICommand"/>
             <local:RefreshTimer x:Key="Refresh"/>
+            <cvtr:SiteNumberToBool x:Key="SiteToBoolConverter"/>
         </Grid.Resources>
 
         <Grid.RowDefinitions>
@@ -53,10 +55,14 @@
                 <MenuItem Header="Site">
                     <MenuItem Header="CSI"
                               Command="{StaticResource ViewLoadICommand}"
-                              CommandParameter="SiteCsi"/>
+                              CommandParameter="SiteCsi"
+                              IsCheckable="True"
+                              IsChecked="{Binding CurrentSiteNbr, Converter={StaticResource SiteToBoolConverter}, ConverterParameter=CSI}"/>
                     <MenuItem Header="WCCO"
                               Command="{StaticResource ViewLoadICommand}"
-                              CommandParameter="SiteWcco"/>
+                              CommandParameter="SiteWcco"
+                              IsCheckable="True"
+                              IsChecked="{Binding CurrentSiteNbr, Converter={StaticResource SiteToBoolConverter}, ConverterParameter=WCCO}"/>
                 </MenuItem>
                 <MenuItem Header="Refresh Schedule"
                           Command="{StaticResource ViewLoadICommand}"

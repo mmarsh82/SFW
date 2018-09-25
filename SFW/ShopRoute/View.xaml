@@ -5,7 +5,7 @@
              xmlns:cvtr="clr-namespace:SFW.Converters"
              xmlns:cmd="clr-namespace:SFW.Commands"
              xmlns:local="clr-namespace:SFW.ShopRoute">
-    <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="0,0,0,20">
+    <ScrollViewer x:Name="MainScroll" VerticalScrollBarVisibility="Auto" Margin="0,0,0,20">
         <Grid>
             <Grid.Resources>
                 <cvtr:StringToVisibility x:Key="StringToVisConverter"/>
@@ -25,7 +25,7 @@
                        VerticalAlignment="Center"
                        Visibility="{Binding ShopOrder.OrderNumber, Converter={StaticResource StringToVisConverter}, ConverterParameter=i}"/>
 
-            <Grid Margin="10,0,10,0" Visibility="{Binding ShopOrder.OrderNumber, Converter={StaticResource StringToVisConverter}}">
+            <Grid Margin="10,0,10,0" Visibility="{Binding ShopOrder.OrderNumber, Converter={StaticResource StringToVisConverter}, ConverterParameter=Hide}">
 
                 <Grid.RowDefinitions>
                     <RowDefinition x:Name="Row0" Height="60"/>
@@ -525,7 +525,6 @@
 
                                     <DataGrid x:Name="dgBomLots"
                                               ItemsSource="{Binding LotList}"
-                                              Visibility="{Binding DataContext.ViewLotList, Converter={StaticResource BoolToVisConverter}, ElementName=dgBom}"
                                               MaxHeight="115"
                                               IsReadOnly="True"
                                               FontSize="14"
@@ -536,6 +535,14 @@
                                               RowHeaderWidth="0"
                                               HorizontalAlignment="Left"
                                               VerticalAlignment="Top">
+
+                                        <DataGrid.Visibility>
+                                            <MultiBinding Converter="{StaticResource IntToVisConverter}" ConverterParameter="LotList">
+                                                <Binding Path="DataContext.CurrentSite" RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType={x:Type DataGrid}}"/>
+                                                <Binding Path="LotList.Count"/>
+                                            </MultiBinding>
+                                        </DataGrid.Visibility>
+                                        
                                         <DataGrid.Columns>
                                             <DataGridTextColumn Header="Lot Number" Binding="{Binding LotNumber}"/>
                                             <DataGridTextColumn Header="On Hand" Binding="{Binding Onhand}"/>

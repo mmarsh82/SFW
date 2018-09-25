@@ -25,14 +25,14 @@ namespace SFW
             get { return mach; }
             set
             {
-                if (value == null)
+                if (value == null && MachineList != null)
                 {
-                    mach = value = MachineList.First();
+                    mach = MachineList.First();
                 }
                 else
                 {
                     mach = value;
-                    if (SelectedMachineGroup != Machine.GetMachineGroup(App.AppSqlCon, value.MachineNumber))
+                    if (SelectedMachineGroup != null && SelectedMachineGroup != Machine.GetMachineGroup(App.AppSqlCon, value.MachineNumber))
                     {
                         SelectedMachineGroup = null;
                     }
@@ -62,9 +62,13 @@ namespace SFW
                 }
                 else if (machGrp != value)
                 {
-                    SelectedMachine = null;
                     var _temp = value == "All" ? "" : $"MachineGroup = '{value}'";
                     ((DataView)((Schedule.ViewModel)((Schedule.View)WorkSpaceDock.MainDock.Children[App.SiteNumber]).DataContext).ScheduleView.SourceCollection).RowFilter = _temp;
+                    if (SelectedMachine != null &&  value != Machine.GetMachineGroup(App.AppSqlCon, SelectedMachine.MachineNumber))
+                    {
+                        SelectedMachine = null;
+                    }
+                    machGrp = value;
                 }
                 else
                 {
@@ -82,6 +86,17 @@ namespace SFW
             {
                 value = App.Site;
                 StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(CurrentSite)));
+            }
+        }
+
+        public static int CurrentSiteNbr
+        {
+            get
+            { return App.SiteNumber; }
+            set
+            {
+                value = App.SiteNumber;
+                StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(CurrentSiteNbr)));
             }
         }
 

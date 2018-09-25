@@ -46,7 +46,7 @@ namespace SFW
             Current.DispatcherUnhandledException += App_DispatherCrash;
             SystemEvents.PowerModeChanged += OnPowerChange;
             AppSqlCon.StateChange += SqlCon_StateChangeAsync;
-            RefreshTimer.Start(new TimeSpan(0, 1, 0));
+            RefreshTimer.Start(new TimeSpan(0, 5, 0));
         }
 
         /// <summary>

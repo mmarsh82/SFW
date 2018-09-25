@@ -46,8 +46,7 @@ namespace SFW.Schedule
         public List<Machine> MachineList { get; set; }
         public List<string> MachineGroupList { get; set; }
 
-        public bool WCCOSite { get; set; }
-        public bool CSISite { get; set; }
+        public string VMDataBase { get; set; }
 
         #endregion
 
@@ -62,16 +61,7 @@ namespace SFW.Schedule
             MachineList = Machine.GetMachineList(App.AppSqlCon, true);
             MachineGroupList = Machine.GetMachineGroupList(App.AppSqlCon, true);
             RefreshTimer.Add(RefreshSchedule);
-            if (App.AppSqlCon.Database == "WCCO_MAIN")
-            {
-                WCCOSite = true;
-                CSISite = false;
-            }
-            else
-            {
-                WCCOSite = false;
-                CSISite = true;
-            }
+            VMDataBase = App.AppSqlCon.Database;
         }
 
         /// <summary>
@@ -83,6 +73,7 @@ namespace SFW.Schedule
             LoadAsyncDelegate = new LoadDelegate(ViewLoading);
             FilterAsyncDelegate = new LoadDelegate(FilterView);
             LoadAsyncComplete = LoadAsyncDelegate.BeginInvoke(machineNumber, new AsyncCallback(ViewLoaded), null);
+            VMDataBase = App.AppSqlCon.Database;
         }
 
         /// <summary>
@@ -133,15 +124,10 @@ namespace SFW.Schedule
             {
                 var _db = string.Empty;
                 IsLoading = true;
-                if (WCCOSite && App.Site != "WCCO_MAIN")
+                if (App.AppSqlCon.Database != VMDataBase)
                 {
-                    _db = App.Site;
-                    App.SqlCon_DataBaseChange("WCCO_MAIN");
-                }
-                if (CSISite && App.Site != "CSI_MAIN")
-                {
-                    _db = App.Site;
-                    App.SqlCon_DataBaseChange("CSI_MAIN");
+                    _db = App.AppSqlCon.Database;
+                    App.SqlCon_DataBaseChange(VMDataBase);
                 }
                 var _selection = SelectedWorkOrder;
                 ScheduleView = CollectionViewSource.GetDefaultView(Machine.GetScheduleData(App.AppSqlCon));
@@ -160,7 +146,7 @@ namespace SFW.Schedule
                 }
                 OnPropertyChanged(nameof(ScheduleView));
                 SelectedWorkOrder = _selection;
-                if (App.Site != _db && !string.IsNullOrEmpty(_db))
+                if (!string.IsNullOrEmpty(_db))
                 {
                     App.SqlCon_DataBaseChange(_db);
                 }

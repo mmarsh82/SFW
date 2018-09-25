@@ -34,6 +34,10 @@ namespace SFW.Converters
 
         public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
         {
+            if (parameter?.ToString() == "LotList")
+            {
+                return System.Convert.ToInt32(values[0]) != 0 && System.Convert.ToInt32(values[1]) > 0 ? Visibility.Visible : Visibility.Collapsed;
+            }
             var _test = false;
             var _count = 0;
             if (values != null)

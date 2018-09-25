@@ -38,6 +38,7 @@ namespace SFW.Commands
                         }
                         WorkSpaceDock.SwitchView(0, null);
                         MainWindowViewModel.CurrentSite = "";
+                        MainWindowViewModel.CurrentSiteNbr = 0;
                         break;
                     case "SiteWcco":
                         if (!App.SqlCon_DataBaseChange("WCCO_MAIN"))
@@ -46,6 +47,7 @@ namespace SFW.Commands
                         }
                         WorkSpaceDock.SwitchView(2, null);
                         MainWindowViewModel.CurrentSite = "";
+                        MainWindowViewModel.CurrentSiteNbr = 0;
                         break;
                     default:
                         WorkSpaceDock.SwitchView(App.SiteNumber, null);
