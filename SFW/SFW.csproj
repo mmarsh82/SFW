@@ -30,8 +30,8 @@
     <PublisherName>Michael Marsh</PublisherName>
     <SuiteName>WCCO Belting Inc.</SuiteName>
     <AutorunEnabled>true</AutorunEnabled>
-    <ApplicationRevision>136</ApplicationRevision>
-    <ApplicationVersion>1.0.12.136</ApplicationVersion>
+    <ApplicationRevision>142</ApplicationRevision>
+    <ApplicationVersion>1.0.13.142</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <CreateDesktopShortcut>true</CreateDesktopShortcut>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -96,6 +96,9 @@
     <Reference Include="System.Xaml">
       <RequiredTargetFramework>4.0</RequiredTargetFramework>
     </Reference>
+    <Reference Include="uodotnet">
+      <HintPath>..\..\..\..\..\Desktop\uodotnet.dll</HintPath>
+    </Reference>
     <Reference Include="WindowsBase" />
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
@@ -105,9 +108,11 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="Commands\M2kRecordChange.cs" />
+    <Compile Include="Commands\M2kPriorityChange.cs" />
     <Compile Include="Commands\SetUpInformation.cs" />
     <Compile Include="Converters\SiteNumberToBool.cs" />
+    <Compile Include="Converters\WoPriorityConcat.cs" />
+    <Compile Include="Converters\WoPriorityToBool.cs" />
     <Compile Include="RefreshTimer.cs" />
     <Compile Include="Behaviors\ExpanderState.cs" />
     <Compile Include="Commands\M2kLookQuery.cs" />

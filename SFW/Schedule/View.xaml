@@ -8,12 +8,46 @@
 
     <UserControl.Resources>
         <cmd:PartSearch x:Key="PartSearchCommand"/>
+        <cmd:M2kPriorityChange x:Key="RecordChange"/>
         <cvtr:BoolToVisibility x:Key="BoolToVisConverter"/>
         <cvtr:WorkOrderNumber x:Key="WorkOrderConverter"/>
         <cvtr:SkuMasterPrint x:Key="PartSearchConverter"/>
         <cvtr:InvertBoolToVisibility x:Key="InvertedBoolToVisConverter"/>
         <cvtr:DateToVisibility x:Key="DateToVisConverter"/>
         <cvtr:Multi_EqualIntToVisibility x:Key="IntEqualConverter"/>
+        <cvtr:WoPriorityToBool x:Key="PriToBoolConverter"/>
+        <cvtr:WoPriorityConcat x:Key="PriConcat"/>
+
+        <ContextMenu x:Key="rowMenu">
+            <MenuItem Header="Priority"
+                      FontSize="18">
+                <MenuItem Header="Critical"
+                          Background="#FFF3321F"
+                          IsCheckable="True"
+                          IsChecked="{Binding WO_Priority, Converter={StaticResource PriToBoolConverter}, ConverterParameter=A}"
+                          Command="{StaticResource RecordChange}"
+                          CommandParameter="A"/>
+                <MenuItem Header="Released"
+                          Background="#FF29D129"
+                          IsCheckable="True"
+                          IsChecked="{Binding WO_Priority, Converter={StaticResource PriToBoolConverter}, ConverterParameter=B}"
+                          Command="{StaticResource RecordChange}"
+                          CommandParameter="{Binding WO_Number, Converter={StaticResource PriConcat}, ConverterParameter=B}"/>
+                <MenuItem Header="Verified"
+                          Background="LightSlateGray"
+                          IsCheckable="True"
+                          IsChecked="{Binding WO_Priority, Converter={StaticResource PriToBoolConverter}, ConverterParameter=C}"
+                          Command="{StaticResource RecordChange}"
+                          CommandParameter="C"/>
+                <MenuItem Header="Pending"
+                          Background="GhostWhite"
+                          IsCheckable="True"
+                          IsChecked="{Binding WO_Priority, Converter={StaticResource PriToBoolConverter}, ConverterParameter=D}"
+                          Command="{StaticResource RecordChange}"
+                          CommandParameter="D"/>
+            </MenuItem>
+        </ContextMenu>
+        
     </UserControl.Resources>
 
     <Grid>
@@ -41,13 +75,6 @@
                   VirtualizingPanel.VirtualizationMode="Recycling"
                   Visibility="{Binding IsLoading, Converter={StaticResource InvertedBoolToVisConverter}}">
 
-            <DataGrid.ContextMenu>
-                <ContextMenu>
-                    <MenuItem Header="Change Color"
-                              FontSize="20"/>
-                </ContextMenu>
-            </DataGrid.ContextMenu>
-            
             <DataGrid.Columns>
                 <DataGridTemplateColumn>
                     <DataGridTemplateColumn.CellTemplate>
@@ -137,6 +164,7 @@
                 <Style TargetType="{x:Type DataGridRow}">
                     <Setter Property="FontWeight" Value="Bold"/>
                     <Setter Property="FontSize" Value="18"/>
+                    <Setter Property="ContextMenu" Value="{StaticResource rowMenu}"/>
                     <Style.Triggers>
                         <DataTrigger Binding="{Binding WO_Priority}" Value="D">
                             <Setter Property="Background">
