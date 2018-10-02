@@ -1,5 +1,4 @@
-﻿using IBMU2.UODOTNET;
-using System;
+﻿using System;
 using System.Windows.Input;
 
 //Created by Michael Marsh 9-25-18
@@ -20,24 +19,7 @@ namespace SFW.Commands
             {
                 if(parameter != null)
                 {
-                    /*try
-                    {
-                        using (UniSession uSession = UniObjects.OpenSession("172.16.0.122", "omniquery", "omniquery", $"E:/roi/WCCO.TRAIN", "udcs"))
-                        {
-                            using (UniFile uFile = uSession.CreateUniFile("WP"))
-                            {
-                                using (UniDynArray udArray = uFile.Read("213260"))
-                                {
-                                    udArray.Insert(40, "A");
-                                    uFile.Write("213826", udArray);
-                                }
-                            }
-                        }
-                    }
-                    catch (Exception)
-                    {
-
-                    }*/
+                   
                 }
             }
             catch (Exception)

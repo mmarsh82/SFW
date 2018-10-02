@@ -6,6 +6,7 @@ using System.IO;
 using System.Windows;
 using System.Windows.Threading;
 using System.Xml.Linq;
+using M2kClient;
 
 namespace SFW
 {
@@ -37,10 +38,11 @@ namespace SFW
 
         public App()
         {
+            //LoadGlobalAppConfig();
             Site = "CSI_MAIN";
             AppSqlCon = new SqlConnection($"Server=SQL-WCCO;User ID=omni;Password=Public2017@WORK!;DataBase={Site};Connection Timeout=60;MultipleActiveResultSets=True");
-            AppSqlCon.OpenAsync();
-            while (AppSqlCon.State == System.Data.ConnectionState.Connecting) { }
+            AppSqlCon.Open();
+            while (AppSqlCon.State != System.Data.ConnectionState.Open) { }
             Current.Exit += App_Exit;
             AppDomain.CurrentDomain.UnhandledException += App_ExceptionCrash;
             Current.DispatcherUnhandledException += App_DispatherCrash;
@@ -103,12 +105,14 @@ namespace SFW
             try
             {
                 AppSqlCon.Close();
+                while (AppSqlCon.State != System.Data.ConnectionState.Closed) { }
                 AppSqlCon.Dispose();
+                AppSqlCon = null;
                 Site = dbName;
                 SiteNumber = dbName == "CSI_MAIN" ? 0 : 2;
                 AppSqlCon = new SqlConnection($"Server=SQL-WCCO;User ID=omni;Password=Public2017@WORK!;DataBase={Site};Connection Timeout=5;MultipleActiveResultSets=True");
-                AppSqlCon.OpenAsync();
-                while (AppSqlCon.State == System.Data.ConnectionState.Connecting) { }
+                AppSqlCon.Open();
+                while (AppSqlCon.State != System.Data.ConnectionState.Open) { }
                 return AppSqlCon.State == System.Data.ConnectionState.Open ? true : false;
             }
             catch (Exception ex)
@@ -209,14 +213,14 @@ namespace SFW
         }
 
         /// <summary>
-        /// 
+        /// Loads the global config file, if none exists but the location is valid will create one
         /// </summary>
-        /// <returns></returns>
+        /// <returns>Config file existance or creation</returns>
         private bool LoadGlobalAppConfig()
         {
-            if (File.Exists("C:\\Users\\michaelm\\Desktop\\AppConfig.xml"))
+            if (File.Exists("C:\\Users\\michaelm\\Desktop\\SfwConfig.xml"))
             {
-                var test = XDocument.Load("C:\\Users\\michaelm\\Desktop\\AppConfig.xml");
+                var test = XDocument.Load("C:\\Users\\michaelm\\Desktop\\SfwConfig.xml");
                 var test2 = test.Descendants();
                 foreach (var x in test2)
                 {
@@ -228,12 +232,65 @@ namespace SFW
             {
                 try
                 {
-                    var xDoc = new XDocument();
-                    var xWrite = xDoc.CreateWriter();
-                    //TODO create a default config file and test against the true if condition
+                    XDocument xDoc =
+                        new XDocument(
+                            new XElement("SFWConfig",
+                                new XElement("M2kConnection",
+                                    new XElement("ManageHostName", 
+                                        new XAttribute("Name", "manage"),
+                                        new XAttribute("IP", "172.16.0.122")
+                                    ),
+                                    new XElement("ServiceAccount",
+                                        new XAttribute("UserID", "omniquery"), 
+                                        new XAttribute("Password", "omniquery")
+                                    )
+                                ),
+                                new XElement("RefreshRate",
+                                    new XElement("TimeSpan",
+                                        new XAttribute("Hours", "0"),
+                                        new XAttribute("Minutes", "5"),
+                                        new XAttribute("Second", "0"),
+                                        new XAttribute("MilliSeconds", "0")
+                                    )
+                                ),
+                                new XElement("SQLConnection",
+                                    new XElement("Server",
+                                        new XAttribute("Name", "SQL-WCCO"),
+                                        new XAttribute("IP", "172.16.0.114")
+                                    ),
+                                    new XElement("ServiceAccount",
+                                        new XAttribute("UserID", "omni"),
+                                        new XAttribute("Password", "Public2017@WORK!")
+                                    ),
+                                    new XElement("TimeOut",
+                                        new XAttribute("Seconds", "60")
+                                    )
+                                ),
+                                new XElement("PartDocuments",
+                                    new XElement("FilePath",
+                                        new XElement("Print",
+                                            new XElement("Part",
+                                                new XAttribute("CADPart", "\\\\manage2\\server\\Engineering\\Product\\Prints\\Controlled Production Prints\\"),
+                                                new XAttribute("SlatPart", "\\\\manage2\\server\\Engineering\\Product\\Prints\\R SLAT MASTER PRINT.xlsx"),
+                                                new XAttribute("ExtPart", "\\\\manage2\\server\\Engineering\\Product\\Prints\\R EXT MASTER PRINT.xlsx")
+                                            ),
+                                            new XElement("SetUp",
+                                                new XAttribute("Press", "\\\\manage2\\server\\Engineering\\Product\\Press Setups\\press setup and part number crossreference.xlsm"),
+                                                new XAttribute("Sysco", ""),
+                                                new XAttribute("Trimming", "")
+                                            )
+                                        ),
+                                        new XElement("Process",
+                                            new XAttribute("WIorSOP", "\\\\manage2\\server\\Document Center\\Production\\")
+                                        )
+                                    )
+                                )
+                            )
+                        );
+                    xDoc.Save("C:\\Users\\michaelm\\Desktop\\SfwConfig.xml");
                     return true;
                 }
-                catch(Exception ex)
+                catch(Exception)
                 {
                     return false;
                 }

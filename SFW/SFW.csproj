@@ -30,8 +30,8 @@
     <PublisherName>Michael Marsh</PublisherName>
     <SuiteName>WCCO Belting Inc.</SuiteName>
     <AutorunEnabled>true</AutorunEnabled>
-    <ApplicationRevision>142</ApplicationRevision>
-    <ApplicationVersion>1.0.13.142</ApplicationVersion>
+    <ApplicationRevision>150</ApplicationRevision>
+    <ApplicationVersion>1.0.14.150</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <CreateDesktopShortcut>true</CreateDesktopShortcut>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -95,9 +95,6 @@
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Xaml">
       <RequiredTargetFramework>4.0</RequiredTargetFramework>
-    </Reference>
-    <Reference Include="uodotnet">
-      <HintPath>..\..\..\..\..\Desktop\uodotnet.dll</HintPath>
     </Reference>
     <Reference Include="WindowsBase" />
     <Reference Include="PresentationCore" />
@@ -239,6 +236,10 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\M2k\M2kClient.csproj">
+      <Project>{5dbe7a03-346d-4a21-86b8-f11d737e93f3}</Project>
+      <Name>M2kClient</Name>
+    </ProjectReference>
     <ProjectReference Include="..\SFW.Model\SFW.Model.csproj">
       <Project>{68A56A1D-33E8-44F4-8BA5-CA6F36F52BF9}</Project>
       <Name>SFW.Model</Name>
