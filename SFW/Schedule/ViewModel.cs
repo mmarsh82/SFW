@@ -1,11 +1,15 @@
-﻿using SFW.Controls;
+﻿using M2kClient;
+using SFW.Commands;
+using SFW.Controls;
 using SFW.Converters;
 using SFW.Model;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Windows;
 using System.Windows.Data;
+using System.Windows.Input;
 
 //Created by Michael Marsh 4-21-18
 
@@ -47,6 +51,8 @@ namespace SFW.Schedule
         public List<string> MachineGroupList { get; set; }
 
         public string VMDataBase { get; set; }
+
+        private RelayCommand _priChange;
 
         #endregion
 
@@ -123,11 +129,11 @@ namespace SFW.Schedule
             if (!IsLoading)
             {
                 var _db = string.Empty;
-                IsLoading = true;
+                RefreshTimer.IsRefreshing = IsLoading = true;
                 if (App.AppSqlCon.Database != VMDataBase)
                 {
                     _db = App.AppSqlCon.Database;
-                    App.SqlCon_DataBaseChange(VMDataBase);
+                    App.DatabaseChange(VMDataBase);
                 }
                 var _selection = SelectedWorkOrder;
                 ScheduleView = CollectionViewSource.GetDefaultView(Machine.GetScheduleData(App.AppSqlCon));
@@ -148,10 +154,50 @@ namespace SFW.Schedule
                 SelectedWorkOrder = _selection;
                 if (!string.IsNullOrEmpty(_db))
                 {
-                    App.SqlCon_DataBaseChange(_db);
+                    App.DatabaseChange(_db);
                 }
-                IsLoading = false;
+                RefreshTimer.IsRefreshing = IsLoading = false;
             }
         }
+
+        #region Priority Change ICommand
+
+        public ICommand PriChangeICommand
+        {
+            get
+            {
+                if (_priChange == null)
+                {
+                    _priChange = new RelayCommand(PriChangeExecute, PriChangeCanExecute);
+                }
+                return _priChange;
+            }
+        }
+
+        private void PriChangeExecute(object parameter)
+        {
+            var _oldPri = SelectedWorkOrder.Row.ItemArray[8].ToString();
+            if (!string.IsNullOrEmpty(parameter?.ToString()))
+            {
+                var _woNumber = SelectedWorkOrder.Row.ItemArray[0].ToString().Split('*')[0];
+                var _changeRequest = M2kCommand.EditRecord("WP", _woNumber, 40, parameter.ToString(), App.ErpCon);
+                if (!string.IsNullOrEmpty(_changeRequest))
+                {
+                    MessageBox.Show(_changeRequest, "ERP Record Error");
+                    SelectedWorkOrder.BeginEdit();
+                    SelectedWorkOrder["WO_Priority"] = _oldPri;
+                    SelectedWorkOrder.EndEdit();
+                }
+                else
+                {
+                    SelectedWorkOrder.BeginEdit();
+                    SelectedWorkOrder["WO_Priority"] = parameter.ToString();
+                    SelectedWorkOrder.EndEdit();
+                }
+            }
+        }
+        private bool PriChangeCanExecute(object parameter) => true;
+
+        #endregion
     }
 }

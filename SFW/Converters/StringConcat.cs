@@ -6,7 +6,7 @@ using System.Windows.Data;
 
 namespace SFW.Converters
 {
-    public sealed class WoPriorityConcat : IValueConverter
+    public sealed class StringConcat : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {

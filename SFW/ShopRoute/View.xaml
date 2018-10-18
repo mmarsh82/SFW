@@ -4,7 +4,8 @@
              xmlns:sys="clr-namespace:System;assembly=mscorlib"
              xmlns:cvtr="clr-namespace:SFW.Converters"
              xmlns:cmd="clr-namespace:SFW.Commands"
-             xmlns:local="clr-namespace:SFW.ShopRoute">
+             xmlns:local="clr-namespace:SFW.ShopRoute"
+             xmlns:main="clr-namespace:SFW">
     <ScrollViewer x:Name="MainScroll" VerticalScrollBarVisibility="Auto" Margin="0,0,0,20">
         <Grid>
             <Grid.Resources>
@@ -34,7 +35,7 @@
                     <RowDefinition x:Name="Row3" Height="30"/>
                     <RowDefinition x:Name="Row4" Height="70"/>
                     <RowDefinition x:Name="Row5" Height="50"/>
-                    <RowDefinition x:Name="Row6" Height="175"/>
+                    <RowDefinition x:Name="Row6" Height="205"/>
                     <RowDefinition x:Name="Row7" Height="50"/>
                     <RowDefinition x:Name="Row8" Height="30"/>
                     <RowDefinition x:Name="Row9" Height="50"/>
@@ -292,13 +293,33 @@
                                  Margin="0,10,10,0"
                                  Style="{DynamicResource DisabledTextBox}"/>
 
-                        <TextBox Text="{Binding ShopOrder.Notes}"
+                        <TextBox Text="{Binding ShopOrderNotes}"
                                  FontSize="18"
                                  BorderBrush="Black"
+                                 Visibility="{Binding Path=(main:CurrentUser.CanSchedule), Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}"
+                                 Focusable="False"
                                  Height="130"
                                  Margin="0,0,10,0"
                                  TextWrapping="WrapWithOverflow"
                                  Style="{DynamicResource DisabledTextBox}"/>
+
+                        <TextBox x:Name="WO_Notes"
+                                 Text="{Binding ShopOrderNotes, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                                 FontSize="18"
+                                 BorderBrush="Black"
+                                 Visibility="{Binding Path=(main:CurrentUser.CanSchedule), Converter={StaticResource BoolToVisConverter}}"
+                                 Height="130"
+                                 Margin="0,0,10,0"
+                                 TextWrapping="WrapWithOverflow"
+                                 AcceptsReturn="True"/>
+
+                        <Button Content="Save"
+                                Command="{Binding WONoteChgICommand}"
+                                HorizontalAlignment="Center"
+                                Width="90"
+                                Height="25"
+                                Visibility="{Binding IsFocused, Converter={StaticResource BoolToVisConverter}, ElementName=WO_Notes}"
+                                Style="{DynamicResource DefaultButton}"/>
 
                     </StackPanel>
 
@@ -314,6 +335,7 @@
                                  VerticalContentAlignment="Center"
                                  Height="35"
                                  Margin="10,10,0,0"
+                                 Focusable="False"
                                  Style="{DynamicResource DisabledTextBox}"/>
 
                         <TextBox Text="{Binding ShopOrder.ShopNotes}"

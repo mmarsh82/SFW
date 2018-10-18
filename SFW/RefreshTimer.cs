@@ -21,18 +21,19 @@ namespace SFW
             set
             {
                 isRefresh = value;
+                LastRefresh = value ? "Refreshing..." : "";
                 StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(IsRefreshing)));
             }
         }
 
-        public static DateTime lastRefresh;
-        public static DateTime LastRefresh
+        public static string lastRefresh;
+        public static string LastRefresh
         {
             get
-            { return lastRefresh == DateTime.MinValue ? DateTime.Now : lastRefresh; }
+            { return lastRefresh; }
             set
-            {
-                lastRefresh = value == DateTime.MinValue ? DateTime.Now : value;
+            { 
+                lastRefresh = string.IsNullOrEmpty(value) ? DateTime.Now.ToString("MM-dd-yyyy HH:mm tt") : value;
                 StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(LastRefresh)));
             }
         }
@@ -67,10 +68,7 @@ namespace SFW
         {
             if (!IsRefreshing)
             {
-                IsRefreshing = true;
                 RefreshActionGroup?.Invoke();
-                LastRefresh = DateTime.Now;
-                IsRefreshing = false;
             }
         }
 
@@ -83,10 +81,7 @@ namespace SFW
         {
             if (!IsRefreshing)
             {
-                IsRefreshing = true;
                 RefreshActionGroup?.Invoke();
-                LastRefresh = DateTime.Now;
-                IsRefreshing = false;
             }
         }
 

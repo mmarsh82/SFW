@@ -1,4 +1,5 @@
-﻿using Microsoft.Win32;
+﻿using M2kClient;
+using Microsoft.Win32;
 using System;
 using System.ComponentModel;
 using System.Data.SqlClient;
@@ -6,7 +7,6 @@ using System.IO;
 using System.Windows;
 using System.Windows.Threading;
 using System.Xml.Linq;
-using M2kClient;
 
 namespace SFW
 {
@@ -31,6 +31,7 @@ namespace SFW
         }
 
         public static SqlConnection AppSqlCon { get; set; }
+        public static M2kConnection ErpCon { get; set; }
 
         public static event EventHandler<PropertyChangedEventArgs> StaticPropertyChanged;
 
@@ -40,6 +41,8 @@ namespace SFW
         {
             //LoadGlobalAppConfig();
             Site = "CSI_MAIN";
+            SiteNumber = 0;
+            ErpCon = new M2kConnection("172.16.0.122", "omniquery", "omniquery", Database.CSI);
             AppSqlCon = new SqlConnection($"Server=SQL-WCCO;User ID=omni;Password=Public2017@WORK!;DataBase={Site};Connection Timeout=60;MultipleActiveResultSets=True");
             AppSqlCon.Open();
             while (AppSqlCon.State != System.Data.ConnectionState.Open) { }
@@ -49,6 +52,7 @@ namespace SFW
             SystemEvents.PowerModeChanged += OnPowerChange;
             AppSqlCon.StateChange += SqlCon_StateChangeAsync;
             RefreshTimer.Start(new TimeSpan(0, 5, 0));
+            CurrentUser.LogIn();
         }
 
         /// <summary>
@@ -100,23 +104,28 @@ namespace SFW
         /// </summary>
         /// <param name="dbName">Name of database to use</param>
         /// <returns>bool value for connection status; True = Pass, False = Failure</returns>
-        public static bool SqlCon_DataBaseChange(string dbName)
+        public static bool DatabaseChange(string dbName)
         {
             try
-            {
-                AppSqlCon.Close();
-                while (AppSqlCon.State != System.Data.ConnectionState.Closed) { }
-                AppSqlCon.Dispose();
-                AppSqlCon = null;
+            { 
+                AppSqlCon.ChangeDatabase(dbName);
                 Site = dbName;
-                SiteNumber = dbName == "CSI_MAIN" ? 0 : 2;
-                AppSqlCon = new SqlConnection($"Server=SQL-WCCO;User ID=omni;Password=Public2017@WORK!;DataBase={Site};Connection Timeout=5;MultipleActiveResultSets=True");
-                AppSqlCon.Open();
-                while (AppSqlCon.State != System.Data.ConnectionState.Open) { }
-                return AppSqlCon.State == System.Data.ConnectionState.Open ? true : false;
+                switch(dbName)
+                {
+                    case "CSI_MAIN":
+                        SiteNumber = 0;
+                        ErpCon.DatabaseChange(Database.CSI);
+                        break;
+                    case "WCCO_MAIN":
+                        SiteNumber = 2;
+                        ErpCon.DatabaseChange(Database.WCCO);
+                        break;
+                }
+                return true;
             }
             catch (Exception ex)
             {
+                MessageBox.Show(ex.Message);
                 return false;
             }
         }
@@ -284,6 +293,15 @@ namespace SFW
                                             new XAttribute("WIorSOP", "\\\\manage2\\server\\Document Center\\Production\\")
                                         )
                                     )
+                                ),
+                                new XElement("LDAP",
+                                    new XAttribute("Administrator", "SFW_Admin"),
+                                    new XAttribute("Scheduler", "SFW_Sched"),
+                                    new XAttribute("QTask", "SFW_QTask"),
+                                    new XAttribute("Supervisor", "SFW_Super"),
+                                    new XAttribute("Inventory Control", "SFW_IC"),
+                                    new XAttribute("Quality", "SFW_QC"),
+                                    new XAttribute("Deviations", "SFW_Deviate")
                                 )
                             )
                         );

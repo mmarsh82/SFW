@@ -1,6 +1,8 @@
-﻿using SFW.Controls;
+﻿using M2kClient;
+using SFW.Controls;
 using System;
 using System.Data;
+using System.Windows;
 using System.Windows.Input;
 
 //Created by Michael Marsh 4-19-18
@@ -26,25 +28,36 @@ namespace SFW.Commands
                         WorkSpaceDock.SwitchView(App.SiteNumber, null);
                         break;
                     case "Schedule":
-                        RefreshTimer.RefreshTimerTick();
+                        if (!RefreshTimer.IsRefreshing)
+                        {
+                            RefreshTimer.RefreshTimerTick();
+                        }
+                        else
+                        {
+                            MessageBox.Show("The work load is currently refreshing.");
+                        }
                         break;
                     case "Scheduler":
                         WorkSpaceDock.SwitchView(4, new Scheduler.ViewModel());
                         break;
                     case "SiteCsi":
-                        if (!App.SqlCon_DataBaseChange("CSI_MAIN"))
+                        if (!App.DatabaseChange("CSI_MAIN"))
                         {
-                            App.SqlCon_DataBaseChange(_temp);
+                            App.DatabaseChange(_temp);
+                            return;
                         }
+                        App.ErpCon.DatabaseChange(Database.CSI);
                         WorkSpaceDock.SwitchView(0, null);
                         MainWindowViewModel.CurrentSite = "";
                         MainWindowViewModel.CurrentSiteNbr = 0;
                         break;
                     case "SiteWcco":
-                        if (!App.SqlCon_DataBaseChange("WCCO_MAIN"))
+                        if (!App.DatabaseChange("WCCO_MAIN"))
                         {
-                            App.SqlCon_DataBaseChange(_temp);
+                            App.DatabaseChange(_temp);
+                            return;
                         }
+                        App.ErpCon.DatabaseChange(Database.WCCO);
                         WorkSpaceDock.SwitchView(2, null);
                         MainWindowViewModel.CurrentSite = "";
                         MainWindowViewModel.CurrentSiteNbr = 0;

@@ -15,8 +15,9 @@
             <cmd:PartInformation x:Key="PartInfoICommand"/>
             <cmd:ViewLoad x:Key="ViewLoadICommand"/>
             <cmd:SafeShutdown x:Key="ExitICommand"/>
-            <local:RefreshTimer x:Key="Refresh"/>
+            <cmd:ShowLogInWindow x:Key="LogInCommand"/>
             <cvtr:SiteNumberToBool x:Key="SiteToBoolConverter"/>
+            <cvtr:BoolToVisibility x:Key="BoolToVisConverter"/>
         </Grid.Resources>
 
         <Grid.RowDefinitions>
@@ -25,9 +26,13 @@
         </Grid.RowDefinitions>
 
         <Grid.InputBindings>
-            <KeyBinding Gesture="Ctrl+I" Command="{StaticResource PartInfoICommand}"/>
             <KeyBinding Gesture="Alt+F4" Command="{StaticResource ExitICommand}"/>
+            <KeyBinding Gesture="F1" Command="{StaticResource LogInCommand}" CommandParameter="in"/>
+            <KeyBinding Gesture="Esc" Command="{StaticResource LogInCommand}"/>
             <KeyBinding Gesture="F5" Command="{StaticResource ViewLoadICommand}" CommandParameter="Schedule"/>
+            <KeyBinding Gesture="F9" Command="{StaticResource PartInfoICommand}"/>
+            <KeyBinding Gesture="Alt+C" Command="{StaticResource ViewLoadICommand}" CommandParameter="SiteCsi"/>
+            <KeyBinding Gesture="Alt+W" Command="{StaticResource ViewLoadICommand}" CommandParameter="SiteWcco"/>
         </Grid.InputBindings>
 
         <!--#region Main Menu Usercontrol for all command-->
@@ -39,6 +44,15 @@
               VerticalAlignment="Stretch"
               IsMainMenu="True">
             <MenuItem Header="File">
+                <MenuItem Header="Log In"
+                          Command="{StaticResource LogInCommand}"
+                          CommandParameter="in"
+                          InputGestureText="F1"
+                          Visibility="{Binding Path=(local:CurrentUser.IsLoggedIn), Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}"/>
+                <MenuItem Header="Log Out"
+                          Command="{StaticResource LogInCommand}"
+                          InputGestureText="Esc"
+                          Visibility="{Binding Path=(local:CurrentUser.IsLoggedIn), Converter={StaticResource BoolToVisConverter}}"/>
                 <MenuItem Header="Default Work Centers"
                           IsEnabled="False"/>
                 <MenuItem Header="Print"
@@ -52,17 +66,20 @@
                 </MenuItem>
             </MenuItem>
             <MenuItem Header="View">
-                <MenuItem Header="Site">
+                <MenuItem Header="Site"
+                          Visibility="{Binding Path=(local:CurrentUser.CanSchedule), Converter={StaticResource BoolToVisConverter}}">
                     <MenuItem Header="CSI"
                               Command="{StaticResource ViewLoadICommand}"
                               CommandParameter="SiteCsi"
                               IsCheckable="True"
-                              IsChecked="{Binding CurrentSiteNbr, Converter={StaticResource SiteToBoolConverter}, ConverterParameter=CSI}"/>
+                              IsChecked="{Binding CurrentSiteNbr, Converter={StaticResource SiteToBoolConverter}, ConverterParameter=CSI}"
+                              InputGestureText="Alt+C"/>
                     <MenuItem Header="WCCO"
                               Command="{StaticResource ViewLoadICommand}"
                               CommandParameter="SiteWcco"
                               IsCheckable="True"
-                              IsChecked="{Binding CurrentSiteNbr, Converter={StaticResource SiteToBoolConverter}, ConverterParameter=WCCO}"/>
+                              IsChecked="{Binding CurrentSiteNbr, Converter={StaticResource SiteToBoolConverter}, ConverterParameter=WCCO}"
+                              InputGestureText="Alt+W"/>
                 </MenuItem>
                 <MenuItem Header="Refresh Schedule"
                           Command="{StaticResource ViewLoadICommand}"
@@ -72,15 +89,13 @@
                           Command="{StaticResource ViewLoadICommand}"
                           CommandParameter="Scheduler"
                           IsEnabled="False"/>
-                <MenuItem Header="Setup Prints"
-                          IsEnabled="False"/>
                 <MenuItem Header="Work Instructions"
                           IsEnabled="False"/>
             </MenuItem>
             <MenuItem Header="Queries">
                 <MenuItem Header="Part Info"
                           Command="{StaticResource PartInfoICommand}"
-                          InputGestureText="Ctrl+I"/>
+                          InputGestureText="F9"/>
             </MenuItem>
             <MenuItem Header="Help">
                 <MenuItem Header="Color Legend">
@@ -110,16 +125,27 @@
                       FontWeight="Bold"/>
         </StackPanel>
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-            <TextBlock Text="{Binding Source={StaticResource Refresh}, Path=LastRefresh, StringFormat='Last Refresh: {0}'}"
-                   Margin="0,0,20,0"
-                   FontSize="12"
-                   Foreground="CornflowerBlue"/>
-            
+            <Image Visibility="{Binding Path=(local:CurrentUser.IsLoggedIn), Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}"
+                   Source="Icons/Lock.ico"
+                   Margin="2"/>
+            <Image Visibility="{Binding Path=(local:CurrentUser.IsLoggedIn), Converter={StaticResource BoolToVisConverter}}"
+                   Source="Icons/Admin.ico"
+                   Margin="2"/>
+            <TextBlock Text="{Binding Path=(local:CurrentUser.DisplayName), StringFormat='Welcome {0}'}"
+                       Visibility="{Binding Path=(local:CurrentUser.IsLoggedIn), Converter={StaticResource BoolToVisConverter}}"
+                       VerticalAlignment="Center"
+                       FontSize="12"/>
+            <TextBlock Text="{Binding Path=(local:RefreshTimer.LastRefresh), StringFormat='Last Refresh: {0}'}"
+                       Margin="20,0,20,0"
+                       VerticalAlignment="Center"
+                       FontSize="12"
+                       Foreground="CornflowerBlue"/>
+
             <TextBlock Text="{Binding CurrentSite, StringFormat='Connected To: {0}'}"
-                   Margin="0,0,20,0"
-                   FontSize="14"
-                   FontWeight="Bold"
-                   Foreground="Crimson"/>
+                       Margin="0,0,20,0"
+                       FontSize="14"
+                       FontWeight="Bold"
+                       Foreground="Crimson"/>
         </StackPanel>
 
         <!--#endregion-->

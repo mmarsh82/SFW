@@ -27,7 +27,7 @@ namespace SFW
             {
                 if (value == null && MachineList != null)
                 {
-                    mach = MachineList.First();
+                    mach = value = MachineList.FirstOrDefault();
                 }
                 else
                 {
@@ -101,6 +101,7 @@ namespace SFW
         }
 
         public static event EventHandler<PropertyChangedEventArgs> StaticPropertyChanged;
+        public event EventHandler CanExecuteChanged;
 
         #endregion
 
@@ -110,16 +111,8 @@ namespace SFW
         public MainWindowViewModel()
         {
             new WorkSpaceDock();
-            if (MachineList == null)
-            {
-                MachineList = Machine.GetMachineList(App.AppSqlCon, true);
-                SelectedMachine = MachineList.First();
-            }
-            if (MachineGroupList == null)
-            {
-                MachineGroupList = Machine.GetMachineGroupList(App.AppSqlCon, true);
-                SelectedMachineGroup = MachineGroupList.First();
-            }
+            SelectedMachine = MachineList.FirstOrDefault();
+            SelectedMachineGroup = MachineGroupList.FirstOrDefault();
         }
 
         /// <summary>

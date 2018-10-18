@@ -12,7 +12,6 @@
                 <cvtr:StringToVisibility x:Key="StringToVisConverter"/>
                 <cvtr:CountToVisibility x:Key="CountToVisConverter"/>
                 <cvtr:BoolToVisibility x:Key="BoolToVisConverter"/>
-                <cvtr:InvertBoolToVisibility x:Key="InvertedBoolToVisConverter"/>
             </Grid.Resources>
             <Grid.RowDefinitions>
                 <RowDefinition Height="*"/>
@@ -208,7 +207,7 @@
             <!--#region Setup Instructions-->
 
             <StackPanel Grid.Row="2" Orientation="Vertical"
-                        Visibility="{Binding SlitSpec, Converter={StaticResource InvertedBoolToVisConverter}}">
+                        Visibility="{Binding SlitSpec, Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}">
 
                 <TextBlock Text="*** SETUP INSTRUCTIONS ***"
                            HorizontalAlignment="Center"
@@ -300,7 +299,7 @@
             <!--#region Calendering Pass Info-->
 
             <StackPanel Grid.Row="3" Orientation="Vertical"
-                        Visibility="{Binding SlitSpec, Converter={StaticResource InvertedBoolToVisConverter}}">
+                        Visibility="{Binding SlitSpec, Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}">
 
                 <TextBlock Text="*** CALENDERING PASS INFORMATION ***"
                            HorizontalAlignment="Center"

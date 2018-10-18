@@ -30,8 +30,8 @@
     <PublisherName>Michael Marsh</PublisherName>
     <SuiteName>WCCO Belting Inc.</SuiteName>
     <AutorunEnabled>true</AutorunEnabled>
-    <ApplicationRevision>150</ApplicationRevision>
-    <ApplicationVersion>1.0.14.150</ApplicationVersion>
+    <ApplicationRevision>240</ApplicationRevision>
+    <ApplicationVersion>1.0.24.240</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <CreateDesktopShortcut>true</CreateDesktopShortcut>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -105,11 +105,16 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="Commands\M2kPriorityChange.cs" />
     <Compile Include="Commands\SetUpInformation.cs" />
+    <Compile Include="Commands\ShowLogInWindow.cs" />
     <Compile Include="Converters\SiteNumberToBool.cs" />
-    <Compile Include="Converters\WoPriorityConcat.cs" />
+    <Compile Include="Converters\StringConcat.cs" />
     <Compile Include="Converters\WoPriorityToBool.cs" />
+    <Compile Include="CurrentUser.cs" />
+    <Compile Include="LogInWindow.xaml.cs">
+      <DependentUpon>LogInWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="LogInWindowViewModel.cs" />
     <Compile Include="RefreshTimer.cs" />
     <Compile Include="Behaviors\ExpanderState.cs" />
     <Compile Include="Commands\M2kLookQuery.cs" />
@@ -122,7 +127,6 @@
     <Compile Include="Converters\BoolToVisibility.cs" />
     <Compile Include="Converters\CountToVisibility.cs" />
     <Compile Include="Converters\DateToVisibility.cs" />
-    <Compile Include="Converters\InvertBoolToVisibility.cs" />
     <Compile Include="Converters\Multi_EqualIntToVisibility.cs" />
     <Compile Include="Converters\NegativeIntToBool.cs" />
     <Compile Include="Converters\ObjectToVisibility.cs" />
@@ -158,6 +162,10 @@
       <DependentUpon>View.xaml</DependentUpon>
     </Compile>
     <Compile Include="ShopRoute\ViewModel.cs" />
+    <Page Include="LogInWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Queries\PartInfo_View.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -304,6 +312,12 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Icons\Critical.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Icons\Lock.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Icons\Admin.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

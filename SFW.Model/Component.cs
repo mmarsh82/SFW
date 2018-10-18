@@ -43,7 +43,7 @@ namespace SFW.Model
             {
                 try
                 {
-                    using (SqlCommand cmd = new SqlCommand(@"SELECT
+                    using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database}; SELECT
 	                                                            SUBSTRING(a.[ID], CHARINDEX('*', a.[ID], 0) + 1, LEN(a.[ID])) as 'Component', a.[Qty_Per_Assy] as 'Qty Per', a.[Qty_Reqd] as 'Req Qty',
 	                                                            b.[Qty_On_Hand] as 'On Hand',
 	                                                            c.[Description], c.[Drawing_Nbrs], c.[Um], c.[Inventory_Type]

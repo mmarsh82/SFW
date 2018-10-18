@@ -13,7 +13,9 @@ namespace SFW.Converters
 
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            return System.Convert.ToBoolean(value) ? Visibility.Visible : Visibility.Collapsed;
+            return parameter?.ToString() == "i"
+                ? System.Convert.ToBoolean(value) ? Visibility.Collapsed : Visibility.Visible
+                : System.Convert.ToBoolean(value) ? Visibility.Visible : Visibility.Collapsed;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

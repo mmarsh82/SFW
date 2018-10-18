@@ -1,4 +1,4 @@
-﻿namespace M2k
+﻿namespace M2kClient
 {
     public class M2kConnection
     {
@@ -22,8 +22,32 @@
         /// <summary>
         /// Manage 2000 database location, this can typically be found on the host server
         /// </summary>
-        public string Database { get; private set; }
-        public string Service { get { return "udcs"; } }
+        public Database Database { get; internal set; }
+
+        /// <summary>
+        /// Manage 2000 BTI folder for ADI requests files to be placed
+        /// </summary>
+        public string BTIFolder { get; internal set; }
+        public string UniService { get { return "udcs"; } }
+        public string UniAccount
+        {
+            get
+            {
+                switch (Database)
+                {
+                    case Database.CSI:
+                        return "E:/roi/CSI.MAIN";
+                    case Database.WCCO:
+                        return "E:/roi/WCCO.MAIN";
+                    case Database.CSITRAIN:
+                        return "E:/roi/CSI.TRAIN";
+                    case Database.WCCOTRAIN:
+                        return "E:/roi/WCCO.TRAIN";
+                    default:
+                        return string.Empty;
+                }
+            }
+        }
 
         #endregion
 
@@ -34,13 +58,13 @@
         /// <param name="userName">Manage 2000 certified username, best practice would be to use a service account</param>
         /// <param name="password">Password for the Manage 2000 account you plan on using for the UniSession</param>
         /// <param name="database">Manage 2000 database location, this can typically be found on the host server</param>
-        public M2kConnection(string hostName, string userName, string password, string database)
+        public M2kConnection(string hostName, string userName, string password, Database database)
         {
             HostName = hostName;
             UserName = userName;
             Password = password;
             Database = database;
-
+            BTIFolder = database.GetDescription();
         }
     }
 }

@@ -4,46 +4,45 @@
              xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
              xmlns:bhvr="clr-namespace:SFW.Behaviors"
              xmlns:cmd="clr-namespace:SFW.Commands"
+             xmlns:local="clr-namespace:SFW"
              xmlns:cvtr="clr-namespace:SFW.Converters">
 
     <UserControl.Resources>
         <cmd:PartSearch x:Key="PartSearchCommand"/>
-        <cmd:M2kPriorityChange x:Key="RecordChange"/>
         <cvtr:BoolToVisibility x:Key="BoolToVisConverter"/>
         <cvtr:WorkOrderNumber x:Key="WorkOrderConverter"/>
         <cvtr:SkuMasterPrint x:Key="PartSearchConverter"/>
-        <cvtr:InvertBoolToVisibility x:Key="InvertedBoolToVisConverter"/>
         <cvtr:DateToVisibility x:Key="DateToVisConverter"/>
         <cvtr:Multi_EqualIntToVisibility x:Key="IntEqualConverter"/>
         <cvtr:WoPriorityToBool x:Key="PriToBoolConverter"/>
-        <cvtr:WoPriorityConcat x:Key="PriConcat"/>
 
         <ContextMenu x:Key="rowMenu">
             <MenuItem Header="Priority"
-                      FontSize="18">
+                      FontSize="18"
+                      Visibility="{Binding Path=(local:CurrentUser.CanSchedule), Converter={StaticResource BoolToVisConverter}}">
                 <MenuItem Header="Critical"
                           Background="#FFF3321F"
                           IsCheckable="True"
                           IsChecked="{Binding WO_Priority, Converter={StaticResource PriToBoolConverter}, ConverterParameter=A}"
-                          Command="{StaticResource RecordChange}"
+                          Command="{Binding DataContext.PriChangeICommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type DataGrid}}}"
                           CommandParameter="A"/>
                 <MenuItem Header="Released"
                           Background="#FF29D129"
                           IsCheckable="True"
                           IsChecked="{Binding WO_Priority, Converter={StaticResource PriToBoolConverter}, ConverterParameter=B}"
-                          Command="{StaticResource RecordChange}"
-                          CommandParameter="{Binding WO_Number, Converter={StaticResource PriConcat}, ConverterParameter=B}"/>
+                          Command="{Binding DataContext.PriChangeICommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type DataGrid}}}"
+                          CommandParameter="B"/>
                 <MenuItem Header="Verified"
                           Background="LightSlateGray"
                           IsCheckable="True"
                           IsChecked="{Binding WO_Priority, Converter={StaticResource PriToBoolConverter}, ConverterParameter=C}"
-                          Command="{StaticResource RecordChange}"
+                          Command="{Binding DataContext.PriChangeICommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type DataGrid}}}"
                           CommandParameter="C"/>
                 <MenuItem Header="Pending"
                           Background="GhostWhite"
                           IsCheckable="True"
                           IsChecked="{Binding WO_Priority, Converter={StaticResource PriToBoolConverter}, ConverterParameter=D}"
-                          Command="{StaticResource RecordChange}"
+                          Command="{Binding DataContext.PriChangeICommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type DataGrid}}}"
                           CommandParameter="D"/>
             </MenuItem>
         </ContextMenu>
@@ -73,13 +72,13 @@
                   EnableRowVirtualization="True"
                   VirtualizingPanel.IsVirtualizing="True"
                   VirtualizingPanel.VirtualizationMode="Recycling"
-                  Visibility="{Binding IsLoading, Converter={StaticResource InvertedBoolToVisConverter}}">
+                  Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}">
 
             <DataGrid.Columns>
                 <DataGridTemplateColumn>
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
-                            <StackPanel Orientation="Vertical" MinWidth="600" MaxWidth="500">
+                            <StackPanel Orientation="Vertical" MinWidth="700">
                                 <Grid>
                                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Left">
                                         <TextBlock Text="{Binding WO_Number, Converter={StaticResource WorkOrderConverter}}" FontSize="24" FontWeight="Bold"/>
@@ -116,6 +115,8 @@
                                         <TextBlock Text="{Binding WO_StartDate, StringFormat=d}" Margin="5,0,0,0"/>
                                         <TextBlock Text="Due:" Margin="20,0,0,0" TextDecorations="Underline"/>
                                         <TextBlock Text="{Binding WO_DueDate, StringFormat=d}" Margin="5,0,0,0"/>
+                                        <TextBlock Text="Run:" Margin="20,0,0,0" TextDecorations="Underline"/>
+                                        <TextBlock Text="{Binding RunTime, StringFormat={}{0} hr}" Margin="5,0,0,0"/>
                                     </StackPanel>
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
                                         <TextBlock Text="Need" Margin="0,0,5,0">

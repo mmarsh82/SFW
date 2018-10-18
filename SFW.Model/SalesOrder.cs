@@ -47,7 +47,7 @@ namespace SFW.Model
                     }
                     try
                     {
-                        using (SqlCommand cmd = new SqlCommand($@"SELECT
+                        using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database}; SELECT
 	                                                                a.[Cust_Nbr], a.[Cust_Part_Nbr], a.[Ln_Bal_Qty],
 	                                                                b.[Name] as 'Cust_Name'
                                                                 FROM
