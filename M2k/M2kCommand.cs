@@ -1,5 +1,8 @@
 ﻿using IBMU2.UODOTNET;
+using Microsoft.Win32;
+using SFW.Model;
 using System;
+using System.IO;
 
 namespace M2kClient
 {
@@ -80,41 +83,17 @@ namespace M2kClient
                         {
                             using (UniDynArray udArray = uFile.Read(recordID))
                             {
-                                var udCount = udArray.Count(attribute);
-                                var counter = 1;
-                                if (udCount > newValue.Length)
+                                var _udCount = udArray.Dcount(attribute);
+                                var counter = 0;
+                                foreach (var s in newValue)
                                 {
-                                    while (counter <= newValue.Length)
-                                    {
-                                        udArray.Replace(attribute, counter, newValue[counter - 1]);
-                                        counter++;
-                                    }
-                                    while (counter <= udCount)
-                                    {
-                                        udArray.Remove(attribute, counter);
-                                        counter++;
-                                    }
+                                    udArray.Replace(attribute, counter, s);
+                                    counter++;
                                 }
-                                else if (udCount < newValue.Length)
+                                if (_udCount >= counter)
                                 {
-                                    while (counter <= udCount)
-                                    {
-                                        udArray.Replace(attribute, counter, newValue[counter - 1]);
-                                        counter++;
-                                    }
-                                    while (counter <= newValue.Length)
-                                    {
-                                        udArray.Insert(attribute, counter, newValue[counter - 1]);
-                                        counter++;
-                                    }
-                                }
-                                else
-                                {
-                                    foreach (var s in newValue)
-                                    {
-                                        udArray.Replace(attribute, counter, s);
-                                        counter++;
-                                    }
+                                    udArray.Replace(attribute, counter, "");
+                                    counter++;
                                 }
                                 uFile.Write(recordID, udArray);
                             }
@@ -209,11 +188,28 @@ namespace M2kClient
             return 10;
         }
 
-        public bool InventoryAdjustment()
+        public static int ProductionWip(WorkOrder woObject, M2kConnection connection)
         {
-            return true;
+            /*var uId = new Random();
+            var suffix = uId.Next(128, 512);
+            var btiText = new M2kWipADIArray(woObject).ToString();
+            File.WriteAllLines(connection.BTIFolder, btiText.Split('\n'));
+            return suffix;*/
+
+            var btiText = new M2kWipADIArray(woObject).ToString();
+            SaveFileDialog dialog = new SaveFileDialog();
+            dialog.FileName = "BtiTestDoc";
+            dialog.DefaultExt = ".txt";
+            dialog.Filter = "Text Documents |*.txt";
+            if (dialog.ShowDialog() == true)
+            {
+                File.WriteAllLines(dialog.FileName, btiText.Split('\n'));
+            }
+            return 0;
         }
-        public bool ProductionWip()
+
+
+        public bool InventoryAdjustment()
         {
             return true;
         }
@@ -221,5 +217,7 @@ namespace M2kClient
         {
             return true;
         }
+        public string LaborTransaction()
+        { return string.Empty; }
     }
 }

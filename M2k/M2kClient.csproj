@@ -9,9 +9,10 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>M2kClient</RootNamespace>
     <AssemblyName>M2kClient</AssemblyName>
-    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.7.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -31,6 +32,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="PresentationFramework" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -45,11 +47,20 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CompletionFlag.cs" />
     <Compile Include="Database.cs" />
     <Compile Include="Extensions.cs" />
+    <Compile Include="M2kIssueADIArray.cs" />
+    <Compile Include="M2kWipADIArray.cs" />
     <Compile Include="M2kCommand.cs" />
     <Compile Include="M2kConnection.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\SFW.Model\SFW.Model.csproj">
+      <Project>{68a56a1d-33e8-44f4-8ba5-ca6f36f52bf9}</Project>
+      <Name>SFW.Model</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

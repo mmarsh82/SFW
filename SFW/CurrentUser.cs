@@ -161,7 +161,7 @@ namespace SFW
                     }
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return "Your account does not exist on the domain.\nPlease contact IT for assistance.";
             }

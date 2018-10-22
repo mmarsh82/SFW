@@ -17,6 +17,7 @@
                 <cmd:PartSearch x:Key="PartSearchICommand"/>
                 <cmd:PartInformation x:Key="PartInfoCommand"/>
                 <cmd:SetUpInformation x:Key="SetupCommand"/>
+                <cmd:M2kWipReceipt x:Key="WipCommand"/>
             </Grid.Resources>
 
             <TextBlock Text="Nothing Selected"
@@ -105,7 +106,7 @@
 
                 <!--#endregion-->
 
-                <!--#region Grid.Row 2  Empty-->
+                <!--#region Grid.Row 2  Command Array-->
 
                 <StackPanel Grid.Row="2" Orientation="Horizontal">
                     <Button Content="Wip History"
@@ -120,6 +121,13 @@
                             Margin="5"
                             Width="150"
                             Command="{StaticResource SetupCommand}"
+                            CommandParameter="{Binding ShopOrder}"
+                            Style="{DynamicResource DefaultButton}"/>
+                    <Button Content="Wip Receipt"
+                            FontSize="18"
+                            Margin="5"
+                            Width="150"
+                            Command="{StaticResource WipCommand}"
                             CommandParameter="{Binding ShopOrder}"
                             Style="{DynamicResource DefaultButton}"/>
                 </StackPanel>
@@ -304,7 +312,7 @@
                                  Style="{DynamicResource DisabledTextBox}"/>
 
                         <TextBox x:Name="WO_Notes"
-                                 Text="{Binding ShopOrderNotes, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                                 Text="{Binding ShopOrderNotes, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay, FallbackValue={x:Null}}"
                                  FontSize="18"
                                  BorderBrush="Black"
                                  Visibility="{Binding Path=(main:CurrentUser.CanSchedule), Converter={StaticResource BoolToVisConverter}}"

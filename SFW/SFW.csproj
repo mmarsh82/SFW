@@ -30,8 +30,8 @@
     <PublisherName>Michael Marsh</PublisherName>
     <SuiteName>WCCO Belting Inc.</SuiteName>
     <AutorunEnabled>true</AutorunEnabled>
-    <ApplicationRevision>240</ApplicationRevision>
-    <ApplicationVersion>1.0.24.240</ApplicationVersion>
+    <ApplicationRevision>253</ApplicationRevision>
+    <ApplicationVersion>1.0.26.253</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <CreateDesktopShortcut>true</CreateDesktopShortcut>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -105,6 +105,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Commands\M2kWipReceipt.cs" />
     <Compile Include="Commands\SetUpInformation.cs" />
     <Compile Include="Commands\ShowLogInWindow.cs" />
     <Compile Include="Converters\SiteNumberToBool.cs" />
