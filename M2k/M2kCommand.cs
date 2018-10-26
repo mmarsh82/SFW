@@ -1,4 +1,5 @@
 ﻿using IBMU2.UODOTNET;
+using M2kClient.M2kADIArray;
 using Microsoft.Win32;
 using SFW.Model;
 using System;
@@ -153,6 +154,38 @@ namespace M2kClient
         }
 
         /// <summary>
+        /// Get the next availbe lot number in M2k
+        /// </summary>
+        /// <returns>The lot number as a string, on error will return a null value</returns>
+        public string GetLotNumber(M2kConnection connection)
+        {
+            try
+            {
+                using (UniSession uSession = UniObjects.OpenSession(connection.HostName, connection.UserName, connection.Password, connection.UniAccount, connection.UniService))
+                {
+                    try
+                    {
+                        using (UniSubroutine uSubRout = uSession.CreateUniSubroutine("ASSIGN.NEXT.NBR", 0))
+                        {
+                            
+                        }
+                        UniObjects.CloseSession(uSession);
+                        return string.Empty;
+                    }
+                    catch (Exception)
+                    {
+                        UniObjects.CloseSession(uSession);
+                        return null;
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
         /// Location transfer in the current ERP system
         /// </summary>
         /// <param name="_skew">Current inventory skew object</param>
@@ -188,15 +221,19 @@ namespace M2kClient
             return 10;
         }
 
-        public static int ProductionWip(WorkOrder woObject, M2kConnection connection)
+        public static int ProductionWip(WipReceipt wipRecord, M2kConnection connection)
         {
+            //TODO Remove the hardcoded safefiledialog and automate this process
+            //will also need to add in the issue commands, would be best to code in the issue pieces as an adjacent method
+
             /*var uId = new Random();
             var suffix = uId.Next(128, 512);
             var btiText = new M2kWipADIArray(woObject).ToString();
             File.WriteAllLines(connection.BTIFolder, btiText.Split('\n'));
             return suffix;*/
 
-            var btiText = new M2kWipADIArray(woObject).ToString();
+            //Hardcoded for testing
+            var btiText = new Wip(wipRecord).ToString();
             SaveFileDialog dialog = new SaveFileDialog();
             dialog.FileName = "BtiTestDoc";
             dialog.DefaultExt = ".txt";

@@ -6,6 +6,9 @@ using System.Linq;
 
 namespace SFW
 {
+    /// <summary>
+    /// Current User Object
+    /// </summary>
     public class CurrentUser
     {
         #region Properties

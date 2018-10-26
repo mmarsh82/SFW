@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Windows.Input;
+using SFW.UserLogIn;
 
 namespace SFW.Commands
 {
@@ -11,7 +12,7 @@ namespace SFW.Commands
         {
             if (parameter?.ToString() == "in")
             {
-                new LogInWindow { DataContext = new LogInWindowViewModel() }.ShowDialog();
+                new View { DataContext = new ViewModel() }.ShowDialog();
             }
             else
             {

@@ -112,10 +112,10 @@
     <Compile Include="Converters\StringConcat.cs" />
     <Compile Include="Converters\WoPriorityToBool.cs" />
     <Compile Include="CurrentUser.cs" />
-    <Compile Include="LogInWindow.xaml.cs">
-      <DependentUpon>LogInWindow.xaml</DependentUpon>
+    <Compile Include="UserLogIn\View.xaml.cs">
+      <DependentUpon>View.xaml</DependentUpon>
     </Compile>
-    <Compile Include="LogInWindowViewModel.cs" />
+    <Compile Include="UserLogIn\ViewModel.cs" />
     <Compile Include="RefreshTimer.cs" />
     <Compile Include="Behaviors\ExpanderState.cs" />
     <Compile Include="Commands\M2kLookQuery.cs" />
@@ -163,10 +163,10 @@
       <DependentUpon>View.xaml</DependentUpon>
     </Compile>
     <Compile Include="ShopRoute\ViewModel.cs" />
-    <Page Include="LogInWindow.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
+    <Compile Include="WIP\View.xaml.cs">
+      <DependentUpon>View.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="WIP\ViewModel.cs" />
     <Page Include="Queries\PartInfo_View.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -212,6 +212,14 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Styles\TextBox.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="UserLogIn\View.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="WIP\View.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

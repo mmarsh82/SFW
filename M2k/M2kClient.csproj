@@ -50,8 +50,11 @@
     <Compile Include="CompletionFlag.cs" />
     <Compile Include="Database.cs" />
     <Compile Include="Extensions.cs" />
-    <Compile Include="M2kIssueADIArray.cs" />
-    <Compile Include="M2kWipADIArray.cs" />
+    <Compile Include="M2kADIArray\CodeType.cs" />
+    <Compile Include="M2kADIArray\CompInfo.cs" />
+    <Compile Include="M2kADIArray\Issue.cs" />
+    <Compile Include="M2kADIArray\DisplayInfo.cs" />
+    <Compile Include="M2kADIArray\Wip.cs" />
     <Compile Include="M2kCommand.cs" />
     <Compile Include="M2kConnection.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

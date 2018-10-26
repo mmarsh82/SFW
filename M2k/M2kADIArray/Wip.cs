@@ -1,97 +1,11 @@
 ﻿using SFW.Model;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.IO;
-using System.Linq;
-using System.Text;
 
-namespace M2kClient
+namespace M2kClient.M2kADIArray
 {
-    public class M2kWipADIArray
+    public class Wip
     {
-        #region Sub-Class Display Info 
-
-        public class DisplayInfo
-        {
-            #region Enumerations
-
-            public enum CodeType
-            {
-                [Description("Stock")]
-                S = 0,
-                [Description("Inspection")]
-                I = 1,
-                [Description("General Ledger Account")]
-                G = 2,
-                [Description("Work Order")]
-                W = 3
-            }
-
-            #endregion
-
-            #region Properties
-
-            /// <summary>
-            /// Field 10
-            /// Wip Display Information
-            /// </summary>
-            public CodeType Code { get; set; }
-
-            /// <summary>
-            /// Field 11
-            /// Wip Display Reference
-            /// Generally used in conjunction with 'STOCK' or 'ASSY'
-            /// </summary>
-            public string Reference { get; set; }
-
-            /// <summary>
-            /// Field 12
-            /// Wip Display Quantity
-            /// Must balance to the totality of wip quantity
-            /// </summary>
-            public int Quantity { get; set; }
-
-            #endregion
-        }
-
-        #endregion
-
-        #region Sub-Class Component Info 
-
-        public class CompInfo
-        {
-            #region Properties
-
-            /// <summary>
-            /// Field 24
-            /// Component Lot Number
-            /// </summary>
-            public string Lot { get; set; }
-
-            /// <summary>
-            /// Field 26
-            /// Component work order number
-            /// When used in non-sequenced work orders must match the parent work order
-            /// </summary>
-            public string WorkOrderNbr { get; set; }
-
-            /// <summary>
-            /// Field 25
-            /// Component part number
-            /// </summary>
-            public string PartNbr { get; set; }
-
-            /// <summary>
-            /// Field 27
-            /// </summary>
-            public int Quantity { get; set; }
-
-            #endregion
-        }
-
-        #endregion
-
         #region Properties
 
         /// <summary>
@@ -142,7 +56,6 @@ namespace M2kClient
         /// <summary>
         /// Field 8
         /// Completion Flag
-        /// Can only be 'Y' or 'N'
         /// </summary>
         public CompletionFlag CFlag { get; set; }
 
@@ -185,23 +98,25 @@ namespace M2kClient
         /// Maps a work order object to a M2k Wip ADI Array object
         /// </summary>
         /// <param name="wo"></param>
-        public M2kWipADIArray(WorkOrder wo)
+        public Wip(WipReceipt wipRecord)
         {
-            StationID = "HelloWorld"; //manual input
+            //TODO: need to remove the hard coded work order and bind the properties to the work order object
+            StationID = wipRecord.Submitter;
             FacilityCode = "01";
-            WorkOrderNbr = wo.OrderNumber;
-            QtyReceived = 250; //manual input
-            CFlag = CompletionFlag.N; //manual input with a defualt set to N
-            Operation = wo.Seq;
-            RcptLocation = "G17"; //manual input
+            WorkOrderNbr = wipRecord.OrderNumber;
+            QtyReceived = wipRecord.WipQty;
+            CFlag = Enum.TryParse(wipRecord.SeqComplete.ToString().ToUpper(), out CompletionFlag cFlag) ? cFlag : CompletionFlag.N;
+            Operation = wipRecord.Seq;
+            RcptLocation = wipRecord.ReceiptLocation;
+            //TODO: need to split this into single and mutli wip
             DisplayInfoList = new List<DisplayInfo>
             {
-                new DisplayInfo { Code = DisplayInfo.CodeType.S, Quantity = 250, Reference = "STOCK" }
+                new DisplayInfo { Code = CodeType.S, Quantity = QtyReceived, Reference = "STOCK" }
             }; //will need to be passed in as an array
             Lot = "1810-1234"; //manual input or if the value is not passed then retreive it from M2k
             ComponentInfoList = new List<CompInfo>
             {
-                new CompInfo { Lot = "1810-4567", WorkOrderNbr = wo.OrderNumber, PartNbr = "1005623", Quantity = 300 }
+                new CompInfo { Lot = "" /*Will need to be manually assigned*/, WorkOrderNbr = wipRecord.OrderNumber, PartNbr = "1005623" /*passed from the work order components*/, Quantity = 300 /*Manual input must handle multiple inputs*/ }
             }; //will need to be passed in as an array of values and matched to the corresponding components
         }
 

@@ -2,9 +2,9 @@
 using System.Windows.Controls;
 using System.Windows.Input;
 
-namespace SFW
+namespace SFW.UserLogIn
 {
-    public class LogInWindowViewModel : ViewModelBase
+    public class ViewModel : ViewModelBase
     {
         #region Properties
 
@@ -30,7 +30,7 @@ namespace SFW
         /// <summary>
         /// Log In ViewModel Default Constructor
         /// </summary>
-        public LogInWindowViewModel()
+        public ViewModel()
         {
             UserName = string.Empty;
         }

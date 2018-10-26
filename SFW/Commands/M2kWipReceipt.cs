@@ -11,7 +11,7 @@ namespace SFW.Commands
 
         public void Execute(object parameter)
         {
-            M2kCommand.ProductionWip((WorkOrder)parameter, App.ErpCon);
+            //TODO: add in the new WipReceipt object to be populated and passed into the M2kWipCommand
         }
 
         public bool CanExecute(object parameter) => true;

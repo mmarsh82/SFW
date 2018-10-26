@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace M2kClient
+namespace M2kClient.M2kADIArray
 {
-    public class M2kIssueADIArray
+    public class Issue
     {
         #region Properties
 

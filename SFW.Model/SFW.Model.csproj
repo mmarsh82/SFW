@@ -44,6 +44,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Component.cs" />
+    <Compile Include="Enumerations\Complete.cs" />
     <Compile Include="Enumerations\Extensions.cs" />
     <Compile Include="Lot.cs" />
     <Compile Include="ModelBase.cs" />
@@ -54,6 +55,7 @@
     <Compile Include="Machine.cs" />
     <Compile Include="UdefSku.cs" />
     <Compile Include="UdefSkuPass.cs" />
+    <Compile Include="WipReceipt.cs" />
     <Compile Include="WorkOrder.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
