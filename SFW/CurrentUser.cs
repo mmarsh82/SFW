@@ -108,9 +108,9 @@ namespace SFW
             var _user = System.Security.Principal.WindowsIdentity.GetCurrent().Name;
             using (PrincipalContext pContext = new PrincipalContext(ContextType.Domain))
             {
-                using (UserPrincipal uPrincipal = UserPrincipal.FindByIdentity(new PrincipalContext(ContextType.Domain), _user))
+                using (UserPrincipal uPrincipal = UserPrincipal.FindByIdentity(pContext, _user))
                 {
-                    if (uPrincipal.GetAuthorizationGroups().ToList().ConvertAll(o => o.Name.Contains("SFW_")).Count > 0)
+                    if (uPrincipal.GetAuthorizationGroups().ToList().ConvertAll(o => o.Name).Exists(o => o.Contains("SFW_")))
                     {
                         new CurrentUser(pContext, uPrincipal);
                     }
@@ -134,7 +134,7 @@ namespace SFW
                     {
                         using (DirectoryEntry dEntry = uPrincipal.GetUnderlyingObject() as DirectoryEntry)
                         {
-                            var _expireDate = Convert.ToDateTime(dEntry.InvokeGet("PasswordExpirationDate"));
+                            //var _expireDate = Convert.ToDateTime(dEntry.InvokeGet("PasswordExpirationDate"));
                             if (uPrincipal.IsAccountLockedOut())
                             {
                                 return "Your account is currently locked out.\nPlease contact IT for assistance.";
@@ -143,10 +143,10 @@ namespace SFW
                             {
                                 return "Your account is currently disabled.\nPlease contact IT for assistance.";
                             }
-                            else if (_expireDate <= DateTime.Today)
+                            /*else if (_expireDate <= DateTime.Today)
                             {
                                 return "Expired Password.";
-                            }
+                            }*/
                             else if (!pContext.ValidateCredentials(userName, pwd))
                             {
                                 return "Invalid credentials.\nPlease check your user name and password and try again.\nIf you feel you have reached this message in error,\nplease contact IT for further assistance.";
