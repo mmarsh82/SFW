@@ -2,7 +2,8 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:cvtr="clr-namespace:SFW.Converters"
-             xmlns:cmd="clr-namespace:SFW.Commands">
+             xmlns:cmd="clr-namespace:SFW.Commands"
+             Width="{Binding Width, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type DockPanel}}, NotifyOnSourceUpdated=True, NotifyOnTargetUpdated=True, UpdateSourceTrigger=PropertyChanged}">
     <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
         <Grid Background="LightGray">
 
@@ -100,7 +101,8 @@
                           AutoGenerateColumns="False"
                           IsReadOnly="True">
                     <DataGrid.Columns>
-                        <DataGridTextColumn Header="Lot Number" Binding="{Binding LotNumber}"/>
+                        <DataGridTextColumn Header="Lot Number" Binding="{Binding LotNumber}"
+                                            Visibility="{Binding DataContext.NonLotPart, ConverterParameter=i, Converter={StaticResource BoolToVisConverter}, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type DataGrid}}}" />
                         <DataGridTextColumn Header="On Hand" Binding="{Binding Onhand}">
                             <DataGridTextColumn.CellStyle>
                                 <Style TargetType="{x:Type DataGridCell}">
@@ -127,7 +129,7 @@
                           AlternatingRowBackground="LightSteelBlue"
                           AutoGenerateColumns="False"
                           IsReadOnly="True"
-                          Margin="20,0,0,0">
+                          Margin="20,0,20,0">
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="Date and Time" Binding="{Binding TranDateTime, StringFormat='MM/dd/yyyy       HH:mm'}"/>
                         <DataGridTextColumn Header="User" Binding="{Binding Submitter}"/>

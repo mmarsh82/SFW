@@ -1,10 +1,8 @@
 ﻿<UserControl x:Class="SFW.ShopRoute.View"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:sys="clr-namespace:System;assembly=mscorlib"
              xmlns:cvtr="clr-namespace:SFW.Converters"
              xmlns:cmd="clr-namespace:SFW.Commands"
-             xmlns:local="clr-namespace:SFW.ShopRoute"
              xmlns:main="clr-namespace:SFW">
     <ScrollViewer x:Name="MainScroll" VerticalScrollBarVisibility="Auto" Margin="0,0,0,20">
         <Grid>
@@ -13,11 +11,13 @@
                 <cvtr:CountToVisibility x:Key="IntToVisConverter"/>
                 <cvtr:SkuMasterPrint x:Key="PartSearchConverter"/>
                 <cvtr:BoolToVisibility x:Key="BoolToVisConverter"/>
+                <cvtr:DateToVisibility x:Key="DateToVisConverter" />
                 <cmd:M2kLookQuery x:Key="ShowQuery"/>
                 <cmd:PartSearch x:Key="PartSearchICommand"/>
                 <cmd:PartInformation x:Key="PartInfoCommand"/>
                 <cmd:SetUpInformation x:Key="SetupCommand"/>
-                <cmd:M2kWipReceipt x:Key="WipCommand"/>
+                <cmd:M2kWipReceipt x:Key="WipCommand" />
+                <main:CurrentUser x:Key="User" />
             </Grid.Resources>
 
             <TextBlock Text="Nothing Selected"
@@ -98,9 +98,17 @@
                            Foreground="#FF135185"/>
 
                     <TextBlock Text="{Binding ShopOrder.Uom}"
-                           FontSize="24"
-                           FontWeight="Bold"
-                           Margin="10,0,0,0"/>
+                               FontSize="24"
+                               FontWeight="Bold"
+                               Margin="10,0,0,0" />
+
+                    <TextBlock Text="USE PLASTIC PALLET"
+                               Visibility="Hidden"
+                               Foreground="Crimson"
+                               FontSize="24"
+                               FontWeight="Bold"
+                               TextDecorations="Underline"
+                               Margin="10,0,0,0" />
 
                 </StackPanel>
 
@@ -109,27 +117,44 @@
                 <!--#region Grid.Row 2  Command Array-->
 
                 <StackPanel Grid.Row="2" Orientation="Horizontal">
-                    <Button Content="Wip History"
+                    <Button Content="Start"
                             FontSize="18"
                             Margin="5"
-                            Width="150"
+                            Width="90"
+                            IsEnabled="{Binding CanWip, Source={StaticResource User}}"
+                            Visibility="{Binding ShopOrder.ActStartDate, Converter={StaticResource DateToVisConverter}, ConverterParameter=Ni}"
+                            Style="{DynamicResource DefaultButton}" />
+                    <Button Content="ITH"
+                            FontSize="18"
+                            Margin="5"
+                            Width="90"
+                            Visibility="{Binding CanCheckHistory, Converter={StaticResource BoolToVisConverter}}"
                             Command="{StaticResource PartInfoCommand}"
                             CommandParameter="{Binding ShopOrder}"
                             Style="{DynamicResource DefaultButton}"/>
                     <Button Content="Set-up Info"
                             FontSize="18"
                             Margin="5"
-                            Width="150"
+                            Width="130"
                             Command="{StaticResource SetupCommand}"
                             CommandParameter="{Binding ShopOrder}"
                             Style="{DynamicResource DefaultButton}"/>
                     <Button Content="Wip Receipt"
                             FontSize="18"
                             Margin="5"
-                            Width="150"
+                            Width="130"
+                            Visibility="{Binding ShopOrder.ActStartDate, Converter={StaticResource DateToVisConverter}, ConverterParameter=N}"
+                            IsEnabled="{Binding CanWip, Source={StaticResource User}}"
                             Command="{StaticResource WipCommand}"
                             CommandParameter="{Binding ShopOrder}"
                             Style="{DynamicResource DefaultButton}"/>
+                    <Button Content="Report Sheet"
+                            FontSize="18"
+                            Margin="5"
+                            Width="130"
+                            IsEnabled="{Binding CanWip, Source={StaticResource User}}"
+                            Visibility="{Binding ShopOrder.ActStartDate, Converter={StaticResource DateToVisConverter}, ConverterParameter=N}"
+                            Style="{DynamicResource DefaultButton}" />
                 </StackPanel>
 
                 <!--#endregion-->
@@ -156,7 +181,7 @@
                                    TextDecorations="Underline"
                                    Foreground="#FF135185"/>
 
-                            <TextBlock Text="{Binding ShopOrder.StartDate, StringFormat=d}"
+                            <TextBlock Text="{Binding ShopOrder.SchedStartDate, StringFormat=d}"
                                    FontSize="18"
                                    FontWeight="Bold"
                                    Margin="10,0,0,0"/>

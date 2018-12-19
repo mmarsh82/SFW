@@ -14,7 +14,15 @@ namespace SFW.ShopRoute
         public WorkOrder ShopOrder
         {
             get { return shopOrder; }
-            set { shopOrder = value; OnPropertyChanged(nameof(ShopOrder)); OnPropertyChanged(nameof(FqSalesOrder)); ShopOrderNotes = null; }
+            set
+            {
+                shopOrder = value;
+                OnPropertyChanged(nameof(ShopOrder));
+                OnPropertyChanged(nameof(FqSalesOrder));
+                ShopOrderNotes = null;
+                OnPropertyChanged(nameof(CanWip));
+                OnPropertyChanged(nameof(CanCheckHistory));
+            }
         }
 
         public string FqSalesOrder
@@ -35,6 +43,9 @@ namespace SFW.ShopRoute
                 OnPropertyChanged(nameof(ShopOrderNotes));
             }
         }
+        
+        public bool CanWip { get { return CurrentUser.IsLoggedIn && CurrentUser.DomainName.Contains("wcco"); } }
+        public bool CanCheckHistory { get { return ShopOrder.StartQty != ShopOrder.CurrentQty; } }
 
         private RelayCommand _noteChange;
 

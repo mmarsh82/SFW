@@ -103,20 +103,20 @@ namespace M2kClient.M2kADIArray
             //TODO: need to remove the hard coded work order and bind the properties to the work order object
             StationID = wipRecord.Submitter;
             FacilityCode = "01";
-            WorkOrderNbr = wipRecord.OrderNumber;
-            QtyReceived = wipRecord.WipQty;
+            WorkOrderNbr = wipRecord.WipWorkOrder.OrderNumber;
+            QtyReceived = Convert.ToInt32(wipRecord.WipQty);
             CFlag = Enum.TryParse(wipRecord.SeqComplete.ToString().ToUpper(), out CompletionFlag cFlag) ? cFlag : CompletionFlag.N;
-            Operation = wipRecord.Seq;
+            Operation = wipRecord.WipWorkOrder.Seq;
             RcptLocation = wipRecord.ReceiptLocation;
             //TODO: need to split this into single and mutli wip
             DisplayInfoList = new List<DisplayInfo>
             {
                 new DisplayInfo { Code = CodeType.S, Quantity = QtyReceived, Reference = "STOCK" }
             }; //will need to be passed in as an array
-            Lot = "1810-1234"; //manual input or if the value is not passed then retreive it from M2k
+            Lot = wipRecord.WipLot.LotNumber;
             ComponentInfoList = new List<CompInfo>
             {
-                new CompInfo { Lot = "" /*Will need to be manually assigned*/, WorkOrderNbr = wipRecord.OrderNumber, PartNbr = "1005623" /*passed from the work order components*/, Quantity = 300 /*Manual input must handle multiple inputs*/ }
+                new CompInfo { Lot = "1811-1516" /*Will need to be manually assigned*/, WorkOrderNbr = wipRecord.WipWorkOrder.OrderNumber, PartNbr = "1005623" /*passed from the work order components*/, Quantity = 300 /*Manual input must handle multiple inputs*/ }
             }; //will need to be passed in as an array of values and matched to the corresponding components
         }
 
@@ -124,7 +124,7 @@ namespace M2kClient.M2kADIArray
         /// Method Override
         /// Takes the object and deliminates it along with adding in the referenced field tag numbers
         /// </summary>
-        /// <returns></returns>
+        /// <returns>Standard Wip ADI string needed for the BTI to read</returns>
         public override string ToString()
         {
             //First Line of the Transaction:

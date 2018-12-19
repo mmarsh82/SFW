@@ -4,29 +4,230 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:SFW.WIP"
-        mc:Ignorable="d"
-        Title="WIP.RECEIPTS" Height="450" Width="800" WindowStyle="ToolWindow" ResizeMode="NoResize">
+        xmlns:cvtr="clr-namespace:SFW.Converters"
+    mc:Ignorable="d"
+        Title="WIP.RECEIPTS" Height="470" Width="800" WindowStyle="ToolWindow" ResizeMode="NoResize">
+
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BooltoVisConverter" />
+        <cvtr:EnumToBool x:Key="EnumtoBoolConverter" />
+    </Window.Resources>
+    
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="45"/>
-            <RowDefinition Height="45"/>
+            <RowDefinition Height="40" />
+            <RowDefinition Height="40" />
+            <RowDefinition Height="40" />
+            <RowDefinition Height="40" />
+            <RowDefinition Height="40" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="45" />
         </Grid.RowDefinitions>
-        
+
         <!--#region Wip Receipt Header-->
 
-        <TextBlock Grid.Row="0"
-                   Text="{Binding WONbr, StringFormat='Work Order: {0}'}"
-                   FontSize="24"
-                   FontWeight="Bold"/>
-        
+        <StackPanel Grid.Row="0"
+                    HorizontalAlignment="Center"
+                    Orientation="Horizontal">
+            <TextBlock Text="Work Order:"
+                       FontSize="24"
+                       FontWeight="Bold"
+                       TextDecorations="Underline"/>
+            <TextBlock Text="{Binding WipRecord.WipWorkOrder.OrderNumber}"
+                       FontSize="24"
+                       Margin="10,0,0,0"/>
+        </StackPanel>
+
+        <StackPanel Grid.Row="0"
+                    HorizontalAlignment="Right"
+                    Orientation="Horizontal">
+            <TextBlock Text="Submitter:"
+                       FontSize="16"
+                       FontWeight="Bold"
+                       TextDecorations="Underline" />
+            <TextBlock Text="{Binding WipRecord.Submitter}"
+                       FontSize="16"
+                       Margin="10,0,10,0" />
+        </StackPanel>
+
         <!--#endregion-->
         
-        <!--#region User Information-->
-        
-        
-        
+        <!--#region Sku Information-->
+
+        <StackPanel Grid.Row="1"
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Center"
+                    Orientation="Horizontal">
+            <TextBlock Text="Part:"
+                       FontSize="20"
+                       FontWeight="Bold"
+                       TextDecorations="Underline" 
+                       Margin="10,0,0,0"/>
+            <TextBlock Text="{Binding WipRecord.WipWorkOrder.SkuNumber}"
+                       FontSize="20"
+                       Margin="10,0,0,0" />
+            <TextBlock Text="{Binding WipRecord.WipWorkOrder.SkuDescription}"
+                       FontSize="20"
+                       Margin="10,0,0,0" />
+        </StackPanel>
+
         <!--#endregion-->
 
+        <!--#region Wip Time Inputs-->
+
+        <StackPanel Grid.Row="2"
+                    HorizontalAlignment="Left"
+                    Orientation="Horizontal">
+            <TextBlock Text="Start Time:"
+                       FontSize="18"
+                       FontWeight="Bold"
+                       TextDecorations="Underline"
+                       VerticalAlignment="Center"
+                       Margin="10,0,0,0" />
+            <TextBox Text="{Binding WipRecord.StartTime, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                     FontSize="18"
+                     FontWeight="Bold"
+                     Background="LightGray"
+                     Margin="5"
+                     Width="100"
+                     MaxLength="5"
+                     TabIndex="0"
+                     Style="{DynamicResource RequiredTextBox}" />
+            <TextBlock Text="Shift:"
+                       FontSize="18"
+                       FontWeight="Bold"
+                       TextDecorations="Underline"
+                       VerticalAlignment="Center"
+                       Margin="10,0,0,0" />
+            <TextBox Text="{Binding WipRecord.Shift, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                     FontSize="18"
+                     FontWeight="Bold"
+                     Background="LightGray"
+                     Margin="5"
+                     Width="50"
+                     MaxLength="1"
+                     TabIndex="1"
+                     Style="{DynamicResource RequiredTextBox}" />
+        </StackPanel>
+
+        <!--#endregion-->
+
+        <!--#region Wip Qty/Completion Inputs-->
+
+        <StackPanel Grid.Row="3"
+                    HorizontalAlignment="Left"
+                    Orientation="Horizontal">
+            <TextBlock Text="Wip Quantity:"
+                       FontSize="18"
+                       FontWeight="Bold"
+                       TextDecorations="Underline"
+                       VerticalAlignment="Center"
+                       Margin="10,0,0,0" />
+            <TextBox x:Name="WipQty"
+                     Text="{Binding WipRecord.WipQty, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                     FontSize="18"
+                     FontWeight="Bold"
+                     Background="LightGray"
+                     Margin="5"
+                     Width="75"
+                     MaxLength="6"
+                     TabIndex="2"
+                     Style="{DynamicResource RequiredTextBox}" />
+            <TextBlock Text="{Binding WipRecord.WipWorkOrder.Uom}"
+                       FontSize="18"
+                       FontWeight="Bold"
+                       VerticalAlignment="Center"
+                       Margin="5,0,0,0" />
+            <TextBlock Text="Seq. Complete:"
+                       FontSize="18"
+                       FontWeight="Bold"
+                       TextDecorations="Underline"
+                       VerticalAlignment="Center"
+                       Margin="20,0,0,0" />
+            <RadioButton GroupName="Seq"
+                         IsChecked="{Binding WipRecord.SeqComplete, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource EnumtoBoolConverter}, ConverterParameter=Y}"
+                         Content="Yes"
+                         FontSize="18"
+                         FontWeight="Bold"
+                         VerticalAlignment="Center"
+                         Margin="10,0,0,0"/>
+            <RadioButton GroupName="Seq"
+                         IsChecked="{Binding WipRecord.SeqComplete, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource EnumtoBoolConverter}, ConverterParameter=N}"
+                         Content="No"
+                         FontSize="18"
+                         FontWeight="Bold"
+                         VerticalAlignment="Center"
+                         Margin="10,0,0,0" />
+        </StackPanel>
+
+        <!--#endregion-->
+
+        <!--#region Wip Lot/Location Inputs-->
+
+        <StackPanel Grid.Row="4"
+                    HorizontalAlignment="Left"
+                    Orientation="Horizontal">
+            <TextBlock Text="Lot Number:"
+                       FontSize="18"
+                       FontWeight="Bold"
+                       TextDecorations="Underline"
+                       VerticalAlignment="Center"
+                       Margin="10,0,0,0" />
+            <TextBox Text="{Binding WipRecord.Lot.LotNumber, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                     FontSize="18"
+                     FontWeight="Bold"
+                     Background="LightGray"
+                     Margin="5"
+                     Width="120"
+                     MaxLength="9"
+                     TabIndex="3"
+                     Style="{DynamicResource RequiredTextBox}" />
+            <TextBlock Text="Receipt Location:"
+                       FontSize="18"
+                       FontWeight="Bold"
+                       TextDecorations="Underline"
+                       VerticalAlignment="Center"
+                       Margin="20,0,0,0" />
+            <TextBox Text="{Binding WipRecord.Location, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                     FontSize="18"
+                     FontWeight="Bold"
+                     Background="LightGray"
+                     Margin="5"
+                     Width="120"
+                     MaxLength="6"
+                     TabIndex="4"
+                     Style="{DynamicResource RequiredTextBox}" />
+        </StackPanel>
+
+        <!--#endregion-->
+
+        <!--#region Wip Crew Information-->
+
+        <StackPanel Grid.Row="5"
+                    HorizontalAlignment="Left"
+                    Orientation="Vertical"
+                    Visibility="{Binding HasCrew, Converter={StaticResource BooltoVisConverter}}">
+            <TextBlock Text="Crew:"
+                       FontSize="18"
+                       FontWeight="Bold"
+                       TextDecorations="Underline"
+                       Margin="10,0,0,0" />
+            <DataGrid ItemsSource="{Binding WipRecord.CrewList}" />
+        </StackPanel>
+
+        <!--#endregion-->
+        
+        <!--#region Submission Actions-->
+
+        <Button Grid.Row="6"
+                Content="Submit"
+                Width="100"
+                FontSize="18"
+                Margin="5"
+                Command="{Binding WipICommand}"
+                Style="{DynamicResource DefaultButton}"/>
+
+        <!--#endregion-->
 
     </Grid>
 </Window>

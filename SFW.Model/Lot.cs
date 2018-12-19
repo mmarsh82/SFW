@@ -124,6 +124,52 @@ namespace SFW.Model
         }
 
         /// <summary>
+        /// Get a List of lot numbers associated with a part number
+        /// </summary>
+        /// <param name="partNbr">SKU Part Number</param>
+        /// <param name="sqlCon">Sql Connection to use</param>
+        /// <returns>List of lots associated with the part number</returns>
+        public static List<Lot> GetOnHandNonLotList(string partNbr, SqlConnection sqlCon)
+        {
+            try
+            {
+                var _tempList = new List<Lot>();
+                if (!string.IsNullOrEmpty(partNbr))
+                {
+                    using (SqlCommand cmd = new SqlCommand(@"SELECT 
+                                                                [Oh_Qty_By_Loc] AS 'Oh_Qtys',
+	                                                            [Location] AS 'Loc'
+                                                            FROM
+                                                                [dbo].[IPL-INIT_Location_Data]
+                                                            WHERE
+                                                                [ID1] = @p1 AND [Oh_Qty_By_Loc] != 0;", sqlCon))
+                    {
+                        cmd.Parameters.AddWithValue("p1", partNbr);
+                        using (SqlDataReader reader = cmd.ExecuteReader())
+                        {
+                            if (reader.HasRows)
+                            {
+                                while (reader.Read())
+                                {
+                                    _tempList.Add(new Lot
+                                    {
+                                        Onhand = reader.SafeGetInt32("Oh_Qtys"),
+                                        Location = reader.SafeGetString("Loc")
+                                    });
+                                }
+                            }
+                        }
+                    }
+                }
+                return _tempList;
+            }
+            catch (Exception)
+            {
+                return new List<Lot>();
+            }
+        }
+
+        /// <summary>
         /// Get a DataTable of historical transactions of lots based on part number
         /// </summary>
         /// <param name="partNbr">SKU Part Number</param>
@@ -143,7 +189,7 @@ namespace SFW.Model
                                                                             FROM
                                                                                 [dbo].[LotHistory]
                                                                             WHERE
-                                                                                [PartNbr] = @p1 AND (CAST([TranDateTime] as DATE) > DATEADD(YEAR, -1, GETDATE()))
+                                                                                [PartNbr] = @p1 AND (CAST([TranDateTime] as DATE) > DATEADD(YEAR, -3, GETDATE()))
                                                                             ORDER BY
                                                                                 [TranDateTime] DESC;", sqlCon))
                         {

@@ -148,10 +148,21 @@ namespace SFW.Model
 	                                                                            a.[D_esc] as 'MachineDesc',
 	                                                                            a.[Work_Ctr_Group] as 'MachineGroup',
                                                                                 ISNULL(b.[Qty_Avail], b.[Qty_Req] - ISNULL(b.[Qty_Compl], 0)) as 'WO_CurrentQty',
-	                                                                            ISNULL(b.[Date_Start], '1999-01-01') as 'WO_StartDate',
+	                                                                            ISNULL(b.[Date_Start], '1999-01-01') as 'WO_SchedStartDate',
+                                                                                ISNULL(b.[Date_Act_Start], '1999-01-01') as 'WO_ActStartDate',
 	                                                                            ISNULL(b.[Due_Date], b.[Date_Start]) as 'WO_DueDate',
                                                                                 CAST(ROUND(b.[Mach_Load_Hrs_Rem], 1) AS FLOAT) as 'RunTime',
-	                                                                            ISNULL(CASE WHEN (SELECT [Ord_Type] FROM [dbo].[SOH-INIT] WHERE [So_Nbr] = SUBSTRING(c.[So_Reference],0,CHARINDEX('*',c.[So_Reference],0))) = 'DAI' THEN 'A' WHEN c.[Wo_Type] = 'R' THEN 'B' ELSE c.[Mgt_Priority_Code] END, 'D') as 'WO_Priority',
+	                                                                            ISNULL(CASE WHEN
+                                                                                        (SELECT
+                                                                                            [Ord_Type]
+                                                                                        FROM
+                                                                                            [dbo].[SOH-INIT]
+                                                                                        WHERE
+                                                                                            [So_Nbr] = SUBSTRING(c.[So_Reference],0,CHARINDEX('*',c.[So_Reference],0))) = 'DAI'
+                                                                                    THEN 'A'
+                                                                                    WHEN c.[Wo_Type] = 'R'
+                                                                                    THEN 'B'
+                                                                                    ELSE c.[Mgt_Priority_Code] END, 'D') as 'WO_Priority',
 	                                                                            c.[Wo_Type] as 'WO_Type',
 	                                                                            c.[Qty_To_Start] as 'WO_StartQty',
 	                                                                            c.[So_Reference] as 'WO_SalesRef',
@@ -176,7 +187,7 @@ namespace SFW.Model
                                                                             WHERE
                                                                                 a.[D_esc] <> 'DO NOT USE' AND (c.[Status_Flag] = 'R' OR c.Status_Flag = 'A') AND b.[Seq_Complete_Flag] IS NULL AND b.[Alt_Seq_Status] IS NULL AND (b.[Qty_Avail] > 0 OR b.[Qty_Avail] IS NULL)
                                                                             ORDER BY
-                                                                                MachineNumber, WO_Priority, WO_StartDate, WO_Number ASC;", sqlCon))
+                                                                                MachineNumber, WO_Priority, WO_SchedStartDate, WO_Number ASC;", sqlCon))
                         {
                             adapter.Fill(_tempTable);
                             return _tempTable;
@@ -220,7 +231,8 @@ namespace SFW.Model
 	                                                                            a.[D_esc] as 'MachineDesc',
 	                                                                            a.[Work_Ctr_Group] as 'MachineGroup',
                                                                                 ISNULL(b.[Qty_Avail], b.[Qty_Req] - ISNULL(b.[Qty_Compl], 0)) as 'WO_CurrentQty',
-	                                                                            ISNULL(b.[Date_Start], '1999-01-01') as 'WO_StartDate',
+	                                                                            ISNULL(b.[Date_Start], '1999-01-01') as 'WO_SchedStartDate',
+                                                                                ISNULL(b.[Date_Act_Start], '1999-01-01') as 'WO_ActStartDate',
 	                                                                            ISNULL(b.[Due_Date], b.[Date_Start]) as 'WO_DueDate',
                                                                                 CAST(ROUND(b.[Mach_Load_Hrs_Rem], 1) AS FLOAT) as 'RunTime',
 	                                                                            ISNULL(CASE WHEN (SELECT [Ord_Type] FROM [dbo].[SOH-INIT] WHERE [So_Nbr] = SUBSTRING(c.[So_Reference],0,CHARINDEX('*',c.[So_Reference],0))) = 'DAI' THEN 'A' WHEN c.[Wo_Type] = 'R' THEN 'B' ELSE c.[Mgt_Priority_Code] END, 'D') as 'WO_Priority',

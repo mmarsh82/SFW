@@ -1,5 +1,4 @@
-﻿using M2kClient;
-using SFW.Model;
+﻿using SFW.Model;
 using System;
 using System.Windows.Input;
 
@@ -11,9 +10,9 @@ namespace SFW.Commands
 
         public void Execute(object parameter)
         {
-            //TODO: add in the new WipReceipt object to be populated and passed into the M2kWipCommand
+            var _wipWindow = new WIP.View { DataContext = new WIP.ViewModel((WorkOrder)parameter) };
+            _wipWindow.ShowDialog();
         }
-
-        public bool CanExecute(object parameter) => true;
+        public bool CanExecute(object parameter) => CurrentUser.IsLoggedIn && CurrentUser.DomainName.Contains("wcco");
     }
 }

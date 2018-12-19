@@ -21,17 +21,18 @@ namespace SFW.Model
         public List<Component> Bom { get; set; }
         public QualityTask QTask { get; set; }
         public string InventoryType { get; set; }
+        public int CrewSize { get; set; }
 
         #endregion
 
         /// <summary>
-        /// Skew Default Constructor
+        /// Sku Default Constructor
         /// </summary>
         public Sku()
         { }
 
         /// <summary>
-        /// Skew Constructor
+        /// Sku Constructor
         /// Load a Skew object based on a number
         /// </summary>
         /// <param name="partNbr">Part number to load</param>
@@ -43,11 +44,13 @@ namespace SFW.Model
                 try
                 {
                     using (SqlCommand cmd = new SqlCommand(@"SELECT 
-                                                                a.[Part_Number], a.[Description], a.[Um], a.[Bom_Rev_Date], b.[Qty_On_Hand], a.[Drawing_Nbrs], a.[Inventory_Type]
+                                                                a.[Part_Number], a.[Description], a.[Um], a.[Bom_Rev_Date], b.[Qty_On_Hand], a.[Drawing_Nbrs], a.[Inventory_Type], c.[Crew_Size]
                                                             FROM
                                                                 [dbo].[IM-INIT] a
                                                             RIGHT JOIN
                                                                 [dbo].[IPL-INIT] b ON b.[Part_Nbr] = a.[Part_Number]
+                                                            RIGHT JOIN
+	                                                            [dbo].[RT-INIT] c ON SUBSTRING(c.[ID],0,CHARINDEX('*',c.[ID],0)) = b.[Part_Nbr]
                                                             WHERE
                                                                 a.[Part_Number] = @p1;", sqlCon))
                     {
@@ -65,9 +68,45 @@ namespace SFW.Model
                                     TotalOnHand = reader.SafeGetInt32("Qty_On_Hand");
                                     MasterPrint = reader.SafeGetString("Drawing_Nbrs");
                                     InventoryType = reader.SafeGetString("Inventory_Type");
+                                    CrewSize = reader.SafeGetInt32("Crew_Size");
                                 }
                             }
                         }
+                    }
+                }
+                catch (SqlException sqlEx)
+                {
+                    throw sqlEx;
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception(ex.Message);
+                }
+            }
+            else
+            {
+                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
+            }
+        }
+
+        /// <summary>
+        /// Get the a Sku's crew size
+        /// </summary>
+        /// <param name="partNbr">Part number to search</param>
+        /// <param name="seq">Part sequence to search</param>
+        /// <param name="sqlCon">Sql Connection to use</param>
+        /// <returns>crew size as int</returns>
+        public static int GetCrewSize(string partNbr, string seq, SqlConnection sqlCon)
+        {
+            if (sqlCon != null || sqlCon.State != ConnectionState.Closed || sqlCon.State != ConnectionState.Broken)
+            {
+                try
+                {
+                    using (SqlCommand cmd = new SqlCommand(@"SELECT [Crew_Size] FROM [dbo].[RT-INIT] WHERE [ID] = CONCAT(@p1,'*',@p2);", sqlCon))
+                    {
+                        cmd.Parameters.AddWithValue("p1", partNbr);
+                        cmd.Parameters.AddWithValue("p2", seq);
+                        return int.TryParse(cmd.ExecuteScalar().ToString(), out int result) ? result : 0;
                     }
                 }
                 catch (SqlException sqlEx)

@@ -6,6 +6,8 @@ using System.ComponentModel;
 using System.Data;
 using System.Linq;
 
+//Created by Michael Marsh 4-19-18
+
 namespace SFW
 {
     public class MainWindowViewModel : ViewModelBase
@@ -37,7 +39,8 @@ namespace SFW
                         SelectedMachineGroup = null;
                     }
                     var _temp = value.MachineName == "All" ? "" : $"MachineName = '{value.MachineName}'";
-                    ((DataView)((Schedule.ViewModel)((Schedule.View)WorkSpaceDock.MainDock.Children[App.SiteNumber]).DataContext).ScheduleView.SourceCollection).RowFilter = _temp;
+                    var _tempDock = App.SiteNumber == 0 ? WorkSpaceDock.CsiDock : WorkSpaceDock.WccoDock;
+                    ((DataView)((Schedule.ViewModel)((Schedule.View)_tempDock.Children[0]).DataContext).ScheduleView.SourceCollection).RowFilter = _temp;
                 }
                 StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(SelectedMachine)));
             }
@@ -63,7 +66,8 @@ namespace SFW
                 else if (machGrp != value)
                 {
                     var _temp = value == "All" ? "" : $"MachineGroup = '{value}'";
-                    ((DataView)((Schedule.ViewModel)((Schedule.View)WorkSpaceDock.MainDock.Children[App.SiteNumber]).DataContext).ScheduleView.SourceCollection).RowFilter = _temp;
+                    var _tempDock = App.SiteNumber == 0 ? WorkSpaceDock.CsiDock : WorkSpaceDock.WccoDock;
+                    ((DataView)((Schedule.ViewModel)((Schedule.View)_tempDock.Children[0]).DataContext).ScheduleView.SourceCollection).RowFilter = _temp;
                     if (SelectedMachine != null &&  value != Machine.GetMachineGroup(App.AppSqlCon, SelectedMachine.MachineNumber))
                     {
                         SelectedMachine = null;

@@ -77,6 +77,13 @@ namespace SFW.Queries
             set { loading = value; OnPropertyChanged(nameof(IsLoading)); }
         }
 
+        private bool nonLot;
+        public bool NonLotPart
+        {
+            get { return nonLot; }
+            set { nonLot = value; OnPropertyChanged(nameof(NonLotPart)); }
+        }
+
         public delegate void ResultsDelegate(string s);
         public ResultsDelegate ResultsAsyncDelegate { get; private set; }
         public IAsyncResult SearchAsyncResult { get; set; }
@@ -95,6 +102,7 @@ namespace SFW.Queries
             NoHistoryResults = true;
             IsLoading = false;
             ResultsAsyncDelegate = new ResultsDelegate(ResultsLoading);
+            NonLotPart = false;
         }
 
         /// <summary>
@@ -107,6 +115,7 @@ namespace SFW.Queries
             ResultsAsyncDelegate = new ResultsDelegate(ResultsLoading);
             PartNbr = partNrb;
             SearchAsyncResult = ResultsAsyncDelegate.BeginInvoke(partNrb, new AsyncCallback(ResultsLoaded), null);
+            NonLotPart = false;
         }
 
         /// <summary>
@@ -128,6 +137,12 @@ namespace SFW.Queries
         {
             IsLoading = true;
             ILotResultsList = Lot.GetOnHandLotList(partNbr, App.AppSqlCon);
+            NonLotPart = false;
+            if (ILotResultsList.Count == 0)
+            {
+                ILotResultsList = Lot.GetOnHandNonLotList(partNbr, App.AppSqlCon);
+                NonLotPart = true;
+            }
             IthResultsTable = Lot.GetLotHistoryTable(partNbr, App.AppSqlCon);
         }
         public void ResultsLoaded(IAsyncResult r)

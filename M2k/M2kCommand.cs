@@ -3,6 +3,7 @@ using M2kClient.M2kADIArray;
 using Microsoft.Win32;
 using SFW.Model;
 using System;
+using System.Collections.Generic;
 using System.IO;
 
 namespace M2kClient
@@ -154,28 +155,38 @@ namespace M2kClient
         }
 
         /// <summary>
-        /// Get the next availbe lot number in M2k
+        /// Get the next available lot number in M2k
         /// </summary>
-        /// <returns>The lot number as a string, on error will return a null value</returns>
-        public string GetLotNumber(M2kConnection connection)
+        /// <param name="connection">Your Manage 2000 Connection object</param>
+        /// <returns>
+        /// IReadOnlyDictionary file
+        /// Key is the Pass/Fail check
+        /// On Pass the value will be the lot number created
+        /// On Fail the value will be the error message
+        /// </returns>
+        public static IReadOnlyDictionary<bool, string> GetLotNumber(M2kConnection connection)
         {
             try
             {
+                var _subResult = new Dictionary<bool, string>();
                 using (UniSession uSession = UniObjects.OpenSession(connection.HostName, connection.UserName, connection.Password, connection.UniAccount, connection.UniService))
                 {
                     try
                     {
-                        using (UniSubroutine uSubRout = uSession.CreateUniSubroutine("ASSIGN.NEXT.NBR", 0))
+                        using (UniSubroutine uSubRout = uSession.CreateUniSubroutine("SUB.GET.NEXTLOT", 1))
                         {
-                            
+                            uSubRout.SetArg(0, "");
+                            uSubRout.Call();
+                            _subResult.Add(true, uSubRout.GetArg(0));
+                            UniObjects.CloseSession(uSession);
+                            return _subResult;
                         }
-                        UniObjects.CloseSession(uSession);
-                        return string.Empty;
                     }
-                    catch (Exception)
+                    catch (Exception ex)
                     {
                         UniObjects.CloseSession(uSession);
-                        return null;
+                        _subResult.Add(false, ex.Message);
+                        return _subResult;
                     }
                 }
             }
@@ -193,6 +204,7 @@ namespace M2kClient
         /// <param name="to">Transfer to location</param>
         /// <param name="qty">Quantity to transfer</param>
         /// <param name="nonLot">Is the item being relocated non-lot traceable</param>
+        /// <param name="connection">Current M2k Connection to be used for processing the transaction</param>
         /// <returns>Suffix for the file that needs to be watched on the ERP server</returns>
         public static int InventoryMove(string from, string to, int qty, bool nonLot, M2kConnection connection)
         {
@@ -221,6 +233,12 @@ namespace M2kClient
             return 10;
         }
 
+        /// <summary>
+        /// Production Wip in the current ERP system
+        /// </summary>
+        /// <param name="wipRecord">Wip Record object to be processed</param>
+        /// <param name="connection">Current M2k Connection to be used for processing the transaction</param>
+        /// <returns>Suffix for the file that needs to be watched on the ERP server</returns>
         public static int ProductionWip(WipReceipt wipRecord, M2kConnection connection)
         {
             //TODO Remove the hardcoded safefiledialog and automate this process
@@ -234,10 +252,12 @@ namespace M2kClient
 
             //Hardcoded for testing
             var btiText = new Wip(wipRecord).ToString();
-            SaveFileDialog dialog = new SaveFileDialog();
-            dialog.FileName = "BtiTestDoc";
-            dialog.DefaultExt = ".txt";
-            dialog.Filter = "Text Documents |*.txt";
+            SaveFileDialog dialog = new SaveFileDialog
+            {
+                FileName = "BtiTestDoc",
+                DefaultExt = ".txt",
+                Filter = "Text Documents |*.txt"
+            };
             if (dialog.ShowDialog() == true)
             {
                 File.WriteAllLines(dialog.FileName, btiText.Split('\n'));

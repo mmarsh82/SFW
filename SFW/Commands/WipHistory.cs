@@ -3,11 +3,11 @@ using SFW.Queries;
 using System;
 using System.Windows.Input;
 
-//Created by Michael Marsh 4-19-18
+//Created by Michael Marsh 12-13-18
 
 namespace SFW.Commands
 {
-    public class PartInformation : ICommand
+    public class WipHistory : ICommand
     {
         public event EventHandler CanExecuteChanged;
 
@@ -21,18 +21,18 @@ namespace SFW.Commands
             {
                 if (parameter != null)
                 {
-                    if(parameter.GetType() == typeof(Model.WorkOrder))
+                    if (parameter.GetType() == typeof(Model.WorkOrder))
                     {
-                        WorkSpaceDock.SwitchView(3, new PartInfo_ViewModel((Model.WorkOrder)parameter));
+                        WorkSpaceDock.SwitchView(6, new WipHist_ViewModel());
                     }
                     else
                     {
-                        WorkSpaceDock.SwitchView(3, new PartInfo_ViewModel(parameter.ToString()));
+                        WorkSpaceDock.SwitchView(6, new WipHist_ViewModel());
                     }
                 }
                 else
                 {
-                    WorkSpaceDock.SwitchView(3, null);
+                    WorkSpaceDock.SwitchView(6, null);
                 }
             }
             catch (Exception)

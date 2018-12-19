@@ -29,17 +29,18 @@ namespace SFW.Schedule
                 _selectedWO = value;
                 if (value != null)
                 {
-                    ((ShopRoute.ViewModel)((ShopRoute.View)WorkSpaceDock.MainDock.Children[App.SiteNumber + 1]).DataContext).ShopOrder = new WorkOrder(value.Row, App.AppSqlCon);
+                    var _tempDock = App.SiteNumber == 0 ? WorkSpaceDock.CsiDock : WorkSpaceDock.WccoDock;
+                    ((ShopRoute.ViewModel)((ShopRoute.View)_tempDock.Children[1]).DataContext).ShopOrder = new WorkOrder(value.Row, App.AppSqlCon);
                 }
                 OnPropertyChanged(nameof(SelectedWorkOrder));
             }
         }
 
-        private bool isLoading;
+        private bool _isLoading;
         public bool IsLoading
         {
-            get { return isLoading; }
-            set { isLoading = value; OnPropertyChanged(nameof(IsLoading)); }
+            get { return _isLoading; }
+            set { _isLoading = value; OnPropertyChanged(nameof(IsLoading)); }
         }
 
         public delegate void LoadDelegate(string s);
@@ -138,11 +139,11 @@ namespace SFW.Schedule
                 var _selection = SelectedWorkOrder;
                 ScheduleView = CollectionViewSource.GetDefaultView(Machine.GetScheduleData(App.AppSqlCon));
                 ScheduleView.GroupDescriptions.Add(new PropertyGroupDescription("MachineNumber", new WorkCenterNameConverter(MachineList)));
-                if (MainWindowViewModel.SelectedMachine?.MachineName != "All" && string.IsNullOrEmpty(_db))
+                if (MainWindowViewModel.SelectedMachine.MachineName != "All" && string.IsNullOrEmpty(_db))
                 {
                     MainWindowViewModel.SelectedMachine = MainWindowViewModel.SelectedMachine;
                     MainWindowViewModel.SelectedMachineGroup = MainWindowViewModel.SelectedMachineGroup;
-                    ((DataView)ScheduleView.SourceCollection).RowFilter = $"MachineName = '{MainWindowViewModel.SelectedMachine.MachineName}'";
+                    ((DataView)ScheduleView.SourceCollection).RowFilter = $"MachineName = '{MainWindowViewModel.SelectedMachine}'";
                 }
                 else if (MainWindowViewModel.SelectedMachineGroup != "All" && string.IsNullOrEmpty(_db))
                 {

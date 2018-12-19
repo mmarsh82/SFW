@@ -38,7 +38,7 @@ namespace SFW.Commands
                         }
                         break;
                     case "Scheduler":
-                        WorkSpaceDock.SwitchView(4, new Scheduler.ViewModel());
+                        WorkSpaceDock.SwitchView(2, new Scheduler.ViewModel());
                         break;
                     case "SiteCsi":
                         if (!App.DatabaseChange("CSI_MAIN"))
@@ -58,19 +58,20 @@ namespace SFW.Commands
                             return;
                         }
                         App.ErpCon.DatabaseChange(Database.WCCO);
-                        WorkSpaceDock.SwitchView(2, null);
+                        WorkSpaceDock.SwitchView(1, null);
                         MainWindowViewModel.CurrentSite = "";
                         MainWindowViewModel.CurrentSiteNbr = 0;
                         break;
                     default:
                         WorkSpaceDock.SwitchView(App.SiteNumber, null);
+                        var _tempDock = App.SiteNumber == 0 ? WorkSpaceDock.CsiDock : WorkSpaceDock.WccoDock;
                         if (int.TryParse(parameter.ToString(), out int i))
                         {
-                            ((DataView)((Schedule.ViewModel)((Schedule.View)WorkSpaceDock.MainDock.Children[App.SiteNumber]).DataContext).ScheduleView.SourceCollection).RowFilter = $"MachineNumber = {parameter.ToString()}";
+                            ((DataView)((Schedule.ViewModel)((Schedule.View)_tempDock.Children[0]).DataContext).ScheduleView.SourceCollection).RowFilter = $"MachineNumber = {parameter.ToString()}";
                         }
                         else
                         {
-                            ((DataView)((Schedule.ViewModel)((Schedule.View)WorkSpaceDock.MainDock.Children[App.SiteNumber]).DataContext).ScheduleView.SourceCollection).RowFilter = $"MachineGroup = '{parameter.ToString()}'";
+                            ((DataView)((Schedule.ViewModel)((Schedule.View)_tempDock.Children[0]).DataContext).ScheduleView.SourceCollection).RowFilter = $"MachineGroup = '{parameter.ToString()}'";
                         }
                         break;
                 }

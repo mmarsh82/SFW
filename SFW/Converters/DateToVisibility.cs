@@ -10,13 +10,21 @@ namespace SFW.Converters
     {
         public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
         {
-            if (value != null)
+            if (parameter == null)
             {
-                return System.Convert.ToDateTime(value) < DateTime.Today ? Visibility.Visible : Visibility.Collapsed;
+                return value != null && System.Convert.ToDateTime(value) < DateTime.Today ? Visibility.Visible : Visibility.Collapsed;
             }
             else
             {
-                return Visibility.Collapsed;
+                switch(parameter.ToString())
+                {
+                    case "N":
+                        return value != null && System.Convert.ToDateTime(value) != DateTime.MinValue ? Visibility.Visible : Visibility.Collapsed;
+                    case "Ni":
+                        return value != null && System.Convert.ToDateTime(value) == DateTime.MinValue ? Visibility.Visible : Visibility.Collapsed;
+                    default:
+                        return Visibility.Collapsed;
+                }
             }
         }
         public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)

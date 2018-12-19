@@ -117,8 +117,16 @@ namespace SFW
                         ErpCon.DatabaseChange(Database.CSI);
                         break;
                     case "WCCO_MAIN":
-                        SiteNumber = 2;
+                        SiteNumber = 1;
                         ErpCon.DatabaseChange(Database.WCCO);
+                        break;
+                    case "CSI_TRAIN":
+                        SiteNumber = 0;
+                        ErpCon.DatabaseChange(Database.CSITRAIN);
+                        break;
+                    case "WCCO_TRAIN":
+                        SiteNumber = 1;
+                        ErpCon.DatabaseChange(Database.WCCOTRAIN);
                         break;
                 }
                 return true;
@@ -302,6 +310,17 @@ namespace SFW
                                     new XAttribute("Inventory Control", "SFW_IC"),
                                     new XAttribute("Quality", "SFW_QC"),
                                     new XAttribute("Deviations", "SFW_Deviate")
+                                ),
+                                new XElement("Shifts",
+                                    new XElement("1",
+                                        new XAttribute("Start", "7:00"),
+                                        new XAttribute("End", "14:59")),
+                                    new XElement("2",
+                                        new XAttribute("Start","15:00"),
+                                        new XAttribute("End", "22:59")),
+                                    new XElement("3",
+                                        new XAttribute("Start", "23:00"),
+                                        new XAttribute("End", "6:59"))
                                 )
                             )
                         );

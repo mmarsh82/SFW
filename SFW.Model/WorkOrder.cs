@@ -22,13 +22,14 @@ namespace SFW.Model
         public int StartQty { get; set; }
         public int CurrentQty { get; set; }
         public int ScrapQty { get; set; }
-        public DateTime StartDate { get; set; }
+        public DateTime SchedStartDate { get; set; }
+        public DateTime ActStartDate { get; set; }
         public DateTime DueDate { get; set; }
         public SalesOrder SalesOrder { get; set; }
         public string Notes { get; set; }
         public string ShopNotes { get; set; }
         public bool IsLate { get { return DueDate < DateTime.Today; } }
-        public bool IsStartedLate { get { return StartDate < DateTime.Today && CurrentQty == StartQty; } }
+        public bool IsStartedLate { get { return SchedStartDate < DateTime.Today && CurrentQty == StartQty; } }
 
         #endregion
 
@@ -53,14 +54,15 @@ namespace SFW.Model
                 Priority = drow.Field<string>("WO_Priority");
                 StartQty = drow.Field<int>("WO_StartQty");
                 CurrentQty = Convert.ToInt32(drow.Field<decimal>("WO_CurrentQty"));
-                StartDate = drow.Field<DateTime>("WO_StartDate");
+                SchedStartDate = drow.Field<DateTime>("WO_SchedStartDate");
+                ActStartDate = drow.Field<DateTime>("WO_ActStartDate") != Convert.ToDateTime("1999-01-01") ? drow.Field<DateTime>("WO_ActStartDate") : DateTime.MinValue;
                 DueDate = drow.Field<DateTime>("WO_DueDate");
                 SkuNumber = drow.Field<string>("SkuNumber");
                 SkuDescription = drow.Field<string>("SkuDesc");
                 Uom = drow.Field<string>("SkuUom");
                 MasterPrint = drow.Field<string>("SkuMasterPrint");
                 TotalOnHand = drow.Field<int>("SkuOnHand");
-                BomRevDate = drow.Field<DateTime>("BomRevDate");
+                BomRevDate = drow.Field<DateTime>("BomRevDate") != Convert.ToDateTime("1999-01-01") ? drow.Field<DateTime>("BomRevDate") : DateTime.MinValue;
                 BomRevLevel = drow.Field<string>("BomRevLvl");
                 SalesOrder = new SalesOrder(drow.Field<string>("WO_SalesRef"), sqlCon);
                 Bom = Component.GetComponentList(_wo[0], StartQty - CurrentQty, sqlCon);
@@ -85,7 +87,7 @@ namespace SFW.Model
                     using (SqlCommand cmd = new SqlCommand(@"SELECT 
                                                                 SUBSTRING(a.[ID], 0, CHARINDEX('*',a.[ID],0)) as 'WoNumber',
 	                                                            SUBSTRING(a.[ID], CHARINDEX('*',a.[ID],0) + 1, LEN(a.[ID])) as 'Seq',
-	                                                            a.[Qty_Avail] as 'CurrentQty', ISNULL(a.[Qty_Scrap], 0) as 'Scrap', a.[Date_Start] as 'StartDate', a.[Due_Date] as 'DueDate',
+	                                                            a.[Qty_Avail] as 'CurrentQty', ISNULL(a.[Qty_Scrap], 0) as 'Scrap', a.[Date_Start] as 'SchedStartDate', a.[Date_Act_Start] as 'ActStartDate', a.[Due_Date] as 'DueDate',
 	                                                            b.[Part_Wo_Desc] as 'WoDesc', ISNULL(b.[Mgt_Priority_Code], 'D') as 'Priority', b.[Qty_To_Start] as 'StartQty', b.[So_Reference] as 'SalesOrder'
                                                             FROM
                                                                 [dbo].[WPO-INIT] a
@@ -111,7 +113,7 @@ namespace SFW.Model
                                         StartQty = reader.SafeGetInt32("StartQty"),
                                         CurrentQty = reader.SafeGetInt32("CurrentQty"),
                                         ScrapQty = reader.SafeGetInt32("Scrap"),
-                                        StartDate = reader.SafeGetDateTime("StartDate"),
+                                        SchedStartDate = reader.SafeGetDateTime("SchedStartDate"),
                                         DueDate = reader.SafeGetDateTime("DueDate"),
                                         SalesOrder = new SalesOrder(reader.SafeGetString("SalesOrder"), sqlCon)
                                     });

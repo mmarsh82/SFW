@@ -13,6 +13,18 @@ namespace SFW
     {
         #region Properties
 
+        private static string _dUserName;
+        public static string DomainUserName
+        {
+            get
+            { return _dUserName; }
+            private set
+            {
+                _dUserName = value;
+                StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(DomainUserName)));
+            }
+        }
+
         private static string _dName;
         public static string DomainName
         {
@@ -73,6 +85,30 @@ namespace SFW
             }
         }
 
+        private static bool _canWip;
+        public static bool CanWip
+        {
+            get
+            { return _canWip; }
+            private set
+            {
+                _canWip = value;
+                StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(CanWip)));
+            }
+        }
+
+        private static string _uID;
+        public static string UserIDNbr
+        {
+            get
+            { return _uID; }
+            private set
+            {
+                _uID = value;
+                StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(UserIDNbr)));
+            }
+        }
+
         public static event EventHandler<PropertyChangedEventArgs> StaticPropertyChanged;
 
         #endregion
@@ -91,11 +127,14 @@ namespace SFW
         public CurrentUser(PrincipalContext context, UserPrincipal user)
         {
             var _groups = user.GetAuthorizationGroups().Where(o => o.Name.Contains("SFW_")).ToList().ConvertAll(o => o.Name);
-            DomainName = user.SamAccountName;
+            DomainName = context.ConnectedServer;
+            DomainUserName = user.SamAccountName;
             DisplayName = user.DisplayName;
             Email = user.EmailAddress;
             CanSchedule = _groups.Exists(o => o.ToString().Contains("SFW_Sched"));
             IsLoggedIn = true;
+            CanWip = DomainName.Contains("wcco");
+            UserIDNbr = user.EmployeeId;
             user.Dispose();
             context.Dispose();
         }
@@ -176,10 +215,13 @@ namespace SFW
         public static void LogOff()
         {
             DomainName = null;
+            DomainUserName = null;
             DisplayName = null;
             Email = null;
             IsLoggedIn = false;
             CanSchedule = false;
+            CanWip = false;
+            UserIDNbr = string.Empty;
             //TODO: make sure the schedule is on the site of the domain
         }
 

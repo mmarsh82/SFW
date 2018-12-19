@@ -10,6 +10,7 @@ namespace SFW.WIP
         public View()
         {
             InitializeComponent();
+            Loaded += delegate { WipQty.Focus(); };
         }
     }
 }

@@ -1,5 +1,8 @@
 ﻿namespace M2kClient.M2kADIArray
 {
+    /// <summary>
+    /// Display Info Object
+    /// </summary>
     public class DisplayInfo
     {
         #region Properties

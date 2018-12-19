@@ -9,7 +9,7 @@
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="Styles/Button.xaml"/>
                 <ResourceDictionary Source="Styles/TextBox.xaml"/>
-                <ResourceDictionary Source="Styles/LoadingAnimation.xaml"/>
+                <ResourceDictionary Source="Styles/LoadingAnimation.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
          

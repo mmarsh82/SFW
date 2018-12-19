@@ -30,8 +30,8 @@
     <PublisherName>Michael Marsh</PublisherName>
     <SuiteName>WCCO Belting Inc.</SuiteName>
     <AutorunEnabled>true</AutorunEnabled>
-    <ApplicationRevision>255</ApplicationRevision>
-    <ApplicationVersion>1.0.27.255</ApplicationVersion>
+    <ApplicationRevision>294</ApplicationRevision>
+    <ApplicationVersion>1.0.29.294</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <CreateDesktopShortcut>true</CreateDesktopShortcut>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -108,10 +108,17 @@
     <Compile Include="Commands\M2kWipReceipt.cs" />
     <Compile Include="Commands\SetUpInformation.cs" />
     <Compile Include="Commands\ShowLogInWindow.cs" />
+    <Compile Include="Commands\WipHistory.cs" />
+    <Compile Include="Converters\EnumToBool.cs" />
     <Compile Include="Converters\SiteNumberToBool.cs" />
     <Compile Include="Converters\StringConcat.cs" />
     <Compile Include="Converters\WoPriorityToBool.cs" />
     <Compile Include="CurrentUser.cs" />
+    <Compile Include="Queries\WipHist_View.xaml.cs">
+      <DependentUpon>WipHist_View.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Queries\WipHist_ViewModel.cs" />
+    <Compile Include="Styles\Converters\RequiredWidthCutoff.cs" />
     <Compile Include="UserLogIn\View.xaml.cs">
       <DependentUpon>View.xaml</DependentUpon>
     </Compile>
@@ -168,6 +175,10 @@
     </Compile>
     <Compile Include="WIP\ViewModel.cs" />
     <Page Include="Queries\PartInfo_View.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Queries\WipHist_View.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

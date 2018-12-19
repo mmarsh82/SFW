@@ -20,6 +20,8 @@ namespace SFW.Model
         public List<Lot> LotList { get; set; }
         public List<Lot> DedicatedLotList { get; set; }
         public string InventoryType { get; set; }
+        public int WipQty { get; set; }
+        public Lot WipLot { get; set; }
 
         #endregion
 
@@ -35,7 +37,7 @@ namespace SFW.Model
         /// <param name="woNbr">Work Order Number</param>
         /// <param name="balQty">Balance quantity left on the work order</param>
         /// <param name="sqlCon">Sql Connection to use</param>
-        /// <returns></returns>
+        /// <returns>List of Component objects</returns>
         public static List<Component> GetComponentList(string woNbr, int balQty, SqlConnection sqlCon)
         {
             var _tempList = new List<Component>();

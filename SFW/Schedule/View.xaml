@@ -112,7 +112,7 @@
                                 <Grid>
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
                                         <TextBlock Text="Start:" TextDecorations="Underline"/>
-                                        <TextBlock Text="{Binding WO_StartDate, StringFormat=d}" Margin="5,0,0,0"/>
+                                        <TextBlock Text="{Binding WO_SchedStartDate, StringFormat=d}" Margin="5,0,0,0"/>
                                         <TextBlock Text="Due:" Margin="20,0,0,0" TextDecorations="Underline"/>
                                         <TextBlock Text="{Binding WO_DueDate, StringFormat=d}" Margin="5,0,0,0"/>
                                         <TextBlock Text="Run:" Margin="20,0,0,0" TextDecorations="Underline"/>
