@@ -141,14 +141,10 @@ namespace SFW.Schedule
                 ScheduleView.GroupDescriptions.Add(new PropertyGroupDescription("MachineNumber", new WorkCenterNameConverter(MachineList)));
                 if (MainWindowViewModel.SelectedMachine.MachineName != "All" && string.IsNullOrEmpty(_db))
                 {
-                    MainWindowViewModel.SelectedMachine = MainWindowViewModel.SelectedMachine;
-                    MainWindowViewModel.SelectedMachineGroup = MainWindowViewModel.SelectedMachineGroup;
-                    ((DataView)ScheduleView.SourceCollection).RowFilter = $"MachineName = '{MainWindowViewModel.SelectedMachine}'";
+                    ((DataView)ScheduleView.SourceCollection).RowFilter = $"MachineName = '{MainWindowViewModel.SelectedMachine.MachineName}'";
                 }
                 else if (MainWindowViewModel.SelectedMachineGroup != "All" && string.IsNullOrEmpty(_db))
                 {
-                    MainWindowViewModel.SelectedMachine = MainWindowViewModel.MachineList[0];
-                    MainWindowViewModel.SelectedMachineGroup = MainWindowViewModel.SelectedMachineGroup;
                     ((DataView)ScheduleView.SourceCollection).RowFilter = $"MachineGroup = '{MainWindowViewModel.SelectedMachineGroup}'";
                 }
                 OnPropertyChanged(nameof(ScheduleView));

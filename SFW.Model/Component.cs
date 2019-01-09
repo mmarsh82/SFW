@@ -18,6 +18,7 @@ namespace SFW.Model
         public string CompMasterPrint { get; set; }
         public string CompUom { get; set; }
         public List<Lot> LotList { get; set; }
+        public List<Lot> NonLotList { get; set; }
         public List<Lot> DedicatedLotList { get; set; }
         public string InventoryType { get; set; }
         public int WipQty { get; set; }
@@ -76,9 +77,16 @@ namespace SFW.Model
                                         CompMasterPrint = reader.SafeGetString("Drawing_Nbrs"),
                                         CompUom = reader.SafeGetString("Um"),
                                         InventoryType = reader.SafeGetString("Inventory_Type"),
-                                        LotList = reader.IsDBNull(0) ? new List<Lot>() : Lot.GetOnHandLotList(reader.SafeGetString("Component"), sqlCon),
-                                        DedicatedLotList = reader.IsDBNull(0) ? new List<Lot>() : Lot.GetDedicatedLotList(reader.SafeGetString("Component"), woNbr, sqlCon)
+                                        LotList = reader.IsDBNull(0) 
+                                            ? new List<Lot>() 
+                                            : Lot.GetOnHandLotList(reader.SafeGetString("Component"), sqlCon),
+                                        DedicatedLotList = reader.IsDBNull(0) 
+                                            ? new List<Lot>() 
+                                            : Lot.GetDedicatedLotList(reader.SafeGetString("Component"), woNbr, sqlCon)
                                     });
+                                    _tempList[_tempList.Count - 1].NonLotList = _tempList[_tempList.Count - 1].LotList.Count == 0 && !reader.IsDBNull(0)
+                                        ? Lot.GetOnHandNonLotList(reader.SafeGetString("Component"), sqlCon)
+                                        : new List<Lot>();
                                 }
                             }
                         }

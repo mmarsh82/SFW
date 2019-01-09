@@ -1,97 +1,98 @@
-﻿<UserControl x:Class="SFW.Queries.PartInfo_View"
-             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+﻿<UserControl xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:cvtr="clr-namespace:SFW.Converters"
              xmlns:cmd="clr-namespace:SFW.Commands"
-             Width="{Binding Width, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type DockPanel}}, NotifyOnSourceUpdated=True, NotifyOnTargetUpdated=True, UpdateSourceTrigger=PropertyChanged}">
-    <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+             xmlns:local="clr-namespace:SFW.Queries"
+             x:Class="SFW.Queries.PartInfo_View">
+    <ScrollViewer HorizontalScrollBarVisibility="Auto"
+                  VerticalScrollBarVisibility="Disabled">
         <Grid Background="LightGray">
 
             <Grid.Resources>
-                <cvtr:ObjectToVisibility x:Key="ObjectToVisConverter"/>
-                <cvtr:NegativeIntToBool x:Key="NegIntToBoolConverter"/>
-                <cvtr:StringToVisibility x:Key="StringToVisConverter"/>
-                <cvtr:CountToVisibility x:Key="CountToVisConverter"/>
-                <cvtr:BoolToVisibility x:Key="BoolToVisConverter"/>
-                <cmd:M2kLookQuery x:Key="LookQueryCommand"/>
-                <cmd:ViewLoad x:Key="Back"/>
+                <cvtr:ObjectToVisibility x:Key="ObjectToVisConverter" />
+                <cvtr:NegativeIntToBool x:Key="NegIntToBoolConverter" />
+                <cvtr:StringToVisibility x:Key="StringToVisConverter" />
+                <cvtr:CountToVisibility x:Key="CountToVisConverter" />
+                <cvtr:BoolToVisibility x:Key="BoolToVisConverter" />
+                <cmd:M2kLookQuery x:Key="LookQueryCommand" />
+                <cmd:ViewLoad x:Key="Back" />
             </Grid.Resources>
 
             <Grid.InputBindings>
-                <KeyBinding Gesture="Enter" Command="{Binding SearchICommand}" CommandParameter="{Binding Path=Text, ElementName=SearchTextBox}"/>
+                <KeyBinding Gesture="Enter"
+                            Command="{Binding SearchICommand}"
+                            CommandParameter="{Binding Text, ElementName=SearchTextBox}" />
             </Grid.InputBindings>
 
             <Grid.RowDefinitions>
-                <RowDefinition Height="30"/>
-                <RowDefinition Height="*"/>
+                <RowDefinition Height="30" />
+                <RowDefinition Height="*" />
             </Grid.RowDefinitions>
 
-            <StackPanel Grid.Row="0" Orientation="Horizontal">
+            <StackPanel Grid.Row="0"
+                        Orientation="Horizontal">
                 <Button Background="Transparent"
                         BorderThickness="0"
                         Command="{StaticResource Back}"
                         CommandParameter="Back">
-                    <Button.Content>
-                        <Image Source="/SFW;component/Icons/BackArrow.ico"/>
-                    </Button.Content>
+                    <Image Source="/SFW;component/Icons/BackArrow.ico" />
                 </Button>
                 <TextBlock Text="Part Number"
                            FontSize="16"
                            FontWeight="Bold"
                            Margin="10,0,0,0"
-                           VerticalAlignment="Center"/>
+                           VerticalAlignment="Center" />
                 <TextBox x:Name="SearchTextBox"
                          Text="{Binding PartNbr, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                          Width="150"
                          FontSize="14"
-                         Margin="5"/>
+                         Margin="5" />
                 <Button Content="Search"
                         Command="{Binding SearchICommand}"
                         CommandParameter="{Binding PartNbr}"
                         Width="75"
                         Margin="2"
-                        Style="{DynamicResource DefaultButton}"/>
+                        Style="{DynamicResource DefaultButton}" />
                 <TextBox x:Name="FilterTextBox"
                          Text="{Binding Filter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                          Width="150"
                          FontSize="14"
                          Margin="50,5,10,5"
-                         Visibility="{Binding NoResults, Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}"/>
+                         Visibility="{Binding NoResults, ConverterParameter=i, Converter={StaticResource BoolToVisConverter}}" />
                 <Button Content="Filter"
                         Command="{Binding FilterICommand}"
                         CommandParameter="{Binding Filter}"
                         Width="75"
                         Margin="2"
-                        Visibility="{Binding NoResults, Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}"
-                        Style="{DynamicResource DefaultButton}"/>
-                <TextBlock Text="{Binding PartNbrText, StringFormat='Showing Results for &quot;{0}&quot;'}"
+                        Visibility="{Binding NoResults, ConverterParameter=i, Converter={StaticResource BoolToVisConverter}}"
+                        Style="{DynamicResource DefaultButton}" />
+                <TextBlock Text="{Binding PartNbrText, StringFormat=Showing Results for \&quot;\{0\}\&quot;}"
                            FontSize="18"
                            FontWeight="Bold"
                            Margin="100,0,0,0"
                            VerticalAlignment="Center"
-                           Visibility="{Binding PartNbrText, Converter={StaticResource StringToVisConverter}}"/>
-                <TextBlock Text="{Binding FilterText, StringFormat='containing &quot;{0}&quot;'}"
+                           Visibility="{Binding PartNbrText, Converter={StaticResource StringToVisConverter}}" />
+                <TextBlock Text="{Binding FilterText, StringFormat=containing \&quot;\{0\}\&quot;}"
                            FontSize="18"
                            FontWeight="Bold"
                            Margin="5,0,0,0"
                            VerticalAlignment="Center"
-                           Visibility="{Binding FilterText, Converter={StaticResource StringToVisConverter}}"/>
+                           Visibility="{Binding FilterText, Converter={StaticResource StringToVisConverter}}" />
                 <Button Background="Transparent"
                         BorderThickness="0"
                         Command="{Binding FilterICommand}"
                         CommandParameter="r"
                         Visibility="{Binding FilterText, Converter={StaticResource StringToVisConverter}}">
-                    <Button.Content>
-                        <Image Source="/SFW;component/Icons/Remove.ico"/>
-                    </Button.Content>
+                    <Image Source="/SFW;component/Icons/Remove.ico" />
                 </Button>
             </StackPanel>
 
-            <StackPanel Grid.Row="1" Orientation="Horizontal">
+            <StackPanel Grid.Row="1"
+                        Orientation="Horizontal">
 
                 <DataGrid x:Name="ILotResultsDataGrid"
                           ItemsSource="{Binding ILotResultsList}"
-                          Visibility="{Binding NoLotResults, Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}"
+                          Visibility="{Binding NoLotResults, ConverterParameter=i, Converter={StaticResource BoolToVisConverter}}"
                           SelectedItem="{Binding SelectedILotRow}"
                           HorizontalAlignment="Left"
                           VerticalAlignment="Top"
@@ -101,27 +102,32 @@
                           AutoGenerateColumns="False"
                           IsReadOnly="True">
                     <DataGrid.Columns>
-                        <DataGridTextColumn Header="Lot Number" Binding="{Binding LotNumber}"
-                                            Visibility="{Binding DataContext.NonLotPart, ConverterParameter=i, Converter={StaticResource BoolToVisConverter}, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type DataGrid}}}" />
-                        <DataGridTextColumn Header="On Hand" Binding="{Binding Onhand}">
+                        <DataGridTextColumn Header="Lot Number"
+                                            Binding="{Binding LotNumber}" />
+                        <DataGridTextColumn Header="On Hand"
+                                            Binding="{Binding Onhand}">
                             <DataGridTextColumn.CellStyle>
                                 <Style TargetType="{x:Type DataGridCell}">
-                                    <Setter Property="Foreground" Value="Black"/>
+                                    <Setter Property="Foreground"
+                                            Value="Black" />
                                     <Style.Triggers>
-                                        <DataTrigger Binding="{Binding Onhand, Converter={StaticResource NegIntToBoolConverter}}" Value="true">
-                                            <Setter Property="Foreground" Value="Crimson"/>
+                                        <DataTrigger Binding="{Binding Onhand, Converter={StaticResource NegIntToBoolConverter}}"
+                                                     Value="true">
+                                            <Setter Property="Foreground"
+                                                    Value="Crimson" />
                                         </DataTrigger>
                                     </Style.Triggers>
                                 </Style>
                             </DataGridTextColumn.CellStyle>
                         </DataGridTextColumn>
-                        <DataGridTextColumn Header="Location" Binding="{Binding Location}"/>
+                        <DataGridTextColumn Header="Location"
+                                            Binding="{Binding Location}" />
                     </DataGrid.Columns>
                 </DataGrid>
 
                 <DataGrid x:Name="IthResultsDataGrid"
                           ItemsSource="{Binding IthResultsTable}"
-                          Visibility="{Binding NoHistoryResults, Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}"
+                          Visibility="{Binding NoHistoryResults, ConverterParameter=i, Converter={StaticResource BoolToVisConverter}}"
                           HorizontalAlignment="Left"
                           VerticalAlignment="Top"
                           FontSize="16"
@@ -131,39 +137,39 @@
                           IsReadOnly="True"
                           Margin="20,0,20,0">
                     <DataGrid.Columns>
-                        <DataGridTextColumn Header="Date and Time" Binding="{Binding TranDateTime, StringFormat='MM/dd/yyyy       HH:mm'}"/>
-                        <DataGridTextColumn Header="User" Binding="{Binding Submitter}"/>
-                        <DataGridTextColumn Header="Type" Binding="{Binding TranType}" Width="200"/>
-                        <DataGridTextColumn Header="Code" Binding="{Binding TranCode}"/>
-                        <DataGridTextColumn Header="Lot Number" Binding="{Binding LotNumber}"/>
-                        <DataGridTextColumn Header="Location" Binding="{Binding TranLoc}"/>
-                        <DataGridTextColumn Header="Qty" Binding="{Binding TranQty}">
+                        <DataGridTextColumn Header="Date and Time"
+                                            Binding="{Binding TranDateTime, StringFormat=MM/dd/yyyy       HH:mm}" />
+                        <DataGridTextColumn Header="User"
+                                            Binding="{Binding Submitter}" />
+                        <DataGridTextColumn Header="Type"
+                                            Binding="{Binding TranType}"
+                                            Width="200" />
+                        <DataGridTextColumn Header="Code"
+                                            Binding="{Binding TranCode}" />
+                        <DataGridTextColumn Header="Lot Number"
+                                            Binding="{Binding LotNumber}" />
+                        <DataGridTextColumn Header="Location"
+                                            Binding="{Binding TranLoc}" />
+                        <DataGridTextColumn Header="Qty"
+                                            Binding="{Binding TranQty}">
                             <DataGridTextColumn.CellStyle>
                                 <Style TargetType="{x:Type DataGridCell}">
-                                    <Setter Property="Foreground" Value="Black"/>
+                                    <Setter Property="Foreground"
+                                            Value="Black" />
                                     <Style.Triggers>
-                                        <DataTrigger Binding="{Binding TranQty, Converter={StaticResource NegIntToBoolConverter}}" Value="true">
-                                            <Setter Property="Foreground" Value="Crimson"/>
+                                        <DataTrigger Binding="{Binding TranQty, Converter={StaticResource NegIntToBoolConverter}}"
+                                                     Value="true">
+                                            <Setter Property="Foreground"
+                                                    Value="Crimson" />
                                         </DataTrigger>
                                     </Style.Triggers>
                                 </Style>
                             </DataGridTextColumn.CellStyle>
                         </DataGridTextColumn>
-                        <DataGridTextColumn Header="Run Total" Binding="{Binding OnHand}"/>
-                        <DataGridTextColumn Header="Reference" Binding="{Binding Reference}"/>
-                        <DataGridTemplateColumn Header="Crew">
-                            <DataGridTemplateColumn.CellTemplate>
-                                <DataTemplate>
-                                    <TextBox Text="{Binding Crew}"
-                                             FontSize="12"
-                                             IsReadOnly="True"
-                                             Background="Transparent"
-                                             BorderThickness="0"
-                                             MaxWidth="200"
-                                             TextWrapping="Wrap"/>
-                                </DataTemplate>
-                            </DataGridTemplateColumn.CellTemplate>
-                        </DataGridTemplateColumn>
+                        <DataGridTextColumn Header="Run Total"
+                                            Binding="{Binding OnHand}" />
+                        <DataGridTextColumn Header="Reference"
+                                            Binding="{Binding Reference}" />
                         <DataGridTemplateColumn Header="Sales Order">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
@@ -171,7 +177,7 @@
                                             Command="{StaticResource LookQueryCommand}"
                                             CommandParameter="{Binding Content, RelativeSource={RelativeSource Self}}"
                                             Style="{DynamicResource DefaultButton}"
-                                            Visibility="{Binding Content, RelativeSource={RelativeSource Self}, Converter={StaticResource StringToVisConverter}}"/>
+                                            Visibility="{Binding Content, Converter={StaticResource StringToVisConverter}, RelativeSource={RelativeSource Self}}" />
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
@@ -186,11 +192,11 @@
                        FontSize="50"
                        FontWeight="Bold"
                        VerticalAlignment="Center"
-                       HorizontalAlignment="Center"/>
+                       HorizontalAlignment="Center" />
 
             <Control Grid.Row="1"
                      Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisConverter}}"
-                     Style="{DynamicResource BusyAnimationStyle}"/>
+                     Style="{DynamicResource BusyAnimationStyle}" />
 
         </Grid>
     </ScrollViewer>

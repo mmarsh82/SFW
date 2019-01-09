@@ -201,19 +201,8 @@
 
         <!--#endregion-->
 
-        <!--#region Wip Crew Information-->
+        <!--#region Empty-->
 
-        <StackPanel Grid.Row="5"
-                    HorizontalAlignment="Left"
-                    Orientation="Vertical"
-                    Visibility="{Binding HasCrew, Converter={StaticResource BooltoVisConverter}}">
-            <TextBlock Text="Crew:"
-                       FontSize="18"
-                       FontWeight="Bold"
-                       TextDecorations="Underline"
-                       Margin="10,0,0,0" />
-            <DataGrid ItemsSource="{Binding WipRecord.CrewList}" />
-        </StackPanel>
 
         <!--#endregion-->
         

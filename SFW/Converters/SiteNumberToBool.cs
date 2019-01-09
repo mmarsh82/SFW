@@ -14,7 +14,7 @@ namespace SFW.Converters
                 case "CSI":
                     return System.Convert.ToInt32(value) == 0;
                 case "WCCO":
-                    return System.Convert.ToInt32(value) == 2;
+                    return System.Convert.ToInt32(value) == 1;
                 default:
                     return false;
             }

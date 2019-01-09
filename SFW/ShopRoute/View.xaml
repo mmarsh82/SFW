@@ -30,22 +30,71 @@
             <Grid Margin="10,0,10,0" Visibility="{Binding ShopOrder.OrderNumber, Converter={StaticResource StringToVisConverter}, ConverterParameter=Hide}">
 
                 <Grid.RowDefinitions>
-                    <RowDefinition x:Name="Row0" Height="60"/>
-                    <RowDefinition x:Name="Row1" Height="40"/>
-                    <RowDefinition x:Name="Row2" Height="50"/>
-                    <RowDefinition x:Name="Row3" Height="30"/>
-                    <RowDefinition x:Name="Row4" Height="70"/>
-                    <RowDefinition x:Name="Row5" Height="50"/>
+                    <RowDefinition x:Name="Row0" Height="40"/>
+                    <RowDefinition x:Name="Row1" Height="50"/>
+                    <RowDefinition x:Name="Row2" Height="30"/>
+                    <RowDefinition x:Name="Row3" Height="10"/>
+                    <RowDefinition x:Name="Row4" Height="60"/>
+                    <RowDefinition x:Name="Row5" Height="40"/>
                     <RowDefinition x:Name="Row6" Height="205"/>
-                    <RowDefinition x:Name="Row7" Height="50"/>
+                    <RowDefinition x:Name="Row7" Height="40"/>
                     <RowDefinition x:Name="Row8" Height="30"/>
-                    <RowDefinition x:Name="Row9" Height="50"/>
-                    <RowDefinition x:Name="Row10" Height="*"/>
+                    <RowDefinition x:Name="Row9" Height="30"/>
+                    <RowDefinition x:Name="Row10" Height="425"/>
                 </Grid.RowDefinitions>
 
-                <!--#region Grid.Row 0  Work Order Header-->
+                <!--#region Grid.Row 0  Command Array-->
 
-                <StackPanel Grid.Row="0" Orientation="Horizontal"
+                <StackPanel Grid.Row="0"
+                            Orientation="Horizontal">
+                    <Button Content="Start"
+                            FontSize="16"
+                            IsEnabled="{Binding CanWip, Source={StaticResource User}}"
+                            Visibility="{Binding ShopOrder.ActStartDate, Converter={StaticResource DateToVisConverter}, ConverterParameter=Ni}"
+                            Style="{DynamicResource MenuButtonStyle}" />
+                    <Button Content="ITH"
+                            FontSize="16"
+                            Visibility="{Binding CanCheckHistory, Converter={StaticResource BoolToVisConverter}}"
+                            Command="{StaticResource PartInfoCommand}"
+                            CommandParameter="{Binding ShopOrder}"
+                            Style="{DynamicResource MenuButtonStyle}" />
+                    <Button Content="Set-up Info"
+                            FontSize="16"
+                            Command="{StaticResource SetupCommand}"
+                            CommandParameter="{Binding ShopOrder}"
+                            Style="{DynamicResource MenuButtonStyle}" />
+                    <Button Content="Wip Receipt"
+                            FontSize="16"
+                            Width="110"
+                            Visibility="{Binding ShopOrder.ActStartDate, Converter={StaticResource DateToVisConverter}, ConverterParameter=N}"
+                            IsEnabled="{Binding CanWip, Source={StaticResource User}}"
+                            Command="{StaticResource WipCommand}"
+                            CommandParameter="{Binding ShopOrder}"
+                            Style="{DynamicResource MenuButtonStyle}" />
+                    <Button Content="Modify Crew"
+                            FontSize="16"
+                            Width="110"
+                            Visibility="{Binding ShopOrder.ActStartDate, Converter={StaticResource DateToVisConverter}, ConverterParameter=N}"
+                            IsEnabled="{Binding CanWip, Source={StaticResource User}}"
+                            Style="{DynamicResource MenuButtonStyle}" />
+                    <Button Content="Report Sheet"
+                            FontSize="16"
+                            Width="110"
+                            IsEnabled="{Binding CanWip, Source={StaticResource User}}"
+                            Visibility="{Binding ShopOrder.ActStartDate, Converter={StaticResource DateToVisConverter}, ConverterParameter=N}"
+                            Style="{DynamicResource MenuButtonStyle}" />
+                    <Button Content="Log Round"
+                            FontSize="16"
+                            Visibility="{Binding ShopOrder.ActStartDate, Converter={StaticResource DateToVisConverter}, ConverterParameter=N}"
+                            IsEnabled="{Binding CanWip, Source={StaticResource User}}"
+                            Style="{DynamicResource MenuButtonStyle}" />
+                </StackPanel>
+
+                <!--#endregion-->
+
+                <!--#region Grid.Row 1  Work Order Header-->
+
+                <StackPanel Grid.Row="1" Orientation="Horizontal"
                             HorizontalAlignment="Left" VerticalAlignment="Center">
 
                     <TextBlock Text="Shop Routing For Work Order:"
@@ -70,9 +119,9 @@
 
                 <!--#endregion-->
 
-                <!--#region Grid.Row 1  Part Information-->
+                <!--#region Grid.Row 2  Part Information-->
 
-                <StackPanel Grid.Row="1" Orientation="Horizontal">
+                <StackPanel Grid.Row="2" Orientation="Horizontal">
 
                     <TextBlock Text="Part Number:"
                            FontSize="24"
@@ -110,51 +159,6 @@
                                TextDecorations="Underline"
                                Margin="10,0,0,0" />
 
-                </StackPanel>
-
-                <!--#endregion-->
-
-                <!--#region Grid.Row 2  Command Array-->
-
-                <StackPanel Grid.Row="2" Orientation="Horizontal">
-                    <Button Content="Start"
-                            FontSize="18"
-                            Margin="5"
-                            Width="90"
-                            IsEnabled="{Binding CanWip, Source={StaticResource User}}"
-                            Visibility="{Binding ShopOrder.ActStartDate, Converter={StaticResource DateToVisConverter}, ConverterParameter=Ni}"
-                            Style="{DynamicResource DefaultButton}" />
-                    <Button Content="ITH"
-                            FontSize="18"
-                            Margin="5"
-                            Width="90"
-                            Visibility="{Binding CanCheckHistory, Converter={StaticResource BoolToVisConverter}}"
-                            Command="{StaticResource PartInfoCommand}"
-                            CommandParameter="{Binding ShopOrder}"
-                            Style="{DynamicResource DefaultButton}"/>
-                    <Button Content="Set-up Info"
-                            FontSize="18"
-                            Margin="5"
-                            Width="130"
-                            Command="{StaticResource SetupCommand}"
-                            CommandParameter="{Binding ShopOrder}"
-                            Style="{DynamicResource DefaultButton}"/>
-                    <Button Content="Wip Receipt"
-                            FontSize="18"
-                            Margin="5"
-                            Width="130"
-                            Visibility="{Binding ShopOrder.ActStartDate, Converter={StaticResource DateToVisConverter}, ConverterParameter=N}"
-                            IsEnabled="{Binding CanWip, Source={StaticResource User}}"
-                            Command="{StaticResource WipCommand}"
-                            CommandParameter="{Binding ShopOrder}"
-                            Style="{DynamicResource DefaultButton}"/>
-                    <Button Content="Report Sheet"
-                            FontSize="18"
-                            Margin="5"
-                            Width="130"
-                            IsEnabled="{Binding CanWip, Source={StaticResource User}}"
-                            Visibility="{Binding ShopOrder.ActStartDate, Converter={StaticResource DateToVisConverter}, ConverterParameter=N}"
-                            Style="{DynamicResource DefaultButton}" />
                 </StackPanel>
 
                 <!--#endregion-->
@@ -403,12 +407,12 @@
                            Margin="10,0,0,0"/>
 
                     <Button Content="Open"
-                        FontSize="18"
-                        Margin="20,0,0,0"
-                        Width="75"
-                        Command="{StaticResource ShowQuery}"
-                        CommandParameter="{Binding FqSalesOrder}"
-                        Style="{DynamicResource DefaultButton}"/>
+                            FontSize="18"
+                            Margin="5,0,5,5"
+                            Width="75"
+                            Command="{StaticResource ShowQuery}"
+                            CommandParameter="{Binding FqSalesOrder}"
+                            Style="{DynamicResource DefaultButton}" />
 
                 </StackPanel>
 
@@ -503,7 +507,9 @@
                           AutoGenerateColumns="False"
                           RowHeaderWidth="0"
                           HorizontalAlignment="Left"
-                          VerticalAlignment="Top">
+                          VerticalAlignment="Top"
+                          VerticalScrollBarVisibility="Auto"
+                          HorizontalScrollBarVisibility="Hidden">
 
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="Part Number" Binding="{Binding CompNumber}"/>
@@ -580,7 +586,7 @@
 
                                     <DataGrid x:Name="dgBomLots"
                                               ItemsSource="{Binding LotList}"
-                                              MaxHeight="115"
+                                              MaxHeight="93"
                                               IsReadOnly="True"
                                               FontSize="14"
                                               FontWeight="SemiBold"
@@ -592,16 +598,52 @@
                                               VerticalAlignment="Top">
 
                                         <DataGrid.Visibility>
-                                            <MultiBinding Converter="{StaticResource IntToVisConverter}" ConverterParameter="LotList">
-                                                <Binding Path="DataContext.CurrentSite" RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType={x:Type DataGrid}}"/>
-                                                <Binding Path="LotList.Count"/>
+                                            <MultiBinding Converter="{StaticResource IntToVisConverter}"
+                                                          ConverterParameter="LotList">
+                                                <Binding Path="DataContext.CurrentSite"
+                                                         RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType={x:Type DataGrid}}" />
+                                                <Binding Path="LotList.Count" />
                                             </MultiBinding>
                                         </DataGrid.Visibility>
-                                        
+
                                         <DataGrid.Columns>
-                                            <DataGridTextColumn Header="Lot Number" Binding="{Binding LotNumber}"/>
-                                            <DataGridTextColumn Header="On Hand" Binding="{Binding Onhand}"/>
-                                            <DataGridTextColumn Header="Location" Binding="{Binding Location}"/>
+                                            <DataGridTextColumn Header="Lot Number"
+                                                                Binding="{Binding LotNumber}"/>
+                                            <DataGridTextColumn Header="On Hand"
+                                                                Binding="{Binding Onhand}" />
+                                            <DataGridTextColumn Header="Location"
+                                                                Binding="{Binding Location}" />
+                                        </DataGrid.Columns>
+
+                                    </DataGrid>
+
+                                    <DataGrid x:Name="dgBomNonLots"
+                                              ItemsSource="{Binding NonLotList}"
+                                              MaxHeight="93"
+                                              IsReadOnly="True"
+                                              FontSize="14"
+                                              FontWeight="SemiBold"
+                                              AlternatingRowBackground="LightGray"
+                                              SelectionMode="Single"
+                                              AutoGenerateColumns="False"
+                                              RowHeaderWidth="0"
+                                              HorizontalAlignment="Left"
+                                              VerticalAlignment="Top">
+
+                                        <DataGrid.Visibility>
+                                            <MultiBinding Converter="{StaticResource IntToVisConverter}"
+                                                          ConverterParameter="LotList">
+                                                <Binding Path="DataContext.CurrentSite"
+                                                         RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType={x:Type DataGrid}}" />
+                                                <Binding Path="NonLotList.Count" />
+                                            </MultiBinding>
+                                        </DataGrid.Visibility>
+
+                                        <DataGrid.Columns>
+                                            <DataGridTextColumn Header="On Hand"
+                                                                Binding="{Binding Onhand}" />
+                                            <DataGridTextColumn Header="Location"
+                                                                Binding="{Binding Location}" />
                                         </DataGrid.Columns>
 
                                     </DataGrid>
