@@ -14,7 +14,8 @@
             <cmd:PartInformation x:Key="PartInfoICommand"/>
             <cmd:ViewLoad x:Key="ViewLoadICommand"/>
             <cmd:SafeShutdown x:Key="ExitICommand"/>
-            <cmd:ShowLogInWindow x:Key="LogInCommand"/>
+            <cmd:ShowLogInWindow x:Key="LogInCommand" />
+            <cmd:DevTesting x:Key="TestCommand" />
             <cvtr:SiteNumberToBool x:Key="SiteToBoolConverter"/>
             <cvtr:BoolToVisibility x:Key="BoolToVisConverter"/>
         </Grid.Resources>
@@ -58,6 +59,9 @@
                           IsEnabled="False"/>
                 <MenuItem Header="Print"
                           IsEnabled="False"/>
+                <MenuItem Header="Dev Testing" 
+                          IsEnabled="True"
+                          Command="{StaticResource TestCommand}"/>
                 <MenuItem Header="Exit"
                           Command="{StaticResource ExitICommand}"
                           InputGestureText="Alt+F4">

@@ -64,6 +64,8 @@ namespace SFW.Model
         /// </summary>
         public int Shift { get; set; }
 
+        
+
         #endregion
 
         /// <summary>

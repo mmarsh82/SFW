@@ -201,8 +201,10 @@
 
         <!--#endregion-->
 
-        <!--#region Empty-->
+        <!--#region Component Inputs-->
 
+        <ListBox Grid.Row="5"
+                 ItemsSource="{Binding WipRecord.WipWorkOrder.Bom}" />
 
         <!--#endregion-->
         

@@ -14,7 +14,7 @@ namespace SFW.Commands
         /// <summary>
         /// Part Information ICommand execution
         /// </summary>
-        /// <param name="parameter">Skew object or Skew Number</param>
+        /// <param name="parameter">Sku object or Sku Number</param>
         public void Execute(object parameter)
         {
             try

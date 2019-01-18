@@ -46,7 +46,7 @@
                  Grid.Column="1" Grid.Row="0"
                  Text="{Binding UserName}"
                  Margin="5"
-                 Width="200"
+                 Width="275"
                  FontSize="22"
                  FontWeight="Bold"/>
         <TextBlock Grid.Column="0" Grid.Row="1"
@@ -57,7 +57,7 @@
                    Foreground="GhostWhite"/>
         <PasswordBox x:Name="pwdBox" Grid.Column="1" Grid.Row="1"
                      Margin="5"
-                     Width="200"
+                     Width="275"
                      FontSize="22"
                      FontWeight="Bold"/>
         <Button Grid.ColumnSpan="2" Grid.Row="2"

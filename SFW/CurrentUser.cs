@@ -133,10 +133,10 @@ namespace SFW
             Email = user.EmailAddress;
             CanSchedule = _groups.Exists(o => o.ToString().Contains("SFW_Sched"));
             IsLoggedIn = true;
-            CanWip = DomainName.Contains("wcco");
+            CanWip = user.UserPrincipalName.Contains("wcco") && _groups.Exists(o => o.ToString().Contains("SFW_CL"));
             UserIDNbr = user.EmployeeId;
-            user.Dispose();
             context.Dispose();
+            user.Dispose();
         }
 
         /// <summary>
@@ -234,7 +234,7 @@ namespace SFW
             {
                 using (PrincipalContext pContext = new PrincipalContext(ContextType.Domain))
                 {
-                    using (UserPrincipal uPrincipal = UserPrincipal.FindByIdentity(new PrincipalContext(ContextType.Domain), DomainName))
+                    using (UserPrincipal uPrincipal = UserPrincipal.FindByIdentity(pContext, DomainUserName))
                     {
                         new CurrentUser(pContext, uPrincipal);
                     }

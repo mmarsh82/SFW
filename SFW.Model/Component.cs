@@ -21,8 +21,8 @@ namespace SFW.Model
         public List<Lot> NonLotList { get; set; }
         public List<Lot> DedicatedLotList { get; set; }
         public string InventoryType { get; set; }
-        public int WipQty { get; set; }
-        public Lot WipLot { get; set; }
+        public IDictionary<string, int> WipInfo { get; set; }
+        public bool IsLotTrace { get; set; }
 
         #endregion
 
@@ -49,7 +49,7 @@ namespace SFW.Model
                     using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database}; SELECT
 	                                                            SUBSTRING(a.[ID], CHARINDEX('*', a.[ID], 0) + 1, LEN(a.[ID])) as 'Component', a.[Qty_Per_Assy] as 'Qty Per', a.[Qty_Reqd] as 'Req Qty',
 	                                                            b.[Qty_On_Hand] as 'On Hand',
-	                                                            c.[Description], c.[Drawing_Nbrs], c.[Um], c.[Inventory_Type]
+	                                                            c.[Description], c.[Drawing_Nbrs], c.[Um], c.[Inventory_Type], c.[Lot_Trace]
                                                             FROM
 	                                                            [dbo].[PL-INIT] a
                                                             RIGHT JOIN
@@ -73,10 +73,11 @@ namespace SFW.Model
                                         RequiredQty = reader.SafeGetInt32("Req Qty"),
                                         CurrentOnHand = reader.SafeGetInt32("On Hand"),
                                         CompDescription = reader.SafeGetString("Description"),
-                                        IssuedQty = Convert.ToInt32(Math.Round(reader.SafeGetDouble("Qty Per") * balQty,0,MidpointRounding.AwayFromZero)),
+                                        IssuedQty = Convert.ToInt32(Math.Round(reader.SafeGetDouble("Qty Per") * balQty, 0, MidpointRounding.AwayFromZero)),
                                         CompMasterPrint = reader.SafeGetString("Drawing_Nbrs"),
                                         CompUom = reader.SafeGetString("Um"),
                                         InventoryType = reader.SafeGetString("Inventory_Type"),
+                                        IsLotTrace = reader.SafeGetString("Lot_Trace") == "T",
                                         LotList = reader.IsDBNull(0) 
                                             ? new List<Lot>() 
                                             : Lot.GetOnHandLotList(reader.SafeGetString("Component"), sqlCon),

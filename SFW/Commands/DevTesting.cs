@@ -1,17 +1,19 @@
-﻿using SFW.Model;
-using System;
+﻿using System;
 using System.Windows.Input;
 
 namespace SFW.Commands
 {
-    public class M2kWipReceipt : ICommand
+    public class DevTesting : ICommand
     {
         public event EventHandler CanExecuteChanged;
 
+        /// <summary>
+        /// Command for testing
+        /// </summary>
+        /// <param name="parameter"></param>
         public void Execute(object parameter)
         {
-            var _wipWindow = new WIP.View { DataContext = new WIP.ViewModel((WorkOrder)parameter) };
-            _wipWindow.ShowDialog();
+
         }
         public bool CanExecute(object parameter) => true;
     }
