@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Data;
 using System.Data.SqlClient;
+using System.Linq;
 
 namespace SFW.Model
 {
@@ -21,8 +23,9 @@ namespace SFW.Model
         public List<Lot> NonLotList { get; set; }
         public List<Lot> DedicatedLotList { get; set; }
         public string InventoryType { get; set; }
-        public IDictionary<string, int> WipInfo { get; set; }
+        public BindingList<CompWipInfo> WipInfo { get; set; }
         public bool IsLotTrace { get; set; }
+        public static bool WipInfoUpdating { get; set; }
 
         #endregion
 
@@ -42,6 +45,7 @@ namespace SFW.Model
         public static List<Component> GetComponentList(string woNbr, int balQty, SqlConnection sqlCon)
         {
             var _tempList = new List<Component>();
+            WipInfoUpdating = false;
             if (sqlCon != null || sqlCon.State != ConnectionState.Closed || sqlCon.State != ConnectionState.Broken)
             {
                 try
@@ -78,13 +82,16 @@ namespace SFW.Model
                                         CompUom = reader.SafeGetString("Um"),
                                         InventoryType = reader.SafeGetString("Inventory_Type"),
                                         IsLotTrace = reader.SafeGetString("Lot_Trace") == "T",
-                                        LotList = reader.IsDBNull(0) 
-                                            ? new List<Lot>() 
+                                        LotList = reader.IsDBNull(0)
+                                            ? new List<Lot>()
                                             : Lot.GetOnHandLotList(reader.SafeGetString("Component"), sqlCon),
-                                        DedicatedLotList = reader.IsDBNull(0) 
-                                            ? new List<Lot>() 
-                                            : Lot.GetDedicatedLotList(reader.SafeGetString("Component"), woNbr, sqlCon)
+                                        DedicatedLotList = reader.IsDBNull(0)
+                                            ? new List<Lot>()
+                                            : Lot.GetDedicatedLotList(reader.SafeGetString("Component"), woNbr, sqlCon),
+                                        WipInfo = new BindingList<CompWipInfo>()
                                     });
+                                    _tempList[_tempList.Count - 1].WipInfo.AddNew();
+                                    _tempList[_tempList.Count - 1].WipInfo.ListChanged += WipInfo_ListChanged;
                                     _tempList[_tempList.Count - 1].NonLotList = _tempList[_tempList.Count - 1].LotList.Count == 0 && !reader.IsDBNull(0)
                                         ? Lot.GetOnHandNonLotList(reader.SafeGetString("Component"), sqlCon)
                                         : new List<Lot>();
@@ -106,6 +113,58 @@ namespace SFW.Model
             else
             {
                 throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
+            }
+        }
+
+        /// <summary>
+        /// Happens when an item is added or changed in the WipInfo Binding List property
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private static void WipInfo_ListChanged(object sender, ListChangedEventArgs e)
+        {
+            if(e.ListChangedType == ListChangedType.ItemChanged && !WipInfoUpdating)
+            {
+                WipInfoUpdating = true;
+                var _tempList = (BindingList<CompWipInfo>)sender;
+                if (e.PropertyDescriptor.DisplayName == "LotNbr" && _tempList.Count > 1)
+                {
+                    var _tempQty = _tempList.Sum(o => o.LotQty);
+                    foreach (CompWipInfo cWI in _tempList)
+                    {
+                        cWI.LotQty = _tempQty / _tempList.Count;
+                    }
+                }
+                if (!string.IsNullOrEmpty(_tempList[e.NewIndex].LotNbr) && _tempList[e.NewIndex].LotQty > 0)
+                {
+                    ((BindingList<CompWipInfo>)sender).AddNew();
+                }
+                WipInfoUpdating = false;
+            }
+        }
+    }
+
+    public static class CompExtensions
+    {
+        public static void UpdateWipInfo(this Component comp, int wipQty)
+        {
+            var _tempD = Convert.ToDouble(wipQty);
+            if (comp.WipInfo.Count == 1)
+            {
+                comp.WipInfo[0].LotQty = Convert.ToInt32(Math.Round(comp.AssemblyQty * _tempD, 0));
+            }
+            else
+            {
+                var _oddHandle = 0;
+                foreach(var item in comp.WipInfo)
+                {
+                    item.LotQty = Convert.ToInt32(Math.Round(comp.AssemblyQty * _tempD, 0));
+                    if (_oddHandle > 0 && item.LotQty + _oddHandle > wipQty)
+                    {
+                        item.LotQty = _oddHandle - wipQty;
+                    }
+                    _oddHandle += Convert.ToInt32(item.LotQty);
+                }
             }
         }
     }

@@ -1,5 +1,6 @@
 ﻿using SFW.Commands;
 using SFW.Model;
+using System;
 using System.Windows.Input;
 
 //Created by Michael Marsh 10-23-18
@@ -11,6 +12,23 @@ namespace SFW.WIP
         #region Properties
 
         public WipReceipt WipRecord { get; set; }
+
+        public int? WipQuantity
+        {
+            get { return WipRecord.WipQty; }
+            set
+            {
+                if (WipRecord.WipQty != value)
+                {
+                    foreach (Component comp in WipRecord.WipWorkOrder.Bom)
+                    {
+                        comp.UpdateWipInfo(Convert.ToInt32(value));
+                    }
+                }
+                WipRecord.WipQty = value;
+                OnPropertyChanged(nameof(WipQuantity));
+            }
+        }
         public bool HasCrew { get { return WipRecord.CrewList != null; } }
 
         RelayCommand _wip;
@@ -55,7 +73,8 @@ namespace SFW.WIP
         {
             if (disposing)
             {
-                
+                WipRecord = null;
+                _wip = null;
             }
         }
     }

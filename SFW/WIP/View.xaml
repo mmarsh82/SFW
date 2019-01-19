@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:SFW.WIP"
         xmlns:cvtr="clr-namespace:SFW.Converters"
     mc:Ignorable="d"
-        Title="WIP.RECEIPTS" Height="470" Width="800" WindowStyle="ToolWindow" ResizeMode="NoResize">
+        Title="WIP.RECEIPTS" Height="600" Width="800" WindowStyle="ToolWindow" ResizeMode="NoResize">
 
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BooltoVisConverter" />
@@ -20,6 +20,7 @@
             <RowDefinition Height="40" />
             <RowDefinition Height="40" />
             <RowDefinition Height="40" />
+            <RowDefinition Height="35" />
             <RowDefinition Height="*" />
             <RowDefinition Height="45" />
         </Grid.RowDefinitions>
@@ -124,7 +125,7 @@
                        VerticalAlignment="Center"
                        Margin="10,0,0,0" />
             <TextBox x:Name="WipQty"
-                     Text="{Binding WipRecord.WipQty, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                     Text="{Binding WipQuantity, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                      FontSize="18"
                      FontWeight="Bold"
                      Background="LightGray"
@@ -181,7 +182,7 @@
                      Width="120"
                      MaxLength="9"
                      TabIndex="3"
-                     Style="{DynamicResource RequiredTextBox}" />
+                     Style="{DynamicResource OptionalTextBox}" />
             <TextBlock Text="Receipt Location:"
                        FontSize="18"
                        FontWeight="Bold"
@@ -200,17 +201,116 @@
         </StackPanel>
 
         <!--#endregion-->
+        
+        <!--#region Seperator-->
+
+        <Rectangle Grid.Row="5"
+                   Fill="#FF135185"
+                   HorizontalAlignment="Stretch"
+                   VerticalAlignment="Stretch" />
+        <TextBlock Grid.Row="5"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center"
+                   Text="Components"
+                   FontWeight="Bold"
+                   FontSize="20"
+                   Foreground="WhiteSmoke" />
+
+        <!--#endregion-->
 
         <!--#region Component Inputs-->
 
-        <ListBox Grid.Row="5"
-                 ItemsSource="{Binding WipRecord.WipWorkOrder.Bom}" />
+        <ItemsControl Grid.Row="6"
+                      ItemsSource="{Binding Path=WipRecord.WipWorkOrder.Bom}"
+                      Margin="10,0,0,0"
+                      FontSize="18"
+                      Cursor="Hand"
+                      Background="Transparent"
+                      Foreground="Black"
+                      Focusable="False">
+
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <VirtualizingStackPanel IsItemsHost="True"
+                                            Orientation="Vertical" />
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+
+                    <StackPanel Orientation="Vertical"
+                                Visibility="{Binding IsLotTrace, Converter={StaticResource BooltoVisConverter}}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="Part:"
+                                       TextDecorations="Underline"
+                                       FontWeight="Bold" />
+                            <TextBlock Text="{Binding CompNumber}"
+                                       Margin="10,0,0,0" />
+                            <TextBlock Text="{Binding CompDescription}"
+                                       Margin="10,0,0,0" />
+                        </StackPanel>
+                        <ItemsControl ItemsSource="{Binding Path=WipInfo, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                      Margin="15,0,0,0"
+                                      FontSize="18"
+                                      Cursor="Hand"
+                                      Background="Transparent"
+                                      Foreground="Black">
+
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <VirtualizingStackPanel IsItemsHost="True"
+                                                            Orientation="Vertical" />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal"
+                                                HorizontalAlignment="Left"
+                                                VerticalAlignment="Center">
+                                        <TextBlock Text="Lot Number:"
+                                                   FontSize="16"
+                                                   TextDecorations="Underline"
+                                                   FontWeight="Bold" />
+                                        <TextBox Text="{Binding LotNbr, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
+                                                 FontSize="16"
+                                                 Width="200"
+                                                 Margin="3" />
+                                        <TextBlock Text="Quantity:"
+                                                   FontSize="16"
+                                                   TextDecorations="UnderLine"
+                                                   FontWeight="Bold"
+                                                   Margin="10,0,0,0"/>
+                                        <TextBox Text="{Binding LotQty, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
+                                                 FontSize="16"
+                                                 Width="100"
+                                                 Margin="3" />
+                                        <TextBlock Text="Is Roll Gone?"
+                                                   FontSize="16"
+                                                   TextDecorations="UnderLine"
+                                                   FontWeight="Bold"
+                                                   Margin="10,0,0,0"/>
+                                        <CheckBox IsChecked="{Binding RollStatus, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                  FontSize="16"
+                                                  Margin="5,0,0,0"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+
+                        </ItemsControl>
+                    </StackPanel>
+
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+
+        </ItemsControl>
 
         <!--#endregion-->
         
         <!--#region Submission Actions-->
 
-        <Button Grid.Row="6"
+        <Button Grid.Row="7"
                 Content="Submit"
                 Width="100"
                 FontSize="18"
