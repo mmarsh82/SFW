@@ -5,6 +5,7 @@ using SFW.Model;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace M2kClient
 {
@@ -238,8 +239,8 @@ namespace M2kClient
         /// </summary>
         /// <param name="wipRecord">Wip Record object to be processed</param>
         /// <param name="connection">Current M2k Connection to be used for processing the transaction</param>
-        /// <returns>Suffix for the file that needs to be watched on the ERP server</returns>
-        public static int ProductionWip(WipReceipt wipRecord, M2kConnection connection)
+        /// <returns>Suffix for the file that needs to be watched on the ERP server and new lot number if required</returns>
+        public static IReadOnlyDictionary<int, string> ProductionWip(WipReceipt wipRecord, M2kConnection connection)
         {
             //TODO Remove the hardcoded safefiledialog and automate this process
             //will also need to add in the issue commands, would be best to code in the issue pieces as an adjacent method
@@ -250,8 +251,31 @@ namespace M2kClient
             File.WriteAllLines(connection.BTIFolder, btiText.Split('\n'));
             return suffix;*/
 
+            var _subResult = new Dictionary<int, string>();
+            var btiText = string.Empty;
+            if (string.IsNullOrEmpty(wipRecord.WipLot.LotNumber))
+            {
+                var _response = GetLotNumber(new M2kConnection("manage", "omniquery", "omniquery", Database.WCCOTRAIN));
+                if (_response.Count == 1 && _response.First().Key)
+                {
+                    wipRecord.WipLot.LotNumber = _response.First().Value.Replace("|P", "");
+                    System.Windows.MessageBox.Show($"Assinged to Lot Number:\n{wipRecord.WipLot.LotNumber}", "New Lot Number", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
+                }
+                else if (_response.Count == 1)
+                {
+                    System.Windows.MessageBox.Show(_response.First().Value, "Connection Error");
+                    _subResult.Add(0, string.Empty);
+                    return _subResult;
+                }
+                else
+                {
+                    System.Windows.MessageBox.Show("Please contact IT for further assistance", "NEXT.NBR corruption");
+                    _subResult.Add(0, string.Empty);
+                    return _subResult;
+                }
+            }
+            btiText = new Wip(wipRecord).ToString();
             //Hardcoded for testing
-            var btiText = new Wip(wipRecord).ToString();
             SaveFileDialog dialog = new SaveFileDialog
             {
                 FileName = "BtiTestDoc",
@@ -262,7 +286,8 @@ namespace M2kClient
             {
                 File.WriteAllLines(dialog.FileName, btiText.Split('\n'));
             }
-            return 0;
+            _subResult.Add(0, wipRecord.WipLot.LotNumber);
+            return _subResult;
         }
 
 

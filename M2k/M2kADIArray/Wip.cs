@@ -1,6 +1,7 @@
 ﻿using SFW.Model;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace M2kClient.M2kADIArray
 {
@@ -94,13 +95,13 @@ namespace M2kClient.M2kADIArray
         #endregion
 
         /// <summary>
-        /// M2k Wip ADI Array overloaded constructor
+        /// M2k WIP ADI Array overloaded constructor
         /// Maps a work order object to a M2k Wip ADI Array object
+        /// Use when you have a lot number for the parent part
         /// </summary>
-        /// <param name="wo"></param>
+        /// <param name="wipRecord">Wip receipt object</param>
         public Wip(WipReceipt wipRecord)
         {
-            //TODO: need to remove the hard coded work order and bind the properties to the work order object
             StationID = wipRecord.Submitter;
             FacilityCode = "01";
             WorkOrderNbr = wipRecord.WipWorkOrder.OrderNumber;
@@ -108,16 +109,29 @@ namespace M2kClient.M2kADIArray
             CFlag = Enum.TryParse(wipRecord.SeqComplete.ToString().ToUpper(), out CompletionFlag cFlag) ? cFlag : CompletionFlag.N;
             Operation = wipRecord.WipWorkOrder.Seq;
             RcptLocation = wipRecord.ReceiptLocation;
-            //TODO: need to split this into single and mutli wip
             DisplayInfoList = new List<DisplayInfo>
             {
                 new DisplayInfo { Code = CodeType.S, Quantity = QtyReceived, Reference = "STOCK" }
-            }; //will need to be passed in as an array
+            };
             Lot = wipRecord.WipLot.LotNumber;
-            ComponentInfoList = new List<CompInfo>
+            ComponentInfoList = new List<CompInfo>();
+            foreach(var _comp in wipRecord.WipWorkOrder.Bom)
             {
-                new CompInfo { Lot = "1811-1516" /*Will need to be manually assigned*/, WorkOrderNbr = wipRecord.WipWorkOrder.OrderNumber, PartNbr = "1005623" /*passed from the work order components*/, Quantity = 300 /*Manual input must handle multiple inputs*/ }
-            }; //will need to be passed in as an array of values and matched to the corresponding components
+                if (_comp.IsLotTrace)
+                {
+                    foreach (var _wipInfo in _comp.WipInfo)
+                    {
+                        if (!string.IsNullOrEmpty(_wipInfo.LotNbr))
+                        {
+                            ComponentInfoList.Add(new CompInfo { Lot = _wipInfo.LotNbr, WorkOrderNbr = wipRecord.WipWorkOrder.OrderNumber, PartNbr = _comp.CompNumber, Quantity = Convert.ToInt32(_wipInfo.LotQty) });
+                        }
+                    }
+                }
+                else
+                {
+                    ComponentInfoList.Add(new CompInfo { Lot = "", WorkOrderNbr = wipRecord.WipWorkOrder.OrderNumber, PartNbr = _comp.CompNumber, Quantity = Convert.ToInt32(Math.Round(Convert.ToDouble(wipRecord.WipQty) * _comp.AssemblyQty, 0)) });
+                }
+            }
         }
 
         /// <summary>
@@ -145,7 +159,14 @@ namespace M2kClient.M2kADIArray
             _rValue += $"\n15~{Lot}|P";
             foreach (var comp in ComponentInfoList)
             {
-                _rValue += $"\n24~{comp.Lot}|P~26~{comp.WorkOrderNbr}~25~{comp.PartNbr}~27~{comp.Quantity}";
+                if (string.IsNullOrEmpty(comp.Lot))
+                {
+                    _rValue += $"\n26~{comp.WorkOrderNbr}~25~{comp.PartNbr}~27~{comp.Quantity}";
+                }
+                else
+                {
+                    _rValue += $"\n24~{comp.Lot}|P~26~{comp.WorkOrderNbr}~25~{comp.PartNbr}~27~{comp.Quantity}";
+                }
             }
             _rValue += $"\n99~COMPLETE";
 

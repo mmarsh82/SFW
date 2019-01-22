@@ -25,6 +25,7 @@ namespace SFW.Model
         public string InventoryType { get; set; }
         public BindingList<CompWipInfo> WipInfo { get; set; }
         public bool IsLotTrace { get; set; }
+        public string BackflushLoc { get; set; }
         public static bool WipInfoUpdating { get; set; }
 
         #endregion
@@ -52,7 +53,7 @@ namespace SFW.Model
                 {
                     using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database}; SELECT
 	                                                            SUBSTRING(a.[ID], CHARINDEX('*', a.[ID], 0) + 1, LEN(a.[ID])) as 'Component', a.[Qty_Per_Assy] as 'Qty Per', a.[Qty_Reqd] as 'Req Qty',
-	                                                            b.[Qty_On_Hand] as 'On Hand',
+	                                                            b.[Qty_On_Hand] as 'On Hand', b.[Wip_Rec_Loc] as 'Backflush',
 	                                                            c.[Description], c.[Drawing_Nbrs], c.[Um], c.[Inventory_Type], c.[Lot_Trace]
                                                             FROM
 	                                                            [dbo].[PL-INIT] a
@@ -82,6 +83,7 @@ namespace SFW.Model
                                         CompUom = reader.SafeGetString("Um"),
                                         InventoryType = reader.SafeGetString("Inventory_Type"),
                                         IsLotTrace = reader.SafeGetString("Lot_Trace") == "T",
+                                        BackflushLoc = reader.SafeGetString("Backflush"),
                                         LotList = reader.IsDBNull(0)
                                             ? new List<Lot>()
                                             : Lot.GetOnHandLotList(reader.SafeGetString("Component"), sqlCon),
@@ -90,7 +92,7 @@ namespace SFW.Model
                                             : Lot.GetDedicatedLotList(reader.SafeGetString("Component"), woNbr, sqlCon),
                                         WipInfo = new BindingList<CompWipInfo>()
                                     });
-                                    _tempList[_tempList.Count - 1].WipInfo.AddNew();
+                                    _tempList[_tempList.Count - 1].WipInfo.Add(new CompWipInfo(!string.IsNullOrEmpty(_tempList[_tempList.Count - 1].BackflushLoc)));
                                     _tempList[_tempList.Count - 1].WipInfo.ListChanged += WipInfo_ListChanged;
                                     _tempList[_tempList.Count - 1].NonLotList = _tempList[_tempList.Count - 1].LotList.Count == 0 && !reader.IsDBNull(0)
                                         ? Lot.GetOnHandNonLotList(reader.SafeGetString("Component"), sqlCon)
@@ -119,33 +121,58 @@ namespace SFW.Model
         /// <summary>
         /// Happens when an item is added or changed in the WipInfo Binding List property
         /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
+        /// <param name="sender">BindingList<CompWipInfo> list passed without changes</param>
+        /// <param name="e">Change info</param>
         private static void WipInfo_ListChanged(object sender, ListChangedEventArgs e)
         {
-            if(e.ListChangedType == ListChangedType.ItemChanged && !WipInfoUpdating)
+            if (e.ListChangedType == ListChangedType.ItemChanged && !WipInfoUpdating)
             {
                 WipInfoUpdating = true;
                 var _tempList = (BindingList<CompWipInfo>)sender;
                 if (e.PropertyDescriptor.DisplayName == "LotNbr" && _tempList.Count > 1)
                 {
                     var _tempQty = _tempList.Sum(o => o.LotQty);
+                    var _counter = 1;
                     foreach (CompWipInfo cWI in _tempList)
                     {
                         cWI.LotQty = _tempQty / _tempList.Count;
+                        if (_counter == _tempList.Count && _tempQty != ((BindingList<CompWipInfo>)sender).Sum(o => o.LotQty))
+                        {
+                            cWI.LotQty += (_tempQty - ((BindingList<CompWipInfo>)sender).Sum(o => o.LotQty));
+                        }
+                        _counter++;
                     }
                 }
-                if (!string.IsNullOrEmpty(_tempList[e.NewIndex].LotNbr) && _tempList[e.NewIndex].LotQty > 0)
+                else if(e.PropertyDescriptor.DisplayName == "LotQty" && _tempList.Count > 1)
                 {
-                    ((BindingList<CompWipInfo>)sender).AddNew();
+                    //TODO: build an auto calc when the lot wip quantity is manually changed
+                   foreach(CompWipInfo cWI in _tempList)
+                    {
+                        if (cWI.LotNbr != _tempList[e.NewIndex].LotNbr)
+                        {
+                            cWI.LotQty = null;
+                        }
+                    }
+                }
+                if (!string.IsNullOrEmpty(_tempList[e.NewIndex].LotNbr) && _tempList[e.NewIndex].LotQty > 0 && !string.IsNullOrEmpty(_tempList[_tempList.Count - 1].LotNbr))
+                {
+                    ((BindingList<CompWipInfo>)sender).Add(new CompWipInfo(_tempList[e.NewIndex].IsBackFlush));
                 }
                 WipInfoUpdating = false;
             }
         }
     }
 
+    /// <summary>
+    /// Component Object Extensions class
+    /// </summary>
     public static class CompExtensions
     {
+        /// <summary>
+        /// Update the Component Wip Quntities based on the main part Wip Quantity
+        /// </summary>
+        /// <param name="comp">Component object</param>
+        /// <param name="wipQty">Main Part Wip Quantity</param>
         public static void UpdateWipInfo(this Component comp, int wipQty)
         {
             var _tempD = Convert.ToDouble(wipQty);

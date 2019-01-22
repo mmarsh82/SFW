@@ -254,5 +254,29 @@ namespace SFW.Model
                 return new List<Lot>();
             }
         }
+
+        /// <summary>
+        /// Validate whether a lot number exists and is attached to the correct part number
+        /// </summary>
+        /// <param name="lotNbr">Lot Number</param>
+        /// <param name="partNbr">Part Number</param>
+        /// <param name="sqlCon">Sql Connection to use</param>
+        /// <returns>Validation response</returns>
+        public static bool LotValidation(string lotNbr, string partNbr, SqlConnection sqlCon)
+        {
+            try
+            {
+                using (SqlCommand cmd = new SqlCommand(@"SELECT COUNT([Lot_Number]) FROM [dbo].[LOT-INIT] WHERE [Part_Nbr] = @p1 AND [Lot_Number] = CONCAT(@p2, '|P');", sqlCon))
+                {
+                    cmd.Parameters.AddWithValue("p1", partNbr);
+                    cmd.Parameters.AddWithValue("p2", lotNbr);
+                    return Convert.ToInt32(cmd.ExecuteScalar()) > 0;
+                }
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
     }
 }

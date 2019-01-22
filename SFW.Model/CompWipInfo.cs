@@ -20,12 +20,21 @@ namespace SFW.Model
             set { lotQty = value; OnPropertyChanged(nameof(LotQty)); }
         }
 
+        private string rcptLoc;
+        public string RcptLoc
+        {
+            get { return rcptLoc; }
+            set { rcptLoc = value; OnPropertyChanged(nameof(RcptLoc)); }
+        }
+
         private bool rollStatus;
         public bool RollStatus
         {
             get { return rollStatus; }
             set { rollStatus = value; OnPropertyChanged(nameof(RollStatus)); }
         }
+
+        public bool IsBackFlush { get; set; }
 
         #endregion
 
@@ -52,9 +61,10 @@ namespace SFW.Model
         /// <summary>
         /// Defualt Constructor
         /// </summary>
-        public CompWipInfo()
+        /// <param name="hasBFLoc">Does the component have a default backflush location</param>
+        public CompWipInfo(bool hasBFLoc)
         {
-
+            IsBackFlush = hasBFLoc;
         }
     }
 }

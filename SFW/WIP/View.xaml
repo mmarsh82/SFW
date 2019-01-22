@@ -9,7 +9,7 @@
         Title="WIP.RECEIPTS" Height="600" Width="800" WindowStyle="ToolWindow" ResizeMode="NoResize">
 
     <Window.Resources>
-        <BooleanToVisibilityConverter x:Key="BooltoVisConverter" />
+        <cvtr:BoolToVisibility x:Key="BooltoVisConverter" />
         <cvtr:EnumToBool x:Key="EnumtoBoolConverter" />
     </Window.Resources>
     
@@ -151,6 +151,7 @@
                          FontSize="18"
                          FontWeight="Bold"
                          VerticalAlignment="Center"
+                         IsTabStop="False"
                          Margin="10,0,0,0"/>
             <RadioButton GroupName="Seq"
                          IsChecked="{Binding WipRecord.SeqComplete, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource EnumtoBoolConverter}, ConverterParameter=N}"
@@ -158,6 +159,7 @@
                          FontSize="18"
                          FontWeight="Bold"
                          VerticalAlignment="Center"
+                         IsTabStop="False"
                          Margin="10,0,0,0" />
         </StackPanel>
 
@@ -174,7 +176,7 @@
                        TextDecorations="Underline"
                        VerticalAlignment="Center"
                        Margin="10,0,0,0" />
-            <TextBox Text="{Binding WipRecord.Lot.LotNumber, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+            <TextBox Text="{Binding WipRecord.WipLot.LotNumber, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                      FontSize="18"
                      FontWeight="Bold"
                      Background="LightGray"
@@ -182,6 +184,7 @@
                      Width="120"
                      MaxLength="9"
                      TabIndex="3"
+                     CharacterCasing="Upper"
                      Style="{DynamicResource OptionalTextBox}" />
             <TextBlock Text="Receipt Location:"
                        FontSize="18"
@@ -189,7 +192,7 @@
                        TextDecorations="Underline"
                        VerticalAlignment="Center"
                        Margin="20,0,0,0" />
-            <TextBox Text="{Binding WipRecord.Location, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+            <TextBox Text="{Binding WipRecord.ReceiptLocation, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                      FontSize="18"
                      FontWeight="Bold"
                      Background="LightGray"
@@ -197,6 +200,7 @@
                      Width="120"
                      MaxLength="6"
                      TabIndex="4"
+                     CharacterCasing="Upper"
                      Style="{DynamicResource RequiredTextBox}" />
         </StackPanel>
 
@@ -220,7 +224,8 @@
 
         <!--#region Component Inputs-->
 
-        <ItemsControl Grid.Row="6"
+        <ItemsControl Name="CompParent"
+                      Grid.Row="6"
                       ItemsSource="{Binding Path=WipRecord.WipWorkOrder.Bom}"
                       Margin="10,0,0,0"
                       FontSize="18"
@@ -250,12 +255,14 @@
                             <TextBlock Text="{Binding CompDescription}"
                                        Margin="10,0,0,0" />
                         </StackPanel>
-                        <ItemsControl ItemsSource="{Binding Path=WipInfo, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                        <ItemsControl Name="CompChild"
+                                      ItemsSource="{Binding Path=WipInfo, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                       Margin="15,0,0,0"
                                       FontSize="18"
                                       Cursor="Hand"
                                       Background="Transparent"
-                                      Foreground="Black">
+                                      Foreground="Black"
+                                      IsTabStop="False">
 
                             <ItemsControl.ItemsPanel>
                                 <ItemsPanelTemplate>
@@ -275,7 +282,22 @@
                                                    FontWeight="Bold" />
                                         <TextBox Text="{Binding LotNbr, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
                                                  FontSize="16"
-                                                 Width="200"
+                                                 Width="120"
+                                                 CharacterCasing="Upper"
+                                                 MaxLength="11"
+                                                 Margin="3" />
+                                        <TextBlock Text="Location:"
+                                                   FontSize="16"
+                                                   Visibility="{Binding IsBackFlush, Converter={StaticResource BooltoVisConverter}, ConverterParameter=i}"
+                                                   TextDecorations="UnderLine"
+                                                   FontWeight="Bold"
+                                                   Margin="10,0,0,0" />
+                                        <TextBox Text="{Binding RcptLoc, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
+                                                 Visibility="{Binding IsBackFlush, Converter={StaticResource BooltoVisConverter}, ConverterParameter=i}"
+                                                 FontSize="16"
+                                                 Width="90"
+                                                 CharacterCasing="Upper"
+                                                 MaxLength="8"
                                                  Margin="3" />
                                         <TextBlock Text="Quantity:"
                                                    FontSize="16"
@@ -284,7 +306,8 @@
                                                    Margin="10,0,0,0"/>
                                         <TextBox Text="{Binding LotQty, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
                                                  FontSize="16"
-                                                 Width="100"
+                                                 Width="75"
+                                                 MaxLength="5"
                                                  Margin="3" />
                                         <TextBlock Text="Is Roll Gone?"
                                                    FontSize="16"
@@ -293,6 +316,7 @@
                                                    Margin="10,0,0,0"/>
                                         <CheckBox IsChecked="{Binding RollStatus, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                                   FontSize="16"
+                                                  IsTabStop="False"
                                                   Margin="5,0,0,0"/>
                                     </StackPanel>
                                 </DataTemplate>
