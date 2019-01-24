@@ -11,6 +11,7 @@
     <Window.Resources>
         <cvtr:BoolToVisibility x:Key="BooltoVisConverter" />
         <cvtr:EnumToBool x:Key="EnumtoBoolConverter" />
+        <cvtr:StringToVisibility x:Key="StringtoVisConverter" />
     </Window.Resources>
     
     <Grid>
@@ -92,7 +93,7 @@
                      Margin="5"
                      Width="100"
                      MaxLength="5"
-                     TabIndex="0"
+                     IsTabStop="False"
                      Style="{DynamicResource RequiredTextBox}" />
             <TextBlock Text="Shift:"
                        FontSize="18"
@@ -107,7 +108,7 @@
                      Margin="5"
                      Width="50"
                      MaxLength="1"
-                     TabIndex="1"
+                     IsTabStop="False"
                      Style="{DynamicResource RequiredTextBox}" />
         </StackPanel>
 
@@ -285,20 +286,22 @@
                                                  Width="120"
                                                  CharacterCasing="Upper"
                                                  MaxLength="11"
-                                                 Margin="3" />
+                                                 Margin="3"
+                                                 Background="LightGray" />
                                         <TextBlock Text="Location:"
                                                    FontSize="16"
                                                    Visibility="{Binding IsBackFlush, Converter={StaticResource BooltoVisConverter}, ConverterParameter=i}"
                                                    TextDecorations="UnderLine"
                                                    FontWeight="Bold"
                                                    Margin="10,0,0,0" />
-                                        <TextBox Text="{Binding RcptLoc, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
+                                        <TextBox Text="{Binding RcptLoc, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                                  Visibility="{Binding IsBackFlush, Converter={StaticResource BooltoVisConverter}, ConverterParameter=i}"
                                                  FontSize="16"
                                                  Width="90"
                                                  CharacterCasing="Upper"
                                                  MaxLength="8"
-                                                 Margin="3" />
+                                                 Margin="3"
+                                                 Background="LightGray" />
                                         <TextBlock Text="Quantity:"
                                                    FontSize="16"
                                                    TextDecorations="UnderLine"
@@ -308,7 +311,8 @@
                                                  FontSize="16"
                                                  Width="75"
                                                  MaxLength="5"
-                                                 Margin="3" />
+                                                 Margin="3"
+                                                 Background="LightGray" />
                                         <TextBlock Text="Is Roll Gone?"
                                                    FontSize="16"
                                                    TextDecorations="UnderLine"
@@ -334,13 +338,57 @@
         
         <!--#region Submission Actions-->
 
-        <Button Grid.Row="7"
-                Content="Submit"
-                Width="100"
-                FontSize="18"
-                Margin="5"
-                Command="{Binding WipICommand}"
-                Style="{DynamicResource DefaultButton}"/>
+        <StackPanel Grid.Row="7"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Right">
+
+            <Button Content="Submit"
+                    Width="100"
+                    FontSize="18"
+                    Margin="5"
+                    Command="{Binding WipICommand}"
+                    Style="{DynamicResource DefaultButton}" />
+            
+        </StackPanel>
+
+        <StackPanel Grid.Row="7"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Left"
+                    Visibility="{Binding WipRecord.WipLot.LotNumber, Converter={StaticResource StringtoVisConverter}}">
+
+            <TextBlock Text="Travel Card Quantity:"
+                       FontSize="18"
+                       FontWeight="Bold"
+                       TextDecorations="Underline"
+                       VerticalAlignment="Center"
+                       Margin="10,0,0,0" />
+
+            <TextBox Text="{Binding traveltxt}"
+                     Width="90"
+                     FontSize="18"
+                     Margin="8"
+                     MaxLength="5"
+                     IsTabStop="False"
+                     Background="LightGray"
+                     Style="{DynamicResource OptionalTextBox}" />
+
+            <Button Content="Travel Card"
+                    Width="120"
+                    FontSize="18"
+                    Margin="5"
+                    Command="{Binding MPrintICommand}"
+                    CommandParameter="T"
+                    Style="{DynamicResource DefaultButton}" />
+
+            <Button Content="Reference Card"
+                    Width="150"
+                    FontSize="18"
+                    Margin="5"
+                    Command="{Binding MPrintICommand}"
+                    CommandParameter="R"
+                    Style="{DynamicResource DefaultButton}" />
+
+        </StackPanel>
 
         <!--#endregion-->
 

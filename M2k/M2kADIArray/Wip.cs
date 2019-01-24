@@ -1,7 +1,6 @@
 ﻿using SFW.Model;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace M2kClient.M2kADIArray
 {

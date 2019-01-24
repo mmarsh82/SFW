@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SFW.Model", "SFW.Model\SFW.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "M2kClient", "M2k\M2kClient.csproj", "{5DBE7A03-346D-4A21-86B8-F11D737E93F3}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SFW.Helpers", "SFW.Helpers\SFW.Helpers.csproj", "{6F663E0A-CD5E-40A9-B67E-7564627915F6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{5DBE7A03-346D-4A21-86B8-F11D737E93F3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5DBE7A03-346D-4A21-86B8-F11D737E93F3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5DBE7A03-346D-4A21-86B8-F11D737E93F3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6F663E0A-CD5E-40A9-B67E-7564627915F6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6F663E0A-CD5E-40A9-B67E-7564627915F6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6F663E0A-CD5E-40A9-B67E-7564627915F6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6F663E0A-CD5E-40A9-B67E-7564627915F6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

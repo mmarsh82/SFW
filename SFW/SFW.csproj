@@ -30,8 +30,8 @@
     <PublisherName>Michael Marsh</PublisherName>
     <SuiteName>WCCO Belting Inc.</SuiteName>
     <AutorunEnabled>true</AutorunEnabled>
-    <ApplicationRevision>369</ApplicationRevision>
-    <ApplicationVersion>1.0.35.369</ApplicationVersion>
+    <ApplicationRevision>395</ApplicationRevision>
+    <ApplicationVersion>1.0.37.395</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <CreateDesktopShortcut>true</CreateDesktopShortcut>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -275,6 +275,10 @@
     <ProjectReference Include="..\M2k\M2kClient.csproj">
       <Project>{5dbe7a03-346d-4a21-86b8-f11d737e93f3}</Project>
       <Name>M2kClient</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\SFW.Helpers\SFW.Helpers.csproj">
+      <Project>{6f663e0a-cd5e-40a9-b67e-7564627915f6}</Project>
+      <Name>SFW.Helpers</Name>
     </ProjectReference>
     <ProjectReference Include="..\SFW.Model\SFW.Model.csproj">
       <Project>{68A56A1D-33E8-44F4-8BA5-CA6F36F52BF9}</Project>

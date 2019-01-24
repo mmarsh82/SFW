@@ -10,6 +10,7 @@ namespace SFW.UserLogIn
         public View()
         {
             InitializeComponent();
+            Loaded += delegate { UserName.Focus(); };
         }
     }
 }

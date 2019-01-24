@@ -10,8 +10,12 @@ namespace SFW.Commands
 
         public void Execute(object parameter)
         {
-            var _wipWindow = new WIP.View { DataContext = new WIP.ViewModel((WorkOrder)parameter) };
-            _wipWindow.ShowDialog();
+            var _wipWindow = new WIP.View();
+            using (WIP.ViewModel wipVM = new WIP.ViewModel((WorkOrder)parameter))
+            {
+                _wipWindow.DataContext = wipVM;
+                _wipWindow.ShowDialog();
+            }
         }
         public bool CanExecute(object parameter) => true;
     }

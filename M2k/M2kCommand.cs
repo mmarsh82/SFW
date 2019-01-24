@@ -247,7 +247,7 @@ namespace M2kClient
 
             /*var uId = new Random();
             var suffix = uId.Next(128, 512);
-            var btiText = new M2kWipADIArray(woObject).ToString();
+            var wipBtiText = new Wip(wipRecord).ToString();
             File.WriteAllLines(connection.BTIFolder, btiText.Split('\n'));
             return suffix;*/
 
@@ -274,17 +274,41 @@ namespace M2kClient
                     return _subResult;
                 }
             }
-            btiText = new Wip(wipRecord).ToString();
-            //Hardcoded for testing
-            SaveFileDialog dialog = new SaveFileDialog
+            foreach (var c in wipRecord.WipWorkOrder.Bom)
             {
-                FileName = "BtiTestDoc",
-                DefaultExt = ".txt",
-                Filter = "Text Documents |*.txt"
-            };
-            if (dialog.ShowDialog() == true)
-            {
-                File.WriteAllLines(dialog.FileName, btiText.Split('\n'));
+                var _issue = new Issue(wipRecord.Submitter, "010", c.CompNumber, wipRecord.WipWorkOrder.OrderNumber, wipRecord.WipWorkOrder.Seq, "II", new List<Transaction>());
+                foreach (var w in c.WipInfo)
+                {
+                    if (c.IsLotTrace && !string.IsNullOrEmpty(w.LotNbr) && w.LotQty != null)
+                    {
+                        if (string.IsNullOrEmpty(c.BackflushLoc))
+                        {
+                            _issue.TranList.Add(new Transaction { Quantity = Convert.ToInt32(w.LotQty), Location = w.RcptLoc, LotNumber = w.LotNbr });
+                        }
+                        else
+                        {
+                            _issue.TranList.Add(new Transaction { Quantity = Convert.ToInt32(w.LotQty), Location = c.BackflushLoc, LotNumber = w.LotNbr });
+                        }
+                    }
+                    else
+                    {
+                        _issue.TranList.Add(new Transaction { Quantity = Convert.ToInt32(Math.Round(Convert.ToDouble(wipRecord.WipQty) * c.AssemblyQty)), Location = c.BackflushLoc });
+                    }
+                }
+
+                btiText = _issue.ToString();
+
+                //Hardcoded for testing
+                SaveFileDialog dialog = new SaveFileDialog
+                {
+                    FileName = "BtiTestDoc",
+                    DefaultExt = ".txt",
+                    Filter = "Text Documents |*.txt"
+                };
+                if (dialog.ShowDialog() == true)
+                {
+                    File.WriteAllLines(dialog.FileName, btiText.Split('\n'));
+                }
             }
             _subResult.Add(0, wipRecord.WipLot.LotNumber);
             return _subResult;
