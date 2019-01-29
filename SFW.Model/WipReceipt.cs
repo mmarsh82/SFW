@@ -1,7 +1,9 @@
 ﻿using SFW.Model.Enumerations;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Data.SqlClient;
+using System.Linq;
 
 //Created by Michael Marsh 10-23-18
 
@@ -50,9 +52,14 @@ namespace SFW.Model
         public WorkOrder WipWorkOrder { get; set; }
 
         /// <summary>
+        /// Wip receipt crew validation, some work orders will not require a crew to be submitted
+        /// </summary>
+        public bool HasCrew { get; set; }
+
+        /// <summary>
         /// Wip receipt crew list to use for the labor part of the transaction
         /// </summary>
-        public IDictionary<int, string> CrewList { get; set; }
+        public BindingList<CrewMember> CrewList { get; set; }
 
         /// <summary>
         /// Wip receipt start time to use for the labor part of the transaction
@@ -64,26 +71,33 @@ namespace SFW.Model
         /// </summary>
         public int Shift { get; set; }
 
-        
+        public static SqlConnection SqlCon { get; private set; }
 
         #endregion
 
         /// <summary>
         /// Wip Receipt Constructor
         /// </summary>
-        /// <param name="submitter">Currently logged in user</param>
+        /// <param name="submitter">Currently logged in user Full Name</param>
         /// <param name="workOrder">Work order object to process</param>
         /// <param name="sqlCon">Sql Connection to use</param>
-        public WipReceipt(string submitter, WorkOrder workOrder, SqlConnection sqlCon)
+        public WipReceipt(string subFName, string subLName, WorkOrder workOrder, SqlConnection sqlCon)
         {
-            Submitter = submitter;
+            Submitter = $"{subFName} {subLName}";
+            SqlCon = sqlCon;
             SeqComplete = Complete.N;
             WipLot = new Lot();
             WipWorkOrder = workOrder;
             WipWorkOrder.CrewSize = Sku.GetCrewSize(WipWorkOrder.SkuNumber, WipWorkOrder.Seq, sqlCon);
-            if (WipWorkOrder.CrewSize > 1)
+            HasCrew = Machine.GetMachineGroup(sqlCon, workOrder.OrderNumber, workOrder.Seq) != "PRESS";
+            if (WipWorkOrder.CrewSize > 1 && HasCrew)
             {
-                CrewList = new Dictionary<int, string>();
+                CrewList = new BindingList<CrewMember>
+                {
+                    new CrewMember { IdNumber = CrewMember.GetCrewIdNumber(sqlCon, subFName, subLName), Name = Submitter }
+                };
+                CrewList.AddNew();
+                CrewList.ListChanged += CrewList_ListChanged;
             }
             //TODO: Remove shift hardcode and push it to the config file
             //TODO: remove start time hardcode and move it to a dynamic pull
@@ -101,6 +115,29 @@ namespace SFW.Model
             {
                 Shift = 3;
                 StartTime = "23:00";
+            }
+        }
+
+        /// <summary>
+        /// Happens when an item is added or changed in the WipInfo Binding List property
+        /// </summary>
+        /// <param name="sender">BindingList<CompWipInfo> list passed without changes</param>
+        /// <param name="e">Change info</param>
+        private void CrewList_ListChanged(object sender, ListChangedEventArgs e)
+        {
+            if (e.ListChangedType == ListChangedType.ItemChanged && e.PropertyDescriptor.DisplayName == "IdNumber")
+            {
+                ((BindingList<CrewMember>)sender)[e.NewIndex].Name = string.Empty;
+                var _dName = CrewMember.GetCrewDisplayName(SqlCon, Convert.ToInt32(((BindingList<CrewMember>)sender)[e.NewIndex].IdNumber));
+                var _duplicate = ((BindingList<CrewMember>)sender).Any(o => o.Name == _dName);
+                if (!string.IsNullOrEmpty(_dName) && !_duplicate)
+                {
+                    ((BindingList<CrewMember>)sender)[e.NewIndex].Name = _dName;
+                    if (((BindingList<CrewMember>)sender).Count == e.NewIndex + 1)
+                    {
+                        ((BindingList<CrewMember>)sender).AddNew();
+                    }
+                }
             }
         }
     }

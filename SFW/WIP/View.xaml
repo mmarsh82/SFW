@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:SFW.WIP"
         xmlns:cvtr="clr-namespace:SFW.Converters"
     mc:Ignorable="d"
-        Title="WIP.RECEIPTS" Height="600" Width="800" WindowStyle="ToolWindow" ResizeMode="NoResize">
+        Title="Production Wip" Height="800" Width="800" WindowStyle="ToolWindow" ResizeMode="NoResize">
 
     <Window.Resources>
         <cvtr:BoolToVisibility x:Key="BooltoVisConverter" />
@@ -21,6 +21,8 @@
             <RowDefinition Height="40" />
             <RowDefinition Height="40" />
             <RowDefinition Height="40" />
+            <RowDefinition Height="35" />
+            <RowDefinition Height="*" />
             <RowDefinition Height="35" />
             <RowDefinition Height="*" />
             <RowDefinition Height="45" />
@@ -206,14 +208,78 @@
         </StackPanel>
 
         <!--#endregion-->
-        
+
         <!--#region Seperator-->
 
         <Rectangle Grid.Row="5"
                    Fill="#FF135185"
                    HorizontalAlignment="Stretch"
-                   VerticalAlignment="Stretch" />
+                   VerticalAlignment="Stretch"
+                   Visibility="{Binding WipRecord.HasCrew, Converter={StaticResource BooltoVisConverter}}"/>
         <TextBlock Grid.Row="5"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center"
+                   Text="Crew Members"
+                   FontWeight="Bold"
+                   FontSize="20"
+                   Foreground="WhiteSmoke" 
+                   Visibility="{Binding WipRecord.HasCrew, Converter={StaticResource BooltoVisConverter}}"/>
+
+        <!--#endregion-->
+
+        <!--#region Crew Inputs-->
+
+        <ItemsControl Name="CrewMembers"
+                      Grid.Row="6"
+                      ItemsSource="{Binding Path=WipRecord.CrewList}"
+                      Margin="10,0,0,0"
+                      FontSize="18"
+                      Cursor="Hand"
+                      Background="Transparent"
+                      Foreground="Black"
+                      Focusable="False"
+                      Visibility="{Binding WipRecord.HasCrew, Converter={StaticResource BooltoVisConverter}}">
+
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <VirtualizingStackPanel IsItemsHost="True"
+                                            Orientation="Vertical" />
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+
+                    <StackPanel Orientation="Vertical">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="Employee Nbr:"
+                                       TextDecorations="Underline"
+                                       FontWeight="Bold" />
+                            <TextBox Text="{Binding IdNumber, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                     FontSize="16"
+                                     Width="100"
+                                     CharacterCasing="Upper"
+                                     MaxLength="7"
+                                     Margin="3"
+                                     Background="LightGray" />
+                            <TextBlock Text="{Binding Name}"
+                                       Margin="10,0,0,0" />
+                        </StackPanel>
+                    </StackPanel>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+
+        </ItemsControl>
+
+        <!--#endregion-->
+
+        <!--#region Seperator-->
+
+        <Rectangle Grid.Row="7"
+                   Fill="#FF135185"
+                   HorizontalAlignment="Stretch"
+                   VerticalAlignment="Stretch" />
+        <TextBlock Grid.Row="7"
                    HorizontalAlignment="Center"
                    VerticalAlignment="Center"
                    Text="Components"
@@ -226,7 +292,7 @@
         <!--#region Component Inputs-->
 
         <ItemsControl Name="CompParent"
-                      Grid.Row="6"
+                      Grid.Row="8"
                       ItemsSource="{Binding Path=WipRecord.WipWorkOrder.Bom}"
                       Margin="10,0,0,0"
                       FontSize="18"
@@ -312,7 +378,8 @@
                                                  Width="75"
                                                  MaxLength="5"
                                                  Margin="3"
-                                                 Background="LightGray" />
+                                                 Background="LightGray"
+                                                 IsTabStop="False"/>
                                         <TextBlock Text="Is Roll Gone?"
                                                    FontSize="16"
                                                    TextDecorations="UnderLine"
@@ -338,7 +405,7 @@
         
         <!--#region Submission Actions-->
 
-        <StackPanel Grid.Row="7"
+        <StackPanel Grid.Row="9"
                     Orientation="Horizontal"
                     HorizontalAlignment="Right">
 
@@ -351,7 +418,7 @@
             
         </StackPanel>
 
-        <StackPanel Grid.Row="7"
+        <StackPanel Grid.Row="9"
                     Orientation="Horizontal"
                     HorizontalAlignment="Left"
                     Visibility="{Binding WipRecord.WipLot.LotNumber, Converter={StaticResource StringtoVisConverter}}">
@@ -363,7 +430,7 @@
                        VerticalAlignment="Center"
                        Margin="10,0,0,0" />
 
-            <TextBox Text="{Binding traveltxt}"
+            <TextBox Text="{Binding TQty, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                      Width="90"
                      FontSize="18"
                      Margin="8"

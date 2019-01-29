@@ -17,6 +17,7 @@ namespace SFW.Model
 
         public string OrderNumber { get; set; }
         public string Seq { get; set; }
+        public string SeqDesc { get; set; }
         public string Priority { get; set; }
         public string Status { get; set; }
         public int StartQty { get; set; }
@@ -51,6 +52,7 @@ namespace SFW.Model
                 var _wo = drow.Field<string>("WO_Number").Split('*');
                 OrderNumber = _wo[0];
                 Seq = _wo[1];
+                SeqDesc = "Coming Soon...";
                 Priority = drow.Field<string>("WO_Priority");
                 StartQty = drow.Field<int>("WO_StartQty");
                 CurrentQty = Convert.ToInt32(drow.Field<decimal>("WO_CurrentQty"));
@@ -109,6 +111,7 @@ namespace SFW.Model
                                     {
                                         OrderNumber = reader.SafeGetString("WoNumber"),
                                         Seq = reader.SafeGetString("Seq"),
+                                        SeqDesc = "Coming Soon...",
                                         Priority = reader.SafeGetString("Priority"),
                                         StartQty = reader.SafeGetInt32("StartQty"),
                                         CurrentQty = reader.SafeGetInt32("CurrentQty"),

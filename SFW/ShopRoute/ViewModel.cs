@@ -1,6 +1,7 @@
 ﻿using M2kClient;
 using SFW.Commands;
 using SFW.Model;
+using System;
 using System.Windows;
 using System.Windows.Input;
 
@@ -20,8 +21,11 @@ namespace SFW.ShopRoute
                 OnPropertyChanged(nameof(ShopOrder));
                 OnPropertyChanged(nameof(FqSalesOrder));
                 ShopOrderNotes = null;
-                OnPropertyChanged(nameof(CanWip));
+                MachineGroup = string.Empty;
                 OnPropertyChanged(nameof(CanCheckHistory));
+                OnPropertyChanged(nameof(HasStarted));
+                OnPropertyChanged(nameof(CanStart));
+                OnPropertyChanged(nameof(CanSeeWip));
             }
         }
 
@@ -43,9 +47,19 @@ namespace SFW.ShopRoute
                 OnPropertyChanged(nameof(ShopOrderNotes));
             }
         }
-        
-        public bool CanWip { get { return CurrentUser.IsLoggedIn && CurrentUser.DomainName.Contains("wcco"); } }
+
+        private string machGroup;
+        public string MachineGroup
+        {
+            get
+            { return machGroup; }
+            set
+            { machGroup = string.IsNullOrEmpty(value) ? Machine.GetMachineGroup(App.AppSqlCon, ShopOrder.OrderNumber, ShopOrder.Seq) : value; OnPropertyChanged(nameof(MachineGroup)); }
+        }
         public bool CanCheckHistory { get { return ShopOrder.StartQty != ShopOrder.CurrentQty; } }
+        public bool HasStarted { get { return CurrentUser.IsLoggedIn && MachineGroup == "PRESS" && ShopOrder.ActStartDate != DateTime.MinValue; } }
+        public bool CanStart { get { return CurrentUser.IsLoggedIn && MachineGroup == "PRESS" && ShopOrder.ActStartDate == DateTime.MinValue; } }
+        public bool CanSeeWip { get { return CurrentUser.IsLoggedIn && ((MachineGroup == "PRESS" && HasStarted) || MachineGroup != "PRESS"); } }
 
         private RelayCommand _noteChange;
 

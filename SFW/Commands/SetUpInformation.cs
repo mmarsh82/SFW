@@ -1,4 +1,5 @@
-﻿using SFW.Model;
+﻿using SFW.Helpers;
+using SFW.Model;
 using SFW.Reports;
 using System;
 using System.Windows.Input;
@@ -17,15 +18,16 @@ namespace SFW.Commands
         {
             try
             {
-                if (parameter != null)
+                if (parameter != null && parameter.GetType() == typeof(WorkOrder))
                 {
-                   switch (App.SiteNumber)
+                    var _wo = (WorkOrder)parameter;
+                    switch (App.SiteNumber)
                     {
                         case 0:
-                            new ProcessSpec_View { DataContext = new ProcessSpec_ViewModel((WorkOrder)parameter) }.ShowDialog();
+                            new ProcessSpec_View { DataContext = new ProcessSpec_ViewModel(_wo) }.ShowDialog();
                             break;
-                        case 2:
-                            //TODO: Add in the WCCO setup information window
+                        case 1:
+                            ExcelReader.ReadSetup(_wo.SkuNumber, Machine.GetMachineName(App.AppSqlCon, _wo));
                             break;
                     }
                 }

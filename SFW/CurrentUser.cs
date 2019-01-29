@@ -49,6 +49,30 @@ namespace SFW
             }
         }
 
+        private static string _fName;
+        public static string FirstName
+        {
+            get
+            { return _fName; }
+            private set
+            {
+                _fName = value;
+                StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(FirstName)));
+            }
+        }
+
+        private static string _lName;
+        public static string LastName
+        {
+            get
+            { return _lName; }
+            private set
+            {
+                _lName = value;
+                StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(LastName)));
+            }
+        }
+
         private static string _email;
         public static string Email
         {
@@ -135,6 +159,8 @@ namespace SFW
             IsLoggedIn = true;
             CanWip = user.UserPrincipalName.Contains("wcco") && _groups.Exists(o => o.ToString().Contains("SFW_CL"));
             UserIDNbr = user.EmployeeId;
+            FirstName = user.GivenName;
+            LastName = user.Surname;
             context.Dispose();
             user.Dispose();
         }

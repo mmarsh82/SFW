@@ -14,7 +14,7 @@ namespace SFW.WIP
         #region Properties
 
         public WipReceipt WipRecord { get; set; }
-
+        
         public int? WipQuantity
         {
             get { return WipRecord.WipQty; }
@@ -50,7 +50,7 @@ namespace SFW.WIP
         /// </summary>
         public ViewModel(WorkOrder woObject)
         {
-            WipRecord = new WipReceipt(CurrentUser.DomainUserName, woObject, App.AppSqlCon);
+            WipRecord = new WipReceipt(CurrentUser.FirstName, CurrentUser.LastName, woObject, App.AppSqlCon);
         }
 
         /// <summary>
@@ -123,6 +123,7 @@ namespace SFW.WIP
         private void MPrintExecute(object parameter)
         {
             var _wQty = TQty == null || TQty == 0 ? Convert.ToInt32(WipRecord.WipQty) : Convert.ToInt32(TQty);
+            TQty = null;
             TravelCard.Create("", "technology#1",
                 WipRecord.WipWorkOrder.SkuNumber,
                 WipRecord.WipLot.LotNumber,

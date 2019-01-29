@@ -290,7 +290,7 @@ namespace M2kClient
                             _issue.TranList.Add(new Transaction { Quantity = Convert.ToInt32(w.LotQty), Location = c.BackflushLoc, LotNumber = w.LotNbr });
                         }
                     }
-                    else
+                    else if (w.LotQty != null && w.LotQty > 0)
                     {
                         _issue.TranList.Add(new Transaction { Quantity = Convert.ToInt32(Math.Round(Convert.ToDouble(wipRecord.WipQty) * c.AssemblyQty)), Location = c.BackflushLoc });
                     }
@@ -310,7 +310,7 @@ namespace M2kClient
                     File.WriteAllLines(dialog.FileName, btiText.Split('\n'));
                 }
             }
-            _subResult.Add(0, wipRecord.WipLot.LotNumber);
+            _subResult.Add(1, wipRecord.WipLot.LotNumber);
             return _subResult;
         }
 

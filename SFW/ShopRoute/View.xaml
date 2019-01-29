@@ -32,15 +32,16 @@
                 <Grid.RowDefinitions>
                     <RowDefinition x:Name="Row0" Height="40"/>
                     <RowDefinition x:Name="Row1" Height="50"/>
-                    <RowDefinition x:Name="Row2" Height="30"/>
-                    <RowDefinition x:Name="Row3" Height="10"/>
-                    <RowDefinition x:Name="Row4" Height="60"/>
-                    <RowDefinition x:Name="Row5" Height="40"/>
-                    <RowDefinition x:Name="Row6" Height="205"/>
-                    <RowDefinition x:Name="Row7" Height="40"/>
-                    <RowDefinition x:Name="Row8" Height="30"/>
+                    <RowDefinition x:Name="Row2" Height="30" />
+                    <RowDefinition x:Name="Row3" Height="30"/>
+                    <RowDefinition x:Name="Row4" Height="10"/>
+                    <RowDefinition x:Name="Row5" Height="60"/>
+                    <RowDefinition x:Name="Row6" Height="40"/>
+                    <RowDefinition x:Name="Row7" Height="205"/>
+                    <RowDefinition x:Name="Row8" Height="40"/>
                     <RowDefinition x:Name="Row9" Height="30"/>
-                    <RowDefinition x:Name="Row10" Height="425"/>
+                    <RowDefinition x:Name="Row10" Height="30"/>
+                    <RowDefinition x:Name="Row11" Height="425"/>
                 </Grid.RowDefinitions>
 
                 <!--#region Grid.Row 0  Command Array-->
@@ -50,12 +51,12 @@
                     <Button Content="Start"
                             FontSize="16"
                             IsEnabled="{Binding CanWip, Source={StaticResource User}}"
-                            Visibility="{Binding ShopOrder.ActStartDate, Converter={StaticResource DateToVisConverter}, ConverterParameter=Ni}"
+                            Visibility="{Binding CanStart, Converter={StaticResource BoolToVisConverter}}"
                             Style="{DynamicResource MenuButtonStyle}" />
                     <Button Content="Start Shift"
                             FontSize="16"
-                            Visibility="{Binding ShopOrder.ActStartDate, Converter={StaticResource DateToVisConverter}, ConverterParameter=N}"
-                            IsEnabled="{Binding CanWip, Source={StaticResource User}}"
+                            Visibility="{Binding HasStarted, Converter={StaticResource BoolToVisConverter}}"
+                            IsEnabled="{Binding Path=CanWip, Source={StaticResource User}}"
                             Style="{DynamicResource MenuButtonStyle}" />
                     <Button Content="ITH"
                             FontSize="16"
@@ -71,7 +72,7 @@
                     <Button Content="Wip Receipt"
                             FontSize="16"
                             Width="110"
-                            Visibility="{Binding ShopOrder.ActStartDate, Converter={StaticResource DateToVisConverter}, ConverterParameter=N}"
+                            Visibility="{Binding CanSeeWip, Converter={StaticResource BoolToVisConverter}}"
                             IsEnabled="{Binding CanWip, Source={StaticResource User}}"
                             Command="{StaticResource WipCommand}"
                             CommandParameter="{Binding ShopOrder}"
@@ -79,7 +80,7 @@
                     <Button Content="Modify Crew"
                             FontSize="16"
                             Width="110"
-                            Visibility="{Binding ShopOrder.ActStartDate, Converter={StaticResource DateToVisConverter}, ConverterParameter=N}"
+                            Visibility="{Binding HasStarted, Converter={StaticResource BoolToVisConverter}}"
                             IsEnabled="{Binding CanWip, Source={StaticResource User}}"
                             Style="{DynamicResource MenuButtonStyle}" />
                     <Button Content="Report Sheet"
@@ -90,7 +91,7 @@
                             Style="{DynamicResource MenuButtonStyle}" />
                     <Button Content="Log Round"
                             FontSize="16"
-                            Visibility="{Binding ShopOrder.ActStartDate, Converter={StaticResource DateToVisConverter}, ConverterParameter=N}"
+                            Visibility="{Binding HasStarted, Converter={StaticResource BoolToVisConverter}}"
                             IsEnabled="{Binding CanWip, Source={StaticResource User}}"
                             Style="{DynamicResource MenuButtonStyle}" />
                 </StackPanel>
@@ -111,22 +112,40 @@
                     <TextBlock Text="{Binding ShopOrder.OrderNumber}"
                                FontSize="32"
                                FontWeight="Bold"
-                               Margin="10,0,0,0"/>
+                               Margin="10,0,0,0" />
 
-                    <Button Content="Report View"
-                            FontSize="18"
-                            Margin="5"
-                            Width="125"
-                            Visibility="Collapsed"
-                            Style="{DynamicResource DefaultButton}"/>
+                </StackPanel>
+
+                <!--#endregion-->
+                
+                <!--#region Grid.Row 2 Operation Description-->
+
+                <StackPanel Grid.Row="2"
+                            Orientation="Horizontal">
+
+                    <TextBlock Text="Operation:"
+                               FontSize="20"
+                               FontWeight="Bold"
+                               TextDecorations="UnderLine"
+                               Foreground="#FF135185" />
+
+                    <TextBlock Text="{Binding ShopOrder.Seq}"
+                               FontSize="20"
+                               FontWeight="Bold"
+                               Margin="10,0,0,0" />
+
+                    <TextBlock Text="{Binding ShopOrder.SeqDesc}"
+                               FontSize="20"
+                               FontWeight="Bold"
+                               Margin="10,0,0,0" />
 
                 </StackPanel>
 
                 <!--#endregion-->
 
-                <!--#region Grid.Row 2  Part Information-->
+                <!--#region Grid.Row 3  Part Information-->
 
-                <StackPanel Grid.Row="2" Orientation="Horizontal">
+                <StackPanel Grid.Row="3" Orientation="Horizontal">
 
                     <TextBlock Text="Part Number:"
                            FontSize="24"
@@ -168,12 +187,12 @@
 
                 <!--#endregion-->
 
-                <!--#region Grid.Row 3 (Used as a spacer)-->
+                <!--#region Grid.Row 4 (Used as a spacer)-->
                 <!--#endregion-->
 
-                <!--#region Grid.Row 4  Date and Quantity-->
+                <!--#region Grid.Row 5  Date and Quantity-->
 
-                <Grid Grid.Row="4">
+                <Grid Grid.Row="5">
 
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="300"/>
@@ -278,9 +297,9 @@
 
                 <!--#endregion-->
 
-                <!--#region Grid.Row 5  Inspection Warning-->
+                <!--#region Grid.Row 6  Inspection Warning-->
 
-                <TextBlock Grid.Row="5"
+                <TextBlock Grid.Row="6"
                        Text="* 1ST PIECE SAMPLE MUST BE TURNED IN *"
                        FontSize="28"
                        FontWeight="Bold"
@@ -290,7 +309,7 @@
                        Foreground="Crimson"
                        Panel.ZIndex="3"/>
 
-                <Rectangle Grid.Row="5"
+                <Rectangle Grid.Row="6"
                        HorizontalAlignment="Stretch"
                        VerticalAlignment="Stretch"
                        Stroke="Crimson"
@@ -298,7 +317,7 @@
                        StrokeDashArray="4,4"
                        Panel.ZIndex="2"/>
 
-                <TextBlock Grid.Row="5"
+                <TextBlock Grid.Row="6"
                        HorizontalAlignment="Stretch"
                        VerticalAlignment="Stretch"
                        Panel.ZIndex="1">
@@ -312,9 +331,9 @@
 
                 <!--#endregion-->
 
-                <!--#region Grid.Row 6  Notes-->
+                <!--#region Grid.Row 7  Notes-->
 
-                <Grid Grid.Row="6">
+                <Grid Grid.Row="7">
 
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
@@ -394,9 +413,9 @@
 
                 <!--#endregion-->
 
-                <!--#region Grid.Row 7  Sales Order Header-->
+                <!--#region Grid.Row 8  Sales Order Header-->
 
-                <StackPanel Grid.Row="7" Orientation="Horizontal"
+                <StackPanel Grid.Row="8" Orientation="Horizontal"
                         HorizontalAlignment="Left" VerticalAlignment="Center"
                         Visibility="{Binding ShopOrder.SalesOrder.SalesNumber, Converter={StaticResource StringToVisConverter}}">
 
@@ -423,9 +442,9 @@
 
                 <!--#endregion-->
 
-                <!--#region Grid.Row 8  Sales Order-->
+                <!--#region Grid.Row 9  Sales Order-->
 
-                <Grid Grid.Row="8" Visibility="{Binding ShopOrder.SalesOrder.SalesNumber, Converter={StaticResource StringToVisConverter}}">
+                <Grid Grid.Row="9" Visibility="{Binding ShopOrder.SalesOrder.SalesNumber, Converter={StaticResource StringToVisConverter}}">
 
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="130"/>
@@ -485,9 +504,9 @@
 
                 <!--#endregion-->
 
-                <!--#region Grid.Row 9  BOM Header-->
+                <!--#region Grid.Row 10  BOM Header-->
 
-                <TextBlock Grid.Row="9"
+                <TextBlock Grid.Row="10"
                        Text="Picklist Parts (BOM)"
                        FontSize="24"
                        FontWeight="Bold"
@@ -498,9 +517,9 @@
 
                 <!--#endregion-->
 
-                <!--#region Grid.Row 10  BOM-->
+                <!--#region Grid.Row 11  BOM-->
 
-                <DataGrid Grid.Row="10"
+                <DataGrid Grid.Row="11"
                           x:Name="dgBom"
                           ItemsSource="{Binding ShopOrder.Bom}"
                           IsReadOnly="True"
