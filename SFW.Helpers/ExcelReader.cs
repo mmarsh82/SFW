@@ -15,22 +15,28 @@ namespace SFW.Helpers
         /// </summary>
         /// <param name="partNbr">Part number</param>
         /// <param name="machineName">Machine name</param>
-        public static string GetSetupPrintNumber(string partNbr, string machineName)
+        /// <param name="filePath">File path to the excel document to parse</param>
+        /// <param name="sheetName">Name of the worksheet to parse in the excel workbook</param>
+        /// <returns>File name as string</returns>
+        public static string GetSetupPrintNumber(string partNbr, string machineName, string filePath, string sheetName)
         {
             try
             {
-                var ssPack = Package.Open("\\\\manage2\\server\\Technology\\Program Testing\\SFW_press setup and part number crossreference.xlsm", FileMode.Open, FileAccess.Read, FileShare.Read);
+                var ssPack = Package.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
                 using (var ssDoc = SpreadsheetDocument.Open(ssPack))
                 {
                     var wbPart = ssDoc.WorkbookPart;
-                    var setupSheet = wbPart.Workbook.Descendants<Sheet>().Where(s => s.Name == "Production").FirstOrDefault();
+                    var setupSheet = wbPart.Workbook.Descendants<Sheet>().Where(s => s.Name == sheetName).FirstOrDefault();
                     var wsPart = (WorksheetPart)wbPart.GetPartById(setupSheet.Id);
                     var sheetRows = wsPart.Worksheet.GetFirstChild<SheetData>().Descendants<Row>();
                     var stringTable = wbPart.GetPartsOfType<SharedStringTablePart>().FirstOrDefault();
                     var _row = string.Empty;
-                    var _col = sheetRows.First().Descendants<Cell>()
-                        .Where(c => stringTable.SharedStringTable.ElementAt(int.Parse(c.InnerText)).InnerText == machineName).FirstOrDefault().CellReference;
-                    _col = Regex.Replace(_col, "[^A-Z]+", string.Empty);
+                    var _col = sheetRows?.First().Descendants<Cell>()
+                        .Where(c => stringTable.SharedStringTable.ElementAt(int.Parse(c.InnerText)).InnerText == machineName).FirstOrDefault()?.CellReference;
+                    if (_col != null)
+                    {
+                        _col = Regex.Replace(_col, "[^A-Z]+", string.Empty);
+                    }
                     foreach (var r in sheetRows)
                     {
                         foreach (var c in r.Descendants<Cell>())
@@ -59,12 +65,7 @@ namespace SFW.Helpers
                         var _file = _cellVal.DataType != null && _cellVal.DataType.Value == CellValues.SharedString
                             ? stringTable.SharedStringTable.ElementAt(int.Parse(_cellVal.InnerText)).InnerText
                             : _cellVal.InnerText;
-                        var _fileheader = string.Empty;
-                        for(int i = 0; i < 8 - _file.Length; i++)
-                        {
-                            _fileheader += "0";
-                        }
-                        return _fileheader + _file;
+                        return _file;
                     }
                 }
                 return string.Empty;

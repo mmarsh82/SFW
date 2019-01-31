@@ -402,6 +402,40 @@ namespace SFW.Model
         }
 
         /// <summary>
+        /// Get the machine group that a specific machine from a work order is contained in
+        /// </summary>
+        /// <param name="sqlCon">Sql Connection to use</param>
+        /// <param name="workOrder">Work order object</param>
+        /// <returns>Machine group as string</returns>
+        public static string GetMachineGroup(SqlConnection sqlCon, WorkOrder workOrder)
+        {
+            if (sqlCon != null || sqlCon.State != ConnectionState.Closed || sqlCon.State != ConnectionState.Broken)
+            {
+                try
+                {
+                    using (SqlCommand cmd = new SqlCommand($"USE {sqlCon.Database}; SELECT [Work_Ctr_Group] FROM [dbo].[WC-INIT] WHERE [Wc_Nbr] = (SELECT [Work_Center] FROM [dbo].[WPO-INIT] WHERE [ID] = CONCAT(@p1, '*', @p2));", sqlCon))
+                    {
+                        cmd.Parameters.AddWithValue("p1", workOrder.OrderNumber);
+                        cmd.Parameters.AddWithValue("p2", workOrder.Seq);
+                        return cmd.ExecuteScalar()?.ToString();
+                    }
+                }
+                catch (SqlException sqlEx)
+                {
+                    throw sqlEx;
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception(ex.Message);
+                }
+            }
+            else
+            {
+                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
+            }
+        }
+
+        /// <summary>
         /// Get the machine group that a specific machine is a part of
         /// </summary>
         /// <param name="sqlCon">Sql Connection to use</param>
