@@ -20,11 +20,19 @@ namespace SFW.WIP
             get { return WipRecord.WipQty; }
             set
             {
-                if (WipRecord.WipQty != value)
+                if (value == 0 || value == null)
                 {
-                    foreach (Component comp in WipRecord.WipWorkOrder.Bom)
+                    foreach (var c in WipRecord.WipWorkOrder.Bom)
                     {
-                        comp.UpdateWipInfo(Convert.ToInt32(value));
+                        c.WipInfo.Clear();
+                        c.WipInfo.Add(new CompWipInfo(!string.IsNullOrEmpty(c.BackflushLoc), c.CompNumber));
+                    }
+                }
+                else if (WipRecord.WipQty != value)
+                {
+                    foreach (var c in WipRecord.WipWorkOrder.Bom)
+                    {
+                        c.UpdateWipInfo(Convert.ToInt32(value));
                     }
                 }
                 WipRecord.WipQty = value;
@@ -42,6 +50,8 @@ namespace SFW.WIP
 
         RelayCommand _wip;
         RelayCommand _mPrint;
+        RelayCommand _removeCrew;
+        RelayCommand _removeComp;
 
         #endregion
 
@@ -60,15 +70,15 @@ namespace SFW.WIP
         private bool ValidateComponents()
         {
             var _valid = true;
-            foreach (Component comp in WipRecord.WipWorkOrder.Bom)
+            foreach (var c in WipRecord.WipWorkOrder.Bom)
             {
-                if (comp.IsLotTrace)
+                if (c.IsLotTrace)
                 {
-                    _valid = Math.Round(Convert.ToDouble(WipRecord.WipQty) * comp.AssemblyQty, 0) == comp.WipInfo.Where(o => !string.IsNullOrEmpty(o.LotNbr)).Sum(o => o.LotQty);
+                    _valid = Math.Round(Convert.ToDouble(WipRecord.WipQty) * c.AssemblyQty, 0) == c.WipInfo.Where(o => !string.IsNullOrEmpty(o.LotNbr)).Sum(o => o.LotQty);
                 }
-                if(string.IsNullOrEmpty(comp.BackflushLoc) && _valid)
+                if(string.IsNullOrEmpty(c.BackflushLoc) && _valid)
                 {
-                    _valid = comp.WipInfo.Where(o => !string.IsNullOrEmpty(o.LotNbr)).Count() == comp.WipInfo.Where(o => !string.IsNullOrEmpty(o.RcptLoc)).Count();
+                    _valid = c.WipInfo.Where(o => !string.IsNullOrEmpty(o.LotNbr)).Count() == c.WipInfo.Where(o => !string.IsNullOrEmpty(o.RcptLoc)).Count();
                 }
                 if (!_valid)
                 {
@@ -100,6 +110,8 @@ namespace SFW.WIP
             {
                 WipRecord.WipLot.LotNumber = _wipProc.First().Value;
                 OnPropertyChanged(nameof(WipRecord));
+                TQty = WipQuantity;
+                WipQuantity = null;
             }
         }
         private bool WipCanExecute(object parameter) => WipRecord?.WipQty > 0 && !string.IsNullOrEmpty(WipRecord?.ReceiptLocation) && ValidateComponents();
@@ -148,6 +160,60 @@ namespace SFW.WIP
 
         #endregion
 
+        #region Remove Crew List Item ICommand
+
+        public ICommand RemoveCrewICommand
+        {
+            get
+            {
+                if (_removeCrew == null)
+                {
+                    _removeCrew = new RelayCommand(RemoveCrewExecute, RemoveCrewCanExecute);
+                }
+                return _removeCrew;
+            }
+        }
+
+        private void RemoveCrewExecute(object parameter)
+        {
+            WipRecord.CrewList.Remove(WipRecord.CrewList.FirstOrDefault(c => c.IdNumber.ToString() == parameter.ToString()));
+        }
+        private bool RemoveCrewCanExecute(object parameter) => parameter != null && !string.IsNullOrEmpty(parameter.ToString());
+
+        #endregion
+
+        #region Remove Component List Item ICommand
+
+        public ICommand RemoveCompICommand
+        {
+            get
+            {
+                if (_removeComp == null)
+                {
+                    _removeComp = new RelayCommand(RemoveCompExecute, RemoveCompCanExecute);
+                }
+                return _removeComp;
+            }
+        }
+
+        private void RemoveCompExecute(object parameter)
+        {
+            foreach (var c in WipRecord.WipWorkOrder.Bom)
+            {
+                foreach (var w in c.WipInfo)
+                {
+                    if (w.LotNbr == parameter.ToString())
+                    {
+                        c.WipInfo.Remove(w);
+                        return;
+                    }
+                }
+            }
+        }
+        private bool RemoveCompCanExecute(object parameter) => parameter != null && !string.IsNullOrEmpty(parameter.ToString());
+
+        #endregion
+
         /// <summary>
         /// Object disposal
         /// </summary>
@@ -156,7 +222,6 @@ namespace SFW.WIP
         {
             if (disposing)
             {
-                WipRecord.WipWorkOrder = null;
                 WipRecord = null;
                 _wip = null;
             }

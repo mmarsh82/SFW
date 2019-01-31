@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:SFW.WIP"
         xmlns:cvtr="clr-namespace:SFW.Converters"
-    mc:Ignorable="d"
+        Name="WipWindow"
         Title="Production Wip" Height="800" Width="800" WindowStyle="ToolWindow" ResizeMode="NoResize">
 
     <Window.Resources>
@@ -263,7 +263,19 @@
                                      Margin="3"
                                      Background="LightGray" />
                             <TextBlock Text="{Binding Name}"
+                                       VerticalAlignment="Center"
                                        Margin="10,0,0,0" />
+                            <Button Command="{Binding DataContext.RemoveCrewICommand, ElementName=WipWindow}"
+                                    CommandParameter="{Binding IdNumber}"
+                                    Visibility="{Binding IdNumber, Converter={StaticResource StringtoVisConverter}}"
+                                    Width="20"
+                                    Height="20"
+                                    Margin="10,0 0 0"
+                                    Style="{DynamicResource DefaultButton}">
+                                <Button.Content>
+                                    <Image Source="/SFW;component/Icons/Delete.ico" />
+                                </Button.Content>
+                            </Button>
                         </StackPanel>
                     </StackPanel>
                 </DataTemplate>
@@ -347,7 +359,7 @@
                                                    FontSize="16"
                                                    TextDecorations="Underline"
                                                    FontWeight="Bold" />
-                                        <TextBox Text="{Binding LotNbr, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
+                                        <TextBox Text="{Binding LotNbr, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                                  FontSize="16"
                                                  Width="120"
                                                  CharacterCasing="Upper"
@@ -367,13 +379,14 @@
                                                  CharacterCasing="Upper"
                                                  MaxLength="8"
                                                  Margin="3"
+                                                 IsTabStop="False"
                                                  Background="LightGray" />
                                         <TextBlock Text="Quantity:"
                                                    FontSize="16"
                                                    TextDecorations="UnderLine"
                                                    FontWeight="Bold"
                                                    Margin="10,0,0,0"/>
-                                        <TextBox Text="{Binding LotQty, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
+                                        <TextBox Text="{Binding LotQty, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                                  FontSize="16"
                                                  Width="75"
                                                  MaxLength="5"
@@ -389,6 +402,17 @@
                                                   FontSize="16"
                                                   IsTabStop="False"
                                                   Margin="5,0,0,0"/>
+                                        <Button Command="{Binding DataContext.RemoveCompICommand, ElementName=WipWindow}"
+                                                CommandParameter="{Binding LotNbr}"
+                                                Visibility="{Binding LotNbr, Converter={StaticResource StringtoVisConverter}}"
+                                                Width="20"
+                                                Height="20"
+                                                Margin="10,0 0 0"
+                                                Style="{DynamicResource DefaultButton}">
+                                            <Button.Content>
+                                                <Image Source="/SFW;component/Icons/Delete.ico" />
+                                            </Button.Content>
+                                        </Button>
                                     </StackPanel>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>

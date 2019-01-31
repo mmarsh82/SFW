@@ -303,7 +303,7 @@ namespace SFW.Model
             {
                 try
                 {
-                    using (SqlCommand cmd = new SqlCommand(@"SELECT COUNT([Lot_Number]) FROM [dbo].[LOT-INIT] WHERE [Part_Nbr] = @p1 AND [Lot_Number] = CONCAT(@p2, '|P');", sqlCon))
+                    using (SqlCommand cmd = new SqlCommand($"USE {sqlCon.Database}; SELECT COUNT([Lot_Number]) FROM [dbo].[LOT-INIT] WHERE [Part_Nbr] = @p1 AND [Lot_Number] = CONCAT(@p2, '|P');", sqlCon))
                     {
                         cmd.Parameters.AddWithValue("p1", partNbr);
                         cmd.Parameters.AddWithValue("p2", lotNbr);
@@ -347,6 +347,54 @@ namespace SFW.Model
                 {
                     sqlCon.ChangeDatabase(_db);
                     return 0;
+                }
+            }
+            else
+            {
+                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
+            }
+        }
+
+        /// <summary>
+        /// Get the residing location for a specific lot number
+        /// </summary>
+        /// <param name="lotNbr">Lot Number</param>
+        /// <param name="sqlCon">Sql Connection to use</param>
+        /// <returns>Location that the lot number is current in as string</returns>
+        public static string GetLotLocation(string lotNbr, SqlConnection sqlCon)
+        {
+            if (sqlCon != null || sqlCon.State != ConnectionState.Closed || sqlCon.State != ConnectionState.Broken)
+            {
+                try
+                {
+                    using (SqlCommand cmd = new SqlCommand($"USE {sqlCon.Database}; SELECT [ID2] as 'Location' FROM [dbo].[LOT-INIT_Lot_Loc_Qtys] WHERE [ID1] = CONCAT(@p1, '|P');", sqlCon))
+                    {
+                        cmd.Parameters.AddWithValue("p1", lotNbr);
+                        using (SqlDataReader reader = cmd.ExecuteReader())
+                        {
+                            var counter = 1;
+                            var _loc = string.Empty;
+                            if (reader.HasRows)
+                            {
+                                while (reader.Read())
+                                {
+                                    if (counter == 1)
+                                    {
+                                        _loc = reader.SafeGetString("Location");
+                                    }
+                                    else
+                                    {
+                                        return string.Empty;
+                                    }
+                                }
+                            }
+                            return _loc;
+                        }
+                    }
+                }
+                catch (Exception)
+                {
+                    return string.Empty;
                 }
             }
             else

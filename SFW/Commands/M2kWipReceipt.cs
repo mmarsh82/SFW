@@ -13,6 +13,7 @@ namespace SFW.Commands
             var _wipWindow = new WIP.View();
             using (WIP.ViewModel wipVM = new WIP.ViewModel((WorkOrder)parameter))
             {
+                wipVM.WipQuantity = null;
                 _wipWindow.DataContext = wipVM;
                 _wipWindow.ShowDialog();
             }

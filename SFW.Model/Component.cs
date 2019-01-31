@@ -92,7 +92,7 @@ namespace SFW.Model
                                             : Lot.GetDedicatedLotList(reader.SafeGetString("Component"), woNbr, sqlCon),
                                         WipInfo = new BindingList<CompWipInfo>()
                                     });
-                                    _tempList[_tempList.Count - 1].WipInfo.Add(new CompWipInfo(!string.IsNullOrEmpty(_tempList[_tempList.Count - 1].BackflushLoc)));
+                                    _tempList[_tempList.Count - 1].WipInfo.Add(new CompWipInfo(!string.IsNullOrEmpty(_tempList[_tempList.Count - 1].BackflushLoc), _tempList[_tempList.Count - 1].CompNumber));
                                     _tempList[_tempList.Count - 1].WipInfo.ListChanged += WipInfo_ListChanged;
                                     _tempList[_tempList.Count - 1].NonLotList = _tempList[_tempList.Count - 1].LotList.Count == 0 && !reader.IsDBNull(0)
                                         ? Lot.GetOnHandNonLotList(reader.SafeGetString("Component"), sqlCon)
@@ -123,41 +123,58 @@ namespace SFW.Model
         /// </summary>
         /// <param name="sender">BindingList<CompWipInfo> list passed without changes</param>
         /// <param name="e">Change info</param>
-        private static void WipInfo_ListChanged(object sender, ListChangedEventArgs e)
+        public static void WipInfo_ListChanged(object sender, ListChangedEventArgs e)
         {
-            if (e.ListChangedType == ListChangedType.ItemChanged && !WipInfoUpdating)
+            if (e.ListChangedType == ListChangedType.ItemChanged && e.PropertyDescriptor.DisplayName == "LotNbr")
             {
                 WipInfoUpdating = true;
-                var _tempList = (BindingList<CompWipInfo>)sender;
-                if (e.PropertyDescriptor.DisplayName == "LotNbr" && _tempList.Count > 1)
+                if (Lot.LotValidation(((BindingList<CompWipInfo>)sender)[e.NewIndex].LotNbr, ((BindingList<CompWipInfo>)sender)[e.NewIndex].PartNbr, WipReceipt.SqlCon))
                 {
-                    var _tempQty = _tempList.Sum(o => o.LotQty);
-                    var _counter = 1;
-                    foreach (CompWipInfo cWI in _tempList)
+                    if (!((BindingList<CompWipInfo>)sender)[e.NewIndex].IsBackFlush)
                     {
-                        cWI.LotQty = _tempQty / _tempList.Count;
-                        if (_counter == _tempList.Count && _tempQty != ((BindingList<CompWipInfo>)sender).Sum(o => o.LotQty))
+                        ((BindingList<CompWipInfo>)sender)[e.NewIndex].RcptLoc = Lot.GetLotLocation(((BindingList<CompWipInfo>)sender)[e.NewIndex].LotNbr, WipReceipt.SqlCon);
+                    }
+                    var _unlocked = ((BindingList<CompWipInfo>)sender).Count - ((BindingList<CompWipInfo>)sender).Count(c => c.QtyLock);
+                    var _newBase = ((BindingList<CompWipInfo>)sender)[e.NewIndex].BaseQty - ((BindingList<CompWipInfo>)sender).Where(w => w.QtyLock).Sum(s => s.LotQty);
+                    var _counter = 1;
+                    if (_unlocked > 0 && _newBase > 0)
+                    {
+                        foreach (var c in ((BindingList<CompWipInfo>)sender).Where(w => !w.QtyLock))
                         {
-                            cWI.LotQty += (_tempQty - ((BindingList<CompWipInfo>)sender).Sum(o => o.LotQty));
+                            c.LotQty = Convert.ToInt32(Math.Round(Convert.ToDouble(_newBase) / Convert.ToDouble(_unlocked), 0));
+                            if (_counter == _unlocked && ((BindingList<CompWipInfo>)sender).Sum(s => s.LotQty) != ((BindingList<CompWipInfo>)sender)[0].BaseQty)
+                            {
+                                c.LotQty = 0;
+                                c.LotQty = ((BindingList<CompWipInfo>)sender)[0].BaseQty - ((BindingList<CompWipInfo>)sender).Sum(s => s.LotQty);
+                            }
+                            _counter++;
+                        }
+                    }
+                    ((BindingList<CompWipInfo>)sender).Add(new CompWipInfo(((BindingList<CompWipInfo>)sender)[0].IsBackFlush, ((BindingList<CompWipInfo>)sender)[0].PartNbr) { BaseQty = ((BindingList<CompWipInfo>)sender)[0].BaseQty });
+                }
+                WipInfoUpdating = false;
+            }
+            else if (e.ListChangedType == ListChangedType.ItemChanged && e.PropertyDescriptor.DisplayName == "LotQty" && !WipInfoUpdating)
+            {
+                WipInfoUpdating = true;
+                ((BindingList<CompWipInfo>)sender)[e.NewIndex].QtyLock = true;
+                var _unlocked = ((BindingList<CompWipInfo>)sender).Count(c => !string.IsNullOrEmpty(c.LotNbr)) - ((BindingList<CompWipInfo>)sender).Count(c => c.QtyLock && !string.IsNullOrEmpty(c.LotNbr));
+                var _newBase = ((BindingList<CompWipInfo>)sender)[e.NewIndex].BaseQty - ((BindingList<CompWipInfo>)sender).Where(w => w.QtyLock).Sum(s => s.LotQty);
+                var _counter = 1;
+                if (_unlocked > 0 && _newBase > 0)
+                {
+                    foreach (var c in ((BindingList<CompWipInfo>)sender).Where(w => !w.QtyLock && !string.IsNullOrEmpty(w.LotNbr)))
+                    {
+                        c.LotQty = Convert.ToInt32(Math.Round(Convert.ToDouble(_newBase) / Convert.ToDouble(_unlocked), 0));
+                        if (_counter == _unlocked && ((BindingList<CompWipInfo>)sender).Sum(s => s.LotQty) != ((BindingList<CompWipInfo>)sender)[0].BaseQty)
+                        {
+                            c.LotQty = 0;
+                            c.LotQty = ((BindingList<CompWipInfo>)sender)[0].BaseQty - ((BindingList<CompWipInfo>)sender).Sum(s => s.LotQty);
                         }
                         _counter++;
                     }
                 }
-                else if(e.PropertyDescriptor.DisplayName == "LotQty" && _tempList.Count > 1)
-                {
-                    //TODO: build an auto calc when the lot wip quantity is manually changed
-                   foreach(CompWipInfo cWI in _tempList)
-                    {
-                        if (cWI.LotNbr != _tempList[e.NewIndex].LotNbr)
-                        {
-                            cWI.LotQty = null;
-                        }
-                    }
-                }
-                if (!string.IsNullOrEmpty(_tempList[e.NewIndex].LotNbr) && _tempList[e.NewIndex].LotQty > 0 && !string.IsNullOrEmpty(_tempList[_tempList.Count - 1].LotNbr))
-                {
-                    ((BindingList<CompWipInfo>)sender).Add(new CompWipInfo(_tempList[e.NewIndex].IsBackFlush));
-                }
+
                 WipInfoUpdating = false;
             }
         }
@@ -173,25 +190,11 @@ namespace SFW.Model
         /// </summary>
         /// <param name="comp">Component object</param>
         /// <param name="wipQty">Main Part Wip Quantity</param>
-        public static void UpdateWipInfo(this Component comp, int wipQty)
+        public static void UpdateWipInfo(this Component comp, double wipQty)
         {
-            var _tempD = Convert.ToDouble(wipQty);
-            if (comp.WipInfo.Count == 1)
+            foreach (var c in comp.WipInfo)
             {
-                comp.WipInfo[0].LotQty = Convert.ToInt32(Math.Round(comp.AssemblyQty * _tempD, 0));
-            }
-            else
-            {
-                var _oddHandle = 0;
-                foreach(var item in comp.WipInfo)
-                {
-                    item.LotQty = Convert.ToInt32(Math.Round(comp.AssemblyQty * _tempD, 0));
-                    if (_oddHandle > 0 && item.LotQty + _oddHandle > wipQty)
-                    {
-                        item.LotQty = _oddHandle - wipQty;
-                    }
-                    _oddHandle += Convert.ToInt32(item.LotQty);
-                }
+                c.BaseQty = Convert.ToInt32(Math.Round(comp.AssemblyQty * wipQty, 0));
             }
         }
     }

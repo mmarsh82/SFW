@@ -34,7 +34,10 @@ namespace SFW.Model
             set { rollStatus = value; OnPropertyChanged(nameof(RollStatus)); }
         }
 
+        public bool QtyLock { get; set; }
+        public string PartNbr { get; set; }
         public bool IsBackFlush { get; set; }
+        public int BaseQty { get; set; }
 
         #endregion
 
@@ -62,9 +65,12 @@ namespace SFW.Model
         /// Defualt Constructor
         /// </summary>
         /// <param name="hasBFLoc">Does the component have a default backflush location</param>
-        public CompWipInfo(bool hasBFLoc)
+        /// <param name="partNbr">Part Number of the component</param>
+        public CompWipInfo(bool hasBFLoc, string partNbr)
         {
             IsBackFlush = hasBFLoc;
+            PartNbr = partNbr;
+            QtyLock = false;
         }
     }
 }

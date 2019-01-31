@@ -2,6 +2,7 @@
 using SFW.Model;
 using SFW.Reports;
 using System;
+using System.Diagnostics;
 using System.Windows.Input;
 
 namespace SFW.Commands
@@ -27,7 +28,11 @@ namespace SFW.Commands
                             new ProcessSpec_View { DataContext = new ProcessSpec_ViewModel(_wo) }.ShowDialog();
                             break;
                         case 1:
-                            ExcelReader.ReadSetup(_wo.SkuNumber, Machine.GetMachineName(App.AppSqlCon, _wo));
+                            var _fileName = ExcelReader.GetSetupPrintNumber(_wo.SkuNumber, Machine.GetMachineName(App.AppSqlCon, _wo));
+                            if (!string.IsNullOrEmpty(_fileName))
+                            {
+                                Process.Start($"\\\\manage2\\server\\Engineering\\Product\\Press Setups\\Controlled Production Press Setups\\{_fileName}.PDF");
+                            }
                             break;
                     }
                 }
