@@ -18,7 +18,7 @@ namespace M2kClient.M2kADIArray
         /// Field 2
         /// Transaction Station ID
         /// </summary>
-        public string StationID { get; set; }
+        public string StationId { get; set; }
 
         /// <summary>
         /// Field 3
@@ -64,6 +64,10 @@ namespace M2kClient.M2kADIArray
         /// </summary>
         public string Reason { get; set; }
 
+        /// <summary>
+        /// Fields 13 - 15
+        /// List of tranasactions to post during Issue validation
+        /// </summary>
         public List<Transaction> TranList { get; set; }
 
         #endregion
@@ -79,7 +83,7 @@ namespace M2kClient.M2kADIArray
         /// <param name="rsn">Issue reason</param>
         public Issue(string stationId, string facCode, string partNbr, string woNbr, string op, string rsn, List<Transaction> tranList)
         {
-            StationID = stationId;
+            StationId = stationId;
             FacilityCode = facCode;
             PartNbr = partNbr;
             WorkOrderNbr = woNbr;
@@ -102,7 +106,7 @@ namespace M2kClient.M2kADIArray
             //13~Transaction Quantity~14~Location~15~Lot Number~99~COMPLETE
             //Must meet this format in order to work with M2k
 
-            var _rValue = $"1~{TranType}~2~{StationID}~3~{TranTime}~4~{TranDate}~5~{FacilityCode}~6~{PartNbr}~7~{WorkOrderNbr}~8~{Operation}~10~{Reason}";
+            var _rValue = $"1~{TranType}~2~{StationId}~3~{TranTime}~4~{TranDate}~5~{FacilityCode}~6~{PartNbr}~7~{WorkOrderNbr}~8~{Operation}~10~{Reason}";
             foreach (var t in TranList)
             {
                 _rValue += !string.IsNullOrEmpty(t.LotNumber) ? $"\n13~{t.Quantity}~14~{t.Location}~15~{t.LotNumber}" : $"\n13~{t.Quantity}~14~{t.Location}";

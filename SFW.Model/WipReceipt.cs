@@ -90,7 +90,7 @@ namespace SFW.Model
             WipWorkOrder = workOrder;
             WipWorkOrder.CrewSize = Sku.GetCrewSize(WipWorkOrder.SkuNumber, WipWorkOrder.Seq, sqlCon);
             HasCrew = Machine.GetMachineGroup(sqlCon, workOrder.OrderNumber, workOrder.Seq) != "PRESS";
-            if (WipWorkOrder.CrewSize > 1 && HasCrew)
+            if (HasCrew)
             {
                 CrewList = new BindingList<CrewMember>
                 {

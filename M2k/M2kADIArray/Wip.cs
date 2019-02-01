@@ -19,7 +19,7 @@ namespace M2kClient.M2kADIArray
         /// Field 2
         /// Transaction Station ID
         /// </summary>
-        public string StationID { get; set; }
+        public string StationId { get; set; }
 
         /// <summary>
         /// Field 3
@@ -99,10 +99,11 @@ namespace M2kClient.M2kADIArray
         /// Use when you have a lot number for the parent part
         /// </summary>
         /// <param name="wipRecord">Wip receipt object</param>
-        public Wip(WipReceipt wipRecord)
+        /// <param name="facCode">Optional: Facility code, default is 01</param>
+        public Wip(WipReceipt wipRecord, string facCode = "01")
         {
-            StationID = wipRecord.Submitter;
-            FacilityCode = "01";
+            StationId = wipRecord.Submitter;
+            FacilityCode = facCode;
             WorkOrderNbr = wipRecord.WipWorkOrder.OrderNumber;
             QtyReceived = Convert.ToInt32(wipRecord.WipQty);
             CFlag = Enum.TryParse(wipRecord.SeqComplete.ToString().ToUpper(), out CompletionFlag cFlag) ? cFlag : CompletionFlag.N;
@@ -150,7 +151,7 @@ namespace M2kClient.M2kADIArray
             //99~COMPLETE
             //Must meet this format in order to work with M2k
 
-            var _rValue = $"1~{TranType}~2~{StationID}~3~{TranTime}~4~{TranDate}~5~{FacilityCode}~6~{WorkOrderNbr}~7~{QtyReceived}~8~{CFlag}~9~{Operation}~14~{RcptLocation}";
+            var _rValue = $"1~{TranType}~2~{StationId}~3~{TranTime}~4~{TranDate}~5~{FacilityCode}~6~{WorkOrderNbr}~7~{QtyReceived}~8~{CFlag}~9~{Operation}~14~{RcptLocation}";
             foreach (var disp in DisplayInfoList)
             {
                 _rValue += $"\n10~{disp.Code}~11~{disp.Reference}~12~{disp.Quantity}";

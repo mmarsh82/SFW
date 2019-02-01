@@ -29,6 +29,7 @@ namespace SFW.Schedule
                 _selectedWO = value;
                 if (value != null)
                 {
+                    //TODO: add in the handler for Q-tasks
                     var _tempDock = App.SiteNumber == 0 ? WorkSpaceDock.CsiDock : WorkSpaceDock.WccoDock;
                     ((ShopRoute.ViewModel)((ShopRoute.View)_tempDock.Children[1]).DataContext).ShopOrder = new WorkOrder(value.Row, App.AppSqlCon);
                 }

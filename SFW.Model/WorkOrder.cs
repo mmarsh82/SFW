@@ -52,7 +52,7 @@ namespace SFW.Model
                 var _wo = drow.Field<string>("WO_Number").Split('*');
                 OrderNumber = _wo[0];
                 Seq = _wo[1];
-                SeqDesc = "Coming Soon...";
+                SeqDesc = GetOperationDescription(drow.Field<string>("WO_Number"), sqlCon);
                 Priority = drow.Field<string>("WO_Priority");
                 StartQty = drow.Field<int>("WO_StartQty");
                 CurrentQty = Convert.ToInt32(drow.Field<decimal>("WO_CurrentQty"));
@@ -239,6 +239,50 @@ namespace SFW.Model
                                 while (reader.Read())
                                 {
                                     _notes += $"{reader.SafeGetString("Wo_Sf_Notes")}\n";
+                                }
+                            }
+                        }
+                    }
+                    return _notes;
+                }
+                catch (SqlException sqlEx)
+                {
+                    throw sqlEx;
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception(ex.Message);
+                }
+            }
+            else
+            {
+                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
+            }
+        }
+
+        /// <summary>
+        /// Get a work order's operation description
+        /// </summary>
+        /// <param name="woNbr">Work order number with sequence</param>
+        /// <param name="sqlCon">Sql Connection to use</param>
+        /// <returns>Operation description as string</returns>
+        public static string GetOperationDescription(string woNbr, SqlConnection sqlCon)
+        {
+            var _notes = string.Empty;
+            if (sqlCon != null || sqlCon.State != ConnectionState.Closed || sqlCon.State != ConnectionState.Broken)
+            {
+                try
+                {
+                    using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database}; SELECT [Remarks] FROM [dbo].[WPO_REMARKS-INIT_Remarks] WHERE [ID] = @p1;", sqlCon))
+                    {
+                        cmd.Parameters.AddWithValue("p1", woNbr);
+                        using (SqlDataReader reader = cmd.ExecuteReader())
+                        {
+                            if (reader.HasRows)
+                            {
+                                while (reader.Read())
+                                {
+                                    _notes += $"{reader.SafeGetString("Remarks")} ";
                                 }
                             }
                         }
