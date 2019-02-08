@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using SFW.Model;
 
 namespace SFW.ShopRoute.QTask
 {
@@ -10,7 +6,8 @@ namespace SFW.ShopRoute.QTask
     {
         #region Properties
 
-
+        public WorkOrder ShopOrder { get; set; }
+        public int CurrentSite { get { return App.SiteNumber; } }
 
         #endregion
 

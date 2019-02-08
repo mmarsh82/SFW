@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
 
@@ -29,9 +30,19 @@ namespace SFW.Schedule
                 _selectedWO = value;
                 if (value != null)
                 {
-                    //TODO: add in the handler for Q-tasks
                     var _tempDock = App.SiteNumber == 0 ? WorkSpaceDock.CsiDock : WorkSpaceDock.WccoDock;
-                    ((ShopRoute.ViewModel)((ShopRoute.View)_tempDock.Children[1]).DataContext).ShopOrder = new WorkOrder(value.Row, App.AppSqlCon);
+                    var _wo = new WorkOrder(value.Row, App.AppSqlCon);
+                    _tempDock.Children.RemoveAt(1);
+                    if (!int.TryParse(_wo.EngStatus, out int i))
+                    {
+                        _tempDock.Children.Insert(1, new ShopRoute.View { DataContext = new ShopRoute.ViewModel() });
+                        ((ShopRoute.ViewModel)((ShopRoute.View)_tempDock.Children[1]).DataContext).ShopOrder = _wo;
+                    }
+                    else
+                    {
+                        _tempDock.Children.Insert(1, new ShopRoute.QTask.View { DataContext = new ShopRoute.QTask.ViewModel() });
+                        ((ShopRoute.QTask.ViewModel)((ShopRoute.QTask.View)_tempDock.Children[1]).DataContext).ShopOrder = _wo;
+                    }
                 }
                 OnPropertyChanged(nameof(SelectedWorkOrder));
             }

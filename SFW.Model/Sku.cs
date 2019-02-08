@@ -19,7 +19,8 @@ namespace SFW.Model
         public int TotalOnHand { get; set; }
         public string MasterPrint { get; set; }
         public List<Component> Bom { get; set; }
-        public QualityTask QTask { get; set; }
+        public string EngStatus { get; set; }
+        public string EngStatusDesc { get; set; }
         public string InventoryType { get; set; }
         public int CrewSize { get; set; }
 

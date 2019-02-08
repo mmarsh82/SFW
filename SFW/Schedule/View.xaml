@@ -14,6 +14,7 @@
         <cvtr:SkuMasterPrint x:Key="PartSearchConverter"/>
         <cvtr:DateToVisibility x:Key="DateToVisConverter"/>
         <cvtr:Multi_EqualIntToVisibility x:Key="IntEqualConverter"/>
+        <cvtr:IntToVisibility x:Key="IntToVisConverter" />
         <cvtr:WoPriorityToBool x:Key="PriToBoolConverter"/>
 
         <ContextMenu x:Key="rowMenu">
@@ -90,6 +91,12 @@
                                                Visibility="{Binding IsStartLate, Converter={StaticResource BoolToVisConverter}}"
                                                ToolTip="Work Order has currently went past it's expected start date."
                                                Margin="10,0,0,0" Height="25" Width="25"/>
+                                        <Image Source="/SFW;component/Icons/Critical.ico"
+                                               Visibility="{Binding EngStatus, Converter={StaticResource IntToVisConverter}}"
+                                               ToolTip="Work Order has currently went past it's expected start date."
+                                               Margin="10,0,0,0"
+                                               Height="25"
+                                               Width="25" />
                                     </StackPanel>
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                                         <TextBlock Text="{Binding SkuNumber}" VerticalAlignment="Center"/>

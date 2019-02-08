@@ -8,7 +8,7 @@
         <Grid>
             <Grid.Resources>
                 <cvtr:StringToVisibility x:Key="StringToVisConverter"/>
-                <cvtr:CountToVisibility x:Key="IntToVisConverter"/>
+                <cvtr:CountToVisibility x:Key="CountToVisConverter"/>
                 <cvtr:SkuMasterPrint x:Key="PartSearchConverter"/>
                 <cvtr:BoolToVisibility x:Key="BoolToVisConverter"/>
                 <cvtr:DateToVisibility x:Key="DateToVisConverter" />
@@ -622,7 +622,7 @@
                                               VerticalAlignment="Top">
 
                                         <DataGrid.Visibility>
-                                            <MultiBinding Converter="{StaticResource IntToVisConverter}"
+                                            <MultiBinding Converter="{StaticResource CountToVisConverter}"
                                                           ConverterParameter="LotList">
                                                 <Binding Path="DataContext.CurrentSite"
                                                          RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType={x:Type DataGrid}}" />
@@ -655,7 +655,7 @@
                                               VerticalAlignment="Top">
 
                                         <DataGrid.Visibility>
-                                            <MultiBinding Converter="{StaticResource IntToVisConverter}"
+                                            <MultiBinding Converter="{StaticResource CountToVisConverter}"
                                                           ConverterParameter="LotList">
                                                 <Binding Path="DataContext.CurrentSite"
                                                          RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType={x:Type DataGrid}}" />
@@ -674,7 +674,7 @@
 
                                     <DataGrid x:Name="dgBomDedications"
                                               ItemsSource="{Binding DedicatedLotList}"
-                                              Visibility="{Binding DedicatedLotList.Count, Converter={StaticResource IntToVisConverter}}"
+                                              Visibility="{Binding DedicatedLotList.Count, Converter={StaticResource CountToVisConverter}}"
                                               MaxHeight="115"
                                               IsReadOnly="True"
                                               FontSize="14"

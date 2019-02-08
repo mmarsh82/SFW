@@ -123,7 +123,7 @@ namespace SFW.Model
 	                                                            a.[Ps_Setup_Top] as 'Top',
 	                                                            a.[Ps_Setup_Center] as 'Center',
 	                                                            a.[Ps_Setup_Bottom] as 'Bottom',
-	                                                            a.[Ps_Pass_Instructions] as 'Instructions'
+	                                                            a.[Pass_Instructions_Mv] as 'Instructions'
                                                             FROM
 	                                                            [dbo].[IM-UDEF-SPEC-INIT_Passes] a
                                                             WHERE
@@ -150,7 +150,7 @@ namespace SFW.Model
                                         TopTemp = reader.SafeGetString("Top"),
                                         CenterTemp = reader.SafeGetString("Center"),
                                         BottomTemp = reader.SafeGetString("Bottom"),
-                                        Instructions = reader.SafeGetString("Instructions")
+                                        Instructions = reader.SafeGetString("Instructions").Replace("<", "\n")
                                     });
                                 }
                             }

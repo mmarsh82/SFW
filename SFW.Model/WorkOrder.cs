@@ -66,6 +66,8 @@ namespace SFW.Model
                 TotalOnHand = drow.Field<int>("SkuOnHand");
                 BomRevDate = drow.Field<DateTime>("BomRevDate") != Convert.ToDateTime("1999-01-01") ? drow.Field<DateTime>("BomRevDate") : DateTime.MinValue;
                 BomRevLevel = drow.Field<string>("BomRevLvl");
+                EngStatus = drow.Field<string>("EngStatus");
+                EngStatusDesc = drow.Field<string>("EngStatusDesc");
                 SalesOrder = new SalesOrder(drow.Field<string>("WO_SalesRef"), sqlCon);
                 Bom = Component.GetComponentList(_wo[0], StartQty - CurrentQty, sqlCon);
                 Notes = GetNotes(_wo[0],sqlCon);
