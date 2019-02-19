@@ -10,7 +10,7 @@ namespace SFW.Model
     /// <summary>
     /// Schedule's Work Center
     /// </summary>
-    public sealed class Machine : WorkOrder
+    public class Machine : WorkOrder
     {
         #region Properties
 
@@ -455,7 +455,7 @@ namespace SFW.Model
                         using (SqlCommand cmd = new SqlCommand($"USE {sqlCon.Database}; SELECT [Work_Ctr_Group] FROM [dbo].[WC-INIT] WHERE [Wc_Nbr] = (SELECT [Work_Center] FROM [dbo].[WPO-INIT] WHERE [ID] = @p1);", sqlCon))
                         {
                             cmd.Parameters.AddWithValue("p1", $"{woNbr}*{seq}");
-                            return cmd.ExecuteScalar().ToString();
+                            return cmd.ExecuteScalar()?.ToString();
                         }
                     }
                     catch (SqlException sqlEx)

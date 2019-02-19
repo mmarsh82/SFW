@@ -11,7 +11,7 @@ namespace SFW.Converters
 
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            return int.TryParse(parameter?.ToString(), out int i) ? Visibility.Visible : Visibility.Collapsed;
+            return int.TryParse(value?.ToString(), out int i) ? Visibility.Visible : Visibility.Collapsed;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

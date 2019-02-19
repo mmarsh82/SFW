@@ -42,7 +42,14 @@ namespace SFW
                     var _tempDock = App.SiteNumber == 0 ? WorkSpaceDock.CsiDock : WorkSpaceDock.WccoDock;
                     if (((Schedule.ViewModel)((Schedule.View)_tempDock.Children[0]).DataContext).ScheduleView != null)
                     {
-                        ((DataView)((Schedule.ViewModel)((Schedule.View)_tempDock.Children[0]).DataContext).ScheduleView.SourceCollection).RowFilter = _temp;
+                        using (DataTable _tempTable = ((DataView)((Schedule.ViewModel)((Schedule.View)_tempDock.Children[0]).DataContext).ScheduleView.SourceCollection).ToTable())
+                        {
+                            if (_tempTable.Select($"MachineNumber = '{value.MachineNumber}'").Length == 0)
+                            {
+                                ((ShopRoute.ViewModel)((ShopRoute.View)_tempDock.Children[1]).DataContext).ShopOrder = new WorkOrder();
+                            }
+                            ((DataView)((Schedule.ViewModel)((Schedule.View)_tempDock.Children[0]).DataContext).ScheduleView.SourceCollection).RowFilter = _temp;
+                        }
                     }
                 }
                 StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(SelectedMachine)));

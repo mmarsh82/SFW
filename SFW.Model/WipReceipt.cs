@@ -71,20 +71,19 @@ namespace SFW.Model
         /// </summary>
         public int Shift { get; set; }
 
-        public static SqlConnection SqlCon { get; private set; }
-
         #endregion
 
         /// <summary>
         /// Wip Receipt Constructor
         /// </summary>
-        /// <param name="submitter">Currently logged in user Full Name</param>
+        /// <param name="subFName">Currently logged in user First Name</param>
+        /// <param name="subLName">Currently logged in user Last Name</param>
         /// <param name="workOrder">Work order object to process</param>
         /// <param name="sqlCon">Sql Connection to use</param>
         public WipReceipt(string subFName, string subLName, WorkOrder workOrder, SqlConnection sqlCon)
         {
             Submitter = $"{subFName} {subLName}";
-            SqlCon = sqlCon;
+            ModelBase.ModelSqlCon = sqlCon;
             SeqComplete = Complete.N;
             WipLot = new Lot();
             WipWorkOrder = workOrder;
@@ -128,7 +127,7 @@ namespace SFW.Model
             if (e.ListChangedType == ListChangedType.ItemChanged && e.PropertyDescriptor.DisplayName == "IdNumber")
             {
                 ((BindingList<CrewMember>)sender)[e.NewIndex].Name = string.Empty;
-                var _dName = CrewMember.GetCrewDisplayName(SqlCon, Convert.ToInt32(((BindingList<CrewMember>)sender)[e.NewIndex].IdNumber));
+                var _dName = CrewMember.GetCrewDisplayName(ModelBase.ModelSqlCon, Convert.ToInt32(((BindingList<CrewMember>)sender)[e.NewIndex].IdNumber));
                 var _duplicate = ((BindingList<CrewMember>)sender).Any(o => o.Name == _dName);
                 if (!string.IsNullOrEmpty(_dName) && !_duplicate)
                 {

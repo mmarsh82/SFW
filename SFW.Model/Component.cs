@@ -128,11 +128,11 @@ namespace SFW.Model
             if (e.ListChangedType == ListChangedType.ItemChanged && e.PropertyDescriptor.DisplayName == "LotNbr")
             {
                 WipInfoUpdating = true;
-                if (Lot.LotValidation(((BindingList<CompWipInfo>)sender)[e.NewIndex].LotNbr, ((BindingList<CompWipInfo>)sender)[e.NewIndex].PartNbr, WipReceipt.SqlCon))
+                if (Lot.LotValidation(((BindingList<CompWipInfo>)sender)[e.NewIndex].LotNbr, ((BindingList<CompWipInfo>)sender)[e.NewIndex].PartNbr, ModelBase.ModelSqlCon))
                 {
                     if (!((BindingList<CompWipInfo>)sender)[e.NewIndex].IsBackFlush)
                     {
-                        ((BindingList<CompWipInfo>)sender)[e.NewIndex].RcptLoc = Lot.GetLotLocation(((BindingList<CompWipInfo>)sender)[e.NewIndex].LotNbr, WipReceipt.SqlCon);
+                        ((BindingList<CompWipInfo>)sender)[e.NewIndex].RcptLoc = Lot.GetLotLocation(((BindingList<CompWipInfo>)sender)[e.NewIndex].LotNbr, ModelBase.ModelSqlCon);
                     }
                     var _unlocked = ((BindingList<CompWipInfo>)sender).Count - ((BindingList<CompWipInfo>)sender).Count(c => c.QtyLock);
                     var _newBase = ((BindingList<CompWipInfo>)sender)[e.NewIndex].BaseQty - ((BindingList<CompWipInfo>)sender).Where(w => w.QtyLock).Sum(s => s.LotQty);

@@ -93,7 +93,7 @@
                                                Margin="10,0,0,0" Height="25" Width="25"/>
                                         <Image Source="/SFW;component/Icons/Critical.ico"
                                                Visibility="{Binding EngStatus, Converter={StaticResource IntToVisConverter}}"
-                                               ToolTip="Work Order has currently went past it's expected start date."
+                                               ToolTip="Work Order needs special attention!"
                                                Margin="10,0,0,0"
                                                Height="25"
                                                Width="25" />

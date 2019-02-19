@@ -52,11 +52,15 @@
                             FontSize="16"
                             IsEnabled="{Binding CanWip, Source={StaticResource User}}"
                             Visibility="{Binding CanStart, Converter={StaticResource BoolToVisConverter}}"
+                            Command="{Binding ReportICommand}"
+                            CommandParameter="0"
                             Style="{DynamicResource MenuButtonStyle}" />
                     <Button Content="Start Shift"
                             FontSize="16"
                             Visibility="{Binding HasStarted, Converter={StaticResource BoolToVisConverter}}"
                             IsEnabled="{Binding Path=CanWip, Source={StaticResource User}}"
+                            Command="{Binding ReportICommand}"
+                            CommandParameter="1"
                             Style="{DynamicResource MenuButtonStyle}" />
                     <Button Content="ITH"
                             FontSize="16"
@@ -88,11 +92,15 @@
                             Width="110"
                             IsEnabled="{Binding CanWip, Source={StaticResource User}}"
                             Visibility="{Binding ShopOrder.ActStartDate, Converter={StaticResource DateToVisConverter}, ConverterParameter=N}"
+                            Command="{Binding ReportICommand}"
+                            CommandParameter="2"
                             Style="{DynamicResource MenuButtonStyle}" />
                     <Button Content="Log Round"
                             FontSize="16"
                             Visibility="{Binding HasStarted, Converter={StaticResource BoolToVisConverter}}"
                             IsEnabled="{Binding CanWip, Source={StaticResource User}}"
+                            Command="{Binding ReportICommand}"
+                            CommandParameter="3"
                             Style="{DynamicResource MenuButtonStyle}" />
                 </StackPanel>
 
@@ -176,7 +184,7 @@
                                Margin="10,0,0,0" />
 
                     <TextBlock Text="USE PLASTIC PALLET"
-                               Visibility="Hidden"
+                               Visibility="Collapsed"
                                Foreground="Crimson"
                                FontSize="24"
                                FontWeight="Bold"

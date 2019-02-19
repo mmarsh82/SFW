@@ -1,6 +1,8 @@
 ﻿using M2kClient;
 using SFW.Commands;
+using SFW.Enumerations;
 using SFW.Model;
+using SFW.Reports;
 using System;
 using System.Windows;
 using System.Windows.Input;
@@ -43,7 +45,7 @@ namespace SFW.ShopRoute
             { return _shopNotes; }
             set
             {
-                _shopNotes = string.IsNullOrEmpty(value) ? ShopOrder.Notes : value;
+                _shopNotes = string.IsNullOrEmpty(value) ? ShopOrder?.Notes : value;
                 OnPropertyChanged(nameof(ShopOrderNotes));
             }
         }
@@ -54,14 +56,15 @@ namespace SFW.ShopRoute
             get
             { return machGroup; }
             set
-            { machGroup = string.IsNullOrEmpty(value) ? Machine.GetMachineGroup(App.AppSqlCon, ShopOrder.OrderNumber, ShopOrder.Seq) : value; OnPropertyChanged(nameof(MachineGroup)); }
+            { machGroup = string.IsNullOrEmpty(value) ? Machine.GetMachineGroup(App.AppSqlCon, ShopOrder?.OrderNumber, ShopOrder?.Seq) : value; OnPropertyChanged(nameof(MachineGroup)); }
         }
-        public bool CanCheckHistory { get { return ShopOrder.StartQty != ShopOrder.CurrentQty; } }
+        public bool CanCheckHistory { get { return ShopOrder?.StartQty != ShopOrder?.CurrentQty; } }
         public bool HasStarted { get { return CurrentUser.IsLoggedIn && MachineGroup == "PRESS" && ShopOrder.ActStartDate != DateTime.MinValue; } }
         public bool CanStart { get { return CurrentUser.IsLoggedIn && MachineGroup == "PRESS" && ShopOrder.ActStartDate == DateTime.MinValue; } }
         public bool CanSeeWip { get { return CurrentUser.IsLoggedIn && ((MachineGroup == "PRESS" && HasStarted) || MachineGroup != "PRESS"); } }
 
         private RelayCommand _noteChange;
+        private RelayCommand _loadReport;
 
         #endregion
 
@@ -110,6 +113,31 @@ namespace SFW.ShopRoute
             }
         }
         private bool NoteChgCanExecute(object parameter) => true;
+
+        #endregion
+
+        #region Load the work order report ICommand
+
+        public ICommand ReportICommand
+        {
+            get
+            {
+                if (_loadReport == null)
+                {
+                    _loadReport = new RelayCommand(ReportExecute, ReportCanExecute);
+                }
+                return _loadReport;
+            }
+        }
+
+        private void ReportExecute(object parameter)
+        {
+            if (parameter != null && Enum.TryParse(parameter.ToString(), out PressReportActions pressAction))
+            {
+                new Press_View { DataContext = new Press_ViewModel(ShopOrder, pressAction) }.ShowDialog();
+            }
+        }
+        private bool ReportCanExecute(object parameter) => true;
 
         #endregion
     }

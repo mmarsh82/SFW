@@ -1,7 +1,104 @@
-﻿<UserControl x:Class="SFW.Reports.Press_View"
-             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+﻿<Window x:Class="SFW.Reports.Press_View"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Topmost="True"
+        WindowState="Maximized"
+        Title="Press Report Sheet">
+    
     <Grid>
-            
+        <Grid.RowDefinitions>
+            <RowDefinition Height="40" />
+            <RowDefinition Height="35" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <StackPanel Grid.Row="0"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Top"
+                    Margin="20,0,0,0">
+
+            <TextBlock Text="Work Order:"
+                       FontSize="24"
+                       FontWeight="Bold"
+                       Foreground="#FF135185"
+                       TextDecorations="Underline" />
+
+            <TextBlock Text="{Binding ShopOrder.OrderNumber}"
+                       FontSize="24"
+                       FontWeight="Bold"
+                       Margin="10,0,0,0" />
+
+            <TextBlock Text="Part Number:"
+                       FontSize="24"
+                       FontWeight="Bold"
+                       TextDecorations="UnderLine"
+                       Foreground="#FF135185" 
+                       Margin="20,0,0,0"/>
+
+            <TextBlock Text="{Binding ShopOrder.SkuNumber}"
+                       FontSize="24"
+                       FontWeight="Bold"
+                       Margin="10,0,0,0" />
+
+            <TextBlock Text="{Binding ShopOrder.SkuDescription}"
+                       FontSize="24"
+                       FontWeight="Bold"
+                       Margin="10,0,0,0" />
+
+        </StackPanel>
+        <StackPanel Grid.Row="1"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Top"
+                    Margin="20,0,0,0">
+
+            <TextBlock Text="Transfering"
+                       FontSize="20"
+                       FontWeight="Bold"
+                       Foreground="#FF135185" />
+
+            <TextBox Text="{Binding Report.SlatTransfer}"
+                     Background="LightGray"
+                     Width="30"
+                     MaxLength="1"
+                     HorizontalContentAlignment="Center"
+                     FontSize="20"
+                     FontWeight="Bold"
+                     Margin="10,0,0,0" />
+
+            <TextBlock Text="Slats"
+                       FontSize="20"
+                       FontWeight="Bold"
+                       Foreground="#FF135185"
+                       Margin="10,0,0,0" />
+
+            <TextBlock Text="Roll Length"
+                       FontSize="20"
+                       FontWeight="Bold"
+                       Foreground="#FF135185"
+                       Margin="20,0,0,0" />
+
+            <TextBox Text="{Binding Report.RollLength}"
+                     Background="LightGray"
+                     Width="60"
+                     MaxLength="4"
+                     HorizontalContentAlignment="Center"
+                     FontSize="20"
+                     FontWeight="Bold"
+                     Margin="10,0,0,0" />
+
+            <TextBlock Text="{Binding ShopOrder.Uom}"
+                       FontSize="20"
+                       FontWeight="Bold"
+                       Margin="10,0,0,0"
+                       Foreground="#FF135185" />
+
+        </StackPanel>
+
+        <TabControl Grid.Row="3"
+                    ItemsSource="{Binding ShiftCollection}"
+                    SelectedItem="{Binding SelectedShift}"
+                    Style="{DynamicResource ModernTabControl}"
+                    ItemContainerStyle="{DynamicResource ModernTabItem}" />
     </Grid>
-</UserControl>
+</Window>

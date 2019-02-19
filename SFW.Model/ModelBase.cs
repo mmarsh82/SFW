@@ -9,6 +9,8 @@ namespace SFW.Model
     {
         #region Properties
 
+        public static SqlConnection ModelSqlCon { get; set; }
+
         #endregion
 
         #region IDisposable Implementation
