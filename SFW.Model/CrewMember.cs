@@ -67,7 +67,7 @@ namespace SFW.Model
         /// <returns></returns>
         public static int GetCrewIdNumber(SqlConnection sqlCon, string firstName, string lastName)
         {
-            if (sqlCon != null || sqlCon.State != ConnectionState.Closed || sqlCon.State != ConnectionState.Broken)
+            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
             {
                 try
                 {
@@ -101,7 +101,7 @@ namespace SFW.Model
         /// <returns></returns>
         public static string GetCrewDisplayName(SqlConnection sqlCon, int idNbr)
         {
-            if (sqlCon != null || sqlCon.State != ConnectionState.Closed || sqlCon.State != ConnectionState.Broken)
+            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
             {
                 try
                 {

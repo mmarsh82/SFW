@@ -47,7 +47,7 @@ namespace SFW.Model
         {
             var _tempList = new List<Component>();
             WipInfoUpdating = false;
-            if (sqlCon != null || sqlCon.State != ConnectionState.Closed || sqlCon.State != ConnectionState.Broken)
+            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
             {
                 try
                 {

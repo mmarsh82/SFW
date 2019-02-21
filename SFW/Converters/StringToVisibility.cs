@@ -18,6 +18,10 @@ namespace SFW.Converters
             {
                 return string.IsNullOrEmpty(value?.ToString()) ? Visibility.Hidden : Visibility.Visible;
             }
+            else if(parameter?.ToString() == "Status")
+            {
+                return value?.ToString() == "O" ? Visibility.Collapsed : Visibility.Visible;
+            }
             else
             {
                 return string.IsNullOrWhiteSpace(value?.ToString()) ? Visibility.Collapsed : Visibility.Visible;

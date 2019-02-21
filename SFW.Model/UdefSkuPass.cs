@@ -38,7 +38,7 @@ namespace SFW.Model
         /// <param name="sqlCon"></param>
         public UdefSkuPass(string partNbr, string seq, SqlConnection sqlCon)
         {
-            if (sqlCon != null || sqlCon.State != ConnectionState.Closed || sqlCon.State != ConnectionState.Broken)
+            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
             {
                 try
                 {
@@ -107,7 +107,7 @@ namespace SFW.Model
         public static List<UdefSkuPass> GetUdefPassList(string partNbr, string seq, SqlConnection sqlCon)
         {
             var _temp = new List<UdefSkuPass>();
-            if (sqlCon != null || sqlCon.State != ConnectionState.Closed || sqlCon.State != ConnectionState.Broken)
+            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
             {
                 try
                 {

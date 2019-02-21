@@ -23,7 +23,7 @@
                        Foreground="#FF135185"
                        TextDecorations="Underline" />
 
-            <TextBlock Text="{Binding ShopOrder.OrderNumber}"
+            <TextBlock Text="{Binding Report.ShopOrder.OrderNumber}"
                        FontSize="24"
                        FontWeight="Bold"
                        Margin="10,0,0,0" />
@@ -35,12 +35,12 @@
                        Foreground="#FF135185" 
                        Margin="20,0,0,0"/>
 
-            <TextBlock Text="{Binding ShopOrder.SkuNumber}"
+            <TextBlock Text="{Binding Report.ShopOrder.SkuNumber}"
                        FontSize="24"
                        FontWeight="Bold"
                        Margin="10,0,0,0" />
 
-            <TextBlock Text="{Binding ShopOrder.SkuDescription}"
+            <TextBlock Text="{Binding Report.ShopOrder.SkuDescription}"
                        FontSize="24"
                        FontWeight="Bold"
                        Margin="10,0,0,0" />
@@ -57,14 +57,16 @@
                        FontWeight="Bold"
                        Foreground="#FF135185" />
 
-            <TextBox Text="{Binding Report.SlatTransfer}"
+            <TextBox x:Name="TransferSlat"
+                     Text="{Binding Report.SlatTransfer, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
                      Background="LightGray"
                      Width="30"
                      MaxLength="1"
                      HorizontalContentAlignment="Center"
                      FontSize="20"
                      FontWeight="Bold"
-                     Margin="10,0,0,0" />
+                     Margin="10,0,0,0"
+                     TabIndex="0"/>
 
             <TextBlock Text="Slats"
                        FontSize="20"
@@ -78,16 +80,17 @@
                        Foreground="#FF135185"
                        Margin="20,0,0,0" />
 
-            <TextBox Text="{Binding Report.RollLength}"
+            <TextBox Text="{Binding Report.RollLength, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
                      Background="LightGray"
                      Width="60"
                      MaxLength="4"
                      HorizontalContentAlignment="Center"
                      FontSize="20"
                      FontWeight="Bold"
-                     Margin="10,0,0,0" />
+                     Margin="10,0,0,0" 
+                     TabIndex="1"/>
 
-            <TextBlock Text="{Binding ShopOrder.Uom}"
+            <TextBlock Text="{Binding Report.ShopOrder.Uom}"
                        FontSize="20"
                        FontWeight="Bold"
                        Margin="10,0,0,0"

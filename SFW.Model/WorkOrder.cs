@@ -84,7 +84,7 @@ namespace SFW.Model
         public static List<WorkOrder> GetWorkOrderList(string workCntNbr, SqlConnection sqlCon)
         {
             var _tempList = new List<WorkOrder>();
-            if (sqlCon != null || sqlCon.State != ConnectionState.Closed || sqlCon.State != ConnectionState.Broken)
+            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
             {
                 try
                 {
@@ -183,7 +183,7 @@ namespace SFW.Model
         public static string GetNotes(string woNbr, SqlConnection sqlCon)
         {
             var _notes = string.Empty;
-            if (sqlCon != null || sqlCon.State != ConnectionState.Closed || sqlCon.State != ConnectionState.Broken)
+            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
             {
                 try
                 {
@@ -227,7 +227,7 @@ namespace SFW.Model
         public static string GetShopNotes(string woNbr, SqlConnection sqlCon)
         {
             var _notes = string.Empty;
-            if (sqlCon != null || sqlCon.State != ConnectionState.Closed || sqlCon.State != ConnectionState.Broken)
+            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
             {
                 try
                 {
@@ -271,7 +271,7 @@ namespace SFW.Model
         public static string GetOperationDescription(string woNbr, SqlConnection sqlCon)
         {
             var _notes = string.Empty;
-            if (sqlCon != null || sqlCon.State != ConnectionState.Closed || sqlCon.State != ConnectionState.Broken)
+            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
             {
                 try
                 {

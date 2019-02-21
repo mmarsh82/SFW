@@ -1,10 +1,12 @@
 ﻿<UserControl x:Class="SFW.Reports.PressShift_View"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:cvtr="clr-namespace:SFW.Converters">
+             xmlns:cvtr="clr-namespace:SFW.Converters"
+             Name="PressShift_UserControl">
 
     <UserControl.Resources>
         <cvtr:StringToVisibility x:Key="StringtoVisConverter" />
+        <cvtr:BoolToVisibility x:Key="BoolToVisConverter" />
     </UserControl.Resources>
     
     <Grid>
@@ -16,11 +18,15 @@
             <RowDefinition Height="40" />
         </Grid.RowDefinitions>
 
+        <!--#region Header-->
+        
         <TextBlock Grid.Row="0"
                    Text="{Binding PSReport.MachineName, StringFormat={}{0} Report}"
                    FontWeight="Bold"
                    FontSize="24" 
                    Foreground="Black" />
+        
+        <!--#endregion-->
 
         <!--#region Seperator-->
 
@@ -75,7 +81,7 @@
                             <TextBlock Text="{Binding Name}"
                                        VerticalAlignment="Center"
                                        Margin="10,0,0,0" />
-                            <Button Command="{Binding DataContext.RemoveCrewICommand, ElementName=WipWindow}"
+                            <Button Command="{Binding DataContext.RemoveCrewICommand, ElementName=PressShift_UserControl}"
                                     CommandParameter="{Binding IdNumber}"
                                     Visibility="{Binding IdNumber, Converter={StaticResource StringtoVisConverter}}"
                                     Width="20"
@@ -102,15 +108,40 @@
 
         <!--#endregion-->
 
+        <!--#region Footer-->
+        
+        <StackPanel Grid.Row="4"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Left"
+                    Margin="10,0,0,0">
+            
+            <TextBlock Text="Report ID:"
+                       FontSize="24"
+                       FontWeight="Bold"
+                       Foreground="#FF135185"
+                       TextDecorations="Underline" />
+
+            <TextBlock Text="{Binding PSReport.ReportID}"
+                       FontSize="24"
+                       FontWeight="Bold"
+                       Foreground="Black"
+                       Margin="10,0,0,0" />
+                       
+        </StackPanel>
+
         <Button Grid.Row="4"
                 Content="{Binding ReportAction}"
-                Command="{Binding}"
+                Command="{Binding DataContext.ReportActionICommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type TabControl}}}"
+                CommandParameter="{Binding DataContext, ElementName=PressShift_UserControl}"
+                Visibility="{Binding CanEdit, Converter={StaticResource BoolToVisConverter}}"
                 HorizontalAlignment="Center"
                 Width="100"
                 FontWeight="Bold"
                 FontSize="20"
                 Margin="2"
-                Style="{DynamicResource DefaultButton}"/>
+                Style="{DynamicResource DefaultButton}" />
+        
+        <!--#endregion-->
 
     </Grid>
 </UserControl>

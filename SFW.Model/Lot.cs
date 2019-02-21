@@ -42,7 +42,7 @@ namespace SFW.Model
         /// <param name="lotNbr">Lot Number</param>
         public Lot(string lotNbr, SqlConnection sqlCon)
         {
-            if (sqlCon != null || sqlCon.State != ConnectionState.Closed || sqlCon.State != ConnectionState.Broken)
+            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
             {
                 if (Dedication == null)
                 {
@@ -89,7 +89,7 @@ namespace SFW.Model
         /// <returns>List of lots associated with the part number</returns>
         public static List<Lot> GetOnHandLotList(string partNbr, SqlConnection sqlCon)
         {
-            if (sqlCon != null || sqlCon.State != ConnectionState.Closed || sqlCon.State != ConnectionState.Broken)
+            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
             {
                 try
                 {
@@ -145,7 +145,7 @@ namespace SFW.Model
         /// <returns>List of lots associated with the part number</returns>
         public static List<Lot> GetOnHandNonLotList(string partNbr, SqlConnection sqlCon)
         {
-            if (sqlCon != null || sqlCon.State != ConnectionState.Closed || sqlCon.State != ConnectionState.Broken)
+            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
             {
                 try
                 {
@@ -198,7 +198,7 @@ namespace SFW.Model
         /// <returns>DataTable of historical lot transactions</returns>
         public static DataTable GetLotHistoryTable(string partNbr, SqlConnection sqlCon)
         {
-            if (sqlCon != null || sqlCon.State != ConnectionState.Closed || sqlCon.State != ConnectionState.Broken)
+            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
             {
                 try
                 {
@@ -242,7 +242,7 @@ namespace SFW.Model
         /// <param name="sqlCon">Sql Connection to use</param>
         public static List<Lot> GetDedicatedLotList(string partNbr, string woNbr, SqlConnection sqlCon)
         {
-            if (sqlCon != null || sqlCon.State != ConnectionState.Closed || sqlCon.State != ConnectionState.Broken)
+            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
             {
                 var _temp = new List<Lot>();
                 try
@@ -299,7 +299,7 @@ namespace SFW.Model
         /// <returns>Validation response</returns>
         public static bool LotValidation(string lotNbr, string partNbr, SqlConnection sqlCon)
         {
-            if (sqlCon != null || sqlCon.State != ConnectionState.Closed || sqlCon.State != ConnectionState.Broken)
+            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
             {
                 try
                 {
@@ -329,7 +329,7 @@ namespace SFW.Model
         /// <returns>QIR Number as int</returns>
         public static int GetAssociatedQIR(string lotNbr, SqlConnection sqlCon)
         {
-            if (sqlCon != null || sqlCon.State != ConnectionState.Closed || sqlCon.State != ConnectionState.Broken)
+            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
             {
                 var _db = sqlCon.Database;
                 try
@@ -363,7 +363,7 @@ namespace SFW.Model
         /// <returns>Location that the lot number is current in as string</returns>
         public static string GetLotLocation(string lotNbr, SqlConnection sqlCon)
         {
-            if (sqlCon != null || sqlCon.State != ConnectionState.Closed || sqlCon.State != ConnectionState.Broken)
+            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
             {
                 try
                 {

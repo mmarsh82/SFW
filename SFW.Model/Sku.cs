@@ -40,7 +40,7 @@ namespace SFW.Model
         /// <param name="sqlCon">Sql Connection to use</param>
         public Sku(string partNbr, SqlConnection sqlCon)
         {
-            if (sqlCon != null || sqlCon.State != ConnectionState.Closed || sqlCon.State != ConnectionState.Broken)
+            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
             {
                 try
                 {
@@ -99,7 +99,7 @@ namespace SFW.Model
         /// <returns>crew size as int</returns>
         public static int GetCrewSize(string partNbr, string seq, SqlConnection sqlCon)
         {
-            if (sqlCon != null || sqlCon.State != ConnectionState.Closed || sqlCon.State != ConnectionState.Broken)
+            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
             {
                 try
                 {
@@ -133,13 +133,15 @@ namespace SFW.Model
         /// <returns>Diamond number as string</returns>
         public static string GetDiamondNumber(string lotNbr, SqlConnection sqlCon)
         {
-            var _found = false;
-            var _lot = $"a.[Parent_Lot] = '{lotNbr}|P'";
-            var _dmdNbr = string.Empty;
-            while (!_found)
+            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
             {
-                _lot += ";";
-                using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database};
+                var _found = false;
+                var _lot = $"a.[Parent_Lot] = '{lotNbr}|P'";
+                var _dmdNbr = string.Empty;
+                while (!_found)
+                {
+                    _lot += ";";
+                    using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database};
                                                             SELECT
                                                                 SUBSTRING(a.[Component_Lot],0,LEN(a.[Component_Lot]) - 1) as 'Comp_Lot', b.[Inventory_Type] as 'Type'
                                                             FROM
@@ -148,29 +150,34 @@ namespace SFW.Model
 	                                                            [dbo].[IM-INIT] b ON b.[Part_Number] = a.[Comp_Pn]
                                                             WHERE
 	                                                            {_lot}", sqlCon))
-                {
-                    _lot = string.Empty;
-                    using (SqlDataReader reader = cmd.ExecuteReader())
                     {
-                        if (reader.HasRows)
+                        _lot = string.Empty;
+                        using (SqlDataReader reader = cmd.ExecuteReader())
                         {
-                            while (reader.Read())
+                            if (reader.HasRows)
                             {
-                                if(reader.SafeGetString("Type") == "RR")
+                                while (reader.Read())
                                 {
-                                    _dmdNbr = reader.SafeGetString("Comp_Lot");
-                                    _found = true;
-                                }
-                                else
-                                {
-                                    _lot += $"a.[Parent_Lot] = '{reader.SafeGetString("Comp_Lot")}|P'";
+                                    if (reader.SafeGetString("Type") == "RR")
+                                    {
+                                        _dmdNbr = reader.SafeGetString("Comp_Lot");
+                                        _found = true;
+                                    }
+                                    else
+                                    {
+                                        _lot += $"a.[Parent_Lot] = '{reader.SafeGetString("Comp_Lot")}|P'";
+                                    }
                                 }
                             }
                         }
                     }
                 }
+                return _dmdNbr;
             }
-            return _dmdNbr;
+            else
+            {
+                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
+            }
         }
 
         /// <summary>
@@ -181,20 +188,22 @@ namespace SFW.Model
         /// <returns>Diamond number as string</returns>
         public static string GetDiamondNumber(List<Component> compList, SqlConnection sqlCon)
         {
-            var _dmdNbr = string.Empty;
-            foreach (var c in compList)
+            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
             {
-                if (c.IsLotTrace && c.InventoryType != "HM")
+                var _dmdNbr = string.Empty;
+                foreach (var c in compList)
                 {
-                    foreach (var w in c.WipInfo)
+                    if (c.IsLotTrace && c.InventoryType != "HM")
                     {
-                        if (!string.IsNullOrEmpty(w.LotNbr))
+                        foreach (var w in c.WipInfo)
                         {
-                            var _found = false;
-                            var _lot = $"a.[Parent_Lot] = '{w.LotNbr}|P'";
-                            while (!_found)
+                            if (!string.IsNullOrEmpty(w.LotNbr))
                             {
-                                using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database};
+                                var _found = false;
+                                var _lot = $"a.[Parent_Lot] = '{w.LotNbr}|P'";
+                                while (!_found)
+                                {
+                                    using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database};
                                                             SELECT
                                                                 SUBSTRING(a.[Component_Lot],0,LEN(a.[Component_Lot]) - 1) as 'Comp_Lot', b.[Inventory_Type] as 'Type'
                                                             FROM
@@ -203,29 +212,30 @@ namespace SFW.Model
 	                                                            [dbo].[IM-INIT] b ON b.[Part_Number] = a.[Comp_Pn]
                                                             WHERE
 	                                                            {_lot};", sqlCon))
-                                {
-                                    _lot = string.Empty;
-                                    using (SqlDataReader reader = cmd.ExecuteReader())
                                     {
-                                        if (reader.HasRows)
+                                        _lot = string.Empty;
+                                        using (SqlDataReader reader = cmd.ExecuteReader())
                                         {
-                                            while (reader.Read())
+                                            if (reader.HasRows)
                                             {
-                                                if (reader.SafeGetString("Type") == "RR")
+                                                while (reader.Read())
                                                 {
-                                                    _dmdNbr = reader.SafeGetString("Comp_Lot");
-                                                    _found = true;
-                                                }
-                                                else
-                                                {
-                                                    _lot += $"a.[Parent_Lot] = '{reader.SafeGetString("Comp_Lot")}|P'";
+                                                    if (reader.SafeGetString("Type") == "RR")
+                                                    {
+                                                        _dmdNbr = reader.SafeGetString("Comp_Lot");
+                                                        _found = true;
+                                                    }
+                                                    else
+                                                    {
+                                                        _lot += $"a.[Parent_Lot] = '{reader.SafeGetString("Comp_Lot")}|P'";
+                                                    }
                                                 }
                                             }
-                                        }
-                                        else
-                                        {
-                                            _dmdNbr = w.LotNbr;
-                                            _found = true;
+                                            else
+                                            {
+                                                _dmdNbr = w.LotNbr;
+                                                _found = true;
+                                            }
                                         }
                                     }
                                 }
@@ -233,8 +243,12 @@ namespace SFW.Model
                         }
                     }
                 }
+                return _dmdNbr;
             }
-            return _dmdNbr;
+            else
+            {
+                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
+            }
         }
     }
 }

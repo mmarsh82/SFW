@@ -12,6 +12,11 @@ namespace SFW.Model
         #region Properties
 
         /// <summary>
+        /// Unique ID for the shift report
+        /// </summary>
+        public int? ReportID { get; set; }
+
+        /// <summary>
         /// Report Work Center Name
         /// </summary>
         public string MachineName { get; set; }
@@ -26,8 +31,17 @@ namespace SFW.Model
         /// </summary>
         public DataTable RoundTable { get; set; }
 
+        /// <summary>
+        /// Production shift allocated to the shift report object
+        /// </summary>
         public int Shift { get; set; }
+
+        /// <summary>
+        /// Date this report object was created
+        /// </summary>
         public DateTime ReportDate { get; set; }
+
+        public string ReportStatus { get; set; }
 
         #endregion
 
@@ -38,12 +52,12 @@ namespace SFW.Model
         { }
 
         /// <summary>
-        /// 
+        /// Press shift report object constructor
         /// </summary>
-        /// <param name="subFName"></param>
-        /// <param name="subLName"></param>
-        /// <param name="wcName"></param>
-        /// <param name="rDate"></param>
+        /// <param name="subFName">Current user full name</param>
+        /// <param name="subLName">Current user last name</param>
+        /// <param name="wcName">Machine name</param>
+        /// <param name="rDate">Report or submit date</param>
         /// <param name="sqlCon"></param>
         /// <param name="shift"></param>
         public Press_ShiftReport(string subFName, string subLName, string wcName, DateTime rDate, SqlConnection sqlCon, int shift = 0)
@@ -66,6 +80,7 @@ namespace SFW.Model
             Shift = shift;
             ReportDate = rDate;
             MachineName = wcName;
+            ReportStatus = "O";
             ModelBase.ModelSqlCon = sqlCon;
             CrewList = new BindingList<CrewMember>
                 {
@@ -73,18 +88,38 @@ namespace SFW.Model
                 };
             CrewList.AddNew();
             CrewList.ListChanged += CrewList_ListChanged;
+            if (sqlCon != null || sqlCon.State != ConnectionState.Closed || sqlCon.State != ConnectionState.Broken)
+            {
+                try
+                {
+                    using (SqlDataAdapter adapter = new SqlDataAdapter($@"USE {sqlCon.Database};
+                                                                            SELECT TOP (0) [Time]
+                                                                                ,[RoundNumber] as 'Round Number'
+                                                                                ,[QtyComplete] as 'Qty Done'
+                                                                                ,[RoundSlats] as 'Slats per Round'
+                                                                                ,[Notes]
+                                                                            FROM [dbo].[PRM-CSTM_Round]", sqlCon))
+                    {
+                        RoundTable = new DataTable();
+                        adapter.Fill(RoundTable);
+                    }
+                }
+                catch (SqlException sqlEx)
+                {
+                    throw sqlEx;
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception(ex.Message);
+                }
+            }
+            else
+            {
+                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
+            }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="reportID"></param>
-        /// <param name="wcName"></param>
-        /// <param name="rDate"></param>
-        /// <param name="shift"></param>
-        /// <param name="sqlCon"></param>
-        /// <returns></returns>
-        public Press_ShiftReport (int reportID, string wcName, DateTime rDate, int shift, SqlConnection sqlCon)
+        public Press_ShiftReport (int reportID,  string wcName, DateTime rDate, int shift, SqlConnection sqlCon)
         {
             MachineName = wcName;
             ReportDate = rDate;
@@ -155,49 +190,50 @@ namespace SFW.Model
             }
         }
 
-        public static int SubmitReportStart(WorkOrder wo, PressReport pReport, int index, SqlConnection sqlCon)
+        /// <summary>
+        /// Submit the Press shift report object to a SQL Database
+        /// </summary>
+        /// <param name="woNbr">Work order number</param>
+        /// <param name="psReport">Press shift report object to submit</param>
+        /// <param name="sqlCon">Sql Connection to use</param>
+        /// <returns>Report unique ID</returns>
+        public int Submit(string woNbr, Press_ShiftReport psReport, SqlConnection sqlCon)
         {
-            if (sqlCon != null || sqlCon.State != ConnectionState.Closed || sqlCon.State != ConnectionState.Broken)
+            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
             {
                 try
                 {
-                    var _idNumber = 0;
-                    using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database};
-                                                                INSERT INTO
-                                                                    [dbo].[PRM-CSTM] ([WorkOrder], [SlatTransfer], [RollLength], [SubmitDate], [Shift], [MachineName])
-                                                                VALUES (@p1, @p2, @p3, @p4, @p5, @p6)
-                                                                SELECT [ID] FROM [dbo].[PRM-CSTM] WHERE [ID] = @@IDENTITY;", sqlCon))
+                    using (SqlCommand cmd = new SqlCommand(@"INSERT INTO [dbo].[PRM-CSTM_Shift] ([SubmitDate], [WorkOrder], [Shift], [Status]) VALUES(@p1, @p2, @p3, @p4);
+                                                                SELECT [ReportID] FROM [PRM-CSTM_Shift] WHERE [ReportID] = @@IDENTITY;", sqlCon))
                     {
-                        cmd.Parameters.AddWithValue("p1", wo.OrderNumber);
-                        cmd.Parameters.AddWithValue("p2", pReport.SlatTransfer);
-                        cmd.Parameters.AddWithValue("p3", pReport.RollLength);
-                        cmd.Parameters.AddWithValue("p4", pReport.ShiftReportList[index].ReportDate);
-                        cmd.Parameters.AddWithValue("p5", pReport.ShiftReportList[index].Shift);
-                        cmd.Parameters.AddWithValue("p6", pReport.ShiftReportList[index].MachineName);
-                        _idNumber = Convert.ToInt32(cmd.ExecuteScalar());
+                        cmd.Parameters.AddWithValue("p1", psReport.ReportDate);
+                        cmd.Parameters.AddWithValue("p2", woNbr);
+                        cmd.Parameters.AddWithValue("p3", psReport.Shift);
+                        cmd.Parameters.AddWithValue("p4", psReport.ReportStatus);
+                        psReport.ReportID = Convert.ToInt32(cmd.ExecuteScalar());
                     }
+                    //Writing the Crew to the database in 1 query, requires the parsing of the the crewlist property
                     var cmdString = $@"USE { sqlCon.Database};";
                     var _counter = 1;
                     using (SqlCommand cmd = new SqlCommand(cmdString, sqlCon))
                     {
-                        foreach (var s in pReport.ShiftReportList[index].CrewList)
+                        foreach (var s in psReport.CrewList)
                         {
-                            cmd.CommandText += $" INSERT INTO [dbo].[PRM-CSTM]_Crew ([ReportID], [UserID]) VALUES(@p{_counter}, @p{_counter + 1});";
-                            cmd.Parameters.AddWithValue($"p{_counter}", _idNumber);
-                            cmd.Parameters.AddWithValue($"p{_counter + 1}", s.IdNumber);
-                            _counter = _counter + 2;
+                            if (s.IdNumber != null)
+                            {
+                                cmd.CommandText += $" INSERT INTO [dbo].[PRM-CSTM_Crew] ([ReportID], [UserID]) VALUES(@p{_counter}, @p{_counter + 1});";
+                                cmd.Parameters.AddWithValue($"p{_counter}", psReport.ReportID);
+                                cmd.Parameters.AddWithValue($"p{_counter + 1}", s.IdNumber);
+                                _counter = _counter + 2;
+                            }
                         }
                         cmd.ExecuteNonQuery();
                     }
-                    return _idNumber;
-                }
-                catch (SqlException sqlEx)
-                {
-                    throw sqlEx;
+                    return Convert.ToInt32(psReport.ReportID);
                 }
                 catch (Exception ex)
                 {
-                    throw new Exception(ex.Message);
+                    throw ex;
                 }
             }
             else
@@ -205,7 +241,8 @@ namespace SFW.Model
                 throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
             }
         }
-        public static void SubmitRound(SqlConnection sqlCon)
+
+        public static void SubmitRound(DataRow dRow, SqlConnection sqlCon)
         {
             if (sqlCon != null || sqlCon.State != ConnectionState.Closed || sqlCon.State != ConnectionState.Broken)
             {
@@ -213,16 +250,15 @@ namespace SFW.Model
                 {
                     using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database};
                                                                 INSERT INTO
-                                                                    [dbo].[PRM-CSTM] ([WorkOrder], [SlatTransfer], [RollLength], [SubmitDate], [Shift], [MachineName])
-                                                                VALUES (@p1, @p2, @p3, @p4, @p5, @p6)
-                                                                SELECT [ID] FROM [dbo].[PRM-CSTM] WHERE [ID] = @@IDENTITY;", sqlCon))
+                                                                    [dbo].[PRM-CSTM]_Round ([ReportID], [RoundNumber], [Time], [QtyComplete], [RoundSlats], [Notes])
+                                                                VALUES (@p1, @p2, @p3, @p4, @p5, @p6)", sqlCon))
                     {
-                        cmd.Parameters.AddWithValue("p1", "WorkOrder#");
-                        cmd.Parameters.AddWithValue("p2", "Slat");
-                        cmd.Parameters.AddWithValue("p3", "Length");
-                        cmd.Parameters.AddWithValue("p4", "");
-                        cmd.Parameters.AddWithValue("p5", "");
-                        cmd.Parameters.AddWithValue("p6", "");
+                        cmd.Parameters.AddWithValue("p1", "ReportID");
+                        cmd.Parameters.AddWithValue("p2", "RoundNumber");
+                        cmd.Parameters.AddWithValue("p3", "Time");
+                        cmd.Parameters.AddWithValue("p4", "Qty");
+                        cmd.Parameters.AddWithValue("p5", "Slats");
+                        cmd.Parameters.AddWithValue("p6", "Notes");
                     }
                 }
                 catch (SqlException sqlEx)
@@ -239,7 +275,7 @@ namespace SFW.Model
                 throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
             }
         }
-        public static void UpdateReport(SqlConnection sqlCon)
+        public static void UpdateRound(SqlConnection sqlCon)
         {
             if (sqlCon != null || sqlCon.State != ConnectionState.Closed || sqlCon.State != ConnectionState.Broken)
             {

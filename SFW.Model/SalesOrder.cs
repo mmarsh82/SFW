@@ -36,7 +36,7 @@ namespace SFW.Model
         {
             if (!string.IsNullOrEmpty(soNbr))
             {
-                if (sqlCon != null || sqlCon.State != ConnectionState.Closed || sqlCon.State != ConnectionState.Broken)
+                if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
                 {
                     if (soNbr.Contains("*"))
                     {

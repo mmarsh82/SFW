@@ -36,7 +36,7 @@ namespace SFW.Model
         {
             var _tempList = new List<Machine>();
             var conString = string.Empty;
-            if (sqlCon != null || sqlCon.State != ConnectionState.Closed || sqlCon.State != ConnectionState.Broken)
+            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
             {
                 try
                 {
@@ -88,7 +88,7 @@ namespace SFW.Model
             {
                 _tempList.Add(new Machine { MachineNumber = "0", MachineName = "All", IsLoaded = true });
             }
-            if (sqlCon != null || sqlCon.State != ConnectionState.Closed || sqlCon.State != ConnectionState.Broken)
+            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
             {
                 try
                 {
@@ -137,7 +137,7 @@ namespace SFW.Model
             //TODO: Needs to be rewritten to include a list rather than a datatable so that in the future async loading can be done
             using (var _tempTable = new DataTable())
             {
-                if (sqlCon != null || sqlCon.State != ConnectionState.Closed || sqlCon.State != ConnectionState.Broken)
+                if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
                 {
                     try
                     {
@@ -222,7 +222,7 @@ namespace SFW.Model
             //TODO: See the note from the previous method
             using (var _tempTable = new DataTable())
             {
-                if (sqlCon != null || sqlCon.State != ConnectionState.Closed || sqlCon.State != ConnectionState.Broken)
+                if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
                 {
                     try
                     {
@@ -298,7 +298,7 @@ namespace SFW.Model
             {
                 _tempList.Add("All");
             }
-            if (sqlCon != null || sqlCon.State != ConnectionState.Closed || sqlCon.State != ConnectionState.Broken)
+            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
             {
                 try
                 {
@@ -340,7 +340,7 @@ namespace SFW.Model
         /// <returns>Machine Name as string</returns>
         public static string GetMachineName(SqlConnection sqlCon, WorkOrder workOrder)
         {
-            if (sqlCon != null || sqlCon.State != ConnectionState.Closed || sqlCon.State != ConnectionState.Broken)
+            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
             {
                 try
                 {
@@ -378,7 +378,7 @@ namespace SFW.Model
             {
                 return "All";
             }
-            if (sqlCon != null || sqlCon.State != ConnectionState.Closed || sqlCon.State != ConnectionState.Broken)
+            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
             {
                 try
                 {
@@ -411,7 +411,7 @@ namespace SFW.Model
         /// <returns>Machine group as string</returns>
         public static string GetMachineGroup(SqlConnection sqlCon, WorkOrder workOrder)
         {
-            if (sqlCon != null || sqlCon.State != ConnectionState.Closed || sqlCon.State != ConnectionState.Broken)
+            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
             {
                 try
                 {
@@ -448,7 +448,7 @@ namespace SFW.Model
         {
             if (!string.IsNullOrEmpty(woNbr) || !string.IsNullOrEmpty(seq))
             {
-                if (sqlCon != null || sqlCon.State != ConnectionState.Closed || sqlCon.State != ConnectionState.Broken)
+                if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
                 {
                     try
                     {

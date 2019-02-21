@@ -33,7 +33,7 @@ namespace SFW.Model
         /// <param name="sqlCon">Sql onnection Object to use</param>
         public UdefSku(string partNbr, string seq, SqlConnection sqlCon)
         {
-            if (sqlCon != null || sqlCon.State != ConnectionState.Closed || sqlCon.State != ConnectionState.Broken)
+            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
             {
                 try
                 {
@@ -116,7 +116,7 @@ namespace SFW.Model
         public static string GetSetUpInstructions(string partNbr, string seq, SqlConnection sqlCon)
         {
             var _temp = string.Empty;
-            if (sqlCon != null || sqlCon.State != ConnectionState.Closed || sqlCon.State != ConnectionState.Broken)
+            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
             {
                 try
                 {
@@ -162,7 +162,7 @@ namespace SFW.Model
         public static string GetPackInstructions(string partNbr, string seq, SqlConnection sqlCon)
         {
             var _temp = string.Empty;
-            if (sqlCon != null || sqlCon.State != ConnectionState.Closed || sqlCon.State != ConnectionState.Broken)
+            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
             {
                 try
                 {

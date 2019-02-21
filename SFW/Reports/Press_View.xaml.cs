@@ -10,6 +10,7 @@ namespace SFW.Reports
         public Press_View()
         {
             InitializeComponent();
+            Loaded += delegate { TransferSlat.Focus(); };
         }
     }
 }
