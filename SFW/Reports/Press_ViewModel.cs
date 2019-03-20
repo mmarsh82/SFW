@@ -1,14 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Controls;
-using System.Windows.Input;
-using SFW.Commands;
+﻿using SFW.Commands;
 using SFW.Enumerations;
 using SFW.Model;
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Windows.Controls;
+using System.Windows.Input;
 
 namespace SFW.Reports
 {
@@ -42,14 +39,19 @@ namespace SFW.Reports
                     Report.ShiftReportList.Insert(0, new Press_ShiftReport(CurrentUser.FirstName, CurrentUser.LastName, Machine.GetMachineName(App.AppSqlCon, wo), DateTime.Today, App.AppSqlCon));
                     break;
                 case PressReportActions.ViewReport:
-
+                    Report = new PressReport(wo, App.AppSqlCon);
                     break;
                 case PressReportActions.LogProgress:
-
+                    Report = new PressReport(wo, App.AppSqlCon);
+                    Press_ShiftReport.SubmitRound(Report, Report.ShiftReportList[0], App.AppSqlCon);
+                    Report.ShiftReportList[0].RoundTable = Press_ShiftReport.GetRoundTable(Convert.ToInt32(Report.ShiftReportList[0].ReportID), App.AppSqlCon);
                     break;
             }
             ShiftCollection = new ObservableCollection<TabItem>(LoadShiftCollection(Report.ShiftReportList));
-            SelectedShift = ShiftCollection[0];
+            if (ShiftCollection.Count > 0)
+            {
+                SelectedShift = ShiftCollection[0];
+            }
         }
 
         /// <summary>
@@ -74,6 +76,30 @@ namespace SFW.Reports
             return _tempList;
         }
 
+        /// <summary>
+        /// Post labor to the ERP on either submission
+        /// </summary>
+        /// <param name="index">Index number of the Press Shift report object to use in the Press shift report list</param>
+        public void PostLaborToERP(int index)
+        {
+            var _tempCon = new M2kClient.M2kConnection("manage", "omniquery", "omniquery", M2kClient.Database.WCCOTRAIN); //meant to only be used for testing
+            var _machId = WorkOrder.GetAssignedMachine(Report.ShopOrder.OrderNumber, Report.ShopOrder.Seq, App.AppSqlCon);
+            if (index > 0)
+            {
+                var _qtyComp = int.TryParse(Report.ShiftReportList[index - 1].RoundTable.Compute("SUM(RoundSlats)", string.Empty).ToString(), out int i) ? i : 0;
+                var _count = Report.ShiftReportList[index - 1].CrewList.Count;
+                foreach (var c in Report.ShiftReportList[index - 1].CrewList)
+                {
+                    M2kClient.M2kCommand.PostLabor("PRESS SFW", Convert.ToInt32(c.IdNumber), $"{Report.ShopOrder.OrderNumber}*{Report.ShopOrder.Seq}", _qtyComp, _machId, 'O', _tempCon, DateTime.Now.ToString("HH:mm"), _count);
+                }
+            }
+            foreach (var c in Report.ShiftReportList[index].CrewList)
+            {
+                var _count = Report.ShiftReportList[index - 1].CrewList.Count;
+                M2kClient.M2kCommand.PostLabor("PRESS SFW", Convert.ToInt32(c.IdNumber), $"{Report.ShopOrder.OrderNumber}*{Report.ShopOrder.Seq}", 0, _machId, 'I', _tempCon, DateTime.Now.ToString("HH:mm"), _count);
+            }
+        }
+
         #region Report Action ICommand
 
         public ICommand ReportActionICommand
@@ -95,9 +121,11 @@ namespace SFW.Reports
             {
                 case "Submit":
                     ((PressShift_ViewModel)parameter).UpdateView(Report.Submit(Report, _tempVM.PSReport, App.AppSqlCon), "Update");
+                    PostLaborToERP(Report.ShiftReportList.IndexOf(_tempVM.PSReport));
                     break;
                 case "Update":
                     Report.Update(Report, _tempVM.PSReport, App.AppSqlCon);
+
                     break;
             }
         }

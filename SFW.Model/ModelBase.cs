@@ -108,6 +108,31 @@ namespace SFW.Model
         {
             return !reader.IsDBNull(reader.GetOrdinal(colName)) ? reader.GetDateTime(reader.GetOrdinal(colName)) : DateTime.MinValue;
         }
+
+        /// <summary>
+        /// Safely retrieve the boolean values from a SqlDataReader object based on column
+        /// </summary>
+        /// <param name="reader">SqlDataReader object</param>
+        /// <param name="colName">Name of the column to retrieve the data from</param>
+        /// <returns>bool value</returns>
+        public static bool SafeGetBoolean(this SqlDataReader reader, string colName)
+        {
+            if (!reader.IsDBNull(reader.GetOrdinal(colName)))
+            {
+                if (reader.GetFieldType(reader.GetOrdinal(colName)) == typeof(int))
+                {
+                    return reader.SafeGetInt32(colName) >= 1;
+                }
+                else
+                {
+                    return reader.GetBoolean(reader.GetOrdinal(colName));
+                }
+            }
+            else
+            {
+                return false;
+            }
+        }
     }
 
 }

@@ -46,19 +46,22 @@ namespace SFW.Model
             {
                 try
                 {
-                    using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database};", sqlCon))
+                    using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database}; SELECT * FROM [dbo].[PRM-CSTM] WHERE [WorkOrder] = @p1;", sqlCon))
                     {
+                        cmd.Parameters.AddWithValue("p1", wo.OrderNumber);
                         using (SqlDataReader reader = cmd.ExecuteReader())
                         {
                             if (reader.HasRows)
                             {
                                 while (reader.Read())
                                 {
-
+                                    SlatTransfer = reader.SafeGetInt32("SlatTransfer");
+                                    RollLength = reader.SafeGetInt32("RollLength");
                                 }
                             }
                         }
                     }
+                    ShiftReportList = Press_ShiftReport.GetPress_ShiftReportList(wo.OrderNumber, Machine.GetMachineName(sqlCon, wo), sqlCon);
                 }
                 catch (SqlException sqlEx)
                 {
@@ -106,7 +109,7 @@ namespace SFW.Model
                     }
                     return psReport.Submit(pReport.ShopOrder.OrderNumber, psReport, sqlCon);
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     return 0;
                 }
@@ -123,7 +126,21 @@ namespace SFW.Model
             {
                 try
                 {
-                    
+                    using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database};
+                                                                UPDATE
+                                                                    [dbo].[PRM-CSTM] 
+                                                                SET
+                                                                    [SlatTransfer] = @p1, [RollLength] = @p2, [Machine] = @p3
+                                                                WHERE
+                                                                    [WorkOrder] = @p4", sqlCon))
+                    {
+                        cmd.Parameters.AddWithValue("p1", pReport.SlatTransfer);
+                        cmd.Parameters.AddWithValue("p2", pReport.RollLength);
+                        cmd.Parameters.AddWithValue("p3", psReport.MachineName);
+                        cmd.Parameters.AddWithValue("p4", pReport.ShopOrder.OrderNumber);
+                        cmd.ExecuteNonQuery();
+                    }
+                    psReport.Update(pReport.ShopOrder.OrderNumber, psReport, sqlCon);
                 }
                 catch (SqlException sqlEx)
                 {

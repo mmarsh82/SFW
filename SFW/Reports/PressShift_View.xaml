@@ -13,7 +13,7 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="40" />
             <RowDefinition Height="35" />
-            <RowDefinition Height="130" />
+            <RowDefinition Height="150" />
             <RowDefinition Height="*" />
             <RowDefinition Height="40" />
         </Grid.RowDefinitions>
@@ -77,13 +77,14 @@
                                      CharacterCasing="Upper"
                                      MaxLength="7"
                                      Margin="3"
-                                     Background="LightGray" />
+                                     Background="LightGray" 
+                                     IsEnabled="{Binding DataContext.CanEdit, ElementName=PressShift_UserControl}"/>
                             <TextBlock Text="{Binding Name}"
                                        VerticalAlignment="Center"
                                        Margin="10,0,0,0" />
                             <Button Command="{Binding DataContext.RemoveCrewICommand, ElementName=PressShift_UserControl}"
                                     CommandParameter="{Binding IdNumber}"
-                                    Visibility="{Binding IdNumber, Converter={StaticResource StringtoVisConverter}}"
+                                    Visibility="{Binding DataContext.CanEdit, ElementName=PressShift_UserControl, Converter={StaticResource BoolToVisConverter}}"
                                     Width="20"
                                     Height="20"
                                     Margin="10,0 0 0"
@@ -103,8 +104,12 @@
         
         <!--#region Round Report-->
 
-        <DataGrid Grid.Row="3"
-                  ItemsSource="{Binding PSReport.RoundTable}" />
+        <DataGrid x:Name="RoundReport"
+                  Grid.Row="3"
+                  ItemsSource="{Binding PSReport.RoundTable}"
+                  HorizontalAlignment="Left"
+                  AlternatingRowBackground="LightGray"
+                  FontSize="16"/>
 
         <!--#endregion-->
 

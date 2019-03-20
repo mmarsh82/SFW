@@ -35,13 +35,20 @@ namespace SFW.Commands
                             {
                                 case "PRESS":
                                     _fileName = ExcelReader.GetSetupPrintNumber(_wo.SkuNumber, Machine.GetMachineName(App.AppSqlCon, _wo), "\\\\manage2\\server\\Engineering\\Product\\Press Setups\\press setup and part number crossreference.xlsm", "Production");
-                                    var _fileheader = string.Empty;
-                                    for (int i = 0; i < 8 - _fileName.Length; i++)
+                                    if (!string.IsNullOrEmpty(_fileName))
                                     {
-                                        _fileheader += "0";
+                                        var _fileheader = string.Empty;
+                                        for (int i = 0; i < 8 - _fileName.Length; i++)
+                                        {
+                                            _fileheader += "0";
+                                        }
+                                        _fileName = _fileheader + _fileName;
+                                        _filePath = $"\\\\manage2\\server\\Engineering\\Product\\Press Setups\\Controlled Production Press Setups\\{_fileName}.PDF";
                                     }
-                                    _fileName = _fileheader + _fileName;
-                                    _filePath = $"\\\\manage2\\server\\Engineering\\Product\\Press Setups\\Controlled Production Press Setups\\{_fileName}.PDF";
+                                    else
+                                    {
+                                        System.Windows.MessageBox.Show("The orgin file is currently open by an administrator,\nplease contact ME for further assistance.", "File Lock", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Exclamation);
+                                    }
                                     break;
                                 case "FABE":
                                     _fileName = ExcelReader.GetSetupPrintNumber(_wo.SkuNumber, Machine.GetMachineName(App.AppSqlCon, _wo), "\\\\manage2\\server\\Engineering\\Product\\Sysco Press Setups\\SYSCO PRESS - Setup cross reference.xlsx", "PRODUCTION");

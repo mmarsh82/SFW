@@ -89,6 +89,18 @@ namespace SFW.Model
             WipWorkOrder = workOrder;
             WipWorkOrder.CrewSize = Sku.GetCrewSize(WipWorkOrder.SkuNumber, WipWorkOrder.Seq, sqlCon);
             HasCrew = Machine.GetMachineGroup(sqlCon, workOrder.OrderNumber, workOrder.Seq) != "PRESS";
+            if (DateTime.Now.TimeOfDay >= Convert.ToDateTime("07:00").TimeOfDay && DateTime.Now.TimeOfDay < Convert.ToDateTime("15:00").TimeOfDay)
+            {
+                Shift = 1;
+            }
+            else if(DateTime.Now.TimeOfDay >= Convert.ToDateTime("15:00").TimeOfDay && DateTime.Now.TimeOfDay < Convert.ToDateTime("23:00").TimeOfDay)
+            {
+                Shift = 2;
+            }
+            else
+            {
+                Shift = 3;
+            }
             if (HasCrew)
             {
                 CrewList = new BindingList<CrewMember>
@@ -97,23 +109,6 @@ namespace SFW.Model
                 };
                 CrewList.AddNew();
                 CrewList.ListChanged += CrewList_ListChanged;
-            }
-            //TODO: Remove shift hardcode and push it to the config file
-            //TODO: remove start time hardcode and move it to a dynamic pull
-            if (DateTime.Now.Hour >= 7 && DateTime.Now.Hour < 15)
-            {
-                Shift = 1;
-                StartTime = "7:00";
-            }
-            else if(DateTime.Now.Hour >= 15 && DateTime.Now.Hour < 23)
-            {
-                Shift = 2;
-                StartTime = "15:00";
-            }
-            else
-            {
-                Shift = 3;
-                StartTime = "23:00";
             }
         }
 
@@ -124,7 +119,7 @@ namespace SFW.Model
         /// <param name="e">Change info</param>
         private void CrewList_ListChanged(object sender, ListChangedEventArgs e)
         {
-            if (e.ListChangedType == ListChangedType.ItemChanged && e.PropertyDescriptor.DisplayName == "IdNumber")
+            if (e.ListChangedType == ListChangedType.ItemChanged && e.PropertyDescriptor.DisplayName == "IdNumber" )
             {
                 ((BindingList<CrewMember>)sender)[e.NewIndex].Name = string.Empty;
                 var _dName = CrewMember.GetCrewDisplayName(ModelBase.ModelSqlCon, Convert.ToInt32(((BindingList<CrewMember>)sender)[e.NewIndex].IdNumber));
@@ -132,6 +127,7 @@ namespace SFW.Model
                 if (!string.IsNullOrEmpty(_dName) && !_duplicate)
                 {
                     ((BindingList<CrewMember>)sender)[e.NewIndex].Name = _dName;
+                    ((BindingList<CrewMember>)sender)[e.NewIndex].IsDirect = CrewMember.GetProductionStatus(Convert.ToInt32(((BindingList<CrewMember>)sender)[e.NewIndex].IdNumber), ModelBase.ModelSqlCon);
                     if (((BindingList<CrewMember>)sender).Count == e.NewIndex + 1)
                     {
                         ((BindingList<CrewMember>)sender).AddNew();

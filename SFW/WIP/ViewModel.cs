@@ -2,6 +2,7 @@
 using SFW.Helpers;
 using SFW.Model;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Input;
 
@@ -105,7 +106,9 @@ namespace SFW.WIP
         private void WipExecute(object parameter)
         {
             //TODO: add in the location and lot validation
-            var _wipProc = M2kClient.M2kCommand.ProductionWip(WipRecord, App.ErpCon);
+            var _tempCon = new M2kClient.M2kConnection("manage", "omniquery", "omniquery", M2kClient.Database.WCCOTRAIN); //meant to only be used for testing
+            var _machID = WipRecord.CrewList?.Count > 0 ? WorkOrder.GetAssignedMachine(WipRecord.WipWorkOrder.OrderNumber, WipRecord.WipWorkOrder.Seq, App.AppSqlCon) : "";
+            var _wipProc = M2kClient.M2kCommand.ProductionWip(WipRecord, WipRecord.CrewList?.Count > 0, _tempCon, _machID);
             if (_wipProc != null && _wipProc.First().Key > 0)
             {
                 WipRecord.WipLot.LotNumber = _wipProc.First().Value;
@@ -135,7 +138,6 @@ namespace SFW.WIP
         private void MPrintExecute(object parameter)
         {
             var _wQty = TQty == null || TQty == 0 ? Convert.ToInt32(WipRecord.WipQty) : Convert.ToInt32(TQty);
-            TQty = null;
             TravelCard.Create("", "technology#1",
                 WipRecord.WipWorkOrder.SkuNumber,
                 WipRecord.WipLot.LotNumber,

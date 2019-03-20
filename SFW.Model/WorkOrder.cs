@@ -305,5 +305,40 @@ namespace SFW.Model
                 throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
             }
         }
+
+        /// <summary>
+        /// Get the machine ID that is assigned to a specific work order and sequence
+        /// </summary>
+        /// <param name="woNbr">Work order number</param>
+        /// <param name="seq">Work order sequence</param>
+        /// <param name="sqlCon">Sql Connection to use</param>
+        /// <returns>Machine ID as string</returns>
+        public static string GetAssignedMachine(string woNbr, string seq, SqlConnection sqlCon)
+        {
+            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
+            {
+                try
+                {
+                    using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database}; SELECT [Work_Center] FROM [dbo].[WPO-INIT] WHERE [ID] = CONCAT(@p1, '*', @p2);", sqlCon))
+                    {
+                        cmd.Parameters.AddWithValue("p1", woNbr);
+                        cmd.Parameters.AddWithValue("p2", seq);
+                        return cmd.ExecuteScalar().ToString();
+                    }
+                }
+                catch (SqlException sqlEx)
+                {
+                    throw sqlEx;
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception(ex.Message);
+                }
+            }
+            else
+            {
+                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
+            }
+        }
     }
 }

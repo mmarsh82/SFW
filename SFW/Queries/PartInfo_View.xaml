@@ -35,12 +35,21 @@
                         BorderThickness="0"
                         Command="{StaticResource Back}"
                         CommandParameter="Back">
-                    <Image Source="/SFW;component/Icons/BackArrow.ico" />
+                    <Button.Content>
+                        <StackPanel Orientation="Horizontal">
+                            <Image Source="/SFW;component/Icons/BackArrow.ico" />
+                            <TextBlock Text="Back to Schedule"
+                                       VerticalAlignment="Center"
+                                       FontSize="16"
+                                       FontWeight="Bold"
+                                       Foreground="Crimson"/>
+                        </StackPanel>
+                    </Button.Content>
                 </Button>
                 <TextBlock Text="Part Number"
                            FontSize="16"
                            FontWeight="Bold"
-                           Margin="10,0,0,0"
+                           Margin="60,0,0,0"
                            VerticalAlignment="Center" />
                 <TextBox x:Name="SearchTextBox"
                          Text="{Binding PartNbr, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"

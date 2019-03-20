@@ -24,7 +24,7 @@ namespace M2kClient.M2kADIArray
         /// Transaction Time
         /// Statically set to the time of the transaction on a 24 hour clock
         /// </summary>
-        public string TranTime { get { return DateTime.Now.ToString("HH:mm"); } }
+        public string TranTime { get; set; }
 
         /// <summary>
         /// Field 4
@@ -45,7 +45,7 @@ namespace M2kClient.M2kADIArray
         /// Clock in or out
         /// Must be either 'I' or 'O' to pass validation
         /// </summary>
-        public string ClockTransaction { get; set; }
+        public char ClockTransaction { get; set; }
 
         /// <summary>
         /// Field 8 Header
@@ -104,8 +104,10 @@ namespace M2kClient.M2kADIArray
         /// M2k LD ADI Array overloaded constructor
         /// Creates the object for passing data into M2k ERP software
         /// </summary>
+        /// <param name="stationId">Station ID</param>
         /// <param name="empId">Employee ID</param>
         /// <param name="clockTran">Clock in or out transaction</param>
+        /// <param name="tranTime">Clock transaction time</param>
         /// <param name="woNbr">Work order number</param>
         /// <param name="seq">Work order operation</param>
         /// <param name="qtyComp">Quantity completed</param>
@@ -114,10 +116,12 @@ namespace M2kClient.M2kADIArray
         /// <param name="cFlag">Completion flag</param>
         /// <param name="crew">Optional: Crew size, default will be determined by ERP</param>
         /// <param name="facCode">Optional: Facility code, default is 01</param>
-        public DirectLabor(int empId, string clockTran, string woNbr, string seq, int qtyComp, int setComp, string machId, CompletionFlag cFlag, int crew = 0, string facCode = "01")
+        public DirectLabor(string stationId, int empId, char clockTran, string tranTime, string woNbr, string seq, int qtyComp, int setComp, string machId, CompletionFlag cFlag, int crew = 0, string facCode = "01")
         {
+            StationId = stationId;
             EmployeeId = empId;
             ClockTransaction = clockTran;
+            TranTime = tranTime;
             WorkOrderNbr = woNbr;
             Operation = seq;
             QtyCompleted = qtyComp;

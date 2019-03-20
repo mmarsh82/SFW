@@ -96,7 +96,7 @@
                      Width="100"
                      MaxLength="5"
                      IsTabStop="False"
-                     Style="{DynamicResource RequiredTextBox}" />
+                     Style="{DynamicResource OptionalTextBox}" />
             <TextBlock Text="Shift:"
                        FontSize="18"
                        FontWeight="Bold"

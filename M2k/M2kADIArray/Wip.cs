@@ -157,17 +157,6 @@ namespace M2kClient.M2kADIArray
                 _rValue += $"\n10~{disp.Code}~11~{disp.Reference}~12~{disp.Quantity}";
             }
             _rValue += $"\n15~{Lot}|P";
-            foreach (var comp in ComponentInfoList)
-            {
-                if (string.IsNullOrEmpty(comp.Lot))
-                {
-                    _rValue += $"\n26~{comp.WorkOrderNbr}~25~{comp.PartNbr}~27~{comp.Quantity}";
-                }
-                else
-                {
-                    _rValue += $"\n24~{comp.Lot}|P~26~{comp.WorkOrderNbr}~25~{comp.PartNbr}~27~{comp.Quantity}";
-                }
-            }
             _rValue += $"\n99~COMPLETE";
 
             return _rValue;

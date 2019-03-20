@@ -42,6 +42,10 @@ namespace SFW.Reports
                 ReportAction = rAction;
                 OnPropertyChanged(nameof(ReportAction));
             }
+            if (reportID == -1)
+            {
+                System.Windows.MessageBox.Show("This report is a duplicate and will not be submitted.\nPlease call IT if you feel you reached this message in error.", "Duplicate Report", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Warning);
+            }
         }
 
         #region Remove Crew List Item ICommand
@@ -61,8 +65,12 @@ namespace SFW.Reports
         private void RemoveCrewExecute(object parameter)
         {
             PSReport.CrewList.Remove(PSReport.CrewList.FirstOrDefault(c => c.IdNumber.ToString() == parameter.ToString()));
+            if (PSReport.CrewList.Count(o => o.IdNumber == null) == 0)
+            {
+                PSReport.CrewList.AddNew();
+            }
         }
-        private bool RemoveCrewCanExecute(object parameter) => parameter != null && !string.IsNullOrEmpty(parameter.ToString());
+        private bool RemoveCrewCanExecute(object parameter) => parameter != null && !string.IsNullOrEmpty(parameter.ToString()) && CanEdit;
 
         #endregion
     }

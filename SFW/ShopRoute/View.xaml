@@ -41,7 +41,7 @@
                     <RowDefinition x:Name="Row8" Height="40"/>
                     <RowDefinition x:Name="Row9" Height="30"/>
                     <RowDefinition x:Name="Row10" Height="30"/>
-                    <RowDefinition x:Name="Row11" Height="425"/>
+                    <RowDefinition x:Name="Row11" Height="403"/>
                 </Grid.RowDefinitions>
 
                 <!--#region Grid.Row 0  Command Array-->
@@ -91,7 +91,7 @@
                     <Button Content="Report Sheet"
                             FontSize="16"
                             Width="110"
-                            IsEnabled="{Binding CanWip, Source={StaticResource User}}"
+                            IsEnabled="{Binding HasStarted, Source={StaticResource User}}"
                             Visibility="{Binding ShopOrder.ActStartDate, Converter={StaticResource DateToVisConverter}, ConverterParameter=N}"
                             Command="{Binding ReportICommand}"
                             CommandParameter="2"

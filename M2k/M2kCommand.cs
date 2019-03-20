@@ -1,6 +1,5 @@
 ﻿using IBMU2.UODOTNET;
 using M2kClient.M2kADIArray;
-using Microsoft.Win32;
 using SFW.Model;
 using System;
 using System.Collections.Generic;
@@ -238,28 +237,24 @@ namespace M2kClient
         /// Production Wip in the current ERP system
         /// </summary>
         /// <param name="wipRecord">Wip Record object to be processed</param>
+        /// <param name="postLabor">Tells the method if it should also post labor with the wip transaction</param>
         /// <param name="connection">Current M2k Connection to be used for processing the transaction</param>
+        /// <param name="machID">Optional: Machine ID, passed when labor needs to posted.  It is also required for posting labor</param>
         /// <returns>Suffix for the file that needs to be watched on the ERP server and new lot number if required</returns>
-        public static IReadOnlyDictionary<int, string> ProductionWip(WipReceipt wipRecord, M2kConnection connection)
+        public static IReadOnlyDictionary<int, string> ProductionWip(WipReceipt wipRecord, bool postLabor, M2kConnection connection, string machID = "")
         {
-            //TODO Remove the hardcoded safefiledialog and automate this process
-            //will also need to add in the issue commands, would be best to code in the issue pieces as an adjacent method
-
-            /*var uId = new Random();
+            var uId = new Random();
             var suffix = uId.Next(128, 512);
-            var wipBtiText = new Wip(wipRecord).ToString();
-            File.WriteAllLines(connection.BTIFolder, btiText.Split('\n'));
-            return suffix;*/
-
             var _subResult = new Dictionary<int, string>();
-            var btiText = string.Empty;
             if (string.IsNullOrEmpty(wipRecord.WipLot.LotNumber))
             {
-                var _response = GetLotNumber(new M2kConnection("manage", "omniquery", "omniquery", Database.WCCOTRAIN));
+                var _response = GetLotNumber(connection);
                 if (_response.Count == 1 && _response.First().Key)
                 {
                     wipRecord.WipLot.LotNumber = _response.First().Value.Replace("|P", "");
                     System.Windows.MessageBox.Show($"Assinged to Lot Number:\n{wipRecord.WipLot.LotNumber}", "New Lot Number", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
+                    File.WriteAllText($"{connection.SFDCFolder}WPC2K.DAT{suffix}", new Wip(wipRecord).ToString());
+                    suffix = uId.Next(128, 512);
                 }
                 else if (_response.Count == 1)
                 {
@@ -290,30 +285,93 @@ namespace M2kClient
                             _issue.TranList.Add(new Transaction { Quantity = Convert.ToInt32(w.LotQty), Location = c.BackflushLoc, LotNumber = w.LotNbr });
                         }
                     }
-                    else if (w.LotQty != null && w.LotQty > 0)
+                    else if (w.BaseQty > 0 && !string.IsNullOrEmpty(c.BackflushLoc))
                     {
-                        _issue.TranList.Add(new Transaction { Quantity = Convert.ToInt32(Math.Round(Convert.ToDouble(wipRecord.WipQty) * c.AssemblyQty)), Location = c.BackflushLoc });
+                        _issue.TranList.Add(new Transaction { Quantity = w.BaseQty, Location = c.BackflushLoc });
                     }
                 }
-
-                btiText = _issue.ToString();
-
-                //Hardcoded for testing
-                SaveFileDialog dialog = new SaveFileDialog
+                File.WriteAllText($"{connection.BTIFolder}ISSUEC2K.DAT{suffix}", _issue.ToString());
+                suffix = uId.Next(128, 512);
+            }
+            if (postLabor && !string.IsNullOrEmpty(machID))
+            {
+                var _crew = wipRecord.CrewList.Count(o => !string.IsNullOrEmpty(o.Name));
+                foreach (var c in wipRecord.CrewList.Where(o => !string.IsNullOrEmpty(o.Name) && o.IsDirect))
                 {
-                    FileName = "BtiTestDoc",
-                    DefaultExt = ".txt",
-                    Filter = "Text Documents |*.txt"
-                };
-                if (dialog.ShowDialog() == true)
-                {
-                    File.WriteAllLines(dialog.FileName, btiText.Split('\n'));
+                    PostLabor("SFW WIP", Convert.ToInt32(c.IdNumber), $"{wipRecord.WipWorkOrder.OrderNumber}*{wipRecord.WipWorkOrder.Seq}", Convert.ToInt32(wipRecord.WipQty), machID, ' ', connection, wipRecord.StartTime, _crew);
                 }
             }
             _subResult.Add(1, wipRecord.WipLot.LotNumber);
             return _subResult;
         }
 
+        /// <summary>
+        /// Post labor in current ERP system within a standard template
+        /// </summary>
+        /// <param name="stationId">Station ID</param>
+        /// <param name="empID">Employee ID</param>
+        /// <param name="woAndSeq">Work order and sequence seporated by a '*'</param>
+        /// <param name="qtyComp">Quantity completed for this transaction</param>
+        /// <param name="machID">Machine ID that will receive the labor posting</param>
+        /// <param name="clockTranType">Clock transaction type, when passed will need to be formated as 'I' or 'O', by leaving this parameter blank will cause the method to calculate labor</param>
+        /// <param name="connection">Current M2k Connection to be used for processing the transaction</param>
+        /// <param name="time">Optional: Post time, must be in a 24 hour clock format using only hours and minutes</param>
+        /// <param name="crew">Optional: Crew size, only needs to be passed when the crewsize listed in the ERP is smaller or larger that the amount of crew members posting labor to the work order</param>
+        /// <returns>Error number and error description, when returned as 0 and a empty string the transaction posted with no errors</returns>
+        public static IReadOnlyDictionary<int, string> PostLabor(string stationId, int empID, string woAndSeq, int qtyComp, string machID, char clockTranType, M2kConnection connection, string time = "", int crew = 0)
+        {
+            var uId = new Random();
+            var suffix = uId.Next(128, 512);
+            var _subResult = new Dictionary<int, string>();
+            if (!woAndSeq.Contains('*'))
+            {
+                _subResult.Add(1, "Work order or sequence is not in the correct format to pass into M2k.");
+                return _subResult;
+            }
+            else
+            {
+                var _wSplit = woAndSeq.Split('*');
+                if (char.IsWhiteSpace(clockTranType))
+                {
+                    //Calculating the clock in time based on any previous clock in times or using the beginning of the shift
+                    if (string.IsNullOrEmpty(time))
+                    {
+                        time = CrewMember.GetLastClockTime(empID, ModelBase.ModelSqlCon);
+                        if (string.IsNullOrEmpty(time) || time == "00:00")
+                        {
+                            time = CrewMember.GetShiftStartTime(empID, ModelBase.ModelSqlCon);
+                        }
+                    }
+                    var _tempDL = crew > 0 
+                        ? new DirectLabor(stationId, empID, 'I', time, _wSplit[0], _wSplit[1], 0, 0, machID, CompletionFlag.N, crew) 
+                        : new DirectLabor(stationId, empID, 'I', time, _wSplit[0], _wSplit[1], 0, 0, machID, CompletionFlag.N);
+                    File.WriteAllText($"{connection.SFDCFolder}LBC2K.DAT{suffix}", _tempDL.ToString());
+
+                    //posting the clock out time for DateTime.Now
+                    suffix = uId.Next(128, 512);
+                    time = DateTime.Now.ToString("HH:mm");
+                    _tempDL = crew > 0 
+                        ? new DirectLabor(stationId, empID, 'O', time, _wSplit[0], _wSplit[1], qtyComp, 0, machID, CompletionFlag.N, crew) 
+                        : new DirectLabor(stationId, empID, 'O', time, _wSplit[0], _wSplit[1], qtyComp, 0, machID, CompletionFlag.N);
+                    File.WriteAllText($"{connection.SFDCFolder}LBC2K.DAT{suffix}", _tempDL.ToString());
+                }
+                else
+                {
+                    var _tempDL = crew > 0 
+                        ? new DirectLabor(stationId, empID, clockTranType, time, _wSplit[0], _wSplit[1], qtyComp, 0, machID, CompletionFlag.N, crew) 
+                        : new DirectLabor(stationId, empID, clockTranType, time, _wSplit[0], _wSplit[1], qtyComp, 0, machID, CompletionFlag.N);
+                    File.WriteAllText($"{connection.SFDCFolder}LBC2K.DAT{suffix}", _tempDL.ToString());
+                }
+                _subResult.Add(0, string.Empty);
+                return _subResult;
+            }
+        }
+
+        public static IReadOnlyDictionary<int, string> SplitRoll()
+        {
+            //TODO: add in the adjust command
+            return null;
+        }
 
         public bool InventoryAdjustment()
         {
@@ -323,7 +381,5 @@ namespace M2kClient
         {
             return true;
         }
-        public string LaborTransaction()
-        { return string.Empty; }
     }
 }

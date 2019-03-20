@@ -477,5 +477,73 @@ namespace SFW.Model
                 return string.Empty;
             }
         }
+
+        /// <summary>
+        /// Get the length of a press
+        /// </summary>
+        /// <param name="sqlCon">Sql Connection to use</param>
+        /// <param name="machineNbr">Press ID number</param>
+        /// <returns>Press length as int</returns>
+        public static int GetPress_Length(SqlConnection sqlCon, int machineNbr)
+        {
+            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
+            {
+                try
+                {
+                    using (SqlCommand cmd = new SqlCommand($"USE {sqlCon.Database}; SELECT [Press_Length] FROM [dbo].[WC-INIT] WHERE [Wc_Nbr] = @p1", sqlCon))
+                    {
+                        cmd.Parameters.AddWithValue("p1", machineNbr);
+                        var _len = cmd.ExecuteScalar();
+                        return int.TryParse(_len.ToString(), out int i) ? i : 0;
+                    }
+                }
+                catch (SqlException sqlEx)
+                {
+                    throw sqlEx;
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception(ex.Message);
+                }
+            }
+            else
+            {
+                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
+            }
+        }
+
+        /// <summary>
+        /// Get the length of a press
+        /// </summary>
+        /// <param name="sqlCon">Sql Connection to use</param>
+        /// <param name="machineName">Name of the press</param>
+        /// <returns>Press length as int</returns>
+        public static int GetPress_Length(SqlConnection sqlCon, string machineName)
+        {
+            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
+            {
+                try
+                {
+                    using (SqlCommand cmd = new SqlCommand($"USE {sqlCon.Database}; SELECT [Press_Length] FROM [dbo].[WC-INIT] WHERE [Name] = @p1", sqlCon))
+                    {
+                        cmd.Parameters.AddWithValue("p1", machineName);
+                        var _len = cmd.ExecuteScalar();
+                        return int.TryParse(_len.ToString(), out int i) ? i : 0;
+                    }
+                }
+                catch (SqlException sqlEx)
+                {
+                    throw sqlEx;
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception(ex.Message);
+                }
+            }
+            else
+            {
+                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
+            }
+        }
     }
 }

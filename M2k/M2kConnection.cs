@@ -25,9 +25,15 @@
         public Database Database { get; internal set; }
 
         /// <summary>
-        /// Manage 2000 BTI folder for ADI requests files to be placed
+        /// Manage 2000 BTI folder for ADI requests files that are in the BTI format
         /// </summary>
         public string BTIFolder { get; internal set; }
+
+        /// <summary>
+        /// Manage 2000 SFDC folder for ADI requests files that are in the SFDC format
+        /// </summary>
+        public string SFDCFolder { get; internal set; }
+
         public string UniService { get { return "udcs"; } }
         public string UniAccount
         {
@@ -64,7 +70,8 @@
             UserName = userName;
             Password = password;
             Database = database;
-            BTIFolder = database.GetDescription();
+            BTIFolder = $"{database.GetDescription()}BTI.TRANSACTIONS\\";
+            SFDCFolder = $"{database.GetDescription()}SFDC.TRANSACTIONS\\";
         }
     }
 }
