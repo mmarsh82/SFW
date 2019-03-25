@@ -20,15 +20,125 @@ namespace SFW.Model
         public string Name
         {
             get { return name; }
-            set { name = value; OnPropertyChanged(nameof(Name)); }
+            set { name = value; OnPropertyChanged(nameof(Name)); OnPropertyChanged(nameof(Shift)); OnPropertyChanged(nameof(IsDirect)); LastClock = string.Empty; }
         }
 
-        private bool isDir;
         public bool IsDirect
         {
-            get { return isDir; }
-            set { isDir = value; OnPropertyChanged(nameof(IsDirect)); }
+            get
+            {
+                if (!string.IsNullOrEmpty(Name))
+                {
+                    var sqlCon = ModelBase.ModelSqlCon;
+                    if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
+                    {
+                        try
+                        {
+                            using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database};
+                                                                SELECT
+	                                                                CASE WHEN [Dept] = '010'
+		                                                                THEN
+			                                                                1
+		                                                                ELSE
+			                                                                0 END as [IsDirect]
+                                                                FROM
+	                                                                [dbo].[EMPLOYEE_MASTER-INIT]
+                                                                WHERE
+	                                                                [Emp_No] = @p1 AND [Pay_Status] = 'A';", sqlCon))
+                            {
+                                cmd.Parameters.AddWithValue("p1", IdNumber);
+                                return Convert.ToInt32(cmd.ExecuteScalar()) >= 1;
+                            }
+                        }
+                        catch (SqlException sqlEx)
+                        {
+                            throw sqlEx;
+                        }
+                        catch (Exception ex)
+                        {
+                            throw new Exception(ex.Message);
+                        }
+                    }
+                    else
+                    {
+                        throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
+                    }
+                }
+                return false;
+            }
         }
+
+        public int Shift
+        {
+            get
+            {
+                if (!string.IsNullOrEmpty(Name))
+                {
+                    var sqlCon = ModelBase.ModelSqlCon;
+                    if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
+                    {
+                        try
+                        {
+                            using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database};
+                                                               SELECT [Shift] FROM [dbo].[EMPLOYEE_MASTER-INIT] WHERE [Emp_No] = @p1", sqlCon))
+                            {
+                                cmd.Parameters.AddWithValue("p1", IdNumber);
+                                return Convert.ToInt32(cmd.ExecuteScalar());
+                            }
+                        }
+                        catch (SqlException sqlEx)
+                        {
+                            throw sqlEx;
+                        }
+                        catch (Exception ex)
+                        {
+                            throw new Exception(ex.Message);
+                        }
+                    }
+                    else
+                    {
+                        throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
+                    }
+                }
+                return 0;
+            }
+        }
+
+        private string lastClock;
+        public string LastClock
+        {
+            get { return lastClock; }
+            set
+            {
+                if (!string.IsNullOrEmpty(Name) && string.IsNullOrEmpty(value) && IsDirect)
+                {
+                    var time = GetLastClockTime(Convert.ToInt32(IdNumber), ModelBase.ModelSqlCon);
+                    if (string.IsNullOrEmpty(time) || time == "00:00")
+                    {
+                        switch (Shift)
+                        {
+                            case 1:
+                                time = "07:00";
+                                break;
+                            case 2:
+                                time = "15:00";
+                                break;
+                            case 3:
+                                time = "23:00";
+                                break;
+                        }
+                    }
+                    lastClock = time;
+                }
+                else
+                {
+                    lastClock = value;
+                }
+                OnPropertyChanged(nameof(LastClock));
+            }
+        }
+
+        public char ClockTran { get; set; }
 
         #endregion
 
@@ -162,8 +272,7 @@ namespace SFW.Model
                                     _tempList.Add(new CrewMember
                                     {
                                         IdNumber = reader.SafeGetInt32("UserID"),
-                                        Name = reader.SafeGetString("Name"),
-                                        IsDirect = reader.SafeGetBoolean("Direct")
+                                        Name = reader.SafeGetString("Name")
                                     });
                                 }
                             }
@@ -211,49 +320,6 @@ namespace SFW.Model
                         cmd.Parameters.AddWithValue("p1", idNbr);
                         cmd.Parameters.AddWithValue("p2", woNbr);
                         cmd.Parameters.AddWithValue("p3", seq);
-                        return Convert.ToInt32(cmd.ExecuteScalar()) >= 1;
-                    }
-                }
-                catch (SqlException sqlEx)
-                {
-                    throw sqlEx;
-                }
-                catch (Exception ex)
-                {
-                    throw new Exception(ex.Message);
-                }
-            }
-            else
-            {
-                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
-            }
-        }
-
-        /// <summary>
-        /// Get a crew members current production status
-        /// </summary>
-        /// <param name="idNbr">Crew member ID number</param>
-        /// <param name="sqlCon">Sql Connection to use</param>
-        /// <returns>bool result value as True: is direct; False: is indirect</returns>
-        public static bool GetProductionStatus(int idNbr, SqlConnection sqlCon)
-        {
-            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
-            {
-                try
-                {
-                    using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database};
-                                                                SELECT
-	                                                                CASE WHEN [Dept] = '010'
-		                                                                THEN
-			                                                                1
-		                                                                ELSE
-			                                                                0 END as [IsDirect]
-                                                                FROM
-	                                                                [dbo].[EMPLOYEE_MASTER-INIT]
-                                                                WHERE
-	                                                                [Emp_No] = @p1 AND [Pay_Status] = 'A';", sqlCon))
-                    {
-                        cmd.Parameters.AddWithValue("p1", idNbr);
                         return Convert.ToInt32(cmd.ExecuteScalar()) >= 1;
                     }
                 }

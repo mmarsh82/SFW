@@ -106,9 +106,8 @@ namespace SFW.WIP
         private void WipExecute(object parameter)
         {
             //TODO: add in the location and lot validation
-            var _tempCon = new M2kClient.M2kConnection("manage", "omniquery", "omniquery", M2kClient.Database.WCCOTRAIN); //meant to only be used for testing
             var _machID = WipRecord.CrewList?.Count > 0 ? WorkOrder.GetAssignedMachine(WipRecord.WipWorkOrder.OrderNumber, WipRecord.WipWorkOrder.Seq, App.AppSqlCon) : "";
-            var _wipProc = M2kClient.M2kCommand.ProductionWip(WipRecord, WipRecord.CrewList?.Count > 0, _tempCon, _machID);
+            var _wipProc = M2kClient.M2kCommand.ProductionWip(WipRecord, WipRecord.CrewList?.Count > 0, App.ErpCon, _machID);
             if (_wipProc != null && _wipProc.First().Key > 0)
             {
                 WipRecord.WipLot.LotNumber = _wipProc.First().Value;

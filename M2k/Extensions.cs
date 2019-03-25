@@ -14,7 +14,8 @@ namespace M2kClient
         public static void DatabaseChange(this M2kConnection connection, Database database)
         {
             connection.Database = database;
-            connection.BTIFolder = database.GetDescription();
+            connection.BTIFolder = $"{database.GetDescription()}BTI.TRANSACTIONS\\";
+            connection.SFDCFolder = $"{database.GetDescription()}SFDC.TRANSACTIONS\\";
         }
 
         /// <summary>

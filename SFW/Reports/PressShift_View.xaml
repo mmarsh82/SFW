@@ -7,6 +7,7 @@
     <UserControl.Resources>
         <cvtr:StringToVisibility x:Key="StringtoVisConverter" />
         <cvtr:BoolToVisibility x:Key="BoolToVisConverter" />
+        <cvtr:CrewToVisibility x:Key="CrewtoVisConverter" />
     </UserControl.Resources>
     
     <Grid>
@@ -68,9 +69,11 @@
 
                     <StackPanel Orientation="Vertical">
                         <StackPanel Orientation="Horizontal">
+                            
                             <TextBlock Text="Employee Nbr:"
                                        TextDecorations="Underline"
                                        FontWeight="Bold" />
+                            
                             <TextBox Text="{Binding IdNumber, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                      FontSize="16"
                                      Width="100"
@@ -79,9 +82,66 @@
                                      Margin="3"
                                      Background="LightGray" 
                                      IsEnabled="{Binding DataContext.CanEdit, ElementName=PressShift_UserControl}"/>
+                            
                             <TextBlock Text="{Binding Name}"
                                        VerticalAlignment="Center"
                                        Margin="10,0,0,0" />
+                            
+                            <TextBlock Text="Shift:"
+                                       TextDecorations="Underline"
+                                       FontWeight="Bold"
+                                       VerticalAlignment="Center"
+                                       Margin="10,0,0,0">
+                                <TextBlock.Visibility>
+                                    <MultiBinding Converter="{StaticResource CrewtoVisConverter}">
+                                        <Binding Path="IsDirect" />
+                                        <Binding Path="Name" />
+                                    </MultiBinding>
+                                </TextBlock.Visibility>
+                            </TextBlock>
+                            
+                            <TextBlock Text="{Binding Shift}"
+                                       VerticalAlignment="Center"
+                                       Margin="5,0,0,0">
+                                <TextBlock.Visibility>
+                                    <MultiBinding Converter="{StaticResource CrewtoVisConverter}">
+                                        <Binding Path="IsDirect" />
+                                        <Binding Path="Name" />
+                                    </MultiBinding>
+                                </TextBlock.Visibility>
+                            </TextBlock>
+                            
+                            <TextBlock Text="In Time:"
+                                       TextDecorations="Underline"
+                                       FontWeight="Bold"
+                                       VerticalAlignment="Center"
+                                       Margin="10,0,0,0">
+                                <TextBlock.Visibility>
+                                    <MultiBinding Converter="{StaticResource CrewtoVisConverter}">
+                                        <Binding Path="IsDirect" />
+                                        <Binding Path="Name" />
+                                    </MultiBinding>
+                                </TextBlock.Visibility>
+                            </TextBlock>
+
+                            <TextBox Text="{Binding LastClock}"
+                                     VerticalAlignment="Center"
+                                     Margin="3"
+                                     FontSize="18"
+                                     Background="LightGray"
+                                     Width="75"
+                                     MaxLength="5"
+                                     IsTabStop="False"
+                                     IsEnabled="{Binding DataContext.CanEdit, ElementName=PressShift_UserControl}"
+                                     Style="{DynamicResource RequiredTextBox}">
+                                <TextBox.Visibility>
+                                    <MultiBinding Converter="{StaticResource CrewtoVisConverter}">
+                                        <Binding Path="IsDirect" />
+                                        <Binding Path="Name" />
+                                    </MultiBinding>
+                                </TextBox.Visibility>
+                            </TextBox>
+
                             <Button Command="{Binding DataContext.RemoveCrewICommand, ElementName=PressShift_UserControl}"
                                     CommandParameter="{Binding IdNumber}"
                                     Visibility="{Binding DataContext.CanEdit, ElementName=PressShift_UserControl, Converter={StaticResource BoolToVisConverter}}"

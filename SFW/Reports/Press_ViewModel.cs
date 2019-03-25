@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Linq;
 
 namespace SFW.Reports
 {
@@ -82,21 +83,23 @@ namespace SFW.Reports
         /// <param name="index">Index number of the Press Shift report object to use in the Press shift report list</param>
         public void PostLaborToERP(int index)
         {
+            //TODO: need to add in the update pieces to here
             var _tempCon = new M2kClient.M2kConnection("manage", "omniquery", "omniquery", M2kClient.Database.WCCOTRAIN); //meant to only be used for testing
             var _machId = WorkOrder.GetAssignedMachine(Report.ShopOrder.OrderNumber, Report.ShopOrder.Seq, App.AppSqlCon);
+            var _count = 0;
             if (index > 0)
             {
                 var _qtyComp = int.TryParse(Report.ShiftReportList[index - 1].RoundTable.Compute("SUM(RoundSlats)", string.Empty).ToString(), out int i) ? i : 0;
-                var _count = Report.ShiftReportList[index - 1].CrewList.Count;
+                _count = Report.ShiftReportList[index - 1].CrewList.Count;
                 foreach (var c in Report.ShiftReportList[index - 1].CrewList)
                 {
                     M2kClient.M2kCommand.PostLabor("PRESS SFW", Convert.ToInt32(c.IdNumber), $"{Report.ShopOrder.OrderNumber}*{Report.ShopOrder.Seq}", _qtyComp, _machId, 'O', _tempCon, DateTime.Now.ToString("HH:mm"), _count);
                 }
             }
-            foreach (var c in Report.ShiftReportList[index].CrewList)
+            _count = Report.ShiftReportList[index].CrewList.Count(o => !string.IsNullOrEmpty(o.Name));
+            foreach (var c in Report.ShiftReportList[index].CrewList.Where(o => !string.IsNullOrEmpty(o.Name)))
             {
-                var _count = Report.ShiftReportList[index - 1].CrewList.Count;
-                M2kClient.M2kCommand.PostLabor("PRESS SFW", Convert.ToInt32(c.IdNumber), $"{Report.ShopOrder.OrderNumber}*{Report.ShopOrder.Seq}", 0, _machId, 'I', _tempCon, DateTime.Now.ToString("HH:mm"), _count);
+                M2kClient.M2kCommand.PostLabor("PRESS SFW", Convert.ToInt32(c.IdNumber), $"{Report.ShopOrder.OrderNumber}*{Report.ShopOrder.Seq}", 0, _machId, 'I', _tempCon, c.LastClock, _count);
             }
         }
 
@@ -144,5 +147,21 @@ namespace SFW.Reports
         }
 
         #endregion
+
+        /// <summary>
+        /// Object disposal
+        /// </summary>
+        /// <param name="disposing">Called by the GC Finalizer</param>
+        public override void OnDispose(bool disposing)
+        {
+            if (disposing)
+            {
+                Report = null;
+                PressReport.CrewListUpdates = null;
+                ShiftCollection = null;
+                SelectedShift = null;
+                _reportAction = null;
+            }
+        }
     }
 }

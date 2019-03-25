@@ -127,7 +127,6 @@ namespace SFW.Model
                 if (!string.IsNullOrEmpty(_dName) && !_duplicate)
                 {
                     ((BindingList<CrewMember>)sender)[e.NewIndex].Name = _dName;
-                    ((BindingList<CrewMember>)sender)[e.NewIndex].IsDirect = CrewMember.GetProductionStatus(Convert.ToInt32(((BindingList<CrewMember>)sender)[e.NewIndex].IdNumber), ModelBase.ModelSqlCon);
                     if (((BindingList<CrewMember>)sender).Count == e.NewIndex + 1)
                     {
                         ((BindingList<CrewMember>)sender).AddNew();

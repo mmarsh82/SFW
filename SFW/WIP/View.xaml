@@ -1,8 +1,6 @@
 ﻿<Window x:Class="SFW.WIP.View"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:SFW.WIP"
         xmlns:cvtr="clr-namespace:SFW.Converters"
         Name="WipWindow"
@@ -12,11 +10,11 @@
         <cvtr:BoolToVisibility x:Key="BooltoVisConverter" />
         <cvtr:EnumToBool x:Key="EnumtoBoolConverter" />
         <cvtr:StringToVisibility x:Key="StringtoVisConverter" />
+        <cvtr:CrewToVisibility x:Key="CrewtoVisConverter" />
     </Window.Resources>
     
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="40" />
             <RowDefinition Height="40" />
             <RowDefinition Height="40" />
             <RowDefinition Height="40" />
@@ -77,48 +75,9 @@
 
         <!--#endregion-->
 
-        <!--#region Wip Time Inputs-->
-
-        <StackPanel Grid.Row="2"
-                    HorizontalAlignment="Left"
-                    Orientation="Horizontal">
-            <TextBlock Text="Start Time:"
-                       FontSize="18"
-                       FontWeight="Bold"
-                       TextDecorations="Underline"
-                       VerticalAlignment="Center"
-                       Margin="10,0,0,0" />
-            <TextBox Text="{Binding WipRecord.StartTime, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                     FontSize="18"
-                     FontWeight="Bold"
-                     Background="LightGray"
-                     Margin="5"
-                     Width="100"
-                     MaxLength="5"
-                     IsTabStop="False"
-                     Style="{DynamicResource OptionalTextBox}" />
-            <TextBlock Text="Shift:"
-                       FontSize="18"
-                       FontWeight="Bold"
-                       TextDecorations="Underline"
-                       VerticalAlignment="Center"
-                       Margin="10,0,0,0" />
-            <TextBox Text="{Binding WipRecord.Shift, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                     FontSize="18"
-                     FontWeight="Bold"
-                     Background="LightGray"
-                     Margin="5"
-                     Width="50"
-                     MaxLength="1"
-                     IsTabStop="False"
-                     Style="{DynamicResource RequiredTextBox}" />
-        </StackPanel>
-
-        <!--#endregion-->
-
         <!--#region Wip Qty/Completion Inputs-->
 
-        <StackPanel Grid.Row="3"
+        <StackPanel Grid.Row="2"
                     HorizontalAlignment="Left"
                     Orientation="Horizontal">
             <TextBlock Text="Wip Quantity:"
@@ -170,7 +129,7 @@
 
         <!--#region Wip Lot/Location Inputs-->
 
-        <StackPanel Grid.Row="4"
+        <StackPanel Grid.Row="3"
                     HorizontalAlignment="Left"
                     Orientation="Horizontal">
             <TextBlock Text="Lot Number:"
@@ -211,12 +170,12 @@
 
         <!--#region Seperator-->
 
-        <Rectangle Grid.Row="5"
+        <Rectangle Grid.Row="4"
                    Fill="#FF135185"
                    HorizontalAlignment="Stretch"
                    VerticalAlignment="Stretch"
                    Visibility="{Binding WipRecord.HasCrew, Converter={StaticResource BooltoVisConverter}}"/>
-        <TextBlock Grid.Row="5"
+        <TextBlock Grid.Row="4"
                    HorizontalAlignment="Center"
                    VerticalAlignment="Center"
                    Text="Crew Members"
@@ -230,7 +189,7 @@
         <!--#region Crew Inputs-->
 
         <ItemsControl Name="CrewMembers"
-                      Grid.Row="6"
+                      Grid.Row="5"
                       ItemsSource="{Binding Path=WipRecord.CrewList}"
                       Margin="10,0,0,0"
                       FontSize="18"
@@ -252,9 +211,11 @@
 
                     <StackPanel Orientation="Vertical">
                         <StackPanel Orientation="Horizontal">
+                            
                             <TextBlock Text="Employee Nbr:"
                                        TextDecorations="Underline"
                                        FontWeight="Bold" />
+                            
                             <TextBox Text="{Binding IdNumber, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                      FontSize="16"
                                      Width="100"
@@ -262,9 +223,65 @@
                                      MaxLength="7"
                                      Margin="3"
                                      Background="LightGray" />
+                            
                             <TextBlock Text="{Binding Name}"
                                        VerticalAlignment="Center"
                                        Margin="10,0,0,0" />
+                            
+                            <TextBlock Text="Shift:"
+                                       TextDecorations="Underline"
+                                       FontWeight="Bold"
+                                       VerticalAlignment="Center"
+                                       Margin="10,0,0,0">
+                                <TextBlock.Visibility>
+                                    <MultiBinding Converter="{StaticResource CrewtoVisConverter}">
+                                        <Binding Path="IsDirect" />
+                                        <Binding Path="Name" />
+                                    </MultiBinding>
+                                </TextBlock.Visibility>
+                            </TextBlock>
+                            
+                            <TextBlock Text="{Binding Shift}"
+                                       VerticalAlignment="Center"
+                                       Margin="5,0,0,0">
+                                <TextBlock.Visibility>
+                                    <MultiBinding Converter="{StaticResource CrewtoVisConverter}">
+                                        <Binding Path="IsDirect" />
+                                        <Binding Path="Name" />
+                                    </MultiBinding>
+                                </TextBlock.Visibility>
+                            </TextBlock>
+                            
+                            <TextBlock Text="In Time:"
+                                       TextDecorations="Underline"
+                                       FontWeight="Bold"
+                                       VerticalAlignment="Center"
+                                       Margin="10,0,0,0">
+                                <TextBlock.Visibility>
+                                    <MultiBinding Converter="{StaticResource CrewtoVisConverter}">
+                                        <Binding Path="IsDirect" />
+                                        <Binding Path="Name" />
+                                    </MultiBinding>
+                                </TextBlock.Visibility>
+                            </TextBlock>
+                            
+                            <TextBox Text="{Binding LastClock, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                     VerticalAlignment="Center"
+                                     Margin="3"
+                                     FontSize="18"
+                                     Background="LightGray"
+                                     Width="75"
+                                     MaxLength="5"
+                                     IsTabStop="False"
+                                     Style="{DynamicResource RequiredTextBox}">
+                                <TextBox.Visibility>
+                                    <MultiBinding Converter="{StaticResource CrewtoVisConverter}">
+                                        <Binding Path="IsDirect" />
+                                        <Binding Path="Name" />
+                                    </MultiBinding>
+                                </TextBox.Visibility>
+                            </TextBox>
+                            
                             <Button Command="{Binding DataContext.RemoveCrewICommand, ElementName=WipWindow}"
                                     CommandParameter="{Binding IdNumber}"
                                     Visibility="{Binding IdNumber, Converter={StaticResource StringtoVisConverter}}"
@@ -276,6 +293,7 @@
                                     <Image Source="/SFW;component/Icons/Delete.ico" />
                                 </Button.Content>
                             </Button>
+                            
                         </StackPanel>
                     </StackPanel>
                 </DataTemplate>
@@ -287,11 +305,11 @@
 
         <!--#region Seperator-->
 
-        <Rectangle Grid.Row="7"
+        <Rectangle Grid.Row="6"
                    Fill="#FF135185"
                    HorizontalAlignment="Stretch"
                    VerticalAlignment="Stretch" />
-        <TextBlock Grid.Row="7"
+        <TextBlock Grid.Row="6"
                    HorizontalAlignment="Center"
                    VerticalAlignment="Center"
                    Text="Components"
@@ -304,7 +322,7 @@
         <!--#region Component Inputs-->
 
         <ItemsControl Name="CompParent"
-                      Grid.Row="8"
+                      Grid.Row="7"
                       ItemsSource="{Binding Path=WipRecord.WipWorkOrder.Bom}"
                       Margin="10,0,0,0"
                       FontSize="18"
@@ -429,7 +447,7 @@
         
         <!--#region Submission Actions-->
 
-        <StackPanel Grid.Row="9"
+        <StackPanel Grid.Row="8"
                     Orientation="Horizontal"
                     HorizontalAlignment="Right">
 

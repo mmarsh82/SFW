@@ -31,6 +31,11 @@ namespace SFW.Model
         /// </summary>
         public WorkOrder ShopOrder { get; set; }
 
+        /// <summary>
+        /// Press report crew list to use when updating the report sheet with labor transactions
+        /// </summary>
+        public static List<CrewMember> CrewListUpdates { get; set; }
+
         #endregion
 
         /// <summary>
@@ -42,6 +47,7 @@ namespace SFW.Model
         {
             ShopOrder = wo;
             ShiftReportList = new List<Press_ShiftReport>();
+            CrewListUpdates = new List<CrewMember>();
             if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
             {
                 try
@@ -107,6 +113,7 @@ namespace SFW.Model
                             cmd.ExecuteNonQuery();
                         }
                     }
+                    CrewListUpdates.Clear();
                     return psReport.Submit(pReport.ShopOrder.OrderNumber, psReport, sqlCon);
                 }
                 catch (Exception)

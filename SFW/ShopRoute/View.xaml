@@ -364,6 +364,7 @@
                                  Height="130"
                                  Margin="0,0,10,0"
                                  TextWrapping="WrapWithOverflow"
+                                 MaxLines="5"
                                  Style="{DynamicResource DisabledTextBox}"/>
 
                         <TextBox x:Name="WO_Notes"
@@ -374,6 +375,7 @@
                                  Height="130"
                                  Margin="0,0,10,0"
                                  TextWrapping="WrapWithOverflow"
+                                 MaxLines="5"
                                  AcceptsReturn="True"/>
 
                         <Button Content="Save"

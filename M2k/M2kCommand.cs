@@ -298,7 +298,7 @@ namespace M2kClient
                 var _crew = wipRecord.CrewList.Count(o => !string.IsNullOrEmpty(o.Name));
                 foreach (var c in wipRecord.CrewList.Where(o => !string.IsNullOrEmpty(o.Name) && o.IsDirect))
                 {
-                    PostLabor("SFW WIP", Convert.ToInt32(c.IdNumber), $"{wipRecord.WipWorkOrder.OrderNumber}*{wipRecord.WipWorkOrder.Seq}", Convert.ToInt32(wipRecord.WipQty), machID, ' ', connection, wipRecord.StartTime, _crew);
+                    PostLabor("SFW WIP", Convert.ToInt32(c.IdNumber), $"{wipRecord.WipWorkOrder.OrderNumber}*{wipRecord.WipWorkOrder.Seq}", Convert.ToInt32(wipRecord.WipQty), machID, ' ', connection, c.LastClock, _crew);
                 }
             }
             _subResult.Add(1, wipRecord.WipLot.LotNumber);
@@ -317,8 +317,9 @@ namespace M2kClient
         /// <param name="connection">Current M2k Connection to be used for processing the transaction</param>
         /// <param name="time">Optional: Post time, must be in a 24 hour clock format using only hours and minutes</param>
         /// <param name="crew">Optional: Crew size, only needs to be passed when the crewsize listed in the ERP is smaller or larger that the amount of crew members posting labor to the work order</param>
+        /// <param name="tranDate">Optional: Date of transaction</param>
         /// <returns>Error number and error description, when returned as 0 and a empty string the transaction posted with no errors</returns>
-        public static IReadOnlyDictionary<int, string> PostLabor(string stationId, int empID, string woAndSeq, int qtyComp, string machID, char clockTranType, M2kConnection connection, string time = "", int crew = 0)
+        public static IReadOnlyDictionary<int, string> PostLabor(string stationId, int empID, string woAndSeq, int qtyComp, string machID, char clockTranType, M2kConnection connection, string time = "", int crew = 0, string tranDate = "")
         {
             var uId = new Random();
             var suffix = uId.Next(128, 512);
@@ -333,32 +334,28 @@ namespace M2kClient
                 var _wSplit = woAndSeq.Split('*');
                 if (char.IsWhiteSpace(clockTranType))
                 {
-                    //Calculating the clock in time based on any previous clock in times or using the beginning of the shift
-                    if (string.IsNullOrEmpty(time))
+                    if (string.IsNullOrEmpty(tranDate))
                     {
-                        time = CrewMember.GetLastClockTime(empID, ModelBase.ModelSqlCon);
-                        if (string.IsNullOrEmpty(time) || time == "00:00")
+                        if (Convert.ToDateTime($"{DateTime.Now.Month}-{DateTime.Now.Day}-{DateTime.Now.Year} {time}") > DateTime.Now)
                         {
-                            time = CrewMember.GetShiftStartTime(empID, ModelBase.ModelSqlCon);
+                            tranDate = DateTime.Now.AddDays(-1).ToString("MM-dd-yyyy");
                         }
                     }
-                    var _tempDL = crew > 0 
-                        ? new DirectLabor(stationId, empID, 'I', time, _wSplit[0], _wSplit[1], 0, 0, machID, CompletionFlag.N, crew) 
-                        : new DirectLabor(stationId, empID, 'I', time, _wSplit[0], _wSplit[1], 0, 0, machID, CompletionFlag.N);
+                    var _tempDL = new DirectLabor(stationId, empID, 'I', time, _wSplit[0], _wSplit[1], 0, 0, machID, CompletionFlag.N, crew, tranDate);
                     File.WriteAllText($"{connection.SFDCFolder}LBC2K.DAT{suffix}", _tempDL.ToString());
 
                     //posting the clock out time for DateTime.Now
                     suffix = uId.Next(128, 512);
                     time = DateTime.Now.ToString("HH:mm");
                     _tempDL = crew > 0 
-                        ? new DirectLabor(stationId, empID, 'O', time, _wSplit[0], _wSplit[1], qtyComp, 0, machID, CompletionFlag.N, crew) 
+                        ? new DirectLabor(stationId, empID, 'O', time, _wSplit[0], _wSplit[1], qtyComp, 0, machID, CompletionFlag.N, crew)
                         : new DirectLabor(stationId, empID, 'O', time, _wSplit[0], _wSplit[1], qtyComp, 0, machID, CompletionFlag.N);
                     File.WriteAllText($"{connection.SFDCFolder}LBC2K.DAT{suffix}", _tempDL.ToString());
                 }
                 else
                 {
                     var _tempDL = crew > 0 
-                        ? new DirectLabor(stationId, empID, clockTranType, time, _wSplit[0], _wSplit[1], qtyComp, 0, machID, CompletionFlag.N, crew) 
+                        ? new DirectLabor(stationId, empID, clockTranType, time, _wSplit[0], _wSplit[1], qtyComp, 0, machID, CompletionFlag.N, crew)
                         : new DirectLabor(stationId, empID, clockTranType, time, _wSplit[0], _wSplit[1], qtyComp, 0, machID, CompletionFlag.N);
                     File.WriteAllText($"{connection.SFDCFolder}LBC2K.DAT{suffix}", _tempDL.ToString());
                 }

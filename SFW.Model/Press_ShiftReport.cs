@@ -22,7 +22,7 @@ namespace SFW.Model
         public string MachineName { get; set; }
 
         /// <summary>
-        /// Wip receipt crew list to use for the labor part of the transaction
+        /// Press shift report crew list to use for the labor part of the transaction
         /// </summary>
         public BindingList<CrewMember> CrewList { get; set; }
 
@@ -151,7 +151,7 @@ namespace SFW.Model
                             {
                                 while (reader.Read())
                                 {
-                                    CrewList.Add(new CrewMember { IdNumber = reader.SafeGetInt32("UserID"), IsDirect = true, Name = CrewMember.GetCrewDisplayName(sqlCon, reader.SafeGetInt32("UserID")) });
+                                    CrewList.Add(new CrewMember { IdNumber = reader.SafeGetInt32("UserID"), Name = CrewMember.GetCrewDisplayName(sqlCon, reader.SafeGetInt32("UserID")) });
                                 }
                                 CrewList.AddNew();
                                 CrewList.ListChanged += CrewList_ListChanged;
@@ -195,11 +195,18 @@ namespace SFW.Model
                 if (!string.IsNullOrEmpty(_dName) && !_duplicate)
                 {
                     ((BindingList<CrewMember>)sender)[e.NewIndex].Name = _dName;
-                    ((BindingList<CrewMember>)sender)[e.NewIndex].IsDirect = CrewMember.GetProductionStatus(Convert.ToInt32(((BindingList<CrewMember>)sender)[e.NewIndex].IdNumber), ModelBase.ModelSqlCon);
+                    PressReport.CrewListUpdates.Add(((BindingList<CrewMember>)sender)[e.NewIndex]);
                     if (((BindingList<CrewMember>)sender).Count == e.NewIndex + 1)
                     {
                         ((BindingList<CrewMember>)sender).AddNew();
                     }
+                }
+            }
+            if (e.ListChangedType == ListChangedType.ItemDeleted)
+            {
+                if (!PressReport.CrewListUpdates.Contains(((BindingList<CrewMember>)sender)[e.NewIndex]))
+                {
+                    PressReport.CrewListUpdates.Add(((BindingList<CrewMember>)sender)[e.NewIndex]);
                 }
             }
         }
@@ -312,16 +319,10 @@ namespace SFW.Model
                 {
                     //Validation to see if this is a duplicate entry and close out any open reports from the origin work order
                     var oldID = 0;
-                    using (SqlCommand cmd = new SqlCommand(@"DECLARE @dup int;
-                                                                SET @dup = (SELECT COUNT([ReportID]) FROM [dbo].[PRM-CSTM_Shift] WHERE [WorkOrder] = @p1 AND [Shift] = @p2 AND [Status] = 'O');
-                                                                SELECT 
-	                                                                CASE WHEN (SELECT [ReportID] FROM [dbo].[PRM-CSTM_Shift] WHERE EXISTS (SELECT * FROM [dbo].[PRM-CSTM_Shift] WHERE [WorkOrder] = @p1 AND [Status] = 'O' AND [Shift] != @p2)) > 0
-		                                                                THEN
-			                                                                (SELECT [ReportID] FROM [dbo].[PRM-CSTM_Shift] WHERE [WorkOrder] = @p1 AND [Status] = 'O' AND [Shift] != @p2)
-		                                                                ELSE
-			                                                                0
-		                                                                END as 'Open',
-	                                                                @dup as 'Duplicate';", sqlCon))
+                    using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database};
+                                                                SELECT
+	                                                                ISNULL((SELECT [ReportID] FROM [dbo].[PRM-CSTM_Shift] WHERE [WorkOrder] = '222382' AND [Status] = 'O' AND [Shift] != '1'), 0) as 'Open',
+	                                                                (SELECT COUNT([ReportID]) FROM [dbo].[PRM-CSTM_Shift] WHERE [WorkOrder] = '222382' AND [Shift] = '1' AND [Status] = 'O') as 'Duplicate';", sqlCon))
                     {
                         cmd.Parameters.AddWithValue("p1", woNbr);
                         cmd.Parameters.AddWithValue("p2", psReport.Shift);
@@ -369,15 +370,12 @@ namespace SFW.Model
                     var _counter = 1;
                     using (SqlCommand cmd = new SqlCommand(cmdString, sqlCon))
                     {
-                        foreach (var s in psReport.CrewList)
+                        foreach (var s in psReport.CrewList.Where(o => !string.IsNullOrEmpty(o.Name)))
                         {
-                            if (s.IdNumber != null)
-                            {
-                                cmd.CommandText += $" INSERT INTO [dbo].[PRM-CSTM_Crew] ([ReportID], [UserID]) VALUES(@p{_counter}, @p{_counter + 1});";
-                                cmd.Parameters.AddWithValue($"p{_counter}", psReport.ReportID);
-                                cmd.Parameters.AddWithValue($"p{_counter + 1}", s.IdNumber);
-                                _counter = _counter + 2;
-                            }
+                            cmd.CommandText += $" INSERT INTO [dbo].[PRM-CSTM_Crew] ([ReportID], [UserID]) VALUES(@p{_counter}, @p{_counter + 1});";
+                            cmd.Parameters.AddWithValue($"p{_counter}", psReport.ReportID);
+                            cmd.Parameters.AddWithValue($"p{_counter + 1}", s.IdNumber);
+                            _counter = _counter + 2;
                         }
                         cmd.ExecuteNonQuery();
                     }

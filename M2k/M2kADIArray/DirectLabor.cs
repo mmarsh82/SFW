@@ -22,16 +22,17 @@ namespace M2kClient.M2kADIArray
         /// <summary>
         /// Field 3
         /// Transaction Time
-        /// Statically set to the time of the transaction on a 24 hour clock
+        /// Typically set to the time of the transaction on a 24 hour clock
         /// </summary>
         public string TranTime { get; set; }
 
         /// <summary>
         /// Field 4
         /// Transaction Date
-        /// Statically set to date of transaction using MM-dd-yyyy as model
+        /// Typically set to DateTime.Today but could vary based on over night shift hours
+        /// Transaction must use the MM-dd-yyyy format
         /// </summary>
-        public string TranDate { get { return DateTime.Today.ToString("MM-dd-yyyy"); } }
+        public string TranDate { get; set; }
 
         /// <summary>
         /// Field 6
@@ -115,8 +116,9 @@ namespace M2kClient.M2kADIArray
         /// <param name="machId">Machine or work center number</param>
         /// <param name="cFlag">Completion flag</param>
         /// <param name="crew">Optional: Crew size, default will be determined by ERP</param>
+        /// <param name="tranDate">Optional: Date of transaction</param>
         /// <param name="facCode">Optional: Facility code, default is 01</param>
-        public DirectLabor(string stationId, int empId, char clockTran, string tranTime, string woNbr, string seq, int qtyComp, int setComp, string machId, CompletionFlag cFlag, int crew = 0, string facCode = "01")
+        public DirectLabor(string stationId, int empId, char clockTran, string tranTime, string woNbr, string seq, int qtyComp, int setComp, string machId, CompletionFlag cFlag, int crew = 0, string tranDate = "", string facCode = "01")
         {
             StationId = stationId;
             EmployeeId = empId;
@@ -130,6 +132,7 @@ namespace M2kClient.M2kADIArray
             CFlag = cFlag;
             CrewSize = crew;
             FacilityCode = facCode;
+            TranDate = string.IsNullOrEmpty(tranDate) ? DateTime.Today.ToString("MM-dd-yyyy") : tranDate;
         }
 
         /// <summary>

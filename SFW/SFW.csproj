@@ -30,8 +30,8 @@
     <PublisherName>Michael Marsh</PublisherName>
     <SuiteName>WCCO Belting Inc.</SuiteName>
     <AutorunEnabled>true</AutorunEnabled>
-    <ApplicationRevision>604</ApplicationRevision>
-    <ApplicationVersion>1.0.55.604</ApplicationVersion>
+    <ApplicationRevision>631</ApplicationRevision>
+    <ApplicationVersion>1.0.58.631</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <CreateDesktopShortcut>true</CreateDesktopShortcut>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -117,6 +117,7 @@
     <Compile Include="Commands\SetUpInformation.cs" />
     <Compile Include="Commands\ShowLogInWindow.cs" />
     <Compile Include="Commands\WipHistory.cs" />
+    <Compile Include="Converters\CrewToVisibility.cs" />
     <Compile Include="Converters\EnumToBool.cs" />
     <Compile Include="Converters\IntToVisibility.cs" />
     <Compile Include="Converters\SiteNumberToBool.cs" />

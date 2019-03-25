@@ -134,7 +134,10 @@ namespace SFW.ShopRoute
         {
             if (parameter != null && Enum.TryParse(parameter.ToString(), out PressReportActions pressAction))
             {
-                new Press_View { DataContext = new Press_ViewModel(ShopOrder, pressAction) }.ShowDialog();
+                using (var report = new Press_ViewModel(ShopOrder, pressAction))
+                {
+                    new Press_View { DataContext = report }.ShowDialog();
+                }
             }
         }
         private bool ReportCanExecute(object parameter) => true;
