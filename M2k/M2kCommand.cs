@@ -249,50 +249,58 @@ namespace M2kClient
             if (string.IsNullOrEmpty(wipRecord.WipLot.LotNumber))
             {
                 var _response = GetLotNumber(connection);
-                if (_response.Count == 1 && _response.First().Key)
-                {
-                    wipRecord.WipLot.LotNumber = _response.First().Value.Replace("|P", "");
-                    System.Windows.MessageBox.Show($"Assinged to Lot Number:\n{wipRecord.WipLot.LotNumber}", "New Lot Number", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
-                    File.WriteAllText($"{connection.SFDCFolder}WPC2K.DAT{suffix}", new Wip(wipRecord).ToString());
-                    suffix = uId.Next(128, 512);
-                }
-                else if (_response.Count == 1)
+                if (_response.Count == 1 && !_response.First().Key)
                 {
                     System.Windows.MessageBox.Show(_response.First().Value, "Connection Error");
                     _subResult.Add(0, string.Empty);
                     return _subResult;
                 }
-                else
+                else if (_response.Count == 0)
                 {
                     System.Windows.MessageBox.Show("Please contact IT for further assistance", "NEXT.NBR corruption");
                     _subResult.Add(0, string.Empty);
                     return _subResult;
                 }
+                wipRecord.WipLot.LotNumber = _response.First().Value.Replace("|P", "");
             }
-            foreach (var c in wipRecord.WipWorkOrder.Bom)
+            //File creation for the WIP ADI, needs to account for all database scenarios (i.e. one to one, one to many, and many to many)
+            var _tWip = new Wip(wipRecord);
+            if (!string.IsNullOrEmpty(_tWip.StationId))
+            {
+                File.WriteAllText($"{connection.SFDCFolder}WPC2K.DAT{suffix}", _tWip.ToString());
+                suffix = uId.Next(128, 512);
+                System.Windows.MessageBox.Show($"Assinged to Lot Number:\n{wipRecord.WipLot.LotNumber}", "New Lot Number", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
+            }
+            else
+            {
+                System.Windows.MessageBox.Show("Unable to process WIP file, please check to see that the wip is with in standards.\nPlease contact IT for further assistance.", "Abnormal WIP file");
+                _subResult.Add(0, string.Empty);
+                return _subResult;
+            }
+
+            #region Non Lot Issue
+            //Issueing all the non lot trace components, all lot trace components should be passed in the WIP file
+            foreach (var c in wipRecord.WipWorkOrder.Bom.Where(o => !o.IsLotTrace))
             {
                 var _issue = new Issue(wipRecord.Submitter, "010", c.CompNumber, wipRecord.WipWorkOrder.OrderNumber, wipRecord.WipWorkOrder.Seq, "II", new List<Transaction>());
                 foreach (var w in c.WipInfo)
                 {
-                    if (c.IsLotTrace && !string.IsNullOrEmpty(w.LotNbr) && w.LotQty != null)
+                    if (w.BaseQty > 0)
                     {
-                        if (string.IsNullOrEmpty(c.BackflushLoc))
-                        {
-                            _issue.TranList.Add(new Transaction { Quantity = Convert.ToInt32(w.LotQty), Location = w.RcptLoc, LotNumber = w.LotNbr });
-                        }
-                        else
-                        {
-                            _issue.TranList.Add(new Transaction { Quantity = Convert.ToInt32(w.LotQty), Location = c.BackflushLoc, LotNumber = w.LotNbr });
-                        }
-                    }
-                    else if (w.BaseQty > 0 && !string.IsNullOrEmpty(c.BackflushLoc))
-                    {
-                        _issue.TranList.Add(new Transaction { Quantity = w.BaseQty, Location = c.BackflushLoc });
+                        _issue.TranList.Add(new Transaction { Location = c.BackflushLoc, Quantity = Convert.ToInt32(w.LotQty) });
                     }
                 }
-                File.WriteAllText($"{connection.BTIFolder}ISSUEC2K.DAT{suffix}", _issue.ToString());
-                suffix = uId.Next(128, 512);
+                if(c.WipInfo.Sum(o => o.BaseQty) > 0)
+                {
+                    File.WriteAllText($"{connection.BTIFolder}ISSUEC2K.DAT{suffix}", _issue.ToString());
+                    suffix = uId.Next(128, 512);
+                }
             }
+
+            #endregion
+
+            #region Post Labor
+            //Posting labor if a crew exists, if the machine is running an interactive report sheet then the labor should be posted there
             if (postLabor && !string.IsNullOrEmpty(machID))
             {
                 var _crew = wipRecord.CrewList.Count(o => !string.IsNullOrEmpty(o.Name));
@@ -303,6 +311,8 @@ namespace M2kClient
             }
             _subResult.Add(1, wipRecord.WipLot.LotNumber);
             return _subResult;
+
+            #endregion
         }
 
         /// <summary>

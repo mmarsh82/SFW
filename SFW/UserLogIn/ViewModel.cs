@@ -67,6 +67,10 @@ namespace SFW.UserLogIn
                     if (w.Title == "User Log In")
                     {
                         w.Close();
+                        if ((ShopRoute.ViewModel)Controls.WorkSpaceDock.WccoDock.GetChildOfType<ShopRoute.View>().DataContext != null)
+                        {
+                            ((ShopRoute.ViewModel)Controls.WorkSpaceDock.WccoDock.GetChildOfType<ShopRoute.View>().DataContext).UpdateView();
+                        }
                     }
                 }
             }
@@ -75,5 +79,17 @@ namespace SFW.UserLogIn
         public bool LogInCanExecute(object parameter) => !string.IsNullOrEmpty(UserName) || !string.IsNullOrEmpty(((PasswordBox)parameter).Password);
 
         #endregion
+
+        /// <summary>
+        /// Object disposal
+        /// </summary>
+        /// <param name="disposing">Called by the GC Finalizer</param>
+        public override void OnDispose(bool disposing)
+        {
+            if (disposing)
+            {               
+                
+            }
+        }
     }
 }

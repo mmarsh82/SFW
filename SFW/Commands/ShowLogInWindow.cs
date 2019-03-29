@@ -17,6 +17,10 @@ namespace SFW.Commands
             else
             {
                 CurrentUser.LogOff();
+                if ((ShopRoute.ViewModel)Controls.WorkSpaceDock.WccoDock.GetChildOfType<ShopRoute.View>().DataContext != null)
+                {
+                    ((ShopRoute.ViewModel)Controls.WorkSpaceDock.WccoDock.GetChildOfType<ShopRoute.View>().DataContext).UpdateView();
+                }
             }
         }
 

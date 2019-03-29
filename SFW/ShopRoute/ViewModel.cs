@@ -88,6 +88,16 @@ namespace SFW.ShopRoute
             ShopOrder = workOrder;
         }
 
+        /// <summary>
+        /// Updates static properties from the CurrentUser object to the local view
+        /// </summary>
+        public void UpdateView()
+        {
+            OnPropertyChanged(nameof(CanSeeWip));
+            OnPropertyChanged(nameof(HasStarted));
+            OnPropertyChanged(nameof(CanStart));
+        }
+
         #region Work Order Note Change ICommand
 
         public ICommand WONoteChgICommand
@@ -132,6 +142,7 @@ namespace SFW.ShopRoute
 
         private void ReportExecute(object parameter)
         {
+
             if (parameter != null && Enum.TryParse(parameter.ToString(), out PressReportActions pressAction))
             {
                 using (var report = new Press_ViewModel(ShopOrder, pressAction))

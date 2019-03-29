@@ -166,6 +166,7 @@ namespace SFW.Model
 	                                                                            c.[Wo_Type] as 'WO_Type',
 	                                                                            c.[Qty_To_Start] as 'WO_StartQty',
 	                                                                            c.[So_Reference] as 'WO_SalesRef',
+                                                                                c.[Cust_Nbr],
                                                                                 d.[Part_Number]as 'SkuNumber',
 	                                                                            d.[Description] as 'SkuDesc',
 	                                                                            d.[Um] as 'SkuUom', d.[Drawing_Nbrs] as 'SkuMasterPrint',
@@ -175,7 +176,10 @@ namespace SFW.Model
                                                                                 CASE WHEN b.[Due_Date] < GETDATE() THEN 1 ELSE 0 END as 'IsLate',
 	                                                                            CASE WHEN b.[Date_Start] < GETDATE() AND c.[Qty_To_Start] = b.[Qty_Avail] THEN 1 ELSE 0 END as 'IsStartLate',
                                                                                 e.[Engineering_Status] as 'EngStatus',
-	                                                                            (SELECT [Description] FROM [dbo].[TM-INIT_Eng_Status] WHERE [ID] = e.[Engineering_Status]) as 'EngStatusDesc'
+	                                                                            (SELECT [Description] FROM [dbo].[TM-INIT_Eng_Status] WHERE [ID] = e.[Engineering_Status]) as 'EngStatusDesc',
+                                                                                (SELECT [Name] FROM [dbo].[CM-INIT] WHERE [Cust_Nbr] = c.[Cust_Nbr]) as 'Cust_Name',
+	                                                                            (SELECT [Cust_Part_Nbr] FROM [dbo].[SOD-INIT] WHERE [ID] = SUBSTRING(c.[So_Reference],0,LEN(c.[So_Reference])-1)) as 'Cust_Part_Nbr',
+	                                                                            CAST((SELECT [Ln_Bal_Qty] FROM [dbo].[SOD-INIT] WHERE [ID] = SUBSTRING(c.[So_Reference],0,LEN(c.[So_Reference])-1)) as int) as 'Ln_Bal_Qty'
                                                                             FROM
                                                                                 [dbo].[WC-INIT] a
                                                                             RIGHT JOIN
@@ -237,10 +241,21 @@ namespace SFW.Model
                                                                                 ISNULL(b.[Date_Act_Start], '1999-01-01') as 'WO_ActStartDate',
 	                                                                            ISNULL(b.[Due_Date], b.[Date_Start]) as 'WO_DueDate',
                                                                                 CAST(ROUND(b.[Mach_Load_Hrs_Rem], 1) AS FLOAT) as 'RunTime',
-	                                                                            ISNULL(CASE WHEN (SELECT [Ord_Type] FROM [dbo].[SOH-INIT] WHERE [So_Nbr] = SUBSTRING(c.[So_Reference],0,CHARINDEX('*',c.[So_Reference],0))) = 'DAI' THEN 'A' WHEN c.[Wo_Type] = 'R' THEN 'B' ELSE c.[Mgt_Priority_Code] END, 'D') as 'WO_Priority',
+	                                                                            ISNULL(CASE WHEN
+                                                                                        (SELECT
+                                                                                            [Ord_Type]
+                                                                                        FROM
+                                                                                            [dbo].[SOH-INIT]
+                                                                                        WHERE
+                                                                                            [So_Nbr] = SUBSTRING(c.[So_Reference],0,CHARINDEX('*',c.[So_Reference],0))) = 'DAI'
+                                                                                    THEN 'A'
+                                                                                    WHEN c.[Wo_Type] = 'R'
+                                                                                    THEN 'B'
+                                                                                    ELSE c.[Mgt_Priority_Code] END, 'D') as 'WO_Priority',
 	                                                                            c.[Wo_Type] as 'WO_Type',
 	                                                                            c.[Qty_To_Start] as 'WO_StartQty',
 	                                                                            c.[So_Reference] as 'WO_SalesRef',
+	                                                                            c.[Cust_Nbr],
                                                                                 d.[Part_Number]as 'SkuNumber',
 	                                                                            d.[Description] as 'SkuDesc',
 	                                                                            d.[Um] as 'SkuUom', d.[Drawing_Nbrs] as 'SkuMasterPrint',
@@ -248,7 +263,12 @@ namespace SFW.Model
 	                                                                            ISNULL(d.[Bom_Rev_Level], '') as 'BomRevLvl',
                                                                                 ISNULL(e.[Qty_On_Hand], 0) as 'SkuOnHand',
                                                                                 CASE WHEN b.[Due_Date] < GETDATE() THEN 1 ELSE 0 END as 'IsLate',
-	                                                                            CASE WHEN b.[Date_Start] < GETDATE() AND c.[Qty_To_Start] = b.[Qty_Avail] THEN 1 ELSE 0 END as 'IsStartLate'
+	                                                                            CASE WHEN b.[Date_Start] < GETDATE() AND c.[Qty_To_Start] = b.[Qty_Avail] THEN 1 ELSE 0 END as 'IsStartLate',
+                                                                                e.[Engineering_Status] as 'EngStatus',
+	                                                                            (SELECT [Description] FROM [dbo].[TM-INIT_Eng_Status] WHERE [ID] = e.[Engineering_Status]) as 'EngStatusDesc',
+	                                                                            (SELECT [Name] FROM [dbo].[CM-INIT] WHERE [Cust_Nbr] = c.[Cust_Nbr]) as 'Cust_Name',
+	                                                                            (SELECT [Cust_Part_Nbr] FROM [dbo].[SOD-INIT] WHERE [ID] = SUBSTRING(c.[So_Reference],0,LEN(c.[So_Reference])-1)) as 'Cust_Part_Nbr',
+	                                                                            CAST((SELECT [Ln_Bal_Qty] FROM [dbo].[SOD-INIT] WHERE [ID] = SUBSTRING(c.[So_Reference],0,LEN(c.[So_Reference])-1)) as int) as 'Ln_Bal_Qty'
                                                                             FROM
                                                                                 [dbo].[WC-INIT] a
                                                                             RIGHT JOIN
@@ -260,9 +280,9 @@ namespace SFW.Model
                                                                             RIGHT JOIN
                                                                                 [dbo].[IPL-INIT] e ON e.[Part_Nbr] = d.[Part_Number]
                                                                             WHERE
-                                                                                a.[D_esc] <> 'DO NOT USE' AND (c.[Status_Flag] = 'R' OR c.Status_Flag = 'A') AND b.[Seq_Complete_Flag] IS NULL AND b.[Alt_Seq_Status] IS NULL AND (b.[Qty_Avail] > 0 OR b.[Qty_Avail] IS NULL) AND a.[Wc_Nbr]=@p1
+                                                                                a.[D_esc] <> 'DO NOT USE' AND (c.[Status_Flag] = 'R' OR c.[Status_Flag] = 'A') AND (b.[Seq_Complete_Flag] IS NULL OR b.[Seq_Complete_Flag] = 'N') AND b.[Alt_Seq_Status] IS NULL AND (b.[Qty_Avail] > 0 OR b.[Qty_Avail] IS NULL) AND a.[Wc_Nbr] = @p1
                                                                             ORDER BY
-                                                                                MachineNumber, WO_Priority, WO_StartDate, WO_Number ASC;", sqlCon))
+                                                                                MachineNumber, WO_Priority, WO_SchedStartDate, WO_Number ASC;", sqlCon))
                         {
                             adapter.SelectCommand.Parameters.AddWithValue("p1", machineNumber);
                             adapter.Fill(_tempTable);

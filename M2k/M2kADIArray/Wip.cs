@@ -1,6 +1,7 @@
 ﻿using SFW.Model;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace M2kClient.M2kADIArray
 {
@@ -79,7 +80,7 @@ namespace M2kClient.M2kADIArray
         public List<DisplayInfo> DisplayInfoList { get; set; }
 
         /// <summary>
-        /// Fields 24,25,26,27
+        /// Fields 24,25,26,27,70,71
         /// List of all child component objects and their information
         /// </summary>
         public List<CompInfo> ComponentInfoList { get; set; }
@@ -94,9 +95,15 @@ namespace M2kClient.M2kADIArray
         #endregion
 
         /// <summary>
+        /// Defualt constructor
+        /// </summary>
+        public Wip()
+        { }
+
+        /// <summary>
         /// M2k WIP ADI Array overloaded constructor
         /// Maps a work order object to a M2k Wip ADI Array object
-        /// Use when you have a lot number for the parent part
+        /// Use when you have a lot number for the parent part and there is only a single bucket for all components in the wip receipt
         /// </summary>
         /// <param name="wipRecord">Wip receipt object</param>
         /// <param name="facCode">Optional: Facility code, default is 01</param>
@@ -111,25 +118,23 @@ namespace M2kClient.M2kADIArray
             RcptLocation = wipRecord.ReceiptLocation;
             DisplayInfoList = new List<DisplayInfo>
             {
-                new DisplayInfo { Code = CodeType.S, Quantity = QtyReceived, Reference = "STOCK" }
+                new DisplayInfo{ Code = CodeType.S, Quantity = QtyReceived, Reference = "STOCK" }
             };
             Lot = wipRecord.WipLot.LotNumber;
             ComponentInfoList = new List<CompInfo>();
-            foreach(var _comp in wipRecord.WipWorkOrder.Bom)
+            foreach(var c in wipRecord.WipWorkOrder.Bom.Where(o => o.IsLotTrace))
             {
-                if (_comp.IsLotTrace)
+                var _backFlush = c.BackflushLoc;
+                foreach(var w in c.WipInfo.Where(o => !string.IsNullOrEmpty(o.LotNbr)))
                 {
-                    foreach (var _wipInfo in _comp.WipInfo)
+                    if (!string.IsNullOrEmpty(_backFlush))
                     {
-                        if (!string.IsNullOrEmpty(_wipInfo.LotNbr))
-                        {
-                            ComponentInfoList.Add(new CompInfo { Lot = _wipInfo.LotNbr, WorkOrderNbr = wipRecord.WipWorkOrder.OrderNumber, PartNbr = _comp.CompNumber, Quantity = Convert.ToInt32(_wipInfo.LotQty) });
-                        }
+                        ComponentInfoList.Add(new CompInfo { Lot = w.LotNbr, PartNbr = w.PartNbr, Quantity = Convert.ToInt32(w.LotQty), WorkOrderNbr = wipRecord.WipWorkOrder.OrderNumber, IssueLoc = _backFlush });
                     }
-                }
-                else
-                {
-                    ComponentInfoList.Add(new CompInfo { Lot = "", WorkOrderNbr = wipRecord.WipWorkOrder.OrderNumber, PartNbr = _comp.CompNumber, Quantity = Convert.ToInt32(Math.Round(Convert.ToDouble(wipRecord.WipQty) * _comp.AssemblyQty, 0)) });
+                    else
+                    {
+                        ComponentInfoList.Add(new CompInfo { Lot = w.LotNbr, PartNbr = w.PartNbr, Quantity = Convert.ToInt32(w.LotQty), WorkOrderNbr = wipRecord.WipWorkOrder.OrderNumber, IssueLoc = w.RcptLoc });
+                    }
                 }
             }
         }
@@ -146,8 +151,8 @@ namespace M2kClient.M2kADIArray
             //Second and Subsequent Lines of the Transaction:
             //10~Disp code~11~Disp reference~12~Disp quantity
             //15~Lot number
-            //24~Component #1 lot number~26~Component #1 work order~25~Component #1 item number~27~Component # 1 lot quantity
-            //24~Component #2 lot number~26~Component #2 work order~25~Component #2 item number~27~Component # 2 lot quantity
+            //24~Component #1 lot number~26~Component #1 work order~25~Component #1 item number~27~Component # 1 lot quantity~70~Component # 1 Issue location~71~static Y
+            //24~Component #2 lot number~26~Component #2 work order~25~Component #2 item number~27~Component # 2 lot quantity~70~Component # 1 Issue location~71~static Y
             //99~COMPLETE
             //Must meet this format in order to work with M2k
 
@@ -157,6 +162,10 @@ namespace M2kClient.M2kADIArray
                 _rValue += $"\n10~{disp.Code}~11~{disp.Reference}~12~{disp.Quantity}";
             }
             _rValue += $"\n15~{Lot}|P";
+            foreach (var c in ComponentInfoList.Where(o => !string.IsNullOrEmpty(o.Lot)))
+            {
+                _rValue += $"\n24~{c.Lot}~26~{WorkOrderNbr}~25~{c.PartNbr}~27~{c.Quantity}~70~{c.IssueLoc}~71~{c.UserDefined}";
+            }
             _rValue += $"\n99~COMPLETE";
 
             return _rValue;

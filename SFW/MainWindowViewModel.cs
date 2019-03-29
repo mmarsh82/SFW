@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Linq;
+using System.Windows.Threading;
 
 //Created by Michael Marsh 4-19-18
 
@@ -40,17 +41,20 @@ namespace SFW
                     }
                     var _temp = value.MachineName == "All" ? "" : $"MachineName = '{value.MachineName}'";
                     var _tempDock = App.SiteNumber == 0 ? WorkSpaceDock.CsiDock : WorkSpaceDock.WccoDock;
-                    if (((Schedule.ViewModel)((Schedule.View)_tempDock.Children[0]).DataContext).ScheduleView != null)
+                    _tempDock.Dispatcher.BeginInvoke(new Action(() =>
                     {
-                        using (DataTable _tempTable = ((DataView)((Schedule.ViewModel)((Schedule.View)_tempDock.Children[0]).DataContext).ScheduleView.SourceCollection).ToTable())
+                        if (((Schedule.ViewModel)((Schedule.View)_tempDock.Children[0]).DataContext).ScheduleView != null)
                         {
-                            if (_tempTable.Select($"MachineNumber = '{value.MachineNumber}'").Length == 0)
+                            using (DataTable _tempTable = ((DataView)((Schedule.ViewModel)((Schedule.View)_tempDock.Children[0]).DataContext).ScheduleView.SourceCollection).ToTable())
                             {
-                                ((ShopRoute.ViewModel)((ShopRoute.View)_tempDock.Children[1]).DataContext).ShopOrder = new WorkOrder();
+                                if (_tempTable.Select($"MachineNumber = '{value.MachineNumber}'").Length == 0)
+                                {
+                                    ((ShopRoute.ViewModel)((ShopRoute.View)_tempDock.Children[1]).DataContext).ShopOrder = new WorkOrder();
+                                }
+                                ((DataView)((Schedule.ViewModel)((Schedule.View)_tempDock.Children[0]).DataContext).ScheduleView.SourceCollection).RowFilter = _temp;
                             }
-                            ((DataView)((Schedule.ViewModel)((Schedule.View)_tempDock.Children[0]).DataContext).ScheduleView.SourceCollection).RowFilter = _temp;
                         }
-                    }
+                    }), DispatcherPriority.ContextIdle);
                 }
                 StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(SelectedMachine)));
             }

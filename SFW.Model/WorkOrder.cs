@@ -68,7 +68,19 @@ namespace SFW.Model
                 BomRevLevel = drow.Field<string>("BomRevLvl");
                 EngStatus = drow.Field<string>("EngStatus");
                 EngStatusDesc = drow.Field<string>("EngStatusDesc");
-                SalesOrder = new SalesOrder(drow.Field<string>("WO_SalesRef"), sqlCon);
+                if (!string.IsNullOrEmpty(drow.Field<string>("WO_SalesRef")))
+                {
+                    var _so = drow.Field<string>("WO_SalesRef").Split('*');
+                    SalesOrder = new SalesOrder
+                    {
+                        SalesNumber = _so[0],
+                        CustomerName = drow.Field<string>("Cust_Name"),
+                        CustomerNumber = drow.Field<string>("Cust_Nbr"),
+                        CustomerPart = drow.Field<string>("Cust_Part_Nbr"),
+                        LineNumber = Convert.ToInt32(_so[1]),
+                        LineQuantity = drow.Field<int>("Ln_Bal_Qty")
+                    };
+                }
                 Bom = Component.GetComponentList(_wo[0], StartQty - CurrentQty, sqlCon);
                 Notes = GetNotes(_wo[0],sqlCon);
                 ShopNotes = GetShopNotes(_wo[0], sqlCon);

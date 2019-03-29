@@ -28,6 +28,16 @@
         /// </summary>
         public int Quantity { get; set; }
 
+        /// <summary>
+        /// Field 70
+        /// </summary>
+        public string IssueLoc { get; set; }
+
+        /// <summary>
+        /// Field 71
+        /// </summary>
+        public char UserDefined { get { return 'Y'; } }
+
         #endregion
     }
 }

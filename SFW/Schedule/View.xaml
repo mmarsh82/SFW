@@ -71,15 +71,16 @@
                   SelectionMode="Single"
                   IsSynchronizedWithCurrentItem="True"
                   EnableRowVirtualization="True"
-                  VirtualizingPanel.IsVirtualizing="True"
-                  VirtualizingPanel.VirtualizationMode="Recycling"
+                  VirtualizingStackPanel.VirtualizationMode ="Recycling"
+                  VirtualizingStackPanel.IsVirtualizing="True"
+                  VirtualizingPanel.IsVirtualizingWhenGrouping="True"
                   Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}">
 
             <DataGrid.Columns>
                 <DataGridTemplateColumn>
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
-                            <StackPanel Orientation="Vertical" MinWidth="700">
+                            <StackPanel Orientation="Vertical" MinWidth="690">
                                 <Grid>
                                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Left">
                                         <TextBlock Text="{Binding WO_Number, Converter={StaticResource WorkOrderConverter}}" FontSize="24" FontWeight="Bold"/>

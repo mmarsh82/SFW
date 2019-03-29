@@ -30,8 +30,8 @@
     <PublisherName>Michael Marsh</PublisherName>
     <SuiteName>WCCO Belting Inc.</SuiteName>
     <AutorunEnabled>true</AutorunEnabled>
-    <ApplicationRevision>631</ApplicationRevision>
-    <ApplicationVersion>1.0.58.631</ApplicationVersion>
+    <ApplicationRevision>680</ApplicationRevision>
+    <ApplicationVersion>1.0.61.680</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <CreateDesktopShortcut>true</CreateDesktopShortcut>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -129,6 +129,10 @@
       <DependentUpon>WipHist_View.xaml</DependentUpon>
     </Compile>
     <Compile Include="Queries\WipHist_ViewModel.cs" />
+    <Compile Include="Reports\Fab_View.xaml.cs">
+      <DependentUpon>Fab_View.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Reports\Fab_ViewModel.cs" />
     <Compile Include="Reports\PressShift_View.xaml.cs">
       <DependentUpon>PressShift_View.xaml</DependentUpon>
     </Compile>
@@ -198,6 +202,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Queries\WipHist_View.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Reports\Fab_View.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

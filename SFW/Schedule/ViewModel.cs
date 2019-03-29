@@ -7,8 +7,8 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Linq;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
 
@@ -74,11 +74,12 @@ namespace SFW.Schedule
         /// </summary>
         public ViewModel()
         {
-            LoadAsyncDelegate = new LoadDelegate(ViewLoading);
-            FilterAsyncDelegate = new LoadDelegate(FilterView);
-            LoadAsyncComplete = LoadAsyncDelegate.BeginInvoke(null, new AsyncCallback(ViewLoaded), null);
             MachineList = Machine.GetMachineList(App.AppSqlCon, true);
             MachineGroupList = Machine.GetMachineGroupList(App.AppSqlCon, true);
+            LoadAsyncDelegate = new LoadDelegate(ViewLoading);
+            FilterAsyncDelegate = new LoadDelegate(FilterView);
+            var _filter = App.DefualtWorkCenter?.Count > 0 && App.DefualtWorkCenter?.FirstOrDefault().Value == App.SiteNumber ? App.DefualtWorkCenter.FirstOrDefault().Key : null;
+            LoadAsyncComplete = LoadAsyncDelegate.BeginInvoke(_filter, new AsyncCallback(ViewLoaded), null);
             RefreshTimer.Add(RefreshSchedule);
             VMDataBase = App.AppSqlCon.Database;
         }
@@ -125,6 +126,12 @@ namespace SFW.Schedule
             IsLoading = true;
             ScheduleView = CollectionViewSource.GetDefaultView(Machine.GetScheduleData(App.AppSqlCon));
             ScheduleView.GroupDescriptions.Add(new PropertyGroupDescription("MachineNumber", new WorkCenterNameConverter(MachineList)));
+            if (!string.IsNullOrEmpty(machineNbr))
+            {
+                MainWindowViewModel.SelectedMachine = MachineList.FirstOrDefault(o => o.MachineNumber == machineNbr);
+                MainWindowViewModel.SelectedMachineGroup = 
+                ((DataView)ScheduleView.SourceCollection).RowFilter = $"MachineName = '{MainWindowViewModel.SelectedMachine.MachineName}'";
+            }
         }
         public void ViewLoaded(IAsyncResult r)
         {
@@ -160,7 +167,11 @@ namespace SFW.Schedule
                     ((DataView)ScheduleView.SourceCollection).RowFilter = $"MachineGroup = '{MainWindowViewModel.SelectedMachineGroup}'";
                 }
                 OnPropertyChanged(nameof(ScheduleView));
-                SelectedWorkOrder = _selection;
+                if (_selection != null)
+                {
+                    var test = _selection.Row.Field<string>("WO_Number");
+                    SelectedWorkOrder = ((DataView)ScheduleView.SourceCollection).Table.AsEnumerable().Any(r => _selection.Row.Field<string>("WO_Number") == r.Field<string>("WO_Number")) ? _selection : null;
+                }
                 if (!string.IsNullOrEmpty(_db))
                 {
                     App.DatabaseChange(_db);

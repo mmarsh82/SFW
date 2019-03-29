@@ -149,6 +149,15 @@
 
                 <StackPanel Grid.Row="3" Orientation="Horizontal">
 
+                    <Button Margin="0,0,10,0"
+                            Width="50"
+                            Command="{StaticResource PartInfoCommand}"
+                            CommandParameter="{Binding ShopOrder.SkuNumber}"
+                            Style="{DynamicResource DefaultButton}">
+                        <Image Source="/SFW;component/Icons/Search.ico"
+                               Margin="1"/>
+                    </Button>
+                    
                     <TextBlock Text="Part Number:"
                            FontSize="24"
                            FontWeight="Bold"
@@ -423,24 +432,41 @@
                         HorizontalAlignment="Left" VerticalAlignment="Center"
                         Visibility="{Binding ShopOrder.SalesOrder.SalesNumber, Converter={StaticResource StringToVisConverter}}">
 
-                    <TextBlock Text="Sales Order:"
-                           FontSize="24"
-                           FontWeight="Bold"
-                           Foreground="#FF135185"
-                           TextDecorations="Underline"/>
-
-                    <TextBlock Text="{Binding ShopOrder.SalesOrder.SalesNumber}"
-                           FontSize="24"
-                           FontWeight="Bold"
-                           Margin="10,0,0,0"/>
-
                     <Button Content="Open"
                             FontSize="18"
-                            Margin="5,0,5,5"
+                            Margin="5,0,20,5"
                             Width="75"
                             Command="{StaticResource ShowQuery}"
                             CommandParameter="{Binding FqSalesOrder}"
                             Style="{DynamicResource DefaultButton}" />
+
+                    <TextBlock Text="Sales Order:"
+                               FontSize="24"
+                               FontWeight="Bold"
+                               Foreground="#FF135185"
+                               TextDecorations="Underline"/>
+
+                    <TextBlock Text="{Binding ShopOrder.SalesOrder.SalesNumber}"
+                               FontSize="24"
+                               FontWeight="Bold"
+                               Margin="10,0,0,0" />
+
+                    <TextBlock Text="Customer:"
+                               FontSize="24"
+                               FontWeight="Bold"
+                               TextDecorations="Underline"
+                               Foreground="#FF135185" 
+                               Margin="20,0,0,0"/>
+
+                    <TextBlock Text="{Binding ShopOrder.SalesOrder.CustomerName}"
+                               FontSize="24"
+                               FontWeight="Bold"
+                               Margin="10,0,0,0" />
+
+                    <TextBlock Text="{Binding ShopOrder.SalesOrder.CustomerNumber, StringFormat='({0})'}"
+                               FontSize="24"
+                               FontWeight="Bold"
+                               Margin="5,0,0,0" />
 
                 </StackPanel>
 
@@ -452,9 +478,8 @@
 
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="130"/>
-                        <ColumnDefinition Width="500"/>
-                        <ColumnDefinition Width="350"/>
-                        <ColumnDefinition Width="300"/>
+                        <ColumnDefinition Width="170"/>
+                        <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
 
                     <StackPanel Grid.Column="0" Orientation="Horizontal">
@@ -471,22 +496,18 @@
 
                     </StackPanel>
 
-                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                    <StackPanel Grid.Column="1"
+                                Orientation="Horizontal">
 
-                        <TextBlock Text="Customer:"
-                               FontSize="18"
-                               TextDecorations="Underline"
-                               Foreground="#FF135185"/>
+                        <TextBlock Text="Quantity:"
+                                   FontSize="18"
+                                   TextDecorations="Underline"
+                                   Foreground="#FF135185" />
 
-                        <TextBlock Text="{Binding ShopOrder.SalesOrder.CustomerName}"
-                               FontSize="18"
-                               FontWeight="Bold"
-                               Margin="10,0,0,0"/>
-
-                        <TextBlock Text="{Binding ShopOrder.SalesOrder.CustomerNumber, StringFormat='({0})'}"
-                               FontSize="18"
-                               FontWeight="Bold"
-                               Margin="5,0,0,0"/>
+                        <TextBlock Text="{Binding ShopOrder.SalesOrder.LineQuantity}"
+                                   FontSize="18"
+                                   FontWeight="Bold"
+                                   Margin="10,0,0,0" />
 
                     </StackPanel>
 
@@ -595,12 +616,13 @@
                         <DataGridTemplateColumn>
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <Button Content="ITH"
-                                        FontSize="14"
-                                        Width="50"
-                                        Command="{StaticResource PartInfoCommand}"
-                                        CommandParameter="{Binding CompNumber}"
-                                        Style="{DynamicResource DefaultButton}"/>
+                                    <Button Command="{StaticResource PartInfoCommand}"
+                                            CommandParameter="{Binding CompNumber}"
+                                            Height="20"
+                                            Width="50"
+                                            Style="{DynamicResource DefaultButton}">
+                                        <Image Source="/SFW;component/Icons/Search.ico" />
+                                    </Button>
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>

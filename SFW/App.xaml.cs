@@ -1,11 +1,13 @@
 ﻿using M2kClient;
 using Microsoft.Win32;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data.SqlClient;
 using System.IO;
 using System.Windows;
 using System.Windows.Threading;
+using System.Xml;
 using System.Xml.Linq;
 
 namespace SFW
@@ -33,6 +35,8 @@ namespace SFW
         public static SqlConnection AppSqlCon { get; set; }
         public static M2kConnection ErpCon { get; set; }
 
+        public static IDictionary<string,int> DefualtWorkCenter { get; set; }
+
         public static event EventHandler<PropertyChangedEventArgs> StaticPropertyChanged;
 
         #endregion
@@ -40,6 +44,7 @@ namespace SFW
         public App()
         {
             //LoadGlobalAppConfig();
+            //DefualtWorkCenter = LoadUserAppConfig();
             Site = "CSI_MAIN";
             SiteNumber = 0;
             ErpCon = new M2kConnection("172.16.0.122", "omniquery", "omniquery", Database.CSI);
@@ -331,6 +336,60 @@ namespace SFW
                 {
                     return false;
                 }
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private IDictionary<string, int> LoadUserAppConfig()
+        {
+            var _rDict = new Dictionary<string, int>();
+            try
+            {
+                var folder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+                if (!File.Exists($"{folder}\\SFW\\SfwConfig.xml"))
+                {
+                    Directory.CreateDirectory($"{folder}\\SFW");
+                    using (var wStream = new FileStream($"{folder}\\SFW\\SfwConfig.xml", FileMode.CreateNew))
+                    {
+                        var wSettings = new XmlWriterSettings { Indent = true, IndentChars = "\t", NewLineOnAttributes = true };
+                        using (var writer = XmlWriter.Create(wStream, wSettings))
+                        {
+                            writer.WriteComment("Default Work Centers");
+                            writer.WriteComment("Work center name and order of appearance");
+
+                            writer.WriteStartElement("Defualt_WC");
+
+                            writer.WriteAttributeString("WC_Nbr", "41005");
+                            writer.WriteAttributeString("Site", "1");
+
+                            writer.WriteEndElement();
+                        }
+                    }
+                }
+                using (var rStream = new FileStream($"{folder}\\SFW\\SfwConfig.xml", FileMode.Open))
+                {
+                    var rSettings = new XmlReaderSettings { IgnoreComments = true, IgnoreWhitespace = true };
+                    using (var reader = XmlReader.Create(rStream, rSettings))
+                    {
+                        while (reader.Read())
+                        {
+                            if (reader.HasAttributes)
+                            {
+                                if (reader.NodeType == XmlNodeType.Element)
+                                {
+                                    _rDict.Add(reader.GetAttribute("WC_Nbr"), Convert.ToInt32(reader.GetAttribute("Site")));
+                                }
+                            }
+                        }
+                    }
+                }
+                return _rDict;
+            }
+            catch(Exception ex)
+            {
+                return null;
             }
         }
     }

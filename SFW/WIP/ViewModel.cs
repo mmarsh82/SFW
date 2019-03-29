@@ -2,7 +2,6 @@
 using SFW.Helpers;
 using SFW.Model;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Input;
 
@@ -225,6 +224,8 @@ namespace SFW.WIP
             {
                 WipRecord = null;
                 _wip = null;
+                ((Schedule.ViewModel)Controls.WorkSpaceDock.WccoDock.GetChildOfType<Schedule.View>().DataContext).RefreshSchedule();
+                ((Schedule.ViewModel)Controls.WorkSpaceDock.WccoDock.GetChildOfType<Schedule.View>().DataContext).SelectedWorkOrder = null;
             }
         }
     }
