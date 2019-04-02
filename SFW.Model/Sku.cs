@@ -23,6 +23,7 @@ namespace SFW.Model
         public string EngStatusDesc { get; set; }
         public string InventoryType { get; set; }
         public int CrewSize { get; set; }
+        public List<string> InstructionList { get; set; }
 
         #endregion
 
@@ -244,6 +245,50 @@ namespace SFW.Model
                     }
                 }
                 return _dmdNbr;
+            }
+            else
+            {
+                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
+            }
+        }
+
+        /// <summary>
+        /// Get a work order's work instructions
+        /// </summary>
+        /// <param name="woNbr">Sku ID Number</param>
+        /// <param name="sqlCon">Sql Connection to use</param>
+        /// <returns>A list of URL strings to open the work instructions</returns>
+        public static List<string> GetInstructions(string partNbr, SqlConnection sqlCon)
+        {
+            var _inst = new List<string>();
+            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
+            {
+                try
+                {
+                    using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database}; SELECT RIGHT([Url], CHARINDEX('\', REVERSE([Url]),1) - 1) as 'Url' FROM [dbo].[IM-INIT_Url_Codes] WHERE [ID1] = @p1;", sqlCon))
+                    {
+                        cmd.Parameters.AddWithValue("p1", partNbr);
+                        using (SqlDataReader reader = cmd.ExecuteReader())
+                        {
+                            if (reader.HasRows)
+                            {
+                                while (reader.Read())
+                                {
+                                    _inst.Add($"{reader.SafeGetString("Url")}");
+                                }
+                            }
+                        }
+                    }
+                    return _inst;
+                }
+                catch (SqlException sqlEx)
+                {
+                    throw sqlEx;
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception(ex.Message);
+                }
             }
             else
             {

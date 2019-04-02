@@ -354,7 +354,6 @@ namespace SFW.Model
                     using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database};
                                                                 DECLARE @Shift as int;
                                                                 SET @Shift = (SELECT [Shift] FROM [dbo].[EMPLOYEE_MASTER-INIT] WHERE [Emp_No] = @p1);
-                                                                DECLARE @OutTime as varchar
                                                                 SELECT
                                                                 CASE WHEN @Shift != 3
 	                                                                THEN

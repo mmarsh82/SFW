@@ -12,6 +12,8 @@
                 <ResourceDictionary Source="Styles/LoadingAnimation.xaml" />
                 <ResourceDictionary Source="Styles/Grid.xaml" />
                 <ResourceDictionary Source="Styles/TabControl.xaml" />
+                <ResourceDictionary Source="Styles/MenuItem.xaml" />
+                <ResourceDictionary Source="Styles/Menu.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
          

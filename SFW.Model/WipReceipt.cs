@@ -66,11 +66,6 @@ namespace SFW.Model
         /// </summary>
         public string StartTime { get; set; }
 
-        /// <summary>
-        /// Wip receipt shift to use for the labor part of the transaction
-        /// </summary>
-        public int Shift { get; set; }
-
         #endregion
 
         /// <summary>
@@ -89,23 +84,11 @@ namespace SFW.Model
             WipWorkOrder = workOrder;
             WipWorkOrder.CrewSize = Sku.GetCrewSize(WipWorkOrder.SkuNumber, WipWorkOrder.Seq, sqlCon);
             HasCrew = Machine.GetMachineGroup(sqlCon, workOrder.OrderNumber, workOrder.Seq) != "PRESS";
-            if (DateTime.Now.TimeOfDay >= Convert.ToDateTime("07:00").TimeOfDay && DateTime.Now.TimeOfDay < Convert.ToDateTime("15:00").TimeOfDay)
-            {
-                Shift = 1;
-            }
-            else if(DateTime.Now.TimeOfDay >= Convert.ToDateTime("15:00").TimeOfDay && DateTime.Now.TimeOfDay < Convert.ToDateTime("23:00").TimeOfDay)
-            {
-                Shift = 2;
-            }
-            else
-            {
-                Shift = 3;
-            }
             if (HasCrew)
             {
                 CrewList = new BindingList<CrewMember>
                 {
-                    new CrewMember { IdNumber = CrewMember.GetCrewIdNumber(sqlCon, subFName, subLName), Name = Submitter }
+                    new CrewMember { IdNumber = CrewMember.GetCrewIdNumber(sqlCon, subFName, subLName), Name = Submitter, LastClock = "" }
                 };
                 CrewList.AddNew();
                 CrewList.ListChanged += CrewList_ListChanged;

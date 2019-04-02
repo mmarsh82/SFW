@@ -17,6 +17,7 @@ namespace SFW.Model
         public string MachineNumber { get; set; }
         public string MachineName { get; set; }
         public string MachineDescription { get; set; }
+        public string MachineGroup { get; set; }
         public bool IsLoaded { get; set; }
 
         #endregion
@@ -31,54 +32,6 @@ namespace SFW.Model
         /// Get a list of work centers
         /// </summary>
         /// <param name="sqlCon">Sql Connection to use</param>
-        /// <returns>generic list of worcenter objects</returns>
-        public static List<Machine> GetWorkCenterList(SqlConnection sqlCon)
-        {
-            var _tempList = new List<Machine>();
-            var conString = string.Empty;
-            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
-            {
-                try
-                {
-                    using (SqlCommand cmd = new SqlCommand($"USE {sqlCon.Database}; SELECT [Wc_Nbr], [Name], [D_esc] FROM [dbo].[WC-INIT] WHERE [D_esc] <> 'DO NOT USE'", sqlCon))
-                    {
-                        using (SqlDataReader reader = cmd.ExecuteReader())
-                        {
-                            if (reader.HasRows)
-                            {
-                                while (reader.Read())
-                                {
-                                    _tempList.Add(new Machine
-                                    {
-                                        MachineNumber = reader.SafeGetString("Wc_Nbr"),
-                                        MachineName = reader.SafeGetString("Name"),
-                                        MachineDescription = reader.SafeGetString("D_esc")
-                                    });
-                                }
-                            }
-                        }
-                    }
-                    return _tempList;
-                }
-                catch (SqlException sqlEx)
-                {
-                    throw sqlEx;
-                }
-                catch (Exception ex)
-                {
-                    throw new Exception(ex.Message);
-                }
-            }
-            else
-            {
-                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
-            }
-        }
-
-        /// <summary>
-        /// Get a list of work centers
-        /// </summary>
-        /// <param name="sqlCon">Sql Connection to use</param>
         /// <param name="incAll">Include all in the top of the list</param>
         /// <returns>generic list of worcenter objects</returns>
         public static List<Machine> GetMachineList(SqlConnection sqlCon, bool incAll)
@@ -86,13 +39,13 @@ namespace SFW.Model
             var _tempList = new List<Machine>();
             if (incAll)
             {
-                _tempList.Add(new Machine { MachineNumber = "0", MachineName = "All", IsLoaded = true });
+                _tempList.Add(new Machine { MachineNumber = "0", MachineName = "All", IsLoaded = true, MachineGroup = "All" });
             }
             if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
             {
                 try
                 {
-                    using (SqlCommand cmd = new SqlCommand($"USE {sqlCon.Database}; SELECT [Wc_Nbr], [Name] FROM [dbo].[WC-INIT] WHERE [D_esc] <> 'DO NOT USE'", sqlCon))
+                    using (SqlCommand cmd = new SqlCommand($"USE {sqlCon.Database}; SELECT [Wc_Nbr], [Name], [D_esc], [Work_Ctr_Group] FROM [dbo].[WC-INIT] WHERE [D_esc] <> 'DO NOT USE'", sqlCon))
                     {
                         using (SqlDataReader reader = cmd.ExecuteReader())
                         {
@@ -104,7 +57,8 @@ namespace SFW.Model
                                     {
                                         MachineNumber = reader.SafeGetString("Wc_Nbr"),
                                         MachineName = reader.SafeGetString("Name"),
-                                        IsLoaded = true
+                                        MachineDescription = reader.SafeGetString("D_esc"),
+                                        MachineGroup = reader.SafeGetString("Work_Ctr_Group")
                                     });
                                 }
                             }
@@ -179,7 +133,8 @@ namespace SFW.Model
 	                                                                            (SELECT [Description] FROM [dbo].[TM-INIT_Eng_Status] WHERE [ID] = e.[Engineering_Status]) as 'EngStatusDesc',
                                                                                 (SELECT [Name] FROM [dbo].[CM-INIT] WHERE [Cust_Nbr] = c.[Cust_Nbr]) as 'Cust_Name',
 	                                                                            (SELECT [Cust_Part_Nbr] FROM [dbo].[SOD-INIT] WHERE [ID] = SUBSTRING(c.[So_Reference],0,LEN(c.[So_Reference])-1)) as 'Cust_Part_Nbr',
-	                                                                            CAST((SELECT [Ln_Bal_Qty] FROM [dbo].[SOD-INIT] WHERE [ID] = SUBSTRING(c.[So_Reference],0,LEN(c.[So_Reference])-1)) as int) as 'Ln_Bal_Qty'
+	                                                                            CAST((SELECT [Ln_Bal_Qty] FROM [dbo].[SOD-INIT] WHERE [ID] = SUBSTRING(c.[So_Reference],0,LEN(c.[So_Reference])-1)) as int) as 'Ln_Bal_Qty',
+                                                                                ISNULL((SELECT [Load_Pattern] FROM [dbo].[CM-INIT] WHERE [Cust_Nbr] = c.[Cust_Nbr]),'') as 'LoadPattern'
                                                                             FROM
                                                                                 [dbo].[WC-INIT] a
                                                                             RIGHT JOIN

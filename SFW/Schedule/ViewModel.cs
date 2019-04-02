@@ -75,7 +75,7 @@ namespace SFW.Schedule
         public ViewModel()
         {
             MachineList = Machine.GetMachineList(App.AppSqlCon, true);
-            MachineGroupList = Machine.GetMachineGroupList(App.AppSqlCon, true);
+            MachineGroupList = MachineList.Where(o => !string.IsNullOrEmpty(o.MachineGroup)).Select(o => o.MachineGroup).Distinct().ToList();
             LoadAsyncDelegate = new LoadDelegate(ViewLoading);
             FilterAsyncDelegate = new LoadDelegate(FilterView);
             var _filter = App.DefualtWorkCenter?.Count > 0 && App.DefualtWorkCenter?.FirstOrDefault().Value == App.SiteNumber ? App.DefualtWorkCenter.FirstOrDefault().Key : null;
@@ -129,7 +129,6 @@ namespace SFW.Schedule
             if (!string.IsNullOrEmpty(machineNbr))
             {
                 MainWindowViewModel.SelectedMachine = MachineList.FirstOrDefault(o => o.MachineNumber == machineNbr);
-                MainWindowViewModel.SelectedMachineGroup = 
                 ((DataView)ScheduleView.SourceCollection).RowFilter = $"MachineName = '{MainWindowViewModel.SelectedMachine.MachineName}'";
             }
         }

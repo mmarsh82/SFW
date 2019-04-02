@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Linq;
-using System.Windows.Threading;
 
 //Created by Michael Marsh 4-19-18
 
@@ -28,34 +27,33 @@ namespace SFW
             get { return mach; }
             set
             {
-                if (value == null && MachineList != null)
+                if (value == null)
                 {
-                    mach = value = MachineList.FirstOrDefault();
+                    value = MachineList.FirstOrDefault(o => o.MachineName == "All");
                 }
-                else
+                else if (mach != value && !IsChanging)
                 {
-                    mach = value;
-                    if (SelectedMachineGroup != null && SelectedMachineGroup != Machine.GetMachineGroup(App.AppSqlCon, value.MachineNumber))
+                    IsChanging = true;
+                    if (value.MachineGroup != SelectedMachineGroup)
                     {
-                        SelectedMachineGroup = null;
+                        SelectedMachineGroup = value.MachineGroup;
                     }
-                    var _temp = value.MachineName == "All" ? "" : $"MachineName = '{value.MachineName}'";
-                    var _tempDock = App.SiteNumber == 0 ? WorkSpaceDock.CsiDock : WorkSpaceDock.WccoDock;
-                    _tempDock.Dispatcher.BeginInvoke(new Action(() =>
+                    var _filter = value.MachineName == "All" ? "" : $"MachineName = '{value.MachineName}'";
+                    var _dock = App.SiteNumber == 0 ? WorkSpaceDock.CsiDock : WorkSpaceDock.WccoDock;
+                    _dock.Dispatcher.BeginInvoke(new Action(() => 
                     {
-                        if (((Schedule.ViewModel)((Schedule.View)_tempDock.Children[0]).DataContext).ScheduleView != null)
+                        if (((Schedule.ViewModel)((Schedule.View)_dock.Children[0]).DataContext).ScheduleView != null)
                         {
-                            using (DataTable _tempTable = ((DataView)((Schedule.ViewModel)((Schedule.View)_tempDock.Children[0]).DataContext).ScheduleView.SourceCollection).ToTable())
+                            if (((DataView)((Schedule.ViewModel)((Schedule.View)_dock.Children[0]).DataContext).ScheduleView.SourceCollection).Table.Select($"MachineNumber = '{value.MachineNumber}'").Length == 0)
                             {
-                                if (_tempTable.Select($"MachineNumber = '{value.MachineNumber}'").Length == 0)
-                                {
-                                    ((ShopRoute.ViewModel)((ShopRoute.View)_tempDock.Children[1]).DataContext).ShopOrder = new WorkOrder();
-                                }
-                                ((DataView)((Schedule.ViewModel)((Schedule.View)_tempDock.Children[0]).DataContext).ScheduleView.SourceCollection).RowFilter = _temp;
+                                ((ShopRoute.ViewModel)((ShopRoute.View)_dock.Children[1]).DataContext).ShopOrder = new WorkOrder();
                             }
+                            ((DataView)((Schedule.ViewModel)((Schedule.View)_dock.Children[0]).DataContext).ScheduleView.SourceCollection).RowFilter = _filter;
                         }
-                    }), DispatcherPriority.ContextIdle);
+                        IsChanging = false;
+                    }));
                 }
+                mach = value;
                 StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(SelectedMachine)));
             }
         }
@@ -73,28 +71,19 @@ namespace SFW
             get { return machGrp; }
             set
             {
-                if (value == null && MachineGroupList != null)
+                if (machGrp != value && !IsChanging)
                 {
-                    machGrp = value = MachineGroupList.First(o => o.Contains(Machine.GetMachineGroup(App.AppSqlCon, SelectedMachine.MachineNumber)));
-                }
-                else if (machGrp != value)
-                {
+                    IsChanging = true;
                     var _temp = value == "All" ? "" : $"MachineGroup = '{value}'";
                     var _tempDock = App.SiteNumber == 0 ? WorkSpaceDock.CsiDock : WorkSpaceDock.WccoDock;
                     if (((Schedule.ViewModel)((Schedule.View)_tempDock.Children[0]).DataContext).ScheduleView != null)
                     {
                         ((DataView)((Schedule.ViewModel)((Schedule.View)_tempDock.Children[0]).DataContext).ScheduleView.SourceCollection).RowFilter = _temp;
                     }
-                    if (SelectedMachine != null &&  value != Machine.GetMachineGroup(App.AppSqlCon, SelectedMachine.MachineNumber))
-                    {
-                        SelectedMachine = null;
-                    }
-                    machGrp = value;
+                    SelectedMachine = MachineList.FirstOrDefault(o => o.MachineName == "All");
+                    IsChanging = false;
                 }
-                else
-                {
-                    machGrp = value;
-                }
+                machGrp = value;
                 StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(SelectedMachineGroup)));
             }
         }
@@ -121,6 +110,7 @@ namespace SFW
             }
         }
 
+        private static bool IsChanging;
         public static event EventHandler<PropertyChangedEventArgs> StaticPropertyChanged;
         public event EventHandler CanExecuteChanged;
 
@@ -131,9 +121,8 @@ namespace SFW
         /// </summary>
         public MainWindowViewModel()
         {
+            IsChanging = false;
             new WorkSpaceDock();
-            SelectedMachine = MachineList.FirstOrDefault();
-            SelectedMachineGroup = MachineGroupList.FirstOrDefault();
         }
 
         /// <summary>

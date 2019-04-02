@@ -14,8 +14,9 @@
             <cmd:PartInformation x:Key="PartInfoICommand"/>
             <cmd:ViewLoad x:Key="ViewLoadICommand"/>
             <cmd:SafeShutdown x:Key="ExitICommand"/>
-            <cmd:ShowLogInWindow x:Key="LogInCommand" />
-            <cmd:DevTesting x:Key="TestCommand" />
+            <cmd:ShowLogInWindow x:Key="LogInICommand" />
+            <cmd:DevTesting x:Key="TestICommand" />
+            <cmd:ShowUserPrefWindow x:Key="UserPrefICommand" />
             <cvtr:SiteNumberToBool x:Key="SiteToBoolConverter"/>
             <cvtr:BoolToVisibility x:Key="BoolToVisConverter"/>
         </Grid.Resources>
@@ -27,8 +28,8 @@
 
         <Grid.InputBindings>
             <KeyBinding Gesture="Alt+F4" Command="{StaticResource ExitICommand}"/>
-            <KeyBinding Gesture="F1" Command="{StaticResource LogInCommand}" CommandParameter="in"/>
-            <KeyBinding Gesture="Esc" Command="{StaticResource LogInCommand}"/>
+            <KeyBinding Gesture="F1" Command="{StaticResource LogInICommand}" CommandParameter="in"/>
+            <KeyBinding Gesture="Esc" Command="{StaticResource LogInICommand}"/>
             <KeyBinding Gesture="F5" Command="{StaticResource ViewLoadICommand}" CommandParameter="Schedule"/>
             <KeyBinding Gesture="F9" Command="{StaticResource PartInfoICommand}"/>
             <KeyBinding Gesture="Alt+C" Command="{StaticResource ViewLoadICommand}" CommandParameter="SiteCsi"/>
@@ -45,23 +46,24 @@
               IsMainMenu="True">
             <MenuItem Header="File">
                 <MenuItem Header="Log In"
-                          Command="{StaticResource LogInCommand}"
+                          Command="{StaticResource LogInICommand}"
                           CommandParameter="in"
                           InputGestureText="F1"
                           Visibility="{Binding Path=(local:CurrentUser.IsLoggedIn), Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}"/>
                 <MenuItem Header="Log Out"
-                          Command="{StaticResource LogInCommand}"
+                          Command="{StaticResource LogInICommand}"
                           InputGestureText="Esc"
                           Visibility="{Binding Path=(local:CurrentUser.IsLoggedIn), Converter={StaticResource BoolToVisConverter}}"/>
                 <MenuItem Header="Train Mode"
                           IsEnabled="False" />
                 <MenuItem Header="Default Work Centers"
-                          IsEnabled="False"/>
+                          Command="{StaticResource UserPrefICommand}"
+                          Visibility="{Binding Path=(local:CurrentUser.IsLoggedIn), Converter={StaticResource BoolToVisConverter}}"/>
                 <MenuItem Header="Print"
                           IsEnabled="False"/>
                 <MenuItem Header="Dev Testing" 
                           IsEnabled="True"
-                          Command="{StaticResource TestCommand}"/>
+                          Command="{StaticResource TestICommand}"/>
                 <MenuItem Header="Exit"
                           Command="{StaticResource ExitICommand}"
                           InputGestureText="Alt+F4">

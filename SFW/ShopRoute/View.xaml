@@ -15,8 +15,9 @@
                 <cmd:M2kLookQuery x:Key="ShowQuery"/>
                 <cmd:PartSearch x:Key="PartSearchICommand"/>
                 <cmd:PartInformation x:Key="PartInfoCommand"/>
-                <cmd:SetUpInformation x:Key="SetupCommand"/>
+                <cmd:SetUpInformation x:Key="SetupCommand" />
                 <cmd:M2kWipReceipt x:Key="WipCommand" />
+                <cmd:WorkInstructions x:Key="WorkInstICommand" />
                 <main:CurrentUser x:Key="User" />
             </Grid.Resources>
 
@@ -96,6 +97,26 @@
                             Command="{Binding ReportICommand}"
                             CommandParameter="2"
                             Style="{DynamicResource MenuButtonStyle}" />
+
+                    <Menu Style="{DynamicResource ModernMenu}"
+                          Visibility="{Binding ShopOrder.InstructionList.Count, Converter={StaticResource CountToVisConverter}}">
+                        <MenuItem Header="Work&#10;Instructions"
+                                  ItemsSource="{Binding ShopOrder.InstructionList}"
+                                  FontSize="14"
+                                  Width="110"
+                                  Height="39"
+                                  Style="{DynamicResource ModernMenuItem}">
+                            <MenuItem.ItemContainerStyle>
+                                <Style TargetType="MenuItem">
+                                    <Setter Property="Command"
+                                            Value="{StaticResource WorkInstICommand}" />
+                                    <Setter Property="CommandParameter"
+                                            Value="{Binding}" />
+                                </Style>
+                            </MenuItem.ItemContainerStyle>
+                        </MenuItem>
+                    </Menu>
+
                 </StackPanel>
 
                 <!--#endregion-->
@@ -187,7 +208,7 @@
                                Margin="10,0,0,0" />
 
                     <TextBlock Text="USE PLASTIC PALLET"
-                               Visibility="Collapsed"
+                               Visibility="{Binding ShopOrder.SalesOrder.LoadPattern, Converter={StaticResource BoolToVisConverter}}"
                                Foreground="Crimson"
                                FontSize="24"
                                FontWeight="Bold"

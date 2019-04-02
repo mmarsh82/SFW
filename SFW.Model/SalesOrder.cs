@@ -17,6 +17,7 @@ namespace SFW.Model
         public int LineNumber { get; set; }
         public int LineQuantity { get; set; }
         public string LineNotes { get; set; }
+        public bool LoadPattern { get; set; }
 
         #endregion
 

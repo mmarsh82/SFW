@@ -78,12 +78,18 @@ namespace SFW.Model
                         CustomerNumber = drow.Field<string>("Cust_Nbr"),
                         CustomerPart = drow.Field<string>("Cust_Part_Nbr"),
                         LineNumber = Convert.ToInt32(_so[1]),
-                        LineQuantity = drow.Field<int>("Ln_Bal_Qty")
-                    };
+                        LineQuantity = drow.Field<int>("Ln_Bal_Qty"),
+                        LoadPattern = drow.Field<string>("LoadPattern").ToUpper() == "PLASTIC"
+                     };
+                }
+                else
+                {
+                    SalesOrder = new SalesOrder();
                 }
                 Bom = Component.GetComponentList(_wo[0], StartQty - CurrentQty, sqlCon);
                 Notes = GetNotes(_wo[0],sqlCon);
                 ShopNotes = GetShopNotes(_wo[0], sqlCon);
+                InstructionList = GetInstructions(SkuNumber, sqlCon);
             }
         }
 

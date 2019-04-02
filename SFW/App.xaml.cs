@@ -357,9 +357,9 @@ namespace SFW
                         using (var writer = XmlWriter.Create(wStream, wSettings))
                         {
                             writer.WriteComment("Default Work Centers");
-                            writer.WriteComment("Work center name and order of appearance");
+                            writer.WriteComment("Work center name and site location (i.e. 0 = CSI, 1 = WCCO)");
 
-                            writer.WriteStartElement("Defualt_WC");
+                            writer.WriteStartElement("Default_WC");
 
                             writer.WriteAttributeString("WC_Nbr", "41005");
                             writer.WriteAttributeString("Site", "1");
