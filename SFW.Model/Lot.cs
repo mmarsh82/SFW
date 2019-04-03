@@ -97,15 +97,17 @@ namespace SFW.Model
                     if (!string.IsNullOrEmpty(partNbr))
                     {
                         using (SqlCommand cmd = new SqlCommand(@"SELECT 
-                                                                SUBSTRING(a.[Lot_Number], 0, CHARINDEX('|',a.[Lot_Number],0)) as 'LotNumber',
-                                                                b.[Oh_Qtys], b.[Loc] 
-                                                            FROM 
-                                                                [dbo].[LOT-INIT] a 
-                                                            RIGHT JOIN 
-                                                                [dbo].[LOT-INIT_Lot_Loc_Qtys] b ON b.[ID1] = a.[Lot_Number] 
-                                                            WHERE 
-                                                                a.[Part_Nbr] = @p1 AND [Stores_Oh] != 0;", sqlCon))
-                        {
+                                                                    SUBSTRING(a.[Lot_Number], 0, CHARINDEX('|',a.[Lot_Number],0)) as 'LotNumber',
+                                                                    b.[Oh_Qtys], b.[Loc] 
+                                                                FROM 
+                                                                    [dbo].[LOT-INIT] a 
+                                                                RIGHT JOIN 
+                                                                    [dbo].[LOT-INIT_Lot_Loc_Qtys] b ON b.[ID1] = a.[Lot_Number] 
+                                                                WHERE 
+                                                                    a.[Part_Nbr] = @p1 AND [Stores_Oh] != 0
+                                                                ORDER BY
+	                                                                [LotNumber] ASC;;", sqlCon))
+                            {
                             cmd.Parameters.AddWithValue("p1", partNbr);
                             using (SqlDataReader reader = cmd.ExecuteReader())
                             {

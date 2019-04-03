@@ -12,13 +12,13 @@
 
         <Grid.Resources>
             <cmd:PartInformation x:Key="PartInfoICommand"/>
+            <cmd:PartDetail x:Key="PartDetailICommand" />
             <cmd:ViewLoad x:Key="ViewLoadICommand"/>
             <cmd:SafeShutdown x:Key="ExitICommand"/>
             <cmd:ShowLogInWindow x:Key="LogInICommand" />
             <cmd:DevTesting x:Key="TestICommand" />
-            <cmd:ShowUserPrefWindow x:Key="UserPrefICommand" />
             <cvtr:SiteNumberToBool x:Key="SiteToBoolConverter"/>
-            <cvtr:BoolToVisibility x:Key="BoolToVisConverter"/>
+            <cvtr:BoolToVisibility x:Key="BoolToVisConverter" />
         </Grid.Resources>
 
         <Grid.RowDefinitions>
@@ -30,10 +30,15 @@
             <KeyBinding Gesture="Alt+F4" Command="{StaticResource ExitICommand}"/>
             <KeyBinding Gesture="F1" Command="{StaticResource LogInICommand}" CommandParameter="in"/>
             <KeyBinding Gesture="Esc" Command="{StaticResource LogInICommand}"/>
-            <KeyBinding Gesture="F5" Command="{StaticResource ViewLoadICommand}" CommandParameter="Schedule"/>
-            <KeyBinding Gesture="F9" Command="{StaticResource PartInfoICommand}"/>
+            <KeyBinding Gesture="F5"
+                        Command="{StaticResource ViewLoadICommand}"
+                        CommandParameter="Schedule" />
             <KeyBinding Gesture="Alt+C" Command="{StaticResource ViewLoadICommand}" CommandParameter="SiteCsi"/>
             <KeyBinding Gesture="Alt+W" Command="{StaticResource ViewLoadICommand}" CommandParameter="SiteWcco"/>
+            <KeyBinding Gesture="F9"
+                        Command="{StaticResource PartInfoICommand}" />
+            <KeyBinding Gesture="F10"
+                        Command="{StaticResource PartDetailICommand}" />
         </Grid.InputBindings>
 
         <!--#region Main Menu Usercontrol for all command-->
@@ -57,8 +62,18 @@
                 <MenuItem Header="Train Mode"
                           IsEnabled="False" />
                 <MenuItem Header="Default Work Centers"
-                          Command="{StaticResource UserPrefICommand}"
-                          Visibility="{Binding Path=(local:CurrentUser.IsLoggedIn), Converter={StaticResource BoolToVisConverter}}"/>
+                          ItemsSource="{Binding DefaultMachineList}"
+                          DisplayMemberPath="MachineName"
+                          Visibility="{Binding Path=(local:CurrentUser.IsLoggedIn), Converter={StaticResource BoolToVisConverter}}">
+                    <MenuItem.ItemContainerStyle>
+                        <Style TargetType="MenuItem">
+                            <Setter Property="Command"
+                                    Value="{Binding DataContext.SelectedDefaultICommand, ElementName=SourceWindow}" />
+                            <Setter Property="CommandParameter"
+                                    Value="{Binding}" />
+                        </Style>
+                    </MenuItem.ItemContainerStyle>
+                </MenuItem>
                 <MenuItem Header="Print"
                           IsEnabled="False"/>
                 <MenuItem Header="Dev Testing" 
@@ -100,12 +115,16 @@
                           IsEnabled="False"/>
             </MenuItem>
             <MenuItem Header="Queries">
-                <MenuItem Header="Part Info"
+                <MenuItem Header="Part Information"
                           Command="{StaticResource PartInfoICommand}"
                           InputGestureText="F9"/>
+                <MenuItem Header="Part Details"
+                          Command="{StaticResource PartDetailICommand}"
+                          InputGestureText="F10" />
                 <MenuItem Header="Wip History"
                           IsEnabled="False"
-                          InputGestureText="F10" />
+                          InputGestureText="F11" />
+
             </MenuItem>
             <MenuItem Header="Help">
                 <MenuItem Header="Color Legend">

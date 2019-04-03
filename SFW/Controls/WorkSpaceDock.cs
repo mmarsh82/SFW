@@ -46,8 +46,14 @@ namespace SFW.Controls
 
             //Add the Part Info View to [3]
             MainDock.Children.Insert(3, new PartInfo_View());
-            //Add the Part Info View to [4]
+
+            //Add the Wip History View to [4]
             MainDock.Children.Insert(4, new WipHist_View());
+
+            //Add the Part Detail View to [5]
+            MainDock.Children.Insert(5, new PartDetail_View());
+
+            //Set up and display the intial view
             switch (Environment.UserDomainName)
             {
                 case "AD":
@@ -87,6 +93,8 @@ namespace SFW.Controls
             if (index <= 1)
             {
                 MainWindowViewModel.MachineList = ((Schedule.ViewModel)((Schedule.View)_tempDock.Children[0]).DataContext).MachineList;
+                MainWindowViewModel.DefaultMachineList = Model.Machine.GetMachineList(App.AppSqlCon, false);
+                MainWindowViewModel.DefaultMachineList.Insert(0, new Model.Machine { MachineName = "None" });
                 if (MainWindowViewModel.SelectedMachine == null)
                 {
                     MainWindowViewModel.SelectedMachine = ((Schedule.ViewModel)((Schedule.View)_tempDock.Children[0]).DataContext).MachineList[0];

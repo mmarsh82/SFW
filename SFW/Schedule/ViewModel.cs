@@ -78,7 +78,7 @@ namespace SFW.Schedule
             MachineGroupList = MachineList.Where(o => !string.IsNullOrEmpty(o.MachineGroup)).Select(o => o.MachineGroup).Distinct().ToList();
             LoadAsyncDelegate = new LoadDelegate(ViewLoading);
             FilterAsyncDelegate = new LoadDelegate(FilterView);
-            var _filter = App.DefualtWorkCenter?.Count > 0 && App.DefualtWorkCenter?.FirstOrDefault().Value == App.SiteNumber ? App.DefualtWorkCenter.FirstOrDefault().Key : null;
+            var _filter = App.DefualtWorkCenter?.Count > 0 ? App.DefualtWorkCenter.FirstOrDefault(o => o.SiteNumber == App.SiteNumber).MachineNumber : null;
             LoadAsyncComplete = LoadAsyncDelegate.BeginInvoke(_filter, new AsyncCallback(ViewLoaded), null);
             RefreshTimer.Add(RefreshSchedule);
             VMDataBase = App.AppSqlCon.Database;

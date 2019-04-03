@@ -140,7 +140,7 @@ namespace SFW.WIP
                 WipRecord.WipWorkOrder.SkuNumber,
                 WipRecord.WipLot.LotNumber,
                 WipRecord.WipWorkOrder.SkuDescription,
-                Sku.GetDiamondNumber(WipRecord.WipWorkOrder.Bom, App.AppSqlCon),
+                Sku.GetDiamondNumber(WipRecord.WipLot.LotNumber, App.AppSqlCon),
                 _wQty,
                 WipRecord.WipWorkOrder.Uom,
                 Lot.GetAssociatedQIR(WipRecord.WipLot.LotNumber, App.AppSqlCon),

@@ -137,6 +137,14 @@
                                FontWeight="Bold"
                                Margin="10,0,0,0" />
 
+                    <TextBlock Text="PLASTIC PALLET"
+                               Visibility="{Binding ShopOrder.SalesOrder.LoadPattern, Converter={StaticResource BoolToVisConverter}}"
+                               Foreground="Crimson"
+                               FontSize="32"
+                               FontWeight="Bold"
+                               TextDecorations="Underline"
+                               Margin="30,0,0,0" />
+
                 </StackPanel>
 
                 <!--#endregion-->
@@ -205,14 +213,6 @@
                     <TextBlock Text="{Binding ShopOrder.Uom}"
                                FontSize="24"
                                FontWeight="Bold"
-                               Margin="10,0,0,0" />
-
-                    <TextBlock Text="USE PLASTIC PALLET"
-                               Visibility="{Binding ShopOrder.SalesOrder.LoadPattern, Converter={StaticResource BoolToVisConverter}}"
-                               Foreground="Crimson"
-                               FontSize="24"
-                               FontWeight="Bold"
-                               TextDecorations="Underline"
                                Margin="10,0,0,0" />
 
                 </StackPanel>

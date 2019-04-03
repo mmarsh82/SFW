@@ -30,8 +30,8 @@
     <PublisherName>Michael Marsh</PublisherName>
     <SuiteName>WCCO Belting Inc.</SuiteName>
     <AutorunEnabled>true</AutorunEnabled>
-    <ApplicationRevision>701</ApplicationRevision>
-    <ApplicationVersion>1.0.62.701</ApplicationVersion>
+    <ApplicationRevision>739</ApplicationRevision>
+    <ApplicationVersion>1.0.67.739</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <CreateDesktopShortcut>true</CreateDesktopShortcut>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -114,9 +114,9 @@
     </ApplicationDefinition>
     <Compile Include="Commands\DevTesting.cs" />
     <Compile Include="Commands\M2kWipReceipt.cs" />
+    <Compile Include="Commands\PartDetail.cs" />
     <Compile Include="Commands\SetUpInformation.cs" />
     <Compile Include="Commands\ShowLogInWindow.cs" />
-    <Compile Include="Commands\ShowUserPrefWindow.cs" />
     <Compile Include="Commands\WipHistory.cs" />
     <Compile Include="Commands\WorkInstructions.cs" />
     <Compile Include="Converters\CrewToVisibility.cs" />
@@ -127,6 +127,10 @@
     <Compile Include="Converters\WoPriorityToBool.cs" />
     <Compile Include="CurrentUser.cs" />
     <Compile Include="Enumerations\PressReportActions.cs" />
+    <Compile Include="Queries\PartDetail_View.xaml.cs">
+      <DependentUpon>PartDetail_View.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Queries\PartDetail_ViewModel.cs" />
     <Compile Include="Queries\WipHist_View.xaml.cs">
       <DependentUpon>WipHist_View.xaml</DependentUpon>
     </Compile>
@@ -144,10 +148,7 @@
     </Compile>
     <Compile Include="ShopRoute\QTask\ViewModel.cs" />
     <Compile Include="Styles\Converters\RequiredWidthCutoff.cs" />
-    <Compile Include="UserConfig\View.xaml.cs">
-      <DependentUpon>View.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="UserConfig\ViewModel.cs" />
+    <Compile Include="UserConfig.cs" />
     <Compile Include="UserLogIn\View.xaml.cs">
       <DependentUpon>View.xaml</DependentUpon>
     </Compile>
@@ -203,6 +204,10 @@
       <DependentUpon>View.xaml</DependentUpon>
     </Compile>
     <Compile Include="WIP\ViewModel.cs" />
+    <Page Include="Queries\PartDetail_View.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Queries\PartInfo_View.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -280,10 +285,6 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Styles\TextBox.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="UserConfig\View.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

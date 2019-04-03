@@ -1,10 +1,13 @@
-﻿using SFW.Controls;
+﻿using SFW.Commands;
+using SFW.Controls;
 using SFW.Model;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Linq;
+using System.Windows.Input;
+using System.Xml.Linq;
 
 //Created by Michael Marsh 4-19-18
 
@@ -13,6 +16,13 @@ namespace SFW
     public class MainWindowViewModel : ViewModelBase
     {
         #region Properties
+
+        private static List<Machine> dMach;
+        public static List<Machine> DefaultMachineList
+        {
+            get { return dMach; }
+            set { dMach = value; StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(DefaultMachineList))); }
+        }
 
         private static List<Machine> _mList;
         public static List<Machine> MachineList
@@ -29,9 +39,12 @@ namespace SFW
             {
                 if (value == null)
                 {
-                    value = MachineList.FirstOrDefault(o => o.MachineName == "All");
+                    var _default = App.DefualtWorkCenter.FirstOrDefault(o => o.SiteNumber == App.SiteNumber);
+                    value = string.IsNullOrEmpty(_default.MachineNumber)
+                        ? MachineList.FirstOrDefault(o => o.MachineName == "All")
+                        : MachineList.FirstOrDefault(o => o.MachineNumber == _default.MachineNumber);
                 }
-                else if (mach != value && !IsChanging)
+                if (mach != value && !IsChanging)
                 {
                     IsChanging = true;
                     if (value.MachineGroup != SelectedMachineGroup)
@@ -50,8 +63,8 @@ namespace SFW
                             }
                             ((DataView)((Schedule.ViewModel)((Schedule.View)_dock.Children[0]).DataContext).ScheduleView.SourceCollection).RowFilter = _filter;
                         }
-                        IsChanging = false;
                     }));
+                    IsChanging = false;
                 }
                 mach = value;
                 StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(SelectedMachine)));
@@ -113,6 +126,7 @@ namespace SFW
         private static bool IsChanging;
         public static event EventHandler<PropertyChangedEventArgs> StaticPropertyChanged;
         public event EventHandler CanExecuteChanged;
+        RelayCommand _selectedDefault;
 
         #endregion
 
@@ -121,6 +135,8 @@ namespace SFW
         /// </summary>
         public MainWindowViewModel()
         {
+            DefaultMachineList = Machine.GetMachineList(App.AppSqlCon, false);
+            DefaultMachineList.Insert(0, new Machine { MachineName = "None" });
             IsChanging = false;
             new WorkSpaceDock();
         }
@@ -131,6 +147,8 @@ namespace SFW
         public void UpdateProperties()
         {
             MachineList = Machine.GetMachineList(App.AppSqlCon, true);
+            DefaultMachineList = Machine.GetMachineList(App.AppSqlCon, false);
+            DefaultMachineList.Insert(0, new Machine { MachineName = "None" });
             SelectedMachine = MachineList.First();
             MachineGroupList = Machine.GetMachineGroupList(App.AppSqlCon, true);
             SelectedMachineGroup = MachineGroupList.First();
@@ -138,5 +156,33 @@ namespace SFW
             StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(MachineList)));
             StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(MachineGroupList)));
         }
+
+        #region Selected Default Machine ICommand
+
+        public ICommand SelectedDefaultICommand
+        {
+            get
+            {
+                if (_selectedDefault == null)
+                {
+                    _selectedDefault = new RelayCommand(SelectedDefaultExecute, SelectedDefaultCanExecute);
+                }
+                return _selectedDefault;
+            }
+        }
+
+        private void SelectedDefaultExecute(object parameter)
+        {
+            var folder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+            var xDoc = XDocument.Load($"{folder}\\SFW\\SfwConfig.xml");
+            var xEle = xDoc.Descendants($"Site_{App.SiteNumber}").Single();
+            xEle.Attribute("WC_Nbr").Value = ((Machine)parameter).MachineName != "None" ? ((Machine)parameter).MachineNumber : "";
+            xEle.Attribute("Position").Value = "1";
+            xDoc.Save($"{folder}\\SFW\\SfwConfig.xml");
+            SelectedMachine = (Machine)parameter;
+        }
+        private bool SelectedDefaultCanExecute(object parameter) => true;
+
+        #endregion
     }
 }

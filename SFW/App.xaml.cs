@@ -35,7 +35,7 @@ namespace SFW
         public static SqlConnection AppSqlCon { get; set; }
         public static M2kConnection ErpCon { get; set; }
 
-        public static IDictionary<string,int> DefualtWorkCenter { get; set; }
+        public static List<UConfig> DefualtWorkCenter { get; set; }
 
         public static event EventHandler<PropertyChangedEventArgs> StaticPropertyChanged;
 
@@ -44,7 +44,7 @@ namespace SFW
         public App()
         {
             //LoadGlobalAppConfig();
-            //DefualtWorkCenter = LoadUserAppConfig();
+            DefualtWorkCenter = LoadUserAppConfig();
             Site = "CSI_MAIN";
             SiteNumber = 0;
             ErpCon = new M2kConnection("172.16.0.122", "omniquery", "omniquery", Database.CSI);
@@ -340,11 +340,11 @@ namespace SFW
         }
 
         /// <summary>
-        /// 
+        /// Load the user XML config file into a list of objects
         /// </summary>
-        private IDictionary<string, int> LoadUserAppConfig()
+        private List<UConfig> LoadUserAppConfig()
         {
-            var _rDict = new Dictionary<string, int>();
+            var _uConf = new List<UConfig>();
             try
             {
                 var folder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
@@ -357,12 +357,23 @@ namespace SFW
                         using (var writer = XmlWriter.Create(wStream, wSettings))
                         {
                             writer.WriteComment("Default Work Centers");
-                            writer.WriteComment("Work center name and site location (i.e. 0 = CSI, 1 = WCCO)");
+                            writer.WriteComment("Work center name and schedule position seperated by Site number" );
 
                             writer.WriteStartElement("Default_WC");
 
-                            writer.WriteAttributeString("WC_Nbr", "41005");
-                            writer.WriteAttributeString("Site", "1");
+                            writer.WriteStartElement("Site_0");
+
+                            writer.WriteAttributeString("WC_Nbr", "");
+                            writer.WriteAttributeString("Position", "1");
+
+                            writer.WriteEndElement();
+
+                            writer.WriteStartElement("Site_1");
+
+                            writer.WriteAttributeString("WC_Nbr", "");
+                            writer.WriteAttributeString("Position", "1");
+
+                            writer.WriteEndElement();
 
                             writer.WriteEndElement();
                         }
@@ -379,13 +390,14 @@ namespace SFW
                             {
                                 if (reader.NodeType == XmlNodeType.Element)
                                 {
-                                    _rDict.Add(reader.GetAttribute("WC_Nbr"), Convert.ToInt32(reader.GetAttribute("Site")));
+                                    var _site = Convert.ToInt32(reader.Name.Substring(reader.Name.Length - 1));
+                                    _uConf.Add(new UConfig { SiteNumber = _site, MachineNumber = reader.GetAttribute("WC_Nbr"), Position = Convert.ToInt32(reader.GetAttribute("Position")) });
                                 }
                             }
                         }
                     }
                 }
-                return _rDict;
+                return _uConf;
             }
             catch(Exception ex)
             {
