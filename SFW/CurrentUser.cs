@@ -97,14 +97,14 @@ namespace SFW
             }
         }
 
-        private static bool _canSites;
+        private static bool _canShed;
         public static bool CanSchedule
         {
             get
-            { return _canSites; }
+            { return _canShed; }
             private set
             {
-                _canSites = value;
+                _canShed = value;
                 StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(CanSchedule)));
             }
         }

@@ -62,7 +62,7 @@
 
         <DataGrid x:Name="WorkCenterSchedule"
                   ItemsSource="{Binding ScheduleView, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                  SelectedItem="{Binding SelectedWorkOrder}"
+                  SelectedItem="{Binding SelectedWorkOrder, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                   HorizontalAlignment="Left"
                   HeadersVisibility="None"
                   AutoGenerateColumns="False"
@@ -237,45 +237,54 @@
                     <Style.Triggers>
                         <MultiDataTrigger>
                             <MultiDataTrigger.Conditions>
-                                <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsKeyboardFocusWithin}" Value="True"/>
+                                <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsSelected}" Value="True"/>
                                 <Condition Binding="{Binding WO_Priority}" Value="A"/>
                             </MultiDataTrigger.Conditions>
                             <Setter Property="Background" Value="LightCoral"/>
                             <Setter Property="Foreground" Value="Black"/>
+                            <Setter Property="BorderBrush"
+                                    Value="DarkMagenta" />
                         </MultiDataTrigger>
                         <MultiDataTrigger>
                             <MultiDataTrigger.Conditions>
-                                <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsKeyboardFocusWithin}" Value="True"/>
+                                <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsSelected}" Value="True"/>
                                 <Condition Binding="{Binding WO_Priority}" Value="B"/>
                                 <Condition Binding="{Binding WO_Type}" Value="{x:Null}"/>
                             </MultiDataTrigger.Conditions>
                             <Setter Property="Background" Value="DarkSeaGreen"/>
                             <Setter Property="Foreground" Value="Black"/>
+                            <Setter Property="BorderBrush" Value="DarkMagenta" />
                         </MultiDataTrigger>
                         <MultiDataTrigger>
                             <MultiDataTrigger.Conditions>
-                                <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsKeyboardFocusWithin}" Value="True"/>
+                                <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsSelected}" Value="True"/>
                                 <Condition Binding="{Binding WO_Priority}" Value="C"/>
                             </MultiDataTrigger.Conditions>
                             <Setter Property="Background" Value="Gray"/>
                             <Setter Property="Foreground" Value="Black"/>
+                            <Setter Property="BorderBrush"
+                                    Value="DarkMagenta" />
                         </MultiDataTrigger>
                         <MultiDataTrigger>
                             <MultiDataTrigger.Conditions>
-                                <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsKeyboardFocusWithin}" Value="True"/>
+                                <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsSelected}" Value="True"/>
                                 <Condition Binding="{Binding WO_Priority}" Value="D"/>
                             </MultiDataTrigger.Conditions>
                             <Setter Property="Background" Value="Beige"/>
                             <Setter Property="Foreground" Value="Black"/>
+                            <Setter Property="BorderBrush"
+                                    Value="DarkMagenta" />
                         </MultiDataTrigger>
                         <MultiDataTrigger>
                             <MultiDataTrigger.Conditions>
-                                <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsKeyboardFocusWithin}" Value="True"/>
+                                <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsSelected}" Value="True"/>
                                 <Condition Binding="{Binding WO_Priority}" Value="B"/>
                                 <Condition Binding="{Binding WO_Type}" Value="R"/>
                             </MultiDataTrigger.Conditions>
                             <Setter Property="Background" Value="LightBlue"/>
                             <Setter Property="Foreground" Value="Black"/>
+                            <Setter Property="BorderBrush"
+                                    Value="DarkMagenta" />
                         </MultiDataTrigger>
                     </Style.Triggers>
                 </Style>

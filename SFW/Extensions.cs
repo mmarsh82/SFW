@@ -65,5 +65,26 @@ namespace SFW
             }
             return null;
         }
+
+        /// <summary>
+        /// Retrieve the index of an item within an ICollectionView
+        /// </summary>
+        /// <param name="view">ICollectionView object</param>
+        /// <param name="item">Item to search for</param>
+        /// <returns>index as int</returns>
+        public static int IndexOf(this ICollectionView view, object item)
+        {
+            var e = view.GetEnumerator();
+            var idx = 0;
+            while (e.MoveNext())
+            {
+                if (Equals(item, e.Current))
+                    return idx;
+                else
+                    idx++;
+            }
+            //if we've got this far it means that the item is either filtered out or is not in the source collection
+            return -1;
+        }
     }
 }

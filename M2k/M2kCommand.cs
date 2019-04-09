@@ -279,35 +279,51 @@ namespace M2kClient
             }
 
             #region Non Lot Issue
-            //Issueing all the non lot trace components, all lot trace components should be passed in the WIP file
-            foreach (var c in wipRecord.WipWorkOrder.Bom.Where(o => !o.IsLotTrace))
+
+            try
             {
-                var _issue = new Issue(wipRecord.Submitter, "010", c.CompNumber, wipRecord.WipWorkOrder.OrderNumber, wipRecord.WipWorkOrder.Seq, "II", new List<Transaction>());
-                foreach (var w in c.WipInfo)
+                //Issueing all the non lot trace components, all lot trace components should be passed in the WIP file
+                foreach (var c in wipRecord.WipWorkOrder.Bom.Where(o => !o.IsLotTrace))
                 {
-                    if (w.BaseQty > 0)
+                    var _issue = new Issue(wipRecord.Submitter, "010", c.CompNumber, wipRecord.WipWorkOrder.OrderNumber, wipRecord.WipWorkOrder.Seq, "II", new List<Transaction>());
+                    foreach (var w in c.WipInfo)
                     {
-                        _issue.TranList.Add(new Transaction { Location = c.BackflushLoc, Quantity = Convert.ToInt32(w.LotQty) });
+                        if (w.BaseQty > 0)
+                        {
+                            _issue.TranList.Add(new Transaction { Location = c.BackflushLoc, Quantity = Convert.ToInt32(w.LotQty) });
+                        }
+                    }
+                    if (c.WipInfo.Sum(o => o.BaseQty) > 0)
+                    {
+                        File.WriteAllText($"{connection.BTIFolder}ISSUEC2K.DAT{suffix}", _issue.ToString());
+                        suffix = uId.Next(128, 512);
                     }
                 }
-                if(c.WipInfo.Sum(o => o.BaseQty) > 0)
-                {
-                    File.WriteAllText($"{connection.BTIFolder}ISSUEC2K.DAT{suffix}", _issue.ToString());
-                    suffix = uId.Next(128, 512);
-                }
+            }
+            catch (Exception e)
+            {
+                System.Windows.MessageBox.Show($"Unable to process Issue\nPlease contact IT immediately!\n\n{e.Message}", "M2k Issue file error", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
             }
 
             #endregion
 
             #region Post Labor
-            //Posting labor if a crew exists, if the machine is running an interactive report sheet then the labor should be posted there
-            if (postLabor && !string.IsNullOrEmpty(machID))
+
+            try
             {
-                var _crew = wipRecord.CrewList.Count(o => !string.IsNullOrEmpty(o.Name));
-                foreach (var c in wipRecord.CrewList.Where(o => !string.IsNullOrEmpty(o.Name) && o.IsDirect))
+                //Posting labor if a crew exists, if the machine is running an interactive report sheet then the labor should be posted there
+                if (postLabor && !string.IsNullOrEmpty(machID))
                 {
-                    PostLabor("SFW WIP", Convert.ToInt32(c.IdNumber), $"{wipRecord.WipWorkOrder.OrderNumber}*{wipRecord.WipWorkOrder.Seq}", Convert.ToInt32(wipRecord.WipQty), machID, ' ', connection, c.LastClock, _crew);
+                    var _crew = wipRecord.CrewList.Count(o => !string.IsNullOrEmpty(o.Name));
+                    foreach (var c in wipRecord.CrewList.Where(o => !string.IsNullOrEmpty(o.Name) && o.IsDirect))
+                    {
+                        PostLabor("SFW WIP", Convert.ToInt32(c.IdNumber), $"{wipRecord.WipWorkOrder.OrderNumber}*{wipRecord.WipWorkOrder.Seq}", Convert.ToInt32(wipRecord.WipQty), machID, ' ', connection, c.LastClock, _crew);
+                    }
                 }
+            }
+            catch (Exception e)
+            {
+                System.Windows.MessageBox.Show($"Unable to process Labor\nPlease contact IT immediately!\n\n{e.Message}", "M2k Labor file error", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
             }
             _subResult.Add(1, wipRecord.WipLot.LotNumber);
             return _subResult;

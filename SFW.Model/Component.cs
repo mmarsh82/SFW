@@ -134,12 +134,12 @@ namespace SFW.Model
                     {
                         ((BindingList<CompWipInfo>)sender)[e.NewIndex].RcptLoc = Lot.GetLotLocation(((BindingList<CompWipInfo>)sender)[e.NewIndex].LotNbr, ModelBase.ModelSqlCon);
                     }
-                    var _unlocked = ((BindingList<CompWipInfo>)sender).Count - ((BindingList<CompWipInfo>)sender).Count(c => c.QtyLock);
+                    var _unlocked = ((BindingList<CompWipInfo>)sender).Count(o => !string.IsNullOrEmpty(o.RcptLoc)) - ((BindingList<CompWipInfo>)sender).Count(c => c.QtyLock && !string.IsNullOrEmpty(c.RcptLoc));
                     var _newBase = ((BindingList<CompWipInfo>)sender)[e.NewIndex].BaseQty - ((BindingList<CompWipInfo>)sender).Where(w => w.QtyLock).Sum(s => s.LotQty);
                     var _counter = 1;
                     if (_unlocked > 0 && _newBase > 0)
                     {
-                        foreach (var c in ((BindingList<CompWipInfo>)sender).Where(w => !w.QtyLock))
+                        foreach (var c in ((BindingList<CompWipInfo>)sender).Where(w => !w.QtyLock && !string.IsNullOrEmpty(w.RcptLoc)))
                         {
                             c.LotQty = Convert.ToInt32(Math.Round(Convert.ToDouble(_newBase) / Convert.ToDouble(_unlocked), 0));
                             if (_counter == _unlocked && ((BindingList<CompWipInfo>)sender).Sum(s => s.LotQty) != ((BindingList<CompWipInfo>)sender)[0].BaseQty)
@@ -150,7 +150,10 @@ namespace SFW.Model
                             _counter++;
                         }
                     }
-                    ((BindingList<CompWipInfo>)sender).Add(new CompWipInfo(((BindingList<CompWipInfo>)sender)[0].IsBackFlush, ((BindingList<CompWipInfo>)sender)[0].PartNbr) { BaseQty = ((BindingList<CompWipInfo>)sender)[0].BaseQty });
+                    if (!string.IsNullOrEmpty(((BindingList<CompWipInfo>)sender)[((BindingList<CompWipInfo>)sender).Count - 1].RcptLoc))
+                    {
+                        ((BindingList<CompWipInfo>)sender).Add(new CompWipInfo(((BindingList<CompWipInfo>)sender)[0].IsBackFlush, ((BindingList<CompWipInfo>)sender)[0].PartNbr) { BaseQty = ((BindingList<CompWipInfo>)sender)[0].BaseQty });
+                    }
                 }
                 WipInfoUpdating = false;
             }

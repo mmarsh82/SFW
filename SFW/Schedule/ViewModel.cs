@@ -5,6 +5,7 @@ using SFW.Converters;
 using SFW.Model;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Data;
 using System.Linq;
@@ -35,16 +36,15 @@ namespace SFW.Schedule
                     _tempDock.Children.RemoveAt(1);
                     if (!int.TryParse(_wo.EngStatus, out int i))
                     {
-                        _tempDock.Children.Insert(1, new ShopRoute.View { DataContext = new ShopRoute.ViewModel() });
-                        ((ShopRoute.ViewModel)((ShopRoute.View)_tempDock.Children[1]).DataContext).ShopOrder = _wo;
+                        _tempDock.Children.Insert(1, new ShopRoute.View { DataContext = new ShopRoute.ViewModel(_wo) });
                     }
                     else
                     {
-                        _tempDock.Children.Insert(1, new ShopRoute.QTask.View { DataContext = new ShopRoute.QTask.ViewModel() });
-                        ((ShopRoute.QTask.ViewModel)((ShopRoute.QTask.View)_tempDock.Children[1]).DataContext).ShopOrder = _wo;
+                        _tempDock.Children.Insert(1, new ShopRoute.QTask.View { DataContext = new ShopRoute.QTask.ViewModel(_wo) });
                     }
                 }
                 OnPropertyChanged(nameof(SelectedWorkOrder));
+                ScheduleView.MoveCurrentTo(SelectedWorkOrder);
             }
         }
 
@@ -82,6 +82,8 @@ namespace SFW.Schedule
             LoadAsyncComplete = LoadAsyncDelegate.BeginInvoke(_filter, new AsyncCallback(ViewLoaded), null);
             RefreshTimer.Add(RefreshSchedule);
             VMDataBase = App.AppSqlCon.Database;
+            //TODO:need to switch to using this on the ICollectionView collection view source
+            var test = new ObservableCollection<DataRow>(Machine.GetScheduleData(App.AppSqlCon).AsEnumerable());
         }
 
         /// <summary>
@@ -135,7 +137,7 @@ namespace SFW.Schedule
         public void ViewLoaded(IAsyncResult r)
         {
             IsLoading = false;
-            OnPropertyChanged(nameof(ScheduleView));
+            ScheduleView.Refresh();
         }
 
         #endregion
@@ -145,38 +147,46 @@ namespace SFW.Schedule
         /// </summary>
         public void RefreshSchedule()
         {
-            if (!IsLoading)
+            try
             {
-                var _db = string.Empty;
-                RefreshTimer.IsRefreshing = IsLoading = true;
-                if (App.AppSqlCon.Database != VMDataBase)
+                if (!IsLoading)
                 {
-                    _db = App.AppSqlCon.Database;
-                    App.DatabaseChange(VMDataBase);
+                    var _db = string.Empty;
+                    var _oldItem = ScheduleView.CurrentItem;
+                    RefreshTimer.IsRefreshing = IsLoading = true;
+                    if (App.AppSqlCon.Database != VMDataBase)
+                    {
+                        _db = App.AppSqlCon.Database;
+                        App.DatabaseChange(VMDataBase);
+                    }
+                    ScheduleView = CollectionViewSource.GetDefaultView(Machine.GetScheduleData(App.AppSqlCon));
+                    ScheduleView.GroupDescriptions.Add(new PropertyGroupDescription("MachineNumber", new WorkCenterNameConverter(MachineList)));
+                    if (MainWindowViewModel.SelectedMachine.MachineName != "All" && string.IsNullOrEmpty(_db))
+                    {
+                        ((DataView)ScheduleView.SourceCollection).RowFilter = $"MachineName = '{MainWindowViewModel.SelectedMachine.MachineName}'";
+                    }
+                    else if (MainWindowViewModel.SelectedMachineGroup != "All" && string.IsNullOrEmpty(_db))
+                    {
+                        ((DataView)ScheduleView.SourceCollection).RowFilter = $"MachineGroup = '{MainWindowViewModel.SelectedMachineGroup}'";
+                    }
+                    if (_oldItem != null && ((DataView)ScheduleView.SourceCollection).Table.AsEnumerable().Any(r => r.Field<string>("WO_Number") == ((DataRowView)_oldItem).Row.Field<string>("WO_Number")))
+                    {
+                        ScheduleView.MoveCurrentToPosition(ScheduleView.IndexOf(_oldItem));
+                    }
+                    else
+                    {
+                        ScheduleView.MoveCurrentToPosition(-1);
+                    }
+                    if (!string.IsNullOrEmpty(_db))
+                    {
+                        App.DatabaseChange(_db);
+                    }
+                    RefreshTimer.IsRefreshing = IsLoading = false;
+                    OnPropertyChanged(nameof(ScheduleView));
                 }
-                var _selection = SelectedWorkOrder;
-                ScheduleView = CollectionViewSource.GetDefaultView(Machine.GetScheduleData(App.AppSqlCon));
-                ScheduleView.GroupDescriptions.Add(new PropertyGroupDescription("MachineNumber", new WorkCenterNameConverter(MachineList)));
-                if (MainWindowViewModel.SelectedMachine.MachineName != "All" && string.IsNullOrEmpty(_db))
-                {
-                    ((DataView)ScheduleView.SourceCollection).RowFilter = $"MachineName = '{MainWindowViewModel.SelectedMachine.MachineName}'";
-                }
-                else if (MainWindowViewModel.SelectedMachineGroup != "All" && string.IsNullOrEmpty(_db))
-                {
-                    ((DataView)ScheduleView.SourceCollection).RowFilter = $"MachineGroup = '{MainWindowViewModel.SelectedMachineGroup}'";
-                }
-                OnPropertyChanged(nameof(ScheduleView));
-                if (_selection != null)
-                {
-                    var test = _selection.Row.Field<string>("WO_Number");
-                    SelectedWorkOrder = ((DataView)ScheduleView.SourceCollection).Table.AsEnumerable().Any(r => _selection.Row.Field<string>("WO_Number") == r.Field<string>("WO_Number")) ? _selection : null;
-                }
-                if (!string.IsNullOrEmpty(_db))
-                {
-                    App.DatabaseChange(_db);
-                }
-                RefreshTimer.IsRefreshing = IsLoading = false;
             }
+            catch (Exception)
+            { }
         }
 
         #region Priority Change ICommand

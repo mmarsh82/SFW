@@ -331,7 +331,7 @@ namespace SFW.Model
         /// <param name="seq">Work order sequence</param>
         /// <param name="sqlCon">Sql Connection to use</param>
         /// <returns>Machine ID as string</returns>
-        public static string GetAssignedMachine(string woNbr, string seq, SqlConnection sqlCon)
+        public static string GetAssignedMachineID(string woNbr, string seq, SqlConnection sqlCon)
         {
             if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
             {
@@ -357,6 +357,185 @@ namespace SFW.Model
             {
                 throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
             }
+        }
+
+        /// <summary>
+        /// Get the machine name that is assigned to a specific work order and sequence
+        /// </summary>
+        /// <param name="woNbr">Work order number</param>
+        /// <param name="seq">Work order sequence</param>
+        /// <param name="sqlCon">Sql Connection to use</param>
+        /// <returns>Machine name as string</returns>
+        public static string GetAssignedMachineName(string woNbr, string seq, SqlConnection sqlCon)
+        {
+            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
+            {
+                try
+                {
+                    using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database};
+                                                                SELECT 
+	                                                                b.[Name]
+                                                                FROM
+	                                                                [dbo].[WPO-INIT] a
+                                                                RIGHT JOIN
+	                                                                [dbo].[WC-INIT] b ON b.[Wc_Nbr] = a.[Work_Center]
+                                                                WHERE
+	                                                                a.[ID] = CONCAT(@p1, '*', @p2);", sqlCon))
+                    {
+                        cmd.Parameters.AddWithValue("p1", woNbr);
+                        cmd.Parameters.AddWithValue("p2", seq);
+                        return cmd.ExecuteScalar().ToString();
+                    }
+                }
+                catch (SqlException sqlEx)
+                {
+                    throw sqlEx;
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception(ex.Message);
+                }
+            }
+            else
+            {
+                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="woNbr"></param>
+        /// <param name="seq"></param>
+        /// <param name="sqlCon"></param>
+        /// <returns></returns>
+        public static DataTable GetReportData(WorkOrder wo, SqlConnection sqlCon)
+        {
+            if (wo != null)
+            {
+                using (var dt = new DataTable())
+                {
+                    if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
+                    {
+                        try
+                        {
+                            //Populate the main portion of the report sheet
+                            using (SqlDataAdapter adapter = new SqlDataAdapter($@"USE {sqlCon.Database};
+                                                                                    SELECT
+	                                                                                    CAST(a.[Tran_Date] as DATE) as 'Date',
+	                                                                                    CASE WHEN a.[Scan_Station_ID] IS NULL
+		                                                                                    THEN
+			                                                                                    'N/A'
+		                                                                                    ELSE
+			                                                                                    CAST((SELECT [Shift] FROM [dbo].[EMPLOYEE_MASTER-INIT] WHERE [First_Name] = SUBSTRING(a.[Scan_Station_ID], 0, CHARINDEX(' ',a.[Scan_Station_ID])) AND [Last_Name] = LTRIM(SUBSTRING(a.[Scan_Station_ID], CHARINDEX(' ',a.[Scan_Station_ID]), LEN(a.[Scan_Station_ID])))) as NVARCHAR(5))
+		                                                                                    END as 'Shift',
+	                                                                                    CASE WHEN a.[Scan_Station_ID] IS NULL THEN SUBSTRING(a.[Logon],0,CHARINDEX(':',a.[Logon])) ELSE a.[Scan_Station_ID] END as 'Name',
+	                                                                                    a.[Qty] as 'QtyGood',
+	                                                                                    '' as 'FromLot',
+	                                                                                    a.[Lot_Number] as 'ToLot',
+	                                                                                    @p2 as 'FromPart',
+	                                                                                    '' as 'PartScrap',
+	                                                                                    '' as 'BOMScrap',
+                                                                                        a.[Process_Time_Date] as 'PTD'
+                                                                                    FROM
+	                                                                                    [dbo].[IT-INIT] a
+                                                                                    WHERE
+	                                                                                    a.[ID] LIKE CONCAT(@p2,'*%') AND a.[Tran_Code] = '40' AND a.[Reference] LIKE CONCAT('%',@p3,'%');", sqlCon))
+                            {
+                                adapter.SelectCommand.Parameters.AddWithValue("p1", wo.Bom.First(o => o.IsLotTrace).CompNumber);
+                                adapter.SelectCommand.Parameters.AddWithValue("p2", wo.SkuNumber);
+                                adapter.SelectCommand.Parameters.AddWithValue("p3", wo.OrderNumber);
+                                adapter.Fill(dt);
+
+                                //Relooping through the IT table extended the query by 20 seconds so moved to a code loop to complete the scrap
+                                foreach (DataRow d in dt.Rows)
+                                {
+                                    //From Lot number
+                                    using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database};
+                                                                                SELECT
+	                                                                                [Lot_Number]
+                                                                                FROM
+	                                                                                [dbo].[IT-INIT]
+                                                                                WHERE
+	                                                                                [Tran_Code] = '44' AND [Reference] LIKE CONCAT('%',@p1,'%') AND [Lot_Number] IS NOT NULL AND [Process_Time_Date] = @p2;", sqlCon))
+                                    {
+                                        cmd.Parameters.AddWithValue("p1", wo.OrderNumber);
+                                        cmd.Parameters.AddWithValue("p2", d.Field<string>("PTD"));
+                                        var fLot = cmd.ExecuteScalar()?.ToString();
+                                        if (!string.IsNullOrEmpty(fLot))
+                                        {
+                                            d.SetField("PartScrap", fLot);
+                                        }
+                                        else
+                                        {
+                                            d.SetField("PartScrap", "N/A");
+                                        }
+                                    }
+
+                                    //Part Scrap
+                                    using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database};
+                                                                                    SELECT
+	                                                                                    [Qty]
+                                                                                    FROM
+	                                                                                    [dbo].[IT-INIT]
+                                                                                    WHERE
+	                                                                                    [Tran_Code] = '50' AND [Reference] LIKE CONCAT('%',@p1,'%') AND [Lot_Number] = @p2;", sqlCon))
+                                    {
+                                        cmd.Parameters.AddWithValue("p1", wo.OrderNumber);
+                                        cmd.Parameters.AddWithValue("p2", d.Field<string>("FromLot"));
+                                        var pScrap = cmd.ExecuteScalar()?.ToString();
+                                        if (!string.IsNullOrEmpty(pScrap))
+                                        {
+                                            d.SetField("PartScrap", pScrap);
+                                        }
+                                        else
+                                        {
+                                            d.SetField("PartScrap", "0");
+                                        }
+                                    }
+
+                                    //BOM Scrap
+                                    using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database};
+                                                                                    SELECT
+	                                                                                    CAST([Qty]  as INT) * - 1 as 'Qty'
+                                                                                    FROM
+	                                                                                    [dbo].[IT-INIT]
+                                                                                    WHERE
+	                                                                                    [Tran_Code] = '50' AND [Reference] LIKE CONCAT('%',@p1,'%') AND [Lot_Number] = @p2 AND [ID] LIKE CONCAT(@p3,'*%');", sqlCon))
+                                    {
+                                        cmd.Parameters.AddWithValue("p1", wo.OrderNumber);
+                                        cmd.Parameters.AddWithValue("p2", d.Field<string>("FromLot"));
+                                        cmd.Parameters.AddWithValue("p3", d.Field<string>("FromPart"));
+                                        var bScrap = cmd.ExecuteScalar()?.ToString();
+                                        if (!string.IsNullOrEmpty(bScrap))
+                                        {
+                                            d.SetField("BOMScrap", bScrap);
+                                        }
+                                        else
+                                        {
+                                            d.SetField("BOMScrap", "0");
+                                        }
+                                    }
+                                }
+                                return dt;
+                            }
+                        }
+                        catch (SqlException sqlEx)
+                        {
+                            throw sqlEx;
+                        }
+                        catch (Exception ex)
+                        {
+                            throw new Exception(ex.Message);
+                        }
+                    }
+                    else
+                    {
+                        throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
+                    }
+                }
+            }
+            return null;
         }
     }
 }

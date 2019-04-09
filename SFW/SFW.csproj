@@ -30,8 +30,8 @@
     <PublisherName>Michael Marsh</PublisherName>
     <SuiteName>WCCO Belting Inc.</SuiteName>
     <AutorunEnabled>true</AutorunEnabled>
-    <ApplicationRevision>739</ApplicationRevision>
-    <ApplicationVersion>1.0.67.739</ApplicationVersion>
+    <ApplicationRevision>795</ApplicationRevision>
+    <ApplicationVersion>1.0.72.795</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <CreateDesktopShortcut>true</CreateDesktopShortcut>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -135,10 +135,6 @@
       <DependentUpon>WipHist_View.xaml</DependentUpon>
     </Compile>
     <Compile Include="Queries\WipHist_ViewModel.cs" />
-    <Compile Include="Reports\Fab_View.xaml.cs">
-      <DependentUpon>Fab_View.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Reports\Fab_ViewModel.cs" />
     <Compile Include="Reports\PressShift_View.xaml.cs">
       <DependentUpon>PressShift_View.xaml</DependentUpon>
     </Compile>
@@ -213,10 +209,6 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Queries\WipHist_View.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Reports\Fab_View.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -405,6 +397,8 @@
   <ItemGroup>
     <Resource Include="Icons\Admin.ico" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="ShopRoute\Details\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

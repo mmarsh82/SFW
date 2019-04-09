@@ -1,9 +1,12 @@
 ﻿using M2kClient;
 using SFW.Commands;
+using SFW.Controls;
 using SFW.Enumerations;
 using SFW.Model;
 using SFW.Reports;
 using System;
+using System.ComponentModel;
+using System.Data;
 using System.Windows;
 using System.Windows.Input;
 
@@ -58,10 +61,23 @@ namespace SFW.ShopRoute
             set
             { machGroup = string.IsNullOrEmpty(value) ? Machine.GetMachineGroup(App.AppSqlCon, ShopOrder?.OrderNumber, ShopOrder?.Seq) : value; OnPropertyChanged(nameof(MachineGroup)); }
         }
+
+        public DataView ReportView { get; set; }
+        private BackgroundWorker bgWorker;
+
+        private bool loading;
+        public bool IsLoading
+        {
+            get { return loading; }
+            set { loading = value; OnPropertyChanged(nameof(IsLoading)); }
+        }
+
         public bool CanCheckHistory { get { return ShopOrder?.StartQty != ShopOrder?.CurrentQty; } }
         public bool HasStarted { get { return CurrentUser.IsLoggedIn && MachineGroup == "PRESS" && ShopOrder.ActStartDate != DateTime.MinValue; } }
         public bool CanStart { get { return CurrentUser.IsLoggedIn && MachineGroup == "PRESS" && ShopOrder.ActStartDate == DateTime.MinValue; } }
         public bool CanSeeWip { get { return CurrentUser.IsLoggedIn && ((MachineGroup == "PRESS" && HasStarted) || MachineGroup != "PRESS"); } }
+        public bool CanReport { get { return CurrentUser.IsLoggedIn && MachineGroup == "PRESS" && HasStarted; } }
+        public bool CanIntReport { get { return CurrentUser.IsLoggedIn && MachineGroup != "PRESS" && CanCheckHistory && CurrentSite == 1; } }
 
         private RelayCommand _noteChange;
         private RelayCommand _loadReport;
@@ -77,6 +93,20 @@ namespace SFW.ShopRoute
             {
                 ShopOrder = new WorkOrder();
             }
+            if (CanCheckHistory && ShopOrder != null)
+            {
+                if (bgWorker == null)
+                {
+                    bgWorker = new BackgroundWorker();
+                    bgWorker.DoWork += BgWorker_DoWork;
+                    bgWorker.RunWorkerCompleted += BgWorker_RunWorkerCompleted;
+                }
+                var _dock = App.SiteNumber == 0 ? WorkSpaceDock.CsiDock : WorkSpaceDock.WccoDock;
+                _dock.Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    bgWorker.RunWorkerAsync();
+                }));
+            }
         }
 
         /// <summary>
@@ -86,6 +116,20 @@ namespace SFW.ShopRoute
         public ViewModel(WorkOrder workOrder)
         {
             ShopOrder = workOrder;
+            if (CanCheckHistory && ShopOrder != null)
+            {
+                if (bgWorker == null)
+                {
+                    bgWorker = new BackgroundWorker();
+                    bgWorker.DoWork += BgWorker_DoWork;
+                    bgWorker.RunWorkerCompleted += BgWorker_RunWorkerCompleted;
+                }
+                var _dock = App.SiteNumber == 0 ? WorkSpaceDock.CsiDock : WorkSpaceDock.WccoDock;
+                _dock.Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    bgWorker.RunWorkerAsync();
+                }));
+            }
         }
 
         /// <summary>
@@ -97,6 +141,22 @@ namespace SFW.ShopRoute
             OnPropertyChanged(nameof(HasStarted));
             OnPropertyChanged(nameof(CanStart));
         }
+
+        #region BackGroundWorker Implementation Logic
+
+        private void BgWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            OnPropertyChanged(nameof(ReportView));
+            IsLoading = false;
+        }
+
+        private void BgWorker_DoWork(object sender, DoWorkEventArgs e)
+        {
+            IsLoading = true;
+            ReportView = WorkOrder.GetReportData(ShopOrder, App.AppSqlCon).DefaultView;
+        }
+
+        #endregion
 
         #region Work Order Note Change ICommand
 
@@ -142,7 +202,6 @@ namespace SFW.ShopRoute
 
         private void ReportExecute(object parameter)
         {
-
             if (parameter != null && Enum.TryParse(parameter.ToString(), out PressReportActions pressAction))
             {
                 using (var report = new Press_ViewModel(ShopOrder, pressAction))

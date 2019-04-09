@@ -16,7 +16,19 @@ namespace SFW.ShopRoute.QTask
         /// </summary>
         public ViewModel()
         {
+            if (ShopOrder == null)
+            {
+                ShopOrder = new WorkOrder();
+            }
+        }
 
+        /// <summary>
+        /// Overridden Constructor
+        /// </summary>
+        /// <param name="wo">Work order object to load into the view</param>
+        public ViewModel(WorkOrder wo)
+        {
+            ShopOrder = wo;
         }
     }
 }

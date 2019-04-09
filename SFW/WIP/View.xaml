@@ -390,15 +390,10 @@
                                                    TextDecorations="UnderLine"
                                                    FontWeight="Bold"
                                                    Margin="10,0,0,0" />
-                                        <TextBox Text="{Binding RcptLoc, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                                 Visibility="{Binding IsBackFlush, Converter={StaticResource BooltoVisConverter}, ConverterParameter=i}"
-                                                 FontSize="16"
-                                                 Width="90"
-                                                 CharacterCasing="Upper"
-                                                 MaxLength="8"
-                                                 Margin="3"
-                                                 IsTabStop="False"
-                                                 Background="LightGray" />
+                                        <TextBlock Text="{Binding RcptLoc, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                   Visibility="{Binding IsBackFlush, Converter={StaticResource BooltoVisConverter}, ConverterParameter=i}"
+                                                   FontSize="16"
+                                                   Margin="5,0,0,0"/>
                                         <TextBlock Text="Quantity:"
                                                    FontSize="16"
                                                    TextDecorations="UnderLine"

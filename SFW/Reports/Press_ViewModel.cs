@@ -85,7 +85,7 @@ namespace SFW.Reports
         {
             //TODO: need to add in the update pieces to here
             var _tempCon = new M2kClient.M2kConnection("manage", "omniquery", "omniquery", M2kClient.Database.WCCOTRAIN); //meant to only be used for testing
-            var _machId = WorkOrder.GetAssignedMachine(Report.ShopOrder.OrderNumber, Report.ShopOrder.Seq, App.AppSqlCon);
+            var _machId = WorkOrder.GetAssignedMachineID(Report.ShopOrder.OrderNumber, Report.ShopOrder.Seq, App.AppSqlCon);
             var _count = 0;
             if (index > 0)
             {
