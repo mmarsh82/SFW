@@ -155,12 +155,8 @@
                        VerticalAlignment="Center">
                 <TextBlock.Visibility>
                     <MultiBinding Converter="{StaticResource BoolToVisConverter}">
-                        <Binding Path="LotType"
-                                 Mode="TwoWay"
-                                 UpdateSourceTrigger="PropertyChanged" />
-                        <Binding Path="ValidLot"
-                                 Mode="TwoWay"
-                                 UpdateSourceTrigger="PropertyChanged" />
+                        <Binding Path="LotType" />
+                        <Binding Path="ValidLot" />
                     </MultiBinding>
                 </TextBlock.Visibility>
             </TextBlock>
@@ -173,12 +169,8 @@
                      Style="{DynamicResource RequiredTextBox}">
                 <TextBox.Visibility>
                     <MultiBinding Converter="{StaticResource BoolToVisConverter}">
-                        <Binding Path="LotType"
-                                 Mode="TwoWay"
-                                 UpdateSourceTrigger="PropertyChanged" />
-                        <Binding Path="ValidLot"
-                                 Mode="TwoWay"
-                                 UpdateSourceTrigger="PropertyChanged" />
+                        <Binding Path="LotType" />
+                        <Binding Path="ValidLot" />
                     </MultiBinding>
                 </TextBox.Visibility>
             </TextBox>
@@ -416,7 +408,6 @@
 
         <CheckBox Grid.Row="7"
                   Grid.Column="0"
-                  x:Name="LotType"
                   FontSize="18"
                   FontWeight="Bold"
                   Content="Non-Lot Traceable"

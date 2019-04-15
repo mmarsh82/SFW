@@ -1,11 +1,4 @@
 ﻿using SFW.Commands;
-using SFW.Helpers;
-using SFW.Model;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Input;
 
 namespace SFW.Queries
@@ -14,21 +7,16 @@ namespace SFW.Queries
     {
         #region Properties
 
-        public Sku Part { get; set; }
-
-        private string lotNbr;
-        public string LotNbr
+        private bool lotType;
+        public bool LotType
         {
-            get { return lotNbr; }
+            get { return lotType; }
             set
             {
-                //TODO: Add in the population logic
-                lotNbr = value;
-                OnPropertyChanged(nameof(LotNbr));
+                lotType = value;
+                OnPropertyChanged(nameof(LotType));
             }
         }
-
-        public bool NonLot { get; set; }
 
         RelayCommand _print;
         RelayCommand _move;
@@ -40,7 +28,7 @@ namespace SFW.Queries
         /// </summary>
         public PartDetail_ViewModel()
         {
-            NonLot = false;
+
         }
 
         #region Print ICommand

@@ -1,6 +1,5 @@
 ﻿using M2kClient;
 using SFW.Commands;
-using SFW.Controls;
 using SFW.Enumerations;
 using SFW.Model;
 using SFW.Reports;
@@ -93,7 +92,7 @@ namespace SFW.ShopRoute
             {
                 ShopOrder = new WorkOrder();
             }
-            if (CanCheckHistory && ShopOrder != null)
+            if (CanCheckHistory && ShopOrder != null && App.SiteNumber != 0)
             {
                 if (bgWorker == null)
                 {
@@ -101,11 +100,7 @@ namespace SFW.ShopRoute
                     bgWorker.DoWork += BgWorker_DoWork;
                     bgWorker.RunWorkerCompleted += BgWorker_RunWorkerCompleted;
                 }
-                var _dock = App.SiteNumber == 0 ? WorkSpaceDock.CsiDock : WorkSpaceDock.WccoDock;
-                _dock.Dispatcher.BeginInvoke(new Action(() =>
-                {
-                    bgWorker.RunWorkerAsync();
-                }));
+                bgWorker.RunWorkerAsync();
             }
         }
 
@@ -116,7 +111,7 @@ namespace SFW.ShopRoute
         public ViewModel(WorkOrder workOrder)
         {
             ShopOrder = workOrder;
-            if (CanCheckHistory && ShopOrder != null)
+            if (CanCheckHistory && ShopOrder != null && App.SiteNumber != 0)
             {
                 if (bgWorker == null)
                 {
@@ -124,11 +119,7 @@ namespace SFW.ShopRoute
                     bgWorker.DoWork += BgWorker_DoWork;
                     bgWorker.RunWorkerCompleted += BgWorker_RunWorkerCompleted;
                 }
-                var _dock = App.SiteNumber == 0 ? WorkSpaceDock.CsiDock : WorkSpaceDock.WccoDock;
-                _dock.Dispatcher.BeginInvoke(new Action(() =>
-                {
-                    bgWorker.RunWorkerAsync();
-                }));
+                bgWorker.RunWorkerAsync();
             }
         }
 

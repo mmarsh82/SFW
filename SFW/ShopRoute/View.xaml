@@ -800,11 +800,14 @@
                                                         Binding="{Binding ToLot}" />
                                     <DataGridTextColumn Header="From Part Nbr."
                                                         Binding="{Binding FromPart}" />
+                                    <DataGridTextColumn Header="BOM Scrap"
+                                                        Binding="{Binding BomScrap}" />
+                                    <DataGridTextColumn Header="BOM QIR"
+                                                        Binding="{Binding BomQir}" />
                                     <DataGridTextColumn Header="Part Scrap"
                                                         Binding="{Binding PartScrap}" />
-                                    <DataGridTextColumn Header="BOM Scrap"
-                                                        Binding="{Binding BOMScrap}" />
-                                    <DataGridTextColumn Header="QIR Nbr." />
+                                    <DataGridTextColumn Header="Part QIR"
+                                                        Binding="{Binding PartQir}" />
                                     
                                 </DataGrid.Columns>
                             </DataGrid>

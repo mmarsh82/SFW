@@ -206,19 +206,19 @@ namespace M2kClient
         /// <param name="nonLot">Is the item being relocated non-lot traceable</param>
         /// <param name="connection">Current M2k Connection to be used for processing the transaction</param>
         /// <returns>Suffix for the file that needs to be watched on the ERP server</returns>
-        public static int InventoryMove(string from, string to, int qty, bool nonLot, M2kConnection connection)
+        public static int InventoryMove(string name, string from, string to, int qty, bool nonLot, M2kConnection connection)
         {
-            /*var uId = new Random();
-            var suffix = uId.Next(128, 512);
-            from = _skew.OnHand.Count > 1 || nonLot ? from.ToUpper() : _skew.OnHand.First().Key.ToUpper();
+            var uId = new Random();
+            var suffix = uId.Next(100, 5000);
+            //from = sku.OnHand.Count > 1 || nonLot ? from.ToUpper() : sku.OnHand.First().Key.ToUpper();
             if (!nonLot)
             {
                 //String Format for non lot tracable = false
                 //1~Transaction type~2~Station ID~3~Transaction time~4~Transaction date~5~Facility code~6~Partnumber~7~From location~8~To location~9~Quantity #1~10~Lot #1~9~Quantity #2~10~Lot #2~~99~COMPLETE
                 //Must meet this format in order to work with M2k
 
-                var moveText = $"1~LOCXFER~2~{CurrentUser.DomainName}~3~{DateTime.Now.ToString("HH:mm")}~4~{DateTime.Today.ToString("MM-dd-yyyy")}~5~01~6~{_skew.PartNumber}~7~{from.ToUpper()}~8~{to.ToUpper()}~9~{qty}~10~{_skew.LotNumber.ToUpper()}|P~99~COMPLETE";
-                File.WriteAllText($"{connection.BTIFolder}LOCXFERC2K.DAT{suffix}", moveText);
+                //var moveText = $"1~LOCXFER~2~{name}~3~{DateTime.Now.ToString("HH:mm")}~4~{DateTime.Today.ToString("MM-dd-yyyy")}~5~01~6~{sku.PartNumber}~7~{from.ToUpper()}~8~{to.ToUpper()}~9~{qty}~10~{sku.LotNumber.ToUpper()}|P~99~COMPLETE";
+                //File.WriteAllText($"{connection.BTIFolder}LOCXFERC2K.DAT{suffix}", moveText);
             }
             else
             {
@@ -226,11 +226,10 @@ namespace M2kClient
                 //1~Transaction type~2~Station ID~3~Transaction time~4~Transaction date~5~Facility code~6~Partnumber~7~From location~8~To location~9~Quantity~12~UoM~99~COMPLETE
                 //Must meet this format in order to work with M2k
 
-                var moveText = $"1~LOCXFER~2~{CurrentUser.DomainName}~3~{DateTime.Now.ToString("HH:mm")}~4~{DateTime.Today.ToString("MM-dd-yyyy")}~5~01~6~{_skew.PartNumber}~7~{from.ToUpper()}~8~{to.ToUpper()}~9~{qty}~12~{_skew.UOM.ToUpper()}~99~COMPLETE";
-                File.WriteAllText($"{connection.BTIFolder}LOCXFERC2K.DAT{suffix}", moveText);
+                //var moveText = $"1~LOCXFER~2~{name}~3~{DateTime.Now.ToString("HH:mm")}~4~{DateTime.Today.ToString("MM-dd-yyyy")}~5~01~6~{sku.PartNumber}~7~{from.ToUpper()}~8~{to.ToUpper()}~9~{qty}~12~{sku.UOM.ToUpper()}~99~COMPLETE";
+                //File.WriteAllText($"{connection.BTIFolder}LOCXFERC2K.DAT{suffix}", moveText);
             }
-            return suffix;*/
-            return 10;
+            return suffix;
         }
 
         /// <summary>
@@ -244,7 +243,7 @@ namespace M2kClient
         public static IReadOnlyDictionary<int, string> ProductionWip(WipReceipt wipRecord, bool postLabor, M2kConnection connection, string machID = "")
         {
             var uId = new Random();
-            var suffix = uId.Next(128, 512);
+            var suffix = uId.Next(100, 5000);
             var _subResult = new Dictionary<int, string>();
             if (string.IsNullOrEmpty(wipRecord.WipLot.LotNumber))
             {
@@ -268,7 +267,7 @@ namespace M2kClient
             if (!string.IsNullOrEmpty(_tWip.StationId))
             {
                 File.WriteAllText($"{connection.SFDCFolder}WPC2K.DAT{suffix}", _tWip.ToString());
-                suffix = uId.Next(128, 512);
+                suffix = uId.Next(100, 5000);
                 System.Windows.MessageBox.Show($"Assinged to Lot Number:\n{wipRecord.WipLot.LotNumber}", "New Lot Number", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
             }
             else
@@ -296,7 +295,7 @@ namespace M2kClient
                     if (c.WipInfo.Sum(o => o.BaseQty) > 0)
                     {
                         File.WriteAllText($"{connection.BTIFolder}ISSUEC2K.DAT{suffix}", _issue.ToString());
-                        suffix = uId.Next(128, 512);
+                        suffix = uId.Next(100, 5000);
                     }
                 }
             }
@@ -348,7 +347,7 @@ namespace M2kClient
         public static IReadOnlyDictionary<int, string> PostLabor(string stationId, int empID, string woAndSeq, int qtyComp, string machID, char clockTranType, M2kConnection connection, string time = "", int crew = 0, string tranDate = "")
         {
             var uId = new Random();
-            var suffix = uId.Next(128, 512);
+            var suffix = uId.Next(100, 5000);
             var _subResult = new Dictionary<int, string>();
             if (!woAndSeq.Contains('*'))
             {
@@ -371,7 +370,7 @@ namespace M2kClient
                     File.WriteAllText($"{connection.SFDCFolder}LBC2K.DAT{suffix}", _tempDL.ToString());
 
                     //posting the clock out time for DateTime.Now
-                    suffix = uId.Next(128, 512);
+                    suffix = suffix = uId.Next(100, 5000);
                     time = DateTime.Now.ToString("HH:mm");
                     _tempDL = crew > 0 
                         ? new DirectLabor(stationId, empID, 'O', time, _wSplit[0], _wSplit[1], qtyComp, 0, machID, CompletionFlag.N, crew)

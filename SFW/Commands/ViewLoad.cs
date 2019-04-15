@@ -37,6 +37,9 @@ namespace SFW.Commands
                             MessageBox.Show("The work load is currently refreshing.");
                         }
                         break;
+                    case "ClosedSched":
+                        WorkSpaceDock.SwitchView(6, new Schedule.Closed.ViewModel());
+                        break;
                     case "Scheduler":
                         WorkSpaceDock.SwitchView(2, new Scheduler.ViewModel());
                         break;

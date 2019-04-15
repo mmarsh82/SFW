@@ -30,8 +30,8 @@
     <PublisherName>Michael Marsh</PublisherName>
     <SuiteName>WCCO Belting Inc.</SuiteName>
     <AutorunEnabled>true</AutorunEnabled>
-    <ApplicationRevision>795</ApplicationRevision>
-    <ApplicationVersion>1.0.72.795</ApplicationVersion>
+    <ApplicationRevision>830</ApplicationRevision>
+    <ApplicationVersion>1.0.77.830</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <CreateDesktopShortcut>true</CreateDesktopShortcut>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -139,6 +139,10 @@
       <DependentUpon>PressShift_View.xaml</DependentUpon>
     </Compile>
     <Compile Include="Reports\PressShift_ViewModel.cs" />
+    <Compile Include="Schedule.Closed\View.xaml.cs">
+      <DependentUpon>View.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Schedule.Closed\ViewModel.cs" />
     <Compile Include="ShopRoute\QTask\View.xaml.cs">
       <DependentUpon>View.xaml</DependentUpon>
     </Compile>
@@ -223,6 +227,10 @@
     <Page Include="Reports\ProcessSpec_View.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Schedule.Closed\View.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
     </Page>
     <Page Include="Scheduler\View.xaml">
       <SubType>Designer</SubType>

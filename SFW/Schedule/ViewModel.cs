@@ -44,7 +44,7 @@ namespace SFW.Schedule
                     }
                 }
                 OnPropertyChanged(nameof(SelectedWorkOrder));
-                ScheduleView.MoveCurrentTo(SelectedWorkOrder);
+                //ScheduleView.MoveCurrentTo(SelectedWorkOrder);
             }
         }
 

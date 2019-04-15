@@ -15,6 +15,8 @@ namespace SFW.Controls
         public static Grid MainDock { get; set; }
         public static DockPanel CsiDock { get; set; }
         public static DockPanel WccoDock { get; set; }
+        public static DockPanel ClosedDock { get; set; }
+        public static bool ClosedView { get; set; }
 
         #endregion
 
@@ -24,10 +26,13 @@ namespace SFW.Controls
         public WorkSpaceDock()
         {
             RefreshTimer.IsRefreshing = true;
+            ClosedView = false;
             //Create the Control
             MainDock = ((MainWindow)Application.Current.Windows[0]).WorkSpaceDock;
             CsiDock = new DockPanel();
             WccoDock = new DockPanel();
+            ClosedDock = new DockPanel();
+
 
             //Add the CSI Schedule View to [0]
             CsiDock.Children.Insert(0, new Schedule.View());
@@ -52,6 +57,11 @@ namespace SFW.Controls
 
             //Add the Part Detail View to [5]
             MainDock.Children.Insert(5, new PartDetail_View());
+
+            //Add the Schedule View to [6]
+            ClosedDock.Children.Insert(0, new Schedule.Closed.View());
+            ClosedDock.Children.Insert(1, new ShopRoute.View { DataContext = new ShopRoute.ViewModel() });
+            MainDock.Children.Insert(6, ClosedDock);
 
             //Set up and display the intial view
             switch (Environment.UserDomainName)
@@ -89,6 +99,7 @@ namespace SFW.Controls
                 }
             }
             MainDock.Children[index].Visibility = Visibility.Visible;
+            ClosedView = index == 6;
             var _tempDock = index == 0 ? CsiDock : WccoDock;
             if (index <= 1)
             {

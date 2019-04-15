@@ -107,12 +107,13 @@
                           Command="{StaticResource ViewLoadICommand}"
                           CommandParameter="Schedule"
                           InputGestureText="F5"/>
+                <MenuItem Header="Closed Work Orders"
+                          Command="{StaticResource ViewLoadICommand}"
+                          CommandParameter="ClosedSched" />
                 <MenuItem Header="Scheduler"
                           Command="{StaticResource ViewLoadICommand}"
                           CommandParameter="Scheduler"
-                          IsEnabled="False"/>
-                <MenuItem Header="Work Instructions"
-                          IsEnabled="False"/>
+                          IsEnabled="False" />
             </MenuItem>
             <MenuItem Header="Queries">
                 <MenuItem Header="Part Information"

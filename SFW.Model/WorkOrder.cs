@@ -432,50 +432,60 @@ namespace SFW.Model
 	                                                                                    CASE WHEN a.[Scan_Station_ID] IS NULL THEN SUBSTRING(a.[Logon],0,CHARINDEX(':',a.[Logon])) ELSE a.[Scan_Station_ID] END as 'Name',
 	                                                                                    a.[Qty] as 'QtyGood',
 	                                                                                    '' as 'FromLot',
-	                                                                                    a.[Lot_Number] as 'ToLot',
+	                                                                                    SUBSTRING(a.[Lot_Number],0,CHARINDEX('|',a.[Lot_Number])) as 'ToLot',
 	                                                                                    @p2 as 'FromPart',
+                                                                                        '' as 'BomScrap',
+                                                                                        '' as 'BomQir',
 	                                                                                    '' as 'PartScrap',
-	                                                                                    '' as 'BOMScrap',
+                                                                                        ISNULL((SELECT CAST([QIRNumber] as varchar(15)) FROM [OMNI].[dbo].[qir_metrics_view] WHERE [LotNumber] = SUBSTRING(a.[Lot_Number],0,CHARINDEX('|',a.[Lot_Number])) AND [PartNumber] = @p3), 'None') as 'PartQir',
                                                                                         a.[Process_Time_Date] as 'PTD'
                                                                                     FROM
 	                                                                                    [dbo].[IT-INIT] a
                                                                                     WHERE
-	                                                                                    a.[ID] LIKE CONCAT(@p2,'*%') AND a.[Tran_Code] = '40' AND a.[Reference] LIKE CONCAT('%',@p3,'%');", sqlCon))
+	                                                                                    a.[ID] LIKE CONCAT(@p3,'*%') AND a.[Tran_Code] = '40' AND a.[Reference] LIKE CONCAT('%',@p1,'%');", sqlCon))
                             {
-                                adapter.SelectCommand.Parameters.AddWithValue("p1", wo.Bom.First(o => o.IsLotTrace).CompNumber);
-                                adapter.SelectCommand.Parameters.AddWithValue("p2", wo.SkuNumber);
-                                adapter.SelectCommand.Parameters.AddWithValue("p3", wo.OrderNumber);
+                                adapter.SelectCommand.Parameters.AddWithValue("p1", wo.OrderNumber);
+                                adapter.SelectCommand.Parameters.AddWithValue("p2", wo.Bom.FirstOrDefault(o => o.IsLotTrace).CompNumber);
+                                adapter.SelectCommand.Parameters.AddWithValue("p3", wo.SkuNumber);
                                 adapter.Fill(dt);
 
-                                //Relooping through the IT table extended the query by 20 seconds so moved to a code loop to complete the scrap
+                                //Relooping through the IT table extended the query by 30 seconds so moved to a code loop to complete the scrap
                                 foreach (DataRow d in dt.Rows)
                                 {
-                                    //From Lot number
+                                    //From Lot
+                                    var ptdArray = d.Field<string>("PTD").Split('*');
+                                    var ptdTime = Convert.ToInt32(ptdArray[1]);
                                     using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database};
                                                                                 SELECT
-	                                                                                [Lot_Number]
+	                                                                                ISNULL(SUBSTRING([Lot_Number],0,CHARINDEX('|',[Lot_Number])), 'Not Found') as 'FromLot'
                                                                                 FROM
 	                                                                                [dbo].[IT-INIT]
                                                                                 WHERE
-	                                                                                [Tran_Code] = '44' AND [Reference] LIKE CONCAT('%',@p1,'%') AND [Lot_Number] IS NOT NULL AND [Process_Time_Date] = @p2;", sqlCon))
+	                                                                                [ID] LIKE CONCAT(@p2,'*%')
+	                                                                                AND [Tran_Code] = '44'
+	                                                                                AND [Reference] LIKE CONCAT('%',@p1,'%')
+	                                                                                AND [Lot_Number] IS NOT NULL
+	                                                                                AND ([Process_Time_Date] = CONCAT(@p3,'*',@p4) OR [Process_Time_Date] = CONCAT(@p3,'*',@p4-1) OR [Process_Time_Date] = CONCAT(@p3,'*',@p4+1));", sqlCon))
                                     {
                                         cmd.Parameters.AddWithValue("p1", wo.OrderNumber);
-                                        cmd.Parameters.AddWithValue("p2", d.Field<string>("PTD"));
+                                        cmd.Parameters.AddWithValue("p2", d.Field<string>("FromPart"));
+                                        cmd.Parameters.AddWithValue("p3", ptdArray[0]);
+                                        cmd.Parameters.AddWithValue("p4", ptdTime);
                                         var fLot = cmd.ExecuteScalar()?.ToString();
                                         if (!string.IsNullOrEmpty(fLot))
                                         {
-                                            d.SetField("PartScrap", fLot);
+                                            d.SetField("FromLot", fLot);
                                         }
                                         else
                                         {
-                                            d.SetField("PartScrap", "N/A");
+                                            d.SetField("FromLot", "Not Found");
                                         }
                                     }
 
                                     //Part Scrap
                                     using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database};
                                                                                     SELECT
-	                                                                                    [Qty]
+	                                                                                    CAST([Qty] as INT) * -1 as 'Qty'
                                                                                     FROM
 	                                                                                    [dbo].[IT-INIT]
                                                                                     WHERE
@@ -497,7 +507,7 @@ namespace SFW.Model
                                     //BOM Scrap
                                     using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database};
                                                                                     SELECT
-	                                                                                    CAST([Qty]  as INT) * - 1 as 'Qty'
+	                                                                                    CAST([Qty]  as INT) * -1 as 'Qty'
                                                                                     FROM
 	                                                                                    [dbo].[IT-INIT]
                                                                                     WHERE
@@ -505,15 +515,36 @@ namespace SFW.Model
                                     {
                                         cmd.Parameters.AddWithValue("p1", wo.OrderNumber);
                                         cmd.Parameters.AddWithValue("p2", d.Field<string>("FromLot"));
-                                        cmd.Parameters.AddWithValue("p3", d.Field<string>("FromPart"));
+                                        cmd.Parameters.AddWithValue("p3", wo.Bom.FirstOrDefault(o => o.IsLotTrace).CompNumber);
                                         var bScrap = cmd.ExecuteScalar()?.ToString();
                                         if (!string.IsNullOrEmpty(bScrap))
                                         {
-                                            d.SetField("BOMScrap", bScrap);
+                                            d.SetField("BomScrap", bScrap);
                                         }
                                         else
                                         {
-                                            d.SetField("BOMScrap", "0");
+                                            d.SetField("BomScrap", "0");
+                                        }
+                                    }
+
+                                    //BOM QIR
+                                    using (SqlCommand cmd = new SqlCommand($@"SELECT
+	                                                                            [QIRNumber]
+                                                                            FROM
+	                                                                            [OMNI].[dbo].[qir_metrics_view]
+                                                                            WHERE
+	                                                                            [LotNumber] = @p1 AND [PartNumber] = @p2;", sqlCon))
+                                    {
+                                        cmd.Parameters.AddWithValue("p1", d.Field<string>("FromLot"));
+                                        cmd.Parameters.AddWithValue("p2", wo.Bom.FirstOrDefault(o => o.IsLotTrace).CompNumber);
+                                        var bQir = cmd.ExecuteScalar()?.ToString();
+                                        if (!string.IsNullOrEmpty(bQir))
+                                        {
+                                            d.SetField("BomQir", bQir);
+                                        }
+                                        else
+                                        {
+                                            d.SetField("BomQir", "None");
                                         }
                                     }
                                 }
