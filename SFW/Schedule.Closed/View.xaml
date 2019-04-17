@@ -8,6 +8,7 @@
              xmlns:cvtr="clr-namespace:SFW.Converters">
 
     <UserControl.Resources>
+        <cmd:ViewLoad x:Key="Back" />
         <cmd:PartSearch x:Key="PartSearchCommand"/>
         <cvtr:BoolToVisibility x:Key="BoolToVisConverter"/>
         <cvtr:WorkOrderNumber x:Key="WorkOrderConverter"/>
@@ -16,7 +17,6 @@
         <cvtr:Multi_EqualIntToVisibility x:Key="IntEqualConverter"/>
         <cvtr:IntToVisibility x:Key="IntToVisConverter" />
         <cvtr:WoPriorityToBool x:Key="PriToBoolConverter" />
-
     </UserControl.Resources>
 
     <Grid>
@@ -36,6 +36,25 @@
 
         <StackPanel Grid.Row="0"
                     Orientation="Horizontal">
+            
+            <Button Grid.Row="0" Grid.Column="0"
+                Background="Transparent"
+                BorderThickness="0"
+                Command="{StaticResource Back}"
+                CommandParameter="Back"
+                HorizontalAlignment="Left">
+                <Button.Content>
+                    <StackPanel Orientation="Horizontal">
+                        <Image Source="/SFW;component/Icons/BackArrow.ico" />
+                        <TextBlock Text="Back to Schedule"
+                               VerticalAlignment="Center"
+                               FontSize="16"
+                               FontWeight="Bold"
+                               Foreground="Crimson" />
+                    </StackPanel>
+                </Button.Content>
+            </Button>
+            
             <TextBlock Text="Search:"
                        FontSize="18"
                        FontWeight="Bold"

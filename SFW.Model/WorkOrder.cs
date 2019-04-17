@@ -452,6 +452,34 @@ namespace SFW.Model
                                 //Relooping through the IT table extended the query by 30 seconds so moved to a code loop to complete the scrap
                                 foreach (DataRow d in dt.Rows)
                                 {
+                                    //Get the shift for any old report data
+                                    if (d.Field<string>("Shift") == "N/A")
+                                    {
+                                        var fullName = CrewMember.GetCrewMemberFullName(d.Field<string>("Name"));
+                                        d.SetField("Name", fullName);
+                                        var nameSplit = fullName.Split(' ');
+                                        using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database};
+                                                                                SELECT
+	                                                                                [Shift]
+                                                                                FROM
+	                                                                                [dbo].[EMPLOYEE_MASTER-INIT]
+                                                                                WHERE
+	                                                                                [First_Name] = @p1 AND [Last_Name] = @p2;", sqlCon))
+                                        {
+                                            cmd.Parameters.AddWithValue("p1", nameSplit[0]);
+                                            cmd.Parameters.AddWithValue("p2", nameSplit[1]);
+                                            var shift = cmd.ExecuteScalar()?.ToString();
+                                            if (!string.IsNullOrEmpty(shift))
+                                            {
+                                                d.SetField("Shift", shift);
+                                            }
+                                            else
+                                            {
+                                                d.SetField("Shift", "N/A");
+                                            }
+                                        }
+                                    }
+
                                     //From Lot
                                     var ptdArray = d.Field<string>("PTD").Split('*');
                                     var ptdTime = Convert.ToInt32(ptdArray[1]);

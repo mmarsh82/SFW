@@ -1,4 +1,6 @@
 ﻿using SFW.Commands;
+using SFW.Model;
+using System.Linq;
 using System.Windows.Input;
 
 namespace SFW.Queries
@@ -6,6 +8,8 @@ namespace SFW.Queries
     public class PartDetail_ViewModel : ViewModelBase
     {
         #region Properties
+
+        public Sku Part { get; set; }
 
         private bool lotType;
         public bool LotType
@@ -15,6 +19,70 @@ namespace SFW.Queries
             {
                 lotType = value;
                 OnPropertyChanged(nameof(LotType));
+            }
+        }
+
+        private bool validLot;
+        public bool ValidLot
+        {
+            get { return validLot; }
+            set
+            {
+                validLot = value;
+                OnPropertyChanged(nameof(validLot));
+            }
+        }
+
+        private bool validQir;
+        public bool ValidQir
+        {
+            get { return validQir; }
+            set
+            {
+                validQir = value;
+                OnPropertyChanged(nameof(validQir));
+            }
+        }
+
+        private char prevLot;
+        private string lotNbr;
+        public string LotNumber
+        {
+            get { return lotNbr; }
+            set
+            {
+                if (value.Length > 5)
+                {
+                    Part = new Sku(value, false, App.AppSqlCon);
+                    ValidLot = !string.IsNullOrEmpty(Part.SkuNumber);
+                }
+                if (value.Length == 11)
+                {
+                    value = lotNbr = $"{prevLot}{value.Last()}";
+                }
+                if (!string.IsNullOrEmpty(value))
+                {
+                    prevLot = value.Last();
+                }
+                lotNbr = value.ToUpper();
+                OnPropertyChanged(nameof(lotNbr));
+                OnPropertyChanged(nameof(Part));
+            }
+        }
+
+        private string partNbr;
+        public string PartNumber
+        {
+            get { return partNbr; }
+            set
+            {
+                if (!string.IsNullOrEmpty(value) && value.Length > 4 && LotType)
+                {
+                    Part = new Sku(value, App.AppSqlCon);
+                    ValidLot = !string.IsNullOrEmpty(Part.SkuNumber);
+                }
+                partNbr = value;
+                OnPropertyChanged(nameof(PartNumber));
             }
         }
 

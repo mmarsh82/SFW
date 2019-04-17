@@ -121,6 +121,7 @@ namespace SFW.Model
 	                                                                            c.[Qty_To_Start] as 'WO_StartQty',
 	                                                                            c.[So_Reference] as 'WO_SalesRef',
                                                                                 c.[Cust_Nbr],
+                                                                                ISNULL(c.[Time_Wanted], '9999') as 'PriTime',
                                                                                 d.[Part_Number]as 'SkuNumber',
 	                                                                            d.[Description] as 'SkuDesc',
 	                                                                            d.[Um] as 'SkuUom', d.[Drawing_Nbrs] as 'SkuMasterPrint',
@@ -148,7 +149,7 @@ namespace SFW.Model
                                                                             WHERE
                                                                                 a.[D_esc] <> 'DO NOT USE' AND (c.[Status_Flag] = 'R' OR c.[Status_Flag] = 'A') AND (b.[Seq_Complete_Flag] IS NULL OR b.[Seq_Complete_Flag] = 'N') AND b.[Alt_Seq_Status] IS NULL
                                                                             ORDER BY
-                                                                                MachineNumber, WO_Priority, WO_SchedStartDate, WO_Number ASC;", sqlCon))
+                                                                                MachineNumber, WO_Priority, PriTime, WO_SchedStartDate, WO_Number ASC;", sqlCon))
                         {
                             adapter.Fill(_tempTable);
                             return _tempTable;

@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using System.Data;
 using System.Data.SqlClient;
+using System.DirectoryServices.AccountManagement;
 
 namespace SFW.Model
 {
@@ -428,6 +429,22 @@ namespace SFW.Model
             else
             {
                 throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
+            }
+        }
+
+        /// <summary>
+        /// Get any crew members full professional name stored in the active directory
+        /// </summary>
+        /// <param name="domainName">Crew Member Domain Name</param>
+        /// <returns>Full crew member name as string</returns>
+        public static string GetCrewMemberFullName(string domainName)
+        {
+            using (PrincipalContext pContext = new PrincipalContext(ContextType.Domain))
+            {
+                using (UserPrincipal uPrincipal = UserPrincipal.FindByIdentity(pContext, domainName))
+                {
+                    return $"{uPrincipal.GivenName} {uPrincipal.Surname}";
+                }
             }
         }
     }
