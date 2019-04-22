@@ -267,6 +267,10 @@ namespace SFW.Model
                                     }
                                 }
                             }
+                            else
+                            {
+                                return _dmdNbr;
+                            }
                         }
                     }
                 }

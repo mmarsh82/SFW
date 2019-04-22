@@ -56,14 +56,14 @@ namespace SFW
                     {
                         WorkSpaceDock.ClosedDock.Dispatcher.BeginInvoke(new Action(() =>
                         { 
-                            if (((Schedule.Closed.ViewModel)((Schedule.Closed.View)WorkSpaceDock.ClosedDock.Children[0]).DataContext).ScheduleView != null)
+                            if (((Schedule.Closed.ViewModel)((Schedule.Closed.View)WorkSpaceDock.ClosedDock.Children[0]).DataContext).ClosedScheduleView != null)
                             {
-                                if (((DataView)((Schedule.Closed.ViewModel)((Schedule.Closed.View)WorkSpaceDock.ClosedDock.Children[0]).DataContext).ScheduleView.SourceCollection).Table.Select($"MachineNumber = '{value.MachineNumber}'").Length == 0)
+                                if (((DataView)((Schedule.Closed.ViewModel)((Schedule.Closed.View)WorkSpaceDock.ClosedDock.Children[0]).DataContext).ClosedScheduleView.SourceCollection).Table.Select($"MachineNumber = '{value.MachineNumber}'").Length == 0)
                                 {
                                     ((ShopRoute.ViewModel)((ShopRoute.View)WorkSpaceDock.ClosedDock.Children[1]).DataContext).ShopOrder = new WorkOrder();
                                 }
-                                ((DataView)((Schedule.Closed.ViewModel)((Schedule.Closed.View)WorkSpaceDock.ClosedDock.Children[0]).DataContext).ScheduleView.SourceCollection).RowFilter = _filter;
-                                ((Schedule.Closed.ViewModel)((Schedule.Closed.View)WorkSpaceDock.ClosedDock.Children[0]).DataContext).ScheduleView.Refresh();
+                                ((DataView)((Schedule.Closed.ViewModel)((Schedule.Closed.View)WorkSpaceDock.ClosedDock.Children[0]).DataContext).ClosedScheduleView.SourceCollection).RowFilter = _filter;
+                                ((Schedule.Closed.ViewModel)((Schedule.Closed.View)WorkSpaceDock.ClosedDock.Children[0]).DataContext).ClosedScheduleView.Refresh();
                             }
                         }));
                     }
@@ -115,7 +115,7 @@ namespace SFW
                         {
                             if (((Schedule.ViewModel)((Schedule.View)WorkSpaceDock.ClosedDock.Children[0]).DataContext).ScheduleView != null)
                             {
-                                ((DataView)((Schedule.Closed.ViewModel)((Schedule.Closed.View)WorkSpaceDock.ClosedDock.Children[0]).DataContext).ScheduleView.SourceCollection).RowFilter = _temp;
+                                ((DataView)((Schedule.Closed.ViewModel)((Schedule.Closed.View)WorkSpaceDock.ClosedDock.Children[0]).DataContext).ClosedScheduleView.SourceCollection).RowFilter = _temp;
                             }
                         }));
                     }

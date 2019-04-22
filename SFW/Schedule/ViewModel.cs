@@ -48,6 +48,17 @@ namespace SFW.Schedule
             }
         }
 
+        private string _orderPri;
+        public string OrderPriority
+        {
+            get { return _orderPri; }
+            set
+            {
+                _orderPri = value;
+                OnPropertyChanged(nameof(OrderPriority));
+            }
+        }
+
         private bool _isLoading;
         public bool IsLoading
         {
@@ -226,6 +237,46 @@ namespace SFW.Schedule
             }
         }
         private bool PriChangeCanExecute(object parameter) => true;
+
+        #endregion
+
+        #region Order Change ICommand
+
+        public ICommand OrderChangeICommand
+        {
+            get
+            {
+                if (_priChange == null)
+                {
+                    _priChange = new RelayCommand(OrderChangeExecute, OrderChangeCanExecute);
+                }
+                return _priChange;
+            }
+        }
+
+        private void OrderChangeExecute(object parameter)
+        {
+            var _oldPri = SelectedWorkOrder.Row.ItemArray[8].ToString();
+            if (!string.IsNullOrEmpty(parameter?.ToString()))
+            {
+                var _woNumber = SelectedWorkOrder.Row.ItemArray[0].ToString().Split('*')[0];
+                var _changeRequest = M2kCommand.EditRecord("WP", _woNumber, 40, parameter.ToString(), App.ErpCon);
+                if (!string.IsNullOrEmpty(_changeRequest))
+                {
+                    MessageBox.Show(_changeRequest, "ERP Record Error");
+                    SelectedWorkOrder.BeginEdit();
+                    SelectedWorkOrder["WO_Priority"] = _oldPri;
+                    SelectedWorkOrder.EndEdit();
+                }
+                else
+                {
+                    SelectedWorkOrder.BeginEdit();
+                    SelectedWorkOrder["WO_Priority"] = parameter.ToString();
+                    SelectedWorkOrder.EndEdit();
+                }
+            }
+        }
+        private bool OrderChangeCanExecute(object parameter) => true;
 
         #endregion
     }

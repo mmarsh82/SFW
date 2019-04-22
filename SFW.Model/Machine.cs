@@ -275,7 +275,8 @@ namespace SFW.Model
                 {
                     try
                     {
-                        using (SqlDataAdapter adapter = new SqlDataAdapter(@"SELECT
+                        using (SqlDataAdapter adapter = new SqlDataAdapter($@"USE [{sqlCon.Database}];
+                                                                            SELECT
 	                                                                            DISTINCT(b.[ID]) as 'WO_Number', 
                                                                                 a.[Wc_Nbr] as 'MachineNumber',
 	                                                                            a.[Name] as 'MachineName',

@@ -72,7 +72,7 @@
 
         <DataGrid x:Name="WorkCenterSchedule"
                   Grid.Row="1"
-                  ItemsSource="{Binding ScheduleView, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                  ItemsSource="{Binding ClosedScheduleView, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                   SelectedItem="{Binding SelectedWorkOrder, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                   HorizontalAlignment="Left"
                   HeadersVisibility="None"
@@ -80,8 +80,8 @@
                   CanUserAddRows="False"
                   IsReadOnly="True"
                   SelectionMode="Single"
-                  IsSynchronizedWithCurrentItem="True"
                   EnableRowVirtualization="True"
+                  IsSynchronizedWithCurrentItem="True"
                   VirtualizingStackPanel.VirtualizationMode ="Recycling"
                   VirtualizingStackPanel.IsVirtualizing="True"
                   VirtualizingPanel.IsVirtualizingWhenGrouping="True"

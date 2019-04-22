@@ -437,7 +437,7 @@ namespace SFW.Model
                                                                                         '' as 'BomScrap',
                                                                                         '' as 'BomQir',
 	                                                                                    '' as 'PartScrap',
-                                                                                        ISNULL((SELECT CAST([QIRNumber] as varchar(15)) FROM [OMNI].[dbo].[qir_metrics_view] WHERE [LotNumber] = SUBSTRING(a.[Lot_Number],0,CHARINDEX('|',a.[Lot_Number])) AND [PartNumber] = @p3), 'None') as 'PartQir',
+                                                                                        ISNULL((SELECT CAST([QIRNumber] as varchar(15)) FROM [OMNI].[dbo].[qir_metrics_view] WHERE [LotNumber] = SUBSTRING(a.[Lot_Number],0,CHARINDEX('|',a.[Lot_Number])) AND [PartNumber] = @p3), '-') as 'PartQir',
                                                                                         a.[Process_Time_Date] as 'PTD'
                                                                                     FROM
 	                                                                                    [dbo].[IT-INIT] a
@@ -517,10 +517,10 @@ namespace SFW.Model
                                                                                     FROM
 	                                                                                    [dbo].[IT-INIT]
                                                                                     WHERE
-	                                                                                    [Tran_Code] = '50' AND [Reference] LIKE CONCAT('%',@p1,'%') AND [Lot_Number] = @p2;", sqlCon))
+	                                                                                    [Tran_Code] = '50' AND [Reference] LIKE CONCAT('%',@p1,'%') AND [Lot_Number] = CONCAT(@p2,'|P');", sqlCon))
                                     {
                                         cmd.Parameters.AddWithValue("p1", wo.OrderNumber);
-                                        cmd.Parameters.AddWithValue("p2", d.Field<string>("FromLot"));
+                                        cmd.Parameters.AddWithValue("p2", d.Field<string>("ToLot"));
                                         var pScrap = cmd.ExecuteScalar()?.ToString();
                                         if (!string.IsNullOrEmpty(pScrap))
                                         {
@@ -528,7 +528,7 @@ namespace SFW.Model
                                         }
                                         else
                                         {
-                                            d.SetField("PartScrap", "0");
+                                            d.SetField("PartScrap", "-");
                                         }
                                     }
 
@@ -539,7 +539,7 @@ namespace SFW.Model
                                                                                     FROM
 	                                                                                    [dbo].[IT-INIT]
                                                                                     WHERE
-	                                                                                    [Tran_Code] = '50' AND [Reference] LIKE CONCAT('%',@p1,'%') AND [Lot_Number] = @p2 AND [ID] LIKE CONCAT(@p3,'*%');", sqlCon))
+	                                                                                    [Tran_Code] = '50' AND [Reference] LIKE CONCAT('%',@p1,'%') AND [Lot_Number] = CONCAT(@p2,'|P') AND [ID] LIKE CONCAT(@p3,'*%');", sqlCon))
                                     {
                                         cmd.Parameters.AddWithValue("p1", wo.OrderNumber);
                                         cmd.Parameters.AddWithValue("p2", d.Field<string>("FromLot"));
@@ -551,7 +551,7 @@ namespace SFW.Model
                                         }
                                         else
                                         {
-                                            d.SetField("BomScrap", "0");
+                                            d.SetField("BomScrap", "-");
                                         }
                                     }
 
@@ -572,7 +572,7 @@ namespace SFW.Model
                                         }
                                         else
                                         {
-                                            d.SetField("BomQir", "None");
+                                            d.SetField("BomQir", "-");
                                         }
                                     }
                                 }

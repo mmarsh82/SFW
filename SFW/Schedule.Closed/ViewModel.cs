@@ -1,7 +1,6 @@
 ﻿using SFW.Controls;
 using SFW.Converters;
 using SFW.Model;
-using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -16,7 +15,7 @@ namespace SFW.Schedule.Closed
     {
         #region Properties
 
-        public ICollectionView ScheduleView { get; set; }
+        public ICollectionView ClosedScheduleView { get; set; }
         private DataRowView _selectedWO;
         public DataRowView SelectedWorkOrder
         {
@@ -47,16 +46,11 @@ namespace SFW.Schedule.Closed
             get { return _sFilter; }
             set
             {
-                ((DataView)ScheduleView.SourceCollection).Table.Search(value);
+                ((DataView)ClosedScheduleView.SourceCollection).Table.Search(value);
                 _sFilter = value;
                 OnPropertyChanged(nameof(SearchFilter));
             }
         }
-
-        public delegate void LoadDelegate(string s);
-        public LoadDelegate LoadAsyncDelegate { get; private set; }
-        public LoadDelegate FilterAsyncDelegate { get; private set; }
-        public IAsyncResult LoadAsyncComplete { get; set; }
 
         public List<Machine> MachineList { get; set; }
         public List<string> MachineGroupList { get; set; }
@@ -70,54 +64,9 @@ namespace SFW.Schedule.Closed
         {
             MachineList = Machine.GetMachineList(App.AppSqlCon, true);
             MachineGroupList = MachineList.Where(o => !string.IsNullOrEmpty(o.MachineGroup)).Select(o => o.MachineGroup).Distinct().ToList();
-            LoadAsyncDelegate = new LoadDelegate(ViewLoading);
-            FilterAsyncDelegate = new LoadDelegate(FilterView);
             var _filter = App.DefualtWorkCenter?.Count > 0 ? App.DefualtWorkCenter.FirstOrDefault(o => o.SiteNumber == App.SiteNumber).MachineNumber : null;
-            LoadAsyncComplete = LoadAsyncDelegate.BeginInvoke(_filter, new AsyncCallback(ViewLoaded), null);
+            ClosedScheduleView = CollectionViewSource.GetDefaultView(Machine.GetClosedScheduleData(App.AppSqlCon));
+            ClosedScheduleView.GroupDescriptions.Add(new PropertyGroupDescription("MachineNumber", new WorkCenterNameConverter(MachineList)));
         }
-
-        /// <summary>
-        /// Async filter the schedule view
-        /// </summary>
-        /// <param name="filter">Filter string to use on the default view</param>
-        public void FilterSchedule(string filter)
-        {
-            LoadAsyncComplete = FilterAsyncDelegate.BeginInvoke(filter, new AsyncCallback(ViewLoaded), null);
-        }
-
-        #region Loading Async Delegation Implementation
-
-        public void FilterView(string filter)
-        {
-            IsLoading = true;
-            if (string.IsNullOrEmpty(filter))
-            {
-                ViewLoading(string.Empty);
-            }
-            else
-            {
-                ((DataView)ScheduleView.SourceCollection).RowFilter = $"MachineNumber = '{filter}'";
-                OnPropertyChanged(nameof(ScheduleView));
-            }
-        }
-
-        public void ViewLoading(string machineNbr)
-        {
-            IsLoading = true;
-            ScheduleView = CollectionViewSource.GetDefaultView(Machine.GetClosedScheduleData(App.AppSqlCon));
-            ScheduleView.GroupDescriptions.Add(new PropertyGroupDescription("MachineNumber", new WorkCenterNameConverter(MachineList)));
-            if (!string.IsNullOrEmpty(machineNbr))
-            {
-                MainWindowViewModel.SelectedMachine = MachineList.FirstOrDefault(o => o.MachineNumber == machineNbr);
-                ((DataView)ScheduleView.SourceCollection).RowFilter = $"MachineName = '{MainWindowViewModel.SelectedMachine.MachineName}'";
-            }
-        }
-        public void ViewLoaded(IAsyncResult r)
-        {
-            IsLoading = false;
-            ScheduleView.Refresh();
-        }
-
-        #endregion
     }
 }
