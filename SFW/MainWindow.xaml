@@ -13,17 +13,20 @@
         <Grid.Resources>
             <cmd:PartInformation x:Key="PartInfoICommand"/>
             <cmd:PartDetail x:Key="PartDetailICommand" />
+            <cmd:PartSpec x:Key="PartSpecICommand"/>
             <cmd:ViewLoad x:Key="ViewLoadICommand"/>
             <cmd:SafeShutdown x:Key="ExitICommand"/>
             <cmd:ShowLogInWindow x:Key="LogInICommand" />
             <cmd:DevTesting x:Key="TestICommand" />
             <cvtr:SiteNumberToBool x:Key="SiteToBoolConverter"/>
             <cvtr:BoolToVisibility x:Key="BoolToVisConverter" />
+            <cvtr:SiteToVisibility x:Key="SiteToVisConverter"/>
         </Grid.Resources>
 
         <Grid.RowDefinitions>
             <RowDefinition Height="25"/>
             <RowDefinition Height="*"/>
+            <RowDefinition Height="25"/>
         </Grid.RowDefinitions>
 
         <Grid.InputBindings>
@@ -39,6 +42,8 @@
                         Command="{StaticResource PartInfoICommand}" />
             <KeyBinding Gesture="F10"
                         Command="{StaticResource PartDetailICommand}" />
+            <KeyBinding Gesture="F11"
+                        Command="{StaticResource PartSpecICommand}" />
         </Grid.InputBindings>
 
         <!--#region Main Menu Usercontrol for all command-->
@@ -122,9 +127,13 @@
                 <MenuItem Header="Part Tracking"
                           Command="{StaticResource PartDetailICommand}"
                           InputGestureText="F10" />
+                <MenuItem Header="Part Specifications"
+                          Command="{StaticResource PartSpecICommand}"
+                          Visibility="{Binding CurrentSiteNbr, Converter={StaticResource SiteToVisConverter}}"
+                          InputGestureText="F11" />
                 <MenuItem Header="Wip History"
                           IsEnabled="False"
-                          InputGestureText="F11" />
+                          InputGestureText="F12" />
 
             </MenuItem>
             <MenuItem Header="Help">
@@ -184,6 +193,28 @@
 
         <Grid x:Name="WorkSpaceDock"
                    Grid.Row="1"/>
+
+        <!--#endregion-->
+        
+        <!--#region Footer-->
+
+        <Grid Grid.Row="2"
+              Background="LightGray">
+            <TextBlock Text="{Binding Version}"
+                       FontSize="16"
+                       FontWeight="Bold"
+                       HorizontalAlignment="Right"
+                       VerticalAlignment="Center"
+                       Margin="0,0,30,0"/>
+
+            <TextBlock Text="!! Update Available !!"
+                       FontSize="16"
+                       FontWeight="Bold"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center"
+                       Foreground="Crimson"
+                       Visibility="{Binding CanUpdate, Converter={StaticResource BoolToVisConverter}}"/>
+        </Grid>
 
         <!--#endregion-->
         

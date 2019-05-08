@@ -13,8 +13,7 @@ namespace SFW.Commands
         /// <param name="parameter"></param>
         public void Execute(object parameter)
         {
-            var test = "1901-1234";
-            System.Windows.MessageBox.Show($"{test.Substring(test.IndexOf('-') +1)}");
+            ((MainWindowViewModel)App.Current.MainWindow.DataContext).CheckForUpdate();
         }
         public bool CanExecute(object parameter) => true;
     }

@@ -63,6 +63,9 @@ namespace SFW.Controls
             ClosedDock.Children.Insert(1, new ShopRoute.View { DataContext = new ShopRoute.ViewModel() });
             MainDock.Children.Insert(6, ClosedDock);
 
+            //Add the Part Detail View to [7]
+            MainDock.Children.Insert(7, new PartSpec_View());
+
             //Set up and display the intial view
             switch (Environment.UserDomainName)
             {
@@ -100,7 +103,19 @@ namespace SFW.Controls
             }
             MainDock.Children[index].Visibility = Visibility.Visible;
             ClosedView = index == 6;
-            var _tempDock = index == 0 ? CsiDock : WccoDock;
+            var _tempDock = new DockPanel();
+            switch(index)
+            {
+                case 0:
+                    _tempDock = CsiDock;
+                    break;
+                case 1:
+                    _tempDock = WccoDock;
+                    break;
+                case 6:
+                    _tempDock = ClosedDock;
+                    break;
+            }
             if (index <= 1)
             {
                 MainWindowViewModel.MachineList = ((Schedule.ViewModel)((Schedule.View)_tempDock.Children[0]).DataContext).MachineList;
@@ -116,7 +131,15 @@ namespace SFW.Controls
                     MainWindowViewModel.SelectedMachineGroup = ((Schedule.ViewModel)((Schedule.View)_tempDock.Children[0]).DataContext).MachineGroupList[0];
                 }
             }
-            if (dataContext != null)
+            else if (index == 6)
+            {
+                ((Schedule.Closed.View)_tempDock.Children[0]).DataContext = dataContext;
+                if(((ShopRoute.View)_tempDock.Children[1]).DataContext != null)
+                {
+                    ((ShopRoute.ViewModel)((ShopRoute.View)_tempDock.Children[1]).DataContext).ShopOrder = new Model.WorkOrder();
+                }
+            }
+            else if (dataContext != null)
             {
                 ((UserControl)MainDock.Children[index]).DataContext = dataContext;
             }

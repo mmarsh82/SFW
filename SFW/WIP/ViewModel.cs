@@ -106,7 +106,7 @@ namespace SFW.WIP
         {
             //TODO: add in the location and lot validation
             var _machID = WipRecord.CrewList?.Count > 0 ? WorkOrder.GetAssignedMachineID(WipRecord.WipWorkOrder.OrderNumber, WipRecord.WipWorkOrder.Seq, App.AppSqlCon) : "";
-            var _wipProc = M2kClient.M2kCommand.ProductionWip(WipRecord, WipRecord.CrewList?.Count > 0, App.ErpCon, _machID);
+            var _wipProc = M2kClient.M2kCommand.ProductionWip(WipRecord, WipRecord.CrewList?.Count > 0, App.ErpCon, WipRecord.IsLotTracable, _machID);
             if (_wipProc != null && _wipProc.First().Key > 0)
             {
                 WipRecord.WipLot.LotNumber = _wipProc.First().Value;
@@ -143,8 +143,7 @@ namespace SFW.WIP
                 Sku.GetDiamondNumber(WipRecord.WipLot.LotNumber, App.AppSqlCon),
                 _wQty,
                 WipRecord.WipWorkOrder.Uom,
-                Lot.GetAssociatedQIR(WipRecord.WipLot.LotNumber, App.AppSqlCon),
-                CurrentUser.DisplayName);
+                Lot.GetAssociatedQIR(WipRecord.WipLot.LotNumber, App.AppSqlCon));
             switch(parameter.ToString())
             {
                 case "T":
@@ -225,7 +224,6 @@ namespace SFW.WIP
                 WipRecord = null;
                 _wip = null;
                 ((Schedule.ViewModel)Controls.WorkSpaceDock.WccoDock.GetChildOfType<Schedule.View>().DataContext).RefreshSchedule();
-                ((Schedule.ViewModel)Controls.WorkSpaceDock.WccoDock.GetChildOfType<Schedule.View>().DataContext).SelectedWorkOrder = null;
             }
         }
     }

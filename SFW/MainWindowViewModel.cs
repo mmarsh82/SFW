@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.IO;
 using System.Linq;
 using System.Windows.Input;
 using System.Xml.Linq;
@@ -159,6 +160,18 @@ namespace SFW
             }
         }
 
+        public string Version
+        {
+            get { return System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString(); }
+        }
+
+        private bool cUpdate;
+        public bool CanUpdate
+        {
+            get { return cUpdate; }
+            set { cUpdate = value; OnPropertyChanged(nameof(CanUpdate)); }
+        }
+
         private static bool IsChanging;
         public static event EventHandler<PropertyChangedEventArgs> StaticPropertyChanged;
         public event EventHandler CanExecuteChanged;
@@ -174,7 +187,9 @@ namespace SFW
             DefaultMachineList = Machine.GetMachineList(App.AppSqlCon, false);
             DefaultMachineList.Insert(0, new Machine { MachineName = "None" });
             IsChanging = false;
+            CanUpdate = false;
             new WorkSpaceDock();
+            RefreshTimer.Add(CheckForUpdate);
         }
 
         /// <summary>
@@ -191,6 +206,15 @@ namespace SFW
             CurrentSite = App.Site;
             StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(MachineList)));
             StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(MachineGroupList)));
+        }
+
+        /// <summary>
+        /// Checks to see if there are any application updates available
+        /// </summary>
+        public void CheckForUpdate()
+        {
+            var path = "\\\\manage2\\fsw\\ShopFloorWorkbench\\Application Files\\";
+            CanUpdate = Version != Directory.GetDirectories(path).Last().Remove(0, path.Length).Remove(0, 4).Replace('_', '.');
         }
 
         #region Selected Default Machine ICommand

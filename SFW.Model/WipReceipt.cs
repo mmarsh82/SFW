@@ -66,6 +66,11 @@ namespace SFW.Model
         /// </summary>
         public string StartTime { get; set; }
 
+        /// <summary>
+        /// Wip receipt lot tracability, used to tell the ERP to assign or not a lot number during wip transaction
+        /// </summary>
+        public bool IsLotTracable { get; set; }
+
         #endregion
 
         /// <summary>
@@ -93,6 +98,7 @@ namespace SFW.Model
                 CrewList.AddNew();
                 CrewList.ListChanged += CrewList_ListChanged;
             }
+            IsLotTracable = Sku.IsLotTracable(workOrder.SkuNumber, sqlCon);
         }
 
         /// <summary>

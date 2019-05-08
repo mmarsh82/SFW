@@ -209,14 +209,15 @@ namespace SFW.Model
                         if (!string.IsNullOrEmpty(partNbr))
                         {
 
-                            using (SqlDataAdapter adapter = new SqlDataAdapter(@"SELECT 
-                                                                                *
-                                                                            FROM
-                                                                                [dbo].[LotHistory]
-                                                                            WHERE
-                                                                                [PartNbr] = @p1 AND (CAST([TranDateTime] as DATE) > DATEADD(YEAR, -3, GETDATE()))
-                                                                            ORDER BY
-                                                                                [TranDateTime] DESC;", sqlCon))
+                            using (SqlDataAdapter adapter = new SqlDataAdapter($@"USE {sqlCon.Database};
+                                                                                SELECT 
+                                                                                    *
+                                                                                FROM
+                                                                                    [dbo].[LotHistory]
+                                                                                WHERE
+                                                                                    [PartNbr] = @p1 AND (CAST([TranDateTime] as DATE) > DATEADD(YEAR, -3, GETDATE()))
+                                                                                ORDER BY
+                                                                                    [TranDateTime] DESC;", sqlCon))
                             {
                                 adapter.SelectCommand.Parameters.AddWithValue("p1", partNbr);
                                 adapter.Fill(dt);

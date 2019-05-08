@@ -411,7 +411,8 @@ namespace SFW.Model
         /// <returns></returns>
         public static DataTable GetReportData(WorkOrder wo, SqlConnection sqlCon)
         {
-            if (wo != null)
+            //TODO: need to remove the hardcoded value to segregate CSI from WCCO when CSI reports become live
+            if (wo != null && sqlCon.Database != "CSI_MAIN")
             {
                 using (var dt = new DataTable())
                 {
@@ -457,25 +458,28 @@ namespace SFW.Model
                                     {
                                         var fullName = CrewMember.GetCrewMemberFullName(d.Field<string>("Name"));
                                         d.SetField("Name", fullName);
-                                        var nameSplit = fullName.Split(' ');
-                                        using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database};
+                                        if (fullName.Contains(' '))
+                                        {
+                                            var nameSplit = fullName.Split(' ');
+                                            using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database};
                                                                                 SELECT
 	                                                                                [Shift]
                                                                                 FROM
 	                                                                                [dbo].[EMPLOYEE_MASTER-INIT]
                                                                                 WHERE
 	                                                                                [First_Name] = @p1 AND [Last_Name] = @p2;", sqlCon))
-                                        {
-                                            cmd.Parameters.AddWithValue("p1", nameSplit[0]);
-                                            cmd.Parameters.AddWithValue("p2", nameSplit[1]);
-                                            var shift = cmd.ExecuteScalar()?.ToString();
-                                            if (!string.IsNullOrEmpty(shift))
                                             {
-                                                d.SetField("Shift", shift);
-                                            }
-                                            else
-                                            {
-                                                d.SetField("Shift", "N/A");
+                                                cmd.Parameters.AddWithValue("p1", nameSplit[0]);
+                                                cmd.Parameters.AddWithValue("p2", nameSplit[1]);
+                                                var shift = cmd.ExecuteScalar()?.ToString();
+                                                if (!string.IsNullOrEmpty(shift))
+                                                {
+                                                    d.SetField("Shift", shift);
+                                                }
+                                                else
+                                                {
+                                                    d.SetField("Shift", "N/A");
+                                                }
                                             }
                                         }
                                     }
@@ -579,13 +583,13 @@ namespace SFW.Model
                                 return dt;
                             }
                         }
-                        catch (SqlException sqlEx)
+                        catch (SqlException)
                         {
-                            throw sqlEx;
+                            return null;
                         }
-                        catch (Exception ex)
+                        catch (Exception)
                         {
-                            throw new Exception(ex.Message);
+                            return null;
                         }
                     }
                     else

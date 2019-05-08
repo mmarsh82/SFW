@@ -20,7 +20,6 @@ namespace SFW.Helpers
         public static int Quantity { get; set; }
         public static string Uom { get; set; }
         public static int QirNbr { get; set; }
-        public static string Name { get; set; }
 
         #endregion
 
@@ -36,8 +35,7 @@ namespace SFW.Helpers
         /// <param name="qty"></param>
         /// <param name="uom"></param>
         /// <param name="qirNbr"></param>
-        /// <param name="name"></param>
-        public static void Create(string filePath, string password, string partNbr, string lotNbr, string desc, string dmdNbr, int qty, string uom, int qirNbr, string name)
+        public static void Create(string filePath, string password, string partNbr, string lotNbr, string desc, string dmdNbr, int qty, string uom, int qirNbr)
         {
             FilePath = filePath;
             Password = password;
@@ -48,7 +46,6 @@ namespace SFW.Helpers
             Quantity = qty;
             Uom = uom;
             QirNbr = qirNbr;
-            Name = name;
         }
 
         /// <summary>
@@ -87,7 +84,6 @@ namespace SFW.Helpers
                             pdfField.SetField("QIR Bar", $"*{QirNbr}*");
                             pdfField.SetField("QIR Bar Sm", $"*{QirNbr}*");
                         }
-                        pdfField.SetField("Operator", Name);
                         stamp.FormFlattening = false;
                     }
                 }
@@ -140,7 +136,6 @@ namespace SFW.Helpers
                         {
                             pdfField.SetField("QIR", QirNbr.ToString());
                         }
-                        pdfField.SetField("Operator", Name);
                         stamp.FormFlattening = false;
                     }
                 }

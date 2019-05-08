@@ -1,5 +1,7 @@
 ﻿using SFW.Commands;
+using SFW.Helpers;
 using SFW.Model;
+using System;
 using System.Linq;
 using System.Windows.Input;
 
@@ -18,18 +20,32 @@ namespace SFW.Queries
             set
             {
                 lotType = value;
+                Part = null;
+                ValidSku = false;
+                SkuInput = string.Empty;
                 OnPropertyChanged(nameof(LotType));
             }
         }
 
-        private bool validLot;
-        public bool ValidLot
+        private bool validSku;
+        public bool ValidSku
         {
-            get { return validLot; }
+            get { return validSku; }
             set
             {
-                validLot = value;
-                OnPropertyChanged(nameof(validLot));
+                validSku = value;
+                OnPropertyChanged(nameof(ValidSku));
+            }
+        }
+
+        private bool nonLot;
+        public bool NonLot
+        {
+            get { return nonLot; }
+            set
+            {
+                nonLot = value;
+                OnPropertyChanged(nameof(NonLot));
             }
         }
 
@@ -45,48 +61,59 @@ namespace SFW.Queries
         }
 
         private char prevLot;
-        private string lotNbr;
-        public string LotNumber
+        private string skuInput;
+        public string SkuInput
         {
-            get { return lotNbr; }
+            get { return skuInput; }
             set
             {
-                if (value.Length > 5)
+                if (LotType)
                 {
-                    Part = new Sku(value, false, App.AppSqlCon);
-                    ValidLot = !string.IsNullOrEmpty(Part.SkuNumber);
+                    if (!string.IsNullOrEmpty(value) && value.Length > 4 && LotType)
+                    {
+                        Part = new Sku(value, true, App.AppSqlCon);
+                        ValidSku = !string.IsNullOrEmpty(Part.SkuNumber);
+                    }
                 }
-                if (value.Length == 11)
+                else
                 {
-                    value = lotNbr = $"{prevLot}{value.Last()}";
+                    if (value.Length > 5)
+                    {
+                        Part = new Sku(value, App.AppSqlCon);
+                        ValidSku = !string.IsNullOrEmpty(Part.SkuNumber);
+                    }
+                    if (value.Length == 11)
+                    {
+                        value = skuInput = $"{prevLot}{value.Last()}";
+                    }
+                    if (!string.IsNullOrEmpty(value))
+                    {
+                        prevLot = value.Last();
+                    }
                 }
-                if (!string.IsNullOrEmpty(value))
-                {
-                    prevLot = value.Last();
-                }
-                lotNbr = value.ToUpper();
-                OnPropertyChanged(nameof(lotNbr));
+                skuInput = value.ToUpper();
+                OnPropertyChanged(nameof(SkuInput));
                 OnPropertyChanged(nameof(Part));
+                OnPropertyChanged(nameof(SkuShow));
             }
         }
-
-        private string partNbr;
-        public string PartNumber
+        public bool SkuShow
         {
-            get { return partNbr; }
+            get { return !LotType && ValidSku; }
+        }
+
+        private int? qtyInput;
+        public int? QuantityInput
+        {
+            get { return qtyInput; }
             set
             {
-                if (!string.IsNullOrEmpty(value) && value.Length > 4 && LotType)
-                {
-                    Part = new Sku(value, App.AppSqlCon);
-                    ValidLot = !string.IsNullOrEmpty(Part.SkuNumber);
-                }
-                partNbr = value;
-                OnPropertyChanged(nameof(PartNumber));
+                qtyInput = value;
+                OnPropertyChanged(nameof(QuantityInput));
             }
         }
 
-        RelayCommand _print;
+        RelayCommand _mPrint;
         RelayCommand _move;
 
         #endregion
@@ -99,38 +126,33 @@ namespace SFW.Queries
 
         }
 
-        #region Print ICommand
+        #region Material Card Print ICommand
 
-        /// <summary>
-        /// Print Travel Command
-        /// </summary>
-        public ICommand PrintICommand
+        public ICommand MPrintICommand
         {
             get
             {
-                if (_print == null)
+                if (_mPrint == null)
                 {
-                    _print = new RelayCommand(PrintExecute, PrintCanExecute);
+                    _mPrint = new RelayCommand(MPrintExecute, MPrintCanExecute);
                 }
-                return _print;
+                return _mPrint;
             }
         }
 
-        /// <summary>
-        /// Print Travel Command Execution
-        /// </summary>
-        /// <param name="parameter">Travel Card Type as String</param>
-        private void PrintExecute(object parameter)
+        private void MPrintExecute(object parameter)
         {
-            /*TravelCard.Create("", "technology#1",
-                WipRecord.WipWorkOrder.SkuNumber,
-                WipRecord.WipLot.LotNumber,
-                WipRecord.WipWorkOrder.SkuDescription,
-                Sku.GetDiamondNumber(WipRecord.WipLot.LotNumber, App.AppSqlCon),
-                _wQty,
-                WipRecord.WipWorkOrder.Uom,
-                Lot.GetAssociatedQIR(WipRecord.WipLot.LotNumber, App.AppSqlCon),
-                CurrentUser.DisplayName);
+            var _lot = LotType ? SkuInput : "";
+            var _part = LotType ? Part.SkuNumber : SkuInput;
+            TravelCard.Create("", "technology#1",
+                _part,
+                _lot,
+                Part.SkuDescription,
+                "",//Sku.GetDiamondNumber(WipRecord.WipLot.LotNumber, App.AppSqlCon),
+                Convert.ToInt32(QuantityInput),
+                Part.Uom,
+                0//Lot.GetAssociatedQIR(WipRecord.WipLot.LotNumber, App.AppSqlCon)
+                );
             switch (parameter.ToString())
             {
                 case "T":
@@ -140,9 +162,9 @@ namespace SFW.Queries
                     TravelCard.DisplayReference();
                     break;
 
-            }*/
+            }
         }
-        private bool PrintCanExecute(object parameter) => true;
+        private bool MPrintCanExecute(object parameter) => QuantityInput > 0;
 
         #endregion
 

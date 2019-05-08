@@ -62,20 +62,24 @@
                        TextDecorations="Underline"
                        FontSize="18"
                        FontWeight="Bold"
-                       VerticalAlignment="Center"
-                       Visibility="{Binding LotType, Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}" />
+                       VerticalAlignment="Center" 
+                       Visibility="{Binding LotType, Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}"/>
 
-            <TextBox Name="LotTextBox"
-                     Text="{Binding LotNumber, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                     InputScope="Number"
+            <TextBlock Text="Part Number:"
+                       TextDecorations="Underline"
+                       FontSize="18"
+                       FontWeight="Bold"
+                       VerticalAlignment="Center"
+                       Visibility="{Binding LotType, Converter={StaticResource BoolToVisConverter}}"/>
+
+            <TextBox Name="InputTextBox"
+                     Text="{Binding SkuInput, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                      FontSize="16"
                      Width="150"
                      MaxLength="11"
                      Margin="5"
                      TabIndex="0"
                      AcceptsReturn="False"
-                     ToolTip="Scan or Enter the lot number."
-                     Visibility="{Binding LotType, Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}"
                      Style="{DynamicResource RequiredTextBox}" />
 
             <TextBlock Text="Quantity:"
@@ -84,7 +88,7 @@
                        TextDecorations="Underline"
                        VerticalAlignment="Center"
                        Margin="20,0,0,0"
-                       Visibility="{Binding ValidLot, Converter={StaticResource BoolToVisConverter}}" />
+                       Visibility="{Binding ValidSku, Converter={StaticResource BoolToVisConverter}}" />
 
             <TextBox Text="{Binding Quantity, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                      FontSize="16"
@@ -95,7 +99,7 @@
                      TabIndex="1"
                      AcceptsReturn="False"
                      ToolTip="Use for UNPLANNED.MOVE or Printing the travel card"
-                     Visibility="{Binding ValidLot, Converter={StaticResource BoolToVisConverter}}"
+                     Visibility="{Binding ValidSku, Converter={StaticResource BoolToVisConverter}}"
                      Style="{DynamicResource OptionalTextBox}" />
 
             <TextBlock Text="To Location:"
@@ -142,44 +146,31 @@
         <!--#endregion-->
         
         <!--#region Part Details Overview-->
-        
+
         <StackPanel Grid.Row="2"
                     Grid.Column="0"
                     Orientation="Horizontal"
                     Margin="20,0,0,0">
-            
+
             <TextBlock Text="Part Number:"
                        FontWeight="Bold"
                        FontSize="18"
                        TextDecorations="Underline"
-                       VerticalAlignment="Center">
-                <TextBlock.Visibility>
-                    <MultiBinding Converter="{StaticResource BoolToVisConverter}">
-                        <Binding Path="LotType" />
-                        <Binding Path="ValidLot" />
-                    </MultiBinding>
-                </TextBlock.Visibility>
-            </TextBlock>
+                       VerticalAlignment="Center"
+                       Visibility="{Binding SkuShow, Converter={StaticResource BoolToVisConverter}}"/>
 
-            <TextBox Text="{Binding PartNbr, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                     FontSize="18"
-                     Margin="5"
-                     Width="150"
-                     IsEnabled="{Binding LotType}"
-                     Style="{DynamicResource RequiredTextBox}">
-                <TextBox.Visibility>
-                    <MultiBinding Converter="{StaticResource BoolToVisConverter}">
-                        <Binding Path="LotType" />
-                        <Binding Path="ValidLot" />
-                    </MultiBinding>
-                </TextBox.Visibility>
-            </TextBox>
+            <TextBlock Text="{Binding Part.SkuNumber, Mode=OneWay}"
+                       FontSize="18"
+                       FontWeight="Bold"
+                       Margin="5,0,0,0"
+                       VerticalAlignment="Center"
+                       Visibility="{Binding SkuShow, Converter={StaticResource BoolToVisConverter}}"/>
 
             <Button CommandParameter="{Binding Part.SkuNumber}"
                     Command="{StaticResource PartSearchICommand}"
                     Margin="5"
                     IsTabStop="False"
-                    Visibility="{Binding ValidLot, Converter={StaticResource BoolToVisConverter}}"
+                    Visibility="{Binding ValidSku, Converter={StaticResource BoolToVisConverter}}"
                     Style="{DynamicResource DefaultButton}">
                 <Image Source="/SFW;component/Icons/PartSearch.ico" />
             </Button>
@@ -190,14 +181,14 @@
                        TextDecorations="Underline"
                        VerticalAlignment="Center"
                        Margin="20,0,0,0"
-                       Visibility="{Binding ValidLot, Converter={StaticResource BoolToVisConverter}}" />
+                       Visibility="{Binding ValidSku, Converter={StaticResource BoolToVisConverter}}" />
 
             <TextBlock Text="{Binding Part.SkuDescription, Mode=OneWay}"
                        FontSize="18"
                        FontWeight="Bold"
                        Margin="5,0,0,0"
                        VerticalAlignment="Center"
-                       Visibility="{Binding ValidLot, Converter={StaticResource BoolToVisConverter}}" />
+                       Visibility="{Binding ValidSku, Converter={StaticResource BoolToVisConverter}}" />
         </StackPanel>
         
         <!--#endregion-->
@@ -209,7 +200,7 @@
                     Orientation="Horizontal"
                     IsEnabled="False"
                     Margin="20,0,0,0"
-                    Visibility="{Binding ValidLot, Converter={StaticResource BoolToVisConverter}}">
+                    Visibility="{Binding ValidSku, Converter={StaticResource BoolToVisConverter}}">
 
             <TextBlock Text="Diamond Number:"
                        TextDecorations="Underline"
@@ -247,7 +238,7 @@
                     Orientation="Horizontal"
                     IsEnabled="False"
                     Margin="20,0,0,0"
-                    Visibility="{Binding ValidLot, Converter={StaticResource BoolToVisConverter}}">
+                    Visibility="{Binding ValidSku, Converter={StaticResource BoolToVisConverter}}">
 
             <TextBlock Text="Origin Work Order:"
                        FontWeight="Bold"
@@ -302,49 +293,20 @@
         <StackPanel Grid.Row="5"
                     Grid.Column="0"
                     Orientation="Horizontal"
-                    Visibility="{Binding Skew.OnHand.Count, Converter={StaticResource IntToVisConverter}, FallbackValue=Hidden}"
-                    FocusManager.IsFocusScope="False">
+                    Visibility="{Binding ValidSku, Converter={StaticResource BoolToVisConverter}}">
             
             <TextBlock Text="Current On Hand:"
                        FontWeight="Bold"
                        TextDecorations="Underline"
                        VerticalAlignment="Center"
+                       Margin="20,0,0,0"
                        FontSize="18" />
 
-            <ItemsControl ItemsSource="{Binding Path=Skew.OnHand, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                          Margin="15,0,0,0"
-                          FontSize="18"
-                          FontWeight="Bold"
-                          Cursor="Hand"
-                          BorderThickness="0"
-                          Background="Transparent"
-                          Foreground="Black"
-                          Focusable="False">
-
-                <ItemsControl.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <VirtualizingStackPanel IsItemsHost="True"
-                                                Orientation="Horizontal" />
-                    </ItemsPanelTemplate>
-                </ItemsControl.ItemsPanel>
-
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="{Binding Value}" />
-                            <TextBlock Text="in"
-                                       Margin="10,0,10,0" />
-                            <TextBlock Text="{Binding Key}" />
-                            <TextBlock Text="|"
-                                       Margin="10,0,10,0"
-                                       Foreground="White" />
-                        </StackPanel>
-
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-
-            </ItemsControl>
+            <TextBlock Text="{Binding Part.TotalOnHand}"
+                       FontWeight="Bold"
+                       FontSize="18"
+                       VerticalAlignment="Center"
+                       Margin="10,0,0,0" />
 
         </StackPanel>
         
@@ -452,9 +414,9 @@
                     Grid.Column="0"
                     Orientation="Horizontal"
                     Margin="20,0,0,0"
-                    Visibility="{Binding ValidLot, Converter={StaticResource BoolToVisConverter}}">
+                    Visibility="{Binding ValidSku, Converter={StaticResource BoolToVisConverter}}">
 
-            <Button Command="{Binding PrintICommand}"
+            <Button Command="{Binding MPrintICommand}"
                     CommandParameter="T"
                     Content="Create Travel Card"
                     Margin="5"
@@ -464,7 +426,7 @@
                     FontSize="18"
                     Style="{DynamicResource DefaultButton}" />
 
-            <Button Command="{Binding PrintICommand}"
+            <Button Command="{Binding MPrintICommand}"
                     CommandParameter="R"
                     Content="Create Reference Card"
                     Margin="5"

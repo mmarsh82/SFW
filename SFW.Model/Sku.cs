@@ -141,11 +141,20 @@ namespace SFW.Model
         /// <param name="sqlCon">Sql Connection to use</param>
         public Sku(string lotNbr, SqlConnection sqlCon)
         {
+            var _valid = false;
             if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
             {
                 try
                 {
                     using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database};
+                                                           SELECT [Part_Nbr] FROM [dbo].[LOT-INIT] WHERE [Lot_Number] LIKE CONCAT(@p1,'|P');", sqlCon))
+                    {
+                        cmd.Parameters.AddWithValue("p1", lotNbr);
+                        _valid = !string.IsNullOrEmpty(cmd.ExecuteScalar()?.ToString());
+                    }
+                    if (_valid)
+                    {
+                        using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database};
                                                             SELECT 
 	                                                            a.[Part_Nbr], b.[Description], b.[Um], c.[Locations], c.[Oh_Qtys]
                                                             FROM 
@@ -156,18 +165,19 @@ namespace SFW.Model
 	                                                            [dbo].[LOT-INIT_Lot_Loc_Qtys] c ON c.[ID1] = a.[Lot_Number]
                                                             WHERE 
 	                                                            a.[Lot_Number] LIKE CONCAT(@p1,'|P');", sqlCon))
-                    {
-                        cmd.Parameters.AddWithValue("p1", lotNbr);
-                        using (SqlDataReader reader = cmd.ExecuteReader())
                         {
-                            if (reader.HasRows)
+                            cmd.Parameters.AddWithValue("p1", lotNbr);
+                            using (SqlDataReader reader = cmd.ExecuteReader())
                             {
-                                while (reader.Read())
+                                if (reader.HasRows)
                                 {
-                                    SkuNumber = reader.SafeGetString("Part_Nbr");
-                                    SkuDescription = reader.SafeGetString("Description");
-                                    Uom = reader.SafeGetString("Um");
-                                    TotalOnHand = reader.SafeGetInt32("Oh_Qtys");
+                                    while (reader.Read())
+                                    {
+                                        SkuNumber = reader.SafeGetString("Part_Nbr");
+                                        SkuDescription = reader.SafeGetString("Description");
+                                        Uom = reader.SafeGetString("Um");
+                                        TotalOnHand = reader.SafeGetInt32("Oh_Qtys");
+                                    }
                                 }
                             }
                         }
@@ -381,6 +391,39 @@ namespace SFW.Model
                         }
                     }
                     return _inst;
+                }
+                catch (SqlException sqlEx)
+                {
+                    throw sqlEx;
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception(ex.Message);
+                }
+            }
+            else
+            {
+                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
+            }
+        }
+
+        /// <summary>
+        /// Check to see if a Sku number is lot tracable
+        /// </summary>
+        /// <param name="partNbr">Sku Number</param>
+        /// <param name="sqlCon">Sql Connection to use</param>
+        /// <returns>lot tracability as bool</returns>
+        public static bool IsLotTracable(string partNbr, SqlConnection sqlCon)
+        {
+            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
+            {
+                try
+                {
+                    using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database}; SELECT [Lot_Trace] FROM [dbo].[IM-INIT] WHERE [Part_Number] = @p1;", sqlCon))
+                    {
+                        cmd.Parameters.AddWithValue("p1", partNbr);
+                        return cmd.ExecuteScalar()?.ToString() == "T";
+                    }
                 }
                 catch (SqlException sqlEx)
                 {

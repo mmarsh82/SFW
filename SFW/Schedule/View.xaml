@@ -46,22 +46,20 @@
                           Command="{Binding DataContext.PriChangeICommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type DataGrid}}}"
                           CommandParameter="D" />
             </MenuItem>
-            <MenuItem Header="Order"
-                      FontSize="18"
-                      Visibility="{Binding Path=(local:CurrentUser.CanSchedule), Converter={StaticResource BoolToVisConverter}}">
-                <StackPanel Orientation="Horizontal">
-                    <TextBox Width="85"
-                             FontSize="14"
-                             Margin="3"
-                             Text="{Binding OrderPriority, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                             Style="{DynamicResource RequiredTextBox}"/>
-                    <Button Width="85"
-                            FontSize="12"
-                            Margin="3"
-                            Content="Update"
-                            Style="{DynamicResource DefaultButton}"/>
-                </StackPanel>
-            </MenuItem>
+            <StackPanel Orientation="Horizontal">
+                <TextBox Width="85"
+                         FontSize="18"
+                         Margin="3"
+                         Text="{Binding PriTime, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                         Style="{DynamicResource RequiredTextBox}"/>
+                <Button Width="85"
+                        FontSize="16"
+                        Margin="3"
+                        Content="Update"
+                        Command="{Binding DataContext.OrderChangeICommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type DataGrid}}}"
+                        CommandParameter="{Binding}"
+                        Style="{DynamicResource DefaultButton}"/>
+            </StackPanel>
         </ContextMenu>
         
     </UserControl.Resources>
@@ -86,9 +84,6 @@
                   IsReadOnly="True"
                   SelectionMode="Single"
                   IsSynchronizedWithCurrentItem="True"
-                  EnableRowVirtualization="True"
-                  VirtualizingStackPanel.VirtualizationMode ="Recycling"
-                  VirtualizingStackPanel.IsVirtualizing="True"
                   VirtualizingPanel.IsVirtualizingWhenGrouping="True"
                   Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}">
 

@@ -44,18 +44,6 @@ namespace SFW.Schedule
                     }
                 }
                 OnPropertyChanged(nameof(SelectedWorkOrder));
-                //ScheduleView.MoveCurrentTo(SelectedWorkOrder);
-            }
-        }
-
-        private string _orderPri;
-        public string OrderPriority
-        {
-            get { return _orderPri; }
-            set
-            {
-                _orderPri = value;
-                OnPropertyChanged(nameof(OrderPriority));
             }
         }
 
@@ -77,6 +65,7 @@ namespace SFW.Schedule
         public string VMDataBase { get; set; }
 
         private RelayCommand _priChange;
+        private RelayCommand _orderPri;
 
         #endregion
 
@@ -171,6 +160,7 @@ namespace SFW.Schedule
                         App.DatabaseChange(VMDataBase);
                     }
                     ScheduleView = CollectionViewSource.GetDefaultView(Machine.GetScheduleData(App.AppSqlCon));
+                    OnPropertyChanged(nameof(ScheduleView));
                     ScheduleView.GroupDescriptions.Add(new PropertyGroupDescription("MachineNumber", new WorkCenterNameConverter(MachineList)));
                     if (MainWindowViewModel.SelectedMachine.MachineName != "All" && string.IsNullOrEmpty(_db))
                     {
@@ -182,7 +172,9 @@ namespace SFW.Schedule
                     }
                     if (_oldItem != null && ((DataView)ScheduleView.SourceCollection).Table.AsEnumerable().Any(r => r.Field<string>("WO_Number") == ((DataRowView)_oldItem).Row.Field<string>("WO_Number")))
                     {
-                        ScheduleView.MoveCurrentToPosition(ScheduleView.IndexOf(_oldItem));
+                        var schedList = ((DataView)ScheduleView.SourceCollection).Table.AsEnumerable().ToList();
+                        var listIndex = schedList.FindIndex(r => r.Field<string>("WO_Number") == ((DataRowView)_oldItem).Row.Field<string>("WO_Number"));
+                        ScheduleView.MoveCurrentToPosition(listIndex);
                     }
                     else
                     {
@@ -193,7 +185,7 @@ namespace SFW.Schedule
                         App.DatabaseChange(_db);
                     }
                     RefreshTimer.IsRefreshing = IsLoading = false;
-                    OnPropertyChanged(nameof(ScheduleView));
+                    ScheduleView.Refresh();
                 }
             }
             catch (Exception)
@@ -216,10 +208,10 @@ namespace SFW.Schedule
 
         private void PriChangeExecute(object parameter)
         {
-            var _oldPri = SelectedWorkOrder.Row.ItemArray[8].ToString();
+            var _oldPri = SelectedWorkOrder?.Row?.ItemArray[8].ToString();
             if (!string.IsNullOrEmpty(parameter?.ToString()))
             {
-                var _woNumber = SelectedWorkOrder.Row.ItemArray[0].ToString().Split('*')[0];
+                var _woNumber = SelectedWorkOrder?.Row?.ItemArray[0].ToString().Split('*')[0];
                 var _changeRequest = M2kCommand.EditRecord("WP", _woNumber, 40, parameter.ToString(), App.ErpCon);
                 if (!string.IsNullOrEmpty(_changeRequest))
                 {
@@ -246,34 +238,31 @@ namespace SFW.Schedule
         {
             get
             {
-                if (_priChange == null)
+                if (_orderPri == null)
                 {
-                    _priChange = new RelayCommand(OrderChangeExecute, OrderChangeCanExecute);
+                    _orderPri = new RelayCommand(OrderChangeExecute, OrderChangeCanExecute);
                 }
-                return _priChange;
+                return _orderPri;
             }
         }
 
         private void OrderChangeExecute(object parameter)
         {
-            var _oldPri = SelectedWorkOrder.Row.ItemArray[8].ToString();
-            if (!string.IsNullOrEmpty(parameter?.ToString()))
+            var _oldPri = ((DataRowView)parameter).Row.ItemArray[15].ToString();
+            var _woNumber = ((DataRowView)parameter).Row.ItemArray[0].ToString().Split('*')[0];
+            var _changeRequest = M2kCommand.EditRecord("WP", _woNumber, 195, parameter.ToString(), App.ErpCon);
+            if (!string.IsNullOrEmpty(_changeRequest))
             {
-                var _woNumber = SelectedWorkOrder.Row.ItemArray[0].ToString().Split('*')[0];
-                var _changeRequest = M2kCommand.EditRecord("WP", _woNumber, 40, parameter.ToString(), App.ErpCon);
-                if (!string.IsNullOrEmpty(_changeRequest))
-                {
-                    MessageBox.Show(_changeRequest, "ERP Record Error");
-                    SelectedWorkOrder.BeginEdit();
-                    SelectedWorkOrder["WO_Priority"] = _oldPri;
-                    SelectedWorkOrder.EndEdit();
-                }
-                else
-                {
-                    SelectedWorkOrder.BeginEdit();
-                    SelectedWorkOrder["WO_Priority"] = parameter.ToString();
-                    SelectedWorkOrder.EndEdit();
-                }
+                MessageBox.Show(_changeRequest, "ERP Record Error");
+                SelectedWorkOrder.BeginEdit();
+                SelectedWorkOrder["PriTime"] = _oldPri;
+                SelectedWorkOrder.EndEdit();
+            }
+            else
+            {
+                SelectedWorkOrder.BeginEdit();
+                SelectedWorkOrder["PriTime"] = ((DataRowView)parameter).Row.ItemArray[15].ToString();
+                SelectedWorkOrder.EndEdit();
             }
         }
         private bool OrderChangeCanExecute(object parameter) => true;

@@ -121,7 +121,7 @@ namespace SFW.Model
 	                                                                            c.[Qty_To_Start] as 'WO_StartQty',
 	                                                                            c.[So_Reference] as 'WO_SalesRef',
                                                                                 c.[Cust_Nbr],
-                                                                                ISNULL(c.[Time_Wanted], '9999') as 'PriTime',
+                                                                                ISNULL(c.[Time_Wanted], '00:00:00') as 'PriTime',
                                                                                 d.[Part_Number]as 'SkuNumber',
 	                                                                            d.[Description] as 'SkuDesc',
 	                                                                            d.[Um] as 'SkuUom', d.[Drawing_Nbrs] as 'SkuMasterPrint',

@@ -30,8 +30,8 @@
     <PublisherName>Michael Marsh</PublisherName>
     <SuiteName>WCCO Belting Inc.</SuiteName>
     <AutorunEnabled>true</AutorunEnabled>
-    <ApplicationRevision>850</ApplicationRevision>
-    <ApplicationVersion>1.0.84.850</ApplicationVersion>
+    <ApplicationRevision>900</ApplicationRevision>
+    <ApplicationVersion>1.0.89.900</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <CreateDesktopShortcut>true</CreateDesktopShortcut>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -115,6 +115,7 @@
     <Compile Include="Commands\DevTesting.cs" />
     <Compile Include="Commands\M2kWipReceipt.cs" />
     <Compile Include="Commands\PartDetail.cs" />
+    <Compile Include="Commands\PartSpec.cs" />
     <Compile Include="Commands\SetUpInformation.cs" />
     <Compile Include="Commands\ShowLogInWindow.cs" />
     <Compile Include="Commands\WipHistory.cs" />
@@ -123,6 +124,7 @@
     <Compile Include="Converters\EnumToBool.cs" />
     <Compile Include="Converters\IntToVisibility.cs" />
     <Compile Include="Converters\SiteNumberToBool.cs" />
+    <Compile Include="Converters\SiteToVisibility.cs" />
     <Compile Include="Converters\StringConcat.cs" />
     <Compile Include="Converters\WoPriorityToBool.cs" />
     <Compile Include="CurrentUser.cs" />
@@ -131,6 +133,10 @@
       <DependentUpon>PartDetail_View.xaml</DependentUpon>
     </Compile>
     <Compile Include="Queries\PartDetail_ViewModel.cs" />
+    <Compile Include="Queries\PartSpec_View.xaml.cs">
+      <DependentUpon>PartSpec_View.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Queries\PartSpec_ViewModel.cs" />
     <Compile Include="Queries\WipHist_View.xaml.cs">
       <DependentUpon>WipHist_View.xaml</DependentUpon>
     </Compile>
@@ -209,6 +215,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Queries\PartInfo_View.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Queries\PartSpec_View.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

@@ -11,7 +11,7 @@ namespace SFW.Queries
         {
             InitializeComponent();
             DataContext = new PartDetail_ViewModel();
-            Loaded += delegate { LotTextBox.Focus(); };
+            Loaded += delegate { InputTextBox.Focus(); };
         }
     }
 }

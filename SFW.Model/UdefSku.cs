@@ -22,8 +22,90 @@ namespace SFW.Model
         public string PackageInstructions { get; set; }
         public List<UdefSkuPass> PassInformation { get; set; }
         public UdefSkuPass SlitInformation { get; set; }
+        public double Length { get; set; }
+        public double Width { get; set; }
+        public double Volume { get; set; }
+        public double RollDiameter { get; set; }
+        public double RollWeight { get; set; }
+        public double SpecGravity { get; set; }
+        public double Gauge { get; set; }
+
+        //TODO: after the retrieval of the properties for part specifications will need to inherit from Inotify to complete the auto calculations
+        //determin if this needs to be a half or full intergral
 
         #endregion
+
+        /// <summary>
+        /// UdefSku Object Constructor
+        /// </summary>
+        /// <param name="partNbr">Part Number</param>
+        /// <param name="sqlCon">Sql onnection Object to use</param>
+        public UdefSku(string partNbr, SqlConnection sqlCon)
+        {
+            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
+            {
+                try
+                {
+                    var exists = 0;
+                    using (SqlCommand cmd = new SqlCommand(@"SELECT
+                                                                COUNT([ID])
+                                                            FROM
+	                                                            [dbo].[IM-UDEF-SPEC-INIT]
+                                                            WHERE
+	                                                            [ID] LIKE CONCAT(@p1,'*10');", sqlCon))
+                    {
+                        cmd.Parameters.AddWithValue("p1", partNbr);
+                        int.TryParse(cmd.ExecuteScalar()?.ToString(), out exists);
+                    }
+                    if (exists > 0)
+                    {
+                        using (SqlCommand cmd = new SqlCommand(@"SELECT
+	                                                            [Length],
+                                                                [Width],
+                                                                [Volume],
+                                                                [Roll_Diameter],
+                                                                [Total_Roll_Weight],
+                                                                [Spec_Gravity],
+                                                                [Gauge]
+                                                            FROM
+	                                                            [dbo].[IM-UDEF-SPEC-INIT]
+                                                            WHERE
+	                                                            [ID] LIKE CONCAT(@p1,'*10');", sqlCon))
+                        {
+                            cmd.Parameters.AddWithValue("p1", partNbr);
+                            using (SqlDataReader reader = cmd.ExecuteReader())
+                            {
+                                if (reader.HasRows)
+                                {
+                                    while (reader.Read())
+                                    {
+                                        Length = reader.SafeGetDouble("Length");
+                                        Width = reader.SafeGetDouble("Width");
+                                        Volume = reader.SafeGetDouble("Volume");
+                                        RollDiameter = reader.SafeGetDouble("Roll_Diameter");
+                                        RollWeight = reader.SafeGetDouble("Total_Roll_Weight");
+                                        SpecGravity = reader.SafeGetDouble("Spec_Gravtity");
+                                        Gauge = reader.SafeGetDouble("Gauge");
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                catch (SqlException sqlEx)
+                {
+                    throw sqlEx;
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception(ex.Message);
+                }
+            }
+            else
+            {
+                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
+            }
+        }
 
         /// <summary>
         /// UdefSku Object Constructor

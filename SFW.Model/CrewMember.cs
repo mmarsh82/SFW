@@ -443,7 +443,7 @@ namespace SFW.Model
             {
                 using (UserPrincipal uPrincipal = UserPrincipal.FindByIdentity(pContext, domainName))
                 {
-                    return $"{uPrincipal.GivenName} {uPrincipal.Surname}";
+                    return uPrincipal != null ? $"{uPrincipal.GivenName} {uPrincipal.Surname}" : domainName;
                 }
             }
         }

@@ -50,7 +50,10 @@ namespace M2kClient
                     }
                     catch (Exception ex)
                     {
-                        UniObjects.CloseSession(uSession);
+                        if (uSession != null)
+                        {
+                            UniObjects.CloseSession(uSession);
+                        }
                         return ex.Message;
                     }
                 }
@@ -238,13 +241,14 @@ namespace M2kClient
         /// <param name="wipRecord">Wip Record object to be processed</param>
         /// <param name="postLabor">Tells the method if it should also post labor with the wip transaction</param>
         /// <param name="connection">Current M2k Connection to be used for processing the transaction</param>
+        /// /// <param name="isLot">Tells the method if the current wip transaction is for a lot tracable part or non lot tracable</param>
         /// <param name="machID">Optional: Machine ID, passed when labor needs to posted.  It is also required for posting labor</param>
         /// <returns>Suffix for the file that needs to be watched on the ERP server and new lot number if required</returns>
-        public static IReadOnlyDictionary<int, string> ProductionWip(WipReceipt wipRecord, bool postLabor, M2kConnection connection, string machID = "")
+        public static IReadOnlyDictionary<int, string> ProductionWip(WipReceipt wipRecord, bool postLabor, M2kConnection connection, bool isLot, string machID = "")
         {
             var _subResult = new Dictionary<int, string>();
-            var suffix = 0;
-            if (string.IsNullOrEmpty(wipRecord.WipLot.LotNumber))
+            var suffix = DateTime.Now.ToString("yyyymmddmmssff");
+            if (string.IsNullOrEmpty(wipRecord.WipLot.LotNumber) && isLot)
             {
                 var _response = GetLotNumber(connection);
                 if (_response.Count == 1 && !_response.First().Key)
@@ -261,21 +265,16 @@ namespace M2kClient
                 }
                 wipRecord.WipLot.LotNumber = _response.First().Value.Replace("|P", "");
             }
-            if(int.TryParse(wipRecord.WipLot.LotNumber.Substring(wipRecord.WipLot.LotNumber.IndexOf('-')+1), out int i))
-            {
-                suffix = i;
-            }
-            else
-            {
-                suffix = Convert.ToInt32(wipRecord.CrewList.FirstOrDefault(o => !string.IsNullOrEmpty(o.Name)).IdNumber);
-            }
             //File creation for the WIP ADI, needs to account for all database scenarios (i.e. one to one, one to many, and many to many)
             var _tWip = new Wip(wipRecord);
             if (!string.IsNullOrEmpty(_tWip.StationId))
             {
                 File.WriteAllText($"{connection.SFDCFolder}WPC2K.DAT{suffix}", _tWip.ToString());
-                suffix++;
-                System.Windows.MessageBox.Show($"Assinged to Lot Number:\n{wipRecord.WipLot.LotNumber}", "New Lot Number", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
+                suffix = DateTime.Now.ToString("yyyymmddmmssff");
+                if (!string.IsNullOrEmpty(wipRecord.WipLot.LotNumber))
+                {
+                    System.Windows.MessageBox.Show($"Assinged to Lot Number:\n{wipRecord.WipLot.LotNumber}", "New Lot Number", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
+                }
             }
             else
             {
@@ -302,7 +301,7 @@ namespace M2kClient
                     if (c.WipInfo.Sum(o => o.BaseQty) > 0)
                     {
                         File.WriteAllText($"{connection.BTIFolder}ISSUEC2K.DAT{suffix}", _issue.ToString());
-                        suffix++;
+                        suffix = DateTime.Now.ToString("yyyymmddmmssff");
                     }
                 }
             }
@@ -331,10 +330,11 @@ namespace M2kClient
             {
                 System.Windows.MessageBox.Show($"Unable to process Labor\nPlease contact IT immediately!\n\n{e.Message}", "M2k Labor file error", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
             }
-            _subResult.Add(1, wipRecord.WipLot.LotNumber);
-            return _subResult;
 
             #endregion
+
+            _subResult.Add(1, wipRecord.WipLot.LotNumber);
+            return _subResult;
         }
 
         /// <summary>
@@ -353,7 +353,7 @@ namespace M2kClient
         /// <returns>Error number and error description, when returned as 0 and a empty string the transaction posted with no errors</returns>
         public static IReadOnlyDictionary<int, string> PostLabor(string stationId, int empID, string woAndSeq, int qtyComp, string machID, char clockTranType, M2kConnection connection, string time = "", int crew = 0, string tranDate = "")
         {
-            var suffix = empID;
+            var suffix = DateTime.Now.ToString("yyyymmddmmssff");
             var _subResult = new Dictionary<int, string>();
             if (!woAndSeq.Contains('*'))
             {
@@ -374,10 +374,10 @@ namespace M2kClient
                     }
                     var _tempDL = new DirectLabor(stationId, empID, 'I', time, _wSplit[0], _wSplit[1], 0, 0, machID, CompletionFlag.N, crew, tranDate);
                     File.WriteAllText($"{connection.SFDCFolder}LBC2K.DAT{suffix}", _tempDL.ToString());
-                    suffix++;
+                    suffix = DateTime.Now.ToString("yyyymmddmmssff");
 
                     //posting the clock out time for DateTime.Now
-                    
+
                     time = DateTime.Now.ToString("HH:mm");
                     _tempDL = crew > 0 
                         ? new DirectLabor(stationId, empID, 'O', time, _wSplit[0], _wSplit[1], qtyComp, 0, machID, CompletionFlag.N, crew)

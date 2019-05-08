@@ -161,7 +161,10 @@ namespace M2kClient.M2kADIArray
             {
                 _rValue += $"\n10~{disp.Code}~11~{disp.Reference}~12~{disp.Quantity}";
             }
-            _rValue += $"\n15~{Lot}|P";
+            if (!string.IsNullOrEmpty(Lot))
+            {
+                _rValue += $"\n15~{Lot}|P";
+            }
             foreach (var c in ComponentInfoList.Where(o => !string.IsNullOrEmpty(o.Lot)))
             {
                 _rValue += $"\n24~{c.Lot}~26~{WorkOrderNbr}~25~{c.PartNbr}~27~{c.Quantity}~70~{c.IssueLoc}~71~{c.UserDefined}";

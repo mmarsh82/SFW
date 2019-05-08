@@ -29,13 +29,15 @@ namespace SFW.Converters
 
         public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
         {
-
             var _test = true;
-            foreach (var o in values)
+            if (parameter == null)
             {
-                if (o != DependencyProperty.UnsetValue && !System.Convert.ToBoolean(o))
+                foreach (var o in values)
                 {
-                    _test = false;
+                    if (o != DependencyProperty.UnsetValue && !System.Convert.ToBoolean(o))
+                    {
+                        _test = false;
+                    }
                 }
             }
             return _test ? Visibility.Visible : Visibility.Collapsed;

@@ -1,0 +1,181 @@
+﻿<UserControl x:Class="SFW.Queries.PartSpec_View"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:SFW.Queries"
+             xmlns:cmd="clr-namespace:SFW.Commands"
+             xmlns:cvtr="clr-namespace:SFW.Converters">
+    <Grid Background="LightGray">
+
+        <Grid.Resources>
+            <cmd:ViewLoad x:Key="Back" />
+            <cvtr:BoolToVisibility x:Key="BoolToVisConverter" />
+        </Grid.Resources>
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="30"/>
+            <RowDefinition Height="40"/>
+            <RowDefinition Height="40"/>
+            <RowDefinition Height="40"/>
+            <RowDefinition Height="40"/>
+            <RowDefinition Height="40"/>
+            <RowDefinition Height="40"/>
+            <RowDefinition Height="40"/>
+        </Grid.RowDefinitions>
+
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="130"/>
+            <ColumnDefinition Width="200"/>
+        </Grid.ColumnDefinitions>
+
+        <Button Grid.Row="0" Grid.ColumnSpan="2"
+                Background="Transparent"
+                BorderThickness="0"
+                Command="{StaticResource Back}"
+                CommandParameter="Back"
+                HorizontalAlignment="Left">
+            <Button.Content>
+                <StackPanel Orientation="Horizontal">
+                    <Image Source="/SFW;component/Icons/BackArrow.ico" />
+                    <TextBlock Text="Back to Schedule"
+                               VerticalAlignment="Center"
+                               FontSize="16"
+                               FontWeight="Bold"
+                               Foreground="Crimson" />
+                </StackPanel>
+            </Button.Content>
+        </Button>
+
+        <TextBlock Grid.Row="1" Grid.Column="0"
+                   Text="Part Number:"
+                   TextDecorations="Underline"
+                   FontSize="18"
+                   FontWeight="Bold"
+                   VerticalAlignment="Center"
+                   HorizontalAlignment="Right"/>
+
+        <TextBox Grid.Row="1" Grid.Column="1"
+                 Name="InputTextBox"
+                 Text="{Binding InputSku, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                 FontSize="16"
+                 MaxLength="11"
+                 Margin="5"
+                 TabIndex="0"
+                 AcceptsReturn="False"
+                 Style="{DynamicResource RequiredTextBox}" />
+
+        <TextBlock Grid.Row="2" Grid.Column="0"
+                   Text="Length:"
+                   TextDecorations="Underline"
+                   FontSize="18"
+                   FontWeight="Bold"
+                   VerticalAlignment="Center"
+                   HorizontalAlignment="Right"
+                   Visibility="{Binding ValidSku, Converter={StaticResource BoolToVisConverter}}"/>
+
+        <TextBox Grid.Row="2" Grid.Column="1"
+                 Text="{Binding CustomSku.Length, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                 FontSize="16"
+                 MaxLength="11"
+                 Margin="5"
+                 TabIndex="0"
+                 AcceptsReturn="False"
+                 Visibility="{Binding ValidSku, Converter={StaticResource BoolToVisConverter}}"
+                 Style="{DynamicResource RequiredTextBox}" />
+
+        <TextBlock Grid.Row="3" Grid.Column="0"
+                   Text="Volume:"
+                   TextDecorations="Underline"
+                   FontSize="18"
+                   FontWeight="Bold"
+                   VerticalAlignment="Center"
+                   HorizontalAlignment="Right"
+                   Visibility="{Binding ValidSku, Converter={StaticResource BoolToVisConverter}}" />
+
+        <TextBox Grid.Row="3" Grid.Column="2"
+                 Text="{Binding CustomSku.Volume, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                 FontSize="16"
+                 MaxLength="11"
+                 Margin="5"
+                 TabIndex="1"
+                 AcceptsReturn="False"
+                 Visibility="{Binding ValidSku, Converter={StaticResource BoolToVisConverter}}"
+                 Style="{DynamicResource RequiredTextBox}" />
+
+        <TextBlock Grid.Row="4" Grid.Column="0"
+                   Text="Diameter:"
+                   TextDecorations="Underline"
+                   FontSize="18"
+                   FontWeight="Bold"
+                   VerticalAlignment="Center"
+                   HorizontalAlignment="Right"
+                   Visibility="{Binding ValidSku, Converter={StaticResource BoolToVisConverter}}" />
+
+        <TextBox Grid.Row="4" Grid.Column="2"
+                 Text="{Binding CustomSku.RollDiameter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                 FontSize="16"
+                 MaxLength="11"
+                 Margin="5"
+                 TabIndex="1"
+                 AcceptsReturn="False"
+                 Visibility="{Binding ValidSku, Converter={StaticResource BoolToVisConverter}}"
+                 Style="{DynamicResource RequiredTextBox}" />
+
+        <TextBlock Grid.Row="5" Grid.Column="0"
+                   Text="Weight:"
+                   TextDecorations="Underline"
+                   FontSize="18"
+                   FontWeight="Bold"
+                   VerticalAlignment="Center"
+                   HorizontalAlignment="Right"
+                   Visibility="{Binding ValidSku, Converter={StaticResource BoolToVisConverter}}" />
+
+        <TextBox Grid.Row="5" Grid.Column="2"
+                 Text="{Binding CustomSku.RollWeight, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                 FontSize="16"
+                 MaxLength="11"
+                 Margin="5"
+                 TabIndex="1"
+                 AcceptsReturn="False"
+                 Visibility="{Binding ValidSku, Converter={StaticResource BoolToVisConverter}}"
+                 Style="{DynamicResource RequiredTextBox}" />
+
+        <TextBlock Grid.Row="6" Grid.Column="0"
+                   Text="Spec. Gravity:"
+                   TextDecorations="Underline"
+                   FontSize="18"
+                   FontWeight="Bold"
+                   VerticalAlignment="Center"
+                   HorizontalAlignment="Right"
+                   Visibility="{Binding ValidSku, Converter={StaticResource BoolToVisConverter}}" />
+
+        <TextBox Grid.Row="6" Grid.Column="2"
+                 Text="{Binding CustomSku.RollWeight, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                 FontSize="16"
+                 MaxLength="11"
+                 Margin="5"
+                 TabIndex="1"
+                 AcceptsReturn="False"
+                 Visibility="{Binding ValidSku, Converter={StaticResource BoolToVisConverter}}"
+                 Style="{DynamicResource RequiredTextBox}" />
+
+        <TextBlock Grid.Row="7" Grid.Column="0"
+                   Text="Gauge:"
+                   TextDecorations="Underline"
+                   FontSize="18"
+                   FontWeight="Bold"
+                   VerticalAlignment="Center"
+                   HorizontalAlignment="Right"
+                   Visibility="{Binding ValidSku, Converter={StaticResource BoolToVisConverter}}" />
+
+        <TextBox Grid.Row="7" Grid.Column="2"
+                 Text="{Binding CustomSku.RollWeight, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                 FontSize="16"
+                 MaxLength="11"
+                 Margin="5"
+                 TabIndex="1"
+                 AcceptsReturn="False"
+                 Visibility="{Binding ValidSku, Converter={StaticResource BoolToVisConverter}}"
+                 Style="{DynamicResource RequiredTextBox}" />
+
+    </Grid>
+</UserControl>
