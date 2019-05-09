@@ -121,6 +121,18 @@ namespace SFW
             }
         }
 
+        private static bool _isAdmin;
+        public static bool IsAdmin
+        {
+            get
+            { return _isAdmin; }
+            private set
+            {
+                _isAdmin = value;
+                StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(IsAdmin)));
+            }
+        }
+
         private static string _uID;
         public static string UserIDNbr
         {
@@ -156,6 +168,7 @@ namespace SFW
             DisplayName = user.DisplayName;
             Email = user.EmailAddress;
             CanSchedule = _groups.Exists(o => o.ToString().Contains("SFW_Sched"));
+            IsAdmin = _groups.Exists(o => o.ToString().Contains("SFW_Admin"));
             IsLoggedIn = true;
             CanWip = user.UserPrincipalName.Contains("wcco") && _groups.Exists(o => o.ToString().Contains("SFW_CL"));
             UserIDNbr = user.EmployeeId;

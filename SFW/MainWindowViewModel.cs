@@ -189,7 +189,7 @@ namespace SFW
             IsChanging = false;
             CanUpdate = false;
             new WorkSpaceDock();
-            RefreshTimer.Add(CheckForUpdate);
+            RefreshTimer.Add(MainUpdate);
         }
 
         /// <summary>
@@ -211,10 +211,21 @@ namespace SFW
         /// <summary>
         /// Checks to see if there are any application updates available
         /// </summary>
-        public void CheckForUpdate()
+        public void MainUpdate()
         {
             var path = "\\\\manage2\\fsw\\ShopFloorWorkbench\\Application Files\\";
             CanUpdate = Version != Directory.GetDirectories(path).Last().Remove(0, path.Length).Remove(0, 4).Replace('_', '.');
+            if (CurrentUser.IsLoggedIn && int.TryParse(CurrentUser.UserIDNbr, out int i))
+            {
+                var _endTime = CrewMember.GetShiftEndTime(i, App.AppSqlCon);
+                if (DateTime.TryParse(_endTime, out DateTime dt))
+                {
+                    if (dt < DateTime.Now)
+                    {
+                        CurrentUser.LogOff();
+                    }
+                }
+            }
         }
 
         #region Selected Default Machine ICommand

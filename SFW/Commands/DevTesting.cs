@@ -13,7 +13,7 @@ namespace SFW.Commands
         /// <param name="parameter"></param>
         public void Execute(object parameter)
         {
-            ((MainWindowViewModel)App.Current.MainWindow.DataContext).CheckForUpdate();
+            ((MainWindowViewModel)App.Current.MainWindow.DataContext).MainUpdate();
         }
         public bool CanExecute(object parameter) => true;
     }

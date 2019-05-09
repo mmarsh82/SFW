@@ -374,12 +374,14 @@ namespace M2kClient
                     }
                     var _tempDL = new DirectLabor(stationId, empID, 'I', time, _wSplit[0], _wSplit[1], 0, 0, machID, CompletionFlag.N, crew, tranDate);
                     File.WriteAllText($"{connection.SFDCFolder}LBC2K.DAT{suffix}", _tempDL.ToString());
+                    while (File.Exists($"{connection.SFDCFolder}LBC2K.DAT{suffix}"))
+                    { }
                     suffix = DateTime.Now.ToString("yyyymmddmmssff");
 
                     //posting the clock out time for DateTime.Now
 
                     time = DateTime.Now.ToString("HH:mm");
-                    _tempDL = crew > 0 
+                    _tempDL = crew > 0
                         ? new DirectLabor(stationId, empID, 'O', time, _wSplit[0], _wSplit[1], qtyComp, 0, machID, CompletionFlag.N, crew)
                         : new DirectLabor(stationId, empID, 'O', time, _wSplit[0], _wSplit[1], qtyComp, 0, machID, CompletionFlag.N);
                     File.WriteAllText($"{connection.SFDCFolder}LBC2K.DAT{suffix}", _tempDL.ToString());

@@ -433,6 +433,52 @@ namespace SFW.Model
         }
 
         /// <summary>
+        /// Get the shift end time for a user
+        /// </summary>
+        /// <param name="idNbr">User Id number</param>
+        /// <param name="sqlCon">Sql Connection to use</param>
+        /// <returns>Shift end time as a string</returns>
+        public static string GetShiftEndTime(int idNbr, SqlConnection sqlCon)
+        {
+            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
+            {
+                try
+                {
+                    using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database};
+                                                               SELECT [Shift] FROM [dbo].[EMPLOYEE_MASTER-INIT] WHERE [Emp_No] = @p1", sqlCon))
+                    {
+                        cmd.Parameters.AddWithValue("p1", idNbr);
+                        if (int.TryParse(cmd.ExecuteScalar()?.ToString(), out int _shift))
+                        {
+                            switch (_shift)
+                            {
+                                case 1:
+                                    return "15:00";
+                                case 2:
+                                    return "23:00";
+                                case 3:
+                                    return "07:00";
+                            }
+                        }
+                        return string.Empty;
+                    }
+                }
+                catch (SqlException sqlEx)
+                {
+                    throw sqlEx;
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception(ex.Message);
+                }
+            }
+            else
+            {
+                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
+            }
+        }
+
+        /// <summary>
         /// Get any crew members full professional name stored in the active directory
         /// </summary>
         /// <param name="domainName">Crew Member Domain Name</param>

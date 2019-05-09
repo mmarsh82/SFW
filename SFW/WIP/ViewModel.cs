@@ -48,6 +48,11 @@ namespace SFW.WIP
             set { tQty = value; OnPropertyChanged(nameof(TQty)); }
         }
 
+        public bool IsLotTrace
+        {
+            get { return WipRecord.IsLotTracable || WipRecord.WipWorkOrder.Bom.Count(o => o.IsLotTrace) > 0; }
+        }
+
         RelayCommand _wip;
         RelayCommand _mPrint;
         RelayCommand _removeCrew;

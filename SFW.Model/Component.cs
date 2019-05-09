@@ -62,7 +62,9 @@ namespace SFW.Model
                                                             RIGHT JOIN
 	                                                            [dbo].[IM-INIT] c ON c.[Part_Number] = SUBSTRING(a.[ID], CHARINDEX('*', a.[ID], 0) + 1, LEN(a.[ID]))
                                                             WHERE
-	                                                            a.[ID] LIKE CONCAT(@p1, '%');", sqlCon))
+	                                                            a.[ID] LIKE CONCAT(@p1, '%')
+                                                            ORDER BY
+                                                                Component;", sqlCon))
                     {
                         cmd.Parameters.AddWithValue("p1", woNbr);
                         using (SqlDataReader reader = cmd.ExecuteReader())

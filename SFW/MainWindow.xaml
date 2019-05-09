@@ -66,10 +66,10 @@
                           Visibility="{Binding Path=(local:CurrentUser.IsLoggedIn), Converter={StaticResource BoolToVisConverter}}"/>
                 <MenuItem Header="Train Mode"
                           IsEnabled="False" />
-                <MenuItem Header="Default Work Centers"
+                <MenuItem Header="Default Work Center"
                           ItemsSource="{Binding DefaultMachineList}"
                           DisplayMemberPath="MachineName"
-                          Visibility="{Binding Path=(local:CurrentUser.IsLoggedIn), Converter={StaticResource BoolToVisConverter}}">
+                          Visibility="{Binding Path=(local:CurrentUser.IsAdmin), Converter={StaticResource BoolToVisConverter}}">
                     <MenuItem.ItemContainerStyle>
                         <Style TargetType="MenuItem">
                             <Setter Property="Command"
@@ -79,10 +79,8 @@
                         </Style>
                     </MenuItem.ItemContainerStyle>
                 </MenuItem>
-                <MenuItem Header="Print"
-                          IsEnabled="False"/>
                 <MenuItem Header="Dev Testing" 
-                          IsEnabled="True"
+                          Visibility="{Binding Path=(local:CurrentUser.IsAdmin), Converter={StaticResource BoolToVisConverter}}"
                           Command="{StaticResource TestICommand}"/>
                 <MenuItem Header="Exit"
                           Command="{StaticResource ExitICommand}"
@@ -131,9 +129,6 @@
                           Command="{StaticResource PartSpecICommand}"
                           Visibility="{Binding CurrentSiteNbr, Converter={StaticResource SiteToVisConverter}}"
                           InputGestureText="F11" />
-                <MenuItem Header="Wip History"
-                          IsEnabled="False"
-                          InputGestureText="F12" />
 
             </MenuItem>
             <MenuItem Header="Help">

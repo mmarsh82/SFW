@@ -4,7 +4,7 @@
              xmlns:cvtr="clr-namespace:SFW.Converters"
              xmlns:cmd="clr-namespace:SFW.Commands"
              xmlns:main="clr-namespace:SFW">
-    <ScrollViewer x:Name="MainScroll" VerticalScrollBarVisibility="Auto" Margin="0,0,0,20">
+    <ScrollViewer x:Name="MainScroll" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" Margin="0,0,0,20">
         <Grid>
             <Grid.Resources>
                 <cvtr:StringToVisibility x:Key="StringToVisConverter"/>
@@ -41,7 +41,7 @@
                     <RowDefinition x:Name="Row7" Height="205"/>
                     <RowDefinition x:Name="Row8" Height="40"/>
                     <RowDefinition x:Name="Row9" Height="30"/>
-                    <RowDefinition x:Name="Row10" Height="435" />
+                    <RowDefinition x:Name="Row10" Height="Auto" />
                 </Grid.RowDefinitions>
 
                 <!--#region Grid.Row 0  Command Array-->
