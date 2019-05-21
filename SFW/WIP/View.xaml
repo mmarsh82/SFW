@@ -158,7 +158,7 @@
                        TextDecorations="Underline"
                        VerticalAlignment="Center"
                        Margin="20,0,0,0" />
-                <TextBox Text="{Binding WipRecord.ReceiptLocation, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                <TextBox Text="{Binding WipRecord.ReceiptLocation, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
                      FontSize="18"
                      FontWeight="Bold"
                      Background="LightGray"

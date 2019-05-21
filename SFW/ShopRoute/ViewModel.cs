@@ -144,7 +144,7 @@ namespace SFW.ShopRoute
         private void BgWorker_DoWork(object sender, DoWorkEventArgs e)
         {
             IsLoading = true;
-            ReportView = WorkOrder.GetReportData(ShopOrder, App.AppSqlCon).DefaultView;
+            ReportView = WorkOrder.GetReportData(ShopOrder, App.AppSqlCon)?.DefaultView;
         }
 
         #endregion

@@ -247,7 +247,7 @@ namespace M2kClient
         public static IReadOnlyDictionary<int, string> ProductionWip(WipReceipt wipRecord, bool postLabor, M2kConnection connection, bool isLot, string machID = "")
         {
             var _subResult = new Dictionary<int, string>();
-            var suffix = DateTime.Now.ToString("yyyymmddmmssff");
+            var suffix = DateTime.Now.ToString("mmddmmssff");
             if (string.IsNullOrEmpty(wipRecord.WipLot.LotNumber) && isLot)
             {
                 var _response = GetLotNumber(connection);
@@ -270,7 +270,7 @@ namespace M2kClient
             if (!string.IsNullOrEmpty(_tWip.StationId))
             {
                 File.WriteAllText($"{connection.SFDCFolder}WPC2K.DAT{suffix}", _tWip.ToString());
-                suffix = DateTime.Now.ToString("yyyymmddmmssff");
+                suffix = DateTime.Now.ToString("mmddmmssff");
                 if (!string.IsNullOrEmpty(wipRecord.WipLot.LotNumber))
                 {
                     System.Windows.MessageBox.Show($"Assinged to Lot Number:\n{wipRecord.WipLot.LotNumber}", "New Lot Number", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
@@ -301,7 +301,7 @@ namespace M2kClient
                     if (c.WipInfo.Sum(o => o.BaseQty) > 0)
                     {
                         File.WriteAllText($"{connection.BTIFolder}ISSUEC2K.DAT{suffix}", _issue.ToString());
-                        suffix = DateTime.Now.ToString("yyyymmddmmssff");
+                        suffix = DateTime.Now.ToString("mmddmmssff");
                     }
                 }
             }
@@ -322,7 +322,11 @@ namespace M2kClient
                     var _crew = wipRecord.CrewList.Count(o => !string.IsNullOrEmpty(o.Name));
                     foreach (var c in wipRecord.CrewList.Where(o => !string.IsNullOrEmpty(o.Name) && o.IsDirect))
                     {
-                        PostLabor("SFW WIP", Convert.ToInt32(c.IdNumber), $"{wipRecord.WipWorkOrder.OrderNumber}*{wipRecord.WipWorkOrder.Seq}", Convert.ToInt32(wipRecord.WipQty), machID, ' ', connection, c.LastClock, _crew);
+                        var _pl = PostLabor("SFW WIP", Convert.ToInt32(c.IdNumber), $"{wipRecord.WipWorkOrder.OrderNumber}*{wipRecord.WipWorkOrder.Seq}", Convert.ToInt32(wipRecord.WipQty), machID, ' ', connection, c.LastClock, _crew);
+                        if (_pl.Any(o => o.Key == 1))
+                        {
+                            System.Windows.MessageBox.Show($"Unable to process Labor\nPlease contact IT immediately!\n\n{_pl[1]}", "M2k Labor file error", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
+                        }
                     }
                 }
             }
@@ -353,47 +357,51 @@ namespace M2kClient
         /// <returns>Error number and error description, when returned as 0 and a empty string the transaction posted with no errors</returns>
         public static IReadOnlyDictionary<int, string> PostLabor(string stationId, int empID, string woAndSeq, int qtyComp, string machID, char clockTranType, M2kConnection connection, string time = "", int crew = 0, string tranDate = "")
         {
-            var suffix = DateTime.Now.ToString("yyyymmddmmssff");
             var _subResult = new Dictionary<int, string>();
-            if (!woAndSeq.Contains('*'))
+            try
             {
-                _subResult.Add(1, "Work order or sequence is not in the correct format to pass into M2k.");
-                return _subResult;
-            }
-            else
-            {
-                var _wSplit = woAndSeq.Split('*');
-                if (char.IsWhiteSpace(clockTranType))
+                var suffix = DateTime.Now.ToString("mmddmmssff");
+                if (!woAndSeq.Contains('*'))
                 {
-                    if (string.IsNullOrEmpty(tranDate))
-                    {
-                        if (Convert.ToDateTime($"{DateTime.Now.Month}-{DateTime.Now.Day}-{DateTime.Now.Year} {time}") > DateTime.Now)
-                        {
-                            tranDate = DateTime.Now.AddDays(-1).ToString("MM-dd-yyyy");
-                        }
-                    }
-                    var _tempDL = new DirectLabor(stationId, empID, 'I', time, _wSplit[0], _wSplit[1], 0, 0, machID, CompletionFlag.N, crew, tranDate);
-                    File.WriteAllText($"{connection.SFDCFolder}LBC2K.DAT{suffix}", _tempDL.ToString());
-                    while (File.Exists($"{connection.SFDCFolder}LBC2K.DAT{suffix}"))
-                    { }
-                    suffix = DateTime.Now.ToString("yyyymmddmmssff");
-
-                    //posting the clock out time for DateTime.Now
-
-                    time = DateTime.Now.ToString("HH:mm");
-                    _tempDL = crew > 0
-                        ? new DirectLabor(stationId, empID, 'O', time, _wSplit[0], _wSplit[1], qtyComp, 0, machID, CompletionFlag.N, crew)
-                        : new DirectLabor(stationId, empID, 'O', time, _wSplit[0], _wSplit[1], qtyComp, 0, machID, CompletionFlag.N);
-                    File.WriteAllText($"{connection.SFDCFolder}LBC2K.DAT{suffix}", _tempDL.ToString());
+                    _subResult.Add(1, "Work order or sequence is not in the correct format to pass into M2k.");
+                    return _subResult;
                 }
                 else
                 {
-                    var _tempDL = crew > 0 
-                        ? new DirectLabor(stationId, empID, clockTranType, time, _wSplit[0], _wSplit[1], qtyComp, 0, machID, CompletionFlag.N, crew)
-                        : new DirectLabor(stationId, empID, clockTranType, time, _wSplit[0], _wSplit[1], qtyComp, 0, machID, CompletionFlag.N);
-                    File.WriteAllText($"{connection.SFDCFolder}LBC2K.DAT{suffix}", _tempDL.ToString());
+                    var _wSplit = woAndSeq.Split('*');
+                    if (char.IsWhiteSpace(clockTranType))
+                    {
+                        if (string.IsNullOrEmpty(tranDate))
+                        {
+                            if (Convert.ToDateTime($"{DateTime.Now.Month}-{DateTime.Now.Day}-{DateTime.Now.Year} {time}") > DateTime.Now)
+                            {
+                                tranDate = DateTime.Now.AddDays(-1).ToString("MM-dd-yyyy");
+                            }
+                        }
+                        var _inDL = new DirectLabor(stationId, empID, 'I', time, _wSplit[0], _wSplit[1], 0, 0, machID, CompletionFlag.N, crew, tranDate);
+
+                        //posting the clock out time for DateTime.Now
+
+                        time = DateTime.Now.ToString("HH:mm");
+                        var _outDL = crew > 0
+                            ? new DirectLabor(stationId, empID, 'O', time, _wSplit[0], _wSplit[1], qtyComp, 0, machID, CompletionFlag.N, crew)
+                            : new DirectLabor(stationId, empID, 'O', time, _wSplit[0], _wSplit[1], qtyComp, 0, machID, CompletionFlag.N);
+                        File.WriteAllText($"{connection.SFDCFolder}LBC2K.DAT{suffix}", $"{_inDL.ToString()}\n\n{_outDL.ToString()}");
+                    }
+                    else
+                    {
+                        var _tempDL = crew > 0
+                            ? new DirectLabor(stationId, empID, clockTranType, time, _wSplit[0], _wSplit[1], qtyComp, 0, machID, CompletionFlag.N, crew)
+                            : new DirectLabor(stationId, empID, clockTranType, time, _wSplit[0], _wSplit[1], qtyComp, 0, machID, CompletionFlag.N);
+                        File.WriteAllText($"{connection.SFDCFolder}LBC2K.DAT{suffix}", _tempDL.ToString());
+                    }
+                    _subResult.Add(0, string.Empty);
+                    return _subResult;
                 }
-                _subResult.Add(0, string.Empty);
+            }
+            catch (Exception ex)
+            {
+                _subResult.Add(1, ex.Message);
                 return _subResult;
             }
         }

@@ -142,16 +142,18 @@ namespace SFW.Queries
 
         private void MPrintExecute(object parameter)
         {
-            var _lot = LotType ? SkuInput : "";
-            var _part = LotType ? Part.SkuNumber : SkuInput;
+            var _lot = !LotType ? SkuInput : "";
+            var _part = !LotType ? Part.SkuNumber : SkuInput;
+            var _dmd = !LotType ? Sku.GetDiamondNumber(_lot, App.AppSqlCon) : "";
+            var _qir = !LotType ? Lot.GetAssociatedQIR(_lot, App.AppSqlCon) : 0;
             TravelCard.Create("", "technology#1",
                 _part,
                 _lot,
                 Part.SkuDescription,
-                "",//Sku.GetDiamondNumber(WipRecord.WipLot.LotNumber, App.AppSqlCon),
+                _dmd,
                 Convert.ToInt32(QuantityInput),
                 Part.Uom,
-                0//Lot.GetAssociatedQIR(WipRecord.WipLot.LotNumber, App.AppSqlCon)
+                _qir
                 );
             switch (parameter.ToString())
             {

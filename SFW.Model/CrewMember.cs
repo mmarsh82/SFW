@@ -1,8 +1,11 @@
-﻿using System;
+﻿using IBMU2.UODOTNET;
+using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Data.SqlClient;
 using System.DirectoryServices.AccountManagement;
+using System.Linq;
 
 namespace SFW.Model
 {
@@ -113,29 +116,34 @@ namespace SFW.Model
             {
                 if (!string.IsNullOrEmpty(Name) && string.IsNullOrEmpty(value) && IsDirect)
                 {
-                    var time = GetLastClockTime(Convert.ToInt32(IdNumber), ModelBase.ModelSqlCon);
-                    if (string.IsNullOrEmpty(time) || time == "00:00")
+                    var time = string.Empty;
+                    System.Threading.Tasks.Task.Run(() =>
                     {
-                        switch (Shift)
+                        time = GetLastClockTime(Convert.ToInt32(IdNumber), Shift, ModelBase.ModelSqlCon);
+                        if (string.IsNullOrEmpty(time) || time == "00:00")
                         {
-                            case 1:
-                                time = "07:00";
-                                break;
-                            case 2:
-                                time = "15:00";
-                                break;
-                            case 3:
-                                time = "23:00";
-                                break;
+                            switch (Shift)
+                            {
+                                case 1:
+                                    time = "07:00";
+                                    break;
+                                case 2:
+                                    time = "15:00";
+                                    break;
+                                case 3:
+                                    time = "23:00";
+                                    break;
+                            }
                         }
-                    }
-                    lastClock = time;
+                        lastClock = time;
+                        OnPropertyChanged(nameof(LastClock));
+                    });
                 }
                 else
                 {
                     lastClock = value;
+                    OnPropertyChanged(nameof(LastClock));
                 }
-                OnPropertyChanged(nameof(LastClock));
             }
         }
 
@@ -345,9 +353,9 @@ namespace SFW.Model
         /// <param name="idNbr">User ID number</param>
         /// <param name="sqlCon">Sql Connection to use</param>
         /// <returns>Time as a string</returns>
-        public static string GetLastClockTime(int idNbr, SqlConnection sqlCon)
+        public static string GetLastClockTime(int idNbr, int shift, SqlConnection sqlCon)
         {
-            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
+            /*if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
             {
                 try
                 {
@@ -381,6 +389,77 @@ namespace SFW.Model
                 }
             }
             else
+            {
+                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
+            }*/
+            try
+            {
+                var id2 = (DateTime.Now - Convert.ToDateTime("1967/12/31")).Days;
+                using (UniSession uSession = UniObjects.OpenSession("172.16.0.122", "omniquery", "omniquery", "E:/roi/WCCO.MAIN", "udcs"))
+                {
+                    try
+                    {
+                        var uResponse = string.Empty;
+                        using (UniCommand uCmd = uSession.CreateUniCommand())
+                        {
+                            uCmd.Command = $"LIST LBR.DETAIL WITH @ID = \"{idNbr}*{id2}\" Out_Time";
+                            uCmd.Execute();
+                            uResponse = uCmd.Response;
+                            if (!string.IsNullOrEmpty(uResponse))
+                            {
+                                //All the code below is to clean the UniCommand.Response
+                                //The response returns identical to a M2k TCL response
+                                var uResArray = uResponse.Split('\r');
+                                var _sortList = new List<DateTime>();
+                                var _listAdd = false;
+                                foreach (var s in uResArray)
+                                {
+                                    if (s.Replace("\n", "").Contains($"records") || s.Replace("\n", "").Contains($"record"))
+                                    {
+                                        break;
+                                    }
+                                    if (s.Replace("\n", "~").Contains($"~{idNbr}*{id2}") || _listAdd)
+                                    {
+                                        _sortList.Add(Convert.ToDateTime(s.Substring(s.Length - 5).Trim()));
+                                        _listAdd = true;
+                                    }
+                                }
+                                if (_sortList.Count == 0)
+                                {
+                                    uResponse = GetShiftStartTime(idNbr, sqlCon);
+                                }
+                                else
+                                {
+                                    if (shift == 3 && !_sortList.Any(o => o.TimeOfDay < new TimeSpan(23, 00, 00)))
+                                    {
+                                        _sortList = _sortList.OrderBy(o => o.TimeOfDay).ToList();
+                                    }
+                                    else
+                                    {
+                                        _sortList = _sortList.OrderByDescending(o => o.TimeOfDay).ToList();
+                                    }
+                                    uResponse = _sortList[0].ToString("HH:mm");
+                                }
+                            }
+                            else
+                            {
+                                uResponse = GetShiftStartTime(idNbr, sqlCon);
+                            }
+                        }
+                        UniObjects.CloseSession(uSession);
+                        return uResponse;
+                    }
+                    catch (Exception ex)
+                    {
+                        if (uSession != null)
+                        {
+                            UniObjects.CloseSession(uSession);
+                        }
+                        return ex.Message;
+                    }
+                }
+            }
+            catch
             {
                 throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
             }

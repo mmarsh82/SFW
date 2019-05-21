@@ -90,7 +90,7 @@
                        Margin="20,0,0,0"
                        Visibility="{Binding ValidSku, Converter={StaticResource BoolToVisConverter}}" />
 
-            <TextBox Text="{Binding Quantity, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+            <TextBox Text="{Binding QuantityInput, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                      FontSize="16"
                      InputScope="Number"
                      Width="50"

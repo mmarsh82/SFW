@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.DirectoryServices;
 using System.DirectoryServices.AccountManagement;
@@ -162,7 +163,15 @@ namespace SFW
         /// <param name="user">User Principal for the active directory</param>
         public CurrentUser(PrincipalContext context, UserPrincipal user)
         {
-            var _groups = user.GetAuthorizationGroups().Where(o => o.Name.Contains("SFW_")).ToList().ConvertAll(o => o.Name);
+            var _groups = new List<string>();
+            try
+            {
+                _groups = user.GetAuthorizationGroups().Where(o => o.Name.Contains("SFW_")).ToList().ConvertAll(o => o.Name);
+            }
+            catch
+            {
+                _groups = user.GetGroups().Where(o => o.Name.Contains("SFW_")).ToList().ConvertAll(o => o.Name);
+            }
             DomainName = context.ConnectedServer;
             DomainUserName = user.SamAccountName;
             DisplayName = user.DisplayName;
@@ -229,10 +238,6 @@ namespace SFW
                             {
                                 return "Invalid credentials.\nPlease check your user name and password and try again.\nIf you feel you have reached this message in error,\nplease contact IT for further assistance.";
                             }
-                            else if (!uPrincipal.GetAuthorizationGroups().ToList().ConvertAll(o => o.Name).Exists(o => o.Contains("SFW_")))
-                            {
-                                return "Your account has not been flagged with the ability to log in.\nPlease contact IT for assistance.";
-                            }
                             else
                             {
                                 new CurrentUser(pContext, uPrincipal);
@@ -242,7 +247,7 @@ namespace SFW
                     }
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 return "Your account does not exist on the domain.\nPlease contact IT for assistance.";
             }

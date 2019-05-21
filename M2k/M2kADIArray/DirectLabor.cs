@@ -146,8 +146,8 @@ namespace M2kClient.M2kADIArray
             //1~Transaction Type~2~Station ID~3~Time~4~Date~6~Employee Number~7~Clock Transaction~8~Work Order Number*Operation~9~Quantity Completed~10~Setups Completed~11~Machine Number~12~Complete Flag~45~Facility Code~99~COMPLETE
             
             return CrewSize == 0 
-                ? $"1~{TranType}~2~{StationId}~3~{TranTime}~4~{TranDate}~6~{EmployeeId}~7~{ClockTransaction}~8~{WorkOrderNbr}*{Operation}~9~{QtyCompleted}~10~{SetCompleted}~11~{MachineId}~12~{CFlag}~45~{FacilityCode}~99~COMPLETE"
-                : $"1~{TranType}~2~{StationId}~3~{TranTime}~4~{TranDate}~6~{EmployeeId}~7~{ClockTransaction}~8~{WorkOrderNbr}*{Operation}~9~{QtyCompleted}~10~{SetCompleted}~11~{MachineId}~12~{CFlag}~13~{CrewSize}~45~{FacilityCode}~99~COMPLETE";
+                ? $"1~{TranType}~2~{StationId}~3~{TranTime}~4~{TranDate}~6~{EmployeeId}~7~{ClockTransaction}~8~{WorkOrderNbr}*{Operation}~9~{QtyCompleted}~10~{SetCompleted}~11~{MachineId}~12~{CFlag.ToString()}~45~{FacilityCode}~99~COMPLETE"
+                : $"1~{TranType}~2~{StationId}~3~{TranTime}~4~{TranDate}~6~{EmployeeId}~7~{ClockTransaction}~8~{WorkOrderNbr}*{Operation}~9~{QtyCompleted}~10~{SetCompleted}~11~{MachineId}~12~{CFlag.ToString()}~13~{CrewSize}~45~{FacilityCode}~99~COMPLETE";
         }
     }
 }

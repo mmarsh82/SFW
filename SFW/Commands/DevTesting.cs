@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SFW.Model;
+using System;
 using System.Windows.Input;
 
 namespace SFW.Commands
@@ -13,7 +14,7 @@ namespace SFW.Commands
         /// <param name="parameter"></param>
         public void Execute(object parameter)
         {
-            ((MainWindowViewModel)App.Current.MainWindow.DataContext).MainUpdate();
+            System.Windows.MessageBox.Show(CrewMember.GetLastClockTime(1844, 1, App.AppSqlCon));
         }
         public bool CanExecute(object parameter) => true;
     }

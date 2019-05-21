@@ -48,6 +48,22 @@ namespace SFW.WIP
             set { tQty = value; OnPropertyChanged(nameof(TQty)); }
         }
 
+        public string RLocation
+        {
+            get { return WipRecord.ReceiptLocation; }
+            set
+            {
+                
+            }
+        }
+
+        private bool vLoc;
+        public bool ValidLocation
+        {
+            get { return vLoc; }
+            set { vLoc = value; OnPropertyChanged(nameof(ValidLocation)); }
+        }
+
         public bool IsLotTrace
         {
             get { return WipRecord.IsLotTracable || WipRecord.WipWorkOrder.Bom.Count(o => o.IsLotTrace) > 0; }
