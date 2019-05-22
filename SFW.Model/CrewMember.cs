@@ -395,6 +395,10 @@ namespace SFW.Model
             try
             {
                 var id2 = (DateTime.Now - Convert.ToDateTime("1967/12/31")).Days;
+                if (shift == 3 && DateTime.Now.TimeOfDay > new TimeSpan(23,00,00))
+                {
+                    id2++;
+                }
                 using (UniSession uSession = UniObjects.OpenSession("172.16.0.122", "omniquery", "omniquery", "E:/roi/WCCO.MAIN", "udcs"))
                 {
                     try

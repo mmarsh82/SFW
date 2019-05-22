@@ -246,6 +246,8 @@ namespace M2kClient
         /// <returns>Suffix for the file that needs to be watched on the ERP server and new lot number if required</returns>
         public static IReadOnlyDictionary<int, string> ProductionWip(WipReceipt wipRecord, bool postLabor, M2kConnection connection, bool isLot, string machID = "")
         {
+            #region Wip Process
+
             var _subResult = new Dictionary<int, string>();
             var suffix = DateTime.Now.ToString("mmddmmssff");
             if (string.IsNullOrEmpty(wipRecord.WipLot.LotNumber) && isLot)
@@ -282,6 +284,8 @@ namespace M2kClient
                 _subResult.Add(0, string.Empty);
                 return _subResult;
             }
+
+            #endregion
 
             #region Non Lot Issue
 
@@ -322,7 +326,7 @@ namespace M2kClient
                     var _crew = wipRecord.CrewList.Count(o => !string.IsNullOrEmpty(o.Name));
                     foreach (var c in wipRecord.CrewList.Where(o => !string.IsNullOrEmpty(o.Name) && o.IsDirect))
                     {
-                        var _pl = PostLabor("SFW WIP", Convert.ToInt32(c.IdNumber), $"{wipRecord.WipWorkOrder.OrderNumber}*{wipRecord.WipWorkOrder.Seq}", Convert.ToInt32(wipRecord.WipQty), machID, ' ', connection, c.LastClock, _crew);
+                        var _pl = PostLabor("SFW WIP", Convert.ToInt32(c.IdNumber), c.Shift, $"{wipRecord.WipWorkOrder.OrderNumber}*{wipRecord.WipWorkOrder.Seq}", Convert.ToInt32(wipRecord.WipQty), machID, ' ', connection, c.LastClock, _crew);
                         if (_pl.Any(o => o.Key == 1))
                         {
                             System.Windows.MessageBox.Show($"Unable to process Labor\nPlease contact IT immediately!\n\n{_pl[1]}", "M2k Labor file error", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
@@ -346,6 +350,7 @@ namespace M2kClient
         /// </summary>
         /// <param name="stationId">Station ID</param>
         /// <param name="empID">Employee ID</param>
+        /// <param name="shift">Employee Shift, used to calc third shift labor varience</param>
         /// <param name="woAndSeq">Work order and sequence seporated by a '*'</param>
         /// <param name="qtyComp">Quantity completed for this transaction</param>
         /// <param name="machID">Machine ID that will receive the labor posting</param>
@@ -355,7 +360,7 @@ namespace M2kClient
         /// <param name="crew">Optional: Crew size, only needs to be passed when the crewsize listed in the ERP is smaller or larger that the amount of crew members posting labor to the work order</param>
         /// <param name="tranDate">Optional: Date of transaction</param>
         /// <returns>Error number and error description, when returned as 0 and a empty string the transaction posted with no errors</returns>
-        public static IReadOnlyDictionary<int, string> PostLabor(string stationId, int empID, string woAndSeq, int qtyComp, string machID, char clockTranType, M2kConnection connection, string time = "", int crew = 0, string tranDate = "")
+        public static IReadOnlyDictionary<int, string> PostLabor(string stationId, int empID, int shift, string woAndSeq, int qtyComp, string machID, char clockTranType, M2kConnection connection, string time = "", int crew = 0, string tranDate = "")
         {
             var _subResult = new Dictionary<int, string>();
             try
@@ -373,9 +378,20 @@ namespace M2kClient
                     {
                         if (string.IsNullOrEmpty(tranDate))
                         {
-                            if (Convert.ToDateTime($"{DateTime.Now.Month}-{DateTime.Now.Day}-{DateTime.Now.Year} {time}") > DateTime.Now)
+                            if (!string.IsNullOrEmpty(time) && TimeSpan.TryParse(time, out TimeSpan ts))
                             {
-                                tranDate = DateTime.Now.AddDays(-1).ToString("MM-dd-yyyy");
+                                if (shift == 3 && ts >= new TimeSpan(23, 00, 00))
+                                {
+                                    tranDate = DateTime.Now.AddDays(1).ToString("MM-dd-yyyy");
+                                }
+                                else
+                                {
+                                    tranDate = DateTime.Now.ToString("MM-dd-yyyy");
+                                }
+                            }
+                            else
+                            {
+                                tranDate = DateTime.Now.ToString("MM-dd-yyyy");
                             }
                         }
                         var _inDL = new DirectLabor(stationId, empID, 'I', time, _wSplit[0], _wSplit[1], 0, 0, machID, CompletionFlag.N, crew, tranDate);

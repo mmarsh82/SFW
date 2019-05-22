@@ -30,8 +30,8 @@
     <PublisherName>Michael Marsh</PublisherName>
     <SuiteName>WCCO Belting Inc.</SuiteName>
     <AutorunEnabled>true</AutorunEnabled>
-    <ApplicationRevision>950</ApplicationRevision>
-    <ApplicationVersion>1.0.94.950</ApplicationVersion>
+    <ApplicationRevision>955</ApplicationRevision>
+    <ApplicationVersion>1.0.95.955</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <CreateDesktopShortcut>true</CreateDesktopShortcut>
     <PublishWizardCompleted>true</PublishWizardCompleted>
