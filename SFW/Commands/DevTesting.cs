@@ -1,4 +1,4 @@
-﻿using SFW.Model;
+﻿using M2kClient;
 using System;
 using System.Windows.Input;
 
@@ -14,7 +14,7 @@ namespace SFW.Commands
         /// <param name="parameter"></param>
         public void Execute(object parameter)
         {
-            System.Windows.MessageBox.Show(CrewMember.GetLastClockTime(1844, 1, App.AppSqlCon));
+            M2kCommand.PostLabor("Testing", 2017, 3, "12345*10", 7, "41006", ' ', null, "23:00", 3);
         }
         public bool CanExecute(object parameter) => true;
     }

@@ -378,16 +378,9 @@ namespace M2kClient
                     {
                         if (string.IsNullOrEmpty(tranDate))
                         {
-                            if (!string.IsNullOrEmpty(time) && TimeSpan.TryParse(time, out TimeSpan ts))
+                            if (shift == 3 && DateTime.Now.TimeOfDay < new TimeSpan(23, 59, 59) && DateTime.Now.TimeOfDay > new TimeSpan(19, 00, 00))
                             {
-                                if (shift == 3 && ts >= new TimeSpan(23, 00, 00))
-                                {
-                                    tranDate = DateTime.Now.AddDays(1).ToString("MM-dd-yyyy");
-                                }
-                                else
-                                {
-                                    tranDate = DateTime.Now.ToString("MM-dd-yyyy");
-                                }
+                                tranDate = DateTime.Now.AddDays(1).ToString("MM-dd-yyyy");
                             }
                             else
                             {
