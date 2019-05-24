@@ -546,9 +546,9 @@ namespace SFW.Model
                         return string.Empty;
                     }
                 }
-                catch (SqlException sqlEx)
+                catch (SqlException)
                 {
-                    throw sqlEx;
+                    return string.Empty;
                 }
                 catch (Exception ex)
                 {

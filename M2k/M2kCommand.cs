@@ -249,7 +249,7 @@ namespace M2kClient
             #region Wip Process
 
             var _subResult = new Dictionary<int, string>();
-            var suffix = DateTime.Now.ToString("mmddmmssff");
+            var suffix = DateTime.Now.ToString("mmddmmssfff");
             if (string.IsNullOrEmpty(wipRecord.WipLot.LotNumber) && isLot)
             {
                 var _response = GetLotNumber(connection);
@@ -272,7 +272,7 @@ namespace M2kClient
             if (!string.IsNullOrEmpty(_tWip.StationId))
             {
                 File.WriteAllText($"{connection.SFDCFolder}WPC2K.DAT{suffix}", _tWip.ToString());
-                suffix = DateTime.Now.ToString("mmddmmssff");
+                suffix = DateTime.Now.ToString("mmddmmssfff");
                 if (!string.IsNullOrEmpty(wipRecord.WipLot.LotNumber))
                 {
                     System.Windows.MessageBox.Show($"Assinged to Lot Number:\n{wipRecord.WipLot.LotNumber}", "New Lot Number", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
@@ -305,7 +305,7 @@ namespace M2kClient
                     if (c.WipInfo.Sum(o => o.BaseQty) > 0)
                     {
                         File.WriteAllText($"{connection.BTIFolder}ISSUEC2K.DAT{suffix}", _issue.ToString());
-                        suffix = DateTime.Now.ToString("mmddmmssff");
+                        suffix = DateTime.Now.ToString("mmddmmssfff");
                     }
                 }
             }
@@ -365,7 +365,7 @@ namespace M2kClient
             var _subResult = new Dictionary<int, string>();
             try
             {
-                var suffix = DateTime.Now.ToString("mmddmmssff");
+                var suffix = DateTime.Now.ToString("mmddmmssfff");
                 if (!woAndSeq.Contains('*'))
                 {
                     _subResult.Add(1, "Work order or sequence is not in the correct format to pass into M2k.");
@@ -378,14 +378,9 @@ namespace M2kClient
                     {
                         if (string.IsNullOrEmpty(tranDate))
                         {
-                            if (shift == 3 && DateTime.Now.TimeOfDay < new TimeSpan(23, 59, 59) && DateTime.Now.TimeOfDay > new TimeSpan(19, 00, 00))
-                            {
-                                tranDate = DateTime.Now.AddDays(1).ToString("MM-dd-yyyy");
-                            }
-                            else
-                            {
-                                tranDate = DateTime.Now.ToString("MM-dd-yyyy");
-                            }
+                            tranDate = shift == 3 && (DateTime.Now.TimeOfDay < new TimeSpan(23, 59, 59) && DateTime.Now.TimeOfDay > new TimeSpan(19, 00, 00))
+                                ? DateTime.Now.AddDays(1).ToString("MM-dd-yyyy")
+                                : DateTime.Now.ToString("MM-dd-yyyy");
                         }
                         var _inDL = new DirectLabor(stationId, empID, 'I', time, _wSplit[0], _wSplit[1], 0, 0, machID, CompletionFlag.N, crew, tranDate);
 

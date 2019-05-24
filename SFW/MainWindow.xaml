@@ -65,7 +65,9 @@
                           InputGestureText="Esc"
                           Visibility="{Binding Path=(local:CurrentUser.IsLoggedIn), Converter={StaticResource BoolToVisConverter}}"/>
                 <MenuItem Header="Train Mode"
-                          IsEnabled="False" />
+                          IsCheckable="True"
+                          IsChecked="{Binding InTraining, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                          Visibility="{Binding Path=(local:CurrentUser.IsAdmin), Converter={StaticResource BoolToVisConverter}}"/>
                 <MenuItem Header="Default Work Center"
                           ItemsSource="{Binding DefaultMachineList}"
                           DisplayMemberPath="MachineName"
@@ -209,6 +211,15 @@
                        VerticalAlignment="Center"
                        Foreground="Crimson"
                        Visibility="{Binding CanUpdate, Converter={StaticResource BoolToVisConverter}}"/>
+
+            <TextBlock Text="Training Mode"
+                       FontSize="16"
+                       FontWeight="Bold"
+                       HorizontalAlignment="Left"
+                       VerticalAlignment="Center"
+                       Foreground="Crimson"
+                       Margin="20,0,0,0"
+                       Visibility="{Binding InTraining, Converter={StaticResource BoolToVisConverter}}"/>
         </Grid>
 
         <!--#endregion-->

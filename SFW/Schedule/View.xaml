@@ -46,7 +46,8 @@
                           Command="{Binding DataContext.PriChangeICommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type DataGrid}}}"
                           CommandParameter="D" />
             </MenuItem>
-            <StackPanel Orientation="Horizontal">
+            <StackPanel Orientation="Horizontal"
+                        Visibility="{Binding Path=(local:CurrentUser.CanSchedule), Converter={StaticResource BoolToVisConverter}}">
                 <TextBox Width="85"
                          FontSize="18"
                          Margin="3"
@@ -66,6 +67,11 @@
 
     <Grid>
 
+        <Grid.RowDefinitions>
+            <RowDefinition Height="40" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
         <TextBlock Text="Loading..."
                    FontSize="32"
                    FontWeight="Bold"
@@ -74,7 +80,27 @@
                    VerticalAlignment="Center"
                    Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisConverter}}"/>
 
+        <StackPanel Grid.Row="0"
+                    Orientation="Horizontal">
+            
+            <TextBlock Text="Search:"
+                       FontSize="18"
+                       FontWeight="Bold"
+                       TextDecorations="Underline"
+                       Margin="10,0,0,0"
+                       VerticalAlignment="Center" />
+            
+            <TextBox x:Name="SearchTextBox"
+                     Text="{Binding SearchFilter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                     Width="200"
+                     FontSize="18"
+                     Margin="5"
+                     Background="LightGray"
+                     Style="{DynamicResource OptionalTextBox}" />
+        </StackPanel>
+
         <DataGrid x:Name="WorkCenterSchedule"
+                  Grid.Row="1"
                   ItemsSource="{Binding ScheduleView, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                   SelectedItem="{Binding SelectedWorkOrder, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                   HorizontalAlignment="Left"

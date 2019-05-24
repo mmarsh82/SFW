@@ -36,6 +36,31 @@ namespace SFW
         }
 
         /// <summary>
+        /// Build a DataView RowFilter Search query based on search input criteria
+        /// </summary>
+        /// <param name="table">Source DataTable</param>
+        /// <param name="query">Search string</param>
+        public static string SearchRowFilter(this DataTable table, string query)
+        {
+            var columnNames = (from dc in table.Columns.Cast<DataColumn>() select dc.ColumnName).ToArray();
+            var counter = 0;
+            var queryBuilder = new StringBuilder();
+            foreach (var name in columnNames)
+            {
+                if (counter == 0)
+                {
+                    queryBuilder.Append($"Convert(`{name}`, 'System.String') LIKE '%{query}%'");
+                }
+                else
+                {
+                    queryBuilder.Append($"OR Convert(`{name}`, 'System.String') LIKE '%{query}%'");
+                }
+                counter++;
+            }
+            return queryBuilder.ToString();
+        }
+
+        /// <summary>
         /// Retrieve the description attribute set for an enum value
         /// </summary>
         /// <param name="e">Current Enum</param>

@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Windows.Input;
 using System.Xml.Linq;
+using M2kClient;
 
 //Created by Michael Marsh 4-19-18
 
@@ -64,6 +65,7 @@ namespace SFW
                                     ((ShopRoute.ViewModel)((ShopRoute.View)WorkSpaceDock.ClosedDock.Children[1]).DataContext).ShopOrder = new WorkOrder();
                                 }
                                 ((DataView)((Schedule.Closed.ViewModel)((Schedule.Closed.View)WorkSpaceDock.ClosedDock.Children[0]).DataContext).ClosedScheduleView.SourceCollection).RowFilter = _filter;
+                                ((Schedule.Closed.ViewModel)((Schedule.Closed.View)WorkSpaceDock.ClosedDock.Children[0]).DataContext).SearchFilter = null;
                                 ((Schedule.Closed.ViewModel)((Schedule.Closed.View)WorkSpaceDock.ClosedDock.Children[0]).DataContext).ClosedScheduleView.Refresh();
                             }
                         }));
@@ -82,6 +84,7 @@ namespace SFW
                                     ((ShopRoute.ViewModel)((ShopRoute.View)_dock.Children[1]).DataContext).ShopOrder = new WorkOrder();
                                 }
                                 ((DataView)((Schedule.ViewModel)((Schedule.View)_dock.Children[0]).DataContext).ScheduleView.SourceCollection).RowFilter = _filter;
+                                ((Schedule.ViewModel)((Schedule.View)_dock.Children[0]).DataContext).SearchFilter = null;
                                 ((Schedule.ViewModel)((Schedule.View)_dock.Children[0]).DataContext).ScheduleView.Refresh();
                             }
                         }));
@@ -117,6 +120,7 @@ namespace SFW
                             if (((Schedule.ViewModel)((Schedule.View)WorkSpaceDock.ClosedDock.Children[0]).DataContext).ScheduleView != null)
                             {
                                 ((DataView)((Schedule.Closed.ViewModel)((Schedule.Closed.View)WorkSpaceDock.ClosedDock.Children[0]).DataContext).ClosedScheduleView.SourceCollection).RowFilter = _temp;
+                                ((Schedule.Closed.ViewModel)((Schedule.Closed.View)WorkSpaceDock.ClosedDock.Children[0]).DataContext).SearchFilter = null;
                             }
                         }));
                     }
@@ -128,6 +132,7 @@ namespace SFW
                         if (((Schedule.ViewModel)((Schedule.View)_dock.Children[0]).DataContext).ScheduleView != null)
                         {
                             ((DataView)((Schedule.ViewModel)((Schedule.View)_dock.Children[0]).DataContext).ScheduleView.SourceCollection).RowFilter = _temp;
+                            ((Schedule.ViewModel)((Schedule.View)_dock.Children[0]).DataContext).SearchFilter = null;
                         }
                     }
                     SelectedMachine = MachineList.FirstOrDefault(o => o.MachineName == "All");
@@ -172,6 +177,36 @@ namespace SFW
             set { cUpdate = value; OnPropertyChanged(nameof(CanUpdate)); }
         }
 
+        private static bool iTraining;
+        public static bool InTraining
+        {
+            get { return iTraining; }
+            set
+            {
+                if (value)
+                {
+                    if (Enum.TryParse($"{App.ErpCon.Database}TRAIN", out Database db))
+                    {
+                        App.ErpCon.DatabaseChange(db);
+                    }
+                    else
+                    {
+                        System.Windows.MessageBox.Show("There is currently no train account set up for your ERP database.\nPlease contact the IT administrator for further help.", "No Train Database", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
+                        value = false;
+                    }
+                }
+                else if (!value && App.AppSqlCon.Database.Replace('_', '.') != $"{App.ErpCon.Database.ToString()}.MAIN")
+                {
+                    if (Enum.TryParse(App.AppSqlCon.Database.Replace('_', '.'), out Database db))
+                    {
+                        App.ErpCon.DatabaseChange(db);
+                    }
+                }
+                iTraining = value;
+                StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(InTraining)));
+            }
+        }
+
         private static bool IsChanging;
         public static event EventHandler<PropertyChangedEventArgs> StaticPropertyChanged;
         public event EventHandler CanExecuteChanged;
@@ -188,6 +223,7 @@ namespace SFW
             DefaultMachineList.Insert(0, new Machine { MachineName = "None" });
             IsChanging = false;
             CanUpdate = false;
+            InTraining = false;
             new WorkSpaceDock();
             RefreshTimer.Add(MainUpdate);
         }

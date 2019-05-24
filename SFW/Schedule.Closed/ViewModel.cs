@@ -68,6 +68,14 @@ namespace SFW.Schedule.Closed
             ClosedScheduleView = CollectionViewSource.GetDefaultView(Machine.GetClosedScheduleData(App.AppSqlCon));
             ClosedScheduleView.GroupDescriptions.Add(new PropertyGroupDescription("MachineNumber", new WorkCenterNameConverter(MachineList)));
             ClosedScheduleView.Refresh();
+            if (MainWindowViewModel.SelectedMachine != null && MainWindowViewModel.SelectedMachine.MachineName != "All")
+            {
+                ((DataView)ClosedScheduleView.SourceCollection).RowFilter = $"MachineName = '{MainWindowViewModel.SelectedMachine.MachineName}'";
+            }
+            if (MainWindowViewModel.SelectedMachine != null && MainWindowViewModel.SelectedMachineGroup != "All" && MainWindowViewModel.SelectedMachine.MachineName == "All")
+            {
+                ((DataView)ClosedScheduleView.SourceCollection).RowFilter = $"MachineGroup = '{MainWindowViewModel.SelectedMachineGroup}'";
+            }
         }
     }
 }

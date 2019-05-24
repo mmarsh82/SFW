@@ -54,6 +54,34 @@ namespace SFW.Schedule
             set { _isLoading = value; OnPropertyChanged(nameof(IsLoading)); }
         }
 
+        private string _originalFilter;
+        private string _sFilter;
+        public string SearchFilter
+        {
+            get { return _sFilter; }
+            set
+            {
+                if (_sFilter == null || value == null)
+                {
+                    _originalFilter = ((DataView)ScheduleView.SourceCollection).RowFilter;
+                }
+                if (!string.IsNullOrEmpty(value))
+                {
+                    var _sRowFilter = ((DataView)ScheduleView.SourceCollection).Table.SearchRowFilter(value);
+                    ((DataView)ScheduleView.SourceCollection).RowFilter = !string.IsNullOrEmpty(_originalFilter)
+                        ? $"{_originalFilter} AND ({_sRowFilter})"
+                        :_sRowFilter;
+                }
+                else
+                {
+                    ((DataView)ScheduleView.SourceCollection).RowFilter = _originalFilter;
+                }
+                _sFilter = value == "" ? null : value;
+                OnPropertyChanged(nameof(SearchFilter));
+                ScheduleView.Refresh();
+            }
+        }
+
         public delegate void LoadDelegate(string s);
         public LoadDelegate LoadAsyncDelegate { get; private set; }
         public LoadDelegate FilterAsyncDelegate { get; private set; }
@@ -168,10 +196,6 @@ namespace SFW.Schedule
                         var listIndex = schedList.FindIndex(r => r.Field<string>("WO_Number") == ((DataRowView)_oldItem).Row.Field<string>("WO_Number"));
                         ScheduleView.MoveCurrentToPosition(listIndex);
                     }
-                    else
-                    {
-                        ScheduleView.MoveCurrentToPosition(-1);
-                    }
                     if (MainWindowViewModel.SelectedMachine.MachineName != "All" && string.IsNullOrEmpty(_db))
                     {
                         ((DataView)ScheduleView.SourceCollection).RowFilter = $"MachineName = '{MainWindowViewModel.SelectedMachine.MachineName}'";
@@ -183,9 +207,14 @@ namespace SFW.Schedule
                     if (!string.IsNullOrEmpty(_db))
                     {
                         App.DatabaseChange(_db);
+                        MainWindowViewModel.InTraining = MainWindowViewModel.InTraining;
                     }
                     RefreshTimer.IsRefreshing = IsLoading = false;
                     ScheduleView.Refresh();
+                    if (!string.IsNullOrEmpty(SearchFilter))
+                    {
+                        SearchFilter = SearchFilter;
+                    }
                 }
             }
             catch (Exception)
