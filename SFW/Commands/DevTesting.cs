@@ -14,7 +14,7 @@ namespace SFW.Commands
         /// <param name="parameter"></param>
         public void Execute(object parameter)
         {
-            M2kCommand.PostLabor("Testing", 2017, 3, "12345*10", 7, "41006", ' ', null, "23:00", 3);
+            new ShopRoute.Temp.QTask.View().Show();
         }
         public bool CanExecute(object parameter) => true;
     }

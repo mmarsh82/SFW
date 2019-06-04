@@ -439,5 +439,38 @@ namespace SFW.Model
                 throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
             }
         }
+
+        /// <summary>
+        /// Get the default or backflush location for any part number
+        /// </summary>
+        /// <param name="partNbr">Sku Number</param>
+        /// <param name="sqlCon">Sql Connection to use</param>
+        /// <returns>backflush or default location as string</returns>
+        public static string GetBackFlushLoc(string partNbr, SqlConnection sqlCon)
+        {
+            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
+            {
+                try
+                {
+                    using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database}; SELECT [Wip_Rec_Loc] FROM [dbo].[IPL-INIT] WHERE [Part_Nbr] = @p1;", sqlCon))
+                    {
+                        cmd.Parameters.AddWithValue("p1", partNbr);
+                        return cmd.ExecuteScalar()?.ToString();
+                    }
+                }
+                catch (SqlException sqlEx)
+                {
+                    throw sqlEx;
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception(ex.Message);
+                }
+            }
+            else
+            {
+                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
+            }
+        }
     }
 }

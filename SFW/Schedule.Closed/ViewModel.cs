@@ -40,15 +40,31 @@ namespace SFW.Schedule.Closed
             set { _isLoading = value; OnPropertyChanged(nameof(IsLoading)); }
         }
 
+        private string _originalFilter;
         private string _sFilter;
         public string SearchFilter
         {
             get { return _sFilter; }
             set
             {
-                ((DataView)ClosedScheduleView.SourceCollection).Table.Search(value);
-                _sFilter = value;
+                if (_sFilter == null || value == null)
+                {
+                    _originalFilter = ((DataView)ClosedScheduleView.SourceCollection).RowFilter;
+                }
+                if (!string.IsNullOrEmpty(value))
+                {
+                    var _sRowFilter = ((DataView)ClosedScheduleView.SourceCollection).Table.SearchRowFilter(value);
+                    ((DataView)ClosedScheduleView.SourceCollection).RowFilter = !string.IsNullOrEmpty(_originalFilter)
+                        ? $"{_originalFilter} AND ({_sRowFilter})"
+                        : _sRowFilter;
+                }
+                else
+                {
+                    ((DataView)ClosedScheduleView.SourceCollection).RowFilter = _originalFilter;
+                }
+                _sFilter = value == "" ? null : value;
                 OnPropertyChanged(nameof(SearchFilter));
+                ClosedScheduleView.Refresh();
             }
         }
 

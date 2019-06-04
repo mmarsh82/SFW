@@ -9,7 +9,7 @@ namespace M2kClient.M2kADIArray
         /// <summary>
         /// Field 1
         /// Transaction Type
-        /// Statically set to WIP
+        /// Statically set to LD
         /// </summary>
         public string TranType { get { return "LD"; } }
 

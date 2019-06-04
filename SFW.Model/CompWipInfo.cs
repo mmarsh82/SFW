@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿using SFW.Model.Enumerations;
+using System.ComponentModel;
 
 namespace SFW.Model
 {
@@ -38,6 +39,39 @@ namespace SFW.Model
         public string PartNbr { get; set; }
         public bool IsBackFlush { get; set; }
         public int BaseQty { get; set; }
+        public int? ScrapQty { get; set; }
+
+        private string sReason;
+        public string ScrapReason
+        {
+            get { return sReason; }
+            set { sReason = value; OnPropertyChanged(nameof(ScrapReason)); }
+        }
+
+        private string sRef;
+        public string ScrapReference
+        {
+            get { return sRef; }
+            set { sRef = value; OnPropertyChanged(nameof(ScrapReference)); }
+        }
+
+        private Complete isScrap;
+        public Complete IsScrap
+        {
+            get { return isScrap; }
+            set
+            {
+                isScrap = value;
+                if (value == Complete.N)
+                {
+                    ScrapReason = string.Empty;
+                    ScrapQty = null;
+                    OnPropertyChanged(nameof(ScrapQty));
+                    ScrapReference = string.Empty;
+                }
+                OnPropertyChanged(nameof(IsScrap));
+            }
+        }
 
         #endregion
 
@@ -66,11 +100,13 @@ namespace SFW.Model
         /// </summary>
         /// <param name="hasBFLoc">Does the component have a default backflush location</param>
         /// <param name="partNbr">Part Number of the component</param>
+        /// <param name="uom">Part Unit of Measure of the component</param>
         public CompWipInfo(bool hasBFLoc, string partNbr)
         {
             IsBackFlush = hasBFLoc;
             PartNbr = partNbr;
             QtyLock = false;
+            IsScrap = Complete.N;
         }
     }
 }

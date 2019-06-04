@@ -16,51 +16,42 @@
         <cvtr:Multi_EqualIntToVisibility x:Key="IntEqualConverter"/>
         <cvtr:IntToVisibility x:Key="IntToVisConverter" />
         <cvtr:WoPriorityToBool x:Key="PriToBoolConverter"/>
+        <cvtr:StringToVisibility x:Key="StringToVisConverter"/>
 
         <ContextMenu x:Key="rowMenu">
-            <MenuItem Header="Priority"
-                      FontSize="18"
+            <MenuItem Header="Work Order State"
+                      FontSize="16"
                       Visibility="{Binding Path=(local:CurrentUser.CanSchedule), Converter={StaticResource BoolToVisConverter}}">
                 <MenuItem Header="Critical"
                           Background="#FFF3321F"
                           IsCheckable="True"
                           IsChecked="{Binding WO_Priority, Converter={StaticResource PriToBoolConverter}, ConverterParameter=A}"
-                          Command="{Binding DataContext.PriChangeICommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type DataGrid}}}"
+                          Command="{Binding DataContext.StateChangeICommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type DataGrid}}}"
                           CommandParameter="A" />
                 <MenuItem Header="Released"
                           Background="#FF29D129"
                           IsCheckable="True"
                           IsChecked="{Binding WO_Priority, Converter={StaticResource PriToBoolConverter}, ConverterParameter=B}"
-                          Command="{Binding DataContext.PriChangeICommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type DataGrid}}}"
+                          Command="{Binding DataContext.StateChangeICommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type DataGrid}}}"
                           CommandParameter="B" />
                 <MenuItem Header="Verified"
                           Background="LightSlateGray"
                           IsCheckable="True"
                           IsChecked="{Binding WO_Priority, Converter={StaticResource PriToBoolConverter}, ConverterParameter=C}"
-                          Command="{Binding DataContext.PriChangeICommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type DataGrid}}}"
+                          Command="{Binding DataContext.StateChangeICommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type DataGrid}}}"
                           CommandParameter="C" />
                 <MenuItem Header="Pending"
                           Background="GhostWhite"
                           IsCheckable="True"
                           IsChecked="{Binding WO_Priority, Converter={StaticResource PriToBoolConverter}, ConverterParameter=D}"
-                          Command="{Binding DataContext.PriChangeICommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type DataGrid}}}"
+                          Command="{Binding DataContext.StateChangeICommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type DataGrid}}}"
                           CommandParameter="D" />
             </MenuItem>
-            <StackPanel Orientation="Horizontal"
-                        Visibility="{Binding Path=(local:CurrentUser.CanSchedule), Converter={StaticResource BoolToVisConverter}}">
-                <TextBox Width="85"
-                         FontSize="18"
-                         Margin="3"
-                         Text="{Binding PriTime, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                         Style="{DynamicResource RequiredTextBox}"/>
-                <Button Width="85"
-                        FontSize="16"
-                        Margin="3"
-                        Content="Update"
-                        Command="{Binding DataContext.OrderChangeICommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type DataGrid}}}"
-                        CommandParameter="{Binding}"
-                        Style="{DynamicResource DefaultButton}"/>
-            </StackPanel>
+            <MenuItem Header="Change Priority"
+                      FontSize="16"
+                      Visibility="{Binding Path=(local:CurrentUser.CanSchedule), Converter={StaticResource BoolToVisConverter}}"
+                      Command="{Binding DataContext.PriorityChangeICommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type DataGrid}}}"
+                      CommandParameter="{Binding}"/>
         </ContextMenu>
         
     </UserControl.Resources>
@@ -117,7 +108,7 @@
                 <DataGridTemplateColumn>
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
-                            <StackPanel Orientation="Vertical" MinWidth="690">
+                            <StackPanel Orientation="Vertical" MinWidth="780">
                                 <Grid>
                                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Left">
                                         <TextBlock Text="{Binding WO_Number, Converter={StaticResource WorkOrderConverter}}" FontSize="24" FontWeight="Bold"/>
@@ -135,6 +126,18 @@
                                                Margin="10,0,0,0"
                                                Height="25"
                                                Width="25" />
+                                        <Image Source="/SFW;component/Icons/First.ico"
+                                               Visibility="{Binding PriTime, Converter={StaticResource StringToVisConverter}, ConverterParameter=~01}"
+                                               ToolTip="Work order created for 1st shift."
+                                               Margin="10,0,0,0" Height="25" Width="25"/>
+                                        <Image Source="/SFW;component/Icons/Second.ico"
+                                               Visibility="{Binding PriTime, Converter={StaticResource StringToVisConverter}, ConverterParameter=~02}"
+                                               ToolTip="Work order created for 2nd shift."
+                                               Margin="10,0,0,0" Height="25" Width="25"/>
+                                        <Image Source="/SFW;component/Icons/Third.ico"
+                                               Visibility="{Binding PriTime, Converter={StaticResource StringToVisConverter}, ConverterParameter=~03}"
+                                               ToolTip="Work order created for 3rd shift."
+                                               Margin="10,0,0,0" Height="25" Width="25"/>
                                     </StackPanel>
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                                         <TextBlock Text="{Binding SkuNumber}" VerticalAlignment="Center"/>
@@ -162,6 +165,8 @@
                                         <TextBlock Text="{Binding WO_DueDate, StringFormat=d}" Margin="5,0,0,0"/>
                                         <TextBlock Text="Run:" Margin="20,0,0,0" TextDecorations="Underline"/>
                                         <TextBlock Text="{Binding RunTime, StringFormat={}{0} hr}" Margin="5,0,0,0"/>
+                                        <TextBlock Text="Priority:" TextDecorations="Underline" Margin="20,0,0,0" Visibility="{Binding PriTime, Converter={StaticResource StringToVisConverter}, ConverterParameter=PriTime}"/>
+                                        <TextBlock Text="{Binding Sched_Priority}" Margin="5,0,0,0" Visibility="{Binding PriTime, Converter={StaticResource StringToVisConverter}, ConverterParameter=PriTime}"/>
                                     </StackPanel>
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
                                         <TextBlock Text="Need" Margin="0,0,5,0">
@@ -323,6 +328,7 @@
                             <Setter Property="BorderBrush"
                                     Value="DarkMagenta" />
                         </MultiDataTrigger>
+                        
                     </Style.Triggers>
                 </Style>
             </DataGrid.CellStyle>

@@ -74,7 +74,7 @@ namespace SFW.ShopRoute
         public bool CanCheckHistory { get { return ShopOrder?.StartQty != ShopOrder?.CurrentQty; } }
         public bool HasStarted { get { return CurrentUser.IsLoggedIn && MachineGroup == "PRESS" && ShopOrder.ActStartDate != DateTime.MinValue; } }
         public bool CanStart { get { return CurrentUser.IsLoggedIn && MachineGroup == "PRESS" && ShopOrder.ActStartDate == DateTime.MinValue; } }
-        public bool CanSeeWip { get { return CurrentUser.IsLoggedIn && ((MachineGroup == "PRESS" && HasStarted) || MachineGroup != "PRESS"); } }
+        public bool CanSeeWip { get { return CurrentUser.IsLoggedIn; } }
         public bool CanReport { get { return CurrentUser.IsLoggedIn && MachineGroup == "PRESS" && HasStarted; } }
         public bool CanIntReport { get { return CurrentUser.IsLoggedIn && MachineGroup != "PRESS" && CanCheckHistory && CurrentSite == 1; } }
 

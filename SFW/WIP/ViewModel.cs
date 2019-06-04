@@ -2,6 +2,8 @@
 using SFW.Helpers;
 using SFW.Model;
 using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows.Input;
 
@@ -48,15 +50,6 @@ namespace SFW.WIP
             set { tQty = value; OnPropertyChanged(nameof(TQty)); }
         }
 
-        public string RLocation
-        {
-            get { return WipRecord.ReceiptLocation; }
-            set
-            {
-                
-            }
-        }
-
         private bool vLoc;
         public bool ValidLocation
         {
@@ -67,6 +60,13 @@ namespace SFW.WIP
         public bool IsLotTrace
         {
             get { return WipRecord.IsLotTracable || WipRecord.WipWorkOrder.Bom.Count(o => o.IsLotTrace) > 0; }
+        }
+
+        public ObservableCollection<string> ScrapReasonCollection { get; set; }
+        public string SelectedReason
+        {
+            get { return WipRecord.ScrapReason; }
+            set { WipRecord.ScrapReason = value; OnPropertyChanged(nameof(SelectedReason)); }
         }
 
         RelayCommand _wip;
@@ -82,6 +82,16 @@ namespace SFW.WIP
         public ViewModel(WorkOrder woObject)
         {
             WipRecord = new WipReceipt(CurrentUser.FirstName, CurrentUser.LastName, woObject, App.AppSqlCon);
+            if (ScrapReasonCollection == null)
+            {
+                var _tempList = Enum.GetValues(typeof(M2kClient.AdjustCode)).Cast<M2kClient.AdjustCode>().Where(o => o != M2kClient.AdjustCode.CC);
+                var _descList = new List<string>();
+                foreach (var e in _tempList)
+                {
+                    _descList.Add(e.GetDescription());
+                }
+                ScrapReasonCollection = new ObservableCollection<string>(_descList);
+            }
         }
 
         /// <summary>
@@ -125,15 +135,22 @@ namespace SFW.WIP
 
         private void WipExecute(object parameter)
         {
-            //TODO: add in the location and lot validation
-            var _machID = WipRecord.CrewList?.Count > 0 ? WorkOrder.GetAssignedMachineID(WipRecord.WipWorkOrder.OrderNumber, WipRecord.WipWorkOrder.Seq, App.AppSqlCon) : "";
-            var _wipProc = M2kClient.M2kCommand.ProductionWip(WipRecord, WipRecord.CrewList?.Count > 0, App.ErpCon, WipRecord.IsLotTracable, _machID);
-            if (_wipProc != null && _wipProc.First().Key > 0)
+            if (WipReceipt.ValidLocation(WipRecord.ReceiptLocation, App.AppSqlCon))
             {
-                WipRecord.WipLot.LotNumber = _wipProc.First().Value;
-                OnPropertyChanged(nameof(WipRecord));
-                TQty = WipQuantity;
-                WipQuantity = null;
+                var _machID = WipRecord.CrewList?.Count > 0 ? WorkOrder.GetAssignedMachineID(WipRecord.WipWorkOrder.OrderNumber, WipRecord.WipWorkOrder.Seq, App.AppSqlCon) : "";
+                var _wipProc = M2kClient.M2kCommand.ProductionWip(WipRecord, WipRecord.CrewList?.Count > 0, App.ErpCon, WipRecord.IsLotTracable, _machID);
+                if (_wipProc != null && _wipProc.First().Key > 0)
+                {
+                    WipRecord.WipLot.LotNumber = _wipProc.First().Value;
+                    WipRecord.IsScrap = Model.Enumerations.Complete.N;
+                    OnPropertyChanged(nameof(WipRecord));
+                    TQty = WipQuantity;
+                    WipQuantity = null;
+                }
+            }
+            else
+            {
+                System.Windows.MessageBox.Show("You have entered an invalid receipt location.\nPlease double check your entery and try again.", "Invalid Location", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Warning);
             }
         }
         private bool WipCanExecute(object parameter) => WipRecord?.WipQty > 0 && !string.IsNullOrEmpty(WipRecord?.ReceiptLocation) && ValidateComponents();

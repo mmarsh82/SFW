@@ -4,13 +4,13 @@ namespace M2kClient
 {
     public enum Database
     {
-        [Description("\\\\manage\\Manage\\ROI\\WCCO.MAIN\\")]
+        [Description("\\\\ERP-WCCO\\ERP\\ROI\\WCCO.MAIN\\")]
         WCCO = 0,
-        [Description("\\\\manage\\Manage\\ROI\\CSI.MAIN\\")]
+        [Description("\\\\ERP-WCCO\\ERP\\ROI\\CSI.MAIN\\")]
         CSI = 1,
-        [Description("\\\\manage\\Manage\\ROI\\WCCO.TRAIN\\")]
+        [Description("\\\\ERP-WCCO\\ERP\\ROI\\WCCO.TRAIN\\")]
         WCCOTRAIN = 2,
-        [Description("\\\\manage\\Manage\\ROI\\CSI.TRAIN\\")]
+        [Description("\\\\ERP-WCCO\\ERP\\ROI\\CSI.TRAIN\\")]
         CSITRAIN = 3
     }
 }

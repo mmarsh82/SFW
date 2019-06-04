@@ -10,7 +10,6 @@ namespace SFW.Model
     public class Component
     {
         #region Properties
-
         public string CompNumber { get; set; }
         public string CompDescription { get; set; }
         public int CurrentOnHand { get; set; }
@@ -93,7 +92,7 @@ namespace SFW.Model
                                             ? new List<Lot>()
                                             : Lot.GetDedicatedLotList(reader.SafeGetString("Component"), woNbr, sqlCon),
                                         WipInfo = new BindingList<CompWipInfo>()
-                                    });
+                                    }); ;
                                     _tempList[_tempList.Count - 1].WipInfo.Add(new CompWipInfo(!string.IsNullOrEmpty(_tempList[_tempList.Count - 1].BackflushLoc), _tempList[_tempList.Count - 1].CompNumber));
                                     _tempList[_tempList.Count - 1].WipInfo.ListChanged += WipInfo_ListChanged;
                                     _tempList[_tempList.Count - 1].NonLotList = _tempList[_tempList.Count - 1].LotList.Count == 0 && !reader.IsDBNull(0)
@@ -135,6 +134,10 @@ namespace SFW.Model
                     if (!((BindingList<CompWipInfo>)sender)[e.NewIndex].IsBackFlush)
                     {
                         ((BindingList<CompWipInfo>)sender)[e.NewIndex].RcptLoc = Lot.GetLotLocation(((BindingList<CompWipInfo>)sender)[e.NewIndex].LotNbr, ModelBase.ModelSqlCon);
+                    }
+                    else
+                    {
+                        ((BindingList<CompWipInfo>)sender)[e.NewIndex].RcptLoc = Sku.GetBackFlushLoc(((BindingList<CompWipInfo>)sender)[e.NewIndex].PartNbr, ModelBase.ModelSqlCon);
                     }
                     var _unlocked = ((BindingList<CompWipInfo>)sender).Count(o => !string.IsNullOrEmpty(o.RcptLoc)) - ((BindingList<CompWipInfo>)sender).Count(c => c.QtyLock && !string.IsNullOrEmpty(c.RcptLoc));
                     var _newBase = ((BindingList<CompWipInfo>)sender)[e.NewIndex].BaseQty - ((BindingList<CompWipInfo>)sender).Where(w => w.QtyLock).Sum(s => s.LotQty);

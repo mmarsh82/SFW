@@ -399,14 +399,14 @@ namespace SFW.Model
                 {
                     id2++;
                 }
-                using (UniSession uSession = UniObjects.OpenSession("172.16.0.122", "omniquery", "omniquery", "E:/roi/WCCO.MAIN", "udcs"))
+                using (UniSession uSession = UniObjects.OpenSession("172.16.0.10", "omniquery", "omniquery", "E:/roi/WCCO.MAIN", "udcs"))
                 {
                     try
                     {
                         var uResponse = string.Empty;
                         using (UniCommand uCmd = uSession.CreateUniCommand())
                         {
-                            uCmd.Command = $"LIST LBR.DETAIL WITH @ID = \"{idNbr}*{id2}\" Out_Time";
+                            uCmd.Command = $"LIST LBR.DETAIL WITH @ID = \"{idNbr}*{id2}\" Latest_Time_Out";
                             uCmd.Execute();
                             uResponse = uCmd.Response;
                             if (!string.IsNullOrEmpty(uResponse))

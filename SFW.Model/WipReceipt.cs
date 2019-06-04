@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
 
@@ -71,6 +72,40 @@ namespace SFW.Model
         /// </summary>
         public bool IsLotTracable { get; set; }
 
+        private Complete isScrap;
+        /// <summary>
+        /// Whether is scrap for the wip receipt or not
+        /// </summary>
+        public Complete IsScrap
+        {
+            get { return isScrap; }
+            set
+            {
+                isScrap = value;
+                if (value == Complete.N)
+                {
+                    ScrapQty = null;
+                    ScrapReason = string.Empty;
+                    ScrapReference = string.Empty;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Quantity of scrap for the wip receipt
+        /// </summary>
+        public int? ScrapQty { get; set; }
+
+        /// <summary>
+        /// Reason for scrapping the material
+        /// </summary>
+        public string ScrapReason { get; set; }
+
+        /// <summary>
+        /// Reference information for scrapping the material
+        /// </summary>
+        public string ScrapReference { get; set; }
+
         #endregion
 
         /// <summary>
@@ -88,7 +123,8 @@ namespace SFW.Model
             WipLot = new Lot();
             WipWorkOrder = workOrder;
             WipWorkOrder.CrewSize = Sku.GetCrewSize(WipWorkOrder.SkuNumber, WipWorkOrder.Seq, sqlCon);
-            HasCrew = Machine.GetMachineGroup(sqlCon, workOrder.OrderNumber, workOrder.Seq) != "PRESS";
+            //HasCrew = Machine.GetMachineGroup(sqlCon, workOrder.OrderNumber, workOrder.Seq) != "PRESS";
+            HasCrew = true;
             if (HasCrew)
             {
                 CrewList = new BindingList<CrewMember>
@@ -99,6 +135,7 @@ namespace SFW.Model
                 CrewList.ListChanged += CrewList_ListChanged;
             }
             IsLotTracable = Sku.IsLotTracable(workOrder.SkuNumber, sqlCon);
+            IsScrap = Complete.N;
         }
 
         /// <summary>
@@ -121,6 +158,35 @@ namespace SFW.Model
                         ((BindingList<CrewMember>)sender).AddNew();
                     }
                 }
+            }
+        }
+
+        /// <summary>
+        /// Check to see if the location entered into any wip field is valid
+        /// </summary>
+        /// <param name="location">Location to check</param>
+        /// <param name="sqlCon">Sql Connection to use</param>
+        /// <returns>Valid location as bool</returns>
+        public static bool ValidLocation(string location, SqlConnection sqlCon)
+        {
+            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
+            {
+                try
+                {
+                    using (SqlCommand cmd = new SqlCommand($"USE {sqlCon.Database}; SELECT COUNT([ID]) FROM [dbo].[LOC_MASTER-INIT] WHERE [ID] = CONCAT('01*', @p1);", sqlCon))
+                    {
+                        cmd.Parameters.AddWithValue("p1", location);
+                        return Convert.ToInt32(cmd.ExecuteScalar()) > 0;
+                    }
+                }
+                catch (Exception)
+                {
+                    return false;
+                }
+            }
+            else
+            {
+                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
             }
         }
     }

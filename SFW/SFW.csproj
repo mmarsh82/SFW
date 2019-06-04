@@ -30,8 +30,8 @@
     <PublisherName>Michael Marsh</PublisherName>
     <SuiteName>WCCO Belting Inc.</SuiteName>
     <AutorunEnabled>true</AutorunEnabled>
-    <ApplicationRevision>971</ApplicationRevision>
-    <ApplicationVersion>1.0.98.971</ApplicationVersion>
+    <ApplicationRevision>1023</ApplicationRevision>
+    <ApplicationVersion>1.0.105.1023</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <CreateDesktopShortcut>true</CreateDesktopShortcut>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -122,6 +122,7 @@
     <Compile Include="Commands\WorkInstructions.cs" />
     <Compile Include="Converters\CrewToVisibility.cs" />
     <Compile Include="Converters\EnumToBool.cs" />
+    <Compile Include="Converters\EnumToVisibility.cs" />
     <Compile Include="Converters\IntToVisibility.cs" />
     <Compile Include="Converters\SiteNumberToBool.cs" />
     <Compile Include="Converters\SiteToVisibility.cs" />
@@ -153,7 +154,15 @@
       <DependentUpon>View.xaml</DependentUpon>
     </Compile>
     <Compile Include="ShopRoute\QTask\ViewModel.cs" />
+    <Compile Include="ShopRoute\Temp.QTask\View.xaml.cs">
+      <DependentUpon>View.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="ShopRoute\Temp.QTask\ViewModel.cs" />
     <Compile Include="Styles\Converters\RequiredWidthCutoff.cs" />
+    <Compile Include="Tools\PriorityEdit_View.xaml.cs">
+      <DependentUpon>PriorityEdit_View.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Tools\PriorityEdit_ViewModel.cs" />
     <Compile Include="UserConfig.cs" />
     <Compile Include="UserLogIn\View.xaml.cs">
       <DependentUpon>View.xaml</DependentUpon>
@@ -254,6 +263,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="ShopRoute\Temp.QTask\View.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Styles\Button.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -295,6 +308,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Styles\TextBox.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Tools\PriorityEdit_View.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -417,6 +434,13 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="ShopRoute\Details\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Icons\First.ico" />
+    <Resource Include="Icons\Second.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Icons\Third.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

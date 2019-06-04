@@ -249,8 +249,23 @@ namespace SFW
         /// </summary>
         public void MainUpdate()
         {
-            var path = "\\\\manage2\\fsw\\ShopFloorWorkbench\\Application Files\\";
-            CanUpdate = Version != Directory.GetDirectories(path).Last().Remove(0, path.Length).Remove(0, 4).Replace('_', '.');
+            try
+            {
+                var _ver = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
+                var _dirList = Directory.GetDirectories("\\\\manage2\\fsw\\ShopFloorWorkbench\\Application Files\\");
+                foreach (var d in _dirList)
+                {
+                    if (_ver < new Version(Path.GetFileName(d).Remove(0, 4).Replace('_', '.')))
+                    {
+                        CanUpdate = true;
+                        break;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
             if (CurrentUser.IsLoggedIn && int.TryParse(CurrentUser.UserIDNbr, out int i))
             {
                 var _endTime = CrewMember.GetShiftEndTime(i, App.AppSqlCon);

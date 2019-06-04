@@ -10,7 +10,7 @@ namespace M2kClient.M2kADIArray
         /// <summary>
         /// Field 1
         /// Transaction Type
-        /// Statically set to WIP
+        /// Statically set to ISSUE
         /// </summary>
         public string TranType { get { return "ISSUE"; } }
 
@@ -109,7 +109,7 @@ namespace M2kClient.M2kADIArray
             var _rValue = $"1~{TranType}~2~{StationId}~3~{TranTime}~4~{TranDate}~5~{FacilityCode}~6~{PartNbr}~7~{WorkOrderNbr}~8~{Operation}~10~{Reason}";
             foreach (var t in TranList)
             {
-                _rValue += !string.IsNullOrEmpty(t.LotNumber) ? $"\n13~{t.Quantity}~14~{t.Location}~15~{t.LotNumber}" : $"\n13~{t.Quantity}~14~{t.Location}";
+                _rValue += !string.IsNullOrEmpty(t.LotNumber) ? $"\n13~{t.Quantity}~14~{t.Location}~15~{t.LotNumber}|P" : $"\n13~{t.Quantity}~14~{t.Location}";
             }
             _rValue += "~99~COMPLETE";
             return _rValue;

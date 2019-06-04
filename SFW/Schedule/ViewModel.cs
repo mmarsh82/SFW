@@ -42,6 +42,10 @@ namespace SFW.Schedule
                     {
                         _tempDock.Children.Insert(1, new ShopRoute.QTask.View { DataContext = new ShopRoute.QTask.ViewModel(_wo) });
                     }
+                    if (App.SiteNumber != 0 && ShopRoute.Temp.QTask.ViewModel.HasQTask(_wo.SkuNumber))
+                    {
+                        new ShopRoute.Temp.QTask.View { DataContext = new ShopRoute.Temp.QTask.ViewModel(_wo.SkuNumber) }.ShowDialog();
+                    }
                 }
                 OnPropertyChanged(nameof(SelectedWorkOrder));
             }
@@ -92,8 +96,8 @@ namespace SFW.Schedule
 
         public string VMDataBase { get; set; }
 
+        private RelayCommand _stateChange;
         private RelayCommand _priChange;
-        private RelayCommand _orderPri;
 
         #endregion
 
@@ -221,21 +225,21 @@ namespace SFW.Schedule
             { }
         }
 
-        #region Priority Change ICommand
+        #region Order State Change ICommand
 
-        public ICommand PriChangeICommand
+        public ICommand StateChangeICommand
         {
             get
             {
-                if (_priChange == null)
+                if (_stateChange == null)
                 {
-                    _priChange = new RelayCommand(PriChangeExecute, PriChangeCanExecute);
+                    _stateChange = new RelayCommand(StateChangeExecute, StateChangeCanExecute);
                 }
-                return _priChange;
+                return _stateChange;
             }
         }
 
-        private void PriChangeExecute(object parameter)
+        private void StateChangeExecute(object parameter)
         {
             var _oldPri = SelectedWorkOrder?.Row?.ItemArray[8].ToString();
             if (!string.IsNullOrEmpty(parameter?.ToString()))
@@ -257,44 +261,35 @@ namespace SFW.Schedule
                 }
             }
         }
-        private bool PriChangeCanExecute(object parameter) => true;
+        private bool StateChangeCanExecute(object parameter) => true;
 
         #endregion
 
-        #region Order Change ICommand
+        #region Priority Change ICommand
 
-        public ICommand OrderChangeICommand
+        public ICommand PriorityChangeICommand
         {
             get
             {
-                if (_orderPri == null)
+                if (_priChange == null)
                 {
-                    _orderPri = new RelayCommand(OrderChangeExecute, OrderChangeCanExecute);
+                    _priChange = new RelayCommand(PriorityChangeExecute, PriorityChangeCanExecute);
                 }
-                return _orderPri;
+                return _priChange;
             }
         }
 
-        private void OrderChangeExecute(object parameter)
+        private void PriorityChangeExecute(object parameter)
         {
-            var _oldPri = ((DataRowView)parameter).Row.ItemArray[15].ToString();
+            var _shift = ((DataRowView)parameter).Row.ItemArray[15].ToString() == "9" ? 0 : Convert.ToInt32(((DataRowView)parameter).Row.ItemArray[15]);
+            var _pri = ((DataRowView)parameter).Row.ItemArray[16].ToString() == "9" ? 0 : Convert.ToInt32(((DataRowView)parameter).Row.ItemArray[16]);
             var _woNumber = ((DataRowView)parameter).Row.ItemArray[0].ToString().Split('*')[0];
-            var _changeRequest = M2kCommand.EditRecord("WP", _woNumber, 195, parameter.ToString(), App.ErpCon);
-            if (!string.IsNullOrEmpty(_changeRequest))
+            using (var _editPri = new Tools.PriorityEdit_ViewModel(_woNumber, _shift, _pri))
             {
-                MessageBox.Show(_changeRequest, "ERP Record Error");
-                SelectedWorkOrder.BeginEdit();
-                SelectedWorkOrder["PriTime"] = _oldPri;
-                SelectedWorkOrder.EndEdit();
-            }
-            else
-            {
-                SelectedWorkOrder.BeginEdit();
-                SelectedWorkOrder["PriTime"] = ((DataRowView)parameter).Row.ItemArray[15].ToString();
-                SelectedWorkOrder.EndEdit();
+                new Tools.PriorityEdit_View { DataContext = _editPri }.ShowDialog();
             }
         }
-        private bool OrderChangeCanExecute(object parameter) => true;
+        private bool PriorityChangeCanExecute(object parameter) => true;
 
         #endregion
     }

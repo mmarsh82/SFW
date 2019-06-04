@@ -53,6 +53,7 @@
     <Compile Include="CompletionFlag.cs" />
     <Compile Include="Database.cs" />
     <Compile Include="Extensions.cs" />
+    <Compile Include="M2kADIArray\Adjust.cs" />
     <Compile Include="M2kADIArray\CodeType.cs" />
     <Compile Include="M2kADIArray\CompInfo.cs" />
     <Compile Include="M2kADIArray\DirectLabor.cs" />
@@ -62,6 +63,7 @@
     <Compile Include="M2kCommand.cs" />
     <Compile Include="M2kConnection.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="AdjustCode.cs" />
     <Compile Include="Transaction.cs" />
   </ItemGroup>
   <ItemGroup>

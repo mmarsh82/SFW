@@ -4,11 +4,12 @@
         xmlns:local="clr-namespace:SFW.WIP"
         xmlns:cvtr="clr-namespace:SFW.Converters"
         Name="WipWindow"
-        Title="Production Wip" Height="Auto" Width="800" WindowStyle="ToolWindow" ResizeMode="NoResize">
+        Title="Production Wip" Height="Auto" Width="900" WindowStyle="ToolWindow" ResizeMode="NoResize">
 
     <Window.Resources>
         <cvtr:BoolToVisibility x:Key="BooltoVisConverter" />
         <cvtr:EnumToBool x:Key="EnumtoBoolConverter" />
+        <cvtr:EnumToVisibility x:Key="EnumtoVisConverter" />
         <cvtr:StringToVisibility x:Key="StringtoVisConverter" />
         <cvtr:CrewToVisibility x:Key="CrewtoVisConverter" />
     </Window.Resources>
@@ -17,6 +18,7 @@
         
         <Grid>
             <Grid.RowDefinitions>
+                <RowDefinition Height="40" />
                 <RowDefinition Height="40" />
                 <RowDefinition Height="40" />
                 <RowDefinition Height="40" />
@@ -59,20 +61,43 @@
             <!--#region Sku Information-->
 
             <StackPanel Grid.Row="1"
-                    HorizontalAlignment="Left"
-                    VerticalAlignment="Center"
-                    Orientation="Horizontal">
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Center"
+                        Orientation="Horizontal">
                 <TextBlock Text="Part:"
-                       FontSize="20"
-                       FontWeight="Bold"
-                       TextDecorations="Underline" 
-                       Margin="10,0,0,0"/>
+                           FontSize="20"
+                           FontWeight="Bold"
+                           TextDecorations="Underline" 
+                           Margin="10,0,0,0"/>
                 <TextBlock Text="{Binding WipRecord.WipWorkOrder.SkuNumber}"
-                       FontSize="20"
-                       Margin="10,0,0,0" />
+                           FontSize="20"
+                           Margin="10,0,0,0" />
                 <TextBlock Text="{Binding WipRecord.WipWorkOrder.SkuDescription}"
-                       FontSize="20"
-                       Margin="10,0,0,0" />
+                           FontSize="20"
+                           Margin="10,0,0,0" />
+                
+                <TextBlock Text="Scrap:"
+                       FontSize="18"
+                       FontWeight="Bold"
+                       TextDecorations="Underline"
+                       VerticalAlignment="Center"
+                       Margin="50,0,0,0" />
+                <RadioButton GroupName="scrap"
+                         IsChecked="{Binding WipRecord.IsScrap, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource EnumtoBoolConverter}, ConverterParameter=Y}"
+                         Content="Yes"
+                         FontSize="18"
+                         FontWeight="Bold"
+                         VerticalAlignment="Center"
+                         IsTabStop="False"
+                         Margin="10,0,0,0"/>
+                <RadioButton GroupName="scrap"
+                         IsChecked="{Binding WipRecord.IsScrap, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource EnumtoBoolConverter}, ConverterParameter=N}"
+                         Content="No"
+                         FontSize="18"
+                         FontWeight="Bold"
+                         VerticalAlignment="Center"
+                         IsTabStop="False"
+                         Margin="10,0,0,0" />
             </StackPanel>
 
             <!--#endregion-->
@@ -80,51 +105,51 @@
             <!--#region Wip Qty/Completion Inputs-->
 
             <StackPanel Grid.Row="2"
-                    HorizontalAlignment="Left"
-                    Orientation="Horizontal">
+                        HorizontalAlignment="Left"
+                        Orientation="Horizontal">
                 <TextBlock Text="Wip Quantity:"
-                       FontSize="18"
-                       FontWeight="Bold"
-                       TextDecorations="Underline"
-                       VerticalAlignment="Center"
-                       Margin="10,0,0,0" />
+                           FontSize="18"
+                           FontWeight="Bold"
+                           TextDecorations="Underline"
+                           VerticalAlignment="Center"
+                           Margin="10,0,0,0" />
                 <TextBox x:Name="WipQty"
-                     Text="{Binding WipQuantity, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                     FontSize="18"
-                     FontWeight="Bold"
-                     Background="LightGray"
-                     Margin="5"
-                     Width="75"
-                     MaxLength="6"
-                     TabIndex="2"
-                     Style="{DynamicResource RequiredTextBox}" />
+                         Text="{Binding WipQuantity, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                         FontSize="18"
+                         FontWeight="Bold"
+                         Background="LightGray"
+                         Margin="5"
+                         Width="75"
+                         MaxLength="6"
+                         TabIndex="2"
+                         Style="{DynamicResource RequiredTextBox}" />
                 <TextBlock Text="{Binding WipRecord.WipWorkOrder.Uom}"
-                       FontSize="18"
-                       FontWeight="Bold"
-                       VerticalAlignment="Center"
-                       Margin="5,0,0,0" />
+                           FontSize="18"
+                           FontWeight="Bold"
+                           VerticalAlignment="Center"
+                           Margin="5,0,0,0" />
                 <TextBlock Text="Seq. Complete:"
-                       FontSize="18"
-                       FontWeight="Bold"
-                       TextDecorations="Underline"
-                       VerticalAlignment="Center"
-                       Margin="20,0,0,0" />
+                           FontSize="18"
+                           FontWeight="Bold"
+                           TextDecorations="Underline"
+                           VerticalAlignment="Center"
+                           Margin="20,0,0,0" />
                 <RadioButton GroupName="Seq"
-                         IsChecked="{Binding WipRecord.SeqComplete, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource EnumtoBoolConverter}, ConverterParameter=Y}"
-                         Content="Yes"
-                         FontSize="18"
-                         FontWeight="Bold"
-                         VerticalAlignment="Center"
-                         IsTabStop="False"
-                         Margin="10,0,0,0"/>
+                             IsChecked="{Binding WipRecord.SeqComplete, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource EnumtoBoolConverter}, ConverterParameter=Y}"
+                             Content="Yes"
+                             FontSize="18"
+                             FontWeight="Bold"
+                             VerticalAlignment="Center"
+                             IsTabStop="False"
+                             Margin="10,0,0,0"/>
                 <RadioButton GroupName="Seq"
-                         IsChecked="{Binding WipRecord.SeqComplete, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource EnumtoBoolConverter}, ConverterParameter=N}"
-                         Content="No"
-                         FontSize="18"
-                         FontWeight="Bold"
-                         VerticalAlignment="Center"
-                         IsTabStop="False"
-                         Margin="10,0,0,0" />
+                             IsChecked="{Binding WipRecord.SeqComplete, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource EnumtoBoolConverter}, ConverterParameter=N}"
+                             Content="No"
+                             FontSize="18"
+                             FontWeight="Bold"
+                             VerticalAlignment="Center"
+                             IsTabStop="False"
+                             Margin="10,0,0,0" />
             </StackPanel>
 
             <!--#endregion-->
@@ -172,14 +197,72 @@
 
             <!--#endregion-->
 
+            <!--#region Scrap Inputs-->
+
+            <StackPanel Grid.Row="4"
+                        HorizontalAlignment="Left"
+                        Orientation="Horizontal"
+                        Visibility="{Binding WipRecord.IsScrap, Converter={StaticResource EnumtoVisConverter}}">
+                <TextBlock Text="Scrap Quantity:"
+                           FontSize="18"
+                           FontWeight="Bold"
+                           TextDecorations="Underline"
+                           VerticalAlignment="Center"
+                           Margin="10,0,0,0" />
+                <TextBox Text="{Binding WipRecord.ScrapQty, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                         FontSize="18"
+                         FontWeight="Bold"
+                         Background="LightGray"
+                         Margin="5"
+                         Width="120"
+                         MaxLength="9"
+                         TabIndex="5"
+                         CharacterCasing="Upper"
+                         Style="{DynamicResource RequiredTextBox}" />
+                <TextBlock Text="Scrap Reason:"
+                           FontSize="18"
+                           FontWeight="Bold"
+                           TextDecorations="Underline"
+                           VerticalAlignment="Center"
+                           Margin="20,0,0,0" />
+                <ComboBox ItemsSource="{Binding ScrapReasonCollection, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                          SelectedItem="{Binding SelectedReason, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                          FontSize="18"
+                          FontWeight="Bold"
+                          Background="LightGray"
+                          Margin="5"
+                          Width="175"
+                          TabIndex="6" />
+                <TextBlock Text="QIR:"
+                           Visibility="{Binding SelectedReason, Converter={StaticResource EnumtoVisConverter}, ConverterParameter=QSC}"
+                           FontSize="18"
+                           FontWeight="Bold"
+                           TextDecorations="Underline"
+                           VerticalAlignment="Center"
+                           Margin="10,0,0,0" />
+                <TextBox Text="{Binding WipRecord.ScrapReference, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                         Visibility="{Binding SelectedReason, Converter={StaticResource EnumtoVisConverter}, ConverterParameter=QSC}"
+                         FontSize="18"
+                         FontWeight="Bold"
+                         Background="LightGray"
+                         Margin="5"
+                         Width="100"
+                         MaxLength="7"
+                         TabIndex="7"
+                         CharacterCasing="Upper"
+                         Style="{DynamicResource RequiredTextBox}" />
+            </StackPanel>
+
+            <!--#endregion-->
+
             <!--#region Seperator-->
 
-            <Rectangle Grid.Row="4"
+            <Rectangle Grid.Row="5"
                    Fill="#FF135185"
                    HorizontalAlignment="Stretch"
                    VerticalAlignment="Stretch"
                    Visibility="{Binding WipRecord.HasCrew, Converter={StaticResource BooltoVisConverter}}"/>
-            <TextBlock Grid.Row="4"
+            <TextBlock Grid.Row="5"
                    HorizontalAlignment="Center"
                    VerticalAlignment="Center"
                    Text="Crew Members"
@@ -193,7 +276,7 @@
             <!--#region Crew Inputs-->
 
             <ItemsControl Name="CrewMembers"
-                      Grid.Row="5"
+                      Grid.Row="6"
                       ItemsSource="{Binding Path=WipRecord.CrewList}"
                       Margin="10,0,0,0"
                       FontSize="18"
@@ -309,12 +392,12 @@
 
             <!--#region Seperator-->
 
-            <Rectangle Grid.Row="6"
+            <Rectangle Grid.Row="7"
                    Fill="#FF135185"
                    HorizontalAlignment="Stretch"
                    VerticalAlignment="Stretch"
                    Visibility="{Binding IsLotTrace, Converter={StaticResource BooltoVisConverter}}" />
-            <TextBlock Grid.Row="6"
+            <TextBlock Grid.Row="7"
                    HorizontalAlignment="Center"
                    VerticalAlignment="Center"
                    Text="Components"
@@ -328,20 +411,20 @@
             <!--#region Component Inputs-->
 
             <ItemsControl Name="CompParent"
-                      Grid.Row="7"
-                      ItemsSource="{Binding Path=WipRecord.WipWorkOrder.Bom}"
-                      Margin="10,0,0,0"
-                      FontSize="18"
-                      Cursor="Hand"
-                      Background="Transparent"
-                      Foreground="Black"
-                      Focusable="False"
-                      Visibility="{Binding IsLotTrace, Converter={StaticResource BooltoVisConverter}}">
+                          Grid.Row="8"
+                          ItemsSource="{Binding Path=WipRecord.WipWorkOrder.Bom}"
+                          Margin="10,0,0,0"
+                          FontSize="18"
+                          Cursor="Hand"
+                          Background="Transparent"
+                          Foreground="Black"
+                          Focusable="False"
+                          Visibility="{Binding IsLotTrace, Converter={StaticResource BooltoVisConverter}}">
 
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
                         <VirtualizingStackPanel IsItemsHost="True"
-                                            Orientation="Vertical" />
+                                                Orientation="Vertical" />
                     </ItemsPanelTemplate>
                 </ItemsControl.ItemsPanel>
 
@@ -349,91 +432,171 @@
                     <DataTemplate>
 
                         <StackPanel Orientation="Vertical"
-                                Visibility="{Binding IsLotTrace, Converter={StaticResource BooltoVisConverter}}">
+                                    Visibility="{Binding IsLotTrace, Converter={StaticResource BooltoVisConverter}}">
                             <StackPanel Orientation="Horizontal">
                                 <TextBlock Text="Part:"
-                                       TextDecorations="Underline"
-                                       FontWeight="Bold" />
+                                           TextDecorations="Underline"
+                                           FontWeight="Bold" />
                                 <TextBlock Text="{Binding CompNumber}"
-                                       Margin="10,0,0,0" />
+                                           Margin="10,0,0,0" />
                                 <TextBlock Text="{Binding CompDescription}"
-                                       Margin="10,0,0,0" />
+                                           Margin="10,0,0,0" />
                             </StackPanel>
                             <ItemsControl Name="CompChild"
-                                      ItemsSource="{Binding Path=WipInfo, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                      Margin="15,0,0,0"
-                                      FontSize="18"
-                                      Cursor="Hand"
-                                      Background="Transparent"
-                                      Foreground="Black"
-                                      IsTabStop="False">
+                                          ItemsSource="{Binding Path=WipInfo, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                          Margin="15,0,0,0"
+                                          FontSize="18"
+                                          Cursor="Hand"
+                                          Background="Transparent"
+                                          Foreground="Black"
+                                          IsTabStop="False">
 
                                 <ItemsControl.ItemsPanel>
                                     <ItemsPanelTemplate>
                                         <VirtualizingStackPanel IsItemsHost="True"
-                                                            Orientation="Vertical" />
+                                                                Orientation="Vertical" />
                                     </ItemsPanelTemplate>
                                 </ItemsControl.ItemsPanel>
 
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
-                                        <StackPanel Orientation="Horizontal"
-                                                HorizontalAlignment="Left"
-                                                VerticalAlignment="Center">
-                                            <TextBlock Text="Lot Number:"
-                                                   FontSize="16"
-                                                   TextDecorations="Underline"
-                                                   FontWeight="Bold" />
-                                            <TextBox Text="{Binding LotNbr, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                                 FontSize="16"
-                                                 Width="120"
-                                                 CharacterCasing="Upper"
-                                                 MaxLength="11"
-                                                 Margin="3"
-                                                 Background="LightGray" />
-                                            <TextBlock Text="Location:"
-                                                   FontSize="16"
-                                                   Visibility="{Binding IsBackFlush, Converter={StaticResource BooltoVisConverter}, ConverterParameter=i}"
-                                                   TextDecorations="UnderLine"
-                                                   FontWeight="Bold"
-                                                   Margin="10,0,0,0" />
-                                            <TextBlock Text="{Binding RcptLoc, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                                   Visibility="{Binding IsBackFlush, Converter={StaticResource BooltoVisConverter}, ConverterParameter=i}"
-                                                   FontSize="16"
-                                                   Margin="5,0,0,0"/>
-                                            <TextBlock Text="Quantity:"
-                                                   FontSize="16"
-                                                   TextDecorations="UnderLine"
-                                                   FontWeight="Bold"
-                                                   Margin="10,0,0,0"/>
-                                            <TextBox Text="{Binding LotQty, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                                 FontSize="16"
-                                                 Width="75"
-                                                 MaxLength="5"
-                                                 Margin="3"
-                                                 Background="LightGray"
-                                                 IsTabStop="False"/>
-                                            <TextBlock Text="Is Roll Gone?"
-                                                   FontSize="16"
-                                                   TextDecorations="UnderLine"
-                                                   FontWeight="Bold"
-                                                   Margin="10,0,0,0"/>
-                                            <CheckBox IsChecked="{Binding RollStatus, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                                  FontSize="16"
-                                                  IsTabStop="False"
-                                                  Margin="5,0,0,0"/>
-                                            <Button Command="{Binding DataContext.RemoveCompICommand, ElementName=WipWindow}"
-                                                CommandParameter="{Binding LotNbr}"
-                                                Visibility="{Binding LotNbr, Converter={StaticResource StringtoVisConverter}}"
-                                                Width="20"
-                                                Height="20"
-                                                Margin="10,0 0 0"
-                                                Style="{DynamicResource DefaultButton}">
-                                                <Button.Content>
-                                                    <Image Source="/SFW;component/Icons/Delete.ico" />
-                                                </Button.Content>
-                                            </Button>
-                                        </StackPanel>
+                                        <Grid>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="30"/>
+                                                <RowDefinition Height="30"/>
+                                                <RowDefinition Height="3"/>
+                                            </Grid.RowDefinitions>
+
+                                            <StackPanel Grid.Row="0"
+                                                        Orientation="Horizontal"
+                                                        HorizontalAlignment="Left"
+                                                        VerticalAlignment="Center">
+                                                <TextBlock Text="Lot Number:"
+                                                           FontSize="16"
+                                                           TextDecorations="Underline"
+                                                           FontWeight="Bold" />
+                                                <TextBox Text="{Binding LotNbr, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                         FontSize="16"
+                                                         Width="120"
+                                                         CharacterCasing="Upper"
+                                                         MaxLength="11"
+                                                         Margin="3"
+                                                         Background="LightGray" 
+                                                         Style="{DynamicResource RequiredTextBox}" />
+                                                <TextBlock Text="Location:"
+                                                           FontSize="16"
+                                                           Visibility="{Binding IsBackFlush, Converter={StaticResource BooltoVisConverter}, ConverterParameter=i}"
+                                                           TextDecorations="UnderLine"
+                                                           FontWeight="Bold"
+                                                           Margin="10,0,0,0" />
+                                                <TextBlock Text="{Binding RcptLoc, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                           Visibility="{Binding IsBackFlush, Converter={StaticResource BooltoVisConverter}, ConverterParameter=i}"
+                                                           FontSize="16"
+                                                           Margin="5,0,0,0"/>
+                                                <TextBlock Text="Quantity:"
+                                                           FontSize="16"
+                                                           TextDecorations="UnderLine"
+                                                           FontWeight="Bold"
+                                                           Margin="10,0,0,0"/>
+                                                <TextBox Text="{Binding LotQty, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                         FontSize="16"
+                                                         Width="75"
+                                                         MaxLength="5"
+                                                         Margin="3"
+                                                         Background="LightGray"
+                                                         IsTabStop="False"
+                                                         Style="{DynamicResource RequiredTextBox}" />
+                                                <TextBlock Text="Is Roll Gone?"
+                                                           FontSize="16"
+                                                           TextDecorations="UnderLine"
+                                                           FontWeight="Bold"
+                                                           Margin="10,0,0,0"/>
+                                                <CheckBox IsChecked="{Binding RollStatus, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                          FontSize="16"
+                                                          IsTabStop="False"
+                                                          Margin="5,0,0,0"/>
+                                                <TextBlock Text="Scrap:"
+                                                           FontSize="16"
+                                                           FontWeight="Bold"
+                                                           TextDecorations="Underline"
+                                                           Margin="10,0,0,0" />
+                                                <RadioButton IsChecked="{Binding IsScrap, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource EnumtoBoolConverter}, ConverterParameter=Y}"
+                                                             Content="Yes"
+                                                             FontSize="16"
+                                                             FontWeight="Bold"
+                                                             IsTabStop="False"
+                                                             Margin="10,0,0,0"/>
+                                                <RadioButton IsChecked="{Binding IsScrap, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource EnumtoBoolConverter}, ConverterParameter=N}"
+                                                             Content="No"
+                                                             FontSize="16"
+                                                             FontWeight="Bold"
+                                                             IsTabStop="False"
+                                                             Margin="10,0,0,0" />
+                                                <Button Command="{Binding DataContext.RemoveCompICommand, ElementName=WipWindow}"
+                                                        CommandParameter="{Binding LotNbr}"
+                                                        Visibility="{Binding LotNbr, Converter={StaticResource StringtoVisConverter}}"
+                                                        Width="20"
+                                                        Height="20"
+                                                        Margin="10,0 0 0"
+                                                        Style="{DynamicResource DefaultButton}">
+                                                    <Button.Content>
+                                                        <Image Source="/SFW;component/Icons/Delete.ico" />
+                                                    </Button.Content>
+                                                </Button>
+                                            </StackPanel>
+
+                                            <StackPanel Grid.Row="1"
+                                                        HorizontalAlignment="Left"
+                                                        Orientation="Horizontal"
+                                                        Visibility="{Binding IsScrap, Converter={StaticResource EnumtoVisConverter}}">
+                                                <TextBlock Text="Scrap Quantity:"
+                                                           FontSize="16"
+                                                           FontWeight="Bold"
+                                                           TextDecorations="Underline"
+                                                           VerticalAlignment="Center" />
+                                                <TextBox Text="{Binding ScrapQty, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                         FontSize="16"
+                                                         Background="LightGray"
+                                                         Margin="3"
+                                                         Width="120"
+                                                         MaxLength="4"
+                                                         CharacterCasing="Upper"
+                                                         Style="{DynamicResource RequiredTextBox}" />
+                                                <TextBlock Text="Scrap Reason:"
+                                                           FontSize="16"
+                                                           FontWeight="Bold"
+                                                           TextDecorations="Underline"
+                                                           VerticalAlignment="Center"
+                                                           Margin="20,0,0,0" />
+                                                <ComboBox ItemsSource="{Binding DataContext.ScrapReasonCollection, ElementName=CompParent, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                          SelectedItem="{Binding ScrapReason, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                          FontSize="14"
+                                                          FontWeight="Bold"
+                                                          Background="LightGray"
+                                                          Margin="3"
+                                                          Width="175" />
+                                                <TextBlock Text="QIR:"
+                                                           Visibility="{Binding ScrapReason, Converter={StaticResource EnumtoVisConverter}, ConverterParameter=QSC}"
+                                                           FontSize="16"
+                                                           FontWeight="Bold"
+                                                           TextDecorations="Underline"
+                                                           VerticalAlignment="Center"
+                                                           Margin="10,0,0,0" />
+                                                <TextBox Text="{Binding ScrapReference, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                         Visibility="{Binding ScrapReason, Converter={StaticResource EnumtoVisConverter}, ConverterParameter=QSC}"
+                                                         FontSize="16"
+                                                         Background="LightGray"
+                                                         Margin="3"
+                                                         Width="100"
+                                                         MaxLength="7"
+                                                         CharacterCasing="Upper"
+                                                         Style="{DynamicResource RequiredTextBox}" />
+                                            </StackPanel>
+                                            <Rectangle Grid.Row="2"
+                                                       Fill="#FF135185"
+                                                       HorizontalAlignment="Stretch"
+                                                       VerticalAlignment="Stretch" />
+                                        </Grid>
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
 
@@ -449,7 +612,7 @@
 
             <!--#region Submission Actions-->
 
-            <StackPanel Grid.Row="8"
+            <StackPanel Grid.Row="9"
                     Orientation="Horizontal"
                     HorizontalAlignment="Right">
 

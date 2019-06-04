@@ -47,7 +47,7 @@ namespace SFW
             DefualtWorkCenter = LoadUserAppConfig();
             Site = "CSI_MAIN";
             SiteNumber = 0;
-            ErpCon = new M2kConnection("172.16.0.122", "omniquery", "omniquery", Database.CSI);
+            ErpCon = new M2kConnection("172.16.0.10", "omniquery", "omniquery", Database.CSI);
             AppSqlCon = new SqlConnection($"Server=SQL-WCCO;User ID=omni;Password=Public2017@WORK!;DataBase={Site};Connection Timeout=60;MultipleActiveResultSets=True");
             AppSqlCon.Open();
             while (AppSqlCon.State != System.Data.ConnectionState.Open) { }

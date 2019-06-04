@@ -105,7 +105,7 @@ namespace SFW.Model
 	                                                                            ISNULL(b.[Date_Start], '1999-01-01') as 'WO_SchedStartDate',
                                                                                 ISNULL(b.[Date_Act_Start], '1999-01-01') as 'WO_ActStartDate',
 	                                                                            ISNULL(b.[Due_Date], b.[Date_Start]) as 'WO_DueDate',
-                                                                                CAST(ROUND(b.[Mach_Load_Hrs_Rem], 1) AS FLOAT) as 'RunTime',
+                                                                                CAST(ROUND(b.[Mach_Load_Hrs_Rem], 1) as FLOAT) as 'RunTime',
 	                                                                            ISNULL(CASE WHEN
                                                                                         (SELECT
                                                                                             [Ord_Type]
@@ -121,7 +121,8 @@ namespace SFW.Model
 	                                                                            c.[Qty_To_Start] as 'WO_StartQty',
 	                                                                            c.[So_Reference] as 'WO_SalesRef',
                                                                                 c.[Cust_Nbr],
-                                                                                ISNULL(c.[Time_Wanted], '00:00:00') as 'PriTime',
+                                                                                CASE WHEN c.[Time_Wanted] IS NOT NULL THEN CONVERT(VARCHAR(2), CAST(c.[Time_Wanted] as TIME),108) ELSE '9' END as 'PriTime',
+                                                                                CASE WHEN c.[Time_Wanted] IS NOT NULL THEN DATEPART(MINUTE, CAST(c.[Time_Wanted] as TIME)) ELSE '9' END as 'Sched_Priority',
                                                                                 d.[Part_Number]as 'SkuNumber',
 	                                                                            d.[Description] as 'SkuDesc',
 	                                                                            d.[Um] as 'SkuUom', d.[Drawing_Nbrs] as 'SkuMasterPrint',
@@ -149,7 +150,7 @@ namespace SFW.Model
                                                                             WHERE
                                                                                 a.[D_esc] <> 'DO NOT USE' AND (c.[Status_Flag] = 'R' OR c.[Status_Flag] = 'A') AND (b.[Seq_Complete_Flag] IS NULL OR b.[Seq_Complete_Flag] = 'N') AND b.[Alt_Seq_Status] IS NULL
                                                                             ORDER BY
-                                                                                MachineNumber, WO_Priority, PriTime, WO_SchedStartDate, WO_Number ASC;", sqlCon))
+                                                                                MachineNumber, WO_Priority, PriTime, Sched_Priority, WO_SchedStartDate, WO_Number ASC;", sqlCon))
                         {
                             adapter.Fill(_tempTable);
                             return _tempTable;
@@ -212,6 +213,7 @@ namespace SFW.Model
 	                                                                            c.[Qty_To_Start] as 'WO_StartQty',
 	                                                                            c.[So_Reference] as 'WO_SalesRef',
 	                                                                            c.[Cust_Nbr],
+                                                                                CASE WHEN c.[Time_Wanted] IS NOT NULL THEN CONVERT(VARCHAR(5), CAST(c.[Time_Wanted] as TIME),108) ELSE '9' END as 'PriTime',
                                                                                 d.[Part_Number]as 'SkuNumber',
 	                                                                            d.[Description] as 'SkuDesc',
 	                                                                            d.[Um] as 'SkuUom', d.[Drawing_Nbrs] as 'SkuMasterPrint',

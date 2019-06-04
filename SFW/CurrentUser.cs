@@ -179,7 +179,7 @@ namespace SFW
             CanSchedule = _groups.Exists(o => o.ToString().Contains("SFW_Sched"));
             IsAdmin = _groups.Exists(o => o.ToString().Contains("SFW_Admin"));
             IsLoggedIn = true;
-            CanWip = user.UserPrincipalName.Contains("wcco") && _groups.Exists(o => o.ToString().Contains("SFW_CL"));
+            CanWip = user.UserPrincipalName.Contains("wcco");
             UserIDNbr = user.EmployeeId;
             FirstName = user.GivenName;
             LastName = user.Surname;

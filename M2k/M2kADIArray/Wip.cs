@@ -92,6 +92,11 @@ namespace M2kClient.M2kADIArray
         /// </summary>
         public string Lot { get; set; }
 
+        /// <summary>
+        /// List of Adjust objects for scrapping out any components during the wip process
+        /// </summary>
+        public List<Adjust> AdjustmentList { get; set; }
+
         #endregion
 
         /// <summary>
@@ -112,7 +117,9 @@ namespace M2kClient.M2kADIArray
             StationId = wipRecord.Submitter;
             FacilityCode = facCode;
             WorkOrderNbr = wipRecord.WipWorkOrder.OrderNumber;
-            QtyReceived = Convert.ToInt32(wipRecord.WipQty);
+            QtyReceived = wipRecord.ScrapQty != null && wipRecord.ScrapQty > 0 
+                ? Convert.ToInt32(wipRecord.ScrapQty) + Convert.ToInt32(wipRecord.WipQty) 
+                : Convert.ToInt32(wipRecord.WipQty);
             CFlag = Enum.TryParse(wipRecord.SeqComplete.ToString().ToUpper(), out CompletionFlag cFlag) ? cFlag : CompletionFlag.N;
             Operation = wipRecord.WipWorkOrder.Seq;
             RcptLocation = wipRecord.ReceiptLocation;
@@ -127,13 +134,28 @@ namespace M2kClient.M2kADIArray
                 var _backFlush = c.BackflushLoc;
                 foreach(var w in c.WipInfo.Where(o => !string.IsNullOrEmpty(o.LotNbr)))
                 {
-                    if (!string.IsNullOrEmpty(_backFlush))
+                    ComponentInfoList.Add(new CompInfo
                     {
-                        ComponentInfoList.Add(new CompInfo { Lot = w.LotNbr, PartNbr = w.PartNbr, Quantity = Convert.ToInt32(w.LotQty), WorkOrderNbr = wipRecord.WipWorkOrder.OrderNumber, IssueLoc = _backFlush });
-                    }
-                    else
+                        Lot = w.LotNbr,
+                        PartNbr = w.PartNbr,
+                        Quantity = Convert.ToInt32(w.LotQty),
+                        WorkOrderNbr = wipRecord.WipWorkOrder.OrderNumber,
+                        IssueLoc = !string.IsNullOrEmpty(_backFlush) ? _backFlush : w.RcptLoc
+                    });
+                    if (w.ScrapQty != null && w.ScrapQty > 0)
                     {
-                        ComponentInfoList.Add(new CompInfo { Lot = w.LotNbr, PartNbr = w.PartNbr, Quantity = Convert.ToInt32(w.LotQty), WorkOrderNbr = wipRecord.WipWorkOrder.OrderNumber, IssueLoc = w.RcptLoc });
+                        AdjustmentList = new List<Adjust>
+                        {
+                            new Adjust(
+                                "SFW WIP",
+                                "01",
+                                !string.IsNullOrEmpty(w.ScrapReference) ? $"{w.ScrapReference}*{wipRecord.WipWorkOrder.OrderNumber}" : wipRecord.WipWorkOrder.OrderNumber,
+                                w.PartNbr,
+                                (AdjustCode)Enum.Parse(typeof(AdjustCode), w.ScrapReason.GetValueFromDescription<AdjustCode>().ToString(), true),
+                                'S',
+                                Convert.ToInt32(w.ScrapQty),
+                                !string.IsNullOrEmpty(_backFlush) ? _backFlush : w.RcptLoc, w.LotNbr)
+                        };
                     }
                 }
             }

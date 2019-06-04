@@ -14,6 +14,10 @@ namespace SFW.Converters
             {
                 return string.IsNullOrEmpty(value?.ToString()) ? Visibility.Visible : Visibility.Collapsed;
             }
+            else if (parameter != null && parameter.ToString().Contains("~"))
+            {
+                return value.ToString() == parameter.ToString().Replace('~',' ').Trim() ? Visibility.Visible : Visibility.Collapsed;
+            }
             else if(parameter?.ToString() == "Hide")
             {
                 return string.IsNullOrEmpty(value?.ToString()) ? Visibility.Hidden : Visibility.Visible;
@@ -21,6 +25,10 @@ namespace SFW.Converters
             else if(parameter?.ToString() == "Status")
             {
                 return value?.ToString() == "O" ? Visibility.Collapsed : Visibility.Visible;
+            }
+            else if (parameter?.ToString() == "PriTime")
+            {
+                return value?.ToString() == "9" ? Visibility.Collapsed : Visibility.Visible;
             }
             else
             {

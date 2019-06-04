@@ -1,0 +1,68 @@
+﻿<Window x:Class="SFW.Tools.PriorityEdit_View"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:SFW.Tools"
+        x:Name="PriWindow" Title="Edit Work Order Priority" Height="230" Width="230" WindowStyle="ToolWindow" WindowStartupLocation="CenterOwner">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="50"/>
+            <RowDefinition Height="40"/>
+            <RowDefinition Height="40"/>
+            <RowDefinition Height="40"/>
+        </Grid.RowDefinitions>
+
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="100"/>
+            <ColumnDefinition Width="100"/>
+        </Grid.ColumnDefinitions>
+
+        <TextBlock Grid.Row="0" Grid.ColumnSpan="2"
+                   Text="{Binding OrderNumber}"
+                   FontSize="24"
+                   FontWeight="Bold"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center"/>
+
+        <TextBlock Grid.Row="1" Grid.Column="0"
+                   Text="Shift:"
+                   FontSize="18"
+                   FontWeight="Bold"
+                   VerticalAlignment="Center"
+                   HorizontalAlignment="Right"
+                   TextDecorations="Underline"/>
+
+        <TextBox x:Name="ShiftTextBox"
+                 Grid.Row="1" Grid.Column="1"
+                 FontSize="18"
+                 Margin="5"
+                 Background="LightGray"
+                 VerticalContentAlignment="Center"
+                 HorizontalContentAlignment="Center"
+                 Text="{Binding Shift, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+
+        <TextBlock Grid.Row="2" Grid.Column="0"
+                   Text="Priority:"
+                   FontSize="18"
+                   FontWeight="Bold"
+                   VerticalAlignment="Center"
+                   HorizontalAlignment="Right"
+                   TextDecorations="Underline"/>
+
+        <TextBox Grid.Row="2" Grid.Column="1"
+                 FontSize="18"
+                 Margin="5"
+                 Background="LightGray"
+                 VerticalContentAlignment="Center"
+                 HorizontalContentAlignment="Center"
+                 Text="{Binding Priority, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+
+        <Button Grid.Row="3" Grid.ColumnSpan="2"
+                Content="Submit"
+                Margin="5"
+                Width="100"
+                FontSize="18"
+                Command="{Binding PriorityChangeICommand}"
+                Style="{DynamicResource DefaultButton}"/>
+
+    </Grid>
+</Window>

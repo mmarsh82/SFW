@@ -211,8 +211,7 @@ namespace M2kClient
         /// <returns>Suffix for the file that needs to be watched on the ERP server</returns>
         public static int InventoryMove(string name, string from, string to, int qty, bool nonLot, M2kConnection connection)
         {
-            var uId = new Random();
-            var suffix = uId.Next(100, 5000);
+            var suffix = 0; //DateTime.Now.ToString("HHmmssfff");
             //from = sku.OnHand.Count > 1 || nonLot ? from.ToUpper() : sku.OnHand.First().Key.ToUpper();
             if (!nonLot)
             {
@@ -249,7 +248,7 @@ namespace M2kClient
             #region Wip Process
 
             var _subResult = new Dictionary<int, string>();
-            var suffix = DateTime.Now.ToString("mmddmmssfff");
+            var suffix = DateTime.Now.ToString("HHmmssfff");
             if (string.IsNullOrEmpty(wipRecord.WipLot.LotNumber) && isLot)
             {
                 var _response = GetLotNumber(connection);
@@ -272,7 +271,7 @@ namespace M2kClient
             if (!string.IsNullOrEmpty(_tWip.StationId))
             {
                 File.WriteAllText($"{connection.SFDCFolder}WPC2K.DAT{suffix}", _tWip.ToString());
-                suffix = DateTime.Now.ToString("mmddmmssfff");
+                suffix = DateTime.Now.ToString("HHmmssfff");
                 if (!string.IsNullOrEmpty(wipRecord.WipLot.LotNumber))
                 {
                     System.Windows.MessageBox.Show($"Assinged to Lot Number:\n{wipRecord.WipLot.LotNumber}", "New Lot Number", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
@@ -305,7 +304,7 @@ namespace M2kClient
                     if (c.WipInfo.Sum(o => o.BaseQty) > 0)
                     {
                         File.WriteAllText($"{connection.BTIFolder}ISSUEC2K.DAT{suffix}", _issue.ToString());
-                        suffix = DateTime.Now.ToString("mmddmmssfff");
+                        suffix = DateTime.Now.ToString("HHmmssfff");
                     }
                 }
             }
@@ -341,6 +340,35 @@ namespace M2kClient
 
             #endregion
 
+            #region Scrap Adjustment
+            //TODO: add in validation that the lot actually exists for the parent wip before sending the adjustment
+            //Adjusting any scrap out of the system that was recorded during the wip
+            if (wipRecord.ScrapQty != null && wipRecord.ScrapQty > 0)
+            {
+                var _tScrap = new Adjust(
+                    "SFW WIP",
+                    "01",
+                    !string.IsNullOrEmpty(wipRecord.ScrapReference) ? $"{wipRecord.ScrapReference}*{wipRecord.WipWorkOrder.OrderNumber}" : wipRecord.WipWorkOrder.OrderNumber,
+                    wipRecord.WipWorkOrder.SkuNumber,
+                    (AdjustCode)Enum.Parse(typeof(AdjustCode), wipRecord.ScrapReason.GetValueFromDescription<AdjustCode>().ToString(), true),
+                    'S',
+                    Convert.ToInt32(wipRecord.ScrapQty),
+                    wipRecord.ReceiptLocation,
+                    wipRecord.WipLot.LotNumber);
+                File.WriteAllText($"{connection.BTIFolder}ADJUSTC2K.DAT{suffix}", _tScrap.ToString());
+                suffix = DateTime.Now.ToString("HHmmssfff");
+            }
+            if (_tWip?.AdjustmentList?.Count > 0)
+            {
+                foreach (var s in _tWip.AdjustmentList)
+                {
+                    File.WriteAllText($"{connection.BTIFolder}ADJUSTC2K.DAT{suffix}", s.ToString());
+                    suffix = DateTime.Now.ToString("HHmmssfff");
+                }
+            }
+
+            #endregion
+
             _subResult.Add(1, wipRecord.WipLot.LotNumber);
             return _subResult;
         }
@@ -365,7 +393,7 @@ namespace M2kClient
             var _subResult = new Dictionary<int, string>();
             try
             {
-                var suffix = DateTime.Now.ToString("mmddmmssfff");
+                var suffix = DateTime.Now.ToString("HHmmssfff");
                 if (!woAndSeq.Contains('*'))
                 {
                     _subResult.Add(1, "Work order or sequence is not in the correct format to pass into M2k.");
@@ -378,9 +406,31 @@ namespace M2kClient
                     {
                         if (string.IsNullOrEmpty(tranDate))
                         {
-                            tranDate = shift == 3 && (DateTime.Now.TimeOfDay < new TimeSpan(23, 59, 59) && DateTime.Now.TimeOfDay > new TimeSpan(19, 00, 00))
-                                ? DateTime.Now.AddDays(1).ToString("MM-dd-yyyy")
-                                : DateTime.Now.ToString("MM-dd-yyyy");
+                            if (shift == 3)
+                            {
+                                if (DateTime.TryParse(time, out DateTime dt))
+                                {
+                                    if (dt.TimeOfDay > new TimeSpan(19, 00, 00) && dt.TimeOfDay < new TimeSpan(23, 59, 59))
+                                    {
+                                        if (DateTime.Now.TimeOfDay > new TimeSpan(19,00,00) && DateTime.Now.TimeOfDay < new TimeSpan(23,59,59))
+                                        {
+                                            tranDate = DateTime.Now.ToString("MM-dd-yyyy");
+                                        }
+                                        else
+                                        {
+                                            tranDate = DateTime.Now.AddDays(-1).ToString("MM-dd-yyyy");
+                                        }
+                                    }
+                                    else
+                                    {
+                                        tranDate = DateTime.Now.ToString("MM-dd-yyyy");
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                tranDate = DateTime.Now.ToString("MM-dd-yyyy");
+                            }
                         }
                         var _inDL = new DirectLabor(stationId, empID, 'I', time, _wSplit[0], _wSplit[1], 0, 0, machID, CompletionFlag.N, crew, tranDate);
 
@@ -410,19 +460,13 @@ namespace M2kClient
             }
         }
 
-        public static IReadOnlyDictionary<int, string> SplitRoll()
+        public static IReadOnlyDictionary<int, string> InventoryAdjustment()
         {
-            //TODO: add in the adjust command
             return null;
         }
-
-        public bool InventoryAdjustment()
+        public static IReadOnlyDictionary<int, string> ItemIssue()
         {
-            return true;
-        }
-        public bool ProductionIssue()
-        {
-            return true;
+            return null;
         }
     }
 }
