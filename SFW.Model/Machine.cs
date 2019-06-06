@@ -242,7 +242,6 @@ namespace SFW.Model
         /// <returns>DataTable with the schedule data results</returns>
         public static DataTable GetScheduleData(SqlConnection sqlCon, string machineNumber)
         {
-            //Hello world
             //TODO: See the note from the previous method
             using (var _tempTable = new DataTable())
             {
