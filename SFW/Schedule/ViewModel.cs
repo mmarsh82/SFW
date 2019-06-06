@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Data;
+using System.Data.SqlClient;
 using System.Linq;
 using System.Windows;
 using System.Windows.Data;
@@ -41,10 +42,6 @@ namespace SFW.Schedule
                     else
                     {
                         _tempDock.Children.Insert(1, new ShopRoute.QTask.View { DataContext = new ShopRoute.QTask.ViewModel(_wo) });
-                    }
-                    if (App.SiteNumber != 0 && ShopRoute.Temp.QTask.ViewModel.HasQTask(_wo.SkuNumber))
-                    {
-                        new ShopRoute.Temp.QTask.View { DataContext = new ShopRoute.Temp.QTask.ViewModel(_wo.SkuNumber) }.ShowDialog();
                     }
                 }
                 OnPropertyChanged(nameof(SelectedWorkOrder));

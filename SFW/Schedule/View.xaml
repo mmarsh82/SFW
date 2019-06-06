@@ -9,6 +9,7 @@
 
     <UserControl.Resources>
         <cmd:PartSearch x:Key="PartSearchCommand"/>
+        <cmd:ViewQtask x:Key="ViewQtask"/>
         <cvtr:BoolToVisibility x:Key="BoolToVisConverter"/>
         <cvtr:WorkOrderNumber x:Key="WorkOrderConverter"/>
         <cvtr:SkuMasterPrint x:Key="PartSearchConverter"/>
@@ -138,6 +139,15 @@
                                                Visibility="{Binding PriTime, Converter={StaticResource StringToVisConverter}, ConverterParameter=~03}"
                                                ToolTip="Work order created for 3rd shift."
                                                Margin="10,0,0,0" Height="25" Width="25"/>
+                                        <Button Content="Q-Task"
+                                                Visibility="{Binding QTask, Converter={StaticResource BoolToVisConverter}}"
+                                                Command="{StaticResource ViewQtask}"
+                                                CommandParameter="{Binding SkuNumber}"
+                                                Background="Crimson"
+                                                Foreground="Black"
+                                                Style="{DynamicResource DefaultButton}"
+                                                Margin="3"
+                                                Width="80"/>
                                     </StackPanel>
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                                         <TextBlock Text="{Binding SkuNumber}" VerticalAlignment="Center"/>

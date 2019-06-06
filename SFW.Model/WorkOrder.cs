@@ -411,6 +411,7 @@ namespace SFW.Model
         /// <returns></returns>
         public static DataTable GetReportData(WorkOrder wo, SqlConnection sqlCon)
         {
+            return null;
             //TODO: need to remove the hardcoded value to segregate CSI from WCCO when CSI reports become live
             if (wo != null && sqlCon.Database != "CSI_MAIN")
             {

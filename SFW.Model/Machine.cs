@@ -88,69 +88,131 @@ namespace SFW.Model
         /// <returns>DataTable with the schedule data results</returns>
         public static DataTable GetScheduleData(SqlConnection sqlCon)
         {
-            //TODO: Needs to be rewritten to include a list rather than a datatable so that in the future async loading can be done
+            //Currently written with the old Q-Task module, will need to be replaced when the new Q-Task module is developed
+            var _selectCmd = sqlCon.Database == "CSI_MAIN"
+                ? @"SELECT
+	                    DISTINCT(b.[ID]) as 'WO_Number', 
+                        a.[Wc_Nbr] as 'MachineNumber',
+	                    a.[Name] as 'MachineName',
+	                    a.[D_esc] as 'MachineDesc',
+	                    a.[Work_Ctr_Group] as 'MachineGroup',
+                        ISNULL(b.[Qty_Avail], b.[Qty_Req] - ISNULL(b.[Qty_Compl], 0)) as 'WO_CurrentQty',
+	                    ISNULL(b.[Date_Start], '1999-01-01') as 'WO_SchedStartDate',
+                        ISNULL(b.[Date_Act_Start], '1999-01-01') as 'WO_ActStartDate',
+	                    ISNULL(b.[Due_Date], b.[Date_Start]) as 'WO_DueDate',
+                        CAST(ROUND(b.[Mach_Load_Hrs_Rem], 1) as FLOAT) as 'RunTime',
+	                    ISNULL(CASE WHEN
+                                (SELECT
+                                    [Ord_Type]
+                                FROM
+                                    [dbo].[SOH-INIT]
+                                WHERE
+                                    [So_Nbr] = SUBSTRING(c.[So_Reference],0,CHARINDEX('*',c.[So_Reference],0))) = 'DAI'
+                            THEN 'A'
+                            WHEN c.[Wo_Type] = 'R'
+                            THEN 'B'
+                            ELSE c.[Mgt_Priority_Code] END, 'D') as 'WO_Priority',
+	                    c.[Wo_Type] as 'WO_Type',
+	                    c.[Qty_To_Start] as 'WO_StartQty',
+	                    c.[So_Reference] as 'WO_SalesRef',
+                        c.[Cust_Nbr],
+                        CASE WHEN c.[Time_Wanted] IS NOT NULL THEN CONVERT(VARCHAR(2), CAST(c.[Time_Wanted] as TIME),108) ELSE '9' END as 'PriTime',
+                        CASE WHEN c.[Time_Wanted] IS NOT NULL THEN DATEPART(MINUTE, CAST(c.[Time_Wanted] as TIME)) ELSE '9' END as 'Sched_Priority',
+                        d.[Part_Number]as 'SkuNumber',
+	                    d.[Description] as 'SkuDesc',
+	                    d.[Um] as 'SkuUom', d.[Drawing_Nbrs] as 'SkuMasterPrint',
+	                    ISNULL(d.[Bom_Rev_Date], '1999-01-01') as 'BomRevDate',
+	                    ISNULL(d.[Bom_Rev_Level], '') as 'BomRevLvl',
+                        ISNULL(e.[Qty_On_Hand], 0) as 'SkuOnHand',
+                        CASE WHEN b.[Due_Date] < GETDATE() THEN 1 ELSE 0 END as 'IsLate',
+	                    CASE WHEN b.[Date_Start] < GETDATE() AND c.[Qty_To_Start] = b.[Qty_Avail] THEN 1 ELSE 0 END as 'IsStartLate',
+                        e.[Engineering_Status] as 'EngStatus',
+	                    (SELECT [Description] FROM [dbo].[TM-INIT_Eng_Status] WHERE [ID] = e.[Engineering_Status]) as 'EngStatusDesc',
+                        (SELECT [Name] FROM [dbo].[CM-INIT] WHERE [Cust_Nbr] = c.[Cust_Nbr]) as 'Cust_Name',
+	                    (SELECT [Cust_Part_Nbr] FROM [dbo].[SOD-INIT] WHERE [ID] = SUBSTRING(c.[So_Reference],0,LEN(c.[So_Reference])-1)) as 'Cust_Part_Nbr',
+	                    CAST((SELECT [Ln_Bal_Qty] FROM [dbo].[SOD-INIT] WHERE [ID] = SUBSTRING(c.[So_Reference],0,LEN(c.[So_Reference])-1)) as int) as 'Ln_Bal_Qty',
+                        ISNULL((SELECT [Load_Pattern] FROM [dbo].[CM-INIT] WHERE [Cust_Nbr] = c.[Cust_Nbr]),'') as 'LoadPattern',
+                        0 as 'QTask'
+                    FROM
+                        [dbo].[WC-INIT] a
+                    RIGHT JOIN
+                        [dbo].[WPO-INIT] b ON b.[Work_Center] = a.[Wc_Nbr]
+                    RIGHT JOIN
+                        [dbo].[WP-INIT] c ON b.[ID] LIKE CONCAT(c.[Wp_Nbr], '%')
+                    RIGHT JOIN
+                        [dbo].[IM-INIT] d ON d.[Part_Number] = c.[Part_Wo_Desc]
+                    RIGHT JOIN
+                        [dbo].[IPL-INIT] e ON e.[Part_Nbr] = d.[Part_Number]
+                    WHERE
+                        a.[D_esc] <> 'DO NOT USE' AND (c.[Status_Flag] = 'R' OR c.[Status_Flag] = 'A') AND (b.[Seq_Complete_Flag] IS NULL OR b.[Seq_Complete_Flag] = 'N') AND b.[Alt_Seq_Status] IS NULL
+                    ORDER BY
+                        MachineNumber, WO_Priority, PriTime, Sched_Priority, WO_SchedStartDate, WO_Number ASC;"
+                //WCCO's custom select string
+                : @"SELECT
+	                    DISTINCT(b.[ID]) as 'WO_Number', 
+                        a.[Wc_Nbr] as 'MachineNumber',
+	                    a.[Name] as 'MachineName',
+	                    a.[D_esc] as 'MachineDesc',
+	                    a.[Work_Ctr_Group] as 'MachineGroup',
+                        ISNULL(b.[Qty_Avail], b.[Qty_Req] - ISNULL(b.[Qty_Compl], 0)) as 'WO_CurrentQty',
+	                    ISNULL(b.[Date_Start], '1999-01-01') as 'WO_SchedStartDate',
+                        ISNULL(b.[Date_Act_Start], '1999-01-01') as 'WO_ActStartDate',
+	                    ISNULL(b.[Due_Date], b.[Date_Start]) as 'WO_DueDate',
+                        CAST(ROUND(b.[Mach_Load_Hrs_Rem], 1) as FLOAT) as 'RunTime',
+	                    ISNULL(CASE WHEN
+                                (SELECT
+                                    [Ord_Type]
+                                FROM
+                                    [dbo].[SOH-INIT]
+                                WHERE
+                                    [So_Nbr] = SUBSTRING(c.[So_Reference],0,CHARINDEX('*',c.[So_Reference],0))) = 'DAI'
+                            THEN 'A'
+                            WHEN c.[Wo_Type] = 'R'
+                            THEN 'B'
+                            ELSE c.[Mgt_Priority_Code] END, 'D') as 'WO_Priority',
+	                    c.[Wo_Type] as 'WO_Type',
+	                    c.[Qty_To_Start] as 'WO_StartQty',
+	                    c.[So_Reference] as 'WO_SalesRef',
+                        c.[Cust_Nbr],
+                        CASE WHEN c.[Time_Wanted] IS NOT NULL THEN CONVERT(VARCHAR(2), CAST(c.[Time_Wanted] as TIME),108) ELSE '9' END as 'PriTime',
+                        CASE WHEN c.[Time_Wanted] IS NOT NULL THEN DATEPART(MINUTE, CAST(c.[Time_Wanted] as TIME)) ELSE '9' END as 'Sched_Priority',
+                        d.[Part_Number]as 'SkuNumber',
+	                    d.[Description] as 'SkuDesc',
+	                    d.[Um] as 'SkuUom', d.[Drawing_Nbrs] as 'SkuMasterPrint',
+	                    ISNULL(d.[Bom_Rev_Date], '1999-01-01') as 'BomRevDate',
+	                    ISNULL(d.[Bom_Rev_Level], '') as 'BomRevLvl',
+                        ISNULL(e.[Qty_On_Hand], 0) as 'SkuOnHand',
+                        CASE WHEN b.[Due_Date] < GETDATE() THEN 1 ELSE 0 END as 'IsLate',
+	                    CASE WHEN b.[Date_Start] < GETDATE() AND c.[Qty_To_Start] = b.[Qty_Avail] THEN 1 ELSE 0 END as 'IsStartLate',
+                        e.[Engineering_Status] as 'EngStatus',
+	                    (SELECT [Description] FROM [dbo].[TM-INIT_Eng_Status] WHERE [ID] = e.[Engineering_Status]) as 'EngStatusDesc',
+                        (SELECT [Name] FROM [dbo].[CM-INIT] WHERE [Cust_Nbr] = c.[Cust_Nbr]) as 'Cust_Name',
+	                    (SELECT [Cust_Part_Nbr] FROM [dbo].[SOD-INIT] WHERE [ID] = SUBSTRING(c.[So_Reference],0,LEN(c.[So_Reference])-1)) as 'Cust_Part_Nbr',
+	                    CAST((SELECT [Ln_Bal_Qty] FROM [dbo].[SOD-INIT] WHERE [ID] = SUBSTRING(c.[So_Reference],0,LEN(c.[So_Reference])-1)) as int) as 'Ln_Bal_Qty',
+                        ISNULL((SELECT [Load_Pattern] FROM [dbo].[CM-INIT] WHERE [Cust_Nbr] = c.[Cust_Nbr]),'') as 'LoadPattern',
+                        (SELECT COUNT([Qtask_Type]) FROM [dbo].[IM_UDEF-INIT_Quality_Tasks] WHERE [Qtask_Initiated_By] IS NOT NULL AND [Qtask_Release_Date] IS NULL AND [ID1] = e.[Part_Nbr]) as 'QTask'
+                    FROM
+                        [dbo].[WC-INIT] a
+                    RIGHT JOIN
+                        [dbo].[WPO-INIT] b ON b.[Work_Center] = a.[Wc_Nbr]
+                    RIGHT JOIN
+                        [dbo].[WP-INIT] c ON b.[ID] LIKE CONCAT(c.[Wp_Nbr], '%')
+                    RIGHT JOIN
+                        [dbo].[IM-INIT] d ON d.[Part_Number] = c.[Part_Wo_Desc]
+                    RIGHT JOIN
+                        [dbo].[IPL-INIT] e ON e.[Part_Nbr] = d.[Part_Number]
+                    WHERE
+                        a.[D_esc] <> 'DO NOT USE' AND (c.[Status_Flag] = 'R' OR c.[Status_Flag] = 'A') AND (b.[Seq_Complete_Flag] IS NULL OR b.[Seq_Complete_Flag] = 'N') AND b.[Alt_Seq_Status] IS NULL
+                    ORDER BY
+                        MachineNumber, WO_Priority, PriTime, Sched_Priority, WO_SchedStartDate, WO_Number ASC;";
+
             using (var _tempTable = new DataTable())
             {
                 if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
                 {
                     try
                     {
-                        using (SqlDataAdapter adapter = new SqlDataAdapter(@"SELECT
-	                                                                            DISTINCT(b.[ID]) as 'WO_Number', 
-                                                                                a.[Wc_Nbr] as 'MachineNumber',
-	                                                                            a.[Name] as 'MachineName',
-	                                                                            a.[D_esc] as 'MachineDesc',
-	                                                                            a.[Work_Ctr_Group] as 'MachineGroup',
-                                                                                ISNULL(b.[Qty_Avail], b.[Qty_Req] - ISNULL(b.[Qty_Compl], 0)) as 'WO_CurrentQty',
-	                                                                            ISNULL(b.[Date_Start], '1999-01-01') as 'WO_SchedStartDate',
-                                                                                ISNULL(b.[Date_Act_Start], '1999-01-01') as 'WO_ActStartDate',
-	                                                                            ISNULL(b.[Due_Date], b.[Date_Start]) as 'WO_DueDate',
-                                                                                CAST(ROUND(b.[Mach_Load_Hrs_Rem], 1) as FLOAT) as 'RunTime',
-	                                                                            ISNULL(CASE WHEN
-                                                                                        (SELECT
-                                                                                            [Ord_Type]
-                                                                                        FROM
-                                                                                            [dbo].[SOH-INIT]
-                                                                                        WHERE
-                                                                                            [So_Nbr] = SUBSTRING(c.[So_Reference],0,CHARINDEX('*',c.[So_Reference],0))) = 'DAI'
-                                                                                    THEN 'A'
-                                                                                    WHEN c.[Wo_Type] = 'R'
-                                                                                    THEN 'B'
-                                                                                    ELSE c.[Mgt_Priority_Code] END, 'D') as 'WO_Priority',
-	                                                                            c.[Wo_Type] as 'WO_Type',
-	                                                                            c.[Qty_To_Start] as 'WO_StartQty',
-	                                                                            c.[So_Reference] as 'WO_SalesRef',
-                                                                                c.[Cust_Nbr],
-                                                                                CASE WHEN c.[Time_Wanted] IS NOT NULL THEN CONVERT(VARCHAR(2), CAST(c.[Time_Wanted] as TIME),108) ELSE '9' END as 'PriTime',
-                                                                                CASE WHEN c.[Time_Wanted] IS NOT NULL THEN DATEPART(MINUTE, CAST(c.[Time_Wanted] as TIME)) ELSE '9' END as 'Sched_Priority',
-                                                                                d.[Part_Number]as 'SkuNumber',
-	                                                                            d.[Description] as 'SkuDesc',
-	                                                                            d.[Um] as 'SkuUom', d.[Drawing_Nbrs] as 'SkuMasterPrint',
-	                                                                            ISNULL(d.[Bom_Rev_Date], '1999-01-01') as 'BomRevDate',
-	                                                                            ISNULL(d.[Bom_Rev_Level], '') as 'BomRevLvl',
-                                                                                ISNULL(e.[Qty_On_Hand], 0) as 'SkuOnHand',
-                                                                                CASE WHEN b.[Due_Date] < GETDATE() THEN 1 ELSE 0 END as 'IsLate',
-	                                                                            CASE WHEN b.[Date_Start] < GETDATE() AND c.[Qty_To_Start] = b.[Qty_Avail] THEN 1 ELSE 0 END as 'IsStartLate',
-                                                                                e.[Engineering_Status] as 'EngStatus',
-	                                                                            (SELECT [Description] FROM [dbo].[TM-INIT_Eng_Status] WHERE [ID] = e.[Engineering_Status]) as 'EngStatusDesc',
-                                                                                (SELECT [Name] FROM [dbo].[CM-INIT] WHERE [Cust_Nbr] = c.[Cust_Nbr]) as 'Cust_Name',
-	                                                                            (SELECT [Cust_Part_Nbr] FROM [dbo].[SOD-INIT] WHERE [ID] = SUBSTRING(c.[So_Reference],0,LEN(c.[So_Reference])-1)) as 'Cust_Part_Nbr',
-	                                                                            CAST((SELECT [Ln_Bal_Qty] FROM [dbo].[SOD-INIT] WHERE [ID] = SUBSTRING(c.[So_Reference],0,LEN(c.[So_Reference])-1)) as int) as 'Ln_Bal_Qty',
-                                                                                ISNULL((SELECT [Load_Pattern] FROM [dbo].[CM-INIT] WHERE [Cust_Nbr] = c.[Cust_Nbr]),'') as 'LoadPattern'
-                                                                            FROM
-                                                                                [dbo].[WC-INIT] a
-                                                                            RIGHT JOIN
-                                                                                [dbo].[WPO-INIT] b ON b.[Work_Center] = a.[Wc_Nbr]
-                                                                            RIGHT JOIN
-                                                                                [dbo].[WP-INIT] c ON b.[ID] LIKE CONCAT(c.[Wp_Nbr], '%')
-                                                                            RIGHT JOIN
-                                                                                [dbo].[IM-INIT] d ON d.[Part_Number] = c.[Part_Wo_Desc]
-                                                                            RIGHT JOIN
-                                                                                [dbo].[IPL-INIT] e ON e.[Part_Nbr] = d.[Part_Number]
-                                                                            WHERE
-                                                                                a.[D_esc] <> 'DO NOT USE' AND (c.[Status_Flag] = 'R' OR c.[Status_Flag] = 'A') AND (b.[Seq_Complete_Flag] IS NULL OR b.[Seq_Complete_Flag] = 'N') AND b.[Alt_Seq_Status] IS NULL
-                                                                            ORDER BY
-                                                                                MachineNumber, WO_Priority, PriTime, Sched_Priority, WO_SchedStartDate, WO_Number ASC;", sqlCon))
+                        using (SqlDataAdapter adapter = new SqlDataAdapter(_selectCmd, sqlCon))
                         {
                             adapter.Fill(_tempTable);
                             return _tempTable;

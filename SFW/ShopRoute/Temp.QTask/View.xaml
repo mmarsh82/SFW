@@ -4,34 +4,65 @@
         xmlns:local="clr-namespace:SFW.ShopRoute.Temp.QTask"
         Title="Q-Task" WindowState="Maximized" WindowStyle="ToolWindow" WindowStartupLocation="CenterOwner" ResizeMode="NoResize" Topmost="True">
     <Grid Background="LightYellow">
-        <StackPanel Orientation="Vertical"
-                    VerticalAlignment="Center">
-            <TextBlock Text="{Binding QTask}"
-                       HorizontalAlignment="Center"
-                       FontSize="48"
-                       FontWeight="Bold"
-                       Foreground="Crimson"/>
-            <TextBlock Text="{Binding QType}"
-                       HorizontalAlignment="Center"
-                       FontSize="48"
-                       FontWeight="Bold"
-                       Foreground="Crimson"/>
-            <TextBlock Text="{Binding Notes}"
-                       HorizontalAlignment="Center"
-                       FontSize="48"
-                       FontWeight="Bold"
-                       Foreground="Crimson"/>
-        </StackPanel>
 
-        <TextBlock Text="{Binding IntialDate}"
-                       HorizontalAlignment="Left"
-                       VerticalAlignment="Bottom"
-                       FontSize="26"
-                       FontWeight="Bold"/>
-        <TextBlock Text="{Binding IntialBy}"
-                       HorizontalAlignment="Right"
-                       VerticalAlignment="Bottom"
-                       FontSize="26"
-                       FontWeight="Bold"/>
+        <ItemsControl ItemsSource="{Binding QTaskList, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                 BorderThickness="0"
+                 HorizontalAlignment="Center"
+                 Background="Transparent">
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <VirtualizingStackPanel IsItemsHost="True"
+                                            Orientation="Vertical" />
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+
+                    <Grid Margin="0,20,0,0">
+
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <StackPanel Grid.Row="0"
+                                    Orientation="Vertical"
+                                    VerticalAlignment="Center">
+                            <TextBlock Text="{Binding QTaskType}"
+                                       HorizontalAlignment="Center"
+                                       FontSize="48"
+                                       FontWeight="Bold"
+                                       Foreground="Crimson"/>
+                            <TextBlock Text="{Binding QTypeDesc}"
+                                       HorizontalAlignment="Center"
+                                       FontSize="48"
+                                       FontWeight="Bold"
+                                       Foreground="Crimson"/>
+                            <TextBlock Text="{Binding Notes}"
+                                       HorizontalAlignment="Center"
+                                       FontSize="48"
+                                       FontWeight="Bold"
+                                       Foreground="Crimson"/>
+                        </StackPanel>
+
+                        <TextBlock Grid.Row="1"
+                                   Text="{Binding IntialDate}"
+                                   HorizontalAlignment="Left"
+                                   VerticalAlignment="Bottom"
+                                   FontSize="26"
+                                   FontWeight="Bold"/>
+                        <TextBlock Grid.Row="1"
+                                   Text="{Binding IntialBy}"
+                                   HorizontalAlignment="Right"
+                                   VerticalAlignment="Bottom"
+                                   FontSize="26"
+                                   FontWeight="Bold"/>
+
+                    </Grid>
+
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
     </Grid>
 </Window>
