@@ -60,7 +60,17 @@ namespace SFW.Model
             {
                 try
                 {
-                    using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database}; SELECT * FROM [dbo].[IM_UDEF-INIT_Quality_Tasks] WHERE [ID1] = @p1;", sqlCon))
+                    using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database}; 
+                                                                SELECT
+	                                                                a.[Qtask_Type],
+	                                                                a.[Qtask_Init_Date],
+	                                                                a.[Qtask_Initiated_By]
+                                                                FROM
+	                                                                [dbo].[IM_UDEF-INIT_Quality_Tasks] a
+                                                                RIGHT JOIN
+	                                                                [dbo].[IPL-INIT] b ON b.[Part_Nbr] = a.[ID1]
+                                                                WHERE
+	                                                                a.[ID1] = @p1 AND a.[Qtask_Initiated_By] IS NOT NULL AND a.[Qtask_Release_Date] IS NULL AND b.[Engineering_Status] != 'O';", sqlCon))
                     {
                         cmd.Parameters.AddWithValue("p1", partNumber);
                         using (SqlDataReader reader = cmd.ExecuteReader())
@@ -73,13 +83,42 @@ namespace SFW.Model
                                     {
                                         QTaskType = reader.SafeGetString("Qtask_Type").Trim(),
                                         QTypeDesc = reader.SafeGetString("Qtask_Type").Trim(),
-                                        Notes = reader.SafeGetString("Qtask_Notes"),
                                         IntialBy = reader.SafeGetString("Qtask_Initiated_By"),
                                         IntialDate = reader.SafeGetDateTime("Qtask_Init_Date").ToString("ddMMMyyyy")
                                     });
                                 }
                             }
                         }
+                    }
+                    foreach (var q in _tempList)
+                    {
+                        using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database}; 
+                                                                SELECT
+	                                                                a.[Qtask_Notes]
+                                                                FROM
+	                                                                [dbo].[IM_UDEF_Qtasks] a
+                                                                RIGHT JOIN
+	                                                                [dbo].[IPL-INIT] b ON b.[Part_Nbr] = a.[ID]
+                                                                RIGHT JOIN
+	                                                                [dbo].[IM_UDEF-INIT_Quality_Tasks] c ON c.[ID1] = a.[ID] AND c.[Qtask_Type] = a.[Qtask_Type]
+                                                                WHERE
+	                                                                a.[ID] = @p1 AND a.[Qtask_Type] = @p2 AND c.[Qtask_Initiated_By] IS NOT NULL AND c.[Qtask_Release_Date] IS NULL AND b.[Engineering_Status] != 'O';", sqlCon))
+                        {
+                            cmd.Parameters.AddWithValue("p1", partNumber);
+                            cmd.Parameters.AddWithValue("p2", q.QTaskType);
+                            using (SqlDataReader reader = cmd.ExecuteReader())
+                            {
+                                if (reader.HasRows)
+                                {
+                                    while (reader.Read())
+                                    {
+                                        q.Notes += $"{reader.SafeGetString("Qtask_Notes").Trim()} ";
+                                    }
+                                }
+                            }
+                        }
+                        q.Notes += "\n";
+                        q.Notes.Trim();
                     }
                     return _tempList;
                 }

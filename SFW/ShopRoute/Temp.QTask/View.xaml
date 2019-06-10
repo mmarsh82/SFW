@@ -6,9 +6,10 @@
     <Grid Background="LightYellow">
 
         <ItemsControl ItemsSource="{Binding QTaskList, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                 BorderThickness="0"
-                 HorizontalAlignment="Center"
-                 Background="Transparent">
+                      BorderThickness="0"
+                      HorizontalAlignment="Center"
+                      VerticalAlignment="Center"
+                      Background="Transparent">
             <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
                     <VirtualizingStackPanel IsItemsHost="True"
@@ -38,25 +39,46 @@
                                        FontSize="48"
                                        FontWeight="Bold"
                                        Foreground="Crimson"/>
-                            <TextBlock Text="{Binding Notes}"
-                                       HorizontalAlignment="Center"
-                                       FontSize="48"
-                                       FontWeight="Bold"
-                                       Foreground="Crimson"/>
+                            <TextBox Text="{Binding Notes}"
+                                     Background="Transparent"
+                                     BorderBrush="Transparent"
+                                     IsEnabled="False"
+                                     TextWrapping="WrapWithOverflow"
+                                     HorizontalContentAlignment="Center"
+                                     VerticalContentAlignment="Center"
+                                     HorizontalAlignment="Center"
+                                     FontSize="48"
+                                     FontWeight="Bold"
+                                     Foreground="Crimson"
+                                     Style="{DynamicResource DisabledTextBox}"/>
                         </StackPanel>
 
-                        <TextBlock Grid.Row="1"
-                                   Text="{Binding IntialDate}"
-                                   HorizontalAlignment="Left"
-                                   VerticalAlignment="Bottom"
-                                   FontSize="26"
-                                   FontWeight="Bold"/>
-                        <TextBlock Grid.Row="1"
-                                   Text="{Binding IntialBy}"
-                                   HorizontalAlignment="Right"
-                                   VerticalAlignment="Bottom"
-                                   FontSize="26"
-                                   FontWeight="Bold"/>
+                        <StackPanel Grid.Row="1"
+                                    Orientation="Horizontal"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center">
+
+                            <TextBlock Text="Initiated On:"
+                                       TextDecorations="Underline"
+                                       FontSize="26"
+                                       FontWeight="Bold"/>
+
+                            <TextBlock Text="{Binding IntialDate}"
+                                       FontSize="26"
+                                       FontWeight="Bold"
+                                       Margin="10,0,0,0"/>
+
+                            <TextBlock Text="Initiated By:"
+                                       TextDecorations="Underline"
+                                       FontSize="26"
+                                       FontWeight="Bold"
+                                       Margin="50,0,0,0"/>
+
+                            <TextBlock Text="{Binding IntialBy}"
+                                       FontSize="26"
+                                       FontWeight="Bold"
+                                       Margin="10,0,0,0"/>
+                        </StackPanel>
 
                     </Grid>
 
