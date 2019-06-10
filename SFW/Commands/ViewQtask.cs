@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Windows.Input;
-using SFW.ShopRoute.Temp.QTask;
 
 namespace SFW.Commands
 {
@@ -10,7 +9,7 @@ namespace SFW.Commands
 
         public void Execute(object parameter)
         {
-            new View { DataContext = new ViewModel(parameter.ToString()) }.Show();
+            new ShopRoute.Temp.QTask.View { DataContext = new ShopRoute.Temp.QTask.ViewModel(parameter.ToString()) }.ShowDialog();
         }
         public bool CanExecute(object parameter) => true;
     }

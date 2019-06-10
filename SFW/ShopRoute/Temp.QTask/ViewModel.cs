@@ -11,6 +11,9 @@ namespace SFW.ShopRoute.Temp.QTask
 
         #endregion
 
+        public ViewModel()
+        { }
+
         /// <summary>
         /// 
         /// </summary>

@@ -5,7 +5,7 @@
         Title="Q-Task" WindowState="Maximized" WindowStyle="ToolWindow" WindowStartupLocation="CenterOwner" ResizeMode="NoResize" Topmost="True">
     <Grid Background="LightYellow">
 
-        <ItemsControl ItemsSource="{Binding QTaskList, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+        <ItemsControl ItemsSource="{Binding QTaskList, Mode=OneTime}"
                       BorderThickness="0"
                       HorizontalAlignment="Center"
                       VerticalAlignment="Center"
@@ -39,18 +39,12 @@
                                        FontSize="48"
                                        FontWeight="Bold"
                                        Foreground="Crimson"/>
-                            <TextBox Text="{Binding Notes}"
-                                     Background="Transparent"
-                                     BorderBrush="Transparent"
-                                     IsEnabled="False"
-                                     TextWrapping="WrapWithOverflow"
-                                     HorizontalContentAlignment="Center"
-                                     VerticalContentAlignment="Center"
-                                     HorizontalAlignment="Center"
-                                     FontSize="48"
-                                     FontWeight="Bold"
-                                     Foreground="Crimson"
-                                     Style="{DynamicResource DisabledTextBox}"/>
+                            <TextBlock Text="{Binding Notes}"
+                                       TextWrapping="WrapWithOverflow"
+                                       HorizontalAlignment="Center"
+                                       FontSize="48"
+                                       FontWeight="Bold"
+                                       Foreground="Crimson"/>
                         </StackPanel>
 
                         <StackPanel Grid.Row="1"
