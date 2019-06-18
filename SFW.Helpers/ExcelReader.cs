@@ -1,6 +1,7 @@
 ﻿using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.IO.Packaging;
 using System.Linq;
@@ -73,6 +74,66 @@ namespace SFW.Helpers
             catch (Exception)
             {
                 return string.Empty;
+            }
+        }
+
+        /// <summary>
+        /// Reads the trimming setup information from the Excel cross reference workbook
+        /// </summary>
+        /// <param name="partNbr">Part Number</param>
+        /// <param name="filePath">File path to the excel document to parse</param>
+        /// <param name="sheetName">Name of the workshee to parse in the excel workbook</param>
+        /// <returns>List of strings that contains the set up information</returns>
+        public static List<string> GetTrimmingSetupInfo(string partNbr, string filePath, string sheetName)
+        {
+            var _returnList = new List<string>();
+            try
+            {
+                var ssPack = Package.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
+                using (var ssDoc = SpreadsheetDocument.Open(ssPack))
+                {
+                    var wbPart = ssDoc.WorkbookPart;
+                    var setupSheet = wbPart.Workbook.Descendants<Sheet>().Where(s => s.Name == sheetName).FirstOrDefault();
+                    var wsPart = (WorksheetPart)wbPart.GetPartById(setupSheet.Id);
+                    var sheetRows = wsPart.Worksheet.GetFirstChild<SheetData>().Descendants<Row>();
+                    var stringTable = wbPart.GetPartsOfType<SharedStringTablePart>().FirstOrDefault();
+                    foreach (var r in sheetRows)
+                    {
+                        foreach (var c in r.Descendants<Cell>())
+                        {
+                            var _cellValue = c.InnerText;
+                            if (c.DataType != null && c.DataType.Value == CellValues.SharedString)
+                            {
+                                _cellValue = stringTable.SharedStringTable.ElementAt(int.Parse(c.InnerText)).InnerText;
+                            }
+                            if (_cellValue == partNbr)
+                            {
+                                foreach (var o in r.Descendants<Cell>())
+                                {
+                                    if (o.DataType != null && o.DataType.Value == CellValues.SharedString)
+                                    {
+                                        _returnList.Add(stringTable.SharedStringTable.ElementAt(int.Parse(o.InnerText)).InnerText);
+                                    }
+                                    else
+                                    {
+                                        _returnList.Add(o.InnerText);
+                                    }
+                                }
+                                return _returnList;
+                            }
+                            break;
+                        }
+                        if (_returnList.Count > 0)
+                        {
+                            break;
+                        }
+                    }
+                }
+                return null;
+            }
+            catch (Exception)
+            {
+                return null;
             }
         }
     }

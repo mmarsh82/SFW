@@ -30,8 +30,8 @@
     <PublisherName>Michael Marsh</PublisherName>
     <SuiteName>WCCO Belting Inc.</SuiteName>
     <AutorunEnabled>true</AutorunEnabled>
-    <ApplicationRevision>1057</ApplicationRevision>
-    <ApplicationVersion>1.0.112.1057</ApplicationVersion>
+    <ApplicationRevision>1084</ApplicationRevision>
+    <ApplicationVersion>1.0.114.1084</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <CreateDesktopShortcut>true</CreateDesktopShortcut>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -116,8 +116,10 @@
     <Compile Include="Commands\M2kWipReceipt.cs" />
     <Compile Include="Commands\PartDetail.cs" />
     <Compile Include="Commands\PartSpec.cs" />
+    <Compile Include="Commands\PrintUserControl.cs" />
     <Compile Include="Commands\SetUpInformation.cs" />
     <Compile Include="Commands\ShowLogInWindow.cs" />
+    <Compile Include="Commands\TrimmingInformation.cs" />
     <Compile Include="Commands\ViewQtask.cs" />
     <Compile Include="Commands\WipHistory.cs" />
     <Compile Include="Commands\WorkInstructions.cs" />
@@ -139,6 +141,10 @@
       <DependentUpon>PartSpec_View.xaml</DependentUpon>
     </Compile>
     <Compile Include="Queries\PartSpec_ViewModel.cs" />
+    <Compile Include="Queries\PartTrimInfo_View.xaml.cs">
+      <DependentUpon>PartTrimInfo_View.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Queries\PartTrimInfo_ViewModel.cs" />
     <Compile Include="Queries\WipHist_View.xaml.cs">
       <DependentUpon>WipHist_View.xaml</DependentUpon>
     </Compile>
@@ -229,6 +235,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Queries\PartSpec_View.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Queries\PartTrimInfo_View.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

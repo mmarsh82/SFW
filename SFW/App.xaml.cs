@@ -55,7 +55,7 @@ namespace SFW
             AppDomain.CurrentDomain.UnhandledException += App_ExceptionCrash;
             Current.DispatcherUnhandledException += App_DispatherCrash;
             SystemEvents.PowerModeChanged += OnPowerChange;
-            AppSqlCon.StateChange += SqlCon_StateChangeAsync;
+            AppSqlCon.StateChange += SqlCon_StateChange;
             RefreshTimer.Start(new TimeSpan(0, 5, 0));
             CurrentUser.LogIn();
         }
@@ -94,13 +94,12 @@ namespace SFW
         /// </summary>
         /// <param name="sender">empty object</param>
         /// <param name="e">Connection State Change Events</param>
-        private async static void SqlCon_StateChangeAsync(object sender, System.Data.StateChangeEventArgs e)
+        private static void SqlCon_StateChange(object sender, System.Data.StateChangeEventArgs e)
         {
             var count = 0;
-            while ((AppSqlCon.State == System.Data.ConnectionState.Broken) && count <= 10)
+            while ((AppSqlCon.State == System.Data.ConnectionState.Broken || AppSqlCon.State == System.Data.ConnectionState.Closed) && count <= 5)
             {
-                await AppSqlCon.OpenAsync();
-                count++;
+                AppSqlCon.Open();
             }
         }
 
@@ -152,7 +151,7 @@ namespace SFW
         {
             if (AppSqlCon != null)
             {
-                AppSqlCon.StateChange -= SqlCon_StateChangeAsync;
+                AppSqlCon.StateChange -= SqlCon_StateChange;
                 AppSqlCon.Close();
                 AppSqlCon.Dispose();
                 AppSqlCon = null;
@@ -178,7 +177,7 @@ namespace SFW
             {
                 if (AppSqlCon != null)
                 {
-                    AppSqlCon.StateChange -= SqlCon_StateChangeAsync;
+                    AppSqlCon.StateChange -= SqlCon_StateChange;
                     AppSqlCon.Close();
                     AppSqlCon.Dispose();
                     AppSqlCon = null;
@@ -205,7 +204,7 @@ namespace SFW
                 }
                 finally
                 {
-                    AppSqlCon.StateChange -= SqlCon_StateChangeAsync;
+                    AppSqlCon.StateChange -= SqlCon_StateChange;
                     AppSqlCon.Close();
                     AppSqlCon.Dispose();
                     AppSqlCon = null;
@@ -224,12 +223,12 @@ namespace SFW
             switch (e.Mode)
             {
                 case PowerModes.Suspend:
-                    AppSqlCon.StateChange -= SqlCon_StateChangeAsync;
+                    AppSqlCon.StateChange -= SqlCon_StateChange;
                     AppSqlCon.Close();
                     break;
                 case PowerModes.Resume:
-                    AppSqlCon.OpenAsync();
-                    AppSqlCon.StateChange += SqlCon_StateChangeAsync;
+                    AppSqlCon.Open();
+                    AppSqlCon.StateChange += SqlCon_StateChange;
                     break;
             }
         }

@@ -3,7 +3,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:cvtr="clr-namespace:SFW.Converters"
              xmlns:cmd="clr-namespace:SFW.Commands"
-             xmlns:main="clr-namespace:SFW">
+             xmlns:main="clr-namespace:SFW"
+             x:Name="ShopRouteUserControl">
     <ScrollViewer x:Name="MainScroll" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" Margin="0,0,0,20">
         <Grid>
             <Grid.Resources>
@@ -16,6 +17,7 @@
                 <cmd:PartSearch x:Key="PartSearchICommand"/>
                 <cmd:PartInformation x:Key="PartInfoCommand"/>
                 <cmd:SetUpInformation x:Key="SetupCommand" />
+                <cmd:TrimmingInformation x:Key="TrimSetupICommand"/>
                 <cmd:M2kWipReceipt x:Key="WipCommand" />
                 <cmd:WorkInstructions x:Key="WorkInstICommand" />
                 <main:CurrentUser x:Key="User" />
@@ -66,6 +68,12 @@
                             FontSize="16"
                             Command="{StaticResource SetupCommand}"
                             CommandParameter="{Binding ShopOrder}"
+                            Style="{DynamicResource MenuButtonStyle}" />
+                    <Button Content="Trim Info"
+                            FontSize="16"
+                            Command="{StaticResource TrimSetupICommand}"
+                            CommandParameter="{Binding ShopOrder.SkuNumber}"
+                            Visibility="{Binding CanSeeTrim, Converter={StaticResource BoolToVisConverter}}"
                             Style="{DynamicResource MenuButtonStyle}" />
                     <Button Content="Wip Receipt"
                             FontSize="16"
@@ -590,6 +598,14 @@
                                     <DataGridTextColumn.Binding>
                                         <MultiBinding StringFormat="{}{0}  {1}">
                                             <Binding Path="CurrentOnHand" />
+                                            <Binding Path="CompUom" />
+                                        </MultiBinding>
+                                    </DataGridTextColumn.Binding>
+                                </DataGridTextColumn>
+                                <DataGridTextColumn Header="Pickable">
+                                    <DataGridTextColumn.Binding>
+                                        <MultiBinding StringFormat="{}{0}  {1}">
+                                            <Binding Path="CurrentPickable" />
                                             <Binding Path="CompUom" />
                                         </MultiBinding>
                                     </DataGridTextColumn.Binding>

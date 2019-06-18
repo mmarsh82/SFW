@@ -100,23 +100,25 @@ namespace SFW.WIP
         /// <returns>Validation response as bool</returns>
         private bool ValidateComponents()
         {
-            var _valid = true;
-            foreach (var c in WipRecord.WipWorkOrder.Bom)
+            var _validLoc = true;
+            var _validQty = true;
+            foreach (var c in WipRecord.WipWorkOrder.Bom.Where(o => o.IsLotTrace))
             {
-                if (c.IsLotTrace)
+                if (string.IsNullOrEmpty(c.BackflushLoc))
                 {
-                    _valid = Math.Round(Convert.ToDouble(WipRecord.WipQty) * c.AssemblyQty, 0) == c.WipInfo.Where(o => !string.IsNullOrEmpty(o.LotNbr)).Sum(o => o.LotQty);
+                    _validLoc = c.WipInfo.Where(o => !string.IsNullOrEmpty(o.LotNbr)).Count() == c.WipInfo.Where(o => !string.IsNullOrEmpty(o.RcptLoc)).Count();
                 }
-                if(string.IsNullOrEmpty(c.BackflushLoc) && _valid)
+                else
                 {
-                    _valid = c.WipInfo.Where(o => !string.IsNullOrEmpty(o.LotNbr)).Count() == c.WipInfo.Where(o => !string.IsNullOrEmpty(o.RcptLoc)).Count();
+                    _validLoc = c.WipInfo.Where(o => !o.ValidLot && !string.IsNullOrEmpty(o.LotNbr)).Count() == 0;
                 }
-                if (!_valid)
+                _validQty = Math.Round(Convert.ToDouble(WipRecord.WipQty) * c.AssemblyQty, 0) == c.WipInfo.Where(o => !string.IsNullOrEmpty(o.LotNbr)).Sum(o => o.LotQty);
+                if (!_validLoc || !_validQty)
                 {
-                    return _valid;
+                    return false;
                 }
             }
-            return _valid;
+            return true;
         }
 
         #region Process Wip ICommand

@@ -14,6 +14,8 @@ namespace SFW.Model
             set { lotNbr = value; OnPropertyChanged(nameof(LotNbr)); }
         }
 
+        public bool ValidLot { get; set; }
+
         private int? lotQty;
         public int? LotQty
         {
@@ -107,6 +109,7 @@ namespace SFW.Model
             PartNbr = partNbr;
             QtyLock = false;
             IsScrap = Complete.N;
+            ValidLot = false;
         }
     }
 }

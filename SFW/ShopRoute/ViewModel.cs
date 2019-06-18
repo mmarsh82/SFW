@@ -77,6 +77,7 @@ namespace SFW.ShopRoute
         public bool CanSeeWip { get { return CurrentUser.IsLoggedIn; } }
         public bool CanReport { get { return CurrentUser.IsLoggedIn && MachineGroup == "PRESS" && HasStarted; } }
         public bool CanIntReport { get { return CurrentUser.IsLoggedIn && MachineGroup != "PRESS" && CanCheckHistory && CurrentSite == 1; } }
+        public bool CanSeeTrim { get { return MachineGroup == "PRESS"; } }
 
         private RelayCommand _noteChange;
         private RelayCommand _loadReport;

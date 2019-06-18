@@ -13,6 +13,7 @@ namespace SFW.Model
         public string CompNumber { get; set; }
         public string CompDescription { get; set; }
         public int CurrentOnHand { get; set; }
+        public int CurrentPickable { get; set; }
         public int RequiredQty { get; set; }
         public double AssemblyQty { get; set; }
         public int IssuedQty { get; set; }
@@ -50,20 +51,29 @@ namespace SFW.Model
             {
                 try
                 {
-                    using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database}; SELECT
-	                                                            SUBSTRING(a.[ID], CHARINDEX('*', a.[ID], 0) + 1, LEN(a.[ID])) as 'Component', a.[Qty_Per_Assy] as 'Qty Per', a.[Qty_Reqd] as 'Req Qty',
-	                                                            b.[Qty_On_Hand] as 'On Hand', b.[Wip_Rec_Loc] as 'Backflush',
-	                                                            c.[Description], c.[Drawing_Nbrs], c.[Um], c.[Inventory_Type], c.[Lot_Trace]
-                                                            FROM
-	                                                            [dbo].[PL-INIT] a
-                                                            RIGHT JOIN
-	                                                            [dbo].[IPL-INIT] b ON b.[Part_Nbr] = SUBSTRING(a.[ID], CHARINDEX('*', a.[ID], 0) + 1, LEN(a.[ID]))
-                                                            RIGHT JOIN
-	                                                            [dbo].[IM-INIT] c ON c.[Part_Number] = SUBSTRING(a.[ID], CHARINDEX('*', a.[ID], 0) + 1, LEN(a.[ID]))
-                                                            WHERE
-	                                                            a.[ID] LIKE CONCAT(@p1, '%')
-                                                            ORDER BY
-                                                                Component;", sqlCon))
+                    using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database};
+                                                                SELECT
+	                                                                SUBSTRING(a.[ID], CHARINDEX('*', a.[ID], 0) + 1, LEN(a.[ID])) as 'Component',
+	                                                                a.[Qty_Per_Assy] as 'Qty Per',
+	                                                                a.[Qty_Reqd] as 'Req Qty',
+	                                                                b.[Qty_On_Hand] as 'On Hand',
+	                                                                (SELECT SUM(aa.[OH_Qty_By_Loc]) FROM [dbo].[IPL-INIT_Location_Data] aa WHERE aa.[ID1] = b.[Part_Nbr] AND aa.[Loc_Pick_Avail_Flag] = 'Y') as 'Pickable',
+	                                                                b.[Wip_Rec_Loc] as 'Backflush',
+	                                                                c.[Description],
+	                                                                c.[Drawing_Nbrs],
+	                                                                c.[Um],
+	                                                                c.[Inventory_Type],
+	                                                                c.[Lot_Trace]
+                                                                FROM
+	                                                                [dbo].[PL-INIT] a
+                                                                RIGHT JOIN
+	                                                                [dbo].[IPL-INIT] b ON b.[Part_Nbr] = SUBSTRING(a.[ID], CHARINDEX('*', a.[ID], 0) + 1, LEN(a.[ID]))
+                                                                RIGHT JOIN
+	                                                                [dbo].[IM-INIT] c ON c.[Part_Number] = SUBSTRING(a.[ID], CHARINDEX('*', a.[ID], 0) + 1, LEN(a.[ID]))
+                                                                WHERE
+	                                                                a.[ID] LIKE CONCAT(@p1, '%')
+                                                                ORDER BY
+                                                                    Component;", sqlCon))
                     {
                         cmd.Parameters.AddWithValue("p1", woNbr);
                         using (SqlDataReader reader = cmd.ExecuteReader())
@@ -78,6 +88,7 @@ namespace SFW.Model
                                         AssemblyQty = reader.SafeGetDouble("Qty Per"),
                                         RequiredQty = reader.SafeGetInt32("Req Qty"),
                                         CurrentOnHand = reader.SafeGetInt32("On Hand"),
+                                        CurrentPickable = reader.SafeGetInt32("Pickable"),
                                         CompDescription = reader.SafeGetString("Description"),
                                         IssuedQty = Convert.ToInt32(Math.Round(reader.SafeGetDouble("Qty Per") * balQty, 0, MidpointRounding.AwayFromZero)),
                                         CompMasterPrint = reader.SafeGetString("Drawing_Nbrs"),
@@ -129,7 +140,8 @@ namespace SFW.Model
             if (e.ListChangedType == ListChangedType.ItemChanged && e.PropertyDescriptor.DisplayName == "LotNbr")
             {
                 WipInfoUpdating = true;
-                if (Lot.LotValidation(((BindingList<CompWipInfo>)sender)[e.NewIndex].LotNbr, ((BindingList<CompWipInfo>)sender)[e.NewIndex].PartNbr, ModelBase.ModelSqlCon))
+                ((BindingList<CompWipInfo>)sender)[e.NewIndex].ValidLot = Lot.LotValidation(((BindingList<CompWipInfo>)sender)[e.NewIndex].LotNbr, ((BindingList<CompWipInfo>)sender)[e.NewIndex].PartNbr, ModelBase.ModelSqlCon);
+                if (((BindingList<CompWipInfo>)sender)[e.NewIndex].ValidLot)
                 {
                     if (!((BindingList<CompWipInfo>)sender)[e.NewIndex].IsBackFlush)
                     {
@@ -182,7 +194,6 @@ namespace SFW.Model
                         _counter++;
                     }
                 }
-
                 WipInfoUpdating = false;
             }
         }
