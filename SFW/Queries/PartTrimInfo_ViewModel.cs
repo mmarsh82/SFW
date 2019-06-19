@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.IO;
 using System.Windows.Input;
 
 namespace SFW.Queries
@@ -76,7 +77,8 @@ namespace SFW.Queries
                 var _path = string.Empty;
                 if (parameter.ToString().Contains("*"))
                 {
-                    _path = "‪‪\\\\manage2\\server\\Engineering\\Equipment\\Tooling\\Controlled Production Tooling\\";
+                    _path = "\\\\manage2\\server\\Engineering\\Product\\Trim Setups\\Controlled Trim Setups\\Trim Tools\\";
+                    //_path = "‪‪\\\\manage2\\server\\Engineering\\Equipment\\Tooling\\ControlledProductionTooling\\";
                     var _type = parameter.ToString().Split('*');
                     switch (_type[1])
                     {

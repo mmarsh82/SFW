@@ -34,6 +34,7 @@ namespace SFW.Commands
                             switch (_machGroup)
                             {
                                 case "PRESS":
+                                case "ENG":
                                     _fileName = ExcelReader.GetSetupPrintNumber(_wo.SkuNumber, Machine.GetMachineName(App.AppSqlCon, _wo), "\\\\manage2\\server\\Engineering\\Product\\Press Setups\\press setup and part number crossreference.xlsm", "Production");
                                     if (!string.IsNullOrEmpty(_fileName))
                                     {
