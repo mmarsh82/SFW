@@ -44,7 +44,7 @@ namespace SFW.Commands
                                             _fileheader += "0";
                                         }
                                         _fileName = _fileheader + _fileName;
-                                        _filePath = $"\\\\manage2\\server\\Engineering\\Product\\Press Setups\\Controlled Production Press Setups\\{_fileName}.PDF";
+                                        _filePath = $"\\\\manage2\\Prints\\{_fileName}.PDF";
                                     }
                                     else
                                     {
@@ -53,7 +53,7 @@ namespace SFW.Commands
                                     break;
                                 case "FABE":
                                     _fileName = ExcelReader.GetSetupPrintNumber(_wo.SkuNumber, Machine.GetMachineName(App.AppSqlCon, _wo), "\\\\manage2\\server\\Engineering\\Product\\Sysco Press Setups\\SYSCO PRESS - Setup cross reference.xlsx", "PRODUCTION");
-                                    _filePath = $"\\\\manage2\\server\\Engineering\\Product\\Sysco Press Setups\\Controlled Sysco Press Setups\\{_fileName}.PDF";
+                                    _filePath = $"\\\\manage2\\Prints\\{_fileName}.PDF";
                                     break;
                             }             
                             if (!string.IsNullOrEmpty(_filePath))

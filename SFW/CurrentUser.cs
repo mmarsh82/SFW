@@ -206,6 +206,24 @@ namespace SFW
         }
 
         /// <summary>
+        /// App Update log in for a user
+        /// </summary>
+        /// <param name="userName">User Name</param>
+        public static void LogIn(string userName)
+        {
+            using (PrincipalContext pContext = new PrincipalContext(ContextType.Domain))
+            {
+                using (UserPrincipal uPrincipal = UserPrincipal.FindByIdentity(pContext, userName))
+                {
+                    if (uPrincipal.GetAuthorizationGroups().ToList().ConvertAll(o => o.Name).Exists(o => o.Contains("SFW_")))
+                    {
+                        new CurrentUser(pContext, uPrincipal);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
         /// Log in method for the current user
         /// </summary>
         /// <param name="userName">User Name</param>

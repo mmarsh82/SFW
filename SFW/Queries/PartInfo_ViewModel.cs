@@ -190,8 +190,11 @@ namespace SFW.Queries
         {
             NoLotResults = false;
             NoHistoryResults = false;
+            OnPropertyChanged(nameof(NoResults));
             IthResultsTable = null;
+            OnPropertyChanged(nameof(IthResultsTable));
             ILotResultsList = null;
+            OnPropertyChanged(nameof(ILotResultsList));
             Filter = FilterText = null;
             OnPropertyChanged(nameof(FilterText));
             SearchAsyncResult = ResultsAsyncDelegate.BeginInvoke(parameter.ToString(), new AsyncCallback(ResultsLoaded), null);

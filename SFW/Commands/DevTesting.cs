@@ -1,5 +1,4 @@
-﻿using M2kClient;
-using System;
+﻿using System;
 using System.Windows.Input;
 
 namespace SFW.Commands
@@ -14,7 +13,8 @@ namespace SFW.Commands
         /// <param name="parameter"></param>
         public void Execute(object parameter)
         {
-            new ShopRoute.Temp.QTask.View().Show();
+            var test = new AppReload();
+            test.Execute(null);
         }
         public bool CanExecute(object parameter) => true;
     }

@@ -28,7 +28,7 @@ namespace SFW.Commands
                 if (!string.IsNullOrEmpty(parameter?.ToString()))
                 {
                     ///TODO: Remove hard coded print location
-                    Process.Start($"\\\\manage2\\server\\Engineering\\Product\\Prints\\Controlled Production Prints\\{parameter}.pdf");
+                    Process.Start($"\\\\manage2\\Prints\\{parameter}.pdf");
                 }
                 else
                 {

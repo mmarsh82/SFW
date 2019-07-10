@@ -84,7 +84,7 @@ namespace SFW.Model
                                         Volume = reader.SafeGetDouble("Volume");
                                         RollDiameter = reader.SafeGetDouble("Roll_Diameter");
                                         RollWeight = reader.SafeGetDouble("Total_Roll_Weight");
-                                        SpecGravity = reader.SafeGetDouble("Spec_Gravtity");
+                                        SpecGravity = reader.SafeGetDouble("Spec_Gravity");
                                         Gauge = reader.SafeGetDouble("Gauge");
                                     }
                                 }

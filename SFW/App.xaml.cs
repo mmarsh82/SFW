@@ -57,7 +57,10 @@ namespace SFW
             SystemEvents.PowerModeChanged += OnPowerChange;
             AppSqlCon.StateChange += SqlCon_StateChange;
             RefreshTimer.Start(new TimeSpan(0, 5, 0));
-            CurrentUser.LogIn();
+            if (!CurrentUser.IsLoggedIn)
+            {
+                CurrentUser.LogIn();
+            }
         }
 
         /// <summary>
@@ -79,10 +82,13 @@ namespace SFW
             {
                 foreach (string s in startUpArgs)
                 {
+                    var arg = s.Split('_');
                     //All start up command line arguments are to be added in the below switch statement as cases
-                    switch (s.Remove(0, 1))
+                    switch (arg[0])
                     {
-                        
+                        case "1":
+                            CurrentUser.LogIn(arg[1]);
+                            break;
                     }
                 }
             }

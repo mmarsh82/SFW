@@ -18,6 +18,7 @@
             <cmd:SafeShutdown x:Key="ExitICommand"/>
             <cmd:ShowLogInWindow x:Key="LogInICommand" />
             <cmd:DevTesting x:Key="TestICommand" />
+            <cmd:AppReload x:Key="AppUpdateCommand" />
             <cvtr:SiteNumberToBool x:Key="SiteToBoolConverter"/>
             <cvtr:BoolToVisibility x:Key="BoolToVisConverter" />
             <cvtr:SiteToVisibility x:Key="SiteToVisConverter"/>
@@ -46,7 +47,7 @@
                         Command="{StaticResource PartSpecICommand}" />
         </Grid.InputBindings>
 
-        <!--#region Main Menu Usercontrol for all command-->
+        <!--#region Main Menu Usercontrol for all commands-->
 
         <Menu x:Name="MainMenu"
               Grid.Row="0"
@@ -204,13 +205,19 @@
                        VerticalAlignment="Center"
                        Margin="0,0,30,0"/>
 
-            <TextBlock Text="!! Update Available !!"
-                       FontSize="16"
-                       FontWeight="Bold"
-                       HorizontalAlignment="Center"
-                       VerticalAlignment="Center"
-                       Foreground="Crimson"
-                       Visibility="{Binding CanUpdate, Converter={StaticResource BoolToVisConverter}}"/>
+            <Button Content="!! Click To Update !!"
+                    Command="{StaticResource AppUpdateCommand}"
+                    FontSize="16"
+                    FontWeight="Bold"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Foreground="Crimson"
+                    BorderThickness="2"
+                    BorderBrush="Black"
+                    Width="200"
+                    Background="Yellow"
+                    Visibility="{Binding CanUpdate, Converter={StaticResource BoolToVisConverter}}"
+                    Style="{DynamicResource DefaultButton}"/>
 
             <TextBlock Text="Training Mode"
                        FontSize="16"

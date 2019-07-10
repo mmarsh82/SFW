@@ -77,27 +77,30 @@
                            Margin="10,0,0,0" />
                 
                 <TextBlock Text="Scrap:"
-                       FontSize="18"
-                       FontWeight="Bold"
-                       TextDecorations="Underline"
-                       VerticalAlignment="Center"
-                       Margin="50,0,0,0" />
+                           FontSize="18"
+                           FontWeight="Bold"
+                           TextDecorations="Underline"
+                           VerticalAlignment="Center"
+                           Margin="50,0,0,0" 
+                           Visibility="Collapsed"/>
                 <RadioButton GroupName="scrap"
-                         IsChecked="{Binding WipRecord.IsScrap, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource EnumtoBoolConverter}, ConverterParameter=Y}"
-                         Content="Yes"
-                         FontSize="18"
-                         FontWeight="Bold"
-                         VerticalAlignment="Center"
-                         IsTabStop="False"
-                         Margin="10,0,0,0"/>
+                             IsChecked="{Binding WipRecord.IsScrap, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource EnumtoBoolConverter}, ConverterParameter=Y}"
+                             Content="Yes"
+                             FontSize="18"
+                             FontWeight="Bold"
+                             VerticalAlignment="Center"
+                             IsTabStop="False"
+                             Margin="10,0,0,0"
+                             Visibility="Collapsed"/>
                 <RadioButton GroupName="scrap"
-                         IsChecked="{Binding WipRecord.IsScrap, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource EnumtoBoolConverter}, ConverterParameter=N}"
-                         Content="No"
-                         FontSize="18"
-                         FontWeight="Bold"
-                         VerticalAlignment="Center"
-                         IsTabStop="False"
-                         Margin="10,0,0,0" />
+                             IsChecked="{Binding WipRecord.IsScrap, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource EnumtoBoolConverter}, ConverterParameter=N}"
+                             Content="No"
+                             FontSize="18"
+                             FontWeight="Bold"
+                             VerticalAlignment="Center"
+                             IsTabStop="False"
+                             Margin="10,0,0,0"
+                             Visibility="Collapsed"/>
             </StackPanel>
 
             <!--#endregion-->
@@ -519,19 +522,22 @@
                                                            FontSize="16"
                                                            FontWeight="Bold"
                                                            TextDecorations="Underline"
-                                                           Margin="10,0,0,0" />
+                                                           Margin="10,0,0,0"
+                                                           Visibility="Collapsed"/>
                                                 <RadioButton IsChecked="{Binding IsScrap, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource EnumtoBoolConverter}, ConverterParameter=Y}"
                                                              Content="Yes"
                                                              FontSize="16"
                                                              FontWeight="Bold"
                                                              IsTabStop="False"
-                                                             Margin="10,0,0,0"/>
+                                                             Margin="10,0,0,0"
+                                                             Visibility="Collapsed"/>
                                                 <RadioButton IsChecked="{Binding IsScrap, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource EnumtoBoolConverter}, ConverterParameter=N}"
                                                              Content="No"
                                                              FontSize="16"
                                                              FontWeight="Bold"
                                                              IsTabStop="False"
-                                                             Margin="10,0,0,0" />
+                                                             Margin="10,0,0,0"
+                                                             Visibility="Collapsed"/>
                                                 <Button Command="{Binding DataContext.RemoveCompICommand, ElementName=WipWindow}"
                                                         CommandParameter="{Binding LotNbr}"
                                                         Visibility="{Binding LotNbr, Converter={StaticResource StringtoVisConverter}}"

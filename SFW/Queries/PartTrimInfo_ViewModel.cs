@@ -74,11 +74,9 @@ namespace SFW.Queries
             try
             {
                 var _tool = string.Empty;
-                var _path = string.Empty;
+                var _path = "\\\\manage2\\Prints\\";
                 if (parameter.ToString().Contains("*"))
                 {
-                    _path = "\\\\manage2\\server\\Engineering\\Product\\Trim Setups\\Controlled Trim Setups\\Trim Tools\\";
-                    //_path = "‪‪\\\\manage2\\server\\Engineering\\Equipment\\Tooling\\ControlledProductionTooling\\";
                     var _type = parameter.ToString().Split('*');
                     switch (_type[1])
                     {
@@ -99,7 +97,6 @@ namespace SFW.Queries
                 else
                 {
                     _tool = SetupNumber;
-                    _path = "\\\\manage2\\server\\Engineering\\Product\\Trim Setups\\Controlled Trim Setups\\";
                 }
                 Process.Start($"{_path}{_tool}.pdf");
             }
