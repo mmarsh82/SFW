@@ -74,7 +74,7 @@ namespace SFW.Model
 
         private Complete isScrap;
         /// <summary>
-        /// Whether is scrap for the wip receipt or not
+        /// Determines if there is scrap for the wip receipt
         /// </summary>
         public Complete IsScrap
         {
@@ -106,6 +106,48 @@ namespace SFW.Model
         /// </summary>
         public string ScrapReference { get; set; }
 
+        private Complete isReclaim;
+        /// <summary>
+        /// Determines if there is relaim for the wip receipt
+        /// </summary>
+        public Complete IsReclaim
+        {
+            get { return isReclaim; }
+            set
+            {
+                isReclaim = value;
+                if (value == Complete.N)
+                {
+                    ReclaimQty = null;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Quantity of reclaim for the wip receipt
+        /// </summary>
+        public int? ReclaimQty { get; set; }
+
+        /// <summary>
+        /// Parent part number for the reclaim transaction
+        /// </summary>
+        public string ReclaimParent { get; set; }
+
+        /// <summary>
+        /// Determines if a work order is eligable for the Multi-Wip function
+        /// </summary>
+        public bool CanMulti { get; set; }
+
+        /// <summary>
+        /// Determines if the work order Multi-Wip function is activated
+        /// </summary>
+        public bool IsMulti { get; set; }
+
+        /// <summary>
+        /// Mulit-Wip function roll quantity
+        /// </summary>
+        public int? RollQty { get; set; }
+
         #endregion
 
         /// <summary>
@@ -136,6 +178,9 @@ namespace SFW.Model
             }
             IsLotTracable = Sku.IsLotTracable(workOrder.SkuNumber, sqlCon);
             IsScrap = Complete.N;
+            IsReclaim = Complete.N;
+            ReclaimParent = null; //workOrder.MachineGroup == "EXT" ? workOrder.Bom.Where(o => o.InventoryType == "RC").FirstOrDefault().CompNumber : null;
+            CanMulti = false; //workOrder.MachineGroup == "SLIT";
         }
 
         /// <summary>

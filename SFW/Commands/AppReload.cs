@@ -12,7 +12,8 @@ namespace SFW.Commands
         public void Execute(object parameter)
         {
             var p = new Process();
-            p.StartInfo.FileName = $"{AppDomain.CurrentDomain.BaseDirectory}SFW.exe";
+            //TODO: remove hard code out to the global config file for the application global location
+            p.StartInfo.FileName = $"\\\\manage2\\FSW\\ShopFloorWorkbench\\SFW.application";
             if (CurrentUser.IsLoggedIn)
             {
                 p.StartInfo.Arguments = $"1_{CurrentUser.DomainUserName}";

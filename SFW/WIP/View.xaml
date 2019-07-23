@@ -4,7 +4,7 @@
         xmlns:local="clr-namespace:SFW.WIP"
         xmlns:cvtr="clr-namespace:SFW.Converters"
         Name="WipWindow"
-        Title="Production Wip" Height="Auto" Width="900" WindowStyle="ToolWindow" ResizeMode="NoResize">
+        Title="Production Wip" Height="Auto" Width="900" WindowStyle="ToolWindow" ResizeMode="NoResize" WindowStartupLocation="CenterScreen">
 
     <Window.Resources>
         <cvtr:BoolToVisibility x:Key="BooltoVisConverter" />
@@ -81,26 +81,57 @@
                            FontWeight="Bold"
                            TextDecorations="Underline"
                            VerticalAlignment="Center"
-                           Margin="50,0,0,0" 
-                           Visibility="Collapsed"/>
+                           Margin="50,0,0,0" />
                 <RadioButton GroupName="scrap"
-                             IsChecked="{Binding WipRecord.IsScrap, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource EnumtoBoolConverter}, ConverterParameter=Y}"
+                             IsChecked="{Binding Scrap, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource EnumtoBoolConverter}, ConverterParameter=Y}"
+                             Content="Yes"
+                             FontSize="18"
+                             FontWeight="Bold"
+                             VerticalAlignment="Center"
+                             IsTabStop="False"
+                             Margin="10,0,0,0" />
+                <RadioButton GroupName="scrap"
+                             IsChecked="{Binding Scrap, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource EnumtoBoolConverter}, ConverterParameter=N}"
+                             Content="No"
+                             FontSize="18"
+                             FontWeight="Bold"
+                             VerticalAlignment="Center"
+                             IsTabStop="False"
+                             Margin="10,0,0,0" />
+
+                <TextBlock Text="Reclaim:"
+                           FontSize="18"
+                           FontWeight="Bold"
+                           TextDecorations="Underline"
+                           VerticalAlignment="Center"
+                           Margin="50,0,0,0" 
+                           Visibility="{Binding WipRecord.ReclaimParent, Converter={StaticResource StringtoVisConverter}}" />
+                <RadioButton GroupName="reclaim"
+                             IsChecked="{Binding WipRecord.IsReclaim, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource EnumtoBoolConverter}, ConverterParameter=Y}"
                              Content="Yes"
                              FontSize="18"
                              FontWeight="Bold"
                              VerticalAlignment="Center"
                              IsTabStop="False"
                              Margin="10,0,0,0"
-                             Visibility="Collapsed"/>
-                <RadioButton GroupName="scrap"
-                             IsChecked="{Binding WipRecord.IsScrap, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource EnumtoBoolConverter}, ConverterParameter=N}"
+                             Visibility="{Binding WipRecord.ReclaimParent, Converter={StaticResource StringtoVisConverter}}"/>
+                <RadioButton GroupName="reclaim"
+                             IsChecked="{Binding WipRecord.IsReclaim, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource EnumtoBoolConverter}, ConverterParameter=N}"
                              Content="No"
                              FontSize="18"
                              FontWeight="Bold"
                              VerticalAlignment="Center"
                              IsTabStop="False"
-                             Margin="10,0,0,0"
-                             Visibility="Collapsed"/>
+                             Margin="10,0,0,0" 
+                             Visibility="{Binding WipRecord.ReclaimParent, Converter={StaticResource StringtoVisConverter}}"/>
+
+                <CheckBox IsChecked="{Binding Multi, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                          Content="Multi-WIP"
+                          FontSize="18"
+                          FontWeight="Bold"
+                          IsTabStop="False"
+                          Margin="30,0,0,0"
+                          Visibility="{Binding WipRecord.CanMulti, Mode=TwoWay, Converter={StaticResource BooltoVisConverter}}"/>
             </StackPanel>
 
             <!--#endregion-->
@@ -110,6 +141,7 @@
             <StackPanel Grid.Row="2"
                         HorizontalAlignment="Left"
                         Orientation="Horizontal">
+                
                 <TextBlock Text="Wip Quantity:"
                            FontSize="18"
                            FontWeight="Bold"
@@ -131,12 +163,37 @@
                            FontWeight="Bold"
                            VerticalAlignment="Center"
                            Margin="5,0,0,0" />
+                
+                <TextBlock Text="X"
+                           FontSize="18"
+                           FontWeight="Bold"
+                           VerticalAlignment="Center"
+                           Foreground="Green"
+                           Margin="10,0,0,0"
+                           Visibility="{Binding Multi, Converter={StaticResource BooltoVisConverter}}"/>
+                
+                <TextBox Text="{Binding RollQuantity, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                         FontSize="18"
+                         FontWeight="Bold"
+                         Background="LightGray"
+                         Margin="10,5,5,5"
+                         Width="50"
+                         MaxLength="2"
+                         Visibility="{Binding Multi, Converter={StaticResource BooltoVisConverter}}"
+                         Style="{DynamicResource RequiredTextBox}" />
+                <TextBlock Text="Rolls"
+                           FontSize="18"
+                           FontWeight="Bold"
+                           VerticalAlignment="Center"
+                           Margin="10,0,0,0"
+                           Visibility="{Binding Multi, Converter={StaticResource BooltoVisConverter}}"/>
+                
                 <TextBlock Text="Seq. Complete:"
                            FontSize="18"
                            FontWeight="Bold"
                            TextDecorations="Underline"
                            VerticalAlignment="Center"
-                           Margin="20,0,0,0" />
+                           Margin="30,0,0,0" />
                 <RadioButton GroupName="Seq"
                              IsChecked="{Binding WipRecord.SeqComplete, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource EnumtoBoolConverter}, ConverterParameter=Y}"
                              Content="Yes"
@@ -153,6 +210,27 @@
                              VerticalAlignment="Center"
                              IsTabStop="False"
                              Margin="10,0,0,0" />
+
+                <StackPanel Orientation="Horizontal"
+                            Visibility="{Binding WipRecord.IsReclaim, Converter={StaticResource EnumtoVisConverter}}">
+
+                    <TextBlock Text="Reclaim Quantity:"
+                               FontSize="18"
+                               FontWeight="Bold"
+                               TextDecorations="Underline"
+                               VerticalAlignment="Center"
+                               Margin="50,0,0,0" />
+                    <TextBox Text="{Binding WipRecord.ReclaimQty, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                             FontSize="18"
+                             FontWeight="Bold"
+                             Background="LightGray"
+                             Margin="5"
+                             Width="75"
+                             MaxLength="4"
+                             IsTabStop="False"
+                             Style="{DynamicResource RequiredTextBox}" />
+
+                </StackPanel>
             </StackPanel>
 
             <!--#endregion-->
@@ -212,16 +290,19 @@
                            TextDecorations="Underline"
                            VerticalAlignment="Center"
                            Margin="10,0,0,0" />
-                <TextBox Text="{Binding WipRecord.ScrapQty, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                <TextBox Text="{Binding ScrapQuantity, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                          FontSize="18"
                          FontWeight="Bold"
                          Background="LightGray"
                          Margin="5"
-                         Width="120"
-                         MaxLength="9"
-                         TabIndex="5"
-                         CharacterCasing="Upper"
+                         Width="75"
+                         MaxLength="4"
                          Style="{DynamicResource RequiredTextBox}" />
+                <TextBlock Text="{Binding WipRecord.WipWorkOrder.Uom}"
+                           FontSize="18"
+                           FontWeight="Bold"
+                           VerticalAlignment="Center"
+                           Margin="5,0,0,0" />
                 <TextBlock Text="Scrap Reason:"
                            FontSize="18"
                            FontWeight="Bold"
@@ -509,6 +590,11 @@
                                                          Background="LightGray"
                                                          IsTabStop="False"
                                                          Style="{DynamicResource RequiredTextBox}" />
+                                                <TextBlock Text="{Binding Uom}"
+                                                           FontSize="16"
+                                                           FontWeight="Bold"
+                                                           VerticalAlignment="Center"
+                                                           Margin="5,0,0,0" />
                                                 <TextBlock Text="Is Roll Gone?"
                                                            FontSize="16"
                                                            TextDecorations="UnderLine"
@@ -522,22 +608,19 @@
                                                            FontSize="16"
                                                            FontWeight="Bold"
                                                            TextDecorations="Underline"
-                                                           Margin="10,0,0,0"
-                                                           Visibility="Collapsed"/>
+                                                           Margin="10,0,0,0" />
                                                 <RadioButton IsChecked="{Binding IsScrap, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource EnumtoBoolConverter}, ConverterParameter=Y}"
                                                              Content="Yes"
                                                              FontSize="16"
                                                              FontWeight="Bold"
                                                              IsTabStop="False"
-                                                             Margin="10,0,0,0"
-                                                             Visibility="Collapsed"/>
+                                                             Margin="10,0,0,0" />
                                                 <RadioButton IsChecked="{Binding IsScrap, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource EnumtoBoolConverter}, ConverterParameter=N}"
                                                              Content="No"
                                                              FontSize="16"
                                                              FontWeight="Bold"
                                                              IsTabStop="False"
-                                                             Margin="10,0,0,0"
-                                                             Visibility="Collapsed"/>
+                                                             Margin="10,0,0,0" />
                                                 <Button Command="{Binding DataContext.RemoveCompICommand, ElementName=WipWindow}"
                                                         CommandParameter="{Binding LotNbr}"
                                                         Visibility="{Binding LotNbr, Converter={StaticResource StringtoVisConverter}}"
@@ -564,10 +647,15 @@
                                                          FontSize="16"
                                                          Background="LightGray"
                                                          Margin="3"
-                                                         Width="120"
+                                                         Width="75"
                                                          MaxLength="4"
                                                          CharacterCasing="Upper"
                                                          Style="{DynamicResource RequiredTextBox}" />
+                                                <TextBlock Text="{Binding Uom}"
+                                                           FontSize="16"
+                                                           FontWeight="Bold"
+                                                           VerticalAlignment="Center"
+                                                           Margin="5,0,0,0" />
                                                 <TextBlock Text="Scrap Reason:"
                                                            FontSize="16"
                                                            FontWeight="Bold"

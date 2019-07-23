@@ -86,6 +86,8 @@ namespace SFW.Model
                 {
                     SalesOrder = new SalesOrder();
                 }
+                Machine = drow.Field<string>("MachineName");
+                MachineGroup = drow.Field<string>("MachineGroup");
                 Bom = Component.GetComponentList(_wo[0], StartQty - CurrentQty, sqlCon);
                 Notes = GetNotes(_wo[0],sqlCon);
                 ShopNotes = GetShopNotes(_wo[0], sqlCon);

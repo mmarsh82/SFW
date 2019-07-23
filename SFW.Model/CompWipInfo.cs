@@ -41,6 +41,7 @@ namespace SFW.Model
         public string PartNbr { get; set; }
         public bool IsBackFlush { get; set; }
         public int BaseQty { get; set; }
+        public string Uom { get; set; }
         public int? ScrapQty { get; set; }
 
         private string sReason;
@@ -103,10 +104,11 @@ namespace SFW.Model
         /// <param name="hasBFLoc">Does the component have a default backflush location</param>
         /// <param name="partNbr">Part Number of the component</param>
         /// <param name="uom">Part Unit of Measure of the component</param>
-        public CompWipInfo(bool hasBFLoc, string partNbr)
+        public CompWipInfo(bool hasBFLoc, string partNbr, string uom)
         {
             IsBackFlush = hasBFLoc;
             PartNbr = partNbr;
+            Uom = uom;
             QtyLock = false;
             IsScrap = Complete.N;
             ValidLot = false;

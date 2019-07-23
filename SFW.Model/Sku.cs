@@ -29,6 +29,7 @@ namespace SFW.Model
         public string WorkOrder { get; set; }
         public string Operation { get; set; }
         public string Machine { get; set; }
+        public string MachineGroup { get; set; }
         public bool QTask { get; set; }
 
         #endregion

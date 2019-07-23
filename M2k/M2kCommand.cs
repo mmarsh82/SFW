@@ -294,6 +294,7 @@ namespace M2kClient
                 foreach (var c in wipRecord.WipWorkOrder.Bom.Where(o => !o.IsLotTrace))
                 {
                     var _issue = new Issue(wipRecord.Submitter, "010", c.CompNumber, wipRecord.WipWorkOrder.OrderNumber, wipRecord.WipWorkOrder.Seq, "II", new List<Transaction>());
+
                     foreach (var w in c.WipInfo)
                     {
                         if (w.BaseQty > 0)
@@ -346,7 +347,7 @@ namespace M2kClient
             if (wipRecord.ScrapQty != null && wipRecord.ScrapQty > 0)
             {
                 var _tScrap = new Adjust(
-                    "SFW WIP",
+                    wipRecord.Submitter,
                     "01",
                     !string.IsNullOrEmpty(wipRecord.ScrapReference) ? $"{wipRecord.ScrapReference}*{wipRecord.WipWorkOrder.OrderNumber}" : wipRecord.WipWorkOrder.OrderNumber,
                     wipRecord.WipWorkOrder.SkuNumber,
@@ -464,8 +465,9 @@ namespace M2kClient
         {
             return null;
         }
-        public static IReadOnlyDictionary<int, string> ItemIssue()
+        public static IReadOnlyDictionary<int, string> ItemIssue(string stationId, string compNbr, string woNbr)
         {
+            var suffix = DateTime.Now.ToString("HHmmssfff");
             return null;
         }
     }
