@@ -178,7 +178,14 @@ namespace SFW.WIP
                 {
                     _validLoc = c.WipInfo.Where(o => !o.ValidLot && !string.IsNullOrEmpty(o.LotNbr)).Count() == 0;
                 }
-                _validQty = Math.Round(Convert.ToDouble(WipRecord.WipQty) * c.AssemblyQty, 0) == c.WipInfo.Where(o => !string.IsNullOrEmpty(o.LotNbr)).Sum(o => o.LotQty);
+                if (WipRecord.IsScrap == Model.Enumerations.Complete.Y)
+                {
+                    _validQty = Math.Round(Convert.ToDouble(WipRecord.WipQty + WipRecord.ScrapQty) * c.AssemblyQty, 0) == c.WipInfo.Where(o => !string.IsNullOrEmpty(o.LotNbr)).Sum(o => o.LotQty);
+                }
+                else
+                {
+                    _validQty = Math.Round(Convert.ToDouble(WipRecord.WipQty) * c.AssemblyQty, 0) == c.WipInfo.Where(o => !string.IsNullOrEmpty(o.LotNbr)).Sum(o => o.LotQty);
+                }
                 _validScrap = c.WipInfo.Count(o => o.ScrapQty > 0) == c.WipInfo.Count(o => !string.IsNullOrEmpty(o.ScrapReason)) 
                     && c.WipInfo.Count(o => o.ScrapReason == "QSC") == c.WipInfo.Count(o => !string.IsNullOrEmpty(o.ScrapReference));
                 if (!_validLoc || !_validQty)
@@ -235,6 +242,7 @@ namespace SFW.WIP
                 var _baseValid = WipRecord.WipQty > 0 && !string.IsNullOrEmpty(WipRecord.ReceiptLocation) && ValidateComponents();
                 var _multiValid = !WipRecord.IsMulti || (WipRecord.IsMulti && WipRecord.RollQty > 0);
                 var _scrapValid = true;
+                var _laborValid = WipRecord.CrewList.Where(o => DateTime.TryParse(o.LastClock, out var dt) && !string.IsNullOrEmpty(o.Name) && o.IsDirect).ToList().Count() == WipRecord.CrewList.Count(o => !string.IsNullOrEmpty(o.Name) && o.IsDirect);
                 if (WipRecord.IsScrap == Model.Enumerations.Complete.Y)
                 {
                     if (WipRecord.ScrapQty == 0)
@@ -254,7 +262,7 @@ namespace SFW.WIP
                     }
                 }
                 var _reclaimValid = WipRecord.IsReclaim == Model.Enumerations.Complete.N || (WipRecord.IsReclaim == Model.Enumerations.Complete.Y && WipRecord.ReclaimQty > 0);
-                return _baseValid && _multiValid && _scrapValid && _reclaimValid;
+                return _baseValid && _multiValid && _scrapValid && _reclaimValid && _laborValid;
             }
             else
             {

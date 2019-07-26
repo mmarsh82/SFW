@@ -355,6 +355,7 @@ namespace M2kClient
                     'S',
                     Convert.ToInt32(wipRecord.ScrapQty),
                     wipRecord.ReceiptLocation,
+                    wipRecord.WipWorkOrder.Uom,
                     wipRecord.WipLot.LotNumber);
                 File.WriteAllText($"{connection.BTIFolder}ADJUSTC2K.DAT{suffix}", _tScrap.ToString());
                 suffix = DateTime.Now.ToString("HHmmssfff");

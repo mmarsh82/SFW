@@ -270,7 +270,7 @@
                      Background="LightGray"
                      Margin="5"
                      Width="120"
-                     MaxLength="6"
+                     MaxLength="8"
                      TabIndex="4"
                      CharacterCasing="Upper"
                      Style="{DynamicResource RequiredTextBox}" />
@@ -331,8 +331,7 @@
                          Background="LightGray"
                          Margin="5"
                          Width="100"
-                         MaxLength="7"
-                         TabIndex="7"
+                         MaxLength="8"
                          CharacterCasing="Upper"
                          Style="{DynamicResource RequiredTextBox}" />
             </StackPanel>

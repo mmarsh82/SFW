@@ -105,9 +105,9 @@ namespace M2kClient.M2kADIArray
         /// <param name="tranOp">Transaction Operation</param>
         /// <param name="tranQty">Transaction Quantity</param>
         /// <param name="loc">Location</param>
-        /// <param name="lot">Lot Number</param>
         /// <param name="uom">Unit of Measure</param>
-        public Adjust(string statId, string facCode, string refer, string partNbr, AdjustCode aCode, char tranOp, int tranQty, string loc, string lot, string uom = "")
+        /// <param name="lot">Optional: Lot Number</param>
+        public Adjust(string statId, string facCode, string refer, string partNbr, AdjustCode aCode, char tranOp, int tranQty, string loc, string uom, string lot = "")
         {
             StationId = statId;
             FacilityCode = facCode;
@@ -130,9 +130,9 @@ namespace M2kClient.M2kADIArray
         {
             //Transaction Template
             //1~Transaction Type~2~Station Id~3~Transaction Time~4~Transaction Date~5~Facility~6~Reference Number~8~Item Number~9~UOM~10~Reason Code~12~Transaction Operation~13~Transaction Quantity~14~Location~15~Lot Number~99~COMPLETE
-            return !string.IsNullOrEmpty(UOM) 
+            return !string.IsNullOrEmpty(LotNumber) 
                 ? $"1~{TranType}~2~{StationId}~3~{TranTime}~4~{TranDate}~5~{FacilityCode}~6~{Reference}~8~{ItemNumber}~9~{UOM}~10~{ReasonCode}~12~{TranOperation}~13~{TranQuantity}~14~{Location}~15~{LotNumber}|P~99~COMPLETE"
-                : $"1~{TranType}~2~{StationId}~3~{TranTime}~4~{TranDate}~5~{FacilityCode}~6~{Reference}~8~{ItemNumber}~10~{ReasonCode}~12~{TranOperation}~13~{TranQuantity}~14~{Location}~15~{LotNumber}|P~99~COMPLETE";
+                : $"1~{TranType}~2~{StationId}~3~{TranTime}~4~{TranDate}~5~{FacilityCode}~6~{Reference}~8~{ItemNumber}~9~{UOM}~10~{ReasonCode}~12~{TranOperation}~13~{TranQuantity}~14~{Location}|P~99~COMPLETE";
         }
     }
 }

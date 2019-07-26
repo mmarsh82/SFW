@@ -135,6 +135,17 @@ namespace SFW.Model
                                     break;
                             }
                         }
+                        if (DateTime.TryParse(time, out DateTime dt))
+                        {
+                            if (DateTime.Now < dt)
+                            {
+                                time = string.Empty;
+                            }
+                        }
+                        else
+                        {
+                            time = string.Empty;
+                        }
                         lastClock = time;
                         OnPropertyChanged(nameof(LastClock));
                     });
