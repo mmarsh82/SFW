@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.DirectoryServices;
 using System.DirectoryServices.AccountManagement;
+using System.IO;
 using System.Linq;
 
 namespace SFW
@@ -192,7 +193,16 @@ namespace SFW
         /// </summary>
         public static void LogIn()
         {
-            var _user = System.Security.Principal.WindowsIdentity.GetCurrent().Name;
+            var _user = string.Empty;
+            if (File.Exists($"{Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)}\\SFW\\SSO.txt"))
+            {
+                _user = File.ReadAllText($"{Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)}\\SFW\\SSO.txt");
+                File.Delete($"{Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)}\\SFW\\SSO.txt");
+            }
+            else
+            {
+                _user = System.Security.Principal.WindowsIdentity.GetCurrent().Name;
+            }
             using (PrincipalContext pContext = new PrincipalContext(ContextType.Domain))
             {
                 using (UserPrincipal uPrincipal = UserPrincipal.FindByIdentity(pContext, _user))

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.IO;
 using System.Windows;
 using System.Windows.Input;
 
@@ -11,14 +12,12 @@ namespace SFW.Commands
 
         public void Execute(object parameter)
         {
-            var p = new Process();
-            //TODO: remove hard code out to the global config file for the application global location
-            p.StartInfo.FileName = $"\\\\manage2\\FSW\\ShopFloorWorkbench\\SFW.application";
             if (CurrentUser.IsLoggedIn)
             {
-                p.StartInfo.Arguments = $"1_{CurrentUser.DomainUserName}";
+                File.WriteAllText($"{Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)}\\SFW\\SSO.txt", CurrentUser.DomainUserName);
             }
-            p.Start();
+            //TODO: remove hard code out to the global config file for the application global location
+            Process.Start($"\\\\manage2\\FSW\\ShopFloorWorkbench\\SFW.application");
             Application.Current.Shutdown();
         }
 

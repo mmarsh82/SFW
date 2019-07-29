@@ -245,6 +245,15 @@ namespace M2kClient
         /// <returns>Suffix for the file that needs to be watched on the ERP server and new lot number if required</returns>
         public static IReadOnlyDictionary<int, string> ProductionWip(WipReceipt wipRecord, bool postLabor, M2kConnection connection, bool isLot, string machID = "")
         {
+            var _matLeft = 0;
+            foreach (var mat in wipRecord.WipWorkOrder.Bom.Where(o => o.WipInfo.Count(p => p.RollStatus) > 0))
+            {
+                foreach (var info in mat.WipInfo.Where(o => o.RollStatus))
+                {
+
+                }
+            }
+
             #region Wip Process
 
             var _subResult = new Dictionary<int, string>();
@@ -274,7 +283,7 @@ namespace M2kClient
                 suffix = DateTime.Now.ToString("HHmmssfff");
                 if (!string.IsNullOrEmpty(wipRecord.WipLot.LotNumber))
                 {
-                    System.Windows.MessageBox.Show($"Assinged to Lot Number:\n{wipRecord.WipLot.LotNumber}", "New Lot Number", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
+                    System.Windows.MessageBox.Show($"Assigned to Lot Number:\n{wipRecord.WipLot.LotNumber}", "New Lot Number", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
                 }
             }
             else
@@ -355,7 +364,6 @@ namespace M2kClient
                     'S',
                     Convert.ToInt32(wipRecord.ScrapQty),
                     wipRecord.ReceiptLocation,
-                    wipRecord.WipWorkOrder.Uom,
                     wipRecord.WipLot.LotNumber);
                 File.WriteAllText($"{connection.BTIFolder}ADJUSTC2K.DAT{suffix}", _tScrap.ToString());
                 suffix = DateTime.Now.ToString("HHmmssfff");
@@ -367,6 +375,15 @@ namespace M2kClient
                     File.WriteAllText($"{connection.BTIFolder}ADJUSTC2K.DAT{suffix}", s.ToString());
                     suffix = DateTime.Now.ToString("HHmmssfff");
                 }
+            }
+
+            #endregion
+
+            #region Roll Marked Gone
+
+            if (_matLeft > 0)
+            {
+
             }
 
             #endregion

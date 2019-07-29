@@ -474,5 +474,38 @@ namespace SFW.Model
                 throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
             }
         }
+
+        /// <summary>
+        /// Get a Sku's current on hand value for a specific lot number
+        /// </summary>
+        /// <param name="lotNbr">Lot number</param>
+        /// <param name="sqlCon">Sql Connection to use</param>
+        /// <returns>on hand value as int</returns>
+        public static int GetOnhandQuantity(string lotNbr, SqlConnection sqlCon)
+        {
+            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
+            {
+                try
+                {
+                    using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database}; SELECT [Wip_Rec_Loc] FROM [dbo].[IPL-INIT] WHERE [Part_Nbr] = @p1;", sqlCon))
+                    {
+                        cmd.Parameters.AddWithValue("p1", lotNbr);
+                        return int.TryParse(cmd.ExecuteScalar().ToString(), out int i) ? i : 0;
+                    }
+                }
+                catch (SqlException sqlEx)
+                {
+                    throw sqlEx;
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception(ex.Message);
+                }
+            }
+            else
+            {
+                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
+            }
+        }
     }
 }

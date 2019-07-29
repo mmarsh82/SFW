@@ -137,7 +137,7 @@ namespace SFW.Model
                         }
                         if (DateTime.TryParse(time, out DateTime dt))
                         {
-                            if (DateTime.Now < dt)
+                            if (DateTime.Now < dt && Shift != 3)
                             {
                                 time = string.Empty;
                             }
