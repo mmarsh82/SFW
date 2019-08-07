@@ -42,7 +42,32 @@ namespace SFW.Model
         public bool IsBackFlush { get; set; }
         public int BaseQty { get; set; }
         public string Uom { get; set; }
-        public int? ScrapQty { get; set; }
+        public int OnHandQty { get; set; }
+
+        private int ohCalc;
+        public int OnHandCalc
+        {
+            get { return ohCalc; }
+            set { ohCalc = value; OnPropertyChanged(nameof(OnHandCalc)); }
+        }
+
+        private int? scrapQty;
+        public string ScrapQty
+        {
+            get { return scrapQty.ToString(); }
+            set
+            {
+                if (int.TryParse(value, out int i))
+                {
+                    scrapQty = i;
+                }
+                else
+                {
+                    scrapQty = null;
+                }
+                OnPropertyChanged(nameof(ScrapQty));
+            }
+        }
 
         private string sReason;
         public string ScrapReason

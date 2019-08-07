@@ -38,6 +38,13 @@ namespace SFW.Converters
                     {
                         _test = false;
                     }
+                    if (o != DependencyProperty.UnsetValue && int.TryParse(o.ToString(), out int i))
+                    {
+                        if (i >= 999)
+                        {
+                            _test = false;
+                        }
+                    }
                 }
             }
             return _test ? Visibility.Visible : Visibility.Collapsed;

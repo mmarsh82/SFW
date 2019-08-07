@@ -146,6 +146,7 @@ namespace SFW.Model
                 ((BindingList<CompWipInfo>)sender)[e.NewIndex].ValidLot = Lot.LotValidation(((BindingList<CompWipInfo>)sender)[e.NewIndex].LotNbr, ((BindingList<CompWipInfo>)sender)[e.NewIndex].PartNbr, ModelBase.ModelSqlCon);
                 if (((BindingList<CompWipInfo>)sender)[e.NewIndex].ValidLot)
                 {
+                    ((BindingList<CompWipInfo>)sender)[e.NewIndex].OnHandQty = Lot.GetLotOnHandQuantity(((BindingList<CompWipInfo>)sender)[e.NewIndex].LotNbr, ModelBase.ModelSqlCon);
                     if (!((BindingList<CompWipInfo>)sender)[e.NewIndex].IsBackFlush)
                     {
                         ((BindingList<CompWipInfo>)sender)[e.NewIndex].RcptLoc = Lot.GetLotLocation(((BindingList<CompWipInfo>)sender)[e.NewIndex].LotNbr, ModelBase.ModelSqlCon);
@@ -169,6 +170,10 @@ namespace SFW.Model
                             }
                             _counter++;
                         }
+                    }
+                    if (((BindingList<CompWipInfo>)sender)[e.NewIndex].LotQty != null)
+                    {
+                        ((BindingList<CompWipInfo>)sender)[e.NewIndex].OnHandCalc = ((BindingList<CompWipInfo>)sender)[e.NewIndex].OnHandQty - Convert.ToInt32(((BindingList<CompWipInfo>)sender)[e.NewIndex].LotQty);
                     }
                     if (!string.IsNullOrEmpty(((BindingList<CompWipInfo>)sender)[((BindingList<CompWipInfo>)sender).Count - 1].RcptLoc))
                     {
@@ -218,8 +223,32 @@ namespace SFW.Model
                             c.LotQty = 0;
                             c.LotQty = ((BindingList<CompWipInfo>)sender)[0].BaseQty - ((BindingList<CompWipInfo>)sender).Sum(s => s.LotQty);
                         }
+                        if (c.LotQty != null)
+                        {
+                            if (int.TryParse(c.ScrapQty, out int _scr))
+                            {
+                                c.OnHandCalc = c.OnHandQty - (Convert.ToInt32(c.LotQty) + _scr);
+                            }
+                            else
+                            {
+                                c.OnHandCalc = c.OnHandQty - Convert.ToInt32(c.LotQty);
+                            }
+                        }
                         _counter++;
                     }
+                }
+                WipInfoUpdating = false;
+            }
+            else if (e.ListChangedType == ListChangedType.ItemChanged && e.PropertyDescriptor.DisplayName == "ScrapQty" && !WipInfoUpdating)
+            {
+                WipInfoUpdating = true;
+                if (int.TryParse(((BindingList<CompWipInfo>)sender)[e.NewIndex].ScrapQty, out int _scr))
+                {
+                    ((BindingList<CompWipInfo>)sender)[e.NewIndex].OnHandCalc = ((BindingList<CompWipInfo>)sender)[e.NewIndex].OnHandQty - (Convert.ToInt32(((BindingList<CompWipInfo>)sender)[e.NewIndex].LotQty) + _scr);
+                }
+                else
+                {
+                    ((BindingList<CompWipInfo>)sender)[e.NewIndex].OnHandCalc = ((BindingList<CompWipInfo>)sender)[e.NewIndex].OnHandQty - Convert.ToInt32(((BindingList<CompWipInfo>)sender)[e.NewIndex].LotQty);
                 }
                 WipInfoUpdating = false;
             }

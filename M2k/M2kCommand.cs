@@ -353,16 +353,16 @@ namespace M2kClient
             #region Scrap Adjustment
             //TODO: add in validation that the lot actually exists for the parent wip before sending the adjustment
             //Adjusting any scrap out of the system that was recorded during the wip
-            if (wipRecord.ScrapQty != null && wipRecord.ScrapQty > 0)
+            foreach (var s in wipRecord.ScrapList.Where(o => int.TryParse(o.Quantity, out int i) && i > 0))
             {
                 var _tScrap = new Adjust(
                     wipRecord.Submitter,
                     "01",
-                    !string.IsNullOrEmpty(wipRecord.ScrapReference) ? $"{wipRecord.ScrapReference}*{wipRecord.WipWorkOrder.OrderNumber}" : wipRecord.WipWorkOrder.OrderNumber,
+                    !string.IsNullOrEmpty(s.Reference) ? $"{s.Reference}*{wipRecord.WipWorkOrder.OrderNumber}" : wipRecord.WipWorkOrder.OrderNumber,
                     wipRecord.WipWorkOrder.SkuNumber,
-                    (AdjustCode)Enum.Parse(typeof(AdjustCode), wipRecord.ScrapReason.GetValueFromDescription<AdjustCode>().ToString(), true),
+                    (AdjustCode)Enum.Parse(typeof(AdjustCode), s.Reason.GetValueFromDescription<AdjustCode>().ToString(), true),
                     'S',
-                    Convert.ToInt32(wipRecord.ScrapQty),
+                    Convert.ToInt32(s.Quantity),
                     wipRecord.ReceiptLocation,
                     wipRecord.WipLot.LotNumber);
                 File.WriteAllText($"{connection.BTIFolder}ADJUSTC2K.DAT{suffix}", _tScrap.ToString());

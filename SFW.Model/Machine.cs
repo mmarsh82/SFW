@@ -17,7 +17,7 @@ namespace SFW.Model
         public string MachineNumber { get; set; }
         public string MachineName { get; set; }
         public string MachineDescription { get; set; }
-        public string MachineGroup { get; set; }
+        new public string MachineGroup { get; set; }
         public bool IsLoaded { get; set; }
 
         #endregion
@@ -116,8 +116,8 @@ namespace SFW.Model
 	                    c.[Qty_To_Start] as 'WO_StartQty',
 	                    c.[So_Reference] as 'WO_SalesRef',
                         c.[Cust_Nbr],
-                        CASE WHEN c.[Time_Wanted] IS NOT NULL THEN CONVERT(VARCHAR(2), CAST(c.[Time_Wanted] as TIME),108) ELSE '9' END as 'PriTime',
-                        CASE WHEN c.[Time_Wanted] IS NOT NULL THEN DATEPART(MINUTE, CAST(c.[Time_Wanted] as TIME)) ELSE '9' END as 'Sched_Priority',
+                        CASE WHEN c.[Time_Wanted] IS NOT NULL THEN CONVERT(VARCHAR(2), CAST(c.[Time_Wanted] as TIME),108) ELSE '999' END as 'PriTime',
+                        CASE WHEN c.[Time_Wanted] IS NOT NULL THEN DATEPART(MINUTE, CAST(c.[Time_Wanted] as TIME)) ELSE '999' END as 'Sched_Priority',
                         d.[Part_Number]as 'SkuNumber',
 	                    d.[Description] as 'SkuDesc',
 	                    d.[Um] as 'SkuUom', d.[Drawing_Nbrs] as 'SkuMasterPrint',
@@ -174,8 +174,8 @@ namespace SFW.Model
 	                    c.[Qty_To_Start] as 'WO_StartQty',
 	                    c.[So_Reference] as 'WO_SalesRef',
                         c.[Cust_Nbr],
-                        CASE WHEN c.[Time_Wanted] IS NOT NULL THEN CONVERT(VARCHAR(2), CAST(c.[Time_Wanted] as TIME),108) ELSE '9' END as 'PriTime',
-                        CASE WHEN c.[Time_Wanted] IS NOT NULL THEN DATEPART(MINUTE, CAST(c.[Time_Wanted] as TIME)) ELSE '9' END as 'Sched_Priority',
+                        CASE WHEN c.[Time_Wanted] IS NOT NULL THEN CONVERT(VARCHAR(2), CAST(c.[Time_Wanted] as TIME),108) ELSE '999' END as 'PriTime',
+                        CASE WHEN c.[Time_Wanted] IS NOT NULL THEN DATEPART(MINUTE, CAST(c.[Time_Wanted] as TIME)) ELSE '999' END as 'Sched_Priority',
                         d.[Part_Number]as 'SkuNumber',
 	                    d.[Description] as 'SkuDesc',
 	                    d.[Um] as 'SkuUom', d.[Drawing_Nbrs] as 'SkuMasterPrint',

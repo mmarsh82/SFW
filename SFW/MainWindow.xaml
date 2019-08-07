@@ -19,6 +19,7 @@
             <cmd:ShowLogInWindow x:Key="LogInICommand" />
             <cmd:DevTesting x:Key="TestICommand" />
             <cmd:AppReload x:Key="AppUpdateCommand" />
+            <cmd:UnplanScrap x:Key="UnplanScrapICommand"/>
             <cvtr:SiteNumberToBool x:Key="SiteToBoolConverter"/>
             <cvtr:BoolToVisibility x:Key="BoolToVisConverter" />
             <cvtr:SiteToVisibility x:Key="SiteToVisConverter"/>
@@ -121,7 +122,7 @@
                           CommandParameter="Scheduler"
                           IsEnabled="False" />
             </MenuItem>
-            <MenuItem Header="Queries">
+            <MenuItem Header="Tools">
                 <MenuItem Header="Part Information"
                           Command="{StaticResource PartInfoICommand}"
                           InputGestureText="F9"/>
@@ -132,6 +133,9 @@
                           Command="{StaticResource PartSpecICommand}"
                           Visibility="{Binding CurrentSiteNbr, Converter={StaticResource SiteToVisConverter}}"
                           InputGestureText="F11" />
+                <MenuItem Header="Unplanned Scrap"
+                          Command="{StaticResource UnplanScrapICommand}"
+                          Visibility="{Binding CurrentSiteNbr, Converter={StaticResource SiteToVisConverter}, ConverterParameter=i}"/>
 
             </MenuItem>
             <MenuItem Header="Help">

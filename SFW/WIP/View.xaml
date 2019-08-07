@@ -12,6 +12,7 @@
         <cvtr:EnumToVisibility x:Key="EnumtoVisConverter" />
         <cvtr:StringToVisibility x:Key="StringtoVisConverter" />
         <cvtr:CrewToVisibility x:Key="CrewtoVisConverter" />
+        <cvtr:NegativeIntToBool x:Key="NegIntToBoolConverter" />
     </Window.Resources>
 
     <ScrollViewer VerticalScrollBarVisibility="Auto">
@@ -22,7 +23,7 @@
                 <RowDefinition Height="40" />
                 <RowDefinition Height="40" />
                 <RowDefinition Height="40" />
-                <RowDefinition Height="40" />
+                <RowDefinition Height="Auto" />
                 <RowDefinition Height="35" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="35" />
@@ -33,27 +34,27 @@
             <!--#region Wip Receipt Header-->
 
             <StackPanel Grid.Row="0"
-                    HorizontalAlignment="Center"
-                    Orientation="Horizontal">
+                        HorizontalAlignment="Center"
+                        Orientation="Horizontal">
                 <TextBlock Text="Work Order:"
-                       FontSize="24"
-                       FontWeight="Bold"
-                       TextDecorations="Underline"/>
+                           FontSize="24"
+                           FontWeight="Bold"
+                           TextDecorations="Underline"/>
                 <TextBlock Text="{Binding WipRecord.WipWorkOrder.OrderNumber}"
-                       FontSize="24"
-                       Margin="10,0,0,0"/>
+                           FontSize="24"
+                           Margin="10,0,0,0"/>
             </StackPanel>
 
             <StackPanel Grid.Row="0"
-                    HorizontalAlignment="Right"
-                    Orientation="Horizontal">
+                        HorizontalAlignment="Right"
+                        Orientation="Horizontal">
                 <TextBlock Text="Submitter:"
-                       FontSize="16"
-                       FontWeight="Bold"
-                       TextDecorations="Underline" />
+                           FontSize="16"
+                           FontWeight="Bold"
+                           TextDecorations="Underline" />
                 <TextBlock Text="{Binding WipRecord.Submitter}"
-                       FontSize="16"
-                       Margin="10,0,10,0" />
+                           FontSize="16"
+                           Margin="10,0,10,0" />
             </StackPanel>
 
             <!--#endregion-->
@@ -155,7 +156,7 @@
                          Background="LightGray"
                          Margin="5"
                          Width="75"
-                         MaxLength="6"
+                         MaxLength="4"
                          TabIndex="2"
                          Style="{DynamicResource RequiredTextBox}" />
                 <TextBlock Text="{Binding WipRecord.WipWorkOrder.Uom}"
@@ -280,61 +281,100 @@
 
             <!--#region Scrap Inputs-->
 
-            <StackPanel Grid.Row="4"
-                        HorizontalAlignment="Left"
-                        Orientation="Horizontal"
-                        Visibility="{Binding WipRecord.IsScrap, Converter={StaticResource EnumtoVisConverter}}">
-                <TextBlock Text="Scrap Quantity:"
-                           FontSize="18"
-                           FontWeight="Bold"
-                           TextDecorations="Underline"
-                           VerticalAlignment="Center"
-                           Margin="10,0,0,0" />
-                <TextBox Text="{Binding ScrapQuantity, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                         FontSize="18"
-                         FontWeight="Bold"
-                         Background="LightGray"
-                         Margin="5"
-                         Width="75"
-                         MaxLength="4"
-                         Style="{DynamicResource RequiredTextBox}" />
-                <TextBlock Text="{Binding WipRecord.WipWorkOrder.Uom}"
-                           FontSize="18"
-                           FontWeight="Bold"
-                           VerticalAlignment="Center"
-                           Margin="5,0,0,0" />
-                <TextBlock Text="Scrap Reason:"
-                           FontSize="18"
-                           FontWeight="Bold"
-                           TextDecorations="Underline"
-                           VerticalAlignment="Center"
-                           Margin="20,0,0,0" />
-                <ComboBox ItemsSource="{Binding ScrapReasonCollection, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                          SelectedItem="{Binding SelectedReason, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                          FontSize="18"
-                          FontWeight="Bold"
-                          Background="LightGray"
-                          Margin="5"
-                          Width="175"
-                          TabIndex="6" />
-                <TextBlock Text="QIR:"
-                           Visibility="{Binding SelectedReason, Converter={StaticResource EnumtoVisConverter}, ConverterParameter=QSC}"
-                           FontSize="18"
-                           FontWeight="Bold"
-                           TextDecorations="Underline"
-                           VerticalAlignment="Center"
-                           Margin="10,0,0,0" />
-                <TextBox Text="{Binding WipRecord.ScrapReference, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                         Visibility="{Binding SelectedReason, Converter={StaticResource EnumtoVisConverter}, ConverterParameter=QSC}"
-                         FontSize="18"
-                         FontWeight="Bold"
-                         Background="LightGray"
-                         Margin="5"
-                         Width="100"
-                         MaxLength="8"
-                         CharacterCasing="Upper"
-                         Style="{DynamicResource RequiredTextBox}" />
-            </StackPanel>
+            <ItemsControl x:Name="ScrapInput"
+                          Grid.Row="4"
+                          HorizontalAlignment="Left"
+                          ItemsSource="{Binding WipRecord.ScrapList, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                          Visibility="{Binding WipRecord.IsScrap, Converter={StaticResource EnumtoVisConverter}}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <VirtualizingStackPanel IsItemsHost="True"
+                                                Orientation="Vertical" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Horizontal">
+
+                            <TextBlock Text="Scrap Quantity:"
+                                       FontSize="18"
+                                       FontWeight="Bold"
+                                       TextDecorations="Underline"
+                                       VerticalAlignment="Center"
+                                       Margin="10,0,0,0" />
+                            <TextBox Text="{Binding Quantity, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                     FontSize="18"
+                                     FontWeight="Bold"
+                                     Background="LightGray"
+                                     Margin="5"
+                                     Width="75"
+                                     MaxLength="4"
+                                     Style="{DynamicResource RequiredTextBox}" />
+                            <TextBlock Text="{Binding DataContext.WipRecord.WipWorkOrder.Uom, ElementName=WipWindow}"
+                                       FontSize="18"
+                                       FontWeight="Bold"
+                                       VerticalAlignment="Center"
+                                       Margin="5,0,0,0" />
+                            <TextBlock Text="Scrap Reason:"
+                                       FontSize="18"
+                                       FontWeight="Bold"
+                                       TextDecorations="Underline"
+                                       VerticalAlignment="Center"
+                                       Margin="20,0,0,0" />
+                            <ComboBox ItemsSource="{Binding DataContext.ScrapReasonCollection, ElementName=WipWindow}"
+                                      SelectedItem="{Binding Reason, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                      FontSize="18"
+                                      FontWeight="Bold"
+                                      Background="LightGray"
+                                      Margin="5"
+                                      Width="175"
+                                      TabIndex="6" />
+                            <TextBlock Text="QIR:"
+                                       Visibility="{Binding Reason, Converter={StaticResource EnumtoVisConverter}, ConverterParameter=QSC}"
+                                       FontSize="18"
+                                       FontWeight="Bold"
+                                       TextDecorations="Underline"
+                                       VerticalAlignment="Center"
+                                       Margin="10,0,0,0" />
+                            <TextBox Text="{Binding Reference, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                     Visibility="{Binding Reason, Converter={StaticResource EnumtoVisConverter}, ConverterParameter=QSC}"
+                                     FontSize="18"
+                                     FontWeight="Bold"
+                                     Background="LightGray"
+                                     Margin="5"
+                                     Width="100"
+                                     MaxLength="8"
+                                     CharacterCasing="Upper"
+                                     Style="{DynamicResource RequiredTextBox}" />
+
+                            <Button Background="Green"
+                                    Foreground="WhiteSmoke"
+                                    Content="Add"
+                                    Command="{Binding DataContext.AddScrapICommand, ElementName=WipWindow}"
+                                    CommandParameter="{Binding}"
+                                    Visibility="{Binding ID, Converter={StaticResource BooltoVisConverter}, ConverterParameter=i}"
+                                    Width="50"
+                                    Height="20"
+                                    Margin="10,0 0 0"
+                                    Style="{DynamicResource DefaultButton}"/>
+
+                            <Button Command="{Binding DataContext.RemoveScrapICommand, ElementName=WipWindow}"
+                                    CommandParameter="{Binding}"
+                                    Visibility="{Binding ID, Converter={StaticResource BooltoVisConverter}}"
+                                    Width="20"
+                                    Height="20"
+                                    Margin="10,0 0 0"
+                                    Style="{DynamicResource DefaultButton}">
+                                <Button.Content>
+                                    <Image Source="/SFW;component/Icons/Delete.ico" />
+                                </Button.Content>
+                            </Button>
+
+                        </StackPanel>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
 
             <!--#endregion-->
 
@@ -550,6 +590,8 @@
                                                 <RowDefinition Height="3"/>
                                             </Grid.RowDefinitions>
 
+                                            <!--#region Lot Inputs-->
+                                            
                                             <StackPanel Grid.Row="0"
                                                         Orientation="Horizontal"
                                                         HorizontalAlignment="Left"
@@ -557,6 +599,7 @@
                                                 <TextBlock Text="Lot Number:"
                                                            FontSize="16"
                                                            TextDecorations="Underline"
+                                                           VerticalAlignment="Center"
                                                            FontWeight="Bold" />
                                                 <TextBox Text="{Binding LotNbr, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                                          FontSize="16"
@@ -564,21 +607,24 @@
                                                          CharacterCasing="Upper"
                                                          MaxLength="11"
                                                          Margin="3"
-                                                         Background="LightGray" 
+                                                         Background="LightGray"
                                                          Style="{DynamicResource RequiredTextBox}" />
                                                 <TextBlock Text="Location:"
                                                            FontSize="16"
                                                            Visibility="{Binding IsBackFlush, Converter={StaticResource BooltoVisConverter}, ConverterParameter=i}"
                                                            TextDecorations="UnderLine"
+                                                           VerticalAlignment="Center"
                                                            FontWeight="Bold"
                                                            Margin="10,0,0,0" />
                                                 <TextBlock Text="{Binding RcptLoc, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                                            Visibility="{Binding IsBackFlush, Converter={StaticResource BooltoVisConverter}, ConverterParameter=i}"
                                                            FontSize="16"
+                                                           VerticalAlignment="Center"
                                                            Margin="5,0,0,0"/>
                                                 <TextBlock Text="Quantity:"
                                                            FontSize="16"
                                                            TextDecorations="UnderLine"
+                                                           VerticalAlignment="Center"
                                                            FontWeight="Bold"
                                                            Margin="10,0,0,0"/>
                                                 <TextBox Text="{Binding LotQty, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
@@ -594,6 +640,45 @@
                                                            FontWeight="Bold"
                                                            VerticalAlignment="Center"
                                                            Margin="5,0,0,0" />
+                                                <TextBlock Text="On Hand:"
+                                                           FontSize="16"
+                                                           VerticalAlignment="Center"
+                                                           TextDecorations="UnderLine"
+                                                           FontWeight="Bold"
+                                                           Margin="10,0,0,0"/>
+                                                <TextBlock Text="{Binding OnHandCalc, UpdateSourceTrigger=PropertyChanged}"
+                                                           VerticalAlignment="Center"
+                                                           Margin="3,0,0,0">
+                                                    <TextBlock.Style>
+                                                        <Style TargetType="{x:Type TextBlock}">
+                                                            <Setter Property="Foreground"
+                                                                    Value="Green" />
+                                                            <Setter Property="FontSize"
+                                                                    Value="16"/>
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding OnHandCalc, Converter={StaticResource NegIntToBoolConverter}}"
+                                                                             Value="true">
+                                                                    <Setter Property="Foreground"
+                                                                            Value="Crimson" />
+                                                                    <Setter Property="FontWeight"
+                                                                            Value="Bold"/>
+                                                                    <Setter Property="FontSize"
+                                                                            Value="18"/>
+                                                                </DataTrigger>
+                                                                <DataTrigger Binding="{Binding OnHandCalc}"
+                                                                             Value="0">
+                                                                    <Setter Property="Foreground"
+                                                                            Value="Black" />
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </TextBlock.Style>
+                                                </TextBlock>
+                                                <TextBlock Text="{Binding Uom}"
+                                                           FontSize="16"
+                                                           FontWeight="Bold"
+                                                           VerticalAlignment="Center"
+                                                           Margin="3,0,0,0" />
                                                 <TextBlock Text="Is Roll Gone?"
                                                            FontSize="16"
                                                            TextDecorations="UnderLine"
@@ -603,23 +688,6 @@
                                                           FontSize="16"
                                                           IsTabStop="False"
                                                           Margin="5,0,0,0"/>
-                                                <TextBlock Text="Scrap:"
-                                                           FontSize="16"
-                                                           FontWeight="Bold"
-                                                           TextDecorations="Underline"
-                                                           Margin="10,0,0,0" />
-                                                <RadioButton IsChecked="{Binding IsScrap, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource EnumtoBoolConverter}, ConverterParameter=Y}"
-                                                             Content="Yes"
-                                                             FontSize="16"
-                                                             FontWeight="Bold"
-                                                             IsTabStop="False"
-                                                             Margin="10,0,0,0" />
-                                                <RadioButton IsChecked="{Binding IsScrap, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource EnumtoBoolConverter}, ConverterParameter=N}"
-                                                             Content="No"
-                                                             FontSize="16"
-                                                             FontWeight="Bold"
-                                                             IsTabStop="False"
-                                                             Margin="10,0,0,0" />
                                                 <Button Command="{Binding DataContext.RemoveCompICommand, ElementName=WipWindow}"
                                                         CommandParameter="{Binding LotNbr}"
                                                         Visibility="{Binding LotNbr, Converter={StaticResource StringtoVisConverter}}"
@@ -632,16 +700,37 @@
                                                     </Button.Content>
                                                 </Button>
                                             </StackPanel>
+                                            
+                                            <!--#endregion-->
 
+                                            <!--#region Scrap Inputs-->
+                                            
                                             <StackPanel Grid.Row="1"
                                                         HorizontalAlignment="Left"
-                                                        Orientation="Horizontal"
-                                                        Visibility="{Binding IsScrap, Converter={StaticResource EnumtoVisConverter}}">
-                                                <TextBlock Text="Scrap Quantity:"
+                                                        Orientation="Horizontal">
+                                                <TextBlock Text="Scrap:"
                                                            FontSize="16"
                                                            FontWeight="Bold"
+                                                           TextDecorations="Underline"/>
+                                                <RadioButton IsChecked="{Binding IsScrap, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource EnumtoBoolConverter}, ConverterParameter=Y}"
+                                                             Content="Yes"
+                                                             FontSize="16"
+                                                             FontWeight="Bold"
+                                                             IsTabStop="False"
+                                                             Margin="10,0,0,0" />
+                                                <RadioButton IsChecked="{Binding IsScrap, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource EnumtoBoolConverter}, ConverterParameter=N}"
+                                                             Content="No"
+                                                             FontSize="16"
+                                                             FontWeight="Bold"
+                                                             IsTabStop="False"
+                                                             Margin="10,0,0,0" />
+                                                <TextBlock Text="Scrap Quantity:"
+                                                           FontSize="16"
+                                                           Margin="20,0,0,0"
+                                                           FontWeight="Bold"
                                                            TextDecorations="Underline"
-                                                           VerticalAlignment="Center" />
+                                                           VerticalAlignment="Center"
+                                                           Visibility="{Binding IsScrap, Converter={StaticResource EnumtoVisConverter}}"/>
                                                 <TextBox Text="{Binding ScrapQty, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                                          FontSize="16"
                                                          Background="LightGray"
@@ -649,25 +738,29 @@
                                                          Width="75"
                                                          MaxLength="4"
                                                          CharacterCasing="Upper"
+                                                         Visibility="{Binding IsScrap, Converter={StaticResource EnumtoVisConverter}}"
                                                          Style="{DynamicResource RequiredTextBox}" />
                                                 <TextBlock Text="{Binding Uom}"
                                                            FontSize="16"
                                                            FontWeight="Bold"
                                                            VerticalAlignment="Center"
-                                                           Margin="5,0,0,0" />
+                                                           Margin="5,0,0,0"
+                                                           Visibility="{Binding IsScrap, Converter={StaticResource EnumtoVisConverter}}"/>
                                                 <TextBlock Text="Scrap Reason:"
                                                            FontSize="16"
                                                            FontWeight="Bold"
                                                            TextDecorations="Underline"
                                                            VerticalAlignment="Center"
-                                                           Margin="20,0,0,0" />
+                                                           Margin="20,0,0,0"
+                                                           Visibility="{Binding IsScrap, Converter={StaticResource EnumtoVisConverter}}"/>
                                                 <ComboBox ItemsSource="{Binding DataContext.ScrapReasonCollection, ElementName=CompParent, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                                           SelectedItem="{Binding ScrapReason, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                                           FontSize="14"
                                                           FontWeight="Bold"
                                                           Background="LightGray"
                                                           Margin="3"
-                                                          Width="175" />
+                                                          Width="175"
+                                                          Visibility="{Binding IsScrap, Converter={StaticResource EnumtoVisConverter}}"/>
                                                 <TextBlock Text="QIR:"
                                                            Visibility="{Binding ScrapReason, Converter={StaticResource EnumtoVisConverter}, ConverterParameter=QSC}"
                                                            FontSize="16"
@@ -685,6 +778,9 @@
                                                          CharacterCasing="Upper"
                                                          Style="{DynamicResource RequiredTextBox}" />
                                             </StackPanel>
+                                            
+                                            <!--#endregion-->
+                                            
                                             <Rectangle Grid.Row="2"
                                                        Fill="#FF135185"
                                                        HorizontalAlignment="Stretch"

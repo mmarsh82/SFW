@@ -28,7 +28,7 @@ namespace SFW.Converters
             }
             else if (parameter?.ToString() == "PriTime")
             {
-                return value?.ToString() == "9" ? Visibility.Collapsed : Visibility.Visible;
+                return value?.ToString() == "999" ? Visibility.Collapsed : Visibility.Visible;
             }
             else
             {

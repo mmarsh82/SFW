@@ -11,24 +11,40 @@ namespace SFW.Tools
 
         public string OrderNumber { get; set; }
 
-        private int _shift;
-        public int Shift
+        private int? _shift;
+        public string Shift
         {
-            get { return _shift; }
+            get { return _shift.ToString(); }
             set
             {
-                _shift = value;
+                if (value == "999")
+                {
+                    value = null;
+                }
+                _shift = int.TryParse(value, out int i) ? i : 0;
+                if (_shift == 0)
+                {
+                    _shift = null;
+                }
                 OnPropertyChanged(nameof(Shift));
             }
         }
 
-        private int _pri;
-        public int Priority
+        private int? _pri;
+        public string Priority
         {
-            get { return _pri; }
+            get { return _pri.ToString(); }
             set
             {
-                _pri = value;
+                if (value == "999")
+                {
+                    value = null;
+                }
+                _pri = int.TryParse(value, out int i) ? i : 0;
+                if (_pri == 0)
+                {
+                    _pri = null;
+                }
                 OnPropertyChanged(nameof(Priority));
             }
         }
@@ -47,8 +63,8 @@ namespace SFW.Tools
         public PriorityEdit_ViewModel(string orderNbr, int shift, int pri)
         {
             OrderNumber = orderNbr;
-            Shift = shift;
-            Priority = pri;
+            Shift = shift.ToString();
+            Priority = pri.ToString();
         }
 
         #region Priority Change ICommand
@@ -83,7 +99,10 @@ namespace SFW.Tools
                 }
             }
         }
-        private bool PriorityChangeCanExecute(object parameter) => Priority > 0;
+        private bool PriorityChangeCanExecute(object parameter)
+        {
+            return _pri > 0 && _pri < 60 && _shift > 0 && _shift <= 23;
+        }
 
         #endregion
 

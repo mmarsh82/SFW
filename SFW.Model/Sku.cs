@@ -9,6 +9,7 @@ namespace SFW.Model
 {
     public class Sku : ModelBase
     {
+
         #region Properties
 
         public string SkuNumber { get; set; }
@@ -273,9 +274,13 @@ namespace SFW.Model
                                         _dmdNbr = reader.SafeGetString("Comp_Lot");
                                         _found = true;
                                     }
-                                    else
+                                    else if (string.IsNullOrEmpty(_lot))
                                     {
                                         _lot += $"a.[Parent_Lot] = '{reader.SafeGetString("Comp_Lot")}|P'";
+                                    }
+                                    else
+                                    {
+                                        _lot += $" OR a.[Parent_Lot] = '{reader.SafeGetString("Comp_Lot")}|P'";
                                     }
                                 }
                             }

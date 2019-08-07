@@ -15,6 +15,88 @@ namespace SFW.Model
     /// </summary>
     public class WipReceipt
     {
+        /// <summary>
+        /// Scrap Sub-Class for the Sku object
+        /// </summary>
+        public class Scrap : INotifyPropertyChanged
+        {
+            #region Properties
+
+            public int ID { get; set; }
+
+            private int? qty;
+            /// <summary>
+            /// Quantity of scrap for the wip receipt
+            /// </summary>
+            public string Quantity
+            {
+                get
+                { return qty.ToString(); }
+                set
+                {
+                    if (int.TryParse(value, out int _qty))
+                    {
+                        qty = _qty;
+                    }
+                    else
+                    {
+                        qty = null;
+                    }
+                    OnPropertyChanged(nameof(Quantity));
+                }
+            }
+
+            private string reason;
+            /// <summary>
+            /// Reason for scrapping the material
+            /// </summary>
+            public string Reason
+            {
+                get
+                { return reason; }
+                set
+                {
+                    reason = value;
+                    OnPropertyChanged(nameof(Reason));
+                    Reference = null;
+                    OnPropertyChanged(nameof(Reference));
+                }
+            }
+
+            /// <summary>
+            /// Reference information for scrapping the material
+            /// </summary>
+            public string Reference { get; set; }
+
+            #endregion
+
+            #region INotifyPropertyChanged Implementation
+
+            public event PropertyChangedEventHandler PropertyChanged;
+
+            /// <summary>
+            /// Reflects changes from the ViewModel properties to the View
+            /// </summary>
+            /// <param name="propertyName">Property Name</param>
+            protected virtual void OnPropertyChanged(string propertyName)
+            {
+                var handler = PropertyChanged;
+                if (handler != null)
+                {
+                    var e = new PropertyChangedEventArgs(propertyName);
+                    handler(this, e);
+                }
+            }
+
+            #endregion
+
+            /// <summary>
+            /// Scrap Default constructor
+            /// </summary>
+            public Scrap()
+            { }
+        }
+
         #region Properties
 
         /// <summary>
@@ -82,29 +164,14 @@ namespace SFW.Model
             set
             {
                 isScrap = value;
-                if (value == Complete.N)
+                if (value == Complete.N && ScrapList != null)
                 {
-                    ScrapQty = null;
-                    ScrapReason = string.Empty;
-                    ScrapReference = string.Empty;
+                    ScrapList.Clear();
                 }
             }
         }
 
-        /// <summary>
-        /// Quantity of scrap for the wip receipt
-        /// </summary>
-        public int? ScrapQty { get; set; }
-
-        /// <summary>
-        /// Reason for scrapping the material
-        /// </summary>
-        public string ScrapReason { get; set; }
-
-        /// <summary>
-        /// Reference information for scrapping the material
-        /// </summary>
-        public string ScrapReference { get; set; }
+        public BindingList<Scrap> ScrapList { get; set; }
 
         private Complete isReclaim;
         /// <summary>
@@ -178,6 +245,7 @@ namespace SFW.Model
             }
             IsLotTracable = Sku.IsLotTracable(workOrder.SkuNumber, sqlCon);
             IsScrap = Complete.N;
+            ScrapList = new BindingList<Scrap>();
             IsReclaim = Complete.N;
             ReclaimParent = null; //workOrder.MachineGroup == "EXT" ? workOrder.Bom.Where(o => o.InventoryType == "RC").FirstOrDefault().CompNumber : null;
             CanMulti = false; //workOrder.MachineGroup == "SLIT";

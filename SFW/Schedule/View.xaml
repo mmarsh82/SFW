@@ -10,6 +10,7 @@
     <UserControl.Resources>
         <cmd:PartSearch x:Key="PartSearchCommand"/>
         <cmd:ViewQtask x:Key="ViewQtask"/>
+        <cmd:ClearPriority x:Key="ClearPriICommand"/>
         <cvtr:BoolToVisibility x:Key="BoolToVisConverter"/>
         <cvtr:WorkOrderNumber x:Key="WorkOrderConverter"/>
         <cvtr:SkuMasterPrint x:Key="PartSearchConverter"/>
@@ -53,6 +54,17 @@
                       Visibility="{Binding Path=(local:CurrentUser.CanSchedule), Converter={StaticResource BoolToVisConverter}}"
                       Command="{Binding DataContext.PriorityChangeICommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type DataGrid}}}"
                       CommandParameter="{Binding}"/>
+            <MenuItem Header="Clear Priority"
+                      FontSize="16"
+                      Command="{StaticResource ClearPriICommand}"
+                      CommandParameter="{Binding}">
+                <MenuItem.Visibility>
+                    <MultiBinding Converter="{StaticResource BoolToVisConverter}">
+                        <Binding Path="(local:CurrentUser.CanSchedule)"/>
+                        <Binding Path="Sched_Priority"/>
+                    </MultiBinding>
+                </MenuItem.Visibility>
+            </MenuItem>
         </ContextMenu>
         
     </UserControl.Resources>

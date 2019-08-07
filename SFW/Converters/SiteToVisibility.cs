@@ -9,13 +9,25 @@ namespace SFW.Converters
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            
-            switch(value.ToString())
+            if (string.IsNullOrEmpty(parameter.ToString()))
             {
-                case "0":
-                    return Visibility.Visible;
-                default:
-                    return Visibility.Collapsed;
+                switch (value.ToString())
+                {
+                    case "0":
+                        return Visibility.Visible;
+                    default:
+                        return Visibility.Collapsed;
+                }
+            }
+            else
+            {
+                switch (value.ToString())
+                {
+                    case "1":
+                        return Visibility.Visible;
+                    default:
+                        return Visibility.Collapsed;
+                }
             }
         }
 
