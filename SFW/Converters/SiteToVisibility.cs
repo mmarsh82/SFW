@@ -9,7 +9,7 @@ namespace SFW.Converters
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (string.IsNullOrEmpty(parameter.ToString()))
+            if (string.IsNullOrEmpty(parameter?.ToString()))
             {
                 switch (value.ToString())
                 {

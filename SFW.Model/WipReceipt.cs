@@ -261,7 +261,7 @@ namespace SFW.Model
             if (e.ListChangedType == ListChangedType.ItemChanged && e.PropertyDescriptor.DisplayName == "IdNumber" )
             {
                 ((BindingList<CrewMember>)sender)[e.NewIndex].Name = string.Empty;
-                var _dName = CrewMember.GetCrewDisplayName(ModelBase.ModelSqlCon, Convert.ToInt32(((BindingList<CrewMember>)sender)[e.NewIndex].IdNumber));
+                var _dName = CrewMember.GetCrewDisplayName(ModelBase.ModelSqlCon, ((BindingList<CrewMember>)sender)[e.NewIndex].IdNumber);
                 var _duplicate = ((BindingList<CrewMember>)sender).Any(o => o.Name == _dName);
                 if (!string.IsNullOrEmpty(_dName) && !_duplicate)
                 {

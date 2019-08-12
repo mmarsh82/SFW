@@ -335,7 +335,7 @@ namespace M2kClient
                     var _crew = wipRecord.CrewList.Count(o => !string.IsNullOrEmpty(o.Name));
                     foreach (var c in wipRecord.CrewList.Where(o => !string.IsNullOrEmpty(o.Name) && o.IsDirect))
                     {
-                        var _pl = PostLabor("SFW WIP", Convert.ToInt32(c.IdNumber), c.Shift, $"{wipRecord.WipWorkOrder.OrderNumber}*{wipRecord.WipWorkOrder.Seq}", Convert.ToInt32(wipRecord.WipQty), machID, ' ', connection, c.LastClock, _crew);
+                        var _pl = PostLabor("SFW WIP", c.IdNumber, c.Shift, $"{wipRecord.WipWorkOrder.OrderNumber}*{wipRecord.WipWorkOrder.Seq}", Convert.ToInt32(wipRecord.WipQty), machID, ' ', connection, c.LastClock, _crew);
                         if (_pl.Any(o => o.Key == 1))
                         {
                             System.Windows.MessageBox.Show($"Unable to process Labor\nPlease contact IT immediately!\n\n{_pl[1]}", "M2k Labor file error", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
@@ -407,7 +407,7 @@ namespace M2kClient
         /// <param name="crew">Optional: Crew size, only needs to be passed when the crewsize listed in the ERP is smaller or larger that the amount of crew members posting labor to the work order</param>
         /// <param name="tranDate">Optional: Date of transaction</param>
         /// <returns>Error number and error description, when returned as 0 and a empty string the transaction posted with no errors</returns>
-        public static IReadOnlyDictionary<int, string> PostLabor(string stationId, int empID, int shift, string woAndSeq, int qtyComp, string machID, char clockTranType, M2kConnection connection, string time = "", int crew = 0, string tranDate = "")
+        public static IReadOnlyDictionary<int, string> PostLabor(string stationId, string empID, int shift, string woAndSeq, int qtyComp, string machID, char clockTranType, M2kConnection connection, string time = "", int crew = 0, string tranDate = "")
         {
             var _subResult = new Dictionary<int, string>();
             try

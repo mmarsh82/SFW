@@ -181,7 +181,7 @@ namespace SFW.WIP
                     if (c.WipInfo.Count(o => o.IsScrap == Model.Enumerations.Complete.Y) > 0)
                     {
                         _validScrap = c.WipInfo.Count(o => o.IsScrap == Model.Enumerations.Complete.Y) == c.WipInfo.Count(o => o.ScrapQty != null && int.TryParse(o.ScrapQty, out int i) && i > 0)
-                            && c.WipInfo.Count(o => o.ScrapReason == "QSC") == c.WipInfo.Count(o => !string.IsNullOrEmpty(o.ScrapReference));
+                            && c.WipInfo.Count(o => o.ScrapReason == "Quality Scrap") == c.WipInfo.Count(o => !string.IsNullOrEmpty(o.ScrapReference));
                     }
                     if (WipRecord.IsScrap == Model.Enumerations.Complete.Y && _validScrap)
                     {
@@ -436,6 +436,7 @@ namespace SFW.WIP
                     if (w.LotNbr == parameter.ToString())
                     {
                         c.WipInfo.Remove(w);
+                        WipQuantity = "-1";
                         return;
                     }
                 }

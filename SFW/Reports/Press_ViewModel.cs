@@ -93,13 +93,13 @@ namespace SFW.Reports
                 _count = Report.ShiftReportList[index - 1].CrewList.Count;
                 foreach (var c in Report.ShiftReportList[index - 1].CrewList)
                 {
-                    M2kClient.M2kCommand.PostLabor("PRESS SFW", Convert.ToInt32(c.IdNumber), c.Shift, $"{Report.ShopOrder.OrderNumber}*{Report.ShopOrder.Seq}", _qtyComp, _machId, 'O', _tempCon, DateTime.Now.ToString("HH:mm"), _count);
+                    M2kClient.M2kCommand.PostLabor("PRESS SFW", c.IdNumber, c.Shift, $"{Report.ShopOrder.OrderNumber}*{Report.ShopOrder.Seq}", _qtyComp, _machId, 'O', _tempCon, DateTime.Now.ToString("HH:mm"), _count);
                 }
             }
             _count = Report.ShiftReportList[index].CrewList.Count(o => !string.IsNullOrEmpty(o.Name));
             foreach (var c in Report.ShiftReportList[index].CrewList.Where(o => !string.IsNullOrEmpty(o.Name)))
             {
-                M2kClient.M2kCommand.PostLabor("PRESS SFW", Convert.ToInt32(c.IdNumber), c.Shift, $"{Report.ShopOrder.OrderNumber}*{Report.ShopOrder.Seq}", 0, _machId, 'I', _tempCon, c.LastClock, _count);
+                M2kClient.M2kCommand.PostLabor("PRESS SFW", c.IdNumber, c.Shift, $"{Report.ShopOrder.OrderNumber}*{Report.ShopOrder.Seq}", 0, _machId, 'I', _tempCon, c.LastClock, _count);
             }
         }
 

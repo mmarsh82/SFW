@@ -399,20 +399,20 @@
             <!--#region Crew Inputs-->
 
             <ItemsControl Name="CrewMembers"
-                      Grid.Row="6"
-                      ItemsSource="{Binding Path=WipRecord.CrewList}"
-                      Margin="10,0,0,0"
-                      FontSize="18"
-                      Cursor="Hand"
-                      Background="Transparent"
-                      Foreground="Black"
-                      Focusable="False"
-                      Visibility="{Binding WipRecord.HasCrew, Converter={StaticResource BooltoVisConverter}}">
+                          Grid.Row="6"
+                          ItemsSource="{Binding Path=WipRecord.CrewList}"
+                          Margin="10,0,0,0"
+                          FontSize="18"
+                          Cursor="Hand"
+                          Background="Transparent"
+                          Foreground="Black"
+                          Focusable="False"
+                          Visibility="{Binding WipRecord.HasCrew, Converter={StaticResource BooltoVisConverter}}">
 
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
                         <VirtualizingStackPanel IsItemsHost="True"
-                                            Orientation="Vertical" />
+                                                Orientation="Vertical" />
                     </ItemsPanelTemplate>
                 </ItemsControl.ItemsPanel>
 
@@ -427,22 +427,22 @@
                                        FontWeight="Bold" />
 
                                 <TextBox Text="{Binding IdNumber, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                     FontSize="16"
-                                     Width="100"
-                                     CharacterCasing="Upper"
-                                     MaxLength="7"
-                                     Margin="3"
-                                     Background="LightGray" />
+                                         FontSize="16"
+                                         Width="100"
+                                         CharacterCasing="Upper"
+                                         MaxLength="7"
+                                         Margin="3"
+                                         Background="LightGray" />
 
                                 <TextBlock Text="{Binding Name}"
-                                       VerticalAlignment="Center"
-                                       Margin="10,0,0,0" />
+                                           VerticalAlignment="Center"
+                                           Margin="10,0,0,0" />
 
                                 <TextBlock Text="Shift:"
-                                       TextDecorations="Underline"
-                                       FontWeight="Bold"
-                                       VerticalAlignment="Center"
-                                       Margin="10,0,0,0">
+                                           TextDecorations="Underline"
+                                           FontWeight="Bold"
+                                           VerticalAlignment="Center"
+                                           Margin="10,0,0,0">
                                     <TextBlock.Visibility>
                                         <MultiBinding Converter="{StaticResource CrewtoVisConverter}">
                                             <Binding Path="IsDirect" />
@@ -463,10 +463,10 @@
                                 </TextBlock>
 
                                 <TextBlock Text="In Time:"
-                                       TextDecorations="Underline"
-                                       FontWeight="Bold"
-                                       VerticalAlignment="Center"
-                                       Margin="10,0,0,0">
+                                           TextDecorations="Underline"
+                                           FontWeight="Bold"
+                                           VerticalAlignment="Center"
+                                           Margin="10,0,0,0">
                                     <TextBlock.Visibility>
                                         <MultiBinding Converter="{StaticResource CrewtoVisConverter}">
                                             <Binding Path="IsDirect" />
@@ -476,14 +476,14 @@
                                 </TextBlock>
 
                                 <TextBox Text="{Binding LastClock, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                     VerticalAlignment="Center"
-                                     Margin="3"
-                                     FontSize="18"
-                                     Background="LightGray"
-                                     Width="75"
-                                     MaxLength="5"
-                                     IsTabStop="False"
-                                     Style="{DynamicResource RequiredTextBox}">
+                                         VerticalAlignment="Center"
+                                         Margin="3"
+                                         FontSize="18"
+                                         Background="LightGray"
+                                         Width="75"
+                                         MaxLength="5"
+                                         IsTabStop="False"
+                                         Style="{DynamicResource RequiredTextBox}">
                                     <TextBox.Visibility>
                                         <MultiBinding Converter="{StaticResource CrewtoVisConverter}">
                                             <Binding Path="IsDirect" />
@@ -493,12 +493,12 @@
                                 </TextBox>
 
                                 <Button Command="{Binding DataContext.RemoveCrewICommand, ElementName=WipWindow}"
-                                    CommandParameter="{Binding IdNumber}"
-                                    Visibility="{Binding IdNumber, Converter={StaticResource StringtoVisConverter}}"
-                                    Width="20"
-                                    Height="20"
-                                    Margin="10,0 0 0"
-                                    Style="{DynamicResource DefaultButton}">
+                                        CommandParameter="{Binding IdNumber}"
+                                        Visibility="{Binding IdNumber, Converter={StaticResource StringtoVisConverter}}"
+                                        Width="20"
+                                        Height="20"
+                                        Margin="10,0 0 0"
+                                        Style="{DynamicResource DefaultButton}">
                                     <Button.Content>
                                         <Image Source="/SFW;component/Icons/Delete.ico" />
                                     </Button.Content>

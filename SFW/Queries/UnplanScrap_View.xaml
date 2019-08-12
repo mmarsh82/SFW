@@ -2,8 +2,83 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:local="clr-namespace:SFW.Queries"
-        Title="Unplanned Scrap" WindowStyle="ToolWindow">
+        Title="Unplanned Scrap" WindowStyle="ToolWindow" Width="600" Height="180">
     <Grid>
-        
+        <Grid.RowDefinitions>
+            <RowDefinition Height="50"/>
+            <RowDefinition Height="40"/>
+            <RowDefinition Height="40"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0"
+                   Text="!! ONLY Quality scrap is allowed in this function !!"
+                   VerticalAlignment="Center"
+                   HorizontalAlignment="Center"
+                   Foreground="Crimson"
+                   FontSize="24"
+                   FontWeight="Bold"/>
+
+        <StackPanel Grid.Row="1"
+                    Orientation="Horizontal"
+                    VerticalAlignment="Center">
+            <TextBlock Text="Lot Number:"
+                       FontSize="18"
+                       FontWeight="Bold"
+                       TextDecorations="Underline"
+                       VerticalAlignment="Center"
+                       Margin="10,0,0,0" />
+            <TextBox Text="{Binding LotNbr, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                     FontSize="18"
+                     FontWeight="Bold"
+                     Background="LightGray"
+                     Margin="5"
+                     Width="125"
+                     Style="{DynamicResource OptionalTextBox}" />
+            <TextBlock Text="Part Number:"
+                       FontSize="18"
+                       FontWeight="Bold"
+                       TextDecorations="Underline"
+                       VerticalAlignment="Center"
+                       Margin="10,0,0,0" />
+            <TextBox Text="{Binding PartNbr, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                     FontSize="18"
+                     FontWeight="Bold"
+                     Background="LightGray"
+                     Margin="5"
+                     Width="125"
+                     Style="{DynamicResource OptionalTextBox}" />
+        </StackPanel>
+
+        <StackPanel Grid.Row="2"
+                    Orientation="Horizontal"
+                    VerticalAlignment="Center">
+            <TextBlock Text="Quantity:"
+                       FontSize="18"
+                       FontWeight="Bold"
+                       TextDecorations="Underline"
+                       VerticalAlignment="Center"
+                       Margin="10,0,0,0" />
+            <TextBox Text="{Binding ScrapQty, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                     FontSize="18"
+                     FontWeight="Bold"
+                     Background="LightGray"
+                     Margin="5"
+                     Width="125"
+                     Style="{DynamicResource RequiredTextBox}" />
+            <TextBlock Text="QIR Number:"
+                       FontSize="18"
+                       FontWeight="Bold"
+                       TextDecorations="Underline"
+                       VerticalAlignment="Center"
+                       Margin="10,0,0,0" />
+            <TextBox Text="{Binding QirNbr, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                     FontSize="18"
+                     FontWeight="Bold"
+                     Background="LightGray"
+                     Margin="5"
+                     Width="125"
+                     Style="{DynamicResource RequiredTextBox}" />
+        </StackPanel>
+
     </Grid>
 </Window>

@@ -13,8 +13,8 @@ namespace SFW.Model
     {
         #region Properties
 
-        private int? idNbr;
-        public int? IdNumber
+        private string idNbr;
+        public string IdNumber
         {
             get { return idNbr; }
             set { idNbr = value; OnPropertyChanged(nameof(IdNumber)); }
@@ -195,7 +195,7 @@ namespace SFW.Model
         /// <param name="firstName">Crew member's first name</param>
         /// <param name="lastName">Crew member's last name</param>
         /// <returns></returns>
-        public static int GetCrewIdNumber(SqlConnection sqlCon, string firstName, string lastName)
+        public static string GetCrewIdNumber(SqlConnection sqlCon, string firstName, string lastName)
         {
             if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
             {
@@ -205,7 +205,7 @@ namespace SFW.Model
                     {
                         cmd.Parameters.AddWithValue("p1", firstName);
                         cmd.Parameters.AddWithValue("p2", lastName);
-                        return Convert.ToInt32(cmd.ExecuteScalar());
+                        return cmd.ExecuteScalar().ToString();
                     }
                 }
                 catch (SqlException sqlEx)
@@ -229,7 +229,7 @@ namespace SFW.Model
         /// <param name="sqlCon">Sql Connection to use</param>
         /// <param name="idNbr">Crew member's ID number</param>
         /// <returns></returns>
-        public static string GetCrewDisplayName(SqlConnection sqlCon, int idNbr)
+        public static string GetCrewDisplayName(SqlConnection sqlCon, string idNbr)
         {
             if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
             {
@@ -291,7 +291,7 @@ namespace SFW.Model
                                 {
                                     _tempList.Add(new CrewMember
                                     {
-                                        IdNumber = reader.SafeGetInt32("UserID"),
+                                        IdNumber = reader.SafeGetString("UserID"),
                                         Name = reader.SafeGetString("Name")
                                     });
                                 }

@@ -160,13 +160,24 @@ namespace SFW.Model
                     var _counter = 1;
                     if (_unlocked > 0 && _newBase > 0)
                     {
-                        foreach (var c in ((BindingList<CompWipInfo>)sender).Where(w => !w.QtyLock && !string.IsNullOrEmpty(w.RcptLoc)))
+                        foreach (var c in ((BindingList<CompWipInfo>)sender).Where(w => !w.QtyLock && !string.IsNullOrEmpty(w.LotNbr)))
                         {
                             c.LotQty = Convert.ToInt32(Math.Round(Convert.ToDouble(_newBase) / Convert.ToDouble(_unlocked), 0));
                             if (_counter == _unlocked && ((BindingList<CompWipInfo>)sender).Sum(s => s.LotQty) != ((BindingList<CompWipInfo>)sender)[0].BaseQty)
                             {
                                 c.LotQty = 0;
                                 c.LotQty = ((BindingList<CompWipInfo>)sender)[0].BaseQty - ((BindingList<CompWipInfo>)sender).Sum(s => s.LotQty);
+                            }
+                            if (c.LotQty != null)
+                            {
+                                if (int.TryParse(c.ScrapQty, out int _scr))
+                                {
+                                    c.OnHandCalc = c.OnHandQty - (Convert.ToInt32(c.LotQty) + _scr);
+                                }
+                                else
+                                {
+                                    c.OnHandCalc = c.OnHandQty - Convert.ToInt32(c.LotQty);
+                                }
                             }
                             _counter++;
                         }
@@ -190,7 +201,7 @@ namespace SFW.Model
                 WipInfoUpdating = true;
                 ((BindingList<CompWipInfo>)sender)[e.NewIndex].QtyLock = true;
                 var _unlocked = ((BindingList<CompWipInfo>)sender).Count(c => !string.IsNullOrEmpty(c.LotNbr)) - ((BindingList<CompWipInfo>)sender).Count(c => c.QtyLock && !string.IsNullOrEmpty(c.LotNbr));
-                var _newBase = ((BindingList<CompWipInfo>)sender)[e.NewIndex].BaseQty - ((BindingList<CompWipInfo>)sender).Where(w => w.QtyLock).Sum(s => s.LotQty);
+                var _newBase = ((BindingList<CompWipInfo>)sender)[0].BaseQty - ((BindingList<CompWipInfo>)sender).Where(w => w.QtyLock).Sum(s => s.LotQty);
                 var _counter = 1;
                 if (_unlocked > 0 && _newBase > 0)
                 {
@@ -201,6 +212,17 @@ namespace SFW.Model
                         {
                             c.LotQty = 0;
                             c.LotQty = ((BindingList<CompWipInfo>)sender)[0].BaseQty - ((BindingList<CompWipInfo>)sender).Sum(s => s.LotQty);
+                        }
+                        if (c.LotQty != null)
+                        {
+                            if (int.TryParse(c.ScrapQty, out int _scr))
+                            {
+                                c.OnHandCalc = c.OnHandQty - (Convert.ToInt32(c.LotQty) + _scr);
+                            }
+                            else
+                            {
+                                c.OnHandCalc = c.OnHandQty - Convert.ToInt32(c.LotQty);
+                            }
                         }
                         _counter++;
                     }
