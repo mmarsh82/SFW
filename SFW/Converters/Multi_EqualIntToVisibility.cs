@@ -15,10 +15,13 @@ namespace SFW.Converters
             var _total = 0; var _count = 0;
             foreach (object o in values)
             {
-                var i = System.Convert.ToInt32(o);
-                _test = _total == 0 ? true : i * _count == _total;
-                _total += i;
-                _count++;
+                if (o != DependencyProperty.UnsetValue)
+                {
+                    var i = System.Convert.ToInt32(o);
+                    _test = _total == 0 ? true : i * _count == _total;
+                    _total += i;
+                    _count++;
+                }
             }
             return !_test ? Visibility.Visible : Visibility.Collapsed;
         }

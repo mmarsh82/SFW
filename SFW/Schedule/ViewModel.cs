@@ -237,7 +237,11 @@ namespace SFW.Schedule
 
         private void StateChangeExecute(object parameter)
         {
-            var _oldPri = SelectedWorkOrder?.Row?.ItemArray[8].ToString();
+            var _oldPri = SelectedWorkOrder?.Row?.ItemArray[10].ToString();
+            if (SelectedWorkOrder?.Row?.ItemArray[15].ToString() != "999" || SelectedWorkOrder?.Row?.ItemArray[16].ToString() != "999")
+            {
+                new ClearPriority().Execute(SelectedWorkOrder);
+            }
             if (!string.IsNullOrEmpty(parameter?.ToString()))
             {
                 var _woNumber = SelectedWorkOrder?.Row?.ItemArray[0].ToString().Split('*')[0];
