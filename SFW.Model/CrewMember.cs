@@ -119,7 +119,7 @@ namespace SFW.Model
                     var time = string.Empty;
                     System.Threading.Tasks.Task.Run(() =>
                     {
-                        time = GetLastClockTime(Convert.ToInt32(IdNumber), Shift, ModelBase.ModelSqlCon);
+                        time = GetLastClockTime(IdNumber, Shift, ModelBase.ModelSqlCon);
                         if (string.IsNullOrEmpty(time) || time == "00:00")
                         {
                             switch (Shift)
@@ -323,7 +323,7 @@ namespace SFW.Model
         /// <param name="seq">Work order sequence</param>
         /// <param name="sqlCon">Sql Connection to use</param>
         /// <returns>bool result value as True: is clocked in; False: is not clocked in</returns>
-        public static bool IsClockedIn(int idNbr, string woNbr, string seq, SqlConnection sqlCon)
+        public static bool IsClockedIn(string idNbr, string woNbr, string seq, SqlConnection sqlCon)
         {
             if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
             {
@@ -364,7 +364,7 @@ namespace SFW.Model
         /// <param name="idNbr">User ID number</param>
         /// <param name="sqlCon">Sql Connection to use</param>
         /// <returns>Time as a string</returns>
-        public static string GetLastClockTime(int idNbr, int shift, SqlConnection sqlCon)
+        public static string GetLastClockTime(string idNbr, int shift, SqlConnection sqlCon)
         {
             /*if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
             {
@@ -486,7 +486,7 @@ namespace SFW.Model
         /// <param name="idNbr">User Id number</param>
         /// <param name="sqlCon">Sql Connection to use</param>
         /// <returns>Shift start time as a string</returns>
-        public static string GetShiftStartTime(int idNbr, SqlConnection sqlCon)
+        public static string GetShiftStartTime(string idNbr, SqlConnection sqlCon)
         {
             if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
             {
@@ -532,7 +532,7 @@ namespace SFW.Model
         /// <param name="idNbr">User Id number</param>
         /// <param name="sqlCon">Sql Connection to use</param>
         /// <returns>Shift end time as a string</returns>
-        public static string GetShiftEndTime(int idNbr, SqlConnection sqlCon)
+        public static string GetShiftEndTime(string idNbr, SqlConnection sqlCon)
         {
             if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
             {

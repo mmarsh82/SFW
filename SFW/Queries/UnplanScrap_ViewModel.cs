@@ -1,8 +1,10 @@
-﻿using System;
+﻿using SFW.Commands;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Input;
 
 namespace SFW.Queries
 {
@@ -33,6 +35,8 @@ namespace SFW.Queries
             }
         }
 
+        RelayCommand _scrapSubmit;
+
         #endregion
 
         /// <summary>
@@ -40,5 +44,42 @@ namespace SFW.Queries
         /// </summary>
         public UnplanScrap_ViewModel()
         { }
+
+        #region Unplanned Scrap Submit ICommand
+
+        public ICommand ScrapSubmitICommand
+        {
+            get
+            {
+                if (_scrapSubmit == null)
+                {
+                    _scrapSubmit = new RelayCommand(ScrapSubmitExecute, ScrapSubmitCanExecute);
+                }
+                return _scrapSubmit;
+            }
+        }
+
+        private void ScrapSubmitExecute(object parameter)
+        {
+            
+        }
+        private bool ScrapSubmitCanExecute(object parameter)
+        {
+            return true;
+        }
+
+        #endregion
+
+        /// <summary>
+        /// Object disposal
+        /// </summary>
+        /// <param name="disposing">Called by the GC Finalizer</param>
+        public override void OnDispose(bool disposing)
+        {
+            if (disposing)
+            {
+                _scrapSubmit = null;
+            }
+        }
     }
 }

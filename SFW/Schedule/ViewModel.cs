@@ -238,9 +238,14 @@ namespace SFW.Schedule
         private void StateChangeExecute(object parameter)
         {
             var _oldPri = SelectedWorkOrder?.Row?.ItemArray[10].ToString();
-            if (SelectedWorkOrder?.Row?.ItemArray[15].ToString() != "999" || SelectedWorkOrder?.Row?.ItemArray[16].ToString() != "999")
+            if (char.TryParse(SelectedWorkOrder?.Row?.ItemArray[10].ToString(), out char _oldPriChar))
             {
-                new ClearPriority().Execute(SelectedWorkOrder);
+                var _oldPriInt = _oldPriChar % 32;
+                var _newPriInt = Convert.ToChar(parameter) % 32;
+                if (_oldPriInt < _newPriInt && (SelectedWorkOrder?.Row?.ItemArray[15].ToString() != "999" || SelectedWorkOrder?.Row?.ItemArray[16].ToString() != "999"))
+                {
+                    new ClearPriority().Execute(SelectedWorkOrder);
+                }
             }
             if (!string.IsNullOrEmpty(parameter?.ToString()))
             {

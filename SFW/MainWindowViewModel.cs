@@ -266,9 +266,9 @@ namespace SFW
             {
                 throw new Exception(ex.Message);
             }
-            if (CurrentUser.IsLoggedIn && int.TryParse(CurrentUser.UserIDNbr, out int i))
+            if (CurrentUser.IsLoggedIn)
             {
-                var _endTime = CrewMember.GetShiftEndTime(i, App.AppSqlCon);
+                var _endTime = CrewMember.GetShiftEndTime(CurrentUser.UserIDNbr, App.AppSqlCon);
                 if (DateTime.TryParse(_endTime, out DateTime dt))
                 {
                     if (dt < DateTime.Now)

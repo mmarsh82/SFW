@@ -11,7 +11,7 @@ namespace SFW.Commands
         {
             var _row = ((DataRowView)parameter).Row;
             var _wo = _row.ItemArray[0].ToString().Split('*');
-            M2kClient.M2kCommand.RemoveRecord("WP", _wo[0], 195, App.ErpCon);
+            M2kClient.M2kCommand.EditRecord("WP", _wo[0], 195, "", App.ErpCon);
         }
         public bool CanExecute(object parameter) => true;
     }
