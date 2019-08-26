@@ -200,38 +200,38 @@ namespace M2kClient
         }
 
         /// <summary>
-        /// Location transfer in the current ERP system
+        /// Inventory move in the current ERP
         /// </summary>
-        /// <param name="_skew">Current inventory skew object</param>
-        /// <param name="from">Transfer From location</param>
-        /// <param name="to">Transfer to location</param>
-        /// <param name="qty">Quantity to transfer</param>
-        /// <param name="nonLot">Is the item being relocated non-lot traceable</param>
+        /// <param name="name">Submitter name</param>
+        /// <param name="partNbr">Part number to move</param>
+        /// <param name="lotNbr">Lot number to move, leave blank if one does not exist, unit of measure is required with no lot</param>
+        /// <param name="uom">Unit of measure, only required on a non-lot transaction</param>
+        /// <param name="from">Location the material will be moving from</param>
+        /// <param name="to">Location the material will be moving to</param>
+        /// <param name="qty">Amount of material to move</param>
         /// <param name="connection">Current M2k Connection to be used for processing the transaction</param>
-        /// <returns>Suffix for the file that needs to be watched on the ERP server</returns>
-        public static int InventoryMove(string name, string from, string to, int qty, bool nonLot, M2kConnection connection)
+        /// <returns>Error number and description, when returned error number is 0 the suffix will be in the description</returns>
+        public static IReadOnlyDictionary<int, string> InventoryMove(string name, string partNbr, string lotNbr, string uom, string from, string to, int qty, M2kConnection connection)
         {
-            var suffix = 0; //DateTime.Now.ToString("HHmmssfff");
-            //from = sku.OnHand.Count > 1 || nonLot ? from.ToUpper() : sku.OnHand.First().Key.ToUpper();
-            if (!nonLot)
+            var _subResult = new Dictionary<int, string>();
+            var suffix = DateTime.Now.ToString("HHmmssfff");
+            if (string.IsNullOrEmpty(lotNbr) && string.IsNullOrEmpty(uom))
             {
-                //String Format for non lot tracable = false
-                //1~Transaction type~2~Station ID~3~Transaction time~4~Transaction date~5~Facility code~6~Partnumber~7~From location~8~To location~9~Quantity #1~10~Lot #1~9~Quantity #2~10~Lot #2~~99~COMPLETE
-                //Must meet this format in order to work with M2k
-
-                //var moveText = $"1~LOCXFER~2~{name}~3~{DateTime.Now.ToString("HH:mm")}~4~{DateTime.Today.ToString("MM-dd-yyyy")}~5~01~6~{sku.PartNumber}~7~{from.ToUpper()}~8~{to.ToUpper()}~9~{qty}~10~{sku.LotNumber.ToUpper()}|P~99~COMPLETE";
-                //File.WriteAllText($"{connection.BTIFolder}LOCXFERC2K.DAT{suffix}", moveText);
+                _subResult.Add(1, "Unable to process transaction due to lack of information.  Missing lot number and unit of measure.");
+                return _subResult;
+            }
+            string moveText;
+            if (!string.IsNullOrEmpty(lotNbr))
+            {
+                moveText = $"1~LOCXFER~2~{name}~3~{DateTime.Now.ToString("HH:mm")}~4~{DateTime.Today.ToString("MM-dd-yyyy")}~5~01~6~{partNbr}~7~{from.ToUpper()}~8~{to.ToUpper()}~9~{qty}~10~{lotNbr}|P~99~COMPLETE";
             }
             else
             {
-                //String Format for non lot tracable = true
-                //1~Transaction type~2~Station ID~3~Transaction time~4~Transaction date~5~Facility code~6~Partnumber~7~From location~8~To location~9~Quantity~12~UoM~99~COMPLETE
-                //Must meet this format in order to work with M2k
-
-                //var moveText = $"1~LOCXFER~2~{name}~3~{DateTime.Now.ToString("HH:mm")}~4~{DateTime.Today.ToString("MM-dd-yyyy")}~5~01~6~{sku.PartNumber}~7~{from.ToUpper()}~8~{to.ToUpper()}~9~{qty}~12~{sku.UOM.ToUpper()}~99~COMPLETE";
-                //File.WriteAllText($"{connection.BTIFolder}LOCXFERC2K.DAT{suffix}", moveText);
+                moveText = $"1~LOCXFER~2~{name}~3~{DateTime.Now.ToString("HH:mm")}~4~{DateTime.Today.ToString("MM-dd-yyyy")}~5~01~6~{partNbr}~7~{from.ToUpper()}~8~{to.ToUpper()}~9~{qty}~12~{uom}~99~COMPLETE";
             }
-            return suffix;
+            File.WriteAllText($"{connection.BTIFolder}LOCXFERC2K.DAT{suffix}", moveText);
+            _subResult.Add(0, suffix);
+            return _subResult;
         }
 
         /// <summary>
@@ -242,18 +242,9 @@ namespace M2kClient
         /// <param name="connection">Current M2k Connection to be used for processing the transaction</param>
         /// /// <param name="isLot">Tells the method if the current wip transaction is for a lot tracable part or non lot tracable</param>
         /// <param name="machID">Optional: Machine ID, passed when labor needs to posted.  It is also required for posting labor</param>
-        /// <returns>Suffix for the file that needs to be watched on the ERP server and new lot number if required</returns>
+        /// <returns>Error number and error description, when returned as 0 and a empty string the transaction posted with errors</returns>
         public static IReadOnlyDictionary<int, string> ProductionWip(WipReceipt wipRecord, bool postLabor, M2kConnection connection, bool isLot, string machID = "")
         {
-            var _matLeft = 0;
-            foreach (var mat in wipRecord.WipWorkOrder.Bom.Where(o => o.WipInfo.Count(p => p.RollStatus) > 0))
-            {
-                foreach (var info in mat.WipInfo.Where(o => o.RollStatus))
-                {
-
-                }
-            }
-
             #region Wip Process
 
             var _subResult = new Dictionary<int, string>();
@@ -405,9 +396,12 @@ namespace M2kClient
 
             #region Roll Marked Gone
 
-            if (_matLeft > 0)
+            foreach (var mat in wipRecord.WipWorkOrder.Bom.Where(o => o.WipInfo.Count(p => p.RollStatus) > 0))
             {
-
+                foreach (var info in mat.WipInfo.Where(o => o.RollStatus))
+                {
+                    InventoryMove(wipRecord.Submitter, info.PartNbr, info.LotNbr, info.Uom, info.RcptLoc, "SCRAP", info.OnHandCalc, connection);
+                }
             }
 
             #endregion
