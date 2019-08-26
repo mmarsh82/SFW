@@ -22,7 +22,7 @@ namespace SFW.Model
         {
             #region Properties
 
-            public int ID { get; set; }
+            public string ID { get; set; }
 
             private int? qty;
             /// <summary>
@@ -171,6 +171,9 @@ namespace SFW.Model
             }
         }
 
+        /// <summary>
+        /// Wip receipt scrap list to use for the adjust part of the transaction
+        /// </summary>
         public BindingList<Scrap> ScrapList { get; set; }
 
         private Complete isReclaim;
@@ -186,6 +189,7 @@ namespace SFW.Model
                 if (value == Complete.N)
                 {
                     ReclaimQty = null;
+                    ReclaimReference = null;
                 }
             }
         }
@@ -199,6 +203,11 @@ namespace SFW.Model
         /// Parent part number for the reclaim transaction
         /// </summary>
         public string ReclaimParent { get; set; }
+
+        /// <summary>
+        /// Reference information for a reclaim transaction, typically the work order and QIR number
+        /// </summary>
+        public string ReclaimReference { get; set; }
 
         /// <summary>
         /// Determines if a work order is eligable for the Multi-Wip function
@@ -247,7 +256,7 @@ namespace SFW.Model
             IsScrap = Complete.N;
             ScrapList = new BindingList<Scrap>();
             IsReclaim = Complete.N;
-            ReclaimParent = null; //workOrder.MachineGroup == "EXT" ? workOrder.Bom.Where(o => o.InventoryType == "RC").FirstOrDefault().CompNumber : null;
+            ReclaimParent = workOrder.MachineGroup == "EXT" ? workOrder.Bom.Where(o => o.InventoryType == "RC").FirstOrDefault().CompNumber : null;
             CanMulti = false; //workOrder.MachineGroup == "SLIT";
         }
 

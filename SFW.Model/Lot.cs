@@ -325,6 +325,35 @@ namespace SFW.Model
         }
 
         /// <summary>
+        /// Validate lot number existance
+        /// </summary>
+        /// <param name="lotNbr">Lot Number</param>
+        /// <param name="sqlCon">Sql Connection to use</param>
+        /// <returns>Validation response</returns>
+        public static bool IsValid(string lotNbr, SqlConnection sqlCon)
+        {
+            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
+            {
+                try
+                {
+                    using (SqlCommand cmd = new SqlCommand($"USE {sqlCon.Database}; SELECT COUNT([Lot_Number]) FROM [dbo].[LOT-INIT] WHERE [Lot_Number] = CONCAT(@p1, '|P') AND [Stores_Oh] > 0;", sqlCon))
+                    {
+                        cmd.Parameters.AddWithValue("p1", lotNbr);
+                        return int.TryParse(cmd.ExecuteScalar()?.ToString(), out int i) && i > 0;
+                    }
+                }
+                catch (Exception)
+                {
+                    return false;
+                }
+            }
+            else
+            {
+                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
+            }
+        }
+
+        /// <summary>
         /// Get any QIR's associated with a given lot number
         /// </summary>
         /// <param name="lotNbr">Lot Number</param>

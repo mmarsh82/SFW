@@ -351,22 +351,19 @@ namespace M2kClient
             #endregion
 
             #region Scrap Adjustment
-            //TODO: add in validation that the lot actually exists for the parent wip before sending the adjustment
+            
             //Adjusting any scrap out of the system that was recorded during the wip
             foreach (var s in wipRecord.ScrapList.Where(o => int.TryParse(o.Quantity, out int i) && i > 0))
             {
-                var _tScrap = new Adjust(
-                    wipRecord.Submitter,
-                    "01",
+                InventoryAdjustment(wipRecord.Submitter,
                     !string.IsNullOrEmpty(s.Reference) ? $"{s.Reference}*{wipRecord.WipWorkOrder.OrderNumber}" : wipRecord.WipWorkOrder.OrderNumber,
                     wipRecord.WipWorkOrder.SkuNumber,
                     (AdjustCode)Enum.Parse(typeof(AdjustCode), s.Reason.GetValueFromDescription<AdjustCode>().ToString(), true),
                     'S',
                     Convert.ToInt32(s.Quantity),
                     wipRecord.ReceiptLocation,
+                    connection,
                     wipRecord.WipLot.LotNumber);
-                File.WriteAllText($"{connection.BTIFolder}ADJUSTC2K.DAT{suffix}", _tScrap.ToString());
-                suffix = DateTime.Now.ToString("HHmmssfff");
             }
             if (_tWip?.AdjustmentList?.Count > 0)
             {
@@ -375,6 +372,33 @@ namespace M2kClient
                     File.WriteAllText($"{connection.BTIFolder}ADJUSTC2K.DAT{suffix}", s.ToString());
                     suffix = DateTime.Now.ToString("HHmmssfff");
                 }
+            }
+
+            #endregion
+
+            #region Reclaim Adjustment
+
+            //Adjusting out any reclaim from the system and then adjusting it back in as the raw compound
+            if (wipRecord.IsReclaim == SFW.Model.Enumerations.Complete.Y)
+            {
+                //Adjustment out
+                InventoryAdjustment(wipRecord.Submitter,
+                    $"{wipRecord.ReclaimReference}*{wipRecord.WipWorkOrder.OrderNumber}",
+                    wipRecord.WipWorkOrder.SkuNumber,
+                    AdjustCode.REC,
+                    'S',
+                    Convert.ToInt32(wipRecord.ReclaimQty),
+                    wipRecord.ReceiptLocation,
+                    connection);
+                //Adjustment in
+                InventoryAdjustment(wipRecord.Submitter,
+                    $"{wipRecord.ReclaimReference}*{wipRecord.WipWorkOrder.OrderNumber}",
+                    wipRecord.ReclaimParent,
+                    AdjustCode.REC,
+                    'A',
+                    Convert.ToInt32(Math.Round(Convert.ToDouble(wipRecord.ReclaimQty) * wipRecord.WipWorkOrder.Bom.FirstOrDefault(o => o.CompNumber == wipRecord.ReclaimParent).AssemblyQty, 0, MidpointRounding.AwayFromZero)),
+                    "EXT-1",
+                    connection);
             }
 
             #endregion
@@ -479,10 +503,52 @@ namespace M2kClient
             }
         }
 
-        public static IReadOnlyDictionary<int, string> InventoryAdjustment()
+        /// <summary>
+        /// Process an inventory adjustment in current ERP system with in the standard EDI template
+        /// </summary>
+        /// <param name="stationId">Station ID</param>
+        /// <param name="reference">Adjustment reference</param>
+        /// <param name="partNbr">Part Number</param>
+        /// <param name="aCode">Adjustment code</param>
+        /// <param name="tranOp">Transaction Operation, see adjust object for more information</param>
+        /// <param name="tranQty">Transation quantity</param>
+        /// <param name="location">Location</param>
+        /// <param name="connection">Current M2k Connection to be used for processing the transaction</param>
+        /// <param name="lot">Optional: Lot number</param>
+        /// <returns>Error number and error description, when returned as 0 and a empty string the transaction posted with no errors</returns>
+        public static IReadOnlyDictionary<int, string> InventoryAdjustment(string stationId, string reference, string partNbr, AdjustCode aCode, char tranOp, int tranQty, string location, M2kConnection connection, string lot = "")
         {
-            return null;
+            var _subResult = new Dictionary<int, string>();
+            try
+            {
+                var suffix = DateTime.Now.ToString("HHmmssfff");
+                if (tranQty <= 0)
+                {
+                    _subResult.Add(1, "Transaction Quantity must have a value greater then 0.");
+                    return _subResult;
+                }
+                var _tScrap = new Adjust(
+                    stationId,
+                    "01",
+                    reference,
+                    partNbr,
+                    aCode,
+                    tranOp,
+                    tranQty,
+                    location,
+                    lot);
+                File.WriteAllText($"{connection.BTIFolder}ADJUSTC2K.DAT{suffix}", _tScrap.ToString());
+                _subResult.Add(0, string.Empty);
+                return _subResult;
+            }
+            catch (Exception ex)
+            {
+                _subResult.Add(1, ex.Message);
+                return _subResult;
+            }
         }
+
+
         public static IReadOnlyDictionary<int, string> ItemIssue(string stationId, string compNbr, string woNbr)
         {
             var suffix = DateTime.Now.ToString("HHmmssfff");

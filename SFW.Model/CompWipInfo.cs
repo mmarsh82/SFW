@@ -1,4 +1,6 @@
 ﻿using SFW.Model.Enumerations;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 
 namespace SFW.Model
@@ -11,7 +13,7 @@ namespace SFW.Model
         public string LotNbr
         {
             get { return lotNbr; }
-            set { lotNbr = value; OnPropertyChanged(nameof(LotNbr)); }
+            set { lotNbr = value; OnPropertyChanged(nameof(LotNbr)); OnPropertyChanged(nameof(ValidLot)); }
         }
 
         public bool ValidLot { get; set; }
@@ -51,38 +53,6 @@ namespace SFW.Model
             set { ohCalc = value; OnPropertyChanged(nameof(OnHandCalc)); }
         }
 
-        private int? scrapQty;
-        public string ScrapQty
-        {
-            get { return scrapQty.ToString(); }
-            set
-            {
-                if (int.TryParse(value, out int i))
-                {
-                    scrapQty = i;
-                }
-                else
-                {
-                    scrapQty = null;
-                }
-                OnPropertyChanged(nameof(ScrapQty));
-            }
-        }
-
-        private string sReason;
-        public string ScrapReason
-        {
-            get { return sReason; }
-            set { sReason = value; OnPropertyChanged(nameof(ScrapReason)); }
-        }
-
-        private string sRef;
-        public string ScrapReference
-        {
-            get { return sRef; }
-            set { sRef = value; OnPropertyChanged(nameof(ScrapReference)); }
-        }
-
         private Complete isScrap;
         public Complete IsScrap
         {
@@ -92,14 +62,16 @@ namespace SFW.Model
                 isScrap = value;
                 if (value == Complete.N)
                 {
-                    ScrapReason = string.Empty;
-                    ScrapQty = null;
-                    OnPropertyChanged(nameof(ScrapQty));
-                    ScrapReference = string.Empty;
+                    ScrapCollection.Clear();
+                }
+                else
+                {
+                    ScrapCollection.Add(new WipReceipt.Scrap { ID = $"0*{PartNbr}*{LotNbr}"});
                 }
                 OnPropertyChanged(nameof(IsScrap));
             }
         }
+        public ObservableCollection<WipReceipt.Scrap> ScrapCollection { get; set; }
 
         #endregion
 
@@ -135,6 +107,7 @@ namespace SFW.Model
             PartNbr = partNbr;
             Uom = uom;
             QtyLock = false;
+            ScrapCollection = new ObservableCollection<WipReceipt.Scrap>(new List<WipReceipt.Scrap>());
             IsScrap = Complete.N;
             ValidLot = false;
         }

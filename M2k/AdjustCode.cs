@@ -6,13 +6,15 @@ namespace M2kClient
     {
         [Description("Cycle Count")]
         CC = 0,
+        [Description("Reclaim")]
+        REC = 1,
         [Description("Drop")]
-        DRO = 1,
+        DRO = 2,
         [Description("Quality Scrap")]
-        QSC = 2,
+        QSC = 3,
         [Description("Quality Testing")]
-        TES = 3,
+        TES = 4,
         [Description("Yield")]
-        YIE = 4
+        YIE = 5
     }
 }

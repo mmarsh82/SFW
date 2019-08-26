@@ -120,6 +120,7 @@ namespace M2kClient.M2kADIArray
             QtyReceived = wipRecord.ScrapList.Count(o => int.TryParse(o.Quantity, out int i) && i > 0) > 0
                 ? wipRecord.ScrapList.Sum(o => Convert.ToInt32(o.Quantity)) + Convert.ToInt32(wipRecord.WipQty) 
                 : Convert.ToInt32(wipRecord.WipQty);
+            QtyReceived += wipRecord.ReclaimQty != null && wipRecord.ReclaimQty > 0 ? Convert.ToInt32(wipRecord.ReclaimQty) : 0;
             CFlag = Enum.TryParse(wipRecord.SeqComplete.ToString().ToUpper(), out CompletionFlag cFlag) ? cFlag : CompletionFlag.N;
             Operation = wipRecord.WipWorkOrder.Seq;
             RcptLocation = wipRecord.ReceiptLocation;
@@ -142,20 +143,23 @@ namespace M2kClient.M2kADIArray
                         WorkOrderNbr = wipRecord.WipWorkOrder.OrderNumber,
                         IssueLoc = !string.IsNullOrEmpty(_backFlush) ? _backFlush : w.RcptLoc
                     });
-                    if (w.ScrapQty != null && int.TryParse(w.ScrapQty, out int _scrap) && _scrap > 0)
+                    if (w.ScrapCollection != null &&  w.ScrapCollection.Count() > 0)
                     {
-                        AdjustmentList = new List<Adjust>
+                        foreach (var s in w.ScrapCollection.Where(o => int.TryParse(o.Quantity, out int i)))
                         {
-                            new Adjust(
-                                wipRecord.Submitter,
-                                "01",
-                                !string.IsNullOrEmpty(w.ScrapReference) ? $"{w.ScrapReference}*{wipRecord.WipWorkOrder.OrderNumber}" : wipRecord.WipWorkOrder.OrderNumber,
-                                w.PartNbr,
-                                (AdjustCode)Enum.Parse(typeof(AdjustCode), w.ScrapReason.GetValueFromDescription<AdjustCode>().ToString(), true),
-                                'S',
-                                _scrap,
-                                !string.IsNullOrEmpty(_backFlush) ? _backFlush : w.RcptLoc, w.LotNbr)
-                        };
+                            AdjustmentList = new List<Adjust>
+                            {
+                                new Adjust(
+                                    wipRecord.Submitter,
+                                    "01",
+                                    !string.IsNullOrEmpty(s.Reference) ? $"{s.Reference}*{wipRecord.WipWorkOrder.OrderNumber}" : wipRecord.WipWorkOrder.OrderNumber,
+                                    w.PartNbr,
+                                    (AdjustCode)Enum.Parse(typeof(AdjustCode), s.Reason.GetValueFromDescription<AdjustCode>().ToString(), true),
+                                    'S',
+                                    Convert.ToInt32(s.Quantity),
+                                    !string.IsNullOrEmpty(_backFlush) ? _backFlush : w.RcptLoc, w.LotNbr)
+                            };
+                        }
                     }
                 }
             }

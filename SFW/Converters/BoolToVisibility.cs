@@ -13,9 +13,24 @@ namespace SFW.Converters
 
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            return parameter?.ToString() == "i"
-                ? System.Convert.ToBoolean(value) ? Visibility.Collapsed : Visibility.Visible
-                : System.Convert.ToBoolean(value) ? Visibility.Visible : Visibility.Collapsed;
+            if (value.ToString().Contains("*"))
+            {
+                value = value.ToString().Split('*')[0];
+            }
+            if (int.TryParse(value.ToString(), out int i))
+            {
+                value = System.Convert.ToBoolean(i);
+            }
+            if (bool.TryParse(value.ToString(), out bool bResult))
+            {
+                return parameter?.ToString() == "i"
+                    ? bResult ? Visibility.Collapsed : Visibility.Visible
+                    : bResult ? Visibility.Visible : Visibility.Collapsed;
+            }
+            else
+            {
+                return Visibility.Collapsed;
+            }
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

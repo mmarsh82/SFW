@@ -782,7 +782,7 @@
                              VerticalAlignment="Center"
                              Background="Transparent"
                              BorderThickness="0"
-                             Visibility="{Binding CanIntReport, Converter={StaticResource BoolToVisConverter}}">
+                             Visibility="Collapsed">
 
                         <Grid>
 

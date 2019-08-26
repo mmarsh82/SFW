@@ -448,6 +448,83 @@ namespace SFW.Model
         }
 
         /// <summary>
+        /// Validates that the location entered is a valid M2k location
+        /// </summary>
+        /// <param name="location">location to validate</param>
+        /// <param name="sqlCon">Sql Connection to use</param>
+        /// <returns>valid location as bool</returns>
+        public static bool IsValidLocation(string location, SqlConnection sqlCon)
+        {
+            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
+            {
+                try
+                {
+                    using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database}; SELECT COUNT([ID]) FROM [dbo].[LOC_MASTER-INIT] WHERE [ID] = CONCAT('01*', @p1);", sqlCon))
+                    {
+                        cmd.Parameters.AddWithValue("p1", location);
+                        return int.TryParse(cmd.ExecuteScalar()?.ToString(), out int i) && i > 0;
+                    }
+                }
+                catch (SqlException sqlEx)
+                {
+                    throw sqlEx;
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception(ex.Message);
+                }
+            }
+            else
+            {
+                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
+            }
+        }
+
+        /// <summary>
+        /// Validates Sku
+        /// </summary>
+        /// <param name="partNbr">Sku Number</param>
+        /// <param name="sqlCon">Sql Connection to use</param>
+        /// <param name="location">Optional: Verify that the sku is located in a specific location</param>
+        /// <param name="woNbr">Optional: Verify that the sku was ran on a specific work order</param>
+        /// <param name="qty">Optional: Verify that the sku has a minimum quantity on hand</param>
+        /// <returns>valid Sku as bool</returns>
+        public static bool IsValid(string partNbr, SqlConnection sqlCon, string location = "", string woNbr = "", int qty = 0)
+        {
+            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
+            {
+                try
+                {
+                    using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database};
+                                                                DECLARE @validPart as tinyint;
+                                                                SET @validPart = CASE WHEN (SELECT SUM([Oh_Qty_By_Loc]) FROM [dbo].[IPL-INIT_Location_Data] WHERE [ID1] = @p1 AND [Location] = @p2) > CAST(@p3 as int) THEN 1 ELSE 0 END;
+                                                                DECLARE @validWo as tinyint;
+                                                                SET @validWo = (SELECT COUNT([Wp_Nbr]) FROM [dbo].[WP-INIT] WHERE [Wp_Nbr] = @p4 AND [Part_Wo_Desc] = @p1);
+                                                                SELECT TOP(1) @validPart + @validWo as 'Valid' FROM [dbo].[IM-INIT];", sqlCon))
+                    {
+                        cmd.Parameters.AddWithValue("p1", partNbr);
+                        cmd.Parameters.AddWithValue("p2", location);
+                        cmd.Parameters.AddWithValue("p3", qty);
+                        cmd.Parameters.AddWithValue("p4", woNbr);
+                        return int.TryParse(cmd.ExecuteScalar()?.ToString(), out int i) && i > 0;
+                    }
+                }
+                catch (SqlException sqlEx)
+                {
+                    return false;
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception(ex.Message);
+                }
+            }
+            else
+            {
+                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
+            }
+        }
+
+        /// <summary>
         /// Get the default or backflush location for any part number
         /// </summary>
         /// <param name="partNbr">Sku Number</param>

@@ -170,7 +170,15 @@ namespace SFW.Model
                             }
                             if (c.LotQty != null)
                             {
-                                if (int.TryParse(c.ScrapQty, out int _scr))
+                                var _scr = 0;
+                                foreach (var s in c.ScrapCollection)
+                                {
+                                    if (int.TryParse(s.Quantity, out int i))
+                                    {
+                                        _scr += i;
+                                    }
+                                }
+                                if (_scr > 0)
                                 {
                                     c.OnHandCalc = c.OnHandQty - (Convert.ToInt32(c.LotQty) + _scr);
                                 }
@@ -215,7 +223,15 @@ namespace SFW.Model
                         }
                         if (c.LotQty != null)
                         {
-                            if (int.TryParse(c.ScrapQty, out int _scr))
+                            var _scr = 0;
+                            foreach (var s in c.ScrapCollection)
+                            {
+                                if (int.TryParse(s.Quantity, out int i))
+                                {
+                                    _scr += i;
+                                }
+                            }
+                            if (_scr > 0)
                             {
                                 c.OnHandCalc = c.OnHandQty - (Convert.ToInt32(c.LotQty) + _scr);
                             }
@@ -247,7 +263,15 @@ namespace SFW.Model
                         }
                         if (c.LotQty != null)
                         {
-                            if (int.TryParse(c.ScrapQty, out int _scr))
+                            var _scr = 0;
+                            foreach (var s in c.ScrapCollection)
+                            {
+                                if (int.TryParse(s.Quantity, out int i))
+                                {
+                                    _scr += i;
+                                }
+                            }
+                            if (_scr > 0)
                             {
                                 c.OnHandCalc = c.OnHandQty - (Convert.ToInt32(c.LotQty) + _scr);
                             }
@@ -264,7 +288,15 @@ namespace SFW.Model
             else if (e.ListChangedType == ListChangedType.ItemChanged && e.PropertyDescriptor.DisplayName == "ScrapQty" && !WipInfoUpdating)
             {
                 WipInfoUpdating = true;
-                if (int.TryParse(((BindingList<CompWipInfo>)sender)[e.NewIndex].ScrapQty, out int _scr))
+                var _scr = 0;
+                foreach (var s in ((BindingList<CompWipInfo>)sender)[e.NewIndex].ScrapCollection)
+                {
+                    if (int.TryParse(s.Quantity, out int i))
+                    {
+                        _scr += i;
+                    }
+                }
+                if (_scr > 0)
                 {
                     ((BindingList<CompWipInfo>)sender)[e.NewIndex].OnHandCalc = ((BindingList<CompWipInfo>)sender)[e.NewIndex].OnHandQty - (Convert.ToInt32(((BindingList<CompWipInfo>)sender)[e.NewIndex].LotQty) + _scr);
                 }

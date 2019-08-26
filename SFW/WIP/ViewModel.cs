@@ -75,11 +75,19 @@ namespace SFW.WIP
                 WipRecord.IsScrap = value;
                 OnPropertyChanged(nameof(Scrap));
                 WipRecord.ScrapList.Clear();
-                WipRecord.ScrapList.Add(new WipReceipt.Scrap { ID = WipRecord.ScrapList.Count() });
+                WipRecord.ScrapList.Add(new WipReceipt.Scrap { ID = WipRecord.ScrapList.Count().ToString() });
                 WipRecord.ScrapList.ListChanged += ScrapList_ListChanged;
                 WipQuantity = "-1";
                 OnPropertyChanged(nameof(WipRecord));
             }
+        }
+
+        public Model.Enumerations.Complete Reclaim
+        {
+            get
+            { return WipRecord.IsReclaim; }
+            set
+            { WipRecord.IsReclaim = value; OnPropertyChanged(nameof(Reclaim)); OnPropertyChanged(nameof(WipRecord)); }
         }
 
         public int? RollQuantity
@@ -135,7 +143,9 @@ namespace SFW.WIP
         RelayCommand _removeCrew;
         RelayCommand _removeComp;
         RelayCommand _removeScrap;
+        RelayCommand _removeCompScrap;
         RelayCommand _addScrap;
+        RelayCommand _addCompScrap;
 
         #endregion
 
@@ -147,7 +157,7 @@ namespace SFW.WIP
             WipRecord = new WipReceipt(CurrentUser.FirstName, CurrentUser.LastName, woObject, App.AppSqlCon);
             if (ScrapReasonCollection == null)
             {
-                var _tempList = Enum.GetValues(typeof(M2kClient.AdjustCode)).Cast<M2kClient.AdjustCode>().Where(o => o != M2kClient.AdjustCode.CC);
+                var _tempList = Enum.GetValues(typeof(M2kClient.AdjustCode)).Cast<M2kClient.AdjustCode>().Where(o => o != M2kClient.AdjustCode.CC && o != M2kClient.AdjustCode.REC);
                 var _descList = new List<string>();
                 foreach (var e in _tempList)
                 {
@@ -180,8 +190,30 @@ namespace SFW.WIP
                     }
                     if (c.WipInfo.Count(o => o.IsScrap == Model.Enumerations.Complete.Y) > 0)
                     {
-                        _validScrap = c.WipInfo.Count(o => o.IsScrap == Model.Enumerations.Complete.Y) == c.WipInfo.Count(o => o.ScrapQty != null && int.TryParse(o.ScrapQty, out int i) && i > 0)
-                            && c.WipInfo.Count(o => o.ScrapReason == "Quality Scrap") == c.WipInfo.Count(o => !string.IsNullOrEmpty(o.ScrapReference));
+                        foreach (var w in c.WipInfo.Where(o => o.IsScrap == Model.Enumerations.Complete.Y))
+                        {
+                            foreach (var s in w.ScrapCollection.Where(o => int.TryParse(o.Quantity, out int i)))
+                            {
+                                if (Convert.ToInt32(s.Quantity) > 0)
+                                {
+                                    if (!string.IsNullOrEmpty(s.Reason))
+                                    {
+                                        if (s.Reason == "Quality Scrap" && !string.IsNullOrEmpty(s.Reference))
+                                        {
+                                            _validScrap = true;
+                                        }
+                                        else
+                                        {
+                                            return false;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        return false;
+                                    }
+                                }
+                            }
+                        }
                     }
                     if (WipRecord.IsScrap == Model.Enumerations.Complete.Y && _validScrap)
                     {
@@ -283,7 +315,7 @@ namespace SFW.WIP
                             _scrapValid = false;
                         }
                     }
-                    var _reclaimValid = WipRecord.IsReclaim == Model.Enumerations.Complete.N || (WipRecord.IsReclaim == Model.Enumerations.Complete.Y && WipRecord.ReclaimQty > 0);
+                    var _reclaimValid = WipRecord.IsReclaim == Model.Enumerations.Complete.N || (WipRecord.IsReclaim == Model.Enumerations.Complete.Y && WipRecord.ReclaimQty > 0 && !string.IsNullOrEmpty(WipRecord.ReclaimReference));
                     return _baseValid && _multiValid && _scrapValid && _reclaimValid && _laborValid;
                 }
                 else
@@ -406,10 +438,63 @@ namespace SFW.WIP
 
         private void AddScrapExecute(object parameter)
         {
-            WipRecord.ScrapList.Add(new WipReceipt.Scrap { ID = WipRecord.ScrapList.Count });
+            WipRecord.ScrapList.Add(new WipReceipt.Scrap { ID = WipRecord.ScrapList.Count().ToString() });
             OnPropertyChanged(nameof(WipRecord));
         }
         private bool AddScrapCanExecute(object parameter) => parameter != null && !string.IsNullOrEmpty(parameter.ToString());
+
+        #endregion
+
+        #region Remove Component Scrap List Item ICommand
+
+        public ICommand RemoveCompScrapICommand
+        {
+            get
+            {
+                if (_removeCompScrap == null)
+                {
+                    _removeCompScrap = new RelayCommand(RemoveCompScrapExecute, RemoveCompScrapCanExecute);
+                }
+                return _removeCompScrap;
+            }
+        }
+
+        private void RemoveCompScrapExecute(object parameter)
+        {
+            var _scrArray = ((WipReceipt.Scrap)parameter).ID.Split('*');
+            WipRecord.WipWorkOrder.Bom.Where(o => o.CompNumber == _scrArray[1]).FirstOrDefault()
+                .WipInfo.Where(o => o.LotNbr == _scrArray[2]).FirstOrDefault().ScrapCollection.Remove(
+                WipRecord.WipWorkOrder.Bom.Where(o => o.CompNumber == _scrArray[1]).FirstOrDefault()
+                .WipInfo.Where(o => o.LotNbr == _scrArray[2]).FirstOrDefault().ScrapCollection.FirstOrDefault(o => o.ID == ((WipReceipt.Scrap)parameter).ID));
+            OnPropertyChanged(nameof(WipRecord));
+        }
+        private bool RemoveCompScrapCanExecute(object parameter) => parameter != null && !string.IsNullOrEmpty(parameter.ToString());
+
+        #endregion
+
+        #region Add Component Scrap List Item ICommand
+
+        public ICommand AddCompScrapICommand
+        {
+            get
+            {
+                if (_addCompScrap == null)
+                {
+                    _addCompScrap = new RelayCommand(AddCompScrapExecute, AddCompScrapCanExecute);
+                }
+                return _addCompScrap;
+            }
+        }
+
+        private void AddCompScrapExecute(object parameter)
+        {
+            var _scrArray = ((WipReceipt.Scrap)parameter).ID.Split('*');
+            var _newID = WipRecord.WipWorkOrder.Bom.Where(o => o.CompNumber == _scrArray[1]).FirstOrDefault().WipInfo.Where(o => o.LotNbr == _scrArray[2]).FirstOrDefault().ScrapCollection.Count;
+            WipRecord.WipWorkOrder.Bom.Where(o => o.CompNumber == _scrArray[1]).FirstOrDefault()
+                .WipInfo.Where(o => o.LotNbr == _scrArray[2]).FirstOrDefault().ScrapCollection.Add(new WipReceipt.Scrap { ID = $"{_newID}*{_scrArray[1]}*{_scrArray[2]}" });
+            OnPropertyChanged(nameof(WipRecord));
+        }
+        private bool AddCompScrapCanExecute(object parameter) => parameter != null && !string.IsNullOrEmpty(parameter.ToString());
 
         #endregion
 

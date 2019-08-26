@@ -8,45 +8,50 @@
     x:Name="SourceWindow"
     Title="Shop Floor Workbench" MinWidth="1000" MinHeight="400" WindowState="Maximized" WindowStartupLocation="CenterScreen" Closing="SourceWindow_Closing">
 
-    <Grid>
+    <Window.Resources>
+        <cmd:PartInformation x:Key="PartInfoICommand"/>
+        <cmd:PartDetail x:Key="PartDetailICommand" />
+        <cmd:PartSpec x:Key="PartSpecICommand"/>
+        <cmd:ViewLoad x:Key="ViewLoadICommand"/>
+        <cmd:SafeShutdown x:Key="ExitICommand"/>
+        <cmd:ShowLogInWindow x:Key="LogInICommand" />
+        <cmd:DevTesting x:Key="TestICommand" />
+        <cmd:AppReload x:Key="AppUpdateCommand" />
+        <cmd:UnplanScrap x:Key="UnplanScrapICommand"/>
+        <cvtr:SiteNumberToBool x:Key="SiteToBoolConverter"/>
+        <cvtr:BoolToVisibility x:Key="BoolToVisConverter" />
+        <cvtr:SiteToVisibility x:Key="SiteToVisConverter"/>
+    </Window.Resources>
+    
+    <Window.InputBindings>
+        <KeyBinding Gesture="Alt+F4" Command="{StaticResource ExitICommand}"/>
+        <KeyBinding Gesture="F1" Command="{StaticResource LogInICommand}" CommandParameter="in"/>
+        <KeyBinding Gesture="Esc" Command="{StaticResource LogInICommand}"/>
+        <KeyBinding Gesture="F5"
+                    Command="{StaticResource ViewLoadICommand}"
+                    CommandParameter="Schedule" />
+        <KeyBinding Gesture="Alt+1" Command="{StaticResource ViewLoadICommand}" CommandParameter="SiteCsi"/>
+        <KeyBinding Gesture="Alt+2" Command="{StaticResource ViewLoadICommand}" CommandParameter="SiteWcco"/>
+        <KeyBinding Gesture="Alt+I"
+                    Command="{StaticResource PartInfoICommand}" />
+        <KeyBinding Gesture="Alt+T"
+                    Command="{StaticResource PartDetailICommand}" />
+        <KeyBinding Gesture="Alt+S"
+                    Command="{StaticResource PartSpecICommand}" />
+        <KeyBinding Gesture="Shift+Ctrl+C"
+                    Command="{StaticResource ViewLoadICommand}"
+                    CommandParameter="ClosedSched" />
+        <KeyBinding Gesture="Alt+U"
+                    Command="{StaticResource UnplanScrapICommand}" />
+    </Window.InputBindings>
 
-        <Grid.Resources>
-            <cmd:PartInformation x:Key="PartInfoICommand"/>
-            <cmd:PartDetail x:Key="PartDetailICommand" />
-            <cmd:PartSpec x:Key="PartSpecICommand"/>
-            <cmd:ViewLoad x:Key="ViewLoadICommand"/>
-            <cmd:SafeShutdown x:Key="ExitICommand"/>
-            <cmd:ShowLogInWindow x:Key="LogInICommand" />
-            <cmd:DevTesting x:Key="TestICommand" />
-            <cmd:AppReload x:Key="AppUpdateCommand" />
-            <cmd:UnplanScrap x:Key="UnplanScrapICommand"/>
-            <cvtr:SiteNumberToBool x:Key="SiteToBoolConverter"/>
-            <cvtr:BoolToVisibility x:Key="BoolToVisConverter" />
-            <cvtr:SiteToVisibility x:Key="SiteToVisConverter"/>
-        </Grid.Resources>
+    <Grid>
 
         <Grid.RowDefinitions>
             <RowDefinition Height="25"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="25"/>
         </Grid.RowDefinitions>
-
-        <Grid.InputBindings>
-            <KeyBinding Gesture="Alt+F4" Command="{StaticResource ExitICommand}"/>
-            <KeyBinding Gesture="F1" Command="{StaticResource LogInICommand}" CommandParameter="in"/>
-            <KeyBinding Gesture="Esc" Command="{StaticResource LogInICommand}"/>
-            <KeyBinding Gesture="F5"
-                        Command="{StaticResource ViewLoadICommand}"
-                        CommandParameter="Schedule" />
-            <KeyBinding Gesture="Alt+C" Command="{StaticResource ViewLoadICommand}" CommandParameter="SiteCsi"/>
-            <KeyBinding Gesture="Alt+W" Command="{StaticResource ViewLoadICommand}" CommandParameter="SiteWcco"/>
-            <KeyBinding Gesture="F9"
-                        Command="{StaticResource PartInfoICommand}" />
-            <KeyBinding Gesture="F10"
-                        Command="{StaticResource PartDetailICommand}" />
-            <KeyBinding Gesture="F11"
-                        Command="{StaticResource PartSpecICommand}" />
-        </Grid.InputBindings>
 
         <!--#region Main Menu Usercontrol for all commands-->
 
@@ -102,13 +107,13 @@
                               CommandParameter="SiteCsi"
                               IsCheckable="True"
                               IsChecked="{Binding CurrentSiteNbr, Converter={StaticResource SiteToBoolConverter}, ConverterParameter=CSI}"
-                              InputGestureText="Alt+C"/>
+                              InputGestureText="Alt+1"/>
                     <MenuItem Header="WCCO"
                               Command="{StaticResource ViewLoadICommand}"
                               CommandParameter="SiteWcco"
                               IsCheckable="True"
                               IsChecked="{Binding CurrentSiteNbr, Converter={StaticResource SiteToBoolConverter}, ConverterParameter=WCCO}"
-                              InputGestureText="Alt+W"/>
+                              InputGestureText="Alt+2"/>
                 </MenuItem>
                 <MenuItem Header="Refresh Schedule"
                           Command="{StaticResource ViewLoadICommand}"
@@ -116,7 +121,8 @@
                           InputGestureText="F5"/>
                 <MenuItem Header="Closed Work Orders"
                           Command="{StaticResource ViewLoadICommand}"
-                          CommandParameter="ClosedSched" />
+                          CommandParameter="ClosedSched"
+                          InputGestureText="Shift+Ctrl+C"/>
                 <MenuItem Header="Scheduler"
                           Command="{StaticResource ViewLoadICommand}"
                           CommandParameter="Scheduler"
@@ -125,17 +131,18 @@
             <MenuItem Header="Tools">
                 <MenuItem Header="Part Information"
                           Command="{StaticResource PartInfoICommand}"
-                          InputGestureText="F9"/>
+                          InputGestureText="Alt+I"/>
                 <MenuItem Header="Part Tracking"
                           Command="{StaticResource PartDetailICommand}"
-                          InputGestureText="F10" />
+                          InputGestureText="Alt+T" />
                 <MenuItem Header="Part Specifications"
                           Command="{StaticResource PartSpecICommand}"
                           Visibility="{Binding CurrentSiteNbr, Converter={StaticResource SiteToVisConverter}}"
-                          InputGestureText="F11" />
+                          InputGestureText="Alt+S" />
                 <MenuItem Header="Unplanned Scrap"
                           Command="{StaticResource UnplanScrapICommand}"
-                          Visibility="{Binding CurrentSiteNbr, Converter={StaticResource SiteToVisConverter}, ConverterParameter=i}"/>
+                          Visibility="{Binding CurrentSiteNbr, Converter={StaticResource SiteToVisConverter}, ConverterParameter=i}"
+                          InputGestureText="Alt+U"/>
 
             </MenuItem>
             <MenuItem Header="Help">
