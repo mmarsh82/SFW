@@ -37,6 +37,60 @@ namespace SFW.Model
         { }
 
         /// <summary>
+        /// Overloaded constructor
+        /// Will return a component object based on a part number
+        /// </summary>
+        /// <param name="partNbr">Part Number</param>
+        /// <param name="sqlCon">Sql Connection to use</param>
+        /// <param name="invType">Optional: Specific inventory type to single out</param>
+        public Component(string partNbr, SqlConnection sqlCon, string invType = "")
+        {
+            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
+            {
+                try
+                {
+                    using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database};
+                                                                SELECT
+	                                                                SUBSTRING(a.[ID], CHARINDEX('*',a.[ID], 0) + 1, LEN(a.[ID])) as 'PartNbr'
+                                                                    ,a.Qty_Per_Assy
+                                                                FROM
+	                                                                [dbo].[PS-INIT] a
+                                                                LEFT OUTER JOIN
+	                                                                [dbo].[IM-INIT] b ON b.[Part_Number] = SUBSTRING(a.[ID], CHARINDEX('*',a.[ID], 0) + 1, LEN(a.[ID]))
+                                                                WHERE
+	                                                                a.[ID] LIKE CONCAT(@p1, '*%') AND b.[Inventory_Type] = @p2;", sqlCon))
+                    {
+                        cmd.Parameters.AddWithValue("p1", partNbr);
+                        cmd.Parameters.AddWithValue("p2", invType);
+                        using (SqlDataReader reader = cmd.ExecuteReader())
+                        {
+                            if (reader.HasRows)
+                            {
+                                while (reader.Read())
+                                {
+                                    CompNumber = reader.SafeGetString("PartNbr");
+                                    AssemblyQty = reader.SafeGetDouble("Qty_Per_Assy");
+                                }
+                            }
+                        }
+                    }
+                }
+                catch (SqlException sqlEx)
+                {
+                    throw sqlEx;
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception(ex.Message);
+                }
+            }
+            else
+            {
+                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
+            }
+        }
+
+        /// <summary>
         /// Retrieve a list of components for a work order
         /// </summary>
         /// <param name="woNbr">Work Order Number</param>
@@ -323,7 +377,7 @@ namespace SFW.Model
         {
             foreach (var c in comp.WipInfo)
             {
-                c.BaseQty = Convert.ToInt32(Math.Round(comp.AssemblyQty * wipQty, 0)); 
+                c.BaseQty = Convert.ToInt32(Math.Round(comp.AssemblyQty * wipQty, 0));
             }
             comp.WipInfo.ResetBindings();
         }

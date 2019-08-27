@@ -387,7 +387,7 @@ namespace M2kClient
                     wipRecord.ReclaimParent,
                     AdjustCode.REC,
                     'A',
-                    Convert.ToInt32(Math.Round(Convert.ToDouble(wipRecord.ReclaimQty) * wipRecord.WipWorkOrder.Bom.FirstOrDefault(o => o.CompNumber == wipRecord.ReclaimParent).AssemblyQty, 0, MidpointRounding.AwayFromZero)),
+                    Convert.ToInt32(Math.Round(Convert.ToDouble(wipRecord.ReclaimQty) * wipRecord.ReclaimAssyQty, 0, MidpointRounding.AwayFromZero)),
                     "EXT-1",
                     connection);
             }
@@ -400,7 +400,13 @@ namespace M2kClient
             {
                 foreach (var info in mat.WipInfo.Where(o => o.RollStatus))
                 {
-                    InventoryMove(wipRecord.Submitter, info.PartNbr, info.LotNbr, info.Uom, info.RcptLoc, "SCRAP", info.OnHandCalc, connection);
+                    var _moveQty = info.IsScrap == SFW.Model.Enumerations.Complete.Y
+                        ? info.OnHandCalc - info.ScrapCollection.Where(o => int.TryParse(o.Quantity, out int i)).Sum(o => Convert.ToInt32(o.Quantity))
+                        : info.OnHandCalc;
+                    if (_moveQty != 0)
+                    {
+                        InventoryMove(wipRecord.Submitter, info.PartNbr, info.LotNbr, info.Uom, info.RcptLoc, "SCRAP", _moveQty, connection);
+                    }
                 }
             }
 

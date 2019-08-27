@@ -177,7 +177,7 @@ namespace SFW.WIP
             {
                 var _validLoc = true;
                 var _validQty = true;
-                var _validScrap = true;
+                var _validScrap = false;
                 foreach (var c in WipRecord.WipWorkOrder.Bom.Where(o => o.IsLotTrace))
                 {
                     if (string.IsNullOrEmpty(c.BackflushLoc))
@@ -192,6 +192,10 @@ namespace SFW.WIP
                     {
                         foreach (var w in c.WipInfo.Where(o => o.IsScrap == Model.Enumerations.Complete.Y))
                         {
+                            if (w.ScrapCollection.Count() != w.ScrapCollection.Count(o => int.TryParse(o.Quantity, out int i)))
+                            {
+                                return false;
+                            }
                             foreach (var s in w.ScrapCollection.Where(o => int.TryParse(o.Quantity, out int i)))
                             {
                                 if (Convert.ToInt32(s.Quantity) > 0)
@@ -199,6 +203,10 @@ namespace SFW.WIP
                                     if (!string.IsNullOrEmpty(s.Reason))
                                     {
                                         if (s.Reason == "Quality Scrap" && !string.IsNullOrEmpty(s.Reference))
+                                        {
+                                            _validScrap = true;
+                                        }
+                                        else if (s.Reason != "Quality Scrap")
                                         {
                                             _validScrap = true;
                                         }
@@ -214,6 +222,10 @@ namespace SFW.WIP
                                 }
                             }
                         }
+                    }
+                    else
+                    {
+                        _validScrap = true;
                     }
                     if (WipRecord.IsScrap == Model.Enumerations.Complete.Y && _validScrap)
                     {

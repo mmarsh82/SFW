@@ -210,6 +210,11 @@ namespace SFW.Model
         public string ReclaimReference { get; set; }
 
         /// <summary>
+        /// Assembly Quantity for a reclaim transaction
+        /// </summary>
+        public double ReclaimAssyQty { get; set; }
+
+        /// <summary>
         /// Determines if a work order is eligable for the Multi-Wip function
         /// </summary>
         public bool CanMulti { get; set; }
@@ -256,7 +261,20 @@ namespace SFW.Model
             IsScrap = Complete.N;
             ScrapList = new BindingList<Scrap>();
             IsReclaim = Complete.N;
-            ReclaimParent = workOrder.MachineGroup == "EXT" ? workOrder.Bom.Where(o => o.InventoryType == "RC").FirstOrDefault().CompNumber : null;
+            if (workOrder.MachineGroup == "EXT")
+            {
+                if (workOrder.Bom.Count(o => o.InventoryType == "RC") > 0)
+                {
+                    ReclaimParent = workOrder.Bom.Where(o => o.InventoryType == "RC").FirstOrDefault().CompNumber;
+                    ReclaimAssyQty = workOrder.Bom.Where(o => o.InventoryType == "RC").FirstOrDefault().AssemblyQty;
+                }
+                else if (workOrder.Bom.Count() == 1)
+                {
+                    var _tempComp = new Component(workOrder.Bom[0].CompNumber, sqlCon, "RC");
+                    ReclaimParent = _tempComp.CompNumber;
+                    ReclaimAssyQty = _tempComp.AssemblyQty;
+                }
+            }
             CanMulti = false; //workOrder.MachineGroup == "SLIT";
         }
 
