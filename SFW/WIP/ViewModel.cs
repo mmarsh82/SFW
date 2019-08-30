@@ -186,7 +186,7 @@ namespace SFW.WIP
                     }
                     else
                     {
-                        _validLoc = c.WipInfo.Where(o => !o.ValidLot && !string.IsNullOrEmpty(o.LotNbr)).Count() == 0;
+                        _validLoc = c.WipInfo.Where(o => !o.IsValidLot && !string.IsNullOrEmpty(o.LotNbr)).Count() == 0;
                     }
                     if (c.WipInfo.Count(o => o.IsScrap == Model.Enumerations.Complete.Y) > 0)
                     {
@@ -293,7 +293,9 @@ namespace SFW.WIP
                     WipRecord.IsReclaim = Model.Enumerations.Complete.N;
                     WipRecord.IsMulti = false;
                     OnPropertyChanged(nameof(WipRecord));
-                    TQty = Convert.ToInt32(WipQuantity);
+                    TQty = Lot.IsValid(WipRecord.WipLot.LotNumber, App.AppSqlCon)
+                        ? Convert.ToInt32(WipQuantity) + Lot.GetLotOnHandQuantity(WipRecord.WipLot.LotNumber, WipRecord.ReceiptLocation, App.AppSqlCon) 
+                        : Convert.ToInt32(WipQuantity);
                     WipQuantity = null;
                 }
             }
@@ -311,10 +313,32 @@ namespace SFW.WIP
             {
                 if (WipRecord != null)
                 {
-                    var _baseValid = WipRecord.WipQty > 0 && !string.IsNullOrEmpty(WipRecord.ReceiptLocation) && ValidateComponents();
-                    var _multiValid = !WipRecord.IsMulti || (WipRecord.IsMulti && WipRecord.RollQty > 0);
+                    #region Core Wip Validation
+
+                    var _baseValid = false;
+                    var _locValid = !string.IsNullOrEmpty(WipRecord.ReceiptLocation) && WipReceipt.ValidLocation(WipRecord.ReceiptLocation, App.AppSqlCon);
+                    var _lotValid = !string.IsNullOrEmpty(WipRecord.WipLot.LotNumber) && Lot.LotValidation(WipRecord.WipLot.LotNumber, WipRecord.WipWorkOrder.SkuNumber, App.AppSqlCon);
+                    if (WipRecord.WipQty > 0)
+                    {
+                        _baseValid = _locValid && (string.IsNullOrEmpty(WipRecord.WipLot.LotNumber) || _lotValid) && ValidateComponents();
+                    }
+                    else if (WipRecord.WipQty == 0)
+                    {
+                        if (WipRecord.IsReclaim == Model.Enumerations.Complete.Y)
+                        {
+                            _baseValid = _locValid;
+                        }
+                        else if (WipRecord.IsScrap == Model.Enumerations.Complete.Y)
+                        {
+                            _baseValid = _locValid && _lotValid;
+                        }
+                    }
+
+                    #endregion
+
+                    #region Scrap Validation
+
                     var _scrapValid = true;
-                    var _laborValid = WipRecord.CrewList.Where(o => DateTime.TryParse(o.LastClock, out var dt) && !string.IsNullOrEmpty(o.Name) && o.IsDirect).ToList().Count() == WipRecord.CrewList.Count(o => !string.IsNullOrEmpty(o.Name) && o.IsDirect);
                     if (WipRecord.IsScrap == Model.Enumerations.Complete.Y)
                     {
                         if (WipRecord.ScrapList.Count(o => int.TryParse(o.Quantity, out int i) && i > 0) > 0)
@@ -327,8 +351,13 @@ namespace SFW.WIP
                             _scrapValid = false;
                         }
                     }
+
+                    #endregion
+
+                    var _laborValid = WipRecord.CrewList.Where(o => DateTime.TryParse(o.LastClock, out var dt) && !string.IsNullOrEmpty(o.Name) && o.IsDirect).ToList().Count() == WipRecord.CrewList.Count(o => !string.IsNullOrEmpty(o.Name) && o.IsDirect);
+                    var _multiValid = !WipRecord.IsMulti || (WipRecord.IsMulti && WipRecord.RollQty > 0);
                     var _reclaimValid = WipRecord.IsReclaim == Model.Enumerations.Complete.N || (WipRecord.IsReclaim == Model.Enumerations.Complete.Y && WipRecord.ReclaimQty > 0 && !string.IsNullOrEmpty(WipRecord.ReclaimReference));
-                    return _baseValid && _multiValid && _scrapValid && _reclaimValid && _laborValid;
+                    return _baseValid && _scrapValid && _reclaimValid && _multiValid && _laborValid;
                 }
                 else
                 {

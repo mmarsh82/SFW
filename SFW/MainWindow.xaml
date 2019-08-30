@@ -41,8 +41,6 @@
         <KeyBinding Gesture="Shift+Ctrl+C"
                     Command="{StaticResource ViewLoadICommand}"
                     CommandParameter="ClosedSched" />
-        <KeyBinding Gesture="Alt+U"
-                    Command="{StaticResource UnplanScrapICommand}" />
     </Window.InputBindings>
 
     <Grid>
@@ -141,7 +139,7 @@
                           InputGestureText="Alt+S" />
                 <MenuItem Header="Unplanned Scrap"
                           Command="{StaticResource UnplanScrapICommand}"
-                          Visibility="{Binding CurrentSiteNbr, Converter={StaticResource SiteToVisConverter}, ConverterParameter=i}"
+                          Visibility="Collapsed"
                           InputGestureText="Alt+U"/>
 
             </MenuItem>

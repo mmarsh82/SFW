@@ -193,7 +193,7 @@ namespace M2kClient.M2kADIArray
             }
             foreach (var c in ComponentInfoList.Where(o => !string.IsNullOrEmpty(o.Lot)))
             {
-                _rValue += $"\n24~{c.Lot}~26~{WorkOrderNbr}~25~{c.PartNbr}~27~{c.Quantity}~70~{c.IssueLoc}~71~{c.UserDefined}";
+                _rValue += $"\n24~{c.Lot}|P~26~{WorkOrderNbr}~25~{c.PartNbr}~27~{c.Quantity}~70~{c.IssueLoc}~71~{c.UserDefined}";
             }
             _rValue += $"\n99~COMPLETE";
 

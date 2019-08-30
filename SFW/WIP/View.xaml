@@ -593,23 +593,25 @@
                                                          Style="{DynamicResource RequiredTextBox}" />
                                                 <TextBlock Text="Location:"
                                                            FontSize="16"
-                                                           Visibility="{Binding IsBackFlush, Converter={StaticResource BooltoVisConverter}, ConverterParameter=i}"
+                                                           Visibility="{Binding IsValidLot, Converter={StaticResource BooltoVisConverter}}"
                                                            TextDecorations="UnderLine"
                                                            VerticalAlignment="Center"
                                                            FontWeight="Bold"
-                                                           Margin="10,0,0,0" />
+                                                           Margin="10,0,0,0"/>
                                                 <TextBlock Text="{Binding RcptLoc, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                                           Visibility="{Binding IsBackFlush, Converter={StaticResource BooltoVisConverter}, ConverterParameter=i}"
+                                                           Visibility="{Binding IsValidLot, Converter={StaticResource BooltoVisConverter}}"
                                                            FontSize="16"
                                                            VerticalAlignment="Center"
                                                            Margin="5,0,0,0"/>
                                                 <TextBlock Text="Quantity:"
+                                                           Visibility="{Binding IsValidLot, Converter={StaticResource BooltoVisConverter}}"
                                                            FontSize="16"
                                                            TextDecorations="UnderLine"
                                                            VerticalAlignment="Center"
                                                            FontWeight="Bold"
                                                            Margin="10,0,0,0"/>
                                                 <TextBox Text="{Binding LotQty, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                         Visibility="{Binding IsValidLot, Converter={StaticResource BooltoVisConverter}}"
                                                          FontSize="16"
                                                          Width="75"
                                                          MaxLength="5"
@@ -618,17 +620,20 @@
                                                          IsTabStop="False"
                                                          Style="{DynamicResource RequiredTextBox}" />
                                                 <TextBlock Text="{Binding Uom}"
+                                                           Visibility="{Binding IsValidLot, Converter={StaticResource BooltoVisConverter}}"
                                                            FontSize="16"
                                                            FontWeight="Bold"
                                                            VerticalAlignment="Center"
                                                            Margin="5,0,0,0" />
                                                 <TextBlock Text="On Hand:"
+                                                           Visibility="{Binding IsValidLot, Converter={StaticResource BooltoVisConverter}}"
                                                            FontSize="16"
                                                            VerticalAlignment="Center"
                                                            TextDecorations="UnderLine"
                                                            FontWeight="Bold"
                                                            Margin="10,0,0,0"/>
                                                 <TextBlock Text="{Binding OnHandCalc, UpdateSourceTrigger=PropertyChanged}"
+                                                           Visibility="{Binding IsValidLot, Converter={StaticResource BooltoVisConverter}}"
                                                            VerticalAlignment="Center"
                                                            Margin="3,0,0,0">
                                                     <TextBlock.Style>
@@ -657,16 +662,19 @@
                                                     </TextBlock.Style>
                                                 </TextBlock>
                                                 <TextBlock Text="{Binding Uom}"
+                                                           Visibility="{Binding IsValidLot, Converter={StaticResource BooltoVisConverter}}"
                                                            FontSize="16"
                                                            FontWeight="Bold"
                                                            VerticalAlignment="Center"
                                                            Margin="3,0,0,0" />
                                                 <TextBlock Text="Is Roll Gone?"
+                                                           Visibility="{Binding IsValidLot, Converter={StaticResource BooltoVisConverter}}"
                                                            FontSize="16"
                                                            TextDecorations="UnderLine"
                                                            FontWeight="Bold"
                                                            Margin="10,0,0,0"/>
                                                 <CheckBox IsChecked="{Binding RollStatus, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                          Visibility="{Binding IsValidLot, Converter={StaticResource BooltoVisConverter}}"
                                                           FontSize="16"
                                                           IsTabStop="False"
                                                           Margin="5,0,0,0"/>
@@ -690,7 +698,7 @@
                                             <StackPanel Grid.Row="1"
                                                         HorizontalAlignment="Left"
                                                         Orientation="Horizontal"
-                                                        Visibility="{Binding ValidLot, Converter={StaticResource BooltoVisConverter}}">
+                                                        Visibility="{Binding IsValidLot, Converter={StaticResource BooltoVisConverter}}">
                                                 <TextBlock Text="Scrap:"
                                                            FontSize="16"
                                                            FontWeight="Bold"

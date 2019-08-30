@@ -13,10 +13,10 @@ namespace SFW.Model
         public string LotNbr
         {
             get { return lotNbr; }
-            set { lotNbr = value; OnPropertyChanged(nameof(LotNbr)); OnPropertyChanged(nameof(ValidLot)); }
+            set { lotNbr = value; OnPropertyChanged(nameof(LotNbr)); OnPropertyChanged(nameof(IsValidLot)); }
         }
 
-        public bool ValidLot { get; set; }
+        public bool IsValidLot { get; set; }
 
         private int? lotQty;
         public int? LotQty
@@ -39,7 +39,7 @@ namespace SFW.Model
             set { rollStatus = value; OnPropertyChanged(nameof(RollStatus)); }
         }
 
-        public bool QtyLock { get; set; }
+        public bool IsQtyLocked { get; set; }
         public string PartNbr { get; set; }
         public bool IsBackFlush { get; set; }
         public int BaseQty { get; set; }
@@ -106,10 +106,10 @@ namespace SFW.Model
             IsBackFlush = hasBFLoc;
             PartNbr = partNbr;
             Uom = uom;
-            QtyLock = false;
+            IsQtyLocked = false;
             ScrapCollection = new ObservableCollection<WipReceipt.Scrap>(new List<WipReceipt.Scrap>());
             IsScrap = Complete.N;
-            ValidLot = false;
+            IsValidLot = false;
         }
     }
 }

@@ -463,5 +463,36 @@ namespace SFW.Model
                 throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
             }
         }
+
+        /// <summary>
+        /// Get the amount of material on hand for a lot number from a specific location
+        /// </summary>
+        /// <param name="lotNbr">Lot Number</param>
+        /// <param name="location">Location</param>
+        /// <param name="sqlCon">Sql Connection to use</param>
+        /// <returns>Lot numbers current on hand quantity</returns>
+        public static int GetLotOnHandQuantity(string lotNbr, string location, SqlConnection sqlCon)
+        {
+            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
+            {
+                try
+                {
+                    using (SqlCommand cmd = new SqlCommand($"USE {sqlCon.Database}; SELECT [Oh_Qtys] FROM [dbo].[LOT-INIT_Lot_Loc_Qtys] WHERE [ID1] = CONCAT(@p1, '|P') AND [ID2] = @p2;", sqlCon))
+                    {
+                        cmd.Parameters.AddWithValue("p1", lotNbr);
+                        cmd.Parameters.AddWithValue("p2", location);
+                        return int.TryParse(cmd.ExecuteScalar().ToString(), out int i) ? i : 0;
+                    }
+                }
+                catch (Exception)
+                {
+                    return 0;
+                }
+            }
+            else
+            {
+                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
+            }
+        }
     }
 }
