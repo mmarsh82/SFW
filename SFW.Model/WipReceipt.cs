@@ -275,7 +275,7 @@ namespace SFW.Model
                     ReclaimAssyQty = _tempComp.AssemblyQty;
                 }
             }
-            CanMulti = false; //workOrder.MachineGroup == "SLIT";
+            CanMulti = workOrder.MachineGroup == "SLIT";
         }
 
         /// <summary>

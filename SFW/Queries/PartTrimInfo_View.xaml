@@ -4,7 +4,7 @@
         xmlns:local="clr-namespace:SFW.Queries"
         xmlns:cvtr="clr-namespace:SFW.Converters"
         xmlns:cmd="clr-namespace:SFW.Commands"
-        x:Name="TrimWindow"
+        x:Name="Trim_Window"
         Title="Trimming Information" Height="450" Width="700">
     <Grid VerticalAlignment="Center" HorizontalAlignment="Center">
 

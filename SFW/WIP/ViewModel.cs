@@ -42,10 +42,7 @@ namespace SFW.WIP
                         foreach (var c in WipRecord.WipWorkOrder.Bom)
                         {
                             var _qty = _wipStr;
-                            if (WipRecord.IsMulti)
-                            {
-                                _qty *= Convert.ToInt32(RollQuantity);
-                            }
+                            _qty *= WipRecord.IsMulti && int.TryParse(RollQuantity, out int iRoll) ? iRoll : 1;
                             if (WipRecord.IsScrap == Model.Enumerations.Complete.Y)
                             {
                                 if (WipRecord.ScrapList.Count(o => int.TryParse(o.Quantity, out int i) && i > 0) > 0)
@@ -90,12 +87,19 @@ namespace SFW.WIP
             { WipRecord.IsReclaim = value; OnPropertyChanged(nameof(Reclaim)); OnPropertyChanged(nameof(WipRecord)); }
         }
 
-        public int? RollQuantity
+        public string RollQuantity
         {
-            get { return WipRecord.RollQty; }
+            get { return WipRecord.RollQty.ToString(); }
             set
             {
-                WipRecord.RollQty = value;
+                if (int.TryParse(value, out int i))
+                {
+                    WipRecord.RollQty = i;
+                }
+                else
+                {
+                    WipRecord.RollQty = null;
+                }
                 OnPropertyChanged(nameof(RollQuantity));
                 WipQuantity = "-1";
             }
@@ -138,6 +142,8 @@ namespace SFW.WIP
 
         public ObservableCollection<string> ScrapReasonCollection { get; set; }
 
+        private List<string> _lotList;
+
         RelayCommand _wip;
         RelayCommand _mPrint;
         RelayCommand _removeCrew;
@@ -165,6 +171,7 @@ namespace SFW.WIP
                 }
                 ScrapReasonCollection = new ObservableCollection<string>(_descList);
             }
+            _lotList = new List<string>();
         }
 
         /// <summary>
@@ -233,7 +240,9 @@ namespace SFW.WIP
                     }
                     else
                     {
-                        _validQty = Math.Round(Convert.ToDouble(WipRecord.WipQty) * c.AssemblyQty, 0) == c.WipInfo.Where(o => !string.IsNullOrEmpty(o.LotNbr)).Sum(o => o.LotQty);
+                        _validQty = Multi
+                            ? Math.Round(Convert.ToDouble(WipRecord.WipQty) * c.AssemblyQty * Convert.ToDouble(WipRecord.RollQty), 0) == c.WipInfo.Where(o => !string.IsNullOrEmpty(o.LotNbr)).Sum(o => o.LotQty)
+                            : Math.Round(Convert.ToDouble(WipRecord.WipQty) * c.AssemblyQty, 0) == c.WipInfo.Where(o => !string.IsNullOrEmpty(o.LotNbr)).Sum(o => o.LotQty);
                     }
                     if (!_validLoc || !_validQty || !_validScrap)
                     {
@@ -288,15 +297,16 @@ namespace SFW.WIP
                 var _wipProc = M2kClient.M2kCommand.ProductionWip(WipRecord, WipRecord.CrewList?.Count > 0, App.ErpCon, WipRecord.IsLotTracable, _machID);
                 if (_wipProc != null && _wipProc.First().Key > 0)
                 {
-                    WipRecord.WipLot.LotNumber = _wipProc.First().Value;
+                    WipRecord.WipLot.LotNumber = _wipProc.First().Value.Contains("*") ? "Mulitple" : _wipProc.First().Value;
+                    _lotList = _wipProc.First().Value.Contains("*") ? _wipProc.First().Value.Split('*').ToList() : null;
                     WipRecord.IsScrap = Model.Enumerations.Complete.N;
                     WipRecord.IsReclaim = Model.Enumerations.Complete.N;
-                    WipRecord.IsMulti = false;
                     OnPropertyChanged(nameof(WipRecord));
                     TQty = Lot.IsValid(WipRecord.WipLot.LotNumber, App.AppSqlCon)
-                        ? Convert.ToInt32(WipQuantity) + Lot.GetLotOnHandQuantity(WipRecord.WipLot.LotNumber, WipRecord.ReceiptLocation, App.AppSqlCon) 
+                        ? Lot.GetLotOnHandQuantity(WipRecord.WipLot.LotNumber, WipRecord.ReceiptLocation, App.AppSqlCon) 
                         : Convert.ToInt32(WipQuantity);
                     WipQuantity = null;
+                    Multi = false;
                 }
             }
             else
@@ -394,7 +404,9 @@ namespace SFW.WIP
         private void MPrintExecute(object parameter)
         {
             var _wQty = TQty == null || TQty == 0 ? Convert.ToInt32(WipRecord.WipQty) : Convert.ToInt32(TQty);
-            TravelCard.Create("", "technology#1",
+            if (_lotList.Count == 0)
+            {
+                TravelCard.Create("", "technology#1",
                 WipRecord.WipWorkOrder.SkuNumber,
                 WipRecord.WipLot.LotNumber,
                 WipRecord.WipWorkOrder.SkuDescription,
@@ -402,15 +414,38 @@ namespace SFW.WIP
                 _wQty,
                 WipRecord.WipWorkOrder.Uom,
                 Lot.GetAssociatedQIR(WipRecord.WipLot.LotNumber, App.AppSqlCon));
-            switch(parameter.ToString())
+                switch (parameter.ToString())
+                {
+                    case "T":
+                        TravelCard.Display(FormType.Portrait);
+                        break;
+                    case "R":
+                        TravelCard.Display(FormType.Landscape);
+                        break;
+                }
+            }
+            else
             {
-                case "T":
-                    TravelCard.Display();
-                    break;
-                case "R":
-                    TravelCard.DisplayReference();
-                    break;
-                    
+                foreach (var _lot in _lotList)
+                {
+                    TravelCard.Create("", "technology#1",
+                    WipRecord.WipWorkOrder.SkuNumber,
+                    _lot,
+                    WipRecord.WipWorkOrder.SkuDescription,
+                    Sku.GetDiamondNumber(_lot, App.AppSqlCon),
+                    _wQty,
+                    WipRecord.WipWorkOrder.Uom,
+                    Lot.GetAssociatedQIR(_lot, App.AppSqlCon));
+                    switch (parameter.ToString())
+                    {
+                        case "T":
+                            TravelCard.PrintPDF(FormType.Portrait);
+                            break;
+                        case "R":
+                            TravelCard.PrintPDF(FormType.Landscape);
+                            break;
+                    }
+                }
             }
         }
         private bool MPrintCanExecute(object parameter) => true;
@@ -582,6 +617,7 @@ namespace SFW.WIP
             {
                 WipRecord = null;
                 _wip = null;
+                _lotList = null;
                 ((Schedule.ViewModel)Controls.WorkSpaceDock.WccoDock.GetChildOfType<Schedule.View>().DataContext).RefreshSchedule();
             }
         }

@@ -66,7 +66,15 @@ namespace SFW
         /// </summary>
         public static void RefreshTimerTick()
         {
-            if (!IsRefreshing)
+            var _count = 0;
+            foreach (System.Windows.Window w in System.Windows.Application.Current.Windows)
+            {
+                if (w.Name.Contains("_Window"))
+                {
+                    _count++;
+                }
+            }
+            if (!IsRefreshing && _count == 1)
             {
                 RefreshActionGroup?.Invoke();
             }
@@ -79,6 +87,14 @@ namespace SFW
         /// <param name="e">Events that can be called on the sending object</param>
         public static void RefreshTimerTick(object sender, EventArgs e)
         {
+            var _count = 0;
+            foreach (System.Windows.Window w in System.Windows.Application.Current.Windows)
+            {
+                if (w.Name.Contains("_Window"))
+                {
+                    _count++;
+                }
+            }
             if (!IsRefreshing)
             {
                 RefreshActionGroup?.Invoke();

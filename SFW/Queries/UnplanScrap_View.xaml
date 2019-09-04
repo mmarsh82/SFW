@@ -3,6 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:cvtr="clr-namespace:SFW.Converters"
         xmlns:local="clr-namespace:SFW.Queries"
+        x:Name="UnplanScrap_Window"
         Title="Unplanned Scrap" WindowStyle="ToolWindow" Width="Auto" Height="210" SizeToContent="Width" WindowStartupLocation="CenterScreen">
 
     <Window.InputBindings>

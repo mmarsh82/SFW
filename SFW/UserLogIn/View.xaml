@@ -5,6 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:SFW.UserLogIn"
         mc:Ignorable="d"
+        x:Name="LogIn_Window"
         Title="User Log In" MinHeight="200" MaxHeight="300" MinWidth="400" MaxWidth="700" ScrollViewer.VerticalScrollBarVisibility="Disabled" WindowStyle="ToolWindow" ResizeMode="NoResize" Icon="/SFW;component/Icons/Admin.ico" WindowStartupLocation="CenterOwner">
     <Window.Background>
         <LinearGradientBrush EndPoint="0.5,1" MappingMode="RelativeToBoundingBox" StartPoint="0.5,0" Opacity="0.8">

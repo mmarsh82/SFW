@@ -158,10 +158,10 @@ namespace SFW.Queries
             switch (parameter.ToString())
             {
                 case "T":
-                    TravelCard.Display();
+                    TravelCard.Display(FormType.Portrait);
                     break;
                 case "R":
-                    TravelCard.DisplayReference();
+                    TravelCard.Display(FormType.Landscape);
                     break;
 
             }

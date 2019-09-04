@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:local="clr-namespace:SFW.WIP"
         xmlns:cvtr="clr-namespace:SFW.Converters"
-        Name="WipWindow"
+        x:Name="Wip_Window"
         Title="Production Wip" Height="Auto" Width="900" WindowStyle="ToolWindow" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" SizeToContent="Height">
 
     <Window.Resources>
@@ -82,7 +82,8 @@
                            FontWeight="Bold"
                            TextDecorations="Underline"
                            VerticalAlignment="Center"
-                           Margin="50,0,0,0" />
+                           Margin="50,0,0,0"
+                           Visibility="{Binding Path=IsChecked, ElementName=MultiCheck, Converter={StaticResource BooltoVisConverter}, ConverterParameter=i}"/>
                 <RadioButton GroupName="scrap"
                              IsChecked="{Binding Scrap, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource EnumtoBoolConverter}, ConverterParameter=Y}"
                              Content="Yes"
@@ -90,7 +91,8 @@
                              FontWeight="Bold"
                              VerticalAlignment="Center"
                              IsTabStop="False"
-                             Margin="10,0,0,0" />
+                             Margin="10,0,0,0"
+                             Visibility="{Binding Path=IsChecked, ElementName=MultiCheck, Converter={StaticResource BooltoVisConverter}, ConverterParameter=i}"/>
                 <RadioButton GroupName="scrap"
                              IsChecked="{Binding Scrap, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource EnumtoBoolConverter}, ConverterParameter=N}"
                              Content="No"
@@ -98,7 +100,8 @@
                              FontWeight="Bold"
                              VerticalAlignment="Center"
                              IsTabStop="False"
-                             Margin="10,0,0,0" />
+                             Margin="10,0,0,0"
+                             Visibility="{Binding Path=IsChecked, ElementName=MultiCheck, Converter={StaticResource BooltoVisConverter}, ConverterParameter=i}"/>
 
                 <TextBlock Text="Reclaim:"
                            FontSize="18"
@@ -126,7 +129,8 @@
                              Margin="10,0,0,0" 
                              Visibility="{Binding WipRecord.ReclaimParent, Converter={StaticResource StringtoVisConverter}}"/>
 
-                <CheckBox IsChecked="{Binding Multi, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                <CheckBox x:Name="MultiCheck"
+                          IsChecked="{Binding Multi, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                           Content="Multi-WIP"
                           FontSize="18"
                           FontWeight="Bold"
@@ -292,7 +296,7 @@
                                      Width="75"
                                      MaxLength="4"
                                      Style="{DynamicResource RequiredTextBox}" />
-                            <TextBlock Text="{Binding DataContext.WipRecord.WipWorkOrder.Uom, ElementName=WipWindow}"
+                            <TextBlock Text="{Binding DataContext.WipRecord.WipWorkOrder.Uom, ElementName=Wip_Window}"
                                        FontSize="18"
                                        FontWeight="Bold"
                                        VerticalAlignment="Center"
@@ -303,7 +307,7 @@
                                        TextDecorations="Underline"
                                        VerticalAlignment="Center"
                                        Margin="20,0,0,0" />
-                            <ComboBox ItemsSource="{Binding DataContext.ScrapReasonCollection, ElementName=WipWindow}"
+                            <ComboBox ItemsSource="{Binding DataContext.ScrapReasonCollection, ElementName=Wip_Window}"
                                       SelectedItem="{Binding Reason, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                       FontSize="18"
                                       FontWeight="Bold"
@@ -332,7 +336,7 @@
                             <Button Background="Green"
                                     Foreground="WhiteSmoke"
                                     Content="Add"
-                                    Command="{Binding DataContext.AddScrapICommand, ElementName=WipWindow}"
+                                    Command="{Binding DataContext.AddScrapICommand, ElementName=Wip_Window}"
                                     CommandParameter="{Binding}"
                                     Visibility="{Binding ID, Converter={StaticResource BooltoVisConverter}, ConverterParameter=i}"
                                     Width="50"
@@ -340,7 +344,7 @@
                                     Margin="10,0 0 0"
                                     Style="{DynamicResource DefaultButton}"/>
 
-                            <Button Command="{Binding DataContext.RemoveScrapICommand, ElementName=WipWindow}"
+                            <Button Command="{Binding DataContext.RemoveScrapICommand, ElementName=Wip_Window}"
                                     CommandParameter="{Binding}"
                                     Visibility="{Binding ID, Converter={StaticResource BooltoVisConverter}}"
                                     Width="20"
@@ -473,7 +477,7 @@
                                     </TextBox.Visibility>
                                 </TextBox>
 
-                                <Button Command="{Binding DataContext.RemoveCrewICommand, ElementName=WipWindow}"
+                                <Button Command="{Binding DataContext.RemoveCrewICommand, ElementName=Wip_Window}"
                                         CommandParameter="{Binding IdNumber}"
                                         Visibility="{Binding IdNumber, Converter={StaticResource StringtoVisConverter}}"
                                         Width="20"
@@ -619,7 +623,8 @@
                                                          Background="LightGray"
                                                          IsTabStop="False"
                                                          Style="{DynamicResource RequiredTextBox}" />
-                                                <TextBlock Text="{Binding Uom}"
+                                                <TextBlock x:Name="UomTextBlock"
+                                                           Text="{Binding Uom}"
                                                            Visibility="{Binding IsValidLot, Converter={StaticResource BooltoVisConverter}}"
                                                            FontSize="16"
                                                            FontWeight="Bold"
@@ -678,7 +683,7 @@
                                                           FontSize="16"
                                                           IsTabStop="False"
                                                           Margin="5,0,0,0"/>
-                                                <Button Command="{Binding DataContext.RemoveCompICommand, ElementName=WipWindow}"
+                                                <Button Command="{Binding DataContext.RemoveCompICommand, ElementName=Wip_Window}"
                                                         CommandParameter="{Binding LotNbr}"
                                                         Visibility="{Binding LotNbr, Converter={StaticResource StringtoVisConverter}}"
                                                         Width="20"
@@ -753,7 +758,7 @@
                                                                      Width="75"
                                                                      MaxLength="4"
                                                                      Style="{DynamicResource RequiredTextBox}" />
-                                                            <TextBlock Text="{Binding Uom}"
+                                                            <TextBlock Text="{Binding Text, ElementName=UomTextBlock, Mode=OneWay}"
                                                                        FontSize="16"
                                                                        FontWeight="Bold"
                                                                        VerticalAlignment="Center"
@@ -764,7 +769,7 @@
                                                                        TextDecorations="Underline"
                                                                        VerticalAlignment="Center"
                                                                        Margin="20,0,0,0" />
-                                                            <ComboBox ItemsSource="{Binding DataContext.ScrapReasonCollection, ElementName=WipWindow}"
+                                                            <ComboBox ItemsSource="{Binding DataContext.ScrapReasonCollection, ElementName=Wip_Window}"
                                                                       SelectedItem="{Binding Reason, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                                                       FontSize="16"
                                                                       FontWeight="Bold"
@@ -793,7 +798,7 @@
                                                             <Button Background="Green"
                                                                     Foreground="WhiteSmoke"
                                                                     Content="Add"
-                                                                    Command="{Binding DataContext.AddCompScrapICommand, ElementName=WipWindow}"
+                                                                    Command="{Binding DataContext.AddCompScrapICommand, ElementName=Wip_Window}"
                                                                     CommandParameter="{Binding}"
                                                                     Visibility="{Binding ID, Converter={StaticResource BooltoVisConverter}, ConverterParameter=i}"
                                                                     FontSize="13"
@@ -802,7 +807,7 @@
                                                                     Margin="10,0 0 0"
                                                                     Style="{DynamicResource DefaultButton}"/>
 
-                                                            <Button Command="{Binding DataContext.RemoveCompScrapICommand, ElementName=WipWindow}"
+                                                            <Button Command="{Binding DataContext.RemoveCompScrapICommand, ElementName=Wip_Window}"
                                                                     CommandParameter="{Binding}"
                                                                     Visibility="{Binding ID, Converter={StaticResource BooltoVisConverter}}"
                                                                     Width="20"
