@@ -95,10 +95,11 @@ namespace SFW.Model
         /// Retrieve a list of components for a work order
         /// </summary>
         /// <param name="woNbr">Work Order Number</param>
+        /// <param name="seq">Sequence or Operation number</param>
         /// <param name="balQty">Balance quantity left on the work order</param>
         /// <param name="sqlCon">Sql Connection to use</param>
         /// <returns>List of Component objects</returns>
-        public static List<Component> GetComponentList(string woNbr, int balQty, SqlConnection sqlCon)
+        public static List<Component> GetComponentList(string woNbr, string seq, int balQty, SqlConnection sqlCon)
         {
             var _tempList = new List<Component>();
             WipInfoUpdating = false;
@@ -126,11 +127,12 @@ namespace SFW.Model
                                                                 RIGHT JOIN
 	                                                                [dbo].[IM-INIT] c ON c.[Part_Number] = SUBSTRING(a.[ID], CHARINDEX('*', a.[ID], 0) + 1, LEN(a.[ID]))
                                                                 WHERE
-	                                                                a.[ID] LIKE CONCAT(@p1, '%')
+	                                                                a.[ID] LIKE CONCAT(@p1, '%') AND a.[Routing_Seq] = @p2
                                                                 ORDER BY
                                                                     Component;", sqlCon))
                     {
                         cmd.Parameters.AddWithValue("p1", woNbr);
+                        cmd.Parameters.AddWithValue("p2", seq);
                         using (SqlDataReader reader = cmd.ExecuteReader())
                         {
                             if (reader.HasRows)
@@ -214,6 +216,10 @@ namespace SFW.Model
                     if (((BindingList<CompWipInfo>)sender).Count() == ((BindingList<CompWipInfo>)sender).Count(o => o.IsValidLot))
                     {
                         ((BindingList<CompWipInfo>)sender).Add(new CompWipInfo(_tempItem.IsBackFlush, _tempItem.PartNbr, _tempItem.Uom) { BaseQty = _tempItem.BaseQty });
+                        if (((BindingList<CompWipInfo>)sender).Count(o => o.IsValidLot) > 1)
+                        {
+                            ((BindingList<CompWipInfo>)sender)[0].ScrapList.ResetBindings();
+                        }
                     }
                 }
                 else if (_tempItem.IsValidLot)
@@ -285,7 +291,7 @@ namespace SFW.Model
                 WipInfoUpdating = true;
                 foreach (var item in ((BindingList<CompWipInfo>)sender).Where(o => o.IsValidLot))
                 {
-                    var _scrap = 0; //item.ScrapList.Where(o => int.TryParse(o.Quantity, out int a)).Sum(o => Convert.ToInt32(o.Quantity));
+                    var _scrap = item.ScrapList.Where(o => int.TryParse(o.Quantity, out int a)).Sum(o => Convert.ToInt32(o.Quantity));
                     var index = ((BindingList<CompWipInfo>)sender).IndexOf(item);
                     ((BindingList<CompWipInfo>)sender)[index].OnHandCalc = int.TryParse(((BindingList<CompWipInfo>)sender)[index].LotQty.ToString(), out int i)
                         ? ((BindingList<CompWipInfo>)sender)[index].OnHandQty - (i + _scrap)
@@ -329,7 +335,7 @@ namespace SFW.Model
             {
                 c.BaseQty = Convert.ToInt32(Math.Round(comp.AssemblyQty * wipQty, 0));
             }
-            comp.WipInfo.ResetBindings();
+            comp.WipInfo[0].LotNbr = comp.WipInfo[0].LotNbr;
         }
     }
 }

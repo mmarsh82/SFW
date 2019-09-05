@@ -143,9 +143,9 @@ namespace M2kClient.M2kADIArray
                         WorkOrderNbr = wipRecord.WipWorkOrder.OrderNumber,
                         IssueLoc = !string.IsNullOrEmpty(_backFlush) ? _backFlush : w.RcptLoc
                     });
-                    if (w.ScrapCollection != null &&  w.ScrapCollection.Count() > 0)
+                    if (w.ScrapList != null &&  w.ScrapList.Count() > 0)
                     {
-                        foreach (var s in w.ScrapCollection.Where(o => int.TryParse(o.Quantity, out int i)))
+                        foreach (var s in w.ScrapList.Where(o => int.TryParse(o.Quantity, out int i)))
                         {
                             AdjustmentList = new List<Adjust>
                             {

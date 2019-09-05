@@ -731,7 +731,7 @@
                                             <ItemsControl x:Name="CompScrapInput"
                                                           Grid.Row="2"
                                                           HorizontalAlignment="Left"
-                                                          ItemsSource="{Binding ScrapCollection, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                          ItemsSource="{Binding ScrapList, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                                           Visibility="{Binding IsChecked, ElementName=ScrapYes, Converter={StaticResource BooltoVisConverter}}">
                                                 <ItemsControl.ItemsPanel>
                                                     <ItemsPanelTemplate>

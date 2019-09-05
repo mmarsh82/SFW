@@ -203,11 +203,11 @@ namespace SFW.WIP
                     {
                         foreach (var w in c.WipInfo.Where(o => o.IsScrap == Model.Enumerations.Complete.Y))
                         {
-                            if (w.ScrapCollection.Count() != w.ScrapCollection.Count(o => int.TryParse(o.Quantity, out int i)))
+                            if (w.ScrapList.Count() != w.ScrapList.Count(o => int.TryParse(o.Quantity, out int i)))
                             {
                                 return false;
                             }
-                            foreach (var s in w.ScrapCollection.Where(o => int.TryParse(o.Quantity, out int i)))
+                            foreach (var s in w.ScrapList.Where(o => int.TryParse(o.Quantity, out int i)))
                             {
                                 if (Convert.ToInt32(s.Quantity) > 0)
                                 {
@@ -277,6 +277,16 @@ namespace SFW.WIP
             {
                 WipQuantity = "-1";
             }
+            if(e.ListChangedType == ListChangedType.Reset)
+            {
+                foreach (var c in WipRecord.WipWorkOrder.Bom.Where(o => o.IsLotTrace))
+                {
+                    foreach(var s in c.WipInfo.Where(o => o.IsValidLot))
+                    {
+                        s.ScrapList.ListChanged += ScrapList_ListChanged;
+                    }
+                }
+            }
         }
 
         #region Process Wip ICommand
@@ -295,38 +305,31 @@ namespace SFW.WIP
 
         private void WipExecute(object parameter)
         {
-            if (WipReceipt.ValidLocation(WipRecord.ReceiptLocation, App.AppSqlCon))
+            var _preOnHand = !string.IsNullOrEmpty(WipRecord.WipLot.LotNumber) ? Lot.GetLotOnHandQuantity(WipRecord.WipLot.LotNumber, WipRecord.ReceiptLocation, App.AppSqlCon) : 0;
+            var _machID = WipRecord.CrewList?.Count > 0 ? WorkOrder.GetAssignedMachineID(WipRecord.WipWorkOrder.OrderNumber, WipRecord.WipWorkOrder.Seq, App.AppSqlCon) : "";
+            var _wipProc = M2kClient.M2kCommand.ProductionWip(WipRecord, WipRecord.CrewList?.Count > 0, App.ErpCon, WipRecord.IsLotTracable, _machID);
+            if (_wipProc != null && _wipProc.First().Key > 0)
             {
-                var _machID = WipRecord.CrewList?.Count > 0 ? WorkOrder.GetAssignedMachineID(WipRecord.WipWorkOrder.OrderNumber, WipRecord.WipWorkOrder.Seq, App.AppSqlCon) : "";
-                var _wipProc = M2kClient.M2kCommand.ProductionWip(WipRecord, WipRecord.CrewList?.Count > 0, App.ErpCon, WipRecord.IsLotTracable, _machID);
-                if (_wipProc != null && _wipProc.First().Key > 0)
+                if (_wipProc.First().Value != null)
                 {
-                    if (_wipProc.First().Value != null)
-                    {
-                        WipRecord.WipLot.LotNumber = _wipProc.First().Value.Contains("*") || !WipRecord.IsLotTracable ? "Mulitple" : _wipProc.First().Value;
-                        _lotList = _wipProc.First().Value.Contains("*") ? _wipProc.First().Value.Split('*').ToList() : null;
-                    }
-                    else
-                    {
-                        WipRecord.WipLot.LotNumber = "NonLotWip";
-                        _lotList = null;
-                    }
-                    WipRecord.IsScrap = Model.Enumerations.Complete.N;
-                    WipRecord.IsReclaim = Model.Enumerations.Complete.N;
-                    OnPropertyChanged(nameof(WipRecord));
-                    TQty = Lot.IsValid(WipRecord.WipLot.LotNumber, App.AppSqlCon)
-                        ? Lot.GetLotOnHandQuantity(WipRecord.WipLot.LotNumber, WipRecord.ReceiptLocation, App.AppSqlCon) 
-                        : Convert.ToInt32(WipQuantity);
-                    WipQuantity = null;
-                    Multi = false;
+                    WipRecord.WipLot.LotNumber = _wipProc.First().Value.Contains("*") || !WipRecord.IsLotTracable ? "Mulitple" : _wipProc.First().Value;
+                    _lotList = _wipProc.First().Value.Contains("*") ? _wipProc.First().Value.Split('*').ToList() : null;
                 }
+                else
+                {
+                    WipRecord.WipLot.LotNumber = "NonLotWip";
+                    _lotList = null;
+                }
+                WipRecord.IsScrap = Model.Enumerations.Complete.N;
+                WipRecord.IsReclaim = Model.Enumerations.Complete.N;
+                OnPropertyChanged(nameof(WipRecord));
+                TQty = WipRecord.WipQty + _preOnHand;
+                WipQuantity = null;
+                Multi = false;
             }
             else
             {
-                System.Windows.MessageBox.Show("You have entered an invalid receipt location.\nPlease double check your entery and try again."
-                    ,"Invalid Location"
-                    ,System.Windows.MessageBoxButton.OK
-                    ,System.Windows.MessageBoxImage.Warning);
+                //TODO: Process errors here
             }
         }
         private bool WipCanExecute(object parameter)
@@ -551,9 +554,9 @@ namespace SFW.WIP
         {
             var _scrArray = ((WipReceipt.Scrap)parameter).ID.Split('*');
             WipRecord.WipWorkOrder.Bom.Where(o => o.CompNumber == _scrArray[1]).FirstOrDefault()
-                .WipInfo.Where(o => o.LotNbr == _scrArray[2]).FirstOrDefault().ScrapCollection.Remove(
+                .WipInfo.Where(o => o.LotNbr == _scrArray[2]).FirstOrDefault().ScrapList.Remove(
                 WipRecord.WipWorkOrder.Bom.Where(o => o.CompNumber == _scrArray[1]).FirstOrDefault()
-                .WipInfo.Where(o => o.LotNbr == _scrArray[2]).FirstOrDefault().ScrapCollection.FirstOrDefault(o => o.ID == ((WipReceipt.Scrap)parameter).ID));
+                .WipInfo.Where(o => o.LotNbr == _scrArray[2]).FirstOrDefault().ScrapList.FirstOrDefault(o => o.ID == ((WipReceipt.Scrap)parameter).ID));
             OnPropertyChanged(nameof(WipRecord));
         }
         private bool RemoveCompScrapCanExecute(object parameter) => parameter != null && !string.IsNullOrEmpty(parameter.ToString());
@@ -577,9 +580,9 @@ namespace SFW.WIP
         private void AddCompScrapExecute(object parameter)
         {
             var _scrArray = ((WipReceipt.Scrap)parameter).ID.Split('*');
-            var _newID = WipRecord.WipWorkOrder.Bom.Where(o => o.CompNumber == _scrArray[1]).FirstOrDefault().WipInfo.Where(o => o.LotNbr == _scrArray[2]).FirstOrDefault().ScrapCollection.Count;
+            var _newID = WipRecord.WipWorkOrder.Bom.Where(o => o.CompNumber == _scrArray[1]).FirstOrDefault().WipInfo.Where(o => o.LotNbr == _scrArray[2]).FirstOrDefault().ScrapList.Count;
             WipRecord.WipWorkOrder.Bom.Where(o => o.CompNumber == _scrArray[1]).FirstOrDefault()
-                .WipInfo.Where(o => o.LotNbr == _scrArray[2]).FirstOrDefault().ScrapCollection.Add(new WipReceipt.Scrap { ID = $"{_newID}*{_scrArray[1]}*{_scrArray[2]}" });
+                .WipInfo.Where(o => o.LotNbr == _scrArray[2]).FirstOrDefault().ScrapList.Add(new WipReceipt.Scrap { ID = $"{_newID}*{_scrArray[1]}*{_scrArray[2]}" });
             OnPropertyChanged(nameof(WipRecord));
         }
         private bool AddCompScrapCanExecute(object parameter) => parameter != null && !string.IsNullOrEmpty(parameter.ToString());

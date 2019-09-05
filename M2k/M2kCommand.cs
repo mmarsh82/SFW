@@ -482,7 +482,7 @@ namespace M2kClient
                 foreach (var info in mat.WipInfo.Where(o => o.RollStatus))
                 {
                     var _moveQty = info.IsScrap == SFW.Model.Enumerations.Complete.Y
-                        ? info.OnHandCalc - info.ScrapCollection.Where(o => int.TryParse(o.Quantity, out int i)).Sum(o => Convert.ToInt32(o.Quantity))
+                        ? info.OnHandCalc - info.ScrapList.Where(o => int.TryParse(o.Quantity, out int i)).Sum(o => Convert.ToInt32(o.Quantity))
                         : info.OnHandCalc;
                     if (_moveQty != 0)
                     {
