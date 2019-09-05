@@ -63,15 +63,19 @@ namespace SFW.Model
                 if (value == Complete.N)
                 {
                     ScrapCollection.Clear();
+                    ScrapList.Clear();
                 }
                 else
                 {
                     ScrapCollection.Add(new WipReceipt.Scrap { ID = $"0*{PartNbr}*{LotNbr}"});
+                    ScrapList.Add(new WipReceipt.Scrap { ID = $"0*{PartNbr}*{LotNbr}" });
                 }
                 OnPropertyChanged(nameof(IsScrap));
             }
         }
         public ObservableCollection<WipReceipt.Scrap> ScrapCollection { get; set; }
+
+        public BindingList<WipReceipt.Scrap> ScrapList { get; set; }
 
         #endregion
 
@@ -108,6 +112,8 @@ namespace SFW.Model
             Uom = uom;
             IsQtyLocked = false;
             ScrapCollection = new ObservableCollection<WipReceipt.Scrap>(new List<WipReceipt.Scrap>());
+            ScrapList = new BindingList<WipReceipt.Scrap>();
+            
             IsScrap = Complete.N;
             IsValidLot = false;
         }

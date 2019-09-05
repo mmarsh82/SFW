@@ -1,8 +1,9 @@
 ﻿using iTextSharp.text.pdf;
 using System;
 using System.Diagnostics;
+using System.Drawing.Printing;
 using System.IO;
-using System.Linq;
+using System.Windows.Forms;
 
 //Created 1-22-2019 by Michael Marsh
 
@@ -141,7 +142,7 @@ namespace SFW.Helpers
             {
                 CreatePDF(formType);
                 Process.Start($"\\\\manage2\\server\\OMNI\\Application Data\\temp\\{LotNbr}.pdf");
-                CloseOpenDocuments();
+                DeleteDocuments();
             }
             catch (Exception)
             {
@@ -155,71 +156,40 @@ namespace SFW.Helpers
         ///<param name="formType"></param>
         public static string PrintPDF(FormType formType)
         {
-            var _adobeApp = string.Empty;
             try
             {
-                var _adobeFilePath = string.Empty;
-                if (File.Exists(@"C:\Program Files (x86)\Adobe\Acrobat DC\Acrobat\Acrobat.exe"))
-                {
-                    _adobeFilePath = @"C:\Program Files (x86)\Adobe\Acrobat DC\Acrobat\Acrobat.exe";
-                    _adobeApp = "Acrobat";
-                }
-                else if (File.Exists(@"C:\Program Files (x86)\Adobe\Acrobat Reader DC\Reader\AcroRd32.exe"))
-                {
-                    _adobeFilePath = @"C:\Program Files (x86)\Adobe\Acrobat Reader DC\Reader\AcroRd32.exe";
-                    _adobeApp = "AcroRd32";
-                }
-                else
-                {
-                    return "No Adobe application installed, please contact IT.";
-                }
                 CreatePDF(formType);
-                var _filePath = $"\\\\manage2\\server\\OMNI\\Application Data\\temp\\{LotNbr}.pdf";
-                Process proc = new Process();
-                proc.StartInfo.WindowStyle = ProcessWindowStyle.Minimized;
-                proc.StartInfo.Verb = "print";
-                proc.StartInfo.FileName = _adobeFilePath;
-                proc.StartInfo.Arguments = $@"/p /h {_filePath}";
-                proc.StartInfo.UseShellExecute = false;
-                proc.StartInfo.CreateNoWindow = true;
-                proc.Start();
-                proc.StartInfo.WindowStyle = ProcessWindowStyle.Minimized;
-                if (proc.HasExited == false)
+                var _documentName = $"\\\\manage2\\server\\OMNI\\Application Data\\temp\\{LotNbr}.pdf";
+                using (Spire.Pdf.PdfDocument doc = new Spire.Pdf.PdfDocument(_documentName, "technology#1"))
                 {
-                    proc.WaitForExit(6000);
+                    using (PrintDialog pdialog = new PrintDialog { AllowPrintToFile = true, AllowSomePages = true })
+                    {
+                        pdialog.PrinterSettings.MinimumPage = 1;
+                        pdialog.PrinterSettings.MaximumPage = doc.Pages.Count;
+                        pdialog.PrinterSettings.FromPage = 1;
+                        pdialog.PrinterSettings.ToPage = doc.Pages.Count;
+                        pdialog.PrinterSettings.DefaultPageSettings.Landscape = formType == FormType.Landscape;
+                        doc.PageSettings.Orientation = formType == FormType.Landscape ? Spire.Pdf.PdfPageOrientation.Landscape : Spire.Pdf.PdfPageOrientation.Portrait;
+                        using (PrintDocument pDoc = doc.PrintDocument)
+                        {
+                            pdialog.Document = pDoc;
+                            pDoc.Print();
+                        }
+                    }
                 }
-                proc.EnableRaisingEvents = true;
-                proc.Close();
-                KillAdobe(_adobeApp);
-                CloseOpenDocuments();
+                DeleteDocuments();
                 return string.Empty;
             }
             catch (Exception ex)
             {
-                KillAdobe(_adobeApp);
                 return ex.Message;
             }
         }
 
         /// <summary>
-        /// When silent printing any Adobe PDF you will find that it will sometimes stay open, this will kill the application
-        /// </summary>
-        /// <param name="name">File name</param>
-        private static void KillAdobe(string name)
-        {
-            foreach (Process clsProcess in Process.GetProcesses().Where(
-                         clsProcess => clsProcess.ProcessName.StartsWith(name)))
-            {
-                clsProcess.Kill();
-                return;
-            }
-            return;
-        }
-
-        /// <summary>
         /// Closes any open temporary documents created for printing
         /// </summary>
-        private static void CloseOpenDocuments()
+        private static void DeleteDocuments()
         {
             foreach (var f in Directory.GetFiles("\\\\manage2\\server\\OMNI\\Application Data\\temp\\"))
             {

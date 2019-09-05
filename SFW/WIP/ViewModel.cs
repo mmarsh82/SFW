@@ -172,6 +172,10 @@ namespace SFW.WIP
                 ScrapReasonCollection = new ObservableCollection<string>(_descList);
             }
             _lotList = new List<string>();
+            foreach (var c in WipRecord.WipWorkOrder.Bom.Where(o => o.IsLotTrace))
+            {
+                c.WipInfo[0].ScrapList.ListChanged += ScrapList_ListChanged;
+            }
         }
 
         /// <summary>
@@ -265,7 +269,7 @@ namespace SFW.WIP
         /// <summary>
         /// Happens when an item is added or changed in the Scrap Binding List property
         /// </summary>
-        /// <param name="sender">BindingList<Scrap> list passed without changes</param>
+        /// <param name="sender">BindingList<WipReceipt.Scrap> list passed without changes</param>
         /// <param name="e">Change info</param>
         private void ScrapList_ListChanged(object sender, ListChangedEventArgs e)
         {
@@ -297,8 +301,16 @@ namespace SFW.WIP
                 var _wipProc = M2kClient.M2kCommand.ProductionWip(WipRecord, WipRecord.CrewList?.Count > 0, App.ErpCon, WipRecord.IsLotTracable, _machID);
                 if (_wipProc != null && _wipProc.First().Key > 0)
                 {
-                    WipRecord.WipLot.LotNumber = _wipProc.First().Value.Contains("*") ? "Mulitple" : _wipProc.First().Value;
-                    _lotList = _wipProc.First().Value.Contains("*") ? _wipProc.First().Value.Split('*').ToList() : null;
+                    if (_wipProc.First().Value != null)
+                    {
+                        WipRecord.WipLot.LotNumber = _wipProc.First().Value.Contains("*") || !WipRecord.IsLotTracable ? "Mulitple" : _wipProc.First().Value;
+                        _lotList = _wipProc.First().Value.Contains("*") ? _wipProc.First().Value.Split('*').ToList() : null;
+                    }
+                    else
+                    {
+                        WipRecord.WipLot.LotNumber = "NonLotWip";
+                        _lotList = null;
+                    }
                     WipRecord.IsScrap = Model.Enumerations.Complete.N;
                     WipRecord.IsReclaim = Model.Enumerations.Complete.N;
                     OnPropertyChanged(nameof(WipRecord));
@@ -327,7 +339,7 @@ namespace SFW.WIP
 
                     var _baseValid = false;
                     var _locValid = !string.IsNullOrEmpty(WipRecord.ReceiptLocation) && WipReceipt.ValidLocation(WipRecord.ReceiptLocation, App.AppSqlCon);
-                    var _lotValid = !string.IsNullOrEmpty(WipRecord.WipLot.LotNumber) && Lot.LotValidation(WipRecord.WipLot.LotNumber, WipRecord.WipWorkOrder.SkuNumber, App.AppSqlCon);
+                    var _lotValid = WipRecord.IsLotTracable ? !string.IsNullOrEmpty(WipRecord.WipLot.LotNumber) && Lot.LotValidation(WipRecord.WipLot.LotNumber, WipRecord.WipWorkOrder.SkuNumber, App.AppSqlCon) : true;
                     if (WipRecord.WipQty > 0)
                     {
                         _baseValid = _locValid && (string.IsNullOrEmpty(WipRecord.WipLot.LotNumber) || _lotValid) && ValidateComponents();
@@ -404,11 +416,11 @@ namespace SFW.WIP
         private void MPrintExecute(object parameter)
         {
             var _wQty = TQty == null || TQty == 0 ? Convert.ToInt32(WipRecord.WipQty) : Convert.ToInt32(TQty);
-            if (_lotList.Count == 0)
+            if (_lotList == null || _lotList.Count == 0)
             {
                 TravelCard.Create("", "technology#1",
                 WipRecord.WipWorkOrder.SkuNumber,
-                WipRecord.WipLot.LotNumber,
+                WipRecord.WipLot.LotNumber == "NonLotWip" ? "" : WipRecord.WipLot.LotNumber,
                 WipRecord.WipWorkOrder.SkuDescription,
                 Sku.GetDiamondNumber(WipRecord.WipLot.LotNumber, App.AppSqlCon),
                 _wQty,

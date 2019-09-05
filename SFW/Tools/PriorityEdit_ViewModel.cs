@@ -93,11 +93,12 @@ namespace SFW.Tools
             var _wind = Application.Current.Windows;
             foreach (var w in _wind)
             {
-                if (((Window)w).Name == "PriWindow")
+                if (((Window)w).Name == "Pri_Window")
                 {
                     ((Window)w).Close();
                 }
             }
+            ((Schedule.ViewModel)Controls.WorkSpaceDock.WccoDock.GetChildOfType<Schedule.View>().DataContext).RefreshSchedule();
         }
         private bool PriorityChangeCanExecute(object parameter)
         {

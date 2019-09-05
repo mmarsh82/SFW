@@ -238,7 +238,7 @@
                 Margin="5"
                 HorizontalAlignment="Center"
                 Command="{StaticResource PrintICommand}"
-                CommandParameter="{Binding ElementName=TrimWindow, Mode=OneWay}"
+                CommandParameter="{Binding ElementName=Trim_Window, Mode=OneWay}"
                 Style="{DynamicResource DefaultButton}" />
 
     </Grid>

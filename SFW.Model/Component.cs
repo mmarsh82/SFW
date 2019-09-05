@@ -285,10 +285,11 @@ namespace SFW.Model
                 WipInfoUpdating = true;
                 foreach (var item in ((BindingList<CompWipInfo>)sender).Where(o => o.IsValidLot))
                 {
+                    var _scrap = 0; //item.ScrapList.Where(o => int.TryParse(o.Quantity, out int a)).Sum(o => Convert.ToInt32(o.Quantity));
                     var index = ((BindingList<CompWipInfo>)sender).IndexOf(item);
                     ((BindingList<CompWipInfo>)sender)[index].OnHandCalc = int.TryParse(((BindingList<CompWipInfo>)sender)[index].LotQty.ToString(), out int i)
-                        ? ((BindingList<CompWipInfo>)sender)[index].OnHandQty - i
-                        : ((BindingList<CompWipInfo>)sender)[index].OnHandQty;
+                        ? ((BindingList<CompWipInfo>)sender)[index].OnHandQty - (i + _scrap)
+                        : ((BindingList<CompWipInfo>)sender)[index].OnHandQty - _scrap;
                 }
                 WipInfoUpdating = false;
             }

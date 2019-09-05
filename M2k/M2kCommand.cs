@@ -343,7 +343,7 @@ namespace M2kClient
                     wipRecord.WipLot.LotNumber = _response.First().Value.Replace("|P", "");
                     _lotList.Add(_response.First().Value.Replace("|P", ""));
                     //File creation for the WIP ADI, needs to account for all database scenarios (i.e. one to one, one to many, and many to many)
-                    _tWip = new Wip(wipRecord) { QtyReceived = Convert.ToInt32(wipRecord.WipQty / wipRecord.RollQty), ComponentInfoList = _tComp };
+                    _tWip = new Wip(wipRecord) { QtyReceived = Convert.ToInt32(wipRecord.WipQty), ComponentInfoList = _tComp };
                     if (!string.IsNullOrEmpty(_tWip.StationId))
                     {
                         File.WriteAllText($"{connection.SFDCFolder}WPC2K.DAT{suffix}", _tWip.ToString());
@@ -362,7 +362,7 @@ namespace M2kClient
 
             #endregion
 
-            #region Non Lot Issue
+            /*#region Non Lot Issue
 
             try
             {
@@ -394,7 +394,7 @@ namespace M2kClient
                 System.Windows.MessageBox.Show($"Unable to process Issue\nPlease contact IT immediately!\n\n{e.Message}", "M2k Issue file error", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
             }
 
-            #endregion
+            #endregion*/
 
             #region Post Labor
 

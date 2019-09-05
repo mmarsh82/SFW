@@ -218,7 +218,7 @@ namespace SFW.Model
                     {
                         cmd.Parameters.AddWithValue("p1", partNbr);
                         cmd.Parameters.AddWithValue("p2", seq);
-                        return int.TryParse(cmd.ExecuteScalar().ToString(), out int result) ? result : 0;
+                        return int.TryParse(cmd.ExecuteScalar()?.ToString(), out int result) ? result : 0;
                     }
                 }
                 catch (SqlException sqlEx)
