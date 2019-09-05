@@ -109,17 +109,22 @@ namespace SFW.Model
                 {
                     using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database};
                                                                 SELECT
-	                                                                SUBSTRING(a.[ID], CHARINDEX('*', a.[ID], 0) + 1, LEN(a.[ID])) as 'Component',
+	                                                                CASE WHEN (a.[Routing_Seq] IS NULL) 
+		                                                                THEN (SELECT SUBSTRING([ID], 0, CHARINDEX('*', [ID], 0)) FROM [dbo].[PS-INIT] WHERE [ID] LIKE CONCAT('%*',SUBSTRING(a.[ID], CHARINDEX('*', a.[ID], 0) + 1, LEN(a.[ID]))))
+		                                                                ELSE SUBSTRING(a.[ID], CHARINDEX('*', a.[ID], 0) + 1, LEN(a.[ID])) END as 'Component',
 	                                                                a.[Qty_Per_Assy] as 'Qty Per',
 	                                                                a.[Qty_Reqd] as 'Req Qty',
-	                                                                b.[Qty_On_Hand] as 'On Hand',
-	                                                                (SELECT SUM(aa.[OH_Qty_By_Loc]) FROM [dbo].[IPL-INIT_Location_Data] aa WHERE aa.[ID1] = b.[Part_Nbr] AND aa.[Loc_Pick_Avail_Flag] = 'Y') as 'Pickable',
+	                                                                CASE WHEN (a.[Routing_Seq] IS NULL) THEN 0 ELSE b.[Qty_On_Hand] END as 'On Hand',
+	                                                                CASE WHEN (a.[Routing_Seq] IS NULL) 
+		                                                                THEN 0 
+		                                                                ELSE (SELECT SUM(aa.[OH_Qty_By_Loc]) FROM [dbo].[IPL-INIT_Location_Data] aa WHERE aa.[ID1] = b.[Part_Nbr] AND aa.[Loc_Pick_Avail_Flag] = 'Y') END as 'Pickable',
 	                                                                b.[Wip_Rec_Loc] as 'Backflush',
 	                                                                c.[Description],
 	                                                                c.[Drawing_Nbrs],
 	                                                                c.[Um],
 	                                                                c.[Inventory_Type],
-	                                                                c.[Lot_Trace]
+	                                                                c.[Lot_Trace],
+	                                                                a.[Routing_Seq]
                                                                 FROM
 	                                                                [dbo].[PL-INIT] a
                                                                 RIGHT JOIN
@@ -127,9 +132,9 @@ namespace SFW.Model
                                                                 RIGHT JOIN
 	                                                                [dbo].[IM-INIT] c ON c.[Part_Number] = SUBSTRING(a.[ID], CHARINDEX('*', a.[ID], 0) + 1, LEN(a.[ID]))
                                                                 WHERE
-	                                                                a.[ID] LIKE CONCAT(@p1, '%') AND a.[Routing_Seq] = @p2
+	                                                                a.[ID] LIKE CONCAT(@p1, '%') AND (a.[Routing_Seq] = @p2 OR a.[Routing_Seq] IS NULL)
                                                                 ORDER BY
-                                                                    Component;", sqlCon))
+                                                                    Lot_Trace DESC, Component;", sqlCon))
                     {
                         cmd.Parameters.AddWithValue("p1", woNbr);
                         cmd.Parameters.AddWithValue("p2", seq);
