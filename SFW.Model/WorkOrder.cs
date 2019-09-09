@@ -17,7 +17,7 @@ namespace SFW.Model
 
         public string OrderNumber { get; set; }
         public string Seq { get; set; }
-        public string SeqDesc { get; set; }
+        public string OpDesc { get; set; }
         public string Priority { get; set; }
         public string Status { get; set; }
         public int StartQty { get; set; }
@@ -31,6 +31,7 @@ namespace SFW.Model
         public string ShopNotes { get; set; }
         public bool IsLate { get { return DueDate < DateTime.Today; } }
         public bool IsStartedLate { get { return SchedStartDate < DateTime.Today && CurrentQty == StartQty; } }
+        public List<Component> Picklist { get; set; }
 
         #endregion
 
@@ -52,7 +53,8 @@ namespace SFW.Model
                 var _wo = drow.Field<string>("WO_Number").Split('*');
                 OrderNumber = _wo[0];
                 Seq = _wo[1];
-                SeqDesc = GetOperationDescription(drow.Field<string>("WO_Number"), sqlCon);
+                Operation = drow.Field<string>("Operation");
+                OpDesc = GetOperationDescription(drow.Field<string>("WO_Number"), sqlCon);
                 Priority = drow.Field<string>("WO_Priority");
                 StartQty = drow.Field<int>("WO_StartQty");
                 CurrentQty = Convert.ToInt32(drow.Field<decimal>("WO_CurrentQty"));
@@ -88,7 +90,8 @@ namespace SFW.Model
                 }
                 Machine = drow.Field<string>("MachineName");
                 MachineGroup = drow.Field<string>("MachineGroup");
-                Bom = Component.GetComponentList(_wo[0], _wo[1], StartQty - CurrentQty, sqlCon);
+                Bom = Component.GetComponentBomList(SkuNumber, Operation, sqlCon);
+                Picklist = Component.GetComponentPickList(_wo[0], Operation, StartQty - CurrentQty, sqlCon);
                 Notes = GetNotes(_wo[0],sqlCon);
                 ShopNotes = GetShopNotes(_wo[0], sqlCon);
                 InstructionList = GetInstructions(SkuNumber, sqlCon);
@@ -133,7 +136,6 @@ namespace SFW.Model
                                     {
                                         OrderNumber = reader.SafeGetString("WoNumber"),
                                         Seq = reader.SafeGetString("Seq"),
-                                        SeqDesc = "Coming Soon...",
                                         Priority = reader.SafeGetString("Priority"),
                                         StartQty = reader.SafeGetInt32("StartQty"),
                                         CurrentQty = reader.SafeGetInt32("CurrentQty"),
@@ -415,7 +417,7 @@ namespace SFW.Model
         {
             return null;
             //TODO: need to remove the hardcoded value to segregate CSI from WCCO when CSI reports become live
-            if (wo != null && sqlCon.Database != "CSI_MAIN")
+            /*if (wo != null && sqlCon.Database != "CSI_MAIN")
             {
                 using (var dt = new DataTable())
                 {
@@ -601,7 +603,7 @@ namespace SFW.Model
                     }
                 }
             }
-            return null;
+            return null;*/
         }
     }
 }

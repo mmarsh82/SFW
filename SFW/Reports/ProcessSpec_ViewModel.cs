@@ -29,7 +29,7 @@ namespace SFW.Reports
         {
             ShopOrder = wo;
             SkuSpec = new UdefSku(wo.SkuNumber, wo.Seq, App.AppSqlCon);
-            foreach (var s in wo.Bom)
+            foreach (var s in wo.Picklist)
             {
                 switch (s.InventoryType)
                 {

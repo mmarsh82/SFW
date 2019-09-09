@@ -27,7 +27,7 @@ namespace SFW.WIP
                 {
                     if (_wipStr == 0 || value == null)
                     {
-                        foreach (var c in WipRecord.WipWorkOrder.Bom)
+                        foreach (var c in WipRecord.WipWorkOrder.Picklist)
                         {
                             c.WipInfo.Clear();
                             c.WipInfo.Add(new CompWipInfo(!string.IsNullOrEmpty(c.BackflushLoc), c.CompNumber, c.CompUom));
@@ -39,7 +39,7 @@ namespace SFW.WIP
                         {
                             _wipStr = Convert.ToInt32(WipRecord.WipQty);
                         }
-                        foreach (var c in WipRecord.WipWorkOrder.Bom)
+                        foreach (var c in WipRecord.WipWorkOrder.Picklist)
                         {
                             var _qty = _wipStr;
                             _qty *= WipRecord.IsMulti && int.TryParse(RollQuantity, out int iRoll) ? iRoll : 1;
@@ -137,7 +137,7 @@ namespace SFW.WIP
 
         public bool IsLotTrace
         {
-            get { return WipRecord.IsLotTracable || WipRecord.WipWorkOrder.Bom.Count(o => o.IsLotTrace) > 0; }
+            get { return WipRecord.IsLotTracable || WipRecord.WipWorkOrder.Picklist.Count(o => o.IsLotTrace) > 0; }
         }
 
         public ObservableCollection<string> ScrapReasonCollection { get; set; }
@@ -172,7 +172,7 @@ namespace SFW.WIP
                 ScrapReasonCollection = new ObservableCollection<string>(_descList);
             }
             _lotList = new List<string>();
-            foreach (var c in WipRecord.WipWorkOrder.Bom.Where(o => o.IsLotTrace))
+            foreach (var c in WipRecord.WipWorkOrder.Picklist.Where(o => o.IsLotTrace))
             {
                 c.WipInfo[0].ScrapList.ListChanged += ScrapList_ListChanged;
             }
@@ -189,7 +189,7 @@ namespace SFW.WIP
                 var _validLoc = true;
                 var _validQty = true;
                 var _validScrap = false;
-                foreach (var c in WipRecord.WipWorkOrder.Bom.Where(o => o.IsLotTrace))
+                foreach (var c in WipRecord.WipWorkOrder.Picklist.Where(o => o.IsLotTrace))
                 {
                     if (string.IsNullOrEmpty(c.BackflushLoc))
                     {
@@ -279,7 +279,7 @@ namespace SFW.WIP
             }
             if(e.ListChangedType == ListChangedType.Reset)
             {
-                foreach (var c in WipRecord.WipWorkOrder.Bom.Where(o => o.IsLotTrace))
+                foreach (var c in WipRecord.WipWorkOrder.Picklist.Where(o => o.IsLotTrace))
                 {
                     foreach(var s in c.WipInfo.Where(o => o.IsValidLot))
                     {
@@ -553,9 +553,9 @@ namespace SFW.WIP
         private void RemoveCompScrapExecute(object parameter)
         {
             var _scrArray = ((WipReceipt.Scrap)parameter).ID.Split('*');
-            WipRecord.WipWorkOrder.Bom.Where(o => o.CompNumber == _scrArray[1]).FirstOrDefault()
+            WipRecord.WipWorkOrder.Picklist.Where(o => o.CompNumber == _scrArray[1]).FirstOrDefault()
                 .WipInfo.Where(o => o.LotNbr == _scrArray[2]).FirstOrDefault().ScrapList.Remove(
-                WipRecord.WipWorkOrder.Bom.Where(o => o.CompNumber == _scrArray[1]).FirstOrDefault()
+                WipRecord.WipWorkOrder.Picklist.Where(o => o.CompNumber == _scrArray[1]).FirstOrDefault()
                 .WipInfo.Where(o => o.LotNbr == _scrArray[2]).FirstOrDefault().ScrapList.FirstOrDefault(o => o.ID == ((WipReceipt.Scrap)parameter).ID));
             OnPropertyChanged(nameof(WipRecord));
         }
@@ -580,8 +580,8 @@ namespace SFW.WIP
         private void AddCompScrapExecute(object parameter)
         {
             var _scrArray = ((WipReceipt.Scrap)parameter).ID.Split('*');
-            var _newID = WipRecord.WipWorkOrder.Bom.Where(o => o.CompNumber == _scrArray[1]).FirstOrDefault().WipInfo.Where(o => o.LotNbr == _scrArray[2]).FirstOrDefault().ScrapList.Count;
-            WipRecord.WipWorkOrder.Bom.Where(o => o.CompNumber == _scrArray[1]).FirstOrDefault()
+            var _newID = WipRecord.WipWorkOrder.Picklist.Where(o => o.CompNumber == _scrArray[1]).FirstOrDefault().WipInfo.Where(o => o.LotNbr == _scrArray[2]).FirstOrDefault().ScrapList.Count;
+            WipRecord.WipWorkOrder.Picklist.Where(o => o.CompNumber == _scrArray[1]).FirstOrDefault()
                 .WipInfo.Where(o => o.LotNbr == _scrArray[2]).FirstOrDefault().ScrapList.Add(new WipReceipt.Scrap { ID = $"{_newID}*{_scrArray[1]}*{_scrArray[2]}" });
             OnPropertyChanged(nameof(WipRecord));
         }
@@ -605,7 +605,7 @@ namespace SFW.WIP
 
         private void RemoveCompExecute(object parameter)
         {
-            foreach (var c in WipRecord.WipWorkOrder.Bom)
+            foreach (var c in WipRecord.WipWorkOrder.Picklist)
             {
                 foreach (var w in c.WipInfo)
                 {

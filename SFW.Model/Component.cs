@@ -95,11 +95,11 @@ namespace SFW.Model
         /// Retrieve a list of components for a work order
         /// </summary>
         /// <param name="woNbr">Work Order Number</param>
-        /// <param name="seq">Sequence or Operation number</param>
+        /// <param name="operation">Operation number</param>
         /// <param name="balQty">Balance quantity left on the work order</param>
         /// <param name="sqlCon">Sql Connection to use</param>
-        /// <returns>List of Component objects</returns>
-        public static List<Component> GetComponentList(string woNbr, string seq, int balQty, SqlConnection sqlCon)
+        /// <returns>List of Component objects related to a picklist</returns>
+        public static List<Component> GetComponentPickList(string woNbr, string operation, int balQty, SqlConnection sqlCon)
         {
             var _tempList = new List<Component>();
             WipInfoUpdating = false;
@@ -109,15 +109,11 @@ namespace SFW.Model
                 {
                     using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database};
                                                                 SELECT
-	                                                                CASE WHEN (a.[Routing_Seq] IS NULL) 
-		                                                                THEN (SELECT SUBSTRING([ID], 0, CHARINDEX('*', [ID], 0)) FROM [dbo].[PS-INIT] WHERE [ID] LIKE CONCAT('%*',SUBSTRING(a.[ID], CHARINDEX('*', a.[ID], 0) + 1, LEN(a.[ID]))))
-		                                                                ELSE SUBSTRING(a.[ID], CHARINDEX('*', a.[ID], 0) + 1, LEN(a.[ID])) END as 'Component',
+	                                                                SUBSTRING(a.[ID], CHARINDEX('*', a.[ID], 0) + 1, LEN(a.[ID])) as 'Component',
 	                                                                a.[Qty_Per_Assy] as 'Qty Per',
 	                                                                a.[Qty_Reqd] as 'Req Qty',
-	                                                                CASE WHEN (a.[Routing_Seq] IS NULL) THEN 0 ELSE b.[Qty_On_Hand] END as 'On Hand',
-	                                                                CASE WHEN (a.[Routing_Seq] IS NULL) 
-		                                                                THEN 0 
-		                                                                ELSE (SELECT SUM(aa.[OH_Qty_By_Loc]) FROM [dbo].[IPL-INIT_Location_Data] aa WHERE aa.[ID1] = b.[Part_Nbr] AND aa.[Loc_Pick_Avail_Flag] = 'Y') END as 'Pickable',
+	                                                                b.[Qty_On_Hand] as 'On Hand',
+	                                                                (SELECT SUM(aa.[OH_Qty_By_Loc]) FROM [dbo].[IPL-INIT_Location_Data] aa WHERE aa.[ID1] = b.[Part_Nbr] AND aa.[Loc_Pick_Avail_Flag] = 'Y') as 'Pickable',
 	                                                                b.[Wip_Rec_Loc] as 'Backflush',
 	                                                                c.[Description],
 	                                                                c.[Drawing_Nbrs],
@@ -137,7 +133,7 @@ namespace SFW.Model
                                                                     Lot_Trace DESC, Component;", sqlCon))
                     {
                         cmd.Parameters.AddWithValue("p1", woNbr);
-                        cmd.Parameters.AddWithValue("p2", seq);
+                        cmd.Parameters.AddWithValue("p2", operation);
                         using (SqlDataReader reader = cmd.ExecuteReader())
                         {
                             if (reader.HasRows)
@@ -174,6 +170,72 @@ namespace SFW.Model
                                     _tempList[_tempList.Count - 1].NonLotList = _tempList[_tempList.Count - 1].LotList.Count == 0 && !reader.IsDBNull(0)
                                         ? Lot.GetOnHandNonLotList(reader.SafeGetString("Component"), sqlCon)
                                         : new List<Lot>();
+                                }
+                            }
+                        }
+                    }
+                    return _tempList;
+                }
+                catch (SqlException sqlEx)
+                {
+                    throw sqlEx;
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception(ex.Message);
+                }
+            }
+            else
+            {
+                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
+            }
+        }
+
+        /// <summary>
+        /// Retrieve a list of components for a Sku
+        /// </summary>
+        /// <param name="skuNbr">Part Number</param>
+        /// <param name="operation">Operation Number</param>
+        /// <param name="sqlCon">Sql Connection to use</param>
+        /// <returns>List of Component objects related to a Bill of material</returns>
+        public static List<Component> GetComponentBomList(string skuNbr, string operation, SqlConnection sqlCon)
+        {
+            var _tempList = new List<Component>();
+            WipInfoUpdating = false;
+            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
+            {
+                try
+                {
+                    using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database};
+                                                                SELECT
+	                                                                SUBSTRING(a.[ID], CHARINDEX('*', a.[ID], 0) + 1, LEN(a.[ID])) as 'Component',
+	                                                                a.[Qty_Per_Assy],
+	                                                                b.[Description],
+	                                                                b.[Um]
+                                                                FROM
+	                                                                [dbo].[PS-INIT] a
+                                                                RIGHT JOIN
+	                                                                [dbo].[IM-INIT] b ON b.[Part_Number] = SUBSTRING(a.[ID], CHARINDEX('*', a.[ID], 0) + 1, LEN(a.[ID]))
+                                                                WHERE
+	                                                                a.[ID] LIKE CONCAT(@p1, '%') AND (a.[Routing_Seq] = @p2 OR a.[Routing_Seq] IS NULL)
+                                                                ORDER BY
+                                                                    Lot_Trace, Component;", sqlCon))
+                    {
+                        cmd.Parameters.AddWithValue("p1", skuNbr);
+                        cmd.Parameters.AddWithValue("p2", operation);
+                        using (SqlDataReader reader = cmd.ExecuteReader())
+                        {
+                            if (reader.HasRows)
+                            {
+                                while (reader.Read())
+                                {
+                                    _tempList.Add(new Component
+                                    {
+                                        CompNumber = reader.SafeGetString("Component"),
+                                        AssemblyQty = reader.SafeGetDouble("Qty_Per_Assy"),
+                                        CompDescription = reader.SafeGetString("Description"),
+                                        CompUom = reader.SafeGetString("Um")
+                                    });
                                 }
                             }
                         }
@@ -340,7 +402,10 @@ namespace SFW.Model
             {
                 c.BaseQty = Convert.ToInt32(Math.Round(comp.AssemblyQty * wipQty, 0));
             }
-            comp.WipInfo[0].LotNbr = comp.WipInfo[0].LotNbr;
+            if (comp.WipInfo.Count(o => o.IsValidLot) > 0)
+            {
+                comp.WipInfo[0].LotNbr = comp.WipInfo[0].LotNbr;
+            }
         }
     }
 }

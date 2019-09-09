@@ -130,7 +130,7 @@ namespace M2kClient.M2kADIArray
             };
             Lot = wipRecord.WipLot.LotNumber;
             ComponentInfoList = new List<CompInfo>();
-            foreach(var c in wipRecord.WipWorkOrder.Bom.Where(o => o.IsLotTrace))
+            foreach(var c in wipRecord.WipWorkOrder.Picklist.Where(o => o.IsLotTrace))
             {
                 var _backFlush = c.BackflushLoc;
                 foreach(var w in c.WipInfo.Where(o => !string.IsNullOrEmpty(o.LotNbr)))

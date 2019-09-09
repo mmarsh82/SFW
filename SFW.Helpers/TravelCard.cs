@@ -107,19 +107,23 @@ namespace SFW.Helpers
                         else if (formType == FormType.Landscape)
                         {
                             var pdfField = stamp.AcroFields;
+                            pdfField.SetField("Date", DateTime.Today.ToString("MM/dd/yyyy"));
                             pdfField.SetField("P/N", PartNbr);
+                            pdfField.SetField("PartBar", PartNbr);
                             if (!string.IsNullOrEmpty(LotNbr))
                             {
                                 pdfField.SetField("L/N", LotNbr);
+                                pdfField.SetField("LotBar", LotNbr);
                             }
                             if (!string.IsNullOrEmpty(DiamondNbr))
                             {
                                 pdfField.SetField("D/N", DiamondNbr);
                             }
-                            pdfField.SetField("Qty", Quantity.ToString());
+                            pdfField.SetField("Qty", $"{Quantity} {Uom}");
                             if (QirNbr > 0)
                             {
                                 pdfField.SetField("QIR", QirNbr.ToString());
+                                pdfField.SetField("QIRBar", QirNbr.ToString());
                             }
                         }
                         stamp.FormFlattening = false;

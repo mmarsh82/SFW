@@ -286,8 +286,8 @@ namespace SFW.Schedule
 
         private void PriorityChangeExecute(object parameter)
         {
-            var _shift = ((DataRowView)parameter).Row.ItemArray[15].ToString() == "9" ? 0 : Convert.ToInt32(((DataRowView)parameter).Row.ItemArray[15]);
-            var _pri = ((DataRowView)parameter).Row.ItemArray[16].ToString() == "9" ? 0 : Convert.ToInt32(((DataRowView)parameter).Row.ItemArray[16]);
+            var _shift = ((DataRowView)parameter).Row.ItemArray[16].ToString() == "9" ? 0 : Convert.ToInt32(((DataRowView)parameter).Row.ItemArray[16]);
+            var _pri = ((DataRowView)parameter).Row.ItemArray[17].ToString() == "9" ? 0 : Convert.ToInt32(((DataRowView)parameter).Row.ItemArray[17]);
             var _woNumber = ((DataRowView)parameter).Row.ItemArray[0].ToString().Split('*')[0];
             using (var _editPri = new Tools.PriorityEdit_ViewModel(_woNumber, _shift, _pri))
             {

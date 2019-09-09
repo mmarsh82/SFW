@@ -167,12 +167,12 @@
                                TextDecorations="UnderLine"
                                Foreground="#FF135185" />
 
-                    <TextBlock Text="{Binding ShopOrder.Seq}"
+                    <TextBlock Text="{Binding ShopOrder.Operation}"
                                FontSize="20"
                                FontWeight="Bold"
                                Margin="10,0,0,0" />
 
-                    <TextBlock Text="{Binding ShopOrder.SeqDesc}"
+                    <TextBlock Text="{Binding ShopOrder.OpDesc}"
                                FontSize="20"
                                FontWeight="Bold"
                                Margin="10,0,0,0" />
@@ -562,8 +562,10 @@
                 <TabControl Grid.Row="10"
                             Background="Transparent"
                             BorderThickness="0">
-                    
-                    <TabItem Header="Picklist Parts (BOM)"
+
+                    <!--#region Picklist Tab-->
+
+                    <TabItem Header="Picklist Parts"
                              FontSize="20"
                              FontWeight="Bold"
                              Foreground="#FF135185"
@@ -571,11 +573,9 @@
                              VerticalAlignment="Center"
                              Background="Transparent"
                              BorderThickness="0">
-                        
-                        <!--#region BOM Table-->
 
-                        <DataGrid x:Name="dgBom"
-                                  ItemsSource="{Binding ShopOrder.Bom}"
+                        <DataGrid x:Name="dgPick"
+                                  ItemsSource="{Binding ShopOrder.Picklist}"
                                   IsReadOnly="True"
                                   FontSize="18"
                                   FontWeight="Bold"
@@ -770,9 +770,89 @@
 
                         </DataGrid>
 
-                        <!--#endregion-->
+                    </TabItem>
+
+                    <!--#endregion-->
+                    
+                    <!--#region Bill of Material Tab-->
+                    
+                    <TabItem Header="Bill of Material (BOM)"
+                             FontSize="20"
+                             FontWeight="Bold"
+                             Foreground="#FF135185"
+                             HorizontalAlignment="Left"
+                             VerticalAlignment="Center"
+                             Background="Transparent"
+                             BorderThickness="0">
+
+                        <DataGrid x:Name="dgBom"
+                                  ItemsSource="{Binding ShopOrder.Bom}"
+                                  IsReadOnly="True"
+                                  FontSize="18"
+                                  FontWeight="Bold"
+                                  AlternatingRowBackground="LightGray"
+                                  SelectionMode="Single"
+                                  RowDetailsVisibilityMode="Visible"
+                                  AutoGenerateColumns="False"
+                                  RowHeaderWidth="0"
+                                  HorizontalAlignment="Left"
+                                  VerticalAlignment="Top"
+                                  VerticalScrollBarVisibility="Auto"
+                                  HorizontalScrollBarVisibility="Hidden">
+
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Part Number"
+                                                    Binding="{Binding CompNumber}" />
+                                <DataGridTextColumn Header="Description"
+                                                    Binding="{Binding CompDescription}" />
+                                <DataGridTextColumn Header="Assembly Qty">
+                                    <DataGridTextColumn.Binding>
+                                        <MultiBinding StringFormat="{}{0}  {1}">
+                                            <Binding Path="AssemblyQty" />
+                                            <Binding Path="CompUom" />
+                                        </MultiBinding>
+                                    </DataGridTextColumn.Binding>
+                                </DataGridTextColumn>
+                                <DataGridTemplateColumn>
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <Button Command="{StaticResource PartSearchICommand}"
+                                                    Height="20"
+                                                    Width="50"
+                                                    Style="{DynamicResource ResourceKey=DefaultButton}">
+                                                <Image Source="/SFW;component/Icons/PartSearch.ico" />
+                                                <Button.CommandParameter>
+                                                    <MultiBinding Converter="{StaticResource PartSearchConverter}">
+                                                        <Binding Path="CompNumber" />
+                                                        <Binding Path="CompMasterPrint" />
+                                                    </MultiBinding>
+                                                </Button.CommandParameter>
+                                            </Button>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                                <DataGridTemplateColumn>
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <Button Command="{StaticResource PartInfoCommand}"
+                                                    CommandParameter="{Binding CompNumber}"
+                                                    Height="20"
+                                                    Width="50"
+                                                    Style="{DynamicResource DefaultButton}">
+                                                <Image Source="/SFW;component/Icons/Search.ico" />
+                                            </Button>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                            </DataGrid.Columns>
+
+                        </DataGrid>
 
                     </TabItem>
+                    
+                    <!--#endregion-->
+
+                    <!--#region Report Sheet Tab-->
 
                     <TabItem Header="Report Sheet"
                              FontSize="20"
@@ -846,6 +926,8 @@
                         </Grid>
 
                     </TabItem>
+                    
+                    <!--#endregion-->
 
                 </TabControl>
 

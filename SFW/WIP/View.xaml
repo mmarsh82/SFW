@@ -520,7 +520,7 @@
 
             <ItemsControl Name="CompParent"
                           Grid.Row="8"
-                          ItemsSource="{Binding Path=WipRecord.WipWorkOrder.Bom}"
+                          ItemsSource="{Binding Path=WipRecord.WipWorkOrder.Picklist}"
                           Margin="10,0,0,0"
                           FontSize="18"
                           Cursor="Hand"

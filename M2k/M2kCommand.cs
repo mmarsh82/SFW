@@ -306,7 +306,7 @@ namespace M2kClient
             {
                 var _tComp = new List<CompInfo>();
                 //Break out the BOM so that it only has a single instance of the multiple parent
-                foreach (var c in wipRecord.WipWorkOrder.Bom.Where(o => o.IsLotTrace))
+                foreach (var c in wipRecord.WipWorkOrder.Picklist.Where(o => o.IsLotTrace))
                 {
                     foreach (var w in c.WipInfo.Where(o => !string.IsNullOrEmpty(o.LotNbr)))
                     {
@@ -477,17 +477,11 @@ namespace M2kClient
 
             #region Roll Marked Gone
 
-            foreach (var mat in wipRecord.WipWorkOrder.Bom.Where(o => o.WipInfo.Count(p => p.RollStatus) > 0))
+            foreach (var mat in wipRecord.WipWorkOrder.Picklist.Where(o => o.WipInfo.Count(p => p.RollStatus) > 0))
             {
-                foreach (var info in mat.WipInfo.Where(o => o.RollStatus))
+                foreach (var info in mat.WipInfo.Where(o => o.RollStatus && o.OnHandCalc > 0))
                 {
-                    var _moveQty = info.IsScrap == SFW.Model.Enumerations.Complete.Y
-                        ? info.OnHandCalc - info.ScrapList.Where(o => int.TryParse(o.Quantity, out int i)).Sum(o => Convert.ToInt32(o.Quantity))
-                        : info.OnHandCalc;
-                    if (_moveQty != 0)
-                    {
-                        InventoryMove(wipRecord.Submitter, info.PartNbr, info.LotNbr, info.Uom, info.RcptLoc, "SCRAP", _moveQty, connection);
-                    }
+                    InventoryMove(wipRecord.Submitter, info.PartNbr, info.LotNbr, info.Uom, info.RcptLoc, "SCRAP", info.OnHandCalc, connection);
                 }
             }
 

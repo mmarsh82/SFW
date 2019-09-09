@@ -263,14 +263,14 @@ namespace SFW.Model
             IsReclaim = Complete.N;
             if (workOrder.MachineGroup == "EXT")
             {
-                if (workOrder.Bom.Count(o => o.InventoryType == "RC") > 0)
+                if (workOrder.Picklist.Count(o => o.InventoryType == "RC") > 0)
                 {
-                    ReclaimParent = workOrder.Bom.Where(o => o.InventoryType == "RC").FirstOrDefault().CompNumber;
-                    ReclaimAssyQty = workOrder.Bom.Where(o => o.InventoryType == "RC").FirstOrDefault().AssemblyQty;
+                    ReclaimParent = workOrder.Picklist.Where(o => o.InventoryType == "RC").FirstOrDefault().CompNumber;
+                    ReclaimAssyQty = workOrder.Picklist.Where(o => o.InventoryType == "RC").FirstOrDefault().AssemblyQty;
                 }
-                else if (workOrder.Bom.Count() == 1)
+                else if (workOrder.Picklist.Count() == 1)
                 {
-                    var _tempComp = new Component(workOrder.Bom[0].CompNumber, sqlCon, "RC");
+                    var _tempComp = new Component(workOrder.Picklist[0].CompNumber, sqlCon, "RC");
                     ReclaimParent = _tempComp.CompNumber;
                     ReclaimAssyQty = _tempComp.AssemblyQty;
                 }
