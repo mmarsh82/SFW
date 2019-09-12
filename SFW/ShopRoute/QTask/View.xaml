@@ -16,12 +16,21 @@
     </UserControl.Resources>
 
     <Grid>
-        <Grid HorizontalAlignment="Stretch"
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="50"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        
+        <Grid Grid.RowSpan="3"
+              HorizontalAlignment="Stretch"
               VerticalAlignment="Stretch"
               Background="{DynamicResource LineShadeFull}"
               Opacity=".5" />
 
-        <Button Content="Set-up Info"
+        <Button Grid.Row="0"
+                Content="Set-up Info"
                 FontSize="16"
                 HorizontalAlignment="Left"
                 VerticalAlignment="Top"
@@ -30,7 +39,8 @@
                 CommandParameter="{Binding ShopOrder}"
                 Style="{DynamicResource MenuButtonStyle}" />
 
-        <TextBlock Text="{Binding ShopOrder.EngStatusDesc}"
+        <TextBlock Grid.Row="1"
+                   Text="{Binding ShopOrder.EngStatusDesc}"
                    TextDecorations="Underline"
                    FontSize="70"
                    FontWeight="Bold"
@@ -38,206 +48,306 @@
                    VerticalAlignment="Center" 
                    HorizontalAlignment="Center" />
 
-        <StackPanel Orientation="Vertical"
-                    HorizontalAlignment="Center"
-                    VerticalAlignment="Bottom">
+        <!--#region Tab Control for Work order BOM and reports-->
 
-            <TextBlock Text="Picklist Parts (BOM)"
-                       FontSize="24"
-                       FontWeight="Bold"
-                       Foreground="Black"
-                       TextDecorations="Underline" />
+            <TabControl Grid.Row="2"
+                        VerticalAlignment="Top"
+                        HorizontalAlignment="Center"
+                        BorderThickness="0"
+                        Background="WhiteSmoke">
 
-            <!--#region BOM-->
+                <!--#region Picklist Tab-->
 
-            <DataGrid x:Name="dgBom"
-                      ItemsSource="{Binding ShopOrder.Bom}"
-                      IsReadOnly="True"
-                      FontSize="18"
-                      FontWeight="Bold"
-                      AlternatingRowBackground="LightGray"
-                      SelectionMode="Single"
-                      RowDetailsVisibilityMode="Visible"
-                      AutoGenerateColumns="False"
-                      RowHeaderWidth="0"
-                      VerticalScrollBarVisibility="Auto"
-                      HorizontalScrollBarVisibility="Hidden"
-                      Margin="10,0,0,40">
+                <TabItem Header="Picklist Parts"
+                             FontSize="20"
+                             FontWeight="Bold"
+                             Foreground="#FF135185"
+                             HorizontalAlignment="Left"
+                             VerticalAlignment="Center"
+                             Background="WhiteSmoke"
+                             BorderThickness="0">
 
-                <DataGrid.Columns>
-                    <DataGridTextColumn Header="Part Number"
-                                        Binding="{Binding CompNumber}" />
-                    <DataGridTextColumn Header="Description"
-                                        Binding="{Binding CompDescription}" />
-                    <DataGridTextColumn Header="On Hand">
-                        <DataGridTextColumn.Binding>
-                            <MultiBinding StringFormat="{}{0}  {1}">
-                                <Binding Path="CurrentOnHand" />
-                                <Binding Path="CompUom" />
-                            </MultiBinding>
-                        </DataGridTextColumn.Binding>
-                    </DataGridTextColumn>
-                    <DataGridTextColumn Header="Required Qty">
-                        <DataGridTextColumn.Binding>
-                            <MultiBinding StringFormat="{}{0}  {1}">
-                                <Binding Path="RequiredQty" />
-                                <Binding Path="CompUom" />
-                            </MultiBinding>
-                        </DataGridTextColumn.Binding>
-                    </DataGridTextColumn>
-                    <DataGridTextColumn Header="Assembly Qty">
-                        <DataGridTextColumn.Binding>
-                            <MultiBinding StringFormat="{}{0}  {1}">
-                                <Binding Path="AssemblyQty" />
-                                <Binding Path="CompUom" />
-                            </MultiBinding>
-                        </DataGridTextColumn.Binding>
-                    </DataGridTextColumn>
-                    <DataGridTextColumn Header="Issued Qty">
-                        <DataGridTextColumn.Binding>
-                            <MultiBinding StringFormat="{}{0}  {1}">
-                                <Binding Path="IssuedQty" />
-                                <Binding Path="CompUom" />
-                            </MultiBinding>
-                        </DataGridTextColumn.Binding>
-                    </DataGridTextColumn>
-                    <DataGridTemplateColumn>
-                        <DataGridTemplateColumn.CellTemplate>
+                    <DataGrid x:Name="dgPick"
+                                  ItemsSource="{Binding ShopOrder.Picklist}"
+                                  IsReadOnly="True"
+                                  FontSize="18"
+                                  FontWeight="Bold"
+                                  AlternatingRowBackground="LightGray"
+                                  SelectionMode="Single"
+                                  RowDetailsVisibilityMode="Visible"
+                                  AutoGenerateColumns="False"
+                                  RowHeaderWidth="0"
+                                  HorizontalAlignment="Left"
+                                  VerticalAlignment="Top"
+                                  VerticalScrollBarVisibility="Auto"
+                                  HorizontalScrollBarVisibility="Hidden">
+
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Part Number"
+                                                    Binding="{Binding CompNumber}" />
+                            <DataGridTextColumn Header="Description"
+                                                    Binding="{Binding CompDescription}" />
+                            <DataGridTextColumn Header="On Hand">
+                                <DataGridTextColumn.Binding>
+                                    <MultiBinding StringFormat="{}{0}  {1}">
+                                        <Binding Path="CurrentOnHand" />
+                                        <Binding Path="CompUom" />
+                                    </MultiBinding>
+                                </DataGridTextColumn.Binding>
+                            </DataGridTextColumn>
+                            <DataGridTextColumn Header="Pickable">
+                                <DataGridTextColumn.Binding>
+                                    <MultiBinding StringFormat="{}{0}  {1}">
+                                        <Binding Path="CurrentPickable" />
+                                        <Binding Path="CompUom" />
+                                    </MultiBinding>
+                                </DataGridTextColumn.Binding>
+                            </DataGridTextColumn>
+                            <DataGridTextColumn Header="Required Qty">
+                                <DataGridTextColumn.Binding>
+                                    <MultiBinding StringFormat="{}{0}  {1}">
+                                        <Binding Path="RequiredQty" />
+                                        <Binding Path="CompUom" />
+                                    </MultiBinding>
+                                </DataGridTextColumn.Binding>
+                            </DataGridTextColumn>
+                            <DataGridTextColumn Header="Assembly Qty">
+                                <DataGridTextColumn.Binding>
+                                    <MultiBinding StringFormat="{}{0}  {1}">
+                                        <Binding Path="AssemblyQty" />
+                                        <Binding Path="CompUom" />
+                                    </MultiBinding>
+                                </DataGridTextColumn.Binding>
+                            </DataGridTextColumn>
+                            <DataGridTextColumn Header="Issued Qty">
+                                <DataGridTextColumn.Binding>
+                                    <MultiBinding StringFormat="{}{0}  {1}">
+                                        <Binding Path="IssuedQty" />
+                                        <Binding Path="CompUom" />
+                                    </MultiBinding>
+                                </DataGridTextColumn.Binding>
+                            </DataGridTextColumn>
+                            <DataGridTemplateColumn>
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Button Command="{StaticResource PartSearchICommand}"
+                                                    Height="20"
+                                                    Width="50"
+                                                    Style="{DynamicResource ResourceKey=DefaultButton}">
+                                            <Image Source="/SFW;component/Icons/PartSearch.ico" />
+                                            <Button.CommandParameter>
+                                                <MultiBinding Converter="{StaticResource PartSearchConverter}">
+                                                    <Binding Path="CompNumber" />
+                                                    <Binding Path="CompMasterPrint" />
+                                                </MultiBinding>
+                                            </Button.CommandParameter>
+                                        </Button>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTemplateColumn>
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Button Command="{StaticResource PartInfoCommand}"
+                                                    CommandParameter="{Binding CompNumber}"
+                                                    Height="20"
+                                                    Width="50"
+                                                    Style="{DynamicResource DefaultButton}">
+                                            <Image Source="/SFW;component/Icons/Search.ico" />
+                                        </Button>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                        </DataGrid.Columns>
+
+                        <DataGrid.RowDetailsTemplate>
                             <DataTemplate>
-                                <Button Command="{StaticResource PartSearchICommand}"
-                                        Height="20"
-                                        Width="50"
-                                        Style="{DynamicResource ResourceKey=DefaultButton}">
-                                    <Image Source="/SFW;component/Icons/PartSearch.ico" />
-                                    <Button.CommandParameter>
-                                        <MultiBinding Converter="{StaticResource PartSearchConverter}">
-                                            <Binding Path="CompNumber" />
-                                            <Binding Path="CompMasterPrint" />
-                                        </MultiBinding>
-                                    </Button.CommandParameter>
-                                </Button>
+
+                                <Grid Background="Gray">
+                                    <DockPanel>
+
+                                        <DataGrid x:Name="dgBomLots"
+                                                      ItemsSource="{Binding LotList}"
+                                                      MaxHeight="93"
+                                                      IsReadOnly="True"
+                                                      FontSize="14"
+                                                      FontWeight="SemiBold"
+                                                      AlternatingRowBackground="LightGray"
+                                                      SelectionMode="Single"
+                                                      AutoGenerateColumns="False"
+                                                      RowHeaderWidth="0"
+                                                      HorizontalAlignment="Left"
+                                                      VerticalAlignment="Top">
+
+                                            <DataGrid.Visibility>
+                                                <MultiBinding Converter="{StaticResource CountToVisConverter}"
+                                                                  ConverterParameter="LotList">
+                                                    <Binding Path="DataContext.CurrentSite"
+                                                                 RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType={x:Type DataGrid}}" />
+                                                    <Binding Path="LotList.Count" />
+                                                </MultiBinding>
+                                            </DataGrid.Visibility>
+
+                                            <DataGrid.Columns>
+                                                <DataGridTextColumn Header="Lot Number"
+                                                                        Binding="{Binding LotNumber}" />
+                                                <DataGridTextColumn Header="On Hand"
+                                                                        Binding="{Binding Onhand}" />
+                                                <DataGridTextColumn Header="Location"
+                                                                        Binding="{Binding Location}" />
+                                            </DataGrid.Columns>
+
+                                        </DataGrid>
+
+                                        <DataGrid x:Name="dgBomNonLots"
+                                                      ItemsSource="{Binding NonLotList}"
+                                                      MaxHeight="93"
+                                                      IsReadOnly="True"
+                                                      FontSize="14"
+                                                      FontWeight="SemiBold"
+                                                      AlternatingRowBackground="LightGray"
+                                                      SelectionMode="Single"
+                                                      AutoGenerateColumns="False"
+                                                      RowHeaderWidth="0"
+                                                      HorizontalAlignment="Left"
+                                                      VerticalAlignment="Top">
+
+                                            <DataGrid.Visibility>
+                                                <MultiBinding Converter="{StaticResource CountToVisConverter}"
+                                                                  ConverterParameter="LotList">
+                                                    <Binding Path="DataContext.CurrentSite"
+                                                                 RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType={x:Type DataGrid}}" />
+                                                    <Binding Path="NonLotList.Count" />
+                                                </MultiBinding>
+                                            </DataGrid.Visibility>
+
+                                            <DataGrid.Columns>
+                                                <DataGridTextColumn Header="On Hand"
+                                                                        Binding="{Binding Onhand}" />
+                                                <DataGridTextColumn Header="Location"
+                                                                        Binding="{Binding Location}" />
+                                            </DataGrid.Columns>
+
+                                        </DataGrid>
+
+                                        <DataGrid x:Name="dgBomDedications"
+                                                      ItemsSource="{Binding DedicatedLotList}"
+                                                      Visibility="{Binding DedicatedLotList.Count, Converter={StaticResource CountToVisConverter}}"
+                                                      MaxHeight="115"
+                                                      IsReadOnly="True"
+                                                      FontSize="14"
+                                                      FontWeight="SemiBold"
+                                                      AlternatingRowBackground="LightGray"
+                                                      SelectionMode="Single"
+                                                      AutoGenerateColumns="False"
+                                                      RowHeaderWidth="0"
+                                                      HorizontalAlignment="Left"
+                                                      VerticalAlignment="Top">
+
+                                            <DataGrid.Columns>
+                                                <DataGridTextColumn Header="Lot Number"
+                                                                        Binding="{Binding LotNumber}" />
+                                                <DataGridTextColumn Header="Dedicated"
+                                                                        Binding="{Binding Onhand}" />
+                                                <DataGridTextColumn Header="Location"
+                                                                        Binding="{Binding Location}" />
+                                            </DataGrid.Columns>
+
+                                        </DataGrid>
+
+                                    </DockPanel>
+                                </Grid>
+
                             </DataTemplate>
-                        </DataGridTemplateColumn.CellTemplate>
-                    </DataGridTemplateColumn>
-                    <DataGridTemplateColumn>
-                        <DataGridTemplateColumn.CellTemplate>
-                            <DataTemplate>
-                                <Button Content="ITH"
-                                        FontSize="14"
-                                        Width="50"
-                                        Command="{StaticResource PartInfoCommand}"
-                                        CommandParameter="{Binding CompNumber}"
-                                        Style="{DynamicResource DefaultButton}" />
-                            </DataTemplate>
-                        </DataGridTemplateColumn.CellTemplate>
-                    </DataGridTemplateColumn>
-                </DataGrid.Columns>
+                        </DataGrid.RowDetailsTemplate>
 
-                <DataGrid.RowDetailsTemplate>
-                    <DataTemplate>
+                    </DataGrid>
 
-                        <Grid Background="Gray">
-                            <DockPanel>
+                </TabItem>
 
-                                <DataGrid x:Name="dgBomLots"
-                                          ItemsSource="{Binding LotList}"
-                                          MaxHeight="93"
-                                          IsReadOnly="True"
-                                          FontSize="14"
-                                          FontWeight="SemiBold"
-                                          AlternatingRowBackground="LightGray"
-                                          SelectionMode="Single"
-                                          AutoGenerateColumns="False"
-                                          RowHeaderWidth="0"
-                                          HorizontalAlignment="Left"
-                                          VerticalAlignment="Top">
+                <!--#endregion-->
 
-                                    <DataGrid.Visibility>
-                                        <MultiBinding Converter="{StaticResource CountToVisConverter}"
-                                                      ConverterParameter="LotList">
-                                            <Binding Path="DataContext.CurrentSite"
-                                                     RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType={x:Type DataGrid}}" />
-                                            <Binding Path="LotList.Count" />
-                                        </MultiBinding>
-                                    </DataGrid.Visibility>
+                <!--#region Bill of Material Tab-->
 
-                                    <DataGrid.Columns>
-                                        <DataGridTextColumn Header="Lot Number"
-                                                            Binding="{Binding LotNumber}" />
-                                        <DataGridTextColumn Header="On Hand"
-                                                            Binding="{Binding Onhand}" />
-                                        <DataGridTextColumn Header="Location"
-                                                            Binding="{Binding Location}" />
-                                    </DataGrid.Columns>
+                <TabItem Header="Bill of Material (BOM)"
+                             FontSize="20"
+                             FontWeight="Bold"
+                             Foreground="#FF135185"
+                             HorizontalAlignment="Left"
+                             VerticalAlignment="Center"
+                             Background="WhiteSmoke"
+                             BorderThickness="0">
 
-                                </DataGrid>
+                    <DataGrid x:Name="dgBom"
+                                  ItemsSource="{Binding ShopOrder.Bom}"
+                                  IsReadOnly="True"
+                                  FontSize="18"
+                                  FontWeight="Bold"
+                                  AlternatingRowBackground="LightGray"
+                                  SelectionMode="Single"
+                                  RowDetailsVisibilityMode="Visible"
+                                  AutoGenerateColumns="False"
+                                  RowHeaderWidth="0"
+                                  HorizontalAlignment="Left"
+                                  VerticalAlignment="Top"
+                                  VerticalScrollBarVisibility="Auto"
+                                  HorizontalScrollBarVisibility="Hidden">
 
-                                <DataGrid x:Name="dgBomNonLots"
-                                          ItemsSource="{Binding NonLotList}"
-                                          MaxHeight="93"
-                                          IsReadOnly="True"
-                                          FontSize="14"
-                                          FontWeight="SemiBold"
-                                          AlternatingRowBackground="LightGray"
-                                          SelectionMode="Single"
-                                          AutoGenerateColumns="False"
-                                          RowHeaderWidth="0"
-                                          HorizontalAlignment="Left"
-                                          VerticalAlignment="Top">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Part Number"
+                                                    Binding="{Binding CompNumber}" />
+                            <DataGridTextColumn Header="Description"
+                                                    Binding="{Binding CompDescription}" />
+                            <DataGridTextColumn Header="Assembly Qty">
+                                <DataGridTextColumn.Binding>
+                                    <MultiBinding StringFormat="{}{0}  {1}">
+                                        <Binding Path="AssemblyQty" />
+                                        <Binding Path="CompUom" />
+                                    </MultiBinding>
+                                </DataGridTextColumn.Binding>
+                            </DataGridTextColumn>
+                            <DataGridTemplateColumn>
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Button Command="{StaticResource PartSearchICommand}"
+                                                    Height="20"
+                                                    Width="50"
+                                                    Style="{DynamicResource ResourceKey=DefaultButton}">
+                                            <Image Source="/SFW;component/Icons/PartSearch.ico" />
+                                            <Button.CommandParameter>
+                                                <MultiBinding Converter="{StaticResource PartSearchConverter}">
+                                                    <Binding Path="CompNumber" />
+                                                    <Binding Path="CompMasterPrint" />
+                                                </MultiBinding>
+                                            </Button.CommandParameter>
+                                        </Button>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTemplateColumn>
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Button Command="{StaticResource PartInfoCommand}"
+                                                    CommandParameter="{Binding CompNumber}"
+                                                    Height="20"
+                                                    Width="50"
+                                                    Style="{DynamicResource DefaultButton}">
+                                            <Image Source="/SFW;component/Icons/Search.ico" />
+                                        </Button>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                        </DataGrid.Columns>
 
-                                    <DataGrid.Visibility>
-                                        <MultiBinding Converter="{StaticResource CountToVisConverter}"
-                                                      ConverterParameter="LotList">
-                                            <Binding Path="DataContext.CurrentSite"
-                                                     RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType={x:Type DataGrid}}" />
-                                            <Binding Path="NonLotList.Count" />
-                                        </MultiBinding>
-                                    </DataGrid.Visibility>
+                    </DataGrid>
 
-                                    <DataGrid.Columns>
-                                        <DataGridTextColumn Header="On Hand"
-                                                            Binding="{Binding Onhand}" />
-                                        <DataGridTextColumn Header="Location"
-                                                            Binding="{Binding Location}" />
-                                    </DataGrid.Columns>
+                </TabItem>
 
-                                </DataGrid>
+                <!--#endregion-->
 
-                                <DataGrid x:Name="dgBomDedications"
-                                          ItemsSource="{Binding DedicatedLotList}"
-                                          Visibility="{Binding DedicatedLotList.Count, Converter={StaticResource CountToVisConverter}}"
-                                          MaxHeight="115"
-                                          IsReadOnly="True"
-                                          FontSize="14"
-                                          FontWeight="SemiBold"
-                                          AlternatingRowBackground="LightGray"
-                                          SelectionMode="Single"
-                                          AutoGenerateColumns="False"
-                                          RowHeaderWidth="0"
-                                          HorizontalAlignment="Left"
-                                          VerticalAlignment="Top">
-
-                                    <DataGrid.Columns>
-                                        <DataGridTextColumn Header="Lot Number"
-                                                            Binding="{Binding LotNumber}" />
-                                        <DataGridTextColumn Header="Dedicated"
-                                                            Binding="{Binding Onhand}" />
-                                        <DataGridTextColumn Header="Location"
-                                                            Binding="{Binding Location}" />
-                                    </DataGrid.Columns>
-
-                                </DataGrid>
-
-                            </DockPanel>
-                        </Grid>
-
-                    </DataTemplate>
-                </DataGrid.RowDetailsTemplate>
-
-            </DataGrid>
+            </TabControl>
 
             <!--#endregion-->
-        </StackPanel>
 
     </Grid>
 </UserControl>

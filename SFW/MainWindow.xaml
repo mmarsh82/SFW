@@ -177,10 +177,24 @@
             <Image Visibility="{Binding Path=(local:CurrentUser.IsLoggedIn), Converter={StaticResource BoolToVisConverter}}"
                    Source="Icons/Admin.ico"
                    Margin="2"/>
-            <TextBlock Text="{Binding Path=(local:CurrentUser.DisplayName), StringFormat='Welcome {0}'}"
+            <TextBlock Text="Welcome"
                        Visibility="{Binding Path=(local:CurrentUser.IsLoggedIn), Converter={StaticResource BoolToVisConverter}}"
-                       VerticalAlignment="Center"
-                       FontSize="12"/>
+                       VerticalAlignment="Center"/>
+            <Menu VerticalAlignment="Center"
+                  Visibility="{Binding Path=(local:CurrentUser.IsLoggedIn), Converter={StaticResource BoolToVisConverter}}">
+                <MenuItem Header="{Binding Path=(local:CurrentUser.DisplayName)}">
+                    <MenuItem Header="{Binding Path=(local:CurrentUser.UserIDNbr)}" HeaderStringFormat="ID Number: {0}"/>
+                    <MenuItem Header="{Binding Path=(local:CurrentUser.DomainUserName)}" HeaderStringFormat="User Name: {0}"/>
+                    <MenuItem Header="{Binding Path=(local:CurrentUser.DomainName)}" HeaderStringFormat="Connected Server: {0}"/>
+                    <MenuItem Header="{Binding Path=(local:CurrentUser.FirstName)}" HeaderStringFormat="First Name: {0}" Background="Crimson" FontWeight="Bold"/>
+                    <MenuItem Header="{Binding Path=(local:CurrentUser.LastName)}" HeaderStringFormat="Last Name: {0}" Background="Crimson" FontWeight="Bold"/>
+                    <MenuItem Header="{Binding Path=(local:CurrentUser.Email)}" HeaderStringFormat="Email: {0}"/>
+                    <MenuItem Header="CanSchedule" IsChecked="{Binding Path=(local:CurrentUser.CanSchedule), Mode=OneWay}"/>
+                    <MenuItem Header="CanWip" IsChecked="{Binding Path=(local:CurrentUser.CanWip), Mode=OneWay}"/>
+                    <MenuItem Header="IsAdmin" IsChecked="{Binding Path=(local:CurrentUser.IsAdmin), Mode=OneWay}"/>
+                </MenuItem>
+            </Menu>
+           
             <TextBlock Text="{Binding Path=(local:RefreshTimer.LastRefresh), StringFormat='Last Refresh: {0}'}"
                        Margin="20,0,20,0"
                        VerticalAlignment="Center"

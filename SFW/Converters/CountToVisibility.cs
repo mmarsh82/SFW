@@ -36,7 +36,7 @@ namespace SFW.Converters
         {
             if (parameter?.ToString() == "LotList")
             {
-                return System.Convert.ToInt32(values[0]) != 0 && System.Convert.ToInt32(values[1]) > 0 ? Visibility.Visible : Visibility.Collapsed;
+               return System.Convert.ToInt32(values[0]) != 0 && System.Convert.ToInt32(values[1]) > 0 ? Visibility.Visible : Visibility.Collapsed;
             }
             var _test = false;
             var _count = 0;

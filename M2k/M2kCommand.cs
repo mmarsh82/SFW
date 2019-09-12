@@ -435,7 +435,7 @@ namespace M2kClient
                     Convert.ToInt32(s.Quantity),
                     wipRecord.ReceiptLocation,
                     connection,
-                    wipRecord.WipLot.LotNumber);
+                    wipRecord.WipLot.LotNumber == "NonLotWip" || wipRecord.WipLot.LotNumber == "Multiple" ? "" : wipRecord.WipLot.LotNumber);
             }
             if (_tWip?.AdjustmentList?.Count > 0)
             {

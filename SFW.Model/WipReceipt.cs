@@ -229,6 +229,8 @@ namespace SFW.Model
         /// </summary>
         public int? RollQty { get; set; }
 
+        public bool IsLoading { get; set; }
+
         #endregion
 
         /// <summary>
@@ -240,6 +242,7 @@ namespace SFW.Model
         /// <param name="sqlCon">Sql Connection to use</param>
         public WipReceipt(string subFName, string subLName, WorkOrder workOrder, SqlConnection sqlCon)
         {
+            IsLoading = true;
             Submitter = $"{subFName} {subLName}";
             ModelBase.ModelSqlCon = sqlCon;
             SeqComplete = Complete.N;
@@ -250,10 +253,8 @@ namespace SFW.Model
             HasCrew = true;
             if (HasCrew)
             {
-                CrewList = new BindingList<CrewMember>
-                {
-                    new CrewMember { IdNumber = CrewMember.GetCrewIdNumber(sqlCon, subFName, subLName), Name = Submitter, LastClock = "" }
-                };
+                CrewList = new BindingList<CrewMember> { new CrewMember(subFName, subLName, sqlCon) };
+                CrewList[0].LastClock = string.Empty;
                 CrewList.AddNew();
                 CrewList.ListChanged += CrewList_ListChanged;
             }
@@ -276,6 +277,7 @@ namespace SFW.Model
                 }
             }
             CanMulti = workOrder.MachineGroup == "SLIT";
+            IsLoading = false;
         }
 
         /// <summary>
@@ -285,18 +287,21 @@ namespace SFW.Model
         /// <param name="e">Change info</param>
         private void CrewList_ListChanged(object sender, ListChangedEventArgs e)
         {
-            if (e.ListChangedType == ListChangedType.ItemChanged && e.PropertyDescriptor.DisplayName == "IdNumber" )
+            if (e.ListChangedType == ListChangedType.ItemChanged && e.PropertyDescriptor?.DisplayName == "IdNumber" && !IsLoading)
             {
-                ((BindingList<CrewMember>)sender)[e.NewIndex].Name = string.Empty;
-                var _dName = CrewMember.GetCrewDisplayName(ModelBase.ModelSqlCon, ((BindingList<CrewMember>)sender)[e.NewIndex].IdNumber);
-                var _duplicate = ((BindingList<CrewMember>)sender).Any(o => o.Name == _dName);
-                if (!string.IsNullOrEmpty(_dName) && !_duplicate)
+                if (CrewMember.IsCrewIDValid(ModelBase.ModelSqlCon, ((BindingList<CrewMember>)sender)[e.NewIndex].IdNumber))
                 {
-                    ((BindingList<CrewMember>)sender)[e.NewIndex].Name = _dName;
-                    if (((BindingList<CrewMember>)sender).Count == e.NewIndex + 1)
+                    IsLoading = true;
+                    var _tempCrew = new CrewMember(((BindingList<CrewMember>)sender)[e.NewIndex].IdNumber, ModelBase.ModelSqlCon);
+                    ((BindingList<CrewMember>)sender)[e.NewIndex].Name = _tempCrew.Name;
+                    ((BindingList<CrewMember>)sender)[e.NewIndex].IsDirect = _tempCrew.IsDirect;
+                    ((BindingList<CrewMember>)sender)[e.NewIndex].Shift = _tempCrew.Shift;
+                    ((BindingList<CrewMember>)sender)[e.NewIndex].LastClock = string.Empty;
+                    if (((BindingList<CrewMember>)sender).Count() == ((BindingList<CrewMember>)sender).Count(o => !string.IsNullOrEmpty(o.Name)))
                     {
                         ((BindingList<CrewMember>)sender).AddNew();
                     }
+                    IsLoading = false;
                 }
             }
         }

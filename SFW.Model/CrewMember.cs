@@ -24,102 +24,39 @@ namespace SFW.Model
         public string Name
         {
             get { return name; }
-            set { name = value; OnPropertyChanged(nameof(Name)); OnPropertyChanged(nameof(Shift)); OnPropertyChanged(nameof(IsDirect)); LastClock = string.Empty; }
+            set { name = value; OnPropertyChanged(nameof(Name)); }
         }
 
+        private bool isDirect;
         public bool IsDirect
         {
             get
-            {
-                if (!string.IsNullOrEmpty(Name))
-                {
-                    var sqlCon = ModelBase.ModelSqlCon;
-                    if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
-                    {
-                        try
-                        {
-                            using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database};
-                                                                SELECT
-	                                                                CASE WHEN [Dept] = '010'
-		                                                                THEN
-			                                                                1
-		                                                                ELSE
-			                                                                0 END as [IsDirect]
-                                                                FROM
-	                                                                [dbo].[EMPLOYEE_MASTER-INIT]
-                                                                WHERE
-	                                                                [Emp_No] = @p1 AND [Pay_Status] = 'A';", sqlCon))
-                            {
-                                cmd.Parameters.AddWithValue("p1", IdNumber);
-                                return Convert.ToInt32(cmd.ExecuteScalar()) >= 1;
-                            }
-                        }
-                        catch (SqlException sqlEx)
-                        {
-                            throw sqlEx;
-                        }
-                        catch (Exception ex)
-                        {
-                            throw new Exception(ex.Message);
-                        }
-                    }
-                    else
-                    {
-                        throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
-                    }
-                }
-                return false;
-            }
+            { return isDirect; }
+            set
+            { isDirect = value; OnPropertyChanged(nameof(IsDirect)); }
         }
 
+        private int shift;
         public int Shift
         {
             get
-            {
-                if (!string.IsNullOrEmpty(Name))
-                {
-                    var sqlCon = ModelBase.ModelSqlCon;
-                    if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
-                    {
-                        try
-                        {
-                            using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database};
-                                                               SELECT [Shift] FROM [dbo].[EMPLOYEE_MASTER-INIT] WHERE [Emp_No] = @p1", sqlCon))
-                            {
-                                cmd.Parameters.AddWithValue("p1", IdNumber);
-                                return Convert.ToInt32(cmd.ExecuteScalar());
-                            }
-                        }
-                        catch (SqlException sqlEx)
-                        {
-                            throw sqlEx;
-                        }
-                        catch (Exception ex)
-                        {
-                            throw new Exception(ex.Message);
-                        }
-                    }
-                    else
-                    {
-                        throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
-                    }
-                }
-                return 0;
-            }
+            { return shift; }
+            set
+            { shift = value; OnPropertyChanged(nameof(Shift)); }
         }
 
         private string lastClock;
         public string LastClock
         {
-            get { return lastClock; }
+            get
+            { return lastClock; }
             set
             {
-                if (!string.IsNullOrEmpty(Name) && string.IsNullOrEmpty(value) && IsDirect)
+                if (IsDirect && lastClock == null)
                 {
-                    var time = string.Empty;
                     System.Threading.Tasks.Task.Run(() =>
                     {
-                        time = GetLastClockTime(IdNumber, Shift, ModelBase.ModelSqlCon);
+                        var time = GetLastClockTime(IdNumber, Shift, ModelBase.ModelSqlCon);
                         if (string.IsNullOrEmpty(time) || time == "00:00")
                         {
                             switch (Shift)
@@ -189,12 +126,155 @@ namespace SFW.Model
         { }
 
         /// <summary>
+        /// Overridden Constructor
+        /// Load a crewmember object based on an employee ID
+        /// </summary>
+        /// <param name="idNbr">Crew member ID Number</param>
+        /// <param name="sqlCon">Sql Connection to use</param>
+        public CrewMember(string idNbr, SqlConnection sqlCon)
+        {
+            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
+            {
+                try
+                {
+                    using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database};
+                                                                SELECT
+	                                                                CONCAT([First_Name], ' ', [Last_Name]) as 'DisplayName',
+	                                                                CASE WHEN [Dept] = '010' THEN 1 ELSE 0 END as 'IsDirect',
+	                                                                [Shift]
+                                                                FROM
+	                                                                [dbo].[EMPLOYEE_MASTER-INIT]
+                                                                WHERE
+	                                                                [Emp_No] = @p1 AND [Pay_Status] = 'A';", sqlCon))
+                    {
+                        cmd.Parameters.AddWithValue("p1", idNbr);
+                        using (SqlDataReader reader = cmd.ExecuteReader())
+                        {
+                            if (reader.HasRows)
+                            {
+                                while (reader.Read())
+                                {
+                                    IdNumber = idNbr;
+                                    Name = reader.SafeGetString("DisplayName");
+                                    IsDirect = reader.SafeGetBoolean("IsDirect");
+                                    Shift = reader.SafeGetInt32("Shift");
+                                }
+                            }
+                        }
+                    }
+                }
+                catch (SqlException sqlEx)
+                {
+                    throw sqlEx;
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception(ex.Message);
+                }
+            }
+            else
+            {
+                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
+            }
+        }
+
+        /// <summary>
+        /// Overridden Constructor
+        /// Load a crewmember object based on an employee name
+        /// WARNING this will not work if the name is spelled incorrectly
+        /// Best to just include all crew member ID's in the active directory
+        /// </summary>
+        /// <param name="firstName">Crew member first name</param>
+        /// <param name="lastName">Crew member last name</param>
+        /// <param name="sqlCon">Sql Connection to use</param>
+        public CrewMember(string firstName, string lastName, SqlConnection sqlCon)
+        {
+            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
+            {
+                try
+                {
+                    using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database};
+                                                                SELECT
+	                                                                [Emp_No],
+	                                                                CASE WHEN [Dept] = '010' THEN 1 ELSE 0 END as 'IsDirect',
+	                                                                [Shift]
+                                                                FROM
+	                                                                [dbo].[EMPLOYEE_MASTER-INIT]
+                                                                WHERE
+	                                                                [First_Name] = @p1 AND [Last_Name] = @p2 AND [Pay_Status] = 'A';", sqlCon))
+                    {
+                        cmd.Parameters.AddWithValue("p1", firstName);
+                        cmd.Parameters.AddWithValue("p2", lastName);
+                        using (SqlDataReader reader = cmd.ExecuteReader())
+                        {
+                            if (reader.HasRows)
+                            {
+                                while (reader.Read())
+                                {
+                                    IdNumber = reader.SafeGetString("Emp_No");
+                                    Name = $"{firstName} {lastName}";
+                                    IsDirect = reader.SafeGetBoolean("IsDirect");
+                                    Shift = reader.SafeGetInt32("Shift");
+                                }
+                            }
+                        }
+                    }
+                }
+                catch (SqlException sqlEx)
+                {
+                    throw sqlEx;
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception(ex.Message);
+                }
+            }
+            else
+            {
+                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
+            }
+        }
+
+        /// <summary>
+        /// Checks to see if a crew ID number is valid
+        /// </summary>
+        /// <param name="sqlCon">Sql Connection to use</param>
+        /// <param name="idNbr">Crew member ID</param>
+        /// <returns>Crew member existance in the database</returns>
+        public static bool IsCrewIDValid(SqlConnection sqlCon, string idNbr)
+        {
+            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
+            {
+                try
+                {
+                    using (SqlCommand cmd = new SqlCommand($"USE {sqlCon.Database}; SELECT COUNT([Emp_No]) as 'Count' FROM [dbo].[EMPLOYEE_MASTER-INIT] WHERE [Emp_No] = @p1 AND [Pay_Status] = 'A';", sqlCon))
+                    {
+                        cmd.Parameters.AddWithValue("p1", idNbr);
+                        return int.TryParse(cmd.ExecuteScalar().ToString(), out int i) && i > 0;
+                    }
+                }
+                catch (SqlException sqlEx)
+                {
+                    throw sqlEx;
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception(ex.Message);
+                }
+            }
+            else
+            {
+                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
+            }
+        }
+
+        /// <summary>
         /// Get an crew member's Id number
         /// </summary>
         /// <param name="sqlCon">Sql Connection to use</param>
         /// <param name="firstName">Crew member's first name</param>
         /// <param name="lastName">Crew member's last name</param>
-        /// <returns></returns>
+        /// <returns>Crew member's ID Number</returns>
         public static string GetCrewIdNumber(SqlConnection sqlCon, string firstName, string lastName)
         {
             if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
@@ -228,7 +308,7 @@ namespace SFW.Model
         /// </summary>
         /// <param name="sqlCon">Sql Connection to use</param>
         /// <param name="idNbr">Crew member's ID number</param>
-        /// <returns></returns>
+        /// <returns>Crew member's display name</returns>
         public static string GetCrewDisplayName(SqlConnection sqlCon, string idNbr)
         {
             if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
