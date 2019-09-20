@@ -847,54 +847,55 @@
             <!--#region Submission Actions-->
 
             <StackPanel Grid.Row="9"
-                    Orientation="Horizontal"
-                    HorizontalAlignment="Right">
+                        Orientation="Horizontal"
+                        HorizontalAlignment="Right">
 
                 <Button Content="Submit"
-                    Width="100"
-                    FontSize="18"
-                    Margin="5"
-                    Command="{Binding WipICommand}"
-                    Style="{DynamicResource DefaultButton}" />
+                        Width="100"
+                        FontSize="18"
+                        Margin="5"
+                        Command="{Binding WipICommand}"
+                        Style="{DynamicResource DefaultButton}"
+                        Visibility="{Binding IsSubmitted, Converter={StaticResource BooltoVisConverter}, ConverterParameter=i}"/>
 
             </StackPanel>
 
             <StackPanel Grid.Row="9"
-                    Orientation="Horizontal"
-                    HorizontalAlignment="Left"
-                    Visibility="{Binding WipRecord.WipLot.LotNumber, Converter={StaticResource StringtoVisConverter}}">
+                        Orientation="Horizontal"
+                        HorizontalAlignment="Left"
+                        Visibility="{Binding IsSubmitted, Converter={StaticResource BooltoVisConverter}}">
 
                 <TextBlock Text="Travel Card Quantity:"
-                       FontSize="18"
-                       FontWeight="Bold"
-                       TextDecorations="Underline"
-                       VerticalAlignment="Center"
-                       Margin="10,0,0,0" />
+                           FontSize="18"
+                           FontWeight="Bold"
+                           TextDecorations="Underline"
+                           VerticalAlignment="Center"
+                           Margin="10,0,0,0" />
 
                 <TextBox Text="{Binding TQty, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                     Width="90"
-                     FontSize="18"
-                     Margin="8"
-                     MaxLength="5"
-                     IsTabStop="False"
-                     Background="LightGray"
-                     Style="{DynamicResource OptionalTextBox}" />
+                         Width="90"
+                         FontSize="18"
+                         Margin="8"
+                         MaxLength="5"
+                         IsTabStop="False"
+                         Background="LightGray"
+                         Style="{DynamicResource OptionalTextBox}" />
 
                 <Button Content="Travel Card"
-                    Width="120"
-                    FontSize="18"
-                    Margin="5"
-                    Command="{Binding MPrintICommand}"
-                    CommandParameter="T"
-                    Style="{DynamicResource DefaultButton}" />
+                        Width="120"
+                        FontSize="18"
+                        Margin="5"
+                        Command="{Binding MPrintICommand}"
+                        CommandParameter="T"
+                        Style="{DynamicResource DefaultButton}" />
 
                 <Button Content="Reference Card"
-                    Width="150"
-                    FontSize="18"
-                    Margin="5"
-                    Command="{Binding MPrintICommand}"
-                    CommandParameter="R"
-                    Style="{DynamicResource DefaultButton}" />
+                        Width="150"
+                        FontSize="18"
+                        Margin="5"
+                        Command="{Binding MPrintICommand}"
+                        CommandParameter="R"
+                        Style="{DynamicResource DefaultButton}" />
 
             </StackPanel>
 

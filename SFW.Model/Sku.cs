@@ -286,7 +286,7 @@ namespace SFW.Model
                             }
                             else
                             {
-                                return _dmdNbr;
+                                return !string.IsNullOrEmpty(_dmdNbr) ? _dmdNbr : lotNbr;
                             }
                         }
                     }

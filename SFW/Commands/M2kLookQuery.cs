@@ -22,7 +22,7 @@ namespace SFW.Commands
                 {
                     var _soDetail = parameter.ToString().Split('*');
                     var _loc = App.Site.Split('_')[0];
-                    Process.Start($"http://m2k/{_loc}.MAIN/SOP/SoLineItems/SoLineItems.aspx?SoNbr={_soDetail[0]}");
+                    Process.Start($"http://m2k/WCCO.MAIN/SOP/SoLineDetail/SoLineDetail.aspx?SoNbr={_soDetail[0]}&LineNbr={_soDetail[1]}");
                 }
                 else
                 {

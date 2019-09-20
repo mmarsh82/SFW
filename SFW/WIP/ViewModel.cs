@@ -144,6 +144,15 @@ namespace SFW.WIP
 
         private List<string> _lotList;
 
+        private bool isSubmit;
+        public bool IsSubmitted
+        {
+            get
+            { return isSubmit; }
+            set
+            { isSubmit = value; OnPropertyChanged(nameof(IsSubmitted)); }
+        }
+
         RelayCommand _wip;
         RelayCommand _mPrint;
         RelayCommand _removeCrew;
@@ -176,6 +185,7 @@ namespace SFW.WIP
             {
                 c.WipInfo[0].ScrapList.ListChanged += ScrapList_ListChanged;
             }
+            IsSubmitted = false;
         }
 
         /// <summary>
@@ -320,12 +330,8 @@ namespace SFW.WIP
                     WipRecord.WipLot.LotNumber = "NonLotWip";
                     _lotList = null;
                 }
-                WipRecord.IsScrap = Model.Enumerations.Complete.N;
-                WipRecord.IsReclaim = Model.Enumerations.Complete.N;
-                OnPropertyChanged(nameof(WipRecord));
+                IsSubmitted = true;
                 TQty = WipRecord.WipQty + _preOnHand;
-                WipQuantity = null;
-                Multi = false;
             }
             else
             {
@@ -419,38 +425,31 @@ namespace SFW.WIP
         private void MPrintExecute(object parameter)
         {
             var _wQty = TQty == null || TQty == 0 ? Convert.ToInt32(WipRecord.WipQty) : Convert.ToInt32(TQty);
-            if (_lotList == null || _lotList.Count == 0)
+            var _lotNbr = WipRecord.IsLotTracable ? WipRecord.WipLot.LotNumber : "";
+            var _diamond = string.Empty;
+            if (IsLotTrace)
             {
-                TravelCard.Create("", "technology#1",
-                WipRecord.WipWorkOrder.SkuNumber,
-                WipRecord.WipLot.LotNumber == "NonLotWip" ? "" : WipRecord.WipLot.LotNumber,
-                WipRecord.WipWorkOrder.SkuDescription,
-                Sku.GetDiamondNumber(WipRecord.WipLot.LotNumber, App.AppSqlCon),
-                _wQty,
-                WipRecord.WipWorkOrder.Uom,
-                Lot.GetAssociatedQIR(WipRecord.WipLot.LotNumber, App.AppSqlCon));
-                switch (parameter.ToString())
+                //Populating the diamond number based on the Picklist WIP information that was submitted
+                foreach (var w in WipRecord.WipWorkOrder.Picklist.Where(o => o.IsLotTrace && o.InventoryType != "HM"))
                 {
-                    case "T":
-                        TravelCard.Display(FormType.Portrait);
-                        break;
-                    case "R":
-                        TravelCard.Display(FormType.Landscape);
-                        break;
+                    foreach (var l in w.WipInfo.Where(o => o.IsValidLot))
+                    {
+                        var _temp = Sku.GetDiamondNumber(l.LotNbr, App.AppSqlCon);
+                        _diamond += _diamond == _temp ? "" : $"/{_temp}";
+                    }
                 }
-            }
-            else
-            {
-                foreach (var _lot in _lotList)
+                _diamond = _diamond.Trim('/');
+                //Printing the travel card
+                if (_lotList == null || _lotList.Count == 0)
                 {
                     TravelCard.Create("", "technology#1",
-                    WipRecord.WipWorkOrder.SkuNumber,
-                    _lot,
-                    WipRecord.WipWorkOrder.SkuDescription,
-                    Sku.GetDiamondNumber(_lot, App.AppSqlCon),
-                    _wQty,
-                    WipRecord.WipWorkOrder.Uom,
-                    Lot.GetAssociatedQIR(_lot, App.AppSqlCon));
+                        WipRecord.WipWorkOrder.SkuNumber,
+                        _lotNbr,
+                        WipRecord.WipWorkOrder.SkuDescription,
+                        _diamond,
+                        _wQty,
+                        WipRecord.WipWorkOrder.Uom,
+                        Lot.GetAssociatedQIR(_lotNbr, App.AppSqlCon));
                     switch (parameter.ToString())
                     {
                         case "T":
@@ -460,6 +459,49 @@ namespace SFW.WIP
                             TravelCard.PrintPDF(FormType.Landscape);
                             break;
                     }
+                }
+                else
+                {
+                    foreach (var _lot in _lotList)
+                    {
+                        TravelCard.Create("", "technology#1",
+                            WipRecord.WipWorkOrder.SkuNumber,
+                            _lot,
+                            WipRecord.WipWorkOrder.SkuDescription,
+                            _diamond,
+                            _wQty,
+                            WipRecord.WipWorkOrder.Uom,
+                            Lot.GetAssociatedQIR(_lot, App.AppSqlCon));
+                        switch (parameter.ToString())
+                        {
+                            case "T":
+                                TravelCard.PrintPDF(FormType.Portrait);
+                                break;
+                            case "R":
+                                TravelCard.PrintPDF(FormType.Landscape);
+                                break;
+                        }
+                    }
+                }
+            }
+            else
+            {
+                TravelCard.Create("", "technology#1",
+                        WipRecord.WipWorkOrder.SkuNumber,
+                        "",
+                        WipRecord.WipWorkOrder.SkuDescription,
+                        "",
+                        _wQty,
+                        WipRecord.WipWorkOrder.Uom,
+                        0);
+                switch (parameter.ToString())
+                {
+                    case "T":
+                        TravelCard.PrintPDF(FormType.Portrait);
+                        break;
+                    case "R":
+                        TravelCard.PrintPDF(FormType.Landscape);
+                        break;
                 }
             }
         }

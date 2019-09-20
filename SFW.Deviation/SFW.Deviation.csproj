@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="itextsharp">
+      <HintPath>F:\Users\MikeM\Code Aids\iTextSharp\Librarys\itextsharp.dll</HintPath>
+    </Reference>
+    <Reference Include="itextsharp.pdfa">
+      <HintPath>F:\Users\MikeM\Code Aids\iTextSharp\Librarys\itextsharp.pdfa.dll</HintPath>
+    </Reference>
+    <Reference Include="itextsharp.xtra">
+      <HintPath>F:\Users\MikeM\Code Aids\iTextSharp\Librarys\itextsharp.xtra.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>

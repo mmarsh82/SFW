@@ -30,8 +30,8 @@
     <PublisherName>Michael Marsh</PublisherName>
     <SuiteName>WCCO Belting Inc.</SuiteName>
     <AutorunEnabled>true</AutorunEnabled>
-    <ApplicationRevision>1313</ApplicationRevision>
-    <ApplicationVersion>1.0.152.1313</ApplicationVersion>
+    <ApplicationRevision>1328</ApplicationRevision>
+    <ApplicationVersion>1.0.153.1328</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <CreateDesktopShortcut>true</CreateDesktopShortcut>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -143,6 +143,10 @@
       <DependentUpon>PartSpec_View.xaml</DependentUpon>
     </Compile>
     <Compile Include="Queries\PartSpec_ViewModel.cs" />
+    <Compile Include="Queries\PartSplit_View.xaml.cs">
+      <DependentUpon>PartSplit_View.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Queries\PartSplit_ViewModel.cs" />
     <Compile Include="Queries\PartTrimInfo_View.xaml.cs">
       <DependentUpon>PartTrimInfo_View.xaml</DependentUpon>
     </Compile>
@@ -237,6 +241,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Queries\PartSpec_View.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Queries\PartSplit_View.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -369,6 +377,10 @@
     <ProjectReference Include="..\M2k\M2kClient.csproj">
       <Project>{5dbe7a03-346d-4a21-86b8-f11d737e93f3}</Project>
       <Name>M2kClient</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\SFW.Deviation\SFW.Deviation.csproj">
+      <Project>{4816927A-EA7D-4AA8-BE3A-28027FB84641}</Project>
+      <Name>SFW.Deviation</Name>
     </ProjectReference>
     <ProjectReference Include="..\SFW.Helpers\SFW.Helpers.csproj">
       <Project>{6f663e0a-cd5e-40a9-b67e-7564627915f6}</Project>

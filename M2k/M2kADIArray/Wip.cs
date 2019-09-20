@@ -130,6 +130,7 @@ namespace M2kClient.M2kADIArray
             };
             Lot = wipRecord.WipLot.LotNumber;
             ComponentInfoList = new List<CompInfo>();
+            AdjustmentList = new List<Adjust>();
             foreach(var c in wipRecord.WipWorkOrder.Picklist.Where(o => o.IsLotTrace))
             {
                 var _backFlush = c.BackflushLoc;
@@ -143,13 +144,11 @@ namespace M2kClient.M2kADIArray
                         WorkOrderNbr = wipRecord.WipWorkOrder.OrderNumber,
                         IssueLoc = !string.IsNullOrEmpty(_backFlush) ? _backFlush : w.RcptLoc
                     });
-                    if (w.ScrapList != null &&  w.ScrapList.Count() > 0)
+                    if (w.ScrapList != null && w.ScrapList.Count() > 0)
                     {
                         foreach (var s in w.ScrapList.Where(o => int.TryParse(o.Quantity, out int i)))
                         {
-                            AdjustmentList = new List<Adjust>
-                            {
-                                new Adjust(
+                            AdjustmentList.Add(new Adjust(
                                     wipRecord.Submitter,
                                     "01",
                                     !string.IsNullOrEmpty(s.Reference) ? $"{s.Reference}*{wipRecord.WipWorkOrder.OrderNumber}" : wipRecord.WipWorkOrder.OrderNumber,
@@ -157,8 +156,7 @@ namespace M2kClient.M2kADIArray
                                     (AdjustCode)Enum.Parse(typeof(AdjustCode), s.Reason.GetValueFromDescription<AdjustCode>().ToString(), true),
                                     'S',
                                     Convert.ToInt32(s.Quantity),
-                                    !string.IsNullOrEmpty(_backFlush) ? _backFlush : w.RcptLoc, w.LotNbr)
-                            };
+                                    !string.IsNullOrEmpty(_backFlush) ? _backFlush : w.RcptLoc, w.LotNbr));
                         }
                     }
                 }

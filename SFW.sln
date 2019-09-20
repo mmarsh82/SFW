@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27428.2027
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29201.188
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SFW", "SFW\SFW.csproj", "{B811FB61-A49E-43DA-AE08-78D70D04061D}"
 EndProject
@@ -10,6 +10,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "M2kClient", "M2k\M2kClient.csproj", "{5DBE7A03-346D-4A21-86B8-F11D737E93F3}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SFW.Helpers", "SFW.Helpers\SFW.Helpers.csproj", "{6F663E0A-CD5E-40A9-B67E-7564627915F6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SFW.Deviation", "SFW.Deviation\SFW.Deviation.csproj", "{4816927A-EA7D-4AA8-BE3A-28027FB84641}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +35,10 @@ Global
 		{6F663E0A-CD5E-40A9-B67E-7564627915F6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6F663E0A-CD5E-40A9-B67E-7564627915F6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6F663E0A-CD5E-40A9-B67E-7564627915F6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4816927A-EA7D-4AA8-BE3A-28027FB84641}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4816927A-EA7D-4AA8-BE3A-28027FB84641}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4816927A-EA7D-4AA8-BE3A-28027FB84641}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4816927A-EA7D-4AA8-BE3A-28027FB84641}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
