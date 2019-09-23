@@ -430,7 +430,7 @@ namespace SFW.WIP
             if (IsLotTrace)
             {
                 //Populating the diamond number based on the Picklist WIP information that was submitted
-                foreach (var w in WipRecord.WipWorkOrder.Picklist.Where(o => o.IsLotTrace && o.InventoryType != "HM"))
+                foreach (var w in WipRecord.WipWorkOrder.Picklist.Where(o => o.IsLotTrace && o.InventoryType != "HM" && o.InventoryType != "FR"))
                 {
                     foreach (var l in w.WipInfo.Where(o => o.IsValidLot))
                     {
