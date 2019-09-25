@@ -2,6 +2,7 @@
 using SFW.Model;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -22,10 +23,15 @@ namespace SFW.Queries
             {
                 if (value.Count() >= 7)
                 {
-                    Lot.IsValid(value, App.AppSqlCon);
+                    ValidLot = Lot.IsValid(value, App.AppSqlCon);
                 }
+                _lot = value;
+                OnPropertyChanged(nameof(LotNumber));
             }
         }
+        public bool ValidLot { get; set; }
+
+        public BindingList<Lot> SplitLotList { get; set; }
 
         RelayCommand _split;
 

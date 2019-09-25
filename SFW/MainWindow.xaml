@@ -18,6 +18,7 @@
         <cmd:DevTesting x:Key="TestICommand" />
         <cmd:AppReload x:Key="AppUpdateCommand" />
         <cmd:UnplanScrap x:Key="UnplanScrapICommand"/>
+        <cmd:SplitRoll x:Key="RollSplitICommand"/>
         <cvtr:SiteNumberToBool x:Key="SiteToBoolConverter"/>
         <cvtr:BoolToVisibility x:Key="BoolToVisConverter" />
         <cvtr:SiteToVisibility x:Key="SiteToVisConverter"/>
@@ -38,6 +39,8 @@
                     Command="{StaticResource PartDetailICommand}" />
         <KeyBinding Gesture="Alt+S"
                     Command="{StaticResource PartSpecICommand}" />
+        <KeyBinding Gesture="Alt+R"
+                    Command="{StaticResource RollSplitICommand}" />
         <KeyBinding Gesture="Shift+Ctrl+C"
                     Command="{StaticResource ViewLoadICommand}"
                     CommandParameter="ClosedSched" />
@@ -137,10 +140,10 @@
                           Command="{StaticResource PartSpecICommand}"
                           Visibility="{Binding CurrentSiteNbr, Converter={StaticResource SiteToVisConverter}}"
                           InputGestureText="Alt+S" />
-                <MenuItem Header="Unplanned Scrap"
-                          Command="{StaticResource UnplanScrapICommand}"
-                          Visibility="Collapsed"
-                          InputGestureText="Alt+U"/>
+                <MenuItem Header="Split Roll"
+                          Command="{StaticResource RollSplitICommand}"
+                          Visibility="{Binding Path=(local:CurrentUser.IsSupervisor), Converter={StaticResource BoolToVisConverter}}"
+                          InputGestureText="Alt+R"/>
 
             </MenuItem>
             <MenuItem Header="Help">

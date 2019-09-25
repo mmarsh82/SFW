@@ -242,8 +242,8 @@ namespace SFW.Model
         /// <param name="sqlCon">Sql Connection to use</param>
         public WipReceipt(string subFName, string subLName, WorkOrder workOrder, SqlConnection sqlCon)
         {
-            IsLoading = true;
             Submitter = $"{subFName} {subLName}";
+            var _crewID = CrewMember.GetCrewIdNumber(sqlCon, subFName, subLName);
             ModelBase.ModelSqlCon = sqlCon;
             SeqComplete = Complete.N;
             WipLot = new Lot();
@@ -253,10 +253,10 @@ namespace SFW.Model
             HasCrew = true;
             if (HasCrew)
             {
-                CrewList = new BindingList<CrewMember> { new CrewMember(subFName, subLName, sqlCon) };
-                CrewList[0].LastClock = string.Empty;
-                CrewList.AddNew();
+                CrewList = new BindingList<CrewMember>();
                 CrewList.ListChanged += CrewList_ListChanged;
+                CrewList.AddNew();
+                CrewList[0].IdNumber = _crewID;
             }
             IsLotTracable = Sku.IsLotTracable(workOrder.SkuNumber, sqlCon);
             IsScrap = Complete.N;
@@ -277,7 +277,6 @@ namespace SFW.Model
                 }
             }
             CanMulti = workOrder.MachineGroup == "SLIT";
-            IsLoading = false;
         }
 
         /// <summary>
@@ -302,6 +301,13 @@ namespace SFW.Model
                         ((BindingList<CrewMember>)sender).AddNew();
                     }
                     IsLoading = false;
+                }
+                else if (!string.IsNullOrEmpty(((BindingList<CrewMember>)sender)[e.NewIndex].Name))
+                {
+                    ((BindingList<CrewMember>)sender)[e.NewIndex].Name = null;
+                    ((BindingList<CrewMember>)sender)[e.NewIndex].IsDirect = false;
+                    ((BindingList<CrewMember>)sender)[e.NewIndex].Shift = 0;
+                    ((BindingList<CrewMember>)sender)[e.NewIndex].LastClock = null;
                 }
             }
         }

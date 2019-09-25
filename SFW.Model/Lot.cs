@@ -7,7 +7,7 @@ using System.Data.SqlClient;
 
 namespace SFW.Model
 {
-    public class Lot : ModelBase
+    public partial class Lot : ModelBase
     {
         #region Properties
 

@@ -30,8 +30,8 @@
     <PublisherName>Michael Marsh</PublisherName>
     <SuiteName>WCCO Belting Inc.</SuiteName>
     <AutorunEnabled>true</AutorunEnabled>
-    <ApplicationRevision>1330</ApplicationRevision>
-    <ApplicationVersion>1.0.154.1330</ApplicationVersion>
+    <ApplicationRevision>1340</ApplicationRevision>
+    <ApplicationVersion>1.0.155.1340</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <CreateDesktopShortcut>true</CreateDesktopShortcut>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -121,6 +121,7 @@
     <Compile Include="Commands\PrintUserControl.cs" />
     <Compile Include="Commands\SetUpInformation.cs" />
     <Compile Include="Commands\ShowLogInWindow.cs" />
+    <Compile Include="Commands\SplitRoll.cs" />
     <Compile Include="Commands\TrimmingInformation.cs" />
     <Compile Include="Commands\UnplanScrap.cs" />
     <Compile Include="Commands\ViewQtask.cs" />

@@ -135,6 +135,18 @@ namespace SFW
             }
         }
 
+        private static bool _isSuper;
+        public static bool IsSupervisor
+        {
+            get
+            { return _isSuper; }
+            private set
+            {
+                _isSuper = value;
+                StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(IsSupervisor)));
+            }
+        }
+
         private static string _uID;
         public static string UserIDNbr
         {
@@ -179,6 +191,7 @@ namespace SFW
             Email = user.EmailAddress;
             CanSchedule = _groups.Exists(o => o.ToString().Contains("SFW_Sched"));
             IsAdmin = _groups.Exists(o => o.ToString().Contains("SFW_Admin"));
+            IsSupervisor = _groups.Exists(o => o.ToString().Contains("SFW_Super"));
             IsLoggedIn = true;
             CanWip = user.UserPrincipalName.Contains("wcco");
             UserIDNbr = user.EmployeeId;
