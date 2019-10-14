@@ -494,5 +494,34 @@ namespace SFW.Model
                 throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
             }
         }
+
+        /// <summary>
+        /// Get the Sku number related to the inputed lot number
+        /// </summary>
+        /// <param name="lotNbr">Lot Number</param>
+        /// <param name="sqlCon">Sql Connection to use</param>
+        /// <returns>Sku Number as a string</returns>
+        public static string GetSkuNumber(string lotNbr, SqlConnection sqlCon)
+        {
+            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
+            {
+                try
+                {
+                    using (SqlCommand cmd = new SqlCommand($"USE {sqlCon.Database}; SELECT [Part_Nbr] FROM [dbo].[LOT-INIT] WHERE [Lot_Number] = @p1", sqlCon))
+                    {
+                        cmd.Parameters.AddWithValue("p1", $"{lotNbr}|P");
+                        return cmd.ExecuteScalar()?.ToString();
+                    }
+                }
+                catch (Exception)
+                {
+                    return null;
+                }
+            }
+            else
+            {
+                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
+            }
+        }
     }
 }

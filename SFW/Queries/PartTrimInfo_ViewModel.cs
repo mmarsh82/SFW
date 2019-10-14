@@ -1,9 +1,8 @@
-﻿using SFW.Commands;
+﻿using SFW.Helpers;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.IO;
 using System.Windows.Input;
 
 namespace SFW.Queries

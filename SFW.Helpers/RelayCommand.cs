@@ -2,7 +2,7 @@
 using System.Diagnostics;
 using System.Windows.Input;
 
-namespace SFW.Commands
+namespace SFW.Helpers
 {
     public sealed class RelayCommand : ICommand
     {

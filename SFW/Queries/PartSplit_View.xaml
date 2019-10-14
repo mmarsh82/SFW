@@ -3,7 +3,8 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:local="clr-namespace:SFW.Queries"
         xmlns:cvtr="clr-namespace:SFW.Converters"
-        Title="Roll Splitter">
+        x:Name="Split_Window"
+        Title="Roll Splitter" WindowStartupLocation="CenterScreen" SizeToContent="WidthAndHeight">
 
     <Grid>
         <Grid.RowDefinitions>
@@ -33,7 +34,7 @@
                        VerticalAlignment="Center"
                        Margin="10,0,0,0"/>
             <TextBox x:Name="LotInput"
-                     Text="{Binding LotNbr, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                     Text="{Binding LotNumber, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                      FontSize="18"
                      FontWeight="Bold"
                      Background="LightGray"
@@ -48,7 +49,7 @@
                        TextDecorations="Underline"
                        VerticalAlignment="Center"
                        Margin="10,0,0,0"/>
-            <TextBox Text="{Binding RollQty, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+            <TextBox Text="{Binding RollQuantity, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                      FontSize="18"
                      FontWeight="Bold"
                      Background="LightGray"
@@ -64,7 +65,7 @@
                        TextDecorations="Underline"
                        VerticalAlignment="Center"
                        Margin="10,0,0,0"/>
-            <TextBox Text="{Binding LotQty, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+            <TextBox Text="{Binding LotQuantity, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                      FontSize="18"
                      FontWeight="Bold"
                      Background="LightGray"
@@ -73,6 +74,7 @@
                      TabIndex="2"
                      MaxLength="4"
                      Style="{DynamicResource RequiredTextBox}" />
+            
         </StackPanel>
         
         <!--#endregion-->
@@ -80,8 +82,8 @@
         <!--#region Child Lot Inputs-->
         
         <ItemsControl Name="CompParent"
-                      Grid.Row="8"
-                      ItemsSource="{Binding}"
+                      Grid.Row="1"
+                      ItemsSource="{Binding SplitLotList, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                       Margin="10,0,0,0"
                       FontSize="18"
                       Cursor="Hand"
@@ -100,55 +102,45 @@
             <ItemsControl.ItemTemplate>
                 <DataTemplate>
 
-                    <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="Lot Number:"
-                                   FontSize="18"
-                                   FontWeight="Bold"
-                                   TextDecorations="Underline"
-                                   VerticalAlignment="Center"
-                                   Margin="10,0,0,0"/>
-                        <TextBox x:Name="LotInput"
-                                 Text="{Binding LotNbr, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                 FontSize="18"
-                                 FontWeight="Bold"
-                                 Background="LightGray"
-                                 Margin="5"
-                                 Width="125"
-                                 TabIndex="0"
-                                 Style="{DynamicResource RequiredTextBox}" />
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="120"/>
+                            <ColumnDefinition Width="150"/>
+                            <ColumnDefinition Width="100"/>
+                            <ColumnDefinition Width="75"/>
+                        </Grid.ColumnDefinitions>
 
-                        <TextBlock Text="Rolls:"
+                        <TextBlock Grid.Column="0"
+                                   Text="Lot Number:"
                                    FontSize="18"
                                    FontWeight="Bold"
                                    TextDecorations="Underline"
                                    VerticalAlignment="Center"
                                    Margin="10,0,0,0"/>
-                        <TextBox Text="{Binding RollQty, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                 FontSize="18"
-                                 FontWeight="Bold"
-                                 Background="LightGray"
-                                 Margin="5"
-                                 Width="75"
-                                 TabIndex="1"
-                                 MaxLength="2"
-                                 Style="{DynamicResource RequiredTextBox}" />
-
-                        <TextBlock Text="Quantity:"
+                        <TextBlock Grid.Column="1"
+                                   Text="{Binding LotNumber, Mode=OneWay}"
+                                   FontSize="18"
+                                   FontWeight="Bold"
+                                   VerticalAlignment="Center"
+                                   Margin="10,0,0,0"/>
+                        <TextBlock Grid.Column="2"
+                                   Text="Quantity:"
                                    FontSize="18"
                                    FontWeight="Bold"
                                    TextDecorations="Underline"
                                    VerticalAlignment="Center"
                                    Margin="10,0,0,0"/>
-                        <TextBox Text="{Binding LotQty, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                        <TextBox Grid.Column="3"
+                                 Text="{Binding TransactionQty, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                  FontSize="18"
                                  FontWeight="Bold"
                                  Background="LightGray"
                                  Margin="5"
-                                 Width="75"
                                  TabIndex="2"
                                  MaxLength="4"
                                  Style="{DynamicResource RequiredTextBox}" />
-                    </StackPanel>
+
+                    </Grid>
 
                 </DataTemplate>
             </ItemsControl.ItemTemplate>
@@ -157,7 +149,7 @@
         
         <!--#endregion-->
         
-        <Button Grid.Row="3"
+        <Button Grid.Row="2"
                 Content="Submit"
                 Margin="5"
                 Width="100"

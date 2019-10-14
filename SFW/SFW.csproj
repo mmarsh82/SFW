@@ -30,8 +30,8 @@
     <PublisherName>Michael Marsh</PublisherName>
     <SuiteName>WCCO Belting Inc.</SuiteName>
     <AutorunEnabled>true</AutorunEnabled>
-    <ApplicationRevision>1340</ApplicationRevision>
-    <ApplicationVersion>1.0.155.1340</ApplicationVersion>
+    <ApplicationRevision>1364</ApplicationRevision>
+    <ApplicationVersion>1.0.156.1364</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <CreateDesktopShortcut>true</CreateDesktopShortcut>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -187,7 +187,6 @@
     <Compile Include="Commands\M2kLookQuery.cs" />
     <Compile Include="Commands\PartInformation.cs" />
     <Compile Include="Commands\PartSearch.cs" />
-    <Compile Include="Commands\RelayCommand.cs" />
     <Compile Include="Commands\SafeShutdown.cs" />
     <Compile Include="Commands\ViewLoad.cs" />
     <Compile Include="Controls\WorkSpaceDock.cs" />
@@ -378,10 +377,6 @@
     <ProjectReference Include="..\M2k\M2kClient.csproj">
       <Project>{5dbe7a03-346d-4a21-86b8-f11d737e93f3}</Project>
       <Name>M2kClient</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\SFW.Deviation\SFW.Deviation.csproj">
-      <Project>{4816927A-EA7D-4AA8-BE3A-28027FB84641}</Project>
-      <Name>SFW.Deviation</Name>
     </ProjectReference>
     <ProjectReference Include="..\SFW.Helpers\SFW.Helpers.csproj">
       <Project>{6f663e0a-cd5e-40a9-b67e-7564627915f6}</Project>

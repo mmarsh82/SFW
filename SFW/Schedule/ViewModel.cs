@@ -2,6 +2,7 @@
 using SFW.Commands;
 using SFW.Controls;
 using SFW.Converters;
+using SFW.Helpers;
 using SFW.Model;
 using System;
 using System.Collections.Generic;

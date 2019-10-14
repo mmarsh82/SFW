@@ -55,7 +55,6 @@
     <Compile Include="Enumerations\Complete.cs" />
     <Compile Include="Enumerations\Extensions.cs" />
     <Compile Include="Lot.cs" />
-    <Compile Include="Lots.cs" />
     <Compile Include="ModelBase.cs" />
     <Compile Include="PressReport.cs" />
     <Compile Include="Press_ShiftReport.cs" />
