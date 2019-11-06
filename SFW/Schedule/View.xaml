@@ -313,7 +313,7 @@
                             <MultiDataTrigger.Conditions>
                                 <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsSelected}" Value="True"/>
                                 <Condition Binding="{Binding WO_Priority}" Value="B"/>
-                                <Condition Binding="{Binding WO_Type}" Value="{x:Null}"/>
+                                <Condition Binding="{Binding WO_Type}" Value="S"/>
                             </MultiDataTrigger.Conditions>
                             <Setter Property="Background" Value="DarkSeaGreen"/>
                             <Setter Property="Foreground" Value="Black"/>

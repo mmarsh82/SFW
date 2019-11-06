@@ -9,7 +9,6 @@ namespace SFW.Model
 {
     public class Sku : ModelBase
     {
-
         #region Properties
 
         public string SkuNumber { get; set; }
@@ -374,43 +373,56 @@ namespace SFW.Model
         /// Get a work order's work instructions
         /// </summary>
         /// <param name="woNbr">Sku ID Number</param>
+        /// <param name="siteNbr">Facility number to run on</param>
         /// <param name="sqlCon">Sql Connection to use</param>
         /// <returns>A list of URL strings to open the work instructions</returns>
-        public static List<string> GetInstructions(string partNbr, SqlConnection sqlCon)
+        public static List<string> GetInstructions(string partNbr, int siteNbr, SqlConnection sqlCon)
         {
+            //TODO: this code will need to be reformated once CSI has moved to the same process model as WCCO
             var _inst = new List<string>();
-            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
+            if (siteNbr == 0)
             {
-                try
+                if(System.IO.File.Exists($"\\\\csi-prime\\prints\\WI\\{partNbr}.docx"))
                 {
-                    using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database}; SELECT RIGHT([Url], CHARINDEX('\', REVERSE([Url]),1) - 1) as 'Url' FROM [dbo].[IM-INIT_Url_Codes] WHERE [ID1] = @p1;", sqlCon))
-                    {
-                        cmd.Parameters.AddWithValue("p1", partNbr);
-                        using (SqlDataReader reader = cmd.ExecuteReader())
-                        {
-                            if (reader.HasRows)
-                            {
-                                while (reader.Read())
-                                {
-                                    _inst.Add($"{reader.SafeGetString("Url")}");
-                                }
-                            }
-                        }
-                    }
-                    return _inst;
+                    _inst.Add(partNbr);
                 }
-                catch (SqlException sqlEx)
-                {
-                    throw sqlEx;
-                }
-                catch (Exception ex)
-                {
-                    throw new Exception(ex.Message);
-                }
+                return _inst;
             }
             else
             {
-                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
+                if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
+                {
+                    try
+                    {
+                        using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database}; SELECT RIGHT([Url], CHARINDEX('\', REVERSE([Url]),1) - 1) as 'Url' FROM [dbo].[IM-INIT_Url_Codes] WHERE [ID1] = @p1;", sqlCon))
+                        {
+                            cmd.Parameters.AddWithValue("p1", partNbr);
+                            using (SqlDataReader reader = cmd.ExecuteReader())
+                            {
+                                if (reader.HasRows)
+                                {
+                                    while (reader.Read())
+                                    {
+                                        _inst.Add($"{reader.SafeGetString("Url")}");
+                                    }
+                                }
+                            }
+                        }
+                        return _inst;
+                    }
+                    catch (SqlException sqlEx)
+                    {
+                        throw sqlEx;
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new Exception(ex.Message);
+                    }
+                }
+                else
+                {
+                    throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
+                }
             }
         }
 

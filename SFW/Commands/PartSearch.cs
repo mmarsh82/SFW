@@ -37,7 +37,21 @@ namespace SFW.Commands
             }
             catch (Win32Exception)
             {
-                MessageBox.Show("The Print for this part number was not found.\nPlease contact engineering for further support.", "Missing Print Document", MessageBoxButton.OK, MessageBoxImage.Hand);
+                try
+                {
+                    if (App.SiteNumber == 0)
+                    {
+                        Process.Start($"\\\\csi-prime\\prints\\part\\{parameter}.pdf");
+                    }
+                    else
+                    {
+                        MessageBox.Show("The Print for this part number was not found.\nPlease contact engineering for further support.", "Missing Print Document", MessageBoxButton.OK, MessageBoxImage.Hand);
+                    }
+                }
+                catch (Exception)
+                {
+                    MessageBox.Show("The Print for this part number was not found.\nPlease contact engineering for further support.", "Missing Print Document", MessageBoxButton.OK, MessageBoxImage.Hand);
+                }
             }
             catch (Exception)
             {

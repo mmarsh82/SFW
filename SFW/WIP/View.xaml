@@ -897,6 +897,14 @@
                         CommandParameter="R"
                         Style="{DynamicResource DefaultButton}" />
 
+                <Button Content="Barcode Label"
+                        Width="140"
+                        FontSize="18"
+                        Margin="5"
+                        Command="{Binding}"
+                        Visibility="Collapsed"
+                        Style="{DynamicResource DefaultButton}" />
+
             </StackPanel>
 
             <!--#endregion-->

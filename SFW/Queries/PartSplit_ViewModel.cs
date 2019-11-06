@@ -28,6 +28,7 @@ namespace SFW.Queries
             }
         }
         public bool ValidLot { get; set; }
+        public int OnHand { get; set; }
 
         private int? _rQty;
         public string RollQuantity
@@ -76,6 +77,13 @@ namespace SFW.Queries
                 }
                 OnPropertyChanged(nameof(LotQuantity));
             }
+        }
+
+        private string _note;
+        public string VarienceNote
+        {
+            get { return _note; }
+            set { _note = value; OnPropertyChanged(nameof(VarienceNote)); }
         }
         public ObservableCollection<Lot> SplitLotList { get; set; }
 

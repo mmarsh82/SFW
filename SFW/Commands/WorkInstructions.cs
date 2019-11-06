@@ -13,7 +13,14 @@ namespace SFW.Commands
             //TODO: move the file path to global config file
             try
             {
-                Process.Start($"\\\\manage2\\server\\Document Center\\Production\\{parameter}");
+                if (App.SiteNumber == 0)
+                {
+                    Process.Start($"\\\\csi-prime\\prints\\WI\\{parameter}.pdf");
+                }
+                else
+                {
+                    Process.Start($"\\\\manage2\\server\\Document Center\\Production\\{parameter}");
+                }
             }
             catch (System.ComponentModel.Win32Exception)
             {

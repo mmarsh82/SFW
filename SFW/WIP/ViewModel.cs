@@ -161,6 +161,7 @@ namespace SFW.WIP
         RelayCommand _removeCompScrap;
         RelayCommand _addScrap;
         RelayCommand _addCompScrap;
+        RelayCommand _printBarLbl;
 
         #endregion
 
@@ -661,6 +662,39 @@ namespace SFW.WIP
             }
         }
         private bool RemoveCompCanExecute(object parameter) => parameter != null && !string.IsNullOrEmpty(parameter.ToString());
+
+        #endregion
+
+        #region Print Barcode Labels ICommand
+
+        public ICommand PrintBarLblICommand
+        {
+            get
+            {
+                if (_printBarLbl == null)
+                {
+                    _printBarLbl = new RelayCommand(PrintBarLblExecute, PrintBarLblCanExecute);
+                }
+                return _printBarLbl;
+            }
+        }
+
+        private void PrintBarLblExecute(object parameter)
+        {
+            var _diamond = "";
+            //Populating the diamond number based on the Picklist WIP information that was submitted
+            foreach (var w in WipRecord.WipWorkOrder.Picklist.Where(o => o.IsLotTrace && o.InventoryType != "HM" && o.InventoryType != "FR"))
+            {
+                foreach (var l in w.WipInfo.Where(o => o.IsValidLot))
+                {
+                    var _temp = Sku.GetDiamondNumber(l.LotNbr, App.AppSqlCon);
+                    _diamond += _diamond == _temp ? "" : $"/{_temp}";
+                }
+            }
+            _diamond = _diamond.Trim('/');
+            new PrintBarLabels().Execute(_diamond);
+        }
+        private bool PrintBarLblCanExecute(object parameter) => true;
 
         #endregion
 

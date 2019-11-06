@@ -115,7 +115,7 @@ namespace SFW.Model
                             WHEN c.[Wo_Type] = 'R'
                             THEN 'B'
                             ELSE c.[Mgt_Priority_Code] END, 'D') as 'WO_Priority',
-	                    c.[Wo_Type] as 'WO_Type',
+	                    ISNULL(c.[Wo_Type], 'S') as 'WO_Type',
 	                    c.[Qty_To_Start] as 'WO_StartQty',
 	                    c.[So_Reference] as 'WO_SalesRef',
                         c.[Cust_Nbr],
@@ -176,7 +176,7 @@ namespace SFW.Model
                             WHEN c.[Wo_Type] = 'R'
                             THEN 'B'
                             ELSE c.[Mgt_Priority_Code] END, 'D') as 'WO_Priority',
-	                    c.[Wo_Type] as 'WO_Type',
+	                    ISNULL(c.[Wo_Type], 'S') as 'WO_Type',
 	                    c.[Qty_To_Start] as 'WO_StartQty',
 	                    c.[So_Reference] as 'WO_SalesRef',
                         c.[Cust_Nbr],
@@ -277,7 +277,7 @@ namespace SFW.Model
                                                                                     WHEN c.[Wo_Type] = 'R'
                                                                                     THEN 'B'
                                                                                     ELSE c.[Mgt_Priority_Code] END, 'D') as 'WO_Priority',
-	                                                                            c.[Wo_Type] as 'WO_Type',
+	                                                                            ISNULL(c.[Wo_Type], 'S') as 'WO_Type',
 	                                                                            c.[Qty_To_Start] as 'WO_StartQty',
 	                                                                            c.[So_Reference] as 'WO_SalesRef',
 	                                                                            c.[Cust_Nbr],

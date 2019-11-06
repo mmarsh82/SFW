@@ -9,6 +9,7 @@ namespace SFW.Model
     {
         #region Properties
 
+        public string PartNumber { get; set; }
         public string SpecDesc { get; set; }
         public string Core { get; set; }
         public string HeatingCans { get; set; }
@@ -34,6 +35,12 @@ namespace SFW.Model
         //determin if this needs to be a half or full intergral
 
         #endregion
+
+        /// <summary>
+        /// Default Constructor
+        /// </summary>
+        public UdefSku()
+        { }
 
         /// <summary>
         /// UdefSku Object Constructor
@@ -142,6 +149,7 @@ namespace SFW.Model
                             {
                                 while (reader.Read())
                                 {
+                                    PartNumber = partNbr;
                                     SpecDesc = reader.SafeGetString("Type");
                                     Core = reader.SafeGetString("Core");
                                     Core = string.IsNullOrEmpty(Core) || Core == "NA" ? string.Empty : Core;

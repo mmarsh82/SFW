@@ -20,6 +20,7 @@ namespace SFW.Model
         public string OpDesc { get; set; }
         public string Priority { get; set; }
         public string Status { get; set; }
+        public string TaskType { get; set; }
         public int StartQty { get; set; }
         public int CurrentQty { get; set; }
         public int ScrapQty { get; set; }
@@ -46,7 +47,7 @@ namespace SFW.Model
         /// Will create a new WorkOrder Object based on a DataRow from any DataTable Object
         /// </summary>
         /// <param name="drow">DataRow with the item array values for the work order</param>
-        public WorkOrder(DataRow drow, SqlConnection sqlCon)
+        public WorkOrder(DataRow drow, int siteNbr, SqlConnection sqlCon)
         {
             if (drow != null)
             {
@@ -56,6 +57,7 @@ namespace SFW.Model
                 Operation = drow.Field<string>("Operation");
                 OpDesc = GetOperationDescription(drow.Field<string>("WO_Number"), sqlCon);
                 Priority = drow.Field<string>("WO_Priority");
+                TaskType = drow.Field<string>("WO_Type");
                 StartQty = drow.Field<int>("WO_StartQty");
                 CurrentQty = Convert.ToInt32(drow.Field<decimal>("WO_CurrentQty"));
                 SchedStartDate = drow.Field<DateTime>("WO_SchedStartDate");
@@ -94,7 +96,7 @@ namespace SFW.Model
                 Picklist = Component.GetComponentPickList(_wo[0], Operation, StartQty - CurrentQty, sqlCon);
                 Notes = GetNotes(_wo[0],sqlCon);
                 ShopNotes = GetShopNotes(_wo[0], sqlCon);
-                InstructionList = GetInstructions(SkuNumber, sqlCon);
+                InstructionList = GetInstructions(SkuNumber, siteNbr, sqlCon);
             }
         }
 

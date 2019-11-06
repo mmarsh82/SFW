@@ -362,39 +362,41 @@ namespace M2kClient
 
             #endregion
 
-            /*#region Non Lot Issue
+            #region Issue for Repair Orders
 
-            try
+            if (wipRecord.WipWorkOrder.TaskType == "R")
             {
-                //Issueing all the non lot trace components, all lot trace components should be passed in the WIP file
-                foreach (var c in wipRecord.WipWorkOrder.Bom.Where(o => !o.IsLotTrace))
+                try
                 {
-                    var _issue = new Issue(wipRecord.Submitter, "010", c.CompNumber, wipRecord.WipWorkOrder.OrderNumber, wipRecord.WipWorkOrder.Seq, "II", new List<Transaction>());
+                    foreach (var c in wipRecord.WipWorkOrder.Bom)
+                    {
+                        var _issue = new Issue(wipRecord.Submitter, "010", c.CompNumber, wipRecord.WipWorkOrder.OrderNumber, wipRecord.WipWorkOrder.Seq, "II", new List<Transaction>());
 
-                    foreach (var w in c.WipInfo)
-                    {
-                        if (w.LotQty == null)
+                        foreach (var w in c.WipInfo)
                         {
-                            _issue.TranList.Add(new Transaction { Location = c.BackflushLoc, Quantity = Convert.ToInt32(w.BaseQty) });
+                            if (w.LotQty == null)
+                            {
+                                _issue.TranList.Add(new Transaction { Location = c.BackflushLoc, Quantity = Convert.ToInt32(w.BaseQty) });
+                            }
+                            else
+                            {
+                                _issue.TranList.Add(new Transaction { Location = c.BackflushLoc, Quantity = Convert.ToInt32(w.LotQty) });
+                            }
                         }
-                        else
+                        if (c.WipInfo.Sum(o => o.BaseQty) > 0)
                         {
-                            _issue.TranList.Add(new Transaction { Location = c.BackflushLoc, Quantity = Convert.ToInt32(w.LotQty) });
+                            File.WriteAllText($"{connection.BTIFolder}ISSUEC2K.DAT{suffix}", _issue.ToString());
+                            suffix = DateTime.Now.ToString("HHmmssfff");
                         }
-                    }
-                    if (c.WipInfo.Sum(o => o.BaseQty) > 0)
-                    {
-                        File.WriteAllText($"{connection.BTIFolder}ISSUEC2K.DAT{suffix}", _issue.ToString());
-                        suffix = DateTime.Now.ToString("HHmmssfff");
                     }
                 }
-            }
-            catch (Exception e)
-            {
-                System.Windows.MessageBox.Show($"Unable to process Issue\nPlease contact IT immediately!\n\n{e.Message}", "M2k Issue file error", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
+                catch (Exception e)
+                {
+                    System.Windows.MessageBox.Show($"Unable to process Issue\nPlease contact IT immediately!\n\n{e.Message}", "M2k Issue file error", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
+                }
             }
 
-            #endregion*/
+            #endregion
 
             #region Post Labor
 

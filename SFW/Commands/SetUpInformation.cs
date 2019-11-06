@@ -25,7 +25,14 @@ namespace SFW.Commands
                     switch (App.SiteNumber)
                     {
                         case 0:
-                            new ProcessSpec_View { DataContext = new ProcessSpec_ViewModel(_wo) }.ShowDialog();
+                            try
+                            {
+                                Process.Start($"\\\\csi-prime\\prints\\Setup\\{_wo.SkuNumber}.pdf");
+                            }
+                            catch (Exception)
+                            {
+                                new ProcessSpec_View { DataContext = new ProcessSpec_ViewModel(_wo) }.ShowDialog();
+                            }
                             break;
                         case 1:
                             var _machGroup = Machine.GetMachineGroup(App.AppSqlCon, _wo);
@@ -48,7 +55,7 @@ namespace SFW.Commands
                                     }
                                     else
                                     {
-                                        System.Windows.MessageBox.Show("The orgin file is currently open by an administrator,\nplease contact ME for further assistance.", "File Lock", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Exclamation);
+                                        System.Windows.MessageBox.Show("The origin file is currently open by an administrator,\nplease contact ME for further assistance.", "File Lock", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Exclamation);
                                     }
                                     break;
                                 case "FABE":
