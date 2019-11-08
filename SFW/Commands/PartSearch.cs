@@ -20,6 +20,10 @@ namespace SFW.Commands
         {
             try
             {
+                if (App.SiteNumber == 0)
+                {
+                    Process.Start($"\\\\csi-prime\\prints\\part\\{parameter}.pdf");
+                }
                 if (parameter.ToString().Contains("*"))
                 {
                     var _temp = parameter.ToString().Split('*');
@@ -37,21 +41,7 @@ namespace SFW.Commands
             }
             catch (Win32Exception)
             {
-                try
-                {
-                    if (App.SiteNumber == 0)
-                    {
-                        Process.Start($"\\\\csi-prime\\prints\\part\\{parameter}.pdf");
-                    }
-                    else
-                    {
-                        MessageBox.Show("The Print for this part number was not found.\nPlease contact engineering for further support.", "Missing Print Document", MessageBoxButton.OK, MessageBoxImage.Hand);
-                    }
-                }
-                catch (Exception)
-                {
-                    MessageBox.Show("The Print for this part number was not found.\nPlease contact engineering for further support.", "Missing Print Document", MessageBoxButton.OK, MessageBoxImage.Hand);
-                }
+                MessageBox.Show("The Print for this part number was not found.\nPlease contact engineering for further support.", "Missing Print Document", MessageBoxButton.OK, MessageBoxImage.Hand);
             }
             catch (Exception)
             {

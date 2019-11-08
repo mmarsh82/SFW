@@ -382,7 +382,7 @@ namespace SFW.Model
             var _inst = new List<string>();
             if (siteNbr == 0)
             {
-                if(System.IO.File.Exists($"\\\\csi-prime\\prints\\WI\\{partNbr}.docx"))
+                if(System.IO.File.Exists($"\\\\csi-prime\\prints\\WI\\{partNbr}.pdf"))
                 {
                     _inst.Add(partNbr);
                 }
