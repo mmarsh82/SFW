@@ -35,6 +35,7 @@ namespace SFW.UserLogIn
             UserName = string.Empty;
         }
 
+
         #region Log In ICommand
 
         public ICommand LogInCommand

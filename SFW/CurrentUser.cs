@@ -246,6 +246,22 @@ namespace SFW
             }
         }
 
+        public static bool UserExist(string userName)
+        {
+            try
+            {
+                using (PrincipalContext pCon = new PrincipalContext(ContextType.Domain))
+                {
+                        return ( UserPrincipal.FindByIdentity(pCon, userName) != null);
+                }
+            }
+            catch(Exception)
+            {
+                return false;
+            }
+
+        }
+
         /// <summary>
         /// Log in method for the current user
         /// </summary>
@@ -262,8 +278,12 @@ namespace SFW
                     {
                         using (DirectoryEntry dEntry = uPrincipal.GetUnderlyingObject() as DirectoryEntry)
                         {
-                            //var _expireDate = Convert.ToDateTime(dEntry.InvokeGet("PasswordExpirationDate"));
-                            if (uPrincipal.IsAccountLockedOut())
+                            var _expireDate = !uPrincipal.PasswordNeverExpires ?  Convert.ToDateTime(dEntry.InvokeGet("PasswordExpirationDate")) : DateTime.Today.AddDays(1);
+                            if(_expireDate <= DateTime.Today && _expireDate != new DateTime(1970,1,1))
+                            {
+                                return "Expired Password.";
+                            }
+                            else if (uPrincipal.IsAccountLockedOut())
                             {
                                 return "Your account is currently locked out.\nPlease contact IT for assistance.";
                             }
@@ -271,10 +291,7 @@ namespace SFW
                             {
                                 return "Your account is currently disabled.\nPlease contact IT for assistance.";
                             }
-                            /*else if (_expireDate <= DateTime.Today)
-                            {
-                                return "Expired Password.";
-                            }*/
+
                             else if (!pContext.ValidateCredentials(userName, pwd))
                             {
                                 return "Invalid credentials.\nPlease check your user name and password and try again.\nIf you feel you have reached this message in error,\nplease contact IT for further assistance.";
@@ -337,6 +354,34 @@ namespace SFW
         public static string UpdatePassword(string userName, string oldPwd, string newPwd)
         {
             //TODO: add in the logic and arguments for updating the password
+            using (var context = new PrincipalContext(ContextType.Domain))
+            {
+                try
+                {
+                    using (var user = UserPrincipal.FindByIdentity(context, IdentityType.SamAccountName, userName))
+                    {
+                        
+                        user.ChangePassword(oldPwd, newPwd);
+                        user.Save();
+                    }
+                }
+                catch(PasswordException e)
+                {
+                    if (e.Message == "The specified network password is not correct. (Exception from HRESULT: 0x80070056)")
+                        return "The old password is incorrect";
+                    else if (e.Message == "The password does not meet the password policy requirements. Check the minimum password length, password complexity and password history requirements. (Exception from HRESULT: 0x800708C5)")
+                        return "The password does not meet the password policy requirements.";
+                    else
+                        return e.Message;
+                }
+                catch(Exception e)
+                {
+                    
+                    return "Unknown error";
+                }
+            }
+
+
             return null;
         }
 

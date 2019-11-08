@@ -15,6 +15,7 @@
         <cmd:ViewLoad x:Key="ViewLoadICommand"/>
         <cmd:SafeShutdown x:Key="ExitICommand"/>
         <cmd:ShowLogInWindow x:Key="LogInICommand" />
+        <cmd:ShowPassResetWindow x:Key="PassResetCommand" />
         <cmd:DevTesting x:Key="TestICommand" />
         <cmd:AppReload x:Key="AppUpdateCommand" />
         <cmd:UnplanScrap x:Key="UnplanScrapICommand"/>
@@ -72,6 +73,11 @@
                           Command="{StaticResource LogInICommand}"
                           InputGestureText="Esc"
                           Visibility="{Binding Path=(local:CurrentUser.IsLoggedIn), Converter={StaticResource BoolToVisConverter}}"/>
+                <MenuItem Header="Password Reset"
+                          Command="{StaticResource PassResetCommand}"
+                          CommandParameter="reset"
+                          InputGestureText=""
+                          Visibility="{Binding Path=(local:CurrentUser.IsLoggedIn), Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}"/>
                 <MenuItem Header="Train Mode"
                           IsCheckable="True"
                           IsChecked="{Binding InTraining, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
