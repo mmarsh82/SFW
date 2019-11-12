@@ -9,6 +9,7 @@ namespace SFW.UserLogIn
         #region Properties
 
         public string UserName { get; set; }
+        public string OldPwdText { get { return CurrentUser.IsLockedOut ? "Old Password:" : "Password:"; } }
         public string NewPwd { get; set; }
 
         private string _error;

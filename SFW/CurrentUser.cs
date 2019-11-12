@@ -159,6 +159,18 @@ namespace SFW
             }
         }
 
+        private static bool _lockout;
+        public static bool IsLockedOut
+        {
+            get
+            { return _lockout; }
+            private set
+            {
+                _lockout = value;
+                StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(IsLockedOut)));
+            }
+        }
+
         public static event EventHandler<PropertyChangedEventArgs> StaticPropertyChanged;
 
         #endregion

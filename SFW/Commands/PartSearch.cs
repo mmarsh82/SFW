@@ -20,25 +20,34 @@ namespace SFW.Commands
         {
             try
             {
-                if (parameter.ToString().Contains("*"))
-                {
-                    var _temp = parameter.ToString().Split('*');
-                    parameter = !string.IsNullOrEmpty(_temp[1]) && _temp[1] != DependencyProperty.UnsetValue.ToString() ? _temp[1] : _temp[0];
-                }
+                //CSI Part search
                 if (App.SiteNumber == 0)
                 {
+                    if (parameter.ToString().Contains("*"))
+                    {
+                        parameter = parameter.ToString().Split('*')[0];
+                    }
                     Process.Start($"\\\\csi-prime\\prints\\part\\{parameter}.pdf");
                 }
+                //WCCO Part search
                 else
                 {
-                    if (!string.IsNullOrEmpty(parameter?.ToString()))
+                    if (parameter.ToString().Contains("*"))
                     {
-                        ///TODO: Remove hard coded print location
-                        Process.Start($"\\\\manage2\\Prints\\{parameter}.pdf");
+                        var _temp = parameter.ToString().Split('*');
+                        parameter = !string.IsNullOrEmpty(_temp[1]) && _temp[1] != DependencyProperty.UnsetValue.ToString() ? _temp[1] : _temp[0];
                     }
                     else
                     {
-                        MessageBox.Show("The part number that you have selected is either invalid or does not exist.", "Invalid or Missing Part Number", MessageBoxButton.OK, MessageBoxImage.Hand);
+                        if (!string.IsNullOrEmpty(parameter?.ToString()))
+                        {
+                            ///TODO: Remove hard coded print location
+                            Process.Start($"\\\\manage2\\Prints\\{parameter}.pdf");
+                        }
+                        else
+                        {
+                            MessageBox.Show("The part number that you have selected is either invalid or does not exist.", "Invalid or Missing Part Number", MessageBoxButton.OK, MessageBoxImage.Hand);
+                        }
                     }
                 }
             }

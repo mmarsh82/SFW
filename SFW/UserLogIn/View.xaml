@@ -52,7 +52,7 @@
                  FontWeight="Bold"/>
         <TextBlock Grid.Column="0" Grid.Row="1"
                    VerticalAlignment="Center"
-                   Text="Password:"
+                   Text="{Binding OldPwdText, Mode=OneWay}"
                    FontSize="24"
                    FontWeight="Bold"
                    Foreground="GhostWhite"/>
