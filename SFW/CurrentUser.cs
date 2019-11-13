@@ -159,6 +159,20 @@ namespace SFW
             }
         }
 
+        private static bool _isLocked;
+        public static bool IsLocked
+        {
+            get
+            { return _isLocked; }
+            set
+            {
+                _isLocked = value;
+                StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(IsLocked)));
+            }
+        }
+
+
+
         public static event EventHandler<PropertyChangedEventArgs> StaticPropertyChanged;
 
         #endregion
@@ -267,9 +281,16 @@ namespace SFW
         /// </summary>
         /// <param name="userName">User Name</param>
         /// <param name="pwd">User password</param>
-        /// <returns>Error that was encountered, will return null is no error was present</returns>
-        public static string LogIn(string userName, string pwd)
+        /// <returns>
+        /// IReadOnlyDictionary
+        /// Key is Pass/Fail check passed back as an int value of error
+        /// Value is Error that was encountered as a string, will return empty string on 0 key
+        /// </returns>
+        public static IReadOnlyDictionary<int, string> LogIn(string userName, string pwd)
         {
+            var _result = new Dictionary<int, string>();
+            var _resultKey = 0;
+            var _resultVal = string.Empty;
             try
             {
                 using (PrincipalContext pContext = new PrincipalContext(ContextType.Domain))
@@ -281,33 +302,45 @@ namespace SFW
                             var _expireDate = !uPrincipal.PasswordNeverExpires ?  Convert.ToDateTime(dEntry.InvokeGet("PasswordExpirationDate")) : DateTime.Today.AddDays(1);
                             if(_expireDate <= DateTime.Today && _expireDate != new DateTime(1970,1,1))
                             {
-                                return "Expired Password.";
+                                _resultKey = 1;
+                                _resultVal = "Expired Password.";
                             }
                             else if (uPrincipal.IsAccountLockedOut())
                             {
-                                return "Your account is currently locked out.\nPlease contact IT for assistance.";
+                                _resultKey = 2;
+                                _resultVal = "Your account is currently locked out.\nPlease contact IT for assistance.";
                             }
                             else if (uPrincipal.Enabled == false)
                             {
-                                return "Your account is currently disabled.\nPlease contact IT for assistance.";
+                                _resultKey = 3;
+                                _resultVal = "Your account is currently disabled.\nPlease contact IT for assistance.";
                             }
-
                             else if (!pContext.ValidateCredentials(userName, pwd))
                             {
-                                return "Invalid credentials.\nPlease check your user name and password and try again.\nIf you feel you have reached this message in error,\nplease contact IT for further assistance.";
+                                _resultKey = 4;
+                                _resultVal =  "Invalid credentials.\nPlease check your user name and password and try again.\nIf you feel you have reached this message in error,\nplease contact IT for further assistance.";
+                            }
+                            if (!string.IsNullOrEmpty(_resultVal))
+                            {
+                                _result.Add(_resultKey, _resultVal);
+                                return _result;
                             }
                             else
                             {
                                 new CurrentUser(pContext, uPrincipal);
-                                return null;
+                                _result.Add(_resultKey, _resultVal);
+                                return _result;
                             }
                         }
                     }
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                return "Your account does not exist on the domain.\nPlease contact IT for assistance.";
+                _resultKey = -1;
+                _resultVal = "Your account does not exist on the domain.\nPlease contact IT for assistance.";
+                _result.Add(_resultKey, _resultVal);
+                return _result;
             }
         }
 

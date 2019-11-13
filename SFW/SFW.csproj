@@ -125,7 +125,6 @@
     <Compile Include="Commands\PrintUserControl.cs" />
     <Compile Include="Commands\SetUpInformation.cs" />
     <Compile Include="Commands\ShowLogInWindow.cs" />
-    <Compile Include="Commands\ShowPassResetWindow.cs" />
     <Compile Include="Commands\SplitRoll.cs" />
     <Compile Include="Commands\TrimmingInformation.cs" />
     <Compile Include="Commands\UnplanScrap.cs" />
