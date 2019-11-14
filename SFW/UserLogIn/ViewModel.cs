@@ -11,20 +11,54 @@ namespace SFW.UserLogIn
         public string UserName { get; set; }
         public string OldPwdText { get { return CurrentUser.IsLockedOut ? "Old Password:" : "Password:"; } }
         public string NewPwd { get; set; }
+        public string ConfirmPwd { get; set; }
+        public string OldPwd { get; set; }
+
+        private bool _forceReset;
+        public bool ForceReset
+        {
+            get
+            {
+                return _forceReset;
+            }
+            set
+            {
+                _forceReset = value;
+                OnPropertyChanged(nameof(ForceReset));
+            }
+        }
+
+
+        private bool _viewType;
+        public bool ViewType
+        {
+            get
+            {
+                return _viewType;
+            }
+            set
+            {
+                _viewType = value;
+                OnPropertyChanged(nameof(ViewType));
+            }
+        }
 
         private string _error;
-        public string LogInError
+        public string Error
+
         {
             get
             { return _error; }
             set
             {
                 _error = value;
-                OnPropertyChanged(nameof(LogInError));
+                OnPropertyChanged(nameof(Error));
             }
         }
 
         public RelayCommand _loginCommand;
+
+        public RelayCommand _passResetCommand;
 
         #endregion
 
@@ -34,7 +68,26 @@ namespace SFW.UserLogIn
         public ViewModel()
         {
             UserName = string.Empty;
+            ViewType = false;
+            ForceReset = false;
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="isDiff"></param>
+        public ViewModel(bool vType)
+        {
+            if(CurrentUser.IsLoggedIn)
+            {
+                UserName = CurrentUser.DomainUserName;
+            }
+            ViewType = vType;
+            ForceReset = false;
+        }
+
+
+
 
         #region Log In ICommand
 
@@ -56,28 +109,91 @@ namespace SFW.UserLogIn
         /// <param name="parameter">Will contain a secure password object</param>
         public void LogInExecute(object parameter)
         {
-            LogInError = CurrentUser.LogIn(UserName, ((PasswordBox)parameter).Password);
-            if (LogInError == "Expired Password.")
+            if (ViewType)
             {
-                CurrentUser.UpdatePassword(UserName, ((PasswordBox)parameter).Password, NewPwd);
-            }
-            if (CurrentUser.IsLoggedIn)
-            {
-                foreach(System.Windows.Window w in System.Windows.Application.Current.Windows)
+                if (parameter != null && parameter.GetType() == typeof(PasswordBox[]))
                 {
-                    if (w.Title == "User Log In")
+                    Error = CurrentUser.UpdatePassword(UserName, ((PasswordBox[])parameter)[0].Password, ((PasswordBox[])parameter)[1].Password);
+                    if (string.IsNullOrEmpty(Error))
                     {
-                        w.Close();
-                        if ((ShopRoute.ViewModel)Controls.WorkSpaceDock.WccoDock.GetChildOfType<ShopRoute.View>().DataContext != null)
+                        if (ForceReset)
                         {
-                            ((ShopRoute.ViewModel)Controls.WorkSpaceDock.WccoDock.GetChildOfType<ShopRoute.View>().DataContext).UpdateView();
+                            var _result = CurrentUser.LogIn(UserName, ((PasswordBox[])parameter)[0].Password);
+                        }
+                        foreach (System.Windows.Window w in System.Windows.Application.Current.Windows)
+                        {
+                            if (w.Title == "Password Reset")
+                            {
+                                w.Close();
+                                if ((ShopRoute.ViewModel)Controls.WorkSpaceDock.WccoDock.GetChildOfType<ShopRoute.View>().DataContext != null)
+                                {
+                                    ((ShopRoute.ViewModel)Controls.WorkSpaceDock.WccoDock.GetChildOfType<ShopRoute.View>().DataContext).UpdateView();
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            else
+            {
+                var _result = CurrentUser.LogIn(UserName, ((PasswordBox[])parameter)[0].Password);
+                if (!_result.ContainsKey(0) && _result.TryGetValue(1, out string s))
+                {
+                    Error = s;
+                    //TODO: add in the viewmodel change representation
+                    ViewType = true;
+                    ForceReset = true;
+                    //CurrentUser.UpdatePassword(UserName, ((PasswordBox)parameter).Password, NewPwd);
+                }
+                else if (!_result.ContainsKey(0))
+                {
+                    foreach (var v in _result)
+                    {
+                        Error = v.Value;
+                    }
+                }
+                else
+                {
+                    if (CurrentUser.IsLoggedIn)
+                    {
+                        foreach (System.Windows.Window w in System.Windows.Application.Current.Windows)
+                        {
+                            if (w.Title == "User Log In")
+                            {
+                                w.Close();
+                                if ((ShopRoute.ViewModel)Controls.WorkSpaceDock.WccoDock.GetChildOfType<ShopRoute.View>().DataContext != null)
+                                {
+                                    ((ShopRoute.ViewModel)Controls.WorkSpaceDock.WccoDock.GetChildOfType<ShopRoute.View>().DataContext).UpdateView();
+                                }
+                            }
                         }
                     }
                 }
             }
         }
 
-        public bool LogInCanExecute(object parameter) => !string.IsNullOrEmpty(UserName) || !string.IsNullOrEmpty(((PasswordBox)parameter).Password);
+        public bool LogInCanExecute(object parameter)
+        {
+            if (ViewType)
+            {
+                if (parameter != null && parameter.GetType() == typeof(PasswordBox[]))
+                {
+
+                    return !string.IsNullOrEmpty(((PasswordBox[])parameter)[0].Password)
+                        && !string.IsNullOrEmpty(((PasswordBox[])parameter)[1].Password)
+                        && !string.IsNullOrEmpty(((PasswordBox[])parameter)[2].Password)
+                        && ((PasswordBox[])parameter)[1].Password == ((PasswordBox[])parameter)[2].Password
+                        && ((PasswordBox[])parameter)[0].Password != ((PasswordBox[])parameter)[1].Password
+                        && !string.IsNullOrEmpty(UserName)
+                        && CurrentUser.UserExist(UserName);
+                }
+                return false;
+            }
+            else
+            {
+                return !string.IsNullOrEmpty(UserName) || !string.IsNullOrEmpty(((PasswordBox[])parameter)[0].Password);
+            }
+        }
 
         #endregion
 

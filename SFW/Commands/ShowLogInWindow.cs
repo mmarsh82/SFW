@@ -14,7 +14,11 @@ namespace SFW.Commands
             {
                 new View { DataContext = new ViewModel() }.ShowDialog();
             }
-            else if (parameter?.ToString() == "out" && CurrentUser.IsLoggedIn)
+            else if (parameter?.ToString() == "reset")
+            {
+                new View { DataContext = new ViewModel(true) }.ShowDialog();
+            }
+            else if(parameter?.ToString() == "out")
             {
                 CurrentUser.LogOff();
                 if ((ShopRoute.ViewModel)Controls.WorkSpaceDock.WccoDock.GetChildOfType<ShopRoute.View>().DataContext != null)

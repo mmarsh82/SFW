@@ -159,17 +159,19 @@ namespace SFW
             }
         }
 
-        private static bool _lockout;
-        public static bool IsLockedOut
+        private static bool _isLocked;
+        public static bool IsLocked
         {
             get
-            { return _lockout; }
-            private set
+            { return _isLocked; }
+            set
             {
-                _lockout = value;
-                StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(IsLockedOut)));
+                _isLocked = value;
+                StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(IsLocked)));
             }
         }
+
+
 
         public static event EventHandler<PropertyChangedEventArgs> StaticPropertyChanged;
 
@@ -258,14 +260,37 @@ namespace SFW
             }
         }
 
+        public static bool UserExist(string userName)
+        {
+            try
+            {
+                using (PrincipalContext pCon = new PrincipalContext(ContextType.Domain))
+                {
+                        return ( UserPrincipal.FindByIdentity(pCon, userName) != null);
+                }
+            }
+            catch(Exception)
+            {
+                return false;
+            }
+
+        }
+
         /// <summary>
         /// Log in method for the current user
         /// </summary>
         /// <param name="userName">User Name</param>
         /// <param name="pwd">User password</param>
-        /// <returns>Error that was encountered, will return null is no error was present</returns>
-        public static string LogIn(string userName, string pwd)
+        /// <returns>
+        /// IReadOnlyDictionary
+        /// Key is Pass/Fail check passed back as an int value of error
+        /// Value is Error that was encountered as a string, will return empty string on 0 key
+        /// </returns>
+        public static IReadOnlyDictionary<int, string> LogIn(string userName, string pwd)
         {
+            var _result = new Dictionary<int, string>();
+            var _resultKey = 0;
+            var _resultVal = string.Empty;
             try
             {
                 using (PrincipalContext pContext = new PrincipalContext(ContextType.Domain))
@@ -274,35 +299,48 @@ namespace SFW
                     {
                         using (DirectoryEntry dEntry = uPrincipal.GetUnderlyingObject() as DirectoryEntry)
                         {
-                            //var _expireDate = Convert.ToDateTime(dEntry.InvokeGet("PasswordExpirationDate"));
-                            if (uPrincipal.IsAccountLockedOut())
+                            var _expireDate = !uPrincipal.PasswordNeverExpires ?  Convert.ToDateTime(dEntry.InvokeGet("PasswordExpirationDate")) : DateTime.Today.AddDays(1);
+                            if(_expireDate <= DateTime.Today && _expireDate != new DateTime(1970,1,1))
                             {
-                                return "Your account is currently locked out.\nPlease contact IT for assistance.";
+                                _resultKey = 1;
+                                _resultVal = "Expired Password.";
+                            }
+                            else if (uPrincipal.IsAccountLockedOut())
+                            {
+                                _resultKey = 2;
+                                _resultVal = "Your account is currently locked out.\nPlease contact IT for assistance.";
                             }
                             else if (uPrincipal.Enabled == false)
                             {
-                                return "Your account is currently disabled.\nPlease contact IT for assistance.";
+                                _resultKey = 3;
+                                _resultVal = "Your account is currently disabled.\nPlease contact IT for assistance.";
                             }
-                            /*else if (_expireDate <= DateTime.Today)
-                            {
-                                return "Expired Password.";
-                            }*/
                             else if (!pContext.ValidateCredentials(userName, pwd))
                             {
-                                return "Invalid credentials.\nPlease check your user name and password and try again.\nIf you feel you have reached this message in error,\nplease contact IT for further assistance.";
+                                _resultKey = 4;
+                                _resultVal =  "Invalid credentials.\nPlease check your user name and password and try again.\nIf you feel you have reached this message in error,\nplease contact IT for further assistance.";
+                            }
+                            if (!string.IsNullOrEmpty(_resultVal))
+                            {
+                                _result.Add(_resultKey, _resultVal);
+                                return _result;
                             }
                             else
                             {
                                 new CurrentUser(pContext, uPrincipal);
-                                return null;
+                                _result.Add(_resultKey, _resultVal);
+                                return _result;
                             }
                         }
                     }
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                return "Your account does not exist on the domain.\nPlease contact IT for assistance.";
+                _resultKey = -1;
+                _resultVal = "Your account does not exist on the domain.\nPlease contact IT for assistance.";
+                _result.Add(_resultKey, _resultVal);
+                return _result;
             }
         }
 
@@ -349,6 +387,34 @@ namespace SFW
         public static string UpdatePassword(string userName, string oldPwd, string newPwd)
         {
             //TODO: add in the logic and arguments for updating the password
+            using (var context = new PrincipalContext(ContextType.Domain))
+            {
+                try
+                {
+                    using (var user = UserPrincipal.FindByIdentity(context, IdentityType.SamAccountName, userName))
+                    {
+                        
+                        user.ChangePassword(oldPwd, newPwd);
+                        user.Save();
+                    }
+                }
+                catch(PasswordException e)
+                {
+                    if (e.Message == "The specified network password is not correct. (Exception from HRESULT: 0x80070056)")
+                        return "The old password is incorrect";
+                    else if (e.Message == "The password does not meet the password policy requirements. Check the minimum password length, password complexity and password history requirements. (Exception from HRESULT: 0x800708C5)")
+                        return "The password does not meet the password policy requirements.";
+                    else
+                        return e.Message;
+                }
+                catch(Exception e)
+                {
+                    
+                    return "Unknown error";
+                }
+            }
+
+
             return null;
         }
 
