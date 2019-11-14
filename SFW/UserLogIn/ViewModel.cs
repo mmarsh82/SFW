@@ -13,6 +13,20 @@ namespace SFW.UserLogIn
         public string ConfirmPwd { get; set; }
         public string OldPwd { get; set; }
 
+        private bool _forceReset;
+        public bool ForceReset
+        {
+            get
+            {
+                return _forceReset;
+            }
+            set
+            {
+                _forceReset = value;
+                OnPropertyChanged(nameof(ForceReset));
+            }
+        }
+
 
         private bool _viewType;
         public bool ViewType
@@ -54,6 +68,7 @@ namespace SFW.UserLogIn
         {
             UserName = string.Empty;
             ViewType = false;
+            ForceReset = false;
         }
 
         /// <summary>
@@ -62,7 +77,12 @@ namespace SFW.UserLogIn
         /// <param name="isDiff"></param>
         public ViewModel(bool vType)
         {
+            if(CurrentUser.IsLoggedIn)
+            {
+                UserName = CurrentUser.DomainUserName;
+            }
             ViewType = vType;
+            ForceReset = false;
         }
 
 
@@ -95,8 +115,10 @@ namespace SFW.UserLogIn
                     Error = CurrentUser.UpdatePassword(UserName, ((PasswordBox[])parameter)[0].Password, ((PasswordBox[])parameter)[1].Password);
                     if (string.IsNullOrEmpty(Error))
                     {
-
-
+                        if (ForceReset)
+                        {
+                            var _result = CurrentUser.LogIn(UserName, ((PasswordBox[])parameter)[0].Password);
+                        }
                         foreach (System.Windows.Window w in System.Windows.Application.Current.Windows)
                         {
                             if (w.Title == "Password Reset")
@@ -113,12 +135,13 @@ namespace SFW.UserLogIn
             }
             else
             {
-                var _result = CurrentUser.LogIn(UserName, ((PasswordBox)parameter).Password);
+                var _result = CurrentUser.LogIn(UserName, ((PasswordBox[])parameter)[0].Password);
                 if (!_result.ContainsKey(0) && _result.TryGetValue(1, out string s))
                 {
                     Error = s;
                     //TODO: add in the viewmodel change representation
                     ViewType = true;
+                    ForceReset = true;
                     //CurrentUser.UpdatePassword(UserName, ((PasswordBox)parameter).Password, NewPwd);
                 }
                 else if (!_result.ContainsKey(0))
@@ -167,7 +190,7 @@ namespace SFW.UserLogIn
             }
             else
             {
-                return !string.IsNullOrEmpty(UserName) || !string.IsNullOrEmpty(((PasswordBox)parameter).Password);
+                return !string.IsNullOrEmpty(UserName) || !string.IsNullOrEmpty(((PasswordBox[])parameter)[0].Password);
             }
         }
 

@@ -41,7 +41,15 @@
         </LinearGradientBrush>
     </Window.Background>
     <Window.InputBindings>
-        <KeyBinding Gesture="Enter" Command="{Binding LogInCommand}" CommandParameter="{Binding ElementName=pwdBox, Mode=OneWay}"/>
+        <KeyBinding Gesture="Enter" Command="{Binding LogInCommand}">
+            <KeyBinding.CommandParameter>
+                <MultiBinding Converter="{StaticResource PasswordConcat}">
+                    <Binding ElementName="oldPwdBox"/>
+                    <Binding ElementName="newPwdBox"/>
+                    <Binding ElementName="confirmPwdBox"/>
+                </MultiBinding>
+            </KeyBinding.CommandParameter> 
+            </KeyBinding>
     </Window.InputBindings>
 
     <Grid VerticalAlignment="Center" HorizontalAlignment="Center">
@@ -52,7 +60,7 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="45"/>
             <RowDefinition Height="45"/>
-            <RowDefinition Height="45"/>
+            <RowDefinition Height="*"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="*"/>

@@ -141,10 +141,6 @@
     <Compile Include="Converters\WoPriorityToBool.cs" />
     <Compile Include="CurrentUser.cs" />
     <Compile Include="Enumerations\PressReportActions.cs" />
-    <Compile Include="PassReset\View.xaml.cs">
-      <DependentUpon>View.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="PassReset\ViewModel.cs" />
     <Compile Include="Queries\PartDetail_View.xaml.cs">
       <DependentUpon>PartDetail_View.xaml</DependentUpon>
     </Compile>
@@ -241,10 +237,6 @@
       <DependentUpon>View.xaml</DependentUpon>
     </Compile>
     <Compile Include="WIP\ViewModel.cs" />
-    <Page Include="PassReset\View.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="Queries\PartDetail_View.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
