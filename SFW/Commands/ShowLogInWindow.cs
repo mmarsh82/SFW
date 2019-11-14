@@ -10,11 +10,11 @@ namespace SFW.Commands
 
         public void Execute(object parameter)
         {
-            if (parameter?.ToString() == "in")
+            if (parameter?.ToString() == "in" && !CurrentUser.IsLoggedIn)
             {
                 new View { DataContext = new ViewModel() }.ShowDialog();
             }
-            else
+            else if (parameter?.ToString() == "out" && CurrentUser.IsLoggedIn)
             {
                 CurrentUser.LogOff();
                 if ((ShopRoute.ViewModel)Controls.WorkSpaceDock.WccoDock.GetChildOfType<ShopRoute.View>().DataContext != null)

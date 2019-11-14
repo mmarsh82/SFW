@@ -27,7 +27,7 @@
     <Window.InputBindings>
         <KeyBinding Gesture="Alt+F4" Command="{StaticResource ExitICommand}"/>
         <KeyBinding Gesture="F1" Command="{StaticResource LogInICommand}" CommandParameter="in"/>
-        <KeyBinding Gesture="Esc" Command="{StaticResource LogInICommand}"/>
+        <KeyBinding Gesture="Esc" Command="{StaticResource LogInICommand}" CommandParameter="out"/>
         <KeyBinding Gesture="F5"
                     Command="{StaticResource ViewLoadICommand}"
                     CommandParameter="Schedule" />
@@ -70,6 +70,7 @@
                           Visibility="{Binding Path=(local:CurrentUser.IsLoggedIn), Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}"/>
                 <MenuItem Header="Log Out"
                           Command="{StaticResource LogInICommand}"
+                          CommandParameter="out"
                           InputGestureText="Esc"
                           Visibility="{Binding Path=(local:CurrentUser.IsLoggedIn), Converter={StaticResource BoolToVisConverter}}"/>
                 <MenuItem Header="Train Mode"

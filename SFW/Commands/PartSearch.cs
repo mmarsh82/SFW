@@ -37,17 +37,14 @@ namespace SFW.Commands
                         var _temp = parameter.ToString().Split('*');
                         parameter = !string.IsNullOrEmpty(_temp[1]) && _temp[1] != DependencyProperty.UnsetValue.ToString() ? _temp[1] : _temp[0];
                     }
+                    if (!string.IsNullOrEmpty(parameter?.ToString()))
+                    {
+                        ///TODO: Remove hard coded print location
+                        Process.Start($"\\\\manage2\\Prints\\{parameter}.pdf");
+                    }
                     else
                     {
-                        if (!string.IsNullOrEmpty(parameter?.ToString()))
-                        {
-                            ///TODO: Remove hard coded print location
-                            Process.Start($"\\\\manage2\\Prints\\{parameter}.pdf");
-                        }
-                        else
-                        {
-                            MessageBox.Show("The part number that you have selected is either invalid or does not exist.", "Invalid or Missing Part Number", MessageBoxButton.OK, MessageBoxImage.Hand);
-                        }
+                        MessageBox.Show("The part number that you have selected is either invalid or does not exist.", "Invalid or Missing Part Number", MessageBoxButton.OK, MessageBoxImage.Hand);
                     }
                 }
             }
