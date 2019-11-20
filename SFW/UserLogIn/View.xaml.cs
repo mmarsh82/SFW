@@ -12,5 +12,11 @@ namespace SFW.UserLogIn
             InitializeComponent();
             Loaded += delegate { UserName.Focus(); };
         }
+
+        public View(int i)
+        {
+            InitializeComponent();
+            Loaded += delegate { oldPwdBox.Focus(); };
+        }
     }
 }

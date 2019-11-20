@@ -7,7 +7,7 @@
         xmlns:cvtr="clr-namespace:SFW.Converters"
         mc:Ignorable="d"
         x:Name="LogIn_Window"
-        MinHeight="400" MaxHeight="300" MinWidth="400" MaxWidth="700" ScrollViewer.VerticalScrollBarVisibility="Disabled" WindowStyle="ToolWindow" ResizeMode="NoResize" Icon="/SFW;component/Icons/Admin.ico" WindowStartupLocation="CenterOwner">
+        SizeToContent="WidthAndHeight" WindowStyle="ToolWindow" ResizeMode="NoResize" Icon="/SFW;component/Icons/Admin.ico" WindowStartupLocation="CenterScreen">
     <Window.Style>
         <Style TargetType="{x:Type Window}">
             <Setter Property="Title" Value="User Log In"/>
@@ -62,7 +62,7 @@
             <RowDefinition Height="45"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="*"/>
-            <RowDefinition Height="*"/>
+            <RowDefinition Height="45"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
         <TextBlock Grid.Column="0" Grid.Row="0"
@@ -70,11 +70,12 @@
                    Text="User Name:"
                    FontSize="24"
                    FontWeight="Bold"
-                   Foreground="GhostWhite"/>
+                   Foreground="GhostWhite"
+                   Margin="40,0,0,0"/>
         <TextBox x:Name="UserName"
                  Grid.Column="1" Grid.Row="0"
                  Text="{Binding UserName, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
-                 Margin="5"
+                 Margin="5,5,40,5"
                  Width="275"
                  FontSize="22"
                  FontWeight="Bold"/>
@@ -82,7 +83,8 @@
                    VerticalAlignment="Center"
                    FontSize="24"
                    FontWeight="Bold"
-                   Foreground="GhostWhite">
+                   Foreground="GhostWhite"
+                   Margin="40,0,0,0">
             <TextBlock.Style>
                 <Style TargetType="{x:Type TextBlock}">
                     <Setter Property="Text" Value="Password:"/>
@@ -95,7 +97,7 @@
             </TextBlock.Style>
         </TextBlock>
         <PasswordBox x:Name="oldPwdBox" Grid.Column="1" Grid.Row="1"
-                     Margin="5"
+                     Margin="5,5,40,5"
                      Width="275"
                      FontSize="22"
                      FontWeight="Bold"/>
@@ -105,9 +107,10 @@
                    FontSize="24"
                    FontWeight="Bold"
                    Foreground="GhostWhite"
+                   Margin="40,0,0,0"
                    Visibility="{Binding ViewType, Mode=OneWay, Converter={StaticResource BoolToVisConverter}}"/>
         <PasswordBox x:Name="newPwdBox" Grid.Column="1" Grid.Row="2"
-                     Margin="5"
+                     Margin="5,5,40,5"
                      Width="275"
                      FontSize="22"
                      FontWeight="Bold"
@@ -118,9 +121,10 @@
                    FontSize="24"
                    FontWeight="Bold"
                    Foreground="GhostWhite"
+                   Margin="40,0,0,0"
                    Visibility="{Binding ViewType, Mode=OneWay, Converter={StaticResource BoolToVisConverter}}"/>
         <PasswordBox x:Name="confirmPwdBox" Grid.Column="1" Grid.Row="3"
-                     Margin="5"
+                     Margin="5,5,40,5"
                      Width="275"
                      FontSize="22"
                      FontWeight="Bold"
@@ -148,6 +152,7 @@
                    Foreground="Crimson"
                    VerticalAlignment="Center"
                    HorizontalAlignment="Center"
+                   Margin="0,0,0,20"
                    Visibility="{Binding Error, Mode=OneWay, Converter={StaticResource StringToVisConverter}}"/>
 
 

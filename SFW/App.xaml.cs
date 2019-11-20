@@ -48,7 +48,7 @@ namespace SFW
             Site = "CSI_MAIN";
             SiteNumber = 0;
             ErpCon = new M2kConnection("172.16.0.10", "omniquery", "omniquery", Database.CSI);
-            AppSqlCon = new SqlConnection($"Server=SQL-WCCO;User ID=omni;Password=Public2017@WORK!;DataBase={Site};Connection Timeout=60;MultipleActiveResultSets=True");
+            AppSqlCon = new SqlConnection($"Server=172.16.0.114;User ID=omni;Password=Public2017@WORK!;DataBase={Site};Connection Timeout=60;MultipleActiveResultSets=True");
             AppSqlCon.Open();
             while (AppSqlCon.State != System.Data.ConnectionState.Open) { }
             Current.Exit += App_Exit;

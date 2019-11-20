@@ -30,8 +30,8 @@
     <PublisherName>Michael Marsh</PublisherName>
     <SuiteName>WCCO Belting Inc.</SuiteName>
     <AutorunEnabled>true</AutorunEnabled>
-    <ApplicationRevision>1399</ApplicationRevision>
-    <ApplicationVersion>1.0.162.1399</ApplicationVersion>
+    <ApplicationRevision>1416</ApplicationRevision>
+    <ApplicationVersion>1.0.164.1416</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <CreateDesktopShortcut>true</CreateDesktopShortcut>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -85,6 +85,7 @@
       <HintPath>..\packages\Expression.Interaction.3.0.40218.0\lib\net46\Microsoft.Expression.Interactions.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Activities" />
     <Reference Include="System.Data" />
     <Reference Include="System.DirectoryServices" />
     <Reference Include="System.DirectoryServices.AccountManagement" />
@@ -132,6 +133,7 @@
     <Compile Include="Converters\EnumToBool.cs" />
     <Compile Include="Converters\EnumToVisibility.cs" />
     <Compile Include="Converters\IntToVisibility.cs" />
+    <Compile Include="Converters\PasswordConcat.cs" />
     <Compile Include="Converters\SiteNumberToBool.cs" />
     <Compile Include="Converters\SiteToVisibility.cs" />
     <Compile Include="Converters\StringConcat.cs" />

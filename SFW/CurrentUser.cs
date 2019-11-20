@@ -260,13 +260,18 @@ namespace SFW
             }
         }
 
+        /// <summary>
+        /// Check to see if the user exists in the current domain
+        /// </summary>
+        /// <param name="userName">Domain user name</param>
+        /// <returns>Pass/Fail check as a boolean</returns>
         public static bool UserExist(string userName)
         {
             try
             {
                 using (PrincipalContext pCon = new PrincipalContext(ContextType.Domain))
                 {
-                        return ( UserPrincipal.FindByIdentity(pCon, userName) != null);
+                    return (UserPrincipal.FindByIdentity(pCon, userName) != null);
                 }
             }
             catch(Exception)

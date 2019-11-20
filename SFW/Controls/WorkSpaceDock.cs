@@ -75,6 +75,7 @@ namespace SFW.Controls
                     SwitchView(1, null);
                     break;
                 case "CSI":
+                case "BELT":
                     App.DatabaseChange("CSI_MAIN");
                     App.ErpCon.DatabaseChange(Database.CSI);
                     SwitchView(0, null);

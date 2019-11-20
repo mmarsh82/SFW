@@ -16,7 +16,7 @@ namespace SFW.Commands
             }
             else if (parameter?.ToString() == "reset")
             {
-                new View { DataContext = new ViewModel(true) }.ShowDialog();
+                new View(0) { DataContext = new ViewModel(true) }.ShowDialog();
             }
             else if(parameter?.ToString() == "out")
             {
