@@ -1,8 +1,7 @@
 ﻿using SFW.Helpers;
 using SFW.Model;
 using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
 using System.Windows.Input;
 
@@ -22,11 +21,26 @@ namespace SFW.Queries
                 if (value.Count() >= 7)
                 {
                     ValidLot = Lot.IsValid(value, App.AppSqlCon);
+                    _startingQty = LotQuantity = ValidLot ? Lot.GetLotOnHandQuantity(value, App.AppSqlCon) : 0;
                 }
                 _lot = value;
                 OnPropertyChanged(nameof(LotNumber));
             }
         }
+
+        private int _lotQty;
+        private int _startingQty;
+        public int LotQuantity
+        {
+            get
+            { return _lotQty; }
+            set
+            {
+                _lotQty = value;
+                OnPropertyChanged(nameof(LotQuantity));
+            }
+        }
+
         public bool ValidLot { get; set; }
         public int OnHand { get; set; }
 
@@ -46,7 +60,7 @@ namespace SFW.Queries
                     var _alphaCount = 65;
                     while (_tempCount != 0)
                     {
-                        SplitLotList.Add(new Lot { LotNumber = $"{LotNumber}{Convert.ToChar(_alphaCount)}", TransactionQty = Convert.ToInt32(value )/ i });
+                        SplitLotList.Add(new Lot { LotNumber = $"{LotNumber}{Convert.ToChar(_alphaCount)}", TransactionQty = string.Empty });
                         _tempCount--;
                         _alphaCount++;
                     }
@@ -60,32 +74,13 @@ namespace SFW.Queries
             }
         }
 
-        private int? _lQty;
-        public string LotQuantity
-        {
-            get
-            { return _lQty.ToString(); }
-            set
-            {
-                if (int.TryParse(value, out int i))
-                {
-                    _lQty = i;
-                }
-                else
-                {
-                    _lQty = null;
-                }
-                OnPropertyChanged(nameof(LotQuantity));
-            }
-        }
-
         private string _note;
         public string VarienceNote
         {
             get { return _note; }
             set { _note = value; OnPropertyChanged(nameof(VarienceNote)); }
         }
-        public ObservableCollection<Lot> SplitLotList { get; set; }
+        public BindingList<Lot> SplitLotList { get; set; }
 
         RelayCommand _split;
 
@@ -96,7 +91,21 @@ namespace SFW.Queries
         /// </summary>
         public PartSplit_ViewModel()
         {
-            SplitLotList = new ObservableCollection<Lot>(new List<Lot>());
+            SplitLotList = new BindingList<Lot>();
+            SplitLotList.ListChanged += SplitLotList_ListChanged;
+        }
+
+        /// <summary>
+        /// SplitLotList BindingList event change method
+        /// </summary>
+        /// <param name="sender">Internal Lot object list</param>
+        /// <param name="e">List changed event arguments</param>
+        private void SplitLotList_ListChanged(object sender, ListChangedEventArgs e)
+        {
+            if (e.ListChangedType == ListChangedType.ItemChanged && e.PropertyDescriptor.Name == "TransactionQty")
+            {
+                LotQuantity = _startingQty - ((BindingList<Lot>)sender).Where(o => int.TryParse(o.TransactionQty, out int i) && i > 0).Sum(p => Convert.ToInt32(p.TransactionQty));
+            }
         }
 
         #region Roll Split Submit ICommand
@@ -117,10 +126,11 @@ namespace SFW.Queries
         {
             var _part = Lot.GetSkuNumber(LotNumber, App.AppSqlCon);
             var _loc = Lot.GetLotLocation(LotNumber, App.AppSqlCon);
-            M2kClient.M2kCommand.InventoryAdjustment("SFW SPLIT", $"Split into {RollQuantity} rolls", _part, M2kClient.AdjustCode.CC, 'R', Convert.ToInt32(LotQuantity), _loc, App.ErpCon, LotNumber);
-            foreach (var l in SplitLotList)
+            var _onHandDelta = _startingQty - LotQuantity;
+            M2kClient.M2kCommand.InventoryAdjustment("SFW SPLIT", $"Split into {RollQuantity} rolls", _part, M2kClient.AdjustCode.CC, 'S', _onHandDelta, _loc, App.ErpCon, LotNumber);
+            foreach (var l in SplitLotList.Where(o => int.TryParse(o.TransactionQty, out int i) && i > 0))
             {
-                M2kClient.M2kCommand.InventoryAdjustment("SFW SPLIT", $"Split from {LotNumber}", _part, M2kClient.AdjustCode.CC, 'A', l.TransactionQty, _loc, App.ErpCon, l.LotNumber);
+                M2kClient.M2kCommand.InventoryAdjustment("SFW SPLIT", $"Split from {LotNumber}", _part, M2kClient.AdjustCode.CC, 'A', Convert.ToInt32(l.TransactionQty), _loc, App.ErpCon, l.LotNumber);
             }
             foreach (object w in System.Windows.Application.Current.Windows)
             {
@@ -131,8 +141,8 @@ namespace SFW.Queries
             }
         }
         private bool SplitCanExecute(object parameter) => 
-            ValidLot && int.TryParse(RollQuantity, out int i) && int.TryParse(LotQuantity, out int j) && j > 0 && 
-            SplitLotList.Count() == SplitLotList.Count(o => !string.IsNullOrEmpty(o.LotNumber) && o.TransactionQty > 0);
+            ValidLot && int.TryParse(RollQuantity, out int i) && LotQuantity > 0 && 
+            SplitLotList.Count() == SplitLotList.Count(o => !string.IsNullOrEmpty(o.LotNumber) && int.TryParse(o.TransactionQty, out int l) && l > 0);
 
         #endregion
 

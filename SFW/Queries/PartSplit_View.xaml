@@ -66,16 +66,13 @@
                        TextDecorations="Underline"
                        VerticalAlignment="Center"
                        Margin="10,0,0,0"/>
-            <TextBox Text="{Binding LotQuantity, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                     FontSize="18"
-                     FontWeight="Bold"
-                     Background="LightGray"
-                     Margin="5"
-                     Width="75"
-                     TabIndex="2"
-                     MaxLength="4"
-                     Style="{DynamicResource RequiredTextBox}" />
-            
+
+            <TextBlock Text="{Binding LotQuantity, Mode=OneWay}"
+                       FontSize="18"
+                       FontWeight="Bold"
+                       VerticalAlignment="Center"
+                       Margin="10,0,10,0"/>
+
         </StackPanel>
         
         <!--#endregion-->
@@ -149,9 +146,7 @@
         </ItemsControl>
         
         <!--#endregion-->
-        
-        
-        
+             
         <Button Grid.Row="3"
                 Content="Submit"
                 Margin="5"

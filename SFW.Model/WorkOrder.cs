@@ -82,7 +82,7 @@ namespace SFW.Model
                         CustomerNumber = drow.Field<string>("Cust_Nbr"),
                         CustomerPart = drow.Field<string>("Cust_Part_Nbr"),
                         LineNumber = Convert.ToInt32(_so[1]),
-                        LineQuantity = drow.Field<int>("Ln_Bal_Qty"),
+                        LineQuantity = drow.SafeGetField<int>("Ln_Bal_Qty"),
                         LoadPattern = drow.Field<string>("LoadPattern").ToUpper() == "PLASTIC"
                      };
                 }

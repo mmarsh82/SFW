@@ -27,7 +27,7 @@ namespace SFW.Commands
                     {
                         parameter = parameter.ToString().Split('*')[0];
                     }
-                    Process.Start($"\\\\csi-prime\\prints\\part\\{parameter}.pdf");
+                    Process.Start($"\\\\fs-csi\\prints\\part\\{parameter}.pdf");
                 }
                 //WCCO Part search
                 else

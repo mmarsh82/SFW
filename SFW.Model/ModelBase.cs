@@ -1,11 +1,13 @@
 ﻿using System;
+using System.ComponentModel;
+using System.Data;
 using System.Data.SqlClient;
 
 //Created by Michael Marsh 4-19-18
 
 namespace SFW.Model
 {
-    public abstract class ModelBase : IDisposable
+    public abstract class ModelBase : IDisposable, INotifyPropertyChanged
     {
         #region Properties
 
@@ -26,6 +28,26 @@ namespace SFW.Model
             if (disposing)
             {
 
+            }
+        }
+
+        #endregion
+
+        #region INotifyPropertyChanged Implementation
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        /// <summary>
+        /// Reflects changes from the ViewModel properties to the View
+        /// </summary>
+        /// <param name="propertyName">Property Name</param>
+        protected virtual void OnPropertyChanged(string propertyName)
+        {
+            var handler = PropertyChanged;
+            if (handler != null)
+            {
+                var e = new PropertyChangedEventArgs(propertyName);
+                handler(this, e);
             }
         }
 
@@ -131,6 +153,24 @@ namespace SFW.Model
             else
             {
                 return false;
+            }
+        }
+
+        /// <summary>
+        /// Safely retrieve any value from a DataRow object
+        /// </summary>
+        /// <typeparam name="T">A generic parameter that specifies the return type</typeparam>
+        /// <param name="dRow">DataRow object</param>
+        /// <param name="colName">Name of the column to get the value of</param>
+        public static T SafeGetField<T>(this DataRow dRow, string colName)
+        {
+            if (dRow[colName] == DBNull.Value)
+            {
+                return default;
+            }
+            else
+            {
+                return dRow.Field<T>(colName);
             }
         }
     }

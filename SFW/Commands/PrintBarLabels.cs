@@ -32,6 +32,6 @@ namespace SFW.Commands
             }
         }
 
-        public bool CanExecute(object parameter) => parameter != null;
+        public bool CanExecute(object parameter) => true;
     }
 }

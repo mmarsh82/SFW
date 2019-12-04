@@ -17,7 +17,25 @@ namespace SFW.Model
         public int TransactionKey { get; set; }
         public DateTime TransactionDate { get; set; }
         public string TransactionType { get; set; }
-        public int TransactionQty { get; set; }
+
+        private int? _tranQty;
+        public string TransactionQty
+        {
+            get
+            { return _tranQty.ToString(); }
+            set
+            {
+                if (int.TryParse(value, out int i))
+                {
+                    _tranQty = i;
+                }
+                else
+                {
+                    _tranQty = null;
+                }
+                OnPropertyChanged(nameof(TransactionQty));
+            }
+        }
         public string TransactionCode { get; set; }
         public string TransactionReference { get; set; }
         public string TransactionWorkOrder { get; set; }
