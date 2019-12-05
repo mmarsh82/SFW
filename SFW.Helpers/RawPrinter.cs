@@ -99,16 +99,19 @@ namespace SFW.Helpers
                 }
             }
         }
-        public static bool SendStringToPrinter(string szPrinterName, string szString)
+        public static bool SendStringToPrinter(string szPrinterName, string szString, int pageCnt = 1)
         {
             // How many characters are in the string?
-            int dwCount = szString.Length;
-            // Assume that the printer is expecting ANSI text, and then convert
-            // the string to ANSI text.
-            IntPtr pBytes = Marshal.StringToCoTaskMemAnsi(szString);
-            // Send the converted ANSI string to the printer.
-            SendBytesToPrinter(szPrinterName, pBytes, dwCount);
-            Marshal.FreeCoTaskMem(pBytes);
+            for (int i = 1; i <= pageCnt; i++)
+            {
+                int dwCount = szString.Length;
+                // Assume that the printer is expecting ANSI text, and then convert
+                // the string to ANSI text.
+                IntPtr pBytes = Marshal.StringToCoTaskMemAnsi(szString);
+                // Send the converted ANSI string to the printer.
+                SendBytesToPrinter(szPrinterName, pBytes, dwCount);
+                Marshal.FreeCoTaskMem(pBytes);
+            }
             return true;
         }
     }
