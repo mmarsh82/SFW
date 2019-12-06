@@ -109,11 +109,11 @@ namespace SFW.Helpers
                             var pdfField = stamp.AcroFields;
                             pdfField.SetField("Date", DateTime.Today.ToString("MM/dd/yyyy"));
                             pdfField.SetField("P/N", PartNbr);
-                            pdfField.SetField("PartBar", PartNbr);
+                            pdfField.SetField("PartBar", $"*{PartNbr}*");
                             if (!string.IsNullOrEmpty(LotNbr))
                             {
                                 pdfField.SetField("L/N", LotNbr);
-                                pdfField.SetField("LotBar", LotNbr);
+                                pdfField.SetField("LotBar", $"*{LotNbr}*");
                             }
                             if (!string.IsNullOrEmpty(DiamondNbr))
                             {

@@ -168,7 +168,7 @@ namespace SFW.Model
                             }
                         }
                     }
-                    SetUpInstructions = GetSetUpInstructions(partNbr, seq, sqlCon);
+                    SetUpInstructions = GetSetUpInstructions(partNbr, seq, true, sqlCon);
                     PackageInstructions = GetPackInstructions(partNbr, seq, sqlCon);
                     if (SpecDesc.Contains("SLIT"))
                     {
@@ -201,16 +201,23 @@ namespace SFW.Model
         /// </summary>
         /// <param name="partNbr">Part Number</param>
         /// <param name="seq">Work Order Sequence</param>
+        /// <param name="basic">Basic instructions boolean, if false will retrieve slitter instructions</param>
         /// <param name="sqlCon">Sql connection object to use</param>
         /// <returns></returns>
-        public static string GetSetUpInstructions(string partNbr, string seq, SqlConnection sqlCon)
+        public static string GetSetUpInstructions(string partNbr, string seq, bool basic, SqlConnection sqlCon)
         {
             var _temp = string.Empty;
             if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
             {
                 try
                 {
-                    using (SqlCommand cmd = new SqlCommand(@"SELECT [Instructions] FROM [dbo].[IM-UDEF-SPEC-INIT_Instructions] WHERE [ID] LIKE CONCAT(@p1,'*',@p2);", sqlCon))
+                    var cmdSelect = basic
+                        ? @"SELECT [Instructions] FROM [dbo].[IM-UDEF-SPEC-INIT_Instructions] WHERE [ID] LIKE CONCAT(@p1,'*',@p2);"
+                        : @"SELECT [Slitter_Instr] FROM [dbo].[IM-UDEF-SPEC-INIT_Slitter_Instr] WHERE [ID] LIKE CONCAT(@p1,'*',@p2);";
+                    var colName = basic
+                        ? "Instructions"
+                        : "Slitter_Instr";
+                    using (SqlCommand cmd = new SqlCommand(cmdSelect, sqlCon))
                     {
                         cmd.Parameters.AddWithValue("p1", partNbr);
                         cmd.Parameters.AddWithValue("p2", seq);
@@ -220,7 +227,7 @@ namespace SFW.Model
                             {
                                 while (reader.Read())
                                 {
-                                    _temp += $"{reader.SafeGetString("Instructions").Replace("amp;","")}\n";
+                                    _temp += $"{reader.SafeGetString(colName).Replace("amp;","")}\n";
                                 }
                             }
                         }

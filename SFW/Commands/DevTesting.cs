@@ -3,10 +3,9 @@ using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
 using SFW.Model;
 using System;
-using System.Collections.Generic;
+using System.Data;
 using System.Data.SqlClient;
 using System.Windows.Input;
-using System.Data;
 
 namespace SFW.Commands
 {
@@ -20,11 +19,6 @@ namespace SFW.Commands
         /// <param name="parameter"></param>
         public void Execute(object parameter)
         {
-            new PrintBarLabels().Execute("123456");
-
-
-
-            /*
             using (var _skuTable = new DataTable())
             {
                 using (var dataAdapter = new SqlDataAdapter(@"SELECT
@@ -45,7 +39,7 @@ namespace SFW.Commands
                                                             LEFT OUTER JOIN
 	                                                            [dbo].[IM-UDEF-SPEC-INIT] b ON b.[Edi_Udef_1] = a.[Part_Number]
                                                             WHERE
-	                                                            a.[Accounting_Status] != 'O' AND b.[ID] IS NOT NULL AND b.[Edi_Udef_2] IS NOT NULL
+	                                                            a.[Accounting_Status] != 'O' AND b.[ID] IS NOT NULL AND b.[Edi_Udef_2] IS NOT NULL AND b.[Sequence_Desc] LIKE '%SLIT%'
                                                             ORDER BY
 	                                                            a.[Part_Number];", App.AppSqlCon))
                 {
@@ -55,8 +49,8 @@ namespace SFW.Commands
                 {
                     #region Setup Export
 
-                    var _setupInst = UdefSku.GetSetUpInstructions(_row.Field<string>("Part_Number"), _row.Field<string>("Seq"), App.AppSqlCon).Split(new string[1] { "\n" }, StringSplitOptions.None);
-                    using (var _wpDoc = WordprocessingDocument.Create($@"\\csi-prime\Prints\Setup\{_row.Field<string>("Part_Number")}.docx", WordprocessingDocumentType.Document))
+                    var _setupInst = UdefSku.GetSetUpInstructions(_row.Field<string>("Part_Number"), _row.Field<string>("Seq"), false, App.AppSqlCon).Split(new string[1] { "\n" }, StringSplitOptions.None);
+                    using (var _wpDoc = WordprocessingDocument.Create($@"C:\temp\Setup\{_row.Field<string>("Part_Number")}.docx", WordprocessingDocumentType.Document))
                     {
                         // Add a main document part.
                         MainDocumentPart mainPart = _wpDoc.AddMainDocumentPart();
@@ -100,10 +94,11 @@ namespace SFW.Commands
 
                     #endregion
 
+                    /*
                     #region Work Instruction Export
 
                     var _packInst = UdefSku.GetPackInstructions(_row.Field<string>("Part_Number"), _row.Field<string>("Seq"), App.AppSqlCon).Split(new string[1] { "\n" }, StringSplitOptions.None);
-                    using (var _wpDoc = WordprocessingDocument.Create($@"\\csi-prime\Prints\WI\{_row.Field<string>("Part_Number")}.docx", WordprocessingDocumentType.Document))
+                    using (var _wpDoc = WordprocessingDocument.Create($@"C:\temp\WI\{_row.Field<string>("Part_Number")}.docx", WordprocessingDocumentType.Document))
                     {
                         // Add a main document part.
                         MainDocumentPart mainPart = _wpDoc.AddMainDocumentPart();
@@ -140,7 +135,7 @@ namespace SFW.Commands
                     {
                         _passInfo = UdefSkuPass.GetUdefPassList(_row.Field<string>("Part_Number"), _row.Field<string>("Seq"), App.AppSqlCon);
                     }
-                    using (var _wpDoc = WordprocessingDocument.Create($@"\\csi-prime\Prints\Part\{_row.Field<string>("Part_Number")}.docx", WordprocessingDocumentType.Document))
+                    using (var _wpDoc = WordprocessingDocument.Create($@"C:\temp\Part\{_row.Field<string>("Part_Number")}.docx", WordprocessingDocumentType.Document))
                     {
                         // Add a main document part.
                         MainDocumentPart mainPart = _wpDoc.AddMainDocumentPart();
@@ -214,8 +209,9 @@ namespace SFW.Commands
                     }
 
                     #endregion
+    */
                 }
-            }*/
+            }
         }
         public bool CanExecute(object parameter) => true;
     }

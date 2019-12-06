@@ -6,7 +6,6 @@ using SFW.Helpers;
 using SFW.Model;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Data;
 using System.Linq;
@@ -23,6 +22,7 @@ namespace SFW.Schedule
         #region Properties
 
         public ICollectionView ScheduleView { get; set; }
+
         private DataRowView _selectedWO;
         public DataRowView SelectedWorkOrder
         {
@@ -111,8 +111,6 @@ namespace SFW.Schedule
             LoadAsyncComplete = LoadAsyncDelegate.BeginInvoke(_filter, new AsyncCallback(ViewLoaded), null);
             RefreshTimer.Add(RefreshSchedule);
             VMDataBase = App.AppSqlCon.Database;
-            //TODO:need to switch to using this on the ICollectionView collection view source
-            var test = new ObservableCollection<DataRow>(Machine.GetScheduleData(App.AppSqlCon).AsEnumerable());
         }
 
         /// <summary>
@@ -155,6 +153,7 @@ namespace SFW.Schedule
         public void ViewLoading(string machineNbr)
         {
             IsLoading = true;
+
             ScheduleView = CollectionViewSource.GetDefaultView(Machine.GetScheduleData(App.AppSqlCon));
             ScheduleView.GroupDescriptions.Add(new PropertyGroupDescription("MachineNumber", new WorkCenterNameConverter(MachineList)));
             if (!string.IsNullOrEmpty(machineNbr))
@@ -189,8 +188,8 @@ namespace SFW.Schedule
                         App.DatabaseChange(VMDataBase);
                     }
                     ScheduleView = CollectionViewSource.GetDefaultView(Machine.GetScheduleData(App.AppSqlCon));
-                    OnPropertyChanged(nameof(ScheduleView));
                     ScheduleView.GroupDescriptions.Add(new PropertyGroupDescription("MachineNumber", new WorkCenterNameConverter(MachineList)));
+                    OnPropertyChanged(nameof(ScheduleView));
                     if (_oldItem != null && ((DataView)ScheduleView.SourceCollection).Table.AsEnumerable().Any(r => r.Field<string>("WO_Number") == ((DataRowView)_oldItem).Row.Field<string>("WO_Number")))
                     {
                         var schedList = ((DataView)ScheduleView.SourceCollection).Table.AsEnumerable().ToList();

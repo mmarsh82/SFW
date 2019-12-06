@@ -27,7 +27,7 @@ namespace SFW.Commands
                         case 0:
                             try
                             {
-                                Process.Start($"\\\\csi-prime\\prints\\Setup\\{_wo.SkuNumber}.pdf");
+                                Process.Start($"\\\\FS-CSI\\prints\\Setup\\{_wo.SkuNumber}.pdf");
                             }
                             catch (Exception)
                             {

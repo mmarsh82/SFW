@@ -105,7 +105,7 @@
 
         <DataGrid x:Name="WorkCenterSchedule"
                   Grid.Row="1"
-                  ItemsSource="{Binding ScheduleView, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                  ItemsSource="{Binding ScheduleView, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"
                   SelectedItem="{Binding SelectedWorkOrder, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                   HorizontalAlignment="Left"
                   HeadersVisibility="None"
@@ -115,6 +115,7 @@
                   SelectionMode="Single"
                   IsSynchronizedWithCurrentItem="True"
                   VirtualizingPanel.IsVirtualizingWhenGrouping="True"
+                  ScrollViewer.CanContentScroll="True"
                   Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}">
 
             <DataGrid.Columns>
