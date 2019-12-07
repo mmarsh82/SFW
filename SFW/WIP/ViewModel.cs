@@ -348,6 +348,7 @@ namespace SFW.WIP
                 }
                 IsSubmitted = true;
                 TQty = WipRecord.WipQty + _preOnHand;
+                OnPropertyChanged(nameof(WipRecord));
             }
             else
             {
