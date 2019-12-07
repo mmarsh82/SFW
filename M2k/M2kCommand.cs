@@ -246,7 +246,7 @@ namespace M2kClient
         public static IReadOnlyDictionary<int, string> ProductionWip(WipReceipt wipRecord, bool postLabor, M2kConnection connection, bool isLot, string machID = "")
         {
             var _subResult = new Dictionary<int, string>();
-            var suffix = DateTime.Now.ToString("HHmmssfff");
+            var suffix = DateTime.Now.ToString("HHmmssffff");
             var _tWip = new Wip();
             var _lotList = new List<string>();
 
@@ -277,7 +277,7 @@ namespace M2kClient
                 if (!string.IsNullOrEmpty(_tWip.StationId))
                 {
                     File.WriteAllText($"{connection.SFDCFolder}WPC2K.DAT{suffix}", _tWip.ToString());
-                    suffix = DateTime.Now.ToString("HHmmssfff");
+                    suffix = DateTime.Now.ToString("HHmmssffff");
                     if (_lotEntered)
                     {
                         var _msgString = !string.IsNullOrEmpty(wipRecord.WipLot.LotNumber)
@@ -347,7 +347,7 @@ namespace M2kClient
                     if (!string.IsNullOrEmpty(_tWip.StationId))
                     {
                         File.WriteAllText($"{connection.SFDCFolder}WPC2K.DAT{suffix}", _tWip.ToString());
-                        suffix = DateTime.Now.ToString("HHmmssfff");
+                        suffix = DateTime.Now.ToString("HHmmssffff");
                     }
                     else
                     {
@@ -386,7 +386,7 @@ namespace M2kClient
                         if (c.WipInfo.Sum(o => o.BaseQty) > 0)
                         {
                             File.WriteAllText($"{connection.BTIFolder}ISSUEC2K.DAT{suffix}", _issue.ToString());
-                            suffix = DateTime.Now.ToString("HHmmssfff");
+                            suffix = DateTime.Now.ToString("HHmmssffff");
                         }
                     }
                 }
@@ -425,7 +425,7 @@ namespace M2kClient
             #endregion
 
             #region Scrap Adjustment
-            
+            var _adjustString = string.Empty;
             //Adjusting any scrap out of the system that was recorded during the wip
             foreach (var s in wipRecord.ScrapList.Where(o => int.TryParse(o.Quantity, out int i) && i > 0))
             {
@@ -444,7 +444,7 @@ namespace M2kClient
                 foreach (var s in _tWip.AdjustmentList)
                 {
                     File.WriteAllText($"{connection.BTIFolder}ADJUSTC2K.DAT{suffix}", s.ToString());
-                    suffix = DateTime.Now.ToString("HHmmssfff");
+                    suffix = DateTime.Now.ToString("HHmmssffff");
                 }
             }
 
@@ -520,7 +520,7 @@ namespace M2kClient
             var _subResult = new Dictionary<int, string>();
             try
             {
-                var suffix = DateTime.Now.ToString("HHmmssfff");
+                var suffix = DateTime.Now.ToString("HHmmssffff");
                 if (!woAndSeq.Contains('*'))
                 {
                     _subResult.Add(1, "Work order or sequence is not in the correct format to pass into M2k.");
@@ -605,7 +605,7 @@ namespace M2kClient
             var _subResult = new Dictionary<int, string>();
             try
             {
-                var suffix = DateTime.Now.ToString("HHmmssfff");
+                var suffix = DateTime.Now.ToString("HHmmssffff");
                 if (tranQty <= 0)
                 {
                     _subResult.Add(1, "Transaction Quantity must have a value greater then 0.");

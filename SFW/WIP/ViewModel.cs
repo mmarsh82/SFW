@@ -153,6 +153,20 @@ namespace SFW.WIP
             { isSubmit = value; OnPropertyChanged(nameof(IsSubmitted)); }
         }
 
+        private bool _isLotValid;
+        public bool IsLotValid
+        {
+            get
+            { return _isLotValid; }
+            set
+            { _isLotValid = value; OnPropertyChanged(nameof(IsLotValid)); OnPropertyChanged(nameof(ShowSize)); }
+        }
+        public int ShowSize
+        {
+            get
+            { return IsLotValid ? 1 : 3; }
+        }
+
         RelayCommand _wip;
         RelayCommand _mPrint;
         RelayCommand _removeCrew;
@@ -187,6 +201,7 @@ namespace SFW.WIP
                 c.WipInfo[0].ScrapList.ListChanged += ScrapList_ListChanged;
             }
             IsSubmitted = false;
+            IsLotValid = true;
         }
 
         /// <summary>
@@ -349,10 +364,12 @@ namespace SFW.WIP
 
                     var _baseValid = false;
                     var _locValid = !string.IsNullOrEmpty(WipRecord.ReceiptLocation) && WipReceipt.ValidLocation(WipRecord.ReceiptLocation, App.AppSqlCon);
-                    var _lotValid = WipRecord.IsLotTracable ? !string.IsNullOrEmpty(WipRecord.WipLot.LotNumber) && Lot.LotValidation(WipRecord.WipLot.LotNumber, WipRecord.WipWorkOrder.SkuNumber, App.AppSqlCon) : true;
+                    IsLotValid = WipRecord.IsLotTracable && !string.IsNullOrEmpty(WipRecord.WipLot.LotNumber)
+                        ? Lot.LotValidation(WipRecord.WipLot.LotNumber, WipRecord.WipWorkOrder.SkuNumber, App.AppSqlCon)
+                        : true;
                     if (WipRecord.WipQty > 0)
                     {
-                        _baseValid = _locValid && (string.IsNullOrEmpty(WipRecord.WipLot.LotNumber) || _lotValid) && ValidateComponents();
+                        _baseValid = _locValid && (string.IsNullOrEmpty(WipRecord.WipLot.LotNumber) || IsLotValid) && ValidateComponents();
                     }
                     else if (WipRecord.WipQty == 0)
                     {
@@ -362,7 +379,7 @@ namespace SFW.WIP
                         }
                         else if (WipRecord.IsScrap == Model.Enumerations.Complete.Y)
                         {
-                            _baseValid = _locValid && _lotValid;
+                            _baseValid = _locValid && IsLotValid;
                         }
                     }
 

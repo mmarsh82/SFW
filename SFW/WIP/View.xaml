@@ -13,6 +13,7 @@
         <cvtr:StringToVisibility x:Key="StringtoVisConverter" />
         <cvtr:CrewToVisibility x:Key="CrewtoVisConverter" />
         <cvtr:NegativeIntToBool x:Key="NegIntToBoolConverter" />
+        <cvtr:BoolToBorderColor x:Key="BoolToBorderConverter" />
     </Window.Resources>
 
     <ScrollViewer VerticalScrollBarVisibility="Auto">
@@ -242,6 +243,8 @@
                          MaxLength="9"
                          TabIndex="3"
                          CharacterCasing="Upper"
+                         BorderThickness="{Binding ShowSize}"
+                         BorderBrush="{Binding IsLotValid, Converter={StaticResource BoolToBorderConverter}}"
                          Style="{DynamicResource OptionalTextBox}" />
                 <TextBlock Text="Receipt Location:"
                        FontSize="18"
