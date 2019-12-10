@@ -15,7 +15,7 @@ namespace SFW.Commands
             {
                 if (App.SiteNumber == 0)
                 {
-                    Process.Start($"\\\\csi-prime\\prints\\WI\\{parameter}.pdf");
+                    Process.Start($"\\\\FS-CSI\\prints\\WI\\{parameter}.pdf");
                 }
                 else
                 {

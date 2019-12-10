@@ -13,7 +13,14 @@ namespace SFW.Model
 
         public string LotNumber { get; set; }
         public int Onhand { get; set; }
-        public string Location { get; set; }
+        private string _loc;
+        public string Location
+        {
+            get
+            { return _loc; }
+            set
+            { _loc = value.ToUpper(); OnPropertyChanged(nameof(Location)); }
+        }
         public int TransactionKey { get; set; }
         public DateTime TransactionDate { get; set; }
         public string TransactionType { get; set; }

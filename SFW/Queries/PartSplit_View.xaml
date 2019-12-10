@@ -11,6 +11,7 @@
             <RowDefinition Height="40"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="*"/>
+            <RowDefinition Height="40"/>
             <RowDefinition Height="50"/>
         </Grid.RowDefinitions>
 
@@ -71,6 +72,19 @@
                        FontSize="18"
                        FontWeight="Bold"
                        VerticalAlignment="Center"
+                       Margin="10,0,0,0"/>
+
+            <TextBlock Text="Location:"
+                       FontSize="18"
+                       FontWeight="Bold"
+                       TextDecorations="Underline"
+                       VerticalAlignment="Center"
+                       Margin="10,0,0,0"/>
+
+            <TextBlock Text="{Binding LotLocation, Mode=OneWay}"
+                       FontSize="18"
+                       FontWeight="Bold"
+                       VerticalAlignment="Center"
                        Margin="10,0,10,0"/>
 
         </StackPanel>
@@ -105,7 +119,9 @@
                             <ColumnDefinition Width="120"/>
                             <ColumnDefinition Width="150"/>
                             <ColumnDefinition Width="100"/>
-                            <ColumnDefinition Width="75"/>
+                            <ColumnDefinition Width="85"/>
+                            <ColumnDefinition Width="100"/>
+                            <ColumnDefinition Width="100"/>
                         </Grid.ColumnDefinitions>
 
                         <TextBlock Grid.Column="0"
@@ -137,6 +153,22 @@
                                  TabIndex="2"
                                  MaxLength="4"
                                  Style="{DynamicResource RequiredTextBox}" />
+                        <TextBlock Grid.Column="4"
+                                   Text="Location:"
+                                   FontSize="18"
+                                   FontWeight="Bold"
+                                   TextDecorations="Underline"
+                                   VerticalAlignment="Center"
+                                   Margin="10,0,0,0"/>
+                        <TextBox Grid.Column="5"
+                                 Text="{Binding Location, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                 FontSize="18"
+                                 FontWeight="Bold"
+                                 Background="LightGray"
+                                 Margin="5"
+                                 TabIndex="3"
+                                 MaxLength="12"
+                                 Style="{DynamicResource RequiredTextBox}" />
 
                     </Grid>
 
@@ -146,8 +178,44 @@
         </ItemsControl>
         
         <!--#endregion-->
-             
-        <Button Grid.Row="3"
+
+        <StackPanel Grid.Row="3"
+                    Orientation="Horizontal"
+                    Visibility="{Binding ValidLot, Converter={StaticResource BooltoVisConverter}}">
+            <TextBlock Text="Scrap Quantity:"
+                       FontSize="18"
+                       FontWeight="Bold"
+                       TextDecorations="Underline"
+                       VerticalAlignment="Center"
+                       Margin="10,0,0,0"/>
+            
+            <TextBox Text="{Binding LotScrap, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                     FontSize="18"
+                     FontWeight="Bold"
+                     Background="LightGray"
+                     Margin="5"
+                     TabIndex="4"
+                     Width="85"
+                     Style="{DynamicResource OptionalTextBox}" />
+
+            <TextBlock Text="Note:"
+                       FontSize="18"
+                       FontWeight="Bold"
+                       TextDecorations="Underline"
+                       VerticalAlignment="Center"
+                       Margin="10,0,0,0"/>
+
+            <TextBox Text="{Binding ScrapNote, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                     FontSize="18"
+                     FontWeight="Bold"
+                     Background="LightGray"
+                     Margin="5"
+                     TabIndex="5"
+                     Width="360"
+                     Style="{DynamicResource OptionalTextBox}" />
+        </StackPanel>
+
+        <Button Grid.Row="4"
                 Content="Submit"
                 Margin="5"
                 Width="100"

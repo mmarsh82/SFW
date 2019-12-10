@@ -18,11 +18,24 @@ namespace SFW.Queries
             { return _lot; }
             set
             {
-                if (value.Count() >= 7)
+                var _valid = Lot.IsValid(value, App.AppSqlCon);
+                if (ValidLot && !_valid)
                 {
-                    ValidLot = Lot.IsValid(value, App.AppSqlCon);
-                    _startingQty = LotQuantity = ValidLot ? Lot.GetLotOnHandQuantity(value, App.AppSqlCon) : 0;
+                    SplitLotList.Clear();
+                    RollQuantity = string.Empty;
+                    LotQuantity = 0;
+                    LotLocation = string.Empty;
+                    LotScrap = null;
                 }
+                else if (_valid)
+                {
+                    if (value.Count() >= 7)
+                    {
+                        _startingQty = LotQuantity = Lot.GetLotOnHandQuantity(value, App.AppSqlCon);
+                        LotLocation = Lot.GetLotLocation(value, App.AppSqlCon);
+                    }
+                }
+                ValidLot = _valid;
                 _lot = value;
                 OnPropertyChanged(nameof(LotNumber));
             }
@@ -41,7 +54,26 @@ namespace SFW.Queries
             }
         }
 
-        public bool ValidLot { get; set; }
+        private string _lotLoc;
+        public string LotLocation
+        {
+            get
+            { return _lotLoc; }
+            set
+            {
+                _lotLoc = value;
+                OnPropertyChanged(nameof(LotLocation));
+            }
+        }
+
+        private bool _validLot;
+        public bool ValidLot
+        {
+            get
+            { return _validLot; }
+            set
+            { _validLot = value; OnPropertyChanged(nameof(ValidLot)); }
+        }
         public int OnHand { get; set; }
 
         private int? _rQty;
@@ -60,7 +92,7 @@ namespace SFW.Queries
                     var _alphaCount = 65;
                     while (_tempCount != 0)
                     {
-                        SplitLotList.Add(new Lot { LotNumber = $"{LotNumber}{Convert.ToChar(_alphaCount)}", TransactionQty = string.Empty });
+                        SplitLotList.Add(new Lot { LotNumber = $"{LotNumber}{Convert.ToChar(_alphaCount)}", TransactionQty = string.Empty, Location = LotLocation });
                         _tempCount--;
                         _alphaCount++;
                     }
@@ -81,6 +113,39 @@ namespace SFW.Queries
             set { _note = value; OnPropertyChanged(nameof(VarienceNote)); }
         }
         public BindingList<Lot> SplitLotList { get; set; }
+
+        private int? _lotScrap;
+        public string LotScrap
+        {
+            get
+            { return _lotScrap.ToString(); }
+            set
+            {
+                if (int.TryParse(value, out int i))
+                {
+                    _lotScrap = i;
+                    LotQuantity = _startingQty - Convert.ToInt32(_lotScrap) - SplitLotList.Where(o => int.TryParse(o.TransactionQty, out int p)).Sum(a => Convert.ToInt32(a.TransactionQty));
+                }
+                else
+                {
+                    _lotScrap = null;
+                    LotQuantity = _startingQty - SplitLotList.Where(o => int.TryParse(o.TransactionQty, out int p)).Sum(a => Convert.ToInt32(a.TransactionQty));
+                }
+                OnPropertyChanged(nameof(LotScrap));
+            }
+        }
+
+        private string _scrapNote;
+        public string ScrapNote
+        {
+            get
+            { return _scrapNote; }
+            set
+            {
+                _scrapNote = value;
+                OnPropertyChanged(nameof(ScrapNote));
+            }
+        }
 
         RelayCommand _split;
 
@@ -104,7 +169,8 @@ namespace SFW.Queries
         {
             if (e.ListChangedType == ListChangedType.ItemChanged && e.PropertyDescriptor.Name == "TransactionQty")
             {
-                LotQuantity = _startingQty - ((BindingList<Lot>)sender).Where(o => int.TryParse(o.TransactionQty, out int i) && i > 0).Sum(p => Convert.ToInt32(p.TransactionQty));
+                var _scrap = int.TryParse(LotScrap, out int i) ? Convert.ToInt32(LotScrap) : 0;
+                LotQuantity = _startingQty - _scrap - ((BindingList<Lot>)sender).Where(o => int.TryParse(o.TransactionQty, out int p) && p > 0).Sum(p => Convert.ToInt32(p.TransactionQty));
             }
         }
 
@@ -125,13 +191,19 @@ namespace SFW.Queries
         private void SplitExecute(object parameter)
         {
             var _part = Lot.GetSkuNumber(LotNumber, App.AppSqlCon);
-            var _loc = Lot.GetLotLocation(LotNumber, App.AppSqlCon);
-            var _onHandDelta = _startingQty - LotQuantity;
-            M2kClient.M2kCommand.InventoryAdjustment("SFW SPLIT", $"Split into {RollQuantity} rolls", _part, M2kClient.AdjustCode.CC, 'S', _onHandDelta, _loc, App.ErpCon, LotNumber);
+            var _scrap = int.TryParse(LotScrap, out int lotInt) ? Convert.ToInt32(LotScrap) : 0;
+            var _onHandDelta = _startingQty - LotQuantity - _scrap;
+            M2kClient.M2kCommand.InventoryAdjustment("SFW SPLIT", $"Split into {RollQuantity} rolls", _part, M2kClient.AdjustCode.CC, 'S', _onHandDelta, LotLocation, App.ErpCon, LotNumber);
             foreach (var l in SplitLotList.Where(o => int.TryParse(o.TransactionQty, out int i) && i > 0))
             {
-                M2kClient.M2kCommand.InventoryAdjustment("SFW SPLIT", $"Split from {LotNumber}", _part, M2kClient.AdjustCode.CC, 'A', Convert.ToInt32(l.TransactionQty), _loc, App.ErpCon, l.LotNumber);
+                M2kClient.M2kCommand.InventoryAdjustment("SFW SPLIT", $"Split from {LotNumber}", _part, M2kClient.AdjustCode.CC, 'A', Convert.ToInt32(l.TransactionQty), l.Location, App.ErpCon, l.LotNumber);
             }
+            if (_scrap > 0)
+            {
+                M2kClient.M2kCommand.InventoryAdjustment("SFW SPLIT", $"Scrap Split", _part, M2kClient.AdjustCode.CC, 'A', _scrap, "SCRAP", App.ErpCon, $"{LotNumber}Z");
+                M2kClient.M2kCommand.EditRecord("LOT.MASTER", $"{LotNumber}Z|P", 42, ScrapNote, App.ErpCon);
+            }
+            System.Windows.MessageBox.Show($"Splitting of lot {LotNumber} has been completed.", "Transaction Complete", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
             foreach (object w in System.Windows.Application.Current.Windows)
             {
                 if (((System.Windows.Window)w).Name == "Split_Window")
@@ -142,7 +214,8 @@ namespace SFW.Queries
         }
         private bool SplitCanExecute(object parameter) => 
             ValidLot && int.TryParse(RollQuantity, out int i) && LotQuantity > 0 && 
-            SplitLotList.Count() == SplitLotList.Count(o => !string.IsNullOrEmpty(o.LotNumber) && int.TryParse(o.TransactionQty, out int l) && l > 0);
+            SplitLotList.Count() == SplitLotList.Count(o => !string.IsNullOrEmpty(o.LotNumber) && int.TryParse(o.TransactionQty, out int l) && l > 0) &&
+            string.IsNullOrEmpty(LotScrap) || (int.TryParse(LotScrap, out int p) && p > 0 && !string.IsNullOrEmpty(ScrapNote));
 
         #endregion
 
