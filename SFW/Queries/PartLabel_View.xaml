@@ -24,6 +24,13 @@
                        TextDecorations="Underline"
                        VerticalAlignment="Center"
                        Margin="10,0,0,0"/>
+            
+            <TextBlock Text="W"
+                       FontSize="18"
+                       FontWeight="Bold"
+                       VerticalAlignment="Center"
+                       Margin="10,0,-4,0"/>
+            
             <TextBox x:Name="DmdInput"
                      Text="{Binding DiamondNumber, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                      FontSize="18"

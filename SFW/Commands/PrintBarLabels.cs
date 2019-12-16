@@ -20,7 +20,7 @@ namespace SFW.Commands
                             ^LL0406
                             ^LS0
                             ^BY2,3,335^FT431,38^B3I,N,,Y,N
-                            ^FD{parameter}^FS
+                            ^FDW{parameter}^FS
                             ^PQ1,0,1,Y^XZ";
 
             using (PrintDialog pd = new PrintDialog { PrinterSettings = new PrinterSettings() })
