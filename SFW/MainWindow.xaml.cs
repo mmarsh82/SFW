@@ -13,6 +13,9 @@ namespace SFW
         {
             InitializeComponent();
             DataContext = new MainWindowViewModel();
+            App.splashScreen.LoadComplete();
+            BringIntoView();
+            Focus();
         }
 
         private void SourceWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)

@@ -3,6 +3,7 @@ using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
 using SFW.Model;
 using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Windows.Input;
@@ -47,7 +48,7 @@ namespace SFW.Commands
                 }
                 foreach (DataRow _row in _skuTable.Rows)
                 {
-                    #region Setup Export
+                    /*#region Setup Export
 
                     var _setupInst = UdefSku.GetSetUpInstructions(_row.Field<string>("Part_Number"), _row.Field<string>("Seq"), false, App.AppSqlCon).Split(new string[1] { "\n" }, StringSplitOptions.None);
                     using (var _wpDoc = WordprocessingDocument.Create($@"C:\temp\Setup\{_row.Field<string>("Part_Number")}.docx", WordprocessingDocumentType.Document))
@@ -92,10 +93,9 @@ namespace SFW.Commands
                         }
                     }
 
-                    #endregion
+                    #endregion*/
 
-                    /*
-                    #region Work Instruction Export
+                    /*#region Work Instruction Export
 
                     var _packInst = UdefSku.GetPackInstructions(_row.Field<string>("Part_Number"), _row.Field<string>("Seq"), App.AppSqlCon).Split(new string[1] { "\n" }, StringSplitOptions.None);
                     using (var _wpDoc = WordprocessingDocument.Create($@"C:\temp\WI\{_row.Field<string>("Part_Number")}.docx", WordprocessingDocumentType.Document))
@@ -121,7 +121,7 @@ namespace SFW.Commands
                         }
                     }
 
-                    #endregion
+                    #endregion*/
 
                     #region Part Info Export
 
@@ -206,10 +206,11 @@ namespace SFW.Commands
                         RunProperties fRunProp = fRun.AppendChild(new RunProperties(new FontSize { Val = "30" }));
                         fRun.AppendChild(new Break());
                         fRun.AppendChild(new Text($"Tape Rolls: {_row.Field<string>("Tape")}      Send To: {_row.Field<string>("SendTo")}"));
+                        fRun.AppendChild(new Break());
+                        fRun.AppendChild(new Text($"Roll-Up In: {_row.Field<string>("RollUp")}"));
                     }
 
-                    #endregion
-    */
+                    #endregion#
                 }
             }
         }

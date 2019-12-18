@@ -282,6 +282,33 @@ namespace SFW
         }
 
         /// <summary>
+        /// Get the site associated with the currently logged in user
+        /// </summary>
+        /// <returns>Site as string</returns>
+        public static int GetSite()
+        {
+            var _user = System.Security.Principal.WindowsIdentity.GetCurrent().Name;
+            using (PrincipalContext pContext = new PrincipalContext(ContextType.Domain))
+            {
+                using (UserPrincipal uPrincipal = UserPrincipal.FindByIdentity(pContext, _user))
+                {
+                    if (uPrincipal.DistinguishedName.Contains("WCCO"))
+                    {
+                        return 1;
+                    }
+                    else if (uPrincipal.DistinguishedName.Contains("CSI"))
+                    {
+                        return 2;
+                    }
+                    else
+                    {
+                        return 0;
+                    }
+                }
+            }
+        }
+
+        /// <summary>
         /// Log in method for the current user
         /// </summary>
         /// <param name="userName">User Name</param>

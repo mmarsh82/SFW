@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data.SqlClient;
 using System.IO;
+using System.Threading;
 using System.Windows;
 using System.Windows.Threading;
 using System.Xml;
@@ -39,6 +40,11 @@ namespace SFW
 
         public static event EventHandler<PropertyChangedEventArgs> StaticPropertyChanged;
 
+        public static ISplashScreen splashScreen;
+
+        private ManualResetEvent ResetSplashCreated;
+        private Thread SplashThread;
+
         #endregion
 
         public App()
@@ -69,6 +75,16 @@ namespace SFW
         /// <param name="e">start up events sent from the application.exe</param>
         protected override void OnStartup(StartupEventArgs e)
         {
+            ResetSplashCreated = new ManualResetEvent(false);
+            SplashThread = new Thread(ShowSplash);
+            SplashThread.SetApartmentState(ApartmentState.STA);
+            SplashThread.IsBackground = true;
+            SplashThread.Name = "Splash Screen";
+            SplashThread.Start();
+
+            ResetSplashCreated.WaitOne();
+            base.OnStartup(e);
+
             string[] startUpArgs = null;
             try
             {
@@ -92,6 +108,19 @@ namespace SFW
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// Show the dynamic splash screen
+        /// </summary>
+        private void ShowSplash()
+        {
+            var _splash = new DynamicSplashScreen();
+            splashScreen = _splash;
+            _splash.Show();
+            Thread.Sleep(2000);
+            ResetSplashCreated.Set();
+            Dispatcher.Run();
         }
 
         /// <summary>
@@ -409,5 +438,6 @@ namespace SFW
                 return null;
             }
         }
+
     }
 }
