@@ -4,7 +4,7 @@
         xmlns:local="clr-namespace:SFW.WIP"
         xmlns:cvtr="clr-namespace:SFW.Converters"
         x:Name="Wip_Window"
-        Title="Production Wip" Height="Auto" Width="900" ShowInTaskbar="True" WindowStyle="ToolWindow" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" SizeToContent="Height">
+        Title="Production Wip" Height="Auto" Width="900" ShowInTaskbar="True" WindowStyle="ToolWindow" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" SizeToContent="Height" Topmost="True">
 
     <Window.Resources>
         <cvtr:BoolToVisibility x:Key="BooltoVisConverter" />

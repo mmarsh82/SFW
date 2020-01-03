@@ -30,8 +30,8 @@
     <PublisherName>Michael Marsh</PublisherName>
     <SuiteName>WCCO Belting Inc.</SuiteName>
     <AutorunEnabled>true</AutorunEnabled>
-    <ApplicationRevision>1486</ApplicationRevision>
-    <ApplicationVersion>1.0.177.1486</ApplicationVersion>
+    <ApplicationRevision>1495</ApplicationRevision>
+    <ApplicationVersion>1.0.179.1495</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <CreateDesktopShortcut>true</CreateDesktopShortcut>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -435,9 +435,6 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Icons\About.ico" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Icons\WCCO Belting.ico" />
   </ItemGroup>
   <ItemGroup>
     <Resource Include="GlobalAppConfig.xml" />

@@ -192,15 +192,15 @@ namespace SFW.Queries
         {
             var _part = Lot.GetSkuNumber(LotNumber, App.AppSqlCon);
             var _scrap = int.TryParse(LotScrap, out int lotInt) ? Convert.ToInt32(LotScrap) : 0;
-            var _onHandDelta = _startingQty - LotQuantity - _scrap;
-            M2kClient.M2kCommand.InventoryAdjustment("SFW SPLIT", $"Split into {RollQuantity} rolls", _part, M2kClient.AdjustCode.CC, 'S', _onHandDelta, LotLocation, App.ErpCon, LotNumber);
+            var _onHandDelta = _startingQty - LotQuantity;
+            M2kClient.M2kCommand.InventoryAdjustment(CurrentUser.DomainName, $"Split into {RollQuantity} rolls", _part, M2kClient.AdjustCode.CC, 'S', _onHandDelta, LotLocation, App.ErpCon, LotNumber);
             foreach (var l in SplitLotList.Where(o => int.TryParse(o.TransactionQty, out int i) && i > 0))
             {
-                M2kClient.M2kCommand.InventoryAdjustment("SFW SPLIT", $"Split from {LotNumber}", _part, M2kClient.AdjustCode.CC, 'A', Convert.ToInt32(l.TransactionQty), l.Location, App.ErpCon, l.LotNumber);
+                M2kClient.M2kCommand.InventoryAdjustment(CurrentUser.DomainName, $"Split from {LotNumber}", _part, M2kClient.AdjustCode.CC, 'A', Convert.ToInt32(l.TransactionQty), l.Location, App.ErpCon, l.LotNumber);
             }
             if (_scrap > 0)
             {
-                M2kClient.M2kCommand.InventoryAdjustment("SFW SPLIT", $"Scrap Split", _part, M2kClient.AdjustCode.CC, 'A', _scrap, "SCRAP", App.ErpCon, $"{LotNumber}Z");
+                M2kClient.M2kCommand.InventoryAdjustment(CurrentUser.DomainName, $"Scrap Split", _part, M2kClient.AdjustCode.CC, 'A', _scrap, "SCRAP", App.ErpCon, $"{LotNumber}Z");
                 M2kClient.M2kCommand.EditRecord("LOT.MASTER", $"{LotNumber}Z|P", 42, ScrapNote, App.ErpCon);
             }
             System.Windows.MessageBox.Show($"Splitting of lot {LotNumber} has been completed.", "Transaction Complete", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);

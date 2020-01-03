@@ -39,8 +39,11 @@ namespace SFW.Commands
 	                                                            [dbo].[IM-INIT] a
                                                             LEFT OUTER JOIN
 	                                                            [dbo].[IM-UDEF-SPEC-INIT] b ON b.[Edi_Udef_1] = a.[Part_Number]
+                                                            LEFT OUTER JOIN
+	                                                            [dbo].[IM-UDEF-INIT] c ON c.[Item_Number] = a.[Part_Number]
                                                             WHERE
-	                                                            a.[Accounting_Status] != 'O' AND b.[ID] IS NOT NULL AND b.[Edi_Udef_2] IS NOT NULL AND b.[Sequence_Desc] LIKE '%SLIT%'
+	                                                            a.[Accounting_Status] != 'O' AND b.[ID] IS NOT NULL AND b.[Edi_Udef_2] IS NOT NULL AND b.[Sequence_Desc] NOT LIKE '%SLIT%'
+	                                                            AND (c.[Pri_Work_Center] = '1010' OR c.[Pri_Work_Center] = '1011' OR c.[Pri_Work_Center] = '1012' OR c.[Pri_Work_Center] = '1015')
                                                             ORDER BY
 	                                                            a.[Part_Number];", App.AppSqlCon))
                 {
