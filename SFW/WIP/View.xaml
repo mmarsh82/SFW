@@ -233,7 +233,7 @@
                        TextDecorations="Underline"
                        VerticalAlignment="Center"
                        Margin="10,0,0,0" />
-                <TextBox Text="{Binding WipRecord.WipLot.LotNumber, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                <TextBox Text="{Binding WipLot, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                          Visibility="{Binding WipRecord.IsLotTracable, Converter={StaticResource BooltoVisConverter}}"
                          FontSize="18"
                          FontWeight="Bold"

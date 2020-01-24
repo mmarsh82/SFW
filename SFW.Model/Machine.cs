@@ -41,6 +41,7 @@ namespace SFW.Model
             {
                 _tempList.Add(new Machine { MachineNumber = "0", MachineName = "All", IsLoaded = true, MachineGroup = "All" });
             }
+            _tempList.Add(new Machine { MachineNumber = "1", MachineName = "WG Order", IsLoaded = true, MachineGroup = "Custom" });
             if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
             {
                 try
@@ -437,6 +438,7 @@ namespace SFW.Model
             {
                 _tempList.Add("All");
             }
+            _tempList.Add("Custom");
             if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
             {
                 try

@@ -64,6 +64,30 @@ namespace SFW.WIP
             }
         }
 
+        public string WipLot
+        {
+            get
+            { return WipRecord.WipLot.LotNumber; }
+            set
+            {
+                if (!string.IsNullOrEmpty(value))
+                {
+                    if (Lot.LotValidation(value, WipRecord.WipWorkOrder.SkuNumber, App.AppSqlCon))
+                    {
+                        WipRecord.ReceiptLocation = Lot.GetLotLocation(value, App.AppSqlCon);
+                        OnPropertyChanged(nameof(WipRecord));
+                    }
+                    else
+                    {
+                        WipRecord.ReceiptLocation = string.Empty;
+                    }
+                }
+                WipRecord.WipLot.LotNumber = value;
+                OnPropertyChanged(nameof(WipLot));
+                OnPropertyChanged(nameof(WipRecord));
+            }
+        }
+
         public Model.Enumerations.Complete Scrap
         {
             get { return WipRecord.IsScrap; }

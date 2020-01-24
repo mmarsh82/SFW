@@ -1,11 +1,7 @@
 ﻿using M2kClient;
-using SFW.Enumerations;
 using SFW.Helpers;
 using SFW.Model;
-using SFW.Reports;
 using System;
-using System.ComponentModel;
-using System.Data;
 using System.Windows;
 using System.Windows.Input;
 
@@ -61,9 +57,6 @@ namespace SFW.ShopRoute
             { machGroup = string.IsNullOrEmpty(value) ? Machine.GetMachineGroup(App.AppSqlCon, ShopOrder?.OrderNumber, ShopOrder?.Seq) : value; OnPropertyChanged(nameof(MachineGroup)); }
         }
 
-        public DataView ReportView { get; set; }
-        private BackgroundWorker bgWorker;
-
         private bool loading;
         public bool IsLoading
         {
@@ -93,16 +86,6 @@ namespace SFW.ShopRoute
             {
                 ShopOrder = new WorkOrder();
             }
-            if (CanCheckHistory && ShopOrder != null && App.SiteNumber != 0)
-            {
-                if (bgWorker == null)
-                {
-                    bgWorker = new BackgroundWorker();
-                    bgWorker.DoWork += BgWorker_DoWork;
-                    bgWorker.RunWorkerCompleted += BgWorker_RunWorkerCompleted;
-                }
-                bgWorker.RunWorkerAsync();
-            }
         }
 
         /// <summary>
@@ -112,16 +95,6 @@ namespace SFW.ShopRoute
         public ViewModel(WorkOrder workOrder)
         {
             ShopOrder = workOrder;
-            if (CanCheckHistory && ShopOrder != null && App.SiteNumber != 0)
-            {
-                if (bgWorker == null)
-                {
-                    bgWorker = new BackgroundWorker();
-                    bgWorker.DoWork += BgWorker_DoWork;
-                    bgWorker.RunWorkerCompleted += BgWorker_RunWorkerCompleted;
-                }
-                bgWorker.RunWorkerAsync();
-            }
         }
 
         /// <summary>
@@ -133,22 +106,6 @@ namespace SFW.ShopRoute
             OnPropertyChanged(nameof(HasStarted));
             OnPropertyChanged(nameof(CanStart));
         }
-
-        #region BackGroundWorker Implementation Logic
-
-        private void BgWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
-        {
-            OnPropertyChanged(nameof(ReportView));
-            IsLoading = false;
-        }
-
-        private void BgWorker_DoWork(object sender, DoWorkEventArgs e)
-        {
-            IsLoading = true;
-            ReportView = WorkOrder.GetReportData(ShopOrder, App.AppSqlCon)?.DefaultView;
-        }
-
-        #endregion
 
         #region Work Order Note Change ICommand
 
@@ -175,34 +132,6 @@ namespace SFW.ShopRoute
             }
         }
         private bool NoteChgCanExecute(object parameter) => true;
-
-        #endregion
-
-        #region Load the work order report ICommand
-
-        public ICommand ReportICommand
-        {
-            get
-            {
-                if (_loadReport == null)
-                {
-                    _loadReport = new RelayCommand(ReportExecute, ReportCanExecute);
-                }
-                return _loadReport;
-            }
-        }
-
-        private void ReportExecute(object parameter)
-        {
-            if (parameter != null && Enum.TryParse(parameter.ToString(), out PressReportActions pressAction))
-            {
-                using (var report = new Press_ViewModel(ShopOrder, pressAction))
-                {
-                    new Press_View { DataContext = report }.ShowDialog();
-                }
-            }
-        }
-        private bool ReportCanExecute(object parameter) => true;
 
         #endregion
     }

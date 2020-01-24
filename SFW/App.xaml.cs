@@ -49,6 +49,14 @@ namespace SFW
 
         public App()
         {
+            ResetSplashCreated = new ManualResetEvent(false);
+            SplashThread = new Thread(ShowSplash);
+            SplashThread.SetApartmentState(ApartmentState.STA);
+            SplashThread.IsBackground = true;
+            SplashThread.Name = "Splash Screen";
+            SplashThread.Start();
+
+            ResetSplashCreated.WaitOne();
             //LoadGlobalAppConfig();
             DefualtWorkCenter = LoadUserAppConfig();
             Site = "CSI_MAIN";
@@ -75,14 +83,6 @@ namespace SFW
         /// <param name="e">start up events sent from the application.exe</param>
         protected override void OnStartup(StartupEventArgs e)
         {
-            ResetSplashCreated = new ManualResetEvent(false);
-            SplashThread = new Thread(ShowSplash);
-            SplashThread.SetApartmentState(ApartmentState.STA);
-            SplashThread.IsBackground = true;
-            SplashThread.Name = "Splash Screen";
-            SplashThread.Start();
-
-            ResetSplashCreated.WaitOne();
             base.OnStartup(e);
 
             string[] startUpArgs = null;
