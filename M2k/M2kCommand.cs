@@ -89,7 +89,7 @@ namespace M2kClient
                             using (UniDynArray udArray = uFile.Read(recordID))
                             {
                                 var _udCount = udArray.Dcount(attribute);
-                                var counter = 0;
+                                var counter = 1;
                                 foreach (var s in newValue)
                                 {
                                     udArray.Replace(attribute, counter, s);

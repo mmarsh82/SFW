@@ -35,6 +35,7 @@ namespace SFW.Commands
 	                                                            ,ISNULL(b.[Rollup_In], 'Not Listed') as 'Rollup'
 	                                                            ,ISNULL(b.[Tape_Rolls], 'NO') as 'Tape'
 	                                                            ,ISNULL(b.[Sendto], 'Not Listed') as 'SendTo'
+                                                                ,c.[Pri_Work_Center] as 'WorkCenter'
                                                             FROM
 	                                                            [dbo].[IM-INIT] a
                                                             LEFT OUTER JOIN
@@ -42,8 +43,7 @@ namespace SFW.Commands
                                                             LEFT OUTER JOIN
 	                                                            [dbo].[IM-UDEF-INIT] c ON c.[Item_Number] = a.[Part_Number]
                                                             WHERE
-	                                                            a.[Accounting_Status] != 'O' AND b.[ID] IS NOT NULL AND b.[Edi_Udef_2] IS NOT NULL AND b.[Sequence_Desc] NOT LIKE '%SLIT%'
-	                                                            AND (c.[Pri_Work_Center] = '1010' OR c.[Pri_Work_Center] = '1011' OR c.[Pri_Work_Center] = '1012' OR c.[Pri_Work_Center] = '1015')
+	                                                            a.[Accounting_Status] != 'O' AND b.[ID] IS NOT NULL AND b.[Edi_Udef_2] IS NOT NULL
                                                             ORDER BY
 	                                                            a.[Part_Number];", App.AppSqlCon))
                 {
@@ -130,7 +130,7 @@ namespace SFW.Commands
 
                     var _passInfo = new List<UdefSkuPass>();
                     var _partInfo = new UdefSkuPass();
-                    if (_row.Field<string>("Type").Contains("SLIT"))
+                    if (_row.Field<string>("WorkCenter") == "1010" || _row.Field<string>("WorkCenter") == "1011" || _row.Field<string>("WorkCenter") == "1012" || _row.Field<string>("WorkCenter") == "1015")
                     {
                         _partInfo = new UdefSkuPass(_row.Field<string>("Part_Number"), _row.Field<string>("Seq"), App.AppSqlCon);
                     }
@@ -162,7 +162,7 @@ namespace SFW.Commands
                         cRun.AppendChild(new Break());
 
                         //Slit document template
-                        if (_row.Field<string>("Type").Contains("SLIT") && !string.IsNullOrEmpty(_partInfo.Instructions))
+                        if ((_row.Field<string>("WorkCenter") == "1010" || _row.Field<string>("WorkCenter") == "1011" || _row.Field<string>("WorkCenter") == "1012" || _row.Field<string>("WorkCenter") == "1015") && !string.IsNullOrEmpty(_partInfo.Instructions))
                         {
                             var _partInst = _partInfo.Instructions.Split(new string[1] { "\n" }, StringSplitOptions.None);
                             Run lRun = para.AppendChild(new Run());
