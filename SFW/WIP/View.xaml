@@ -424,7 +424,20 @@
 
                                 <TextBlock Text="{Binding Name}"
                                            VerticalAlignment="Center"
-                                           Margin="10,0,0,0" />
+                                           Margin="10,0,0,0">
+                                    <TextBlock.Style>
+                                        <Style TargetType="{x:Type TextBlock}">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsDirect}" Value="True">
+                                                    <Setter Property="Foreground" Value="Purple"/>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding IsDirect}" Value="False">
+                                                    <Setter Property="Foreground" Value="MidnightBlue"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
 
                                 <TextBlock Text="Shift:"
                                            TextDecorations="Underline"
