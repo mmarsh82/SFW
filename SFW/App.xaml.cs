@@ -75,6 +75,11 @@ namespace SFW
             {
                 CurrentUser.LogIn();
             }
+            var _folder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+            if (!Directory.Exists($"{_folder}\\SFW\\Labor\\"))
+            {
+                Directory.CreateDirectory($"{_folder}\\SFW\\Labor\\");
+            }
         }
 
         /// <summary>

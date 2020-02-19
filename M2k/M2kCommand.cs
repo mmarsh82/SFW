@@ -214,6 +214,7 @@ namespace M2kClient
         public static IReadOnlyDictionary<int, string> InventoryMove(string name, string partNbr, string lotNbr, string uom, string from, string to, int qty, M2kConnection connection)
         {
             var _subResult = new Dictionary<int, string>();
+            var _uid = new Random().Next(10, 100);
             var suffix = DateTime.Now.ToString("HHmmssfff");
             if (string.IsNullOrEmpty(lotNbr) && string.IsNullOrEmpty(uom))
             {
@@ -229,7 +230,7 @@ namespace M2kClient
             {
                 moveText = $"1~LOCXFER~2~{name}~3~{DateTime.Now.ToString("HH:mm")}~4~{DateTime.Today.ToString("MM-dd-yyyy")}~5~01~6~{partNbr}~7~{from.ToUpper()}~8~{to.ToUpper()}~9~{qty}~12~{uom}~99~COMPLETE";
             }
-            File.WriteAllText($"{connection.BTIFolder}LOCXFERC2K.DAT{suffix}", moveText);
+            File.WriteAllText($"{connection.BTIFolder}LOCXFERC2K.DAT{suffix}{_uid}", moveText);
             _subResult.Add(0, suffix);
             return _subResult;
         }
@@ -246,7 +247,8 @@ namespace M2kClient
         public static IReadOnlyDictionary<int, string> ProductionWip(WipReceipt wipRecord, bool postLabor, M2kConnection connection, bool isLot, string machID = "")
         {
             var _subResult = new Dictionary<int, string>();
-            var suffix = DateTime.Now.ToString("HHmmssffff");
+            var tranCount = 0;
+            var suffix = DateTime.Now.ToString($"HHmmssffff");;
             var _tWip = new Wip();
             var _lotList = new List<string>();
 
@@ -276,8 +278,8 @@ namespace M2kClient
                 _tWip = new Wip(wipRecord);
                 if (!string.IsNullOrEmpty(_tWip.StationId))
                 {
-                    File.WriteAllText($"{connection.SFDCFolder}WPC2K.DAT{suffix}", _tWip.ToString());
-                    suffix = DateTime.Now.ToString("HHmmssffff");
+                    File.WriteAllText($"{connection.SFDCFolder}WPC2K.DAT{suffix}{tranCount}", _tWip.ToString());
+                    tranCount++;
                     if (_lotEntered)
                     {
                         var _msgString = !string.IsNullOrEmpty(wipRecord.WipLot.LotNumber)
@@ -346,8 +348,8 @@ namespace M2kClient
                     _tWip = new Wip(wipRecord) { QtyReceived = Convert.ToInt32(wipRecord.WipQty), ComponentInfoList = _tComp };
                     if (!string.IsNullOrEmpty(_tWip.StationId))
                     {
-                        File.WriteAllText($"{connection.SFDCFolder}WPC2K.DAT{suffix}", _tWip.ToString());
-                        suffix = DateTime.Now.ToString("HHmmssffff");
+                        File.WriteAllText($"{connection.SFDCFolder}WPC2K.DAT{suffix}{tranCount}", _tWip.ToString());
+                        tranCount++;
                     }
                     else
                     {
@@ -385,8 +387,8 @@ namespace M2kClient
                         }
                         if (c.WipInfo.Sum(o => o.BaseQty) > 0)
                         {
-                            File.WriteAllText($"{connection.BTIFolder}ISSUEC2K.DAT{suffix}", _issue.ToString());
-                            suffix = DateTime.Now.ToString("HHmmssffff");
+                            File.WriteAllText($"{connection.BTIFolder}ISSUEC2K.DAT{suffix}{tranCount}", _issue.ToString());
+                            tranCount++;
                         }
                     }
                 }
@@ -425,6 +427,7 @@ namespace M2kClient
             #endregion
 
             #region Scrap Adjustment
+
             var _adjustString = string.Empty;
             //Adjusting any scrap out of the system that was recorded during the wip
             foreach (var s in wipRecord.ScrapList.Where(o => int.TryParse(o.Quantity, out int i) && i > 0))
@@ -443,8 +446,8 @@ namespace M2kClient
             {
                 foreach (var s in _tWip.AdjustmentList)
                 {
-                    File.WriteAllText($"{connection.BTIFolder}ADJUSTC2K.DAT{suffix}", s.ToString());
-                    suffix = DateTime.Now.ToString("HHmmssffff");
+                    File.WriteAllText($"{connection.BTIFolder}ADJUSTC2K.DAT{suffix}{tranCount}", s.ToString());
+                    tranCount++;
                 }
             }
 
@@ -520,7 +523,7 @@ namespace M2kClient
             var _subResult = new Dictionary<int, string>();
             try
             {
-                var suffix = DateTime.Now.ToString("HHmmssffff");
+                var suffix = DateTime.Now.ToString($"HHmmssfff");
                 if (!woAndSeq.Contains('*'))
                 {
                     _subResult.Add(1, "Work order or sequence is not in the correct format to pass into M2k.");
@@ -567,14 +570,14 @@ namespace M2kClient
                         var _outDL = crew > 0
                             ? new DirectLabor(stationId, empID, 'O', time, _wSplit[0], _wSplit[1], qtyComp, 0, machID, CompletionFlag.N, crew)
                             : new DirectLabor(stationId, empID, 'O', time, _wSplit[0], _wSplit[1], qtyComp, 0, machID, CompletionFlag.N);
-                        File.WriteAllText($"{connection.SFDCFolder}LBC2K.DAT{suffix}", $"{_inDL.ToString()}\n\n{_outDL.ToString()}");
+                        File.WriteAllText($"{connection.SFDCFolder}LBC2K.DAT{suffix}{empID}", $"{_inDL.ToString()}\n\n{_outDL.ToString()}");
                     }
                     else
                     {
                         var _tempDL = crew > 0
                             ? new DirectLabor(stationId, empID, clockTranType, time, _wSplit[0], _wSplit[1], qtyComp, 0, machID, CompletionFlag.N, crew)
                             : new DirectLabor(stationId, empID, clockTranType, time, _wSplit[0], _wSplit[1], qtyComp, 0, machID, CompletionFlag.N);
-                        File.WriteAllText($"{connection.SFDCFolder}LBC2K.DAT{suffix}", _tempDL.ToString());
+                        File.WriteAllText($"{connection.SFDCFolder}LBC2K.DAT{suffix}{empID}", _tempDL.ToString());
                     }
                     _subResult.Add(0, string.Empty);
                     return _subResult;
@@ -605,6 +608,7 @@ namespace M2kClient
             var _subResult = new Dictionary<int, string>();
             try
             {
+                var _uid = new Random().Next(10, 100);
                 var suffix = DateTime.Now.ToString("HHmmssffff");
                 if (tranQty <= 0)
                 {
@@ -621,7 +625,7 @@ namespace M2kClient
                     tranQty,
                     location,
                     lot);
-                File.WriteAllText($"{connection.BTIFolder}ADJUSTC2K.DAT{suffix}", _tScrap.ToString());
+                File.WriteAllText($"{connection.BTIFolder}ADJUSTC2K.DAT{suffix}{_uid}", _tScrap.ToString());
                 _subResult.Add(0, string.Empty);
                 return _subResult;
             }
