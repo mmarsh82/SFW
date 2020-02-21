@@ -179,8 +179,17 @@
                         </DataGridTextColumn>
                         <DataGridTextColumn Header="Run Total"
                                             Binding="{Binding OnHand}" />
-                        <DataGridTextColumn Header="Reference"
-                                            Binding="{Binding Reference}" />
+                        <DataGridTemplateColumn Header="Work Order">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Button Content="{Binding WorkOrder}"
+                                            Command="{StaticResource LookQueryCommand}"
+                                            CommandParameter="{Binding Content, RelativeSource={RelativeSource Self}}"
+                                            Style="{DynamicResource DefaultButton}"
+                                            Visibility="{Binding Content, Converter={StaticResource StringToVisConverter}, RelativeSource={RelativeSource Self}}" />
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
                         <DataGridTemplateColumn Header="Sales Order">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
@@ -192,6 +201,8 @@
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
+                        <DataGridTextColumn Header="Reference"
+                                            Binding="{Binding Reference}" />
                     </DataGrid.Columns>
                 </DataGrid>
 

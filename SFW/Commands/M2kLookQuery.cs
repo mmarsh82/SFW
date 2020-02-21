@@ -18,15 +18,15 @@ namespace SFW.Commands
         {
             try
             {
+                var _site = App.Site.Split('_')[0];
                 if (parameter.ToString().Contains("*"))
                 {
                     var _soDetail = parameter.ToString().Split('*');
-                    var _site = App.Site.Split('_')[0];
                     Process.Start($"http://m2k/{_site}.MAIN/SOP/SoLineDetail/SoLineDetail.aspx?SoNbr={_soDetail[0]}&LineNbr={_soDetail[1]}");
                 }
                 else
                 {
-                    //TODO write in the call for the wo.status call
+                    Process.Start($"http://m2k/{_site}.MAIN/SFC/IssuedMaterialDetail/IssuedMaterialDetail.aspx?WorkOrder={parameter}");
                 }
             }
             catch (Exception)
