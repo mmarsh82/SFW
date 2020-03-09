@@ -3,14 +3,14 @@
 namespace SFW.Queries
 {
     /// <summary>
-    /// Interaction logic for ItemsLot_View.xaml
+    /// Interaction logic for PartTrace_View.xaml
     /// </summary>
-    public partial class PartInfo_View : UserControl
+    public partial class PartTrace_View : UserControl
     {
-        public PartInfo_View()
+        public PartTrace_View()
         {
             InitializeComponent();
-            DataContext = new PartInfo_ViewModel();
+            DataContext = new PartTrace_ViewModel();
             Loaded += delegate { SearchTextBox.Focus(); };
         }
     }

@@ -273,7 +273,7 @@ namespace SFW.Model
                 {
                     var _tempComp = new Component(workOrder.Picklist[0].CompNumber, sqlCon, "RC");
                     ReclaimParent = _tempComp.CompNumber;
-                    ReclaimAssyQty = _tempComp.AssemblyQty;
+                    ReclaimAssyQty = workOrder.Picklist[0].AssemblyQty * _tempComp.AssemblyQty;
                 }
             }
             CanMulti = workOrder.MachineGroup == "SLIT";

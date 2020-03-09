@@ -510,6 +510,39 @@ namespace SFW.Model
         }
 
         /// <summary>
+        /// Get a machines display name
+        /// </summary>
+        /// <param name="sqlCon">Sql Connection to use</param>
+        /// <param name="partNbr">Part number</param>
+        /// <returns>Machine Name as string</returns>
+        public static string GetMachineName(SqlConnection sqlCon, string partNbr)
+        {
+            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
+            {
+                try
+                {
+                    using (SqlCommand cmd = new SqlCommand($"USE {sqlCon.Database}; SELECT [Name] FROM [dbo].[WC-INIT] WHERE [Wc_Nbr] = (SELECT [Wc_Nbr] FROM [dbo].[RT-INIT] WHERE [ID] LIKE CONCAT(@p1,'*%'));", sqlCon))
+                    {
+                        cmd.Parameters.AddWithValue("p1", partNbr);
+                        return cmd.ExecuteScalar()?.ToString();
+                    }
+                }
+                catch (SqlException sqlEx)
+                {
+                    throw sqlEx;
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception(ex.Message);
+                }
+            }
+            else
+            {
+                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
+            }
+        }
+
+        /// <summary>
         /// Get the machine group that a specific machine is a part of
         /// </summary>
         /// <param name="sqlCon">Sql Connection to use</param>

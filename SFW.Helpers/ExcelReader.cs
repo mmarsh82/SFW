@@ -73,7 +73,7 @@ namespace SFW.Helpers
             }
             catch (Exception)
             {
-                return string.Empty;
+                return "ERR:File Open";
             }
         }
 

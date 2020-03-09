@@ -30,8 +30,8 @@
     <PublisherName>Michael Marsh</PublisherName>
     <SuiteName>WCCO Belting Inc.</SuiteName>
     <AutorunEnabled>true</AutorunEnabled>
-    <ApplicationRevision>1523</ApplicationRevision>
-    <ApplicationVersion>1.0.187.1523</ApplicationVersion>
+    <ApplicationRevision>1540</ApplicationRevision>
+    <ApplicationVersion>1.0.189.1540</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <CreateDesktopShortcut>true</CreateDesktopShortcut>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -120,6 +120,7 @@
     <Compile Include="Commands\M2kWipReceipt.cs" />
     <Compile Include="Commands\PartDetail.cs" />
     <Compile Include="Commands\PartSpec.cs" />
+    <Compile Include="Commands\PartTrace.cs" />
     <Compile Include="Commands\PrintBarLabels.cs" />
     <Compile Include="Commands\PrintUserControl.cs" />
     <Compile Include="Commands\SetUpInformation.cs" />
@@ -162,6 +163,10 @@
       <DependentUpon>PartSplit_View.xaml</DependentUpon>
     </Compile>
     <Compile Include="Queries\PartSplit_ViewModel.cs" />
+    <Compile Include="Queries\PartTrace_View.xaml.cs">
+      <DependentUpon>PartTrace_View.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Queries\PartTrace_ViewModel.cs" />
     <Compile Include="Queries\PartTrimInfo_View.xaml.cs">
       <DependentUpon>PartTrimInfo_View.xaml</DependentUpon>
     </Compile>
@@ -267,6 +272,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Queries\PartSplit_View.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Queries\PartTrace_View.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

@@ -20,6 +20,7 @@
         <cmd:UnplanScrap x:Key="UnplanScrapICommand"/>
         <cmd:SplitRoll x:Key="RollSplitICommand"/>
         <cmd:ShowNewWindow x:Key="ShowWindowICommand"/>
+        <cmd:PartTrace x:Key="PartTraceICommand"/>
         <cvtr:SiteNumberToBool x:Key="SiteToBoolConverter"/>
         <cvtr:BoolToVisibility x:Key="BoolToVisConverter" />
         <cvtr:SiteToVisibility x:Key="SiteToVisConverter"/>
@@ -48,6 +49,8 @@
         <KeyBinding Gesture="Alt+P"
                     Command="{StaticResource ShowWindowICommand}"
                     CommandParameter="SFW.Queries.PartLabel_View"/>
+        <KeyBinding Gesture="Alt+T"
+                    Command="{StaticResource PartTraceICommand}" />
     </Window.InputBindings>
 
     <Grid>
@@ -157,6 +160,9 @@
                           Command="{StaticResource RollSplitICommand}"
                           Visibility="{Binding Path=(local:CurrentUser.IsSupervisor), Converter={StaticResource BoolToVisConverter}}"
                           InputGestureText="Alt+R"/>
+                <MenuItem Header="Part Search"
+                          Command="{StaticResource PartTraceICommand}"
+                          InputGestureText="Alt+T"/>
 
             </MenuItem>
             <MenuItem Header="Help">

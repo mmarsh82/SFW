@@ -458,6 +458,7 @@ namespace M2kClient
             //Adjusting out any reclaim from the system and then adjusting it back in as the raw compound
             if (wipRecord.IsReclaim == SFW.Model.Enumerations.Complete.Y)
             {
+                var test = Convert.ToInt32(Math.Round(Convert.ToDouble(wipRecord.ReclaimQty) * wipRecord.ReclaimAssyQty, 0, MidpointRounding.AwayFromZero));
                 //Adjustment out
                 InventoryAdjustment(wipRecord.Submitter,
                     $"{wipRecord.ReclaimReference}*{wipRecord.WipWorkOrder.OrderNumber}",

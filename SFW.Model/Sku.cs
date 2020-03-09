@@ -601,5 +601,142 @@ namespace SFW.Model
                 throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
             }
         }
+
+        /// <summary>
+        /// Check to see if a Sku exists in the database
+        /// </summary>
+        /// <param name="partNbr">Part Number to check</param>
+        /// <param name="sqlCon">Sql Connection to use</param>
+        /// <returns>Pass/Fail as boolean</returns>
+        public static bool Exists(string partNbr, SqlConnection sqlCon)
+        {
+            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
+            {
+                try
+                {
+                    using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database};
+                                                                SELECT
+	                                                                COUNT([Part_Number])
+                                                                FROM
+	                                                                [dbo].[IM-INIT]
+                                                                WHERE
+	                                                                [Part_Number] = @p1;", sqlCon))
+                    {
+                        cmd.Parameters.AddWithValue("p1", partNbr);
+                        return int.TryParse(cmd.ExecuteScalar()?.ToString(), out int i) && i > 0;
+                    }
+                }
+                catch (SqlException sqlEx)
+                {
+                    return false;
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception(ex.Message);
+                }
+            }
+            else
+            {
+                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
+            }
+        }
+
+        /// <summary>
+        /// Check to see if a Sku exists in the database
+        /// </summary>
+        /// <param name="partNbr">Part Number to check</param>
+        /// <param name="sqlCon">Sql Connection to use</param>
+        /// <returns>Pass/Fail as boolean</returns>
+        public static string GetMasterNumber(string partNbr, SqlConnection sqlCon)
+        {
+            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
+            {
+                try
+                {
+                    using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database};
+                                                                SELECT
+	                                                                [Drawing_Nbrs]
+                                                                FROM
+	                                                                [dbo].[IM-INIT]
+                                                                WHERE
+	                                                                [Part_Number] = @p1;", sqlCon))
+                    {
+                        cmd.Parameters.AddWithValue("p1", partNbr);
+                        var _master = cmd.ExecuteScalar();
+                        return string.IsNullOrEmpty(_master.ToString()) ? partNbr : _master.ToString();
+                    }
+                }
+                catch (SqlException sqlEx)
+                {
+                    return null;
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception(ex.Message);
+                }
+            }
+            else
+            {
+                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
+            }
+        }
+
+        /// <summary>
+        /// Search for a part number of a description of a part in the database
+        /// </summary>
+        /// <param name="searchInput">Search input to find</param>
+        /// <param name="sqlCon">Sql Connection to use</param>
+        /// <returns>List of found part numbers</returns>
+        public static IDictionary<Sku, bool> Search(string searchInput, SqlConnection sqlCon)
+        {
+            var _returnList = new Dictionary<Sku, bool>();
+            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
+            {
+                try
+                {
+                    using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database};
+                                                                SELECT
+	                                                                [Part_Number]
+                                                                    ,[Description]
+                                                                    ,[Accounting_Status]
+                                                                FROM
+	                                                                [dbo].[IM-INIT]
+                                                                WHERE
+	                                                                [Part_Number] LIKE CONCAT(CONCAT('%', @p1), '%') OR [Description] LIKE CONCAT(CONCAT('%', @p1), '%');", sqlCon))
+                    {
+                        cmd.Parameters.AddWithValue("p1", searchInput);
+                        using (SqlDataReader reader = cmd.ExecuteReader())
+                        {
+                            if (reader.HasRows)
+                            {
+                                while (reader.Read())
+                                {
+                                    var _status = reader.SafeGetString("Accounting_Status") == "A" ? true : false;
+                                    var _tSku = new Sku
+                                    {
+                                        SkuNumber = reader.SafeGetString("Part_Number")
+                                        ,SkuDescription = reader.SafeGetString("Description")
+                                    };
+                                    _returnList.Add(_tSku, _status);
+                                }
+                            }
+                        }
+                        return _returnList;
+                    }
+                }
+                catch (SqlException sqlEx)
+                {
+                    return null;
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception(ex.Message);
+                }
+            }
+            else
+            {
+                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
+            }
+        }
     }
 }

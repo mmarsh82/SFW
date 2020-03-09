@@ -66,6 +66,9 @@ namespace SFW.Controls
             //Add the Part Detail View to [7]
             MainDock.Children.Insert(7, new PartSpec_View());
 
+            //Add the Part Trace View to [8]
+            MainDock.Children.Insert(8, new PartTrace_View());
+
             //Set up and display the intial view
             switch (Environment.UserDomainName)
             {
