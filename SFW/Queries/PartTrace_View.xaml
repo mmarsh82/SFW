@@ -8,6 +8,7 @@
 
     <UserControl.Resources>
         <cvtr:BoolToVisibility x:Key="BooltoVisConverter"/>
+        <cvtr:StringToVisibility x:Key="StringtoVisConverter"/>
     </UserControl.Resources>
 
     <UserControl.InputBindings>
@@ -33,9 +34,10 @@
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto"/>
             <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="Auto"/>
         </Grid.ColumnDefinitions>
 
-        <Button Grid.ColumnSpan="2" Grid.Row="0"
+        <Button Grid.ColumnSpan="3" Grid.Row="0"
                 HorizontalAlignment="Left"
                 VerticalAlignment="Center"
                 Background="Transparent"
@@ -56,7 +58,7 @@
 
         <!--#region Part Input-->
 
-        <StackPanel Grid.ColumnSpan="2" Grid.Row="1"
+        <StackPanel Grid.ColumnSpan="3" Grid.Row="1"
                     Orientation="Horizontal"
                     HorizontalAlignment="Left">
 
@@ -97,7 +99,7 @@
         
         <!--#region Action Array-->
 
-        <StackPanel Grid.ColumnSpan="2" Grid.Row="2"
+        <StackPanel Grid.ColumnSpan="3" Grid.Row="2"
                     Orientation="Horizontal"
                     HorizontalAlignment="Left">
 
@@ -109,14 +111,6 @@
 
             <Button Content="View Setup"
                     Command="{Binding SetupICommand}"
-                    Width="100"
-                    Margin="2"
-                    Style="{DynamicResource DefaultButton}" />
-
-            <Button Content="View Structure"
-                    Command="{Binding PrintSearchICommand}"
-                    CommandParameter="{Binding PartNumber}"
-                    IsEnabled="False"
                     Width="100"
                     Margin="2"
                     Style="{DynamicResource DefaultButton}" />
@@ -134,7 +128,7 @@
                       VerticalScrollBarVisibility="Auto"
                       HorizontalScrollBarVisibility="Disabled">
 
-            <ItemsControl ItemsSource="{Binding SkuResultDictionary}">
+            <ItemsControl ItemsSource="{Binding SkuResultDictionary, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
                         <VirtualizingStackPanel IsItemsHost="True"
@@ -145,40 +139,31 @@
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
 
-                        <StackPanel Orientation="Vertical"
-                                    Visibility="{Binding Value, Converter={StaticResource BooltoVisConverter}}">
-                            
-                            <Grid>
-                                
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
-
-                                <TextBlock Grid.Column="0"
-                                           Text="{Binding Key.SkuNumber}"
-                                           FontSize="16"
-                                           TextDecorations="Underline"
-                                           VerticalAlignment="Center"
-                                           FontWeight="Bold"/>
-                                <TextBlock Grid.Column="1"
-                                           Text="{Binding Key.SkuDescription}"
-                                           VerticalAlignment="Center"
-                                           FontSize="16"
-                                           Margin="5,0,0,0"/>
-                                <Button Grid.Column="2"
-                                        Content="Open Print"
-                                        Command="{Binding DataContext.PrintSearchICommand, ElementName=PartTraceUC}"
-                                        CommandParameter="{Binding Key}"
-                                        Width="100"
-                                        Height="30"
-                                        Margin="5,5,20,5"
-                                        Style="{DynamicResource DefaultButton}" />
-
-                            </Grid>
-                        </StackPanel>
+                        <TextBlock VerticalAlignment="Center"
+                                   Visibility="{Binding Key.EngStatus, Converter={StaticResource StringtoVisConverter}, ConverterParameter=Status}">
+                            <Hyperlink Command="{Binding DataContext.PrintSearchICommand, ElementName=PartTraceUC}"
+                                       CommandParameter="{Binding Key}">
+                                <Hyperlink.Style>
+                                    <Style TargetType="{x:Type Hyperlink}">
+                                        <Setter Property="Foreground" Value="Blue"/>
+                                        <Setter Property="IsEnabled" Value="True"/>
+                                        <Style.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter Property="Foreground" Value="Crimson"/>
+                                            </Trigger>
+                                        </Style.Triggers>
+                                    </Style>  
+                                </Hyperlink.Style>
+                                <Run FontSize="18">
+                                    <Run.Text>
+                                        <MultiBinding StringFormat="{}{0}   {1}">
+                                            <Binding Path="Key.SkuNumber"/>
+                                            <Binding Path="Key.SkuDescription"/>
+                                        </MultiBinding>
+                                    </Run.Text>
+                                </Run>
+                            </Hyperlink>
+                        </TextBlock>
 
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
@@ -198,7 +183,7 @@
                       VerticalScrollBarVisibility="Auto"
                       HorizontalScrollBarVisibility="Disabled">
 
-            <ItemsControl ItemsSource="{Binding SkuWIList}">
+            <ItemsControl ItemsSource="{Binding SkuWIList, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
                         <VirtualizingStackPanel IsItemsHost="True"
@@ -223,6 +208,79 @@
 
         </ScrollViewer>
         
+        <!--#endregion-->
+
+        <!--#region Search Results-->
+
+        <ScrollViewer Grid.Column="2" Grid.Row="3"
+                      MaxWidth="1200"
+                      Margin="10,0,0,0"
+                      HorizontalAlignment="Left"
+                      VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Disabled">
+
+            <ItemsControl ItemsSource="{Binding SkuPartStructure, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <VirtualizingStackPanel IsItemsHost="True"
+                                                Orientation="Vertical" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+
+                        <Grid>
+
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="20"/>
+                                <ColumnDefinition Width="auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Grid.Column="0"
+                                       Text="{Binding Value, StringFormat={}{0}.}"
+                                       FontSize="18"
+                                       FontWeight="Bold"
+                                       TextDecorations="Underline"
+                                       HorizontalAlignment="Center"/>
+
+                            <TextBlock Grid.Column="1"
+                                       VerticalAlignment="Center"
+                                       HorizontalAlignment="Center"
+                                       Margin="20,0,0,0"
+                                       Visibility="{Binding Key.EngStatus, Converter={StaticResource StringtoVisConverter}, ConverterParameter=Status}">
+                                <Hyperlink Command="{Binding DataContext.PrintSearchICommand, ElementName=PartTraceUC}"
+                                           CommandParameter="{Binding Key}">
+                                    <Hyperlink.Style>
+                                        <Style TargetType="{x:Type Hyperlink}">
+                                            <Setter Property="Foreground" Value="Blue"/>
+                                            <Setter Property="IsEnabled" Value="True"/>
+                                            <Style.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter Property="Foreground" Value="Crimson"/>
+                                                </Trigger>
+                                            </Style.Triggers>
+                                        </Style>  
+                                    </Hyperlink.Style>
+                                    <Run FontSize="18">
+                                        <Run.Text>
+                                            <MultiBinding StringFormat="{}{0}   {1}">
+                                                <Binding Path="Key.SkuNumber"/>
+                                                <Binding Path="Key.SkuDescription"/>
+                                            </MultiBinding>
+                                        </Run.Text>
+                                    </Run>
+                                </Hyperlink>
+                            </TextBlock>
+
+                        </Grid>
+                        
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+        </ScrollViewer>
+
         <!--#endregion-->
 
         <TextBlock Grid.ColumnSpan="2" Grid.Row="4"

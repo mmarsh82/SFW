@@ -3,6 +3,8 @@ using SFW.Model;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
+using System.Linq;
 using System.Windows.Input;
 
 namespace SFW.Queries
@@ -20,9 +22,13 @@ namespace SFW.Queries
             {
                 _partNbr = value.ToUpper();
                 OnPropertyChanged(nameof(PartNumber));
-                SetupPrint = string.Empty;
-                ErrorMsg = string.Empty;
-                VerifyText = string.Empty;
+                SetupPrint = ErrorMsg = VerifyText = string.Empty;
+                SkuResultDictionary = null;
+                OnPropertyChanged(nameof(SkuResultDictionary));
+                SkuWIList = null;
+                OnPropertyChanged(nameof(SkuWIList));
+                SkuPartStructure = null;
+                OnPropertyChanged(nameof(SkuPartStructure));
             }
         }
 
@@ -45,7 +51,7 @@ namespace SFW.Queries
             { return _verifyTxt; }
             set
             {
-                _verifyTxt = value;
+                _verifyTxt = string.IsNullOrEmpty(value) ? "Verify" : value;
                 OnPropertyChanged(nameof(VerifyText));
             }
         }
@@ -64,6 +70,7 @@ namespace SFW.Queries
 
         public IDictionary<Sku, bool> SkuResultDictionary { get; set; }
         public List<string> SkuWIList { get; set; }
+        public IDictionary<Sku, int> SkuPartStructure { get; set; }
 
         RelayCommand _print;
         RelayCommand _setup;
@@ -77,6 +84,7 @@ namespace SFW.Queries
         /// </summary>
         public PartTrace_ViewModel()
         {
+            VerifyText = string.Empty;
             SkuResultDictionary = new Dictionary<Sku, bool>();
             SkuWIList = new List<string>();
         }
@@ -97,50 +105,62 @@ namespace SFW.Queries
 
         public void VerifyExecute(object parameter)
         {
-            ErrorMsg = string.Empty;
-            SkuWIList.Clear();
-            OnPropertyChanged(nameof(SkuWIList));
-            var _machName = Machine.GetMachineName(App.AppSqlCon, PartNumber);
-            if(!string.IsNullOrEmpty(_machName))
+            if (!string.IsNullOrEmpty(PartNumber))
             {
-                var _fileName = ExcelReader.GetSetupPrintNumber(PartNumber, _machName, "\\\\manage2\\server\\Engineering\\Product\\Press Setups\\press setup and part number crossreference.xlsm", "Production");
-                if (_fileName.Contains("ERR:"))
+                ErrorMsg = string.Empty;
+                var _machName = Machine.GetMachineName(App.AppSqlCon, PartNumber);
+                if (!string.IsNullOrEmpty(_machName))
                 {
-                    ErrorMsg = "Main file is open, contact Engineering.";
-                    VerifyText = "Accepted with errors";
-                }
-                else if (!string.IsNullOrEmpty(_fileName))
-                {
-                    var _fileheader = string.Empty;
-                    for (int i = 0; i < 8 - _fileName.Length; i++)
+                    var _fileName = ExcelReader.GetSetupPrintNumber(PartNumber, _machName, "\\\\manage2\\server\\Engineering\\Product\\Press Setups\\press setup and part number crossreference.xlsm", "Production");
+                    if (_fileName.Contains("ERR:"))
                     {
-                        _fileheader += "0";
+                        ErrorMsg = "Main file is open, contact Engineering.";
+                        VerifyText = "Accepted with errors";
                     }
-                    _fileName = _fileheader + _fileName;
-                    SetupPrint = $"\\\\manage2\\Prints\\{_fileName}.PDF";
-                    VerifyText = "Accepted";
-                }
-                else
-                {
-                    _fileName = ExcelReader.GetSetupPrintNumber(PartNumber, Machine.GetMachineName(App.AppSqlCon, PartNumber), "\\\\manage2\\server\\Engineering\\Product\\Sysco Press Setups\\SYSCO PRESS - Setup cross reference.xlsx", "PRODUCTION");
-                    if (!string.IsNullOrEmpty(_fileName))
+                    else if (!string.IsNullOrEmpty(_fileName))
                     {
+                        var _fileheader = string.Empty;
+                        for (int i = 0; i < 8 - _fileName.Length; i++)
+                        {
+                            _fileheader += "0";
+                        }
+                        _fileName = _fileheader + _fileName;
                         SetupPrint = $"\\\\manage2\\Prints\\{_fileName}.PDF";
                         VerifyText = "Accepted";
                     }
                     else
                     {
-                        ErrorMsg = "No Setup exists.";
-                        VerifyText = "Accepted with errors";
+                        _fileName = ExcelReader.GetSetupPrintNumber(PartNumber, Machine.GetMachineName(App.AppSqlCon, PartNumber), "\\\\manage2\\server\\Engineering\\Product\\Sysco Press Setups\\SYSCO PRESS - Setup cross reference.xlsx", "PRODUCTION");
+                        if (!string.IsNullOrEmpty(_fileName))
+                        {
+                            SetupPrint = $"\\\\manage2\\Prints\\{_fileName}.PDF";
+                            VerifyText = "Accepted";
+                        }
+                        else
+                        {
+                            ErrorMsg = "No Setup exists.";
+                            VerifyText = "Accepted with errors";
+                        }
                     }
+                    SkuWIList = Sku.GetInstructions(PartNumber, CurrentUser.GetSite(), App.AppSqlCon);
+                    OnPropertyChanged(nameof(SkuWIList));
+                    var _unOrderedDict = Sku.GetStructure(PartNumber, App.AppSqlCon);
+                    SkuPartStructure = new Dictionary<Sku, int>();
+                    foreach (var items in _unOrderedDict.OrderBy(o => o.Value))
+                    {
+                        SkuPartStructure.Add(items.Key, items.Value);
+                    }
+                    OnPropertyChanged(nameof(SkuPartStructure));
                 }
-                SkuWIList = Sku.GetInstructions(PartNumber, CurrentUser.GetSite(), App.AppSqlCon);
-                OnPropertyChanged(nameof(SkuWIList));
+                else
+                {
+
+                    VerifyText = "Not Found";
+                }
             }
             else
             {
-
-                VerifyText = "Not Found";
+                ErrorMsg = "No value entered.";
             }
         }
         private bool VerifyCanExecute(object parameter) => true;
@@ -163,29 +183,30 @@ namespace SFW.Queries
 
         public void SearchExecute(object parameter)
         {
-            if (!string.IsNullOrEmpty(PartNumber))
+            if (parameter == null)
             {
                 if (Sku.Exists(PartNumber, App.AppSqlCon) && parameter == null)
                 {
                     new Commands.PartSearch().Execute(Sku.GetMasterNumber(PartNumber, App.AppSqlCon));
                 }
+                else if (File.Exists($"\\\\manage2\\Prints\\{PartNumber}.pdf"))
+                {
+                    Process.Start($"\\\\manage2\\Prints\\{PartNumber}.pdf");
+                }
                 else
                 {
-                    if (parameter == null)
-                    {
-                        SkuResultDictionary = Sku.Search(PartNumber.Replace(" ", "%"), App.AppSqlCon);
-                        OnPropertyChanged(nameof(SkuResultDictionary));
-                    }
-                    else
-                    {
-                        var _sku = (Sku)parameter;
-                        new Commands.PartSearch().Execute(Sku.GetMasterNumber(_sku.SkuNumber, App.AppSqlCon));
-                    }
+                    SkuResultDictionary = Sku.Search(PartNumber.Replace(" ", "%"), App.AppSqlCon);
+                    OnPropertyChanged(nameof(SkuResultDictionary));
                 }
+            }
+            else
+            {
+                var _sku = (Sku)parameter;
+                new Commands.PartSearch().Execute(Sku.GetMasterNumber(_sku.SkuNumber, App.AppSqlCon));
             }
         }
 
-        private bool SearchCanExecute(object parameter) => true;
+        private bool SearchCanExecute(object parameter) => !string.IsNullOrEmpty(PartNumber);
 
         #endregion
 

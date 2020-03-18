@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
+using System.Linq;
 
 //Created by Michael Marsh 4-19-18
 
@@ -699,6 +700,7 @@ namespace SFW.Model
 	                                                                [Part_Number]
                                                                     ,[Description]
                                                                     ,[Accounting_Status]
+                                                                    ,[Drawing_Nbrs]
                                                                 FROM
 	                                                                [dbo].[IM-INIT]
                                                                 WHERE
@@ -716,6 +718,8 @@ namespace SFW.Model
                                     {
                                         SkuNumber = reader.SafeGetString("Part_Number")
                                         ,SkuDescription = reader.SafeGetString("Description")
+                                        ,MasterPrint = reader.SafeGetString("Drawing_Nbrs")
+                                        ,EngStatus = reader.SafeGetString("Accounting_Status")
                                     };
                                     _returnList.Add(_tSku, _status);
                                 }
@@ -723,6 +727,171 @@ namespace SFW.Model
                         }
                         return _returnList;
                     }
+                }
+                catch (SqlException sqlEx)
+                {
+                    return null;
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception(ex.Message);
+                }
+            }
+            else
+            {
+                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
+            }
+        }
+
+        /// <summary>
+        /// Get a Sku's structure
+        /// </summary>
+        /// <param name="searchInput">Search input to find</param>
+        /// <param name="sqlCon">Sql Connection to use</param>
+        /// <returns>List of found part numbers</returns>
+        public static IDictionary<Sku, int> GetStructure(string partNbr, SqlConnection sqlCon)
+        {
+            var _returnList = new Dictionary<Sku, int>
+            {
+                { new Sku(partNbr, false, sqlCon), 0 }
+            };
+            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
+            {
+                try
+                {
+                    var _counter = 0;
+                    var _found = false;
+                    var _partList = new List<string>
+                    {
+                        partNbr
+                    };
+                    //Parent part retrieval
+                    while (!_found)
+                    {
+                        using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database};
+                                                                SELECT
+	                                                                SUBSTRING(a.[ID], CHARINDEX('*', a.[ID], 0) + 1, LEN(a.[ID])) as 'Part'
+	                                                                ,(SELECT [Description] FROM [dbo].[IM-INIT] aa WHERE aa.[Part_Number] = SUBSTRING(a.[ID], CHARINDEX('*', a.[ID], 0) + 1, LEN(a.[ID]))) as 'Desc'
+	                                                                ,a.[Bom_Uom] as 'Uom'
+	                                                                ,a.[Qty_Per_Assy] as 'Qpa'
+	                                                                ,b.[Accounting_Status] as 'Status'
+                                                                FROM
+	                                                                [dbo].[PS-INIT] a
+                                                                RIGHT JOIN
+	                                                                [dbo].[IM-INIT] b ON b.[Part_Number] = SUBSTRING(a.[ID], 0, CHARINDEX('*', a.[ID], 0))
+                                                                WHERE
+	                                                                a.[Qty_Per_Assy] IS NOT NULL", sqlCon))
+                        {
+                            foreach (var s in _partList)
+                            {
+                                if (_partList.IndexOf(s) == 0)
+                                {
+                                    cmd.CommandText += $" AND (b.[Part_Number] = @p1";
+                                    cmd.Parameters.AddWithValue("p1", s);
+                                }
+                                else
+                                {
+                                    cmd.CommandText += $" OR b.[Part_Number] = @p{_partList.IndexOf(s) + 1}";
+                                    cmd.Parameters.AddWithValue($"p{_partList.IndexOf(s) + 1}", s);
+                                }
+                            }
+                            cmd.CommandText += ")";
+                            using (SqlDataReader reader = cmd.ExecuteReader())
+                            {
+                                if (reader.HasRows)
+                                {
+                                    _partList = new List<string>();
+                                    _counter--;
+                                    while (reader.Read())
+                                    {
+                                        var _tempSku = new Sku
+                                        {
+                                            SkuNumber = reader.SafeGetString("Part")
+                                            ,SkuDescription = reader.SafeGetString("Desc")
+                                            ,Uom = reader.SafeGetString("Uom")
+                                            ,Operation = reader.SafeGetDouble("Qpa").ToString()
+                                            ,EngStatus = reader.SafeGetString("Status")
+                                        };
+                                        _returnList.Add(_tempSku, _counter);
+                                        _partList.Add(reader.SafeGetString("Part"));
+                                    }
+                                }
+                                else
+                                {
+                                    _found = true;
+                                }
+                            }
+                        }
+                    }
+                    //Child part retrieval
+                    _counter = 0;
+                    _found = false;
+                    _partList = new List<string>
+                    {
+                        partNbr
+                    };
+                    while (!_found)
+                    {
+                        using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database};
+                                                                SELECT
+	                                                                SUBSTRING(a.[ID], 0, CHARINDEX('*', a.[ID])) as 'Part'
+	                                                                ,(SELECT [Description] FROM [dbo].[IM-INIT] aa WHERE aa.[Part_Number] = SUBSTRING(a.[ID], 0, CHARINDEX('*', a.[ID]))) as 'Desc'
+	                                                                ,a.[Bom_Uom] as 'Uom'
+	                                                                ,a.[Qty_Per_Assy] as 'Qpa'
+	                                                                ,b.[Accounting_Status] as 'Status'
+                                                                FROM
+	                                                                [dbo].[PS-INIT] a
+                                                                RIGHT JOIN
+	                                                                [dbo].[IM-INIT] b ON b.[Part_Number] = SUBSTRING(a.[ID], CHARINDEX('*', a.[ID], 0) + 1, LEN(a.[ID]))
+                                                                WHERE
+	                                                                a.[Qty_Per_Assy] IS NOT NULL", sqlCon))
+                        {
+                            foreach (var s in _partList)
+                            {
+                                if (_partList.IndexOf(s) == 0)
+                                {
+                                    cmd.CommandText += $" AND (b.[Part_Number] = @p1";
+                                    cmd.Parameters.AddWithValue("p1", s);
+                                }
+                                else
+                                {
+                                    cmd.CommandText += $" OR b.[Part_Number] = @p{_partList.IndexOf(s) + 1}";
+                                    cmd.Parameters.AddWithValue($"p{_partList.IndexOf(s) + 1}", s);
+                                }
+                            }
+                            cmd.CommandText += ")";
+                            using (SqlDataReader reader = cmd.ExecuteReader())
+                            {
+                                if (reader.HasRows)
+                                {
+                                    while (reader.Read())
+                                    {
+                                        _partList = new List<string>();
+                                        _counter++;
+                                        while (reader.Read())
+                                        {
+                                            var _tempSku = new Sku
+                                            {
+                                                SkuNumber = reader.SafeGetString("Part")
+                                                ,SkuDescription = reader.SafeGetString("Desc")
+                                                ,Uom = reader.SafeGetString("Uom")
+                                                ,Operation = reader.SafeGetDouble("Qpa").ToString()
+                                                ,EngStatus = reader.SafeGetString("Status")
+                                            };
+                                            _returnList.Add(_tempSku, _counter);
+                                            _partList.Add(reader.SafeGetString("Part"));
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    _found = true;
+                                }
+                            }
+                        }
+                    }
+
+                    return _returnList;
                 }
                 catch (SqlException sqlEx)
                 {
