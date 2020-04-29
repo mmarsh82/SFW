@@ -81,6 +81,7 @@ namespace SFW.Helpers
                         {
                             var pdfField = stamp.AcroFields;
                             pdfField.SetField("Date Printed", DateTime.Today.ToString("MM/dd/yyyy"));
+                            pdfField.SetField("Time", DateTime.Now.ToString("HH:mm"));
                             pdfField.SetField("P/N", PartNbr);
                             pdfField.SetField("Part No Bar", $"*{PartNbr}*");
                             pdfField.SetField("Part No Bar Sm", $"*{PartNbr}*");

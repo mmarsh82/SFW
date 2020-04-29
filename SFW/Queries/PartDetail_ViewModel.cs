@@ -1,8 +1,7 @@
-﻿using SFW.Commands;
-using SFW.Helpers;
+﻿using SFW.Helpers;
 using SFW.Model;
 using System;
-using System.Linq;
+using System.Collections.ObjectModel;
 using System.Windows.Input;
 
 namespace SFW.Queries
@@ -12,6 +11,42 @@ namespace SFW.Queries
         #region Properties
 
         public Sku Part { get; set; }
+        public ObservableCollection<Sku> MoveHistory { get; set; }
+
+        private string _toLoc;
+        public string ToLoc
+        {
+            get { return _toLoc; }
+            set
+            {
+                _toLoc = value.ToUpper();
+                OnPropertyChanged(nameof(ToLoc));
+                OnPropertyChanged(nameof(IsLocValid));
+                OnPropertyChanged(nameof(ShowSize));
+            }
+        }
+
+        public string FromLoc
+        {
+            get { return Part?.Location; }
+            set
+            {
+                Part.Location = value;
+                OnPropertyChanged(nameof(FromLoc));
+            }
+        }
+
+        public string MoveRef { get; set; }
+
+        public string NonReason
+        {
+            get { return Part?.NonCon; }
+            set
+            {
+                Part.NonCon = value;
+                OnPropertyChanged(nameof(NonReason));
+            }
+        }
 
         private bool lotType;
         public bool LotType
@@ -49,49 +84,40 @@ namespace SFW.Queries
             }
         }
 
-        private bool validQir;
-        public bool ValidQir
-        {
-            get { return validQir; }
-            set
-            {
-                validQir = value;
-                OnPropertyChanged(nameof(validQir));
-            }
-        }
-
-        private char prevLot;
         private string skuInput;
         public string SkuInput
         {
             get { return skuInput; }
             set
             {
-                if (LotType)
+                if (!string.IsNullOrEmpty(value))
                 {
-                    if (!string.IsNullOrEmpty(value) && value.Length > 4 && LotType)
+                    if (LotType)
                     {
-                        Part = new Sku(value, true, App.AppSqlCon);
-                        ValidSku = !string.IsNullOrEmpty(Part.SkuNumber);
+                        if (!string.IsNullOrEmpty(value) && value.Length > 4 && LotType)
+                        {
+                            Part = new Sku(value, true, App.AppSqlCon);
+                        }
+                    }
+                    else
+                    {
+                        if (value.Length > 5)
+                        {
+                            Part = new Sku(value, App.AppSqlCon);
+                            OnPropertyChanged(nameof(FromLoc));
+                        }
                     }
                 }
                 else
                 {
-                    if (value.Length > 5)
-                    {
-                        Part = new Sku(value, App.AppSqlCon);
-                        ValidSku = !string.IsNullOrEmpty(Part.SkuNumber);
-                    }
-                    if (value.Length == 11)
-                    {
-                        value = skuInput = $"{prevLot}{value.Last()}";
-                    }
-                    if (!string.IsNullOrEmpty(value))
-                    {
-                        prevLot = value.Last();
-                    }
+                    Part = null;
+                    QuantityInput = null;
+                    ToLoc = string.Empty;
+                    MoveRef = string.Empty;
+                    OnPropertyChanged(nameof(MoveRef));
                 }
                 skuInput = value.ToUpper();
+                ValidSku = !string.IsNullOrEmpty(Part?.SkuNumber);
                 OnPropertyChanged(nameof(SkuInput));
                 OnPropertyChanged(nameof(Part));
                 OnPropertyChanged(nameof(SkuShow));
@@ -113,6 +139,9 @@ namespace SFW.Queries
             }
         }
 
+        public bool IsLocValid { get { return string.IsNullOrEmpty(ToLoc) || (!string.IsNullOrEmpty(ToLoc) && Sku.IsValidLocation(ToLoc, App.AppSqlCon)); } }
+        public int ShowSize { get { return IsLocValid ? 1 : 3; } }
+
         RelayCommand _mPrint;
         RelayCommand _move;
 
@@ -123,7 +152,10 @@ namespace SFW.Queries
         /// </summary>
         public PartDetail_ViewModel()
         {
-
+            if (MoveHistory == null)
+            {
+                MoveHistory = new ObservableCollection<Sku>();
+            }
         }
 
         #region Material Card Print ICommand
@@ -193,85 +225,32 @@ namespace SFW.Queries
         /// <param name="parameter"></param>
         private void MoveExecute(object parameter)
         {
-            /*var _suf = M2kClient.M2kCommand.InventoryMove("", "", 0, false, App.ErpCon);
-
-            Skew.MoveQuantity = Quantity;
-            Skew.MoveFrom = string.IsNullOrEmpty(FromLoc) ? Skew.OnHand.First().Key : FromLoc;
-            Skew.MoveTo = ToLoc.ToUpper();
-            Skew.NonConfReason = NonReason;
-            MoveHistory.Add(Skew);
-            if (_suf == 0)
+            if (!LotType)
             {
-                MoveHistory[MoveHistory.Count - 1].MoveStatus = "Failed";
-                OnPropertyChanged(nameof(MoveHistory));
+                M2kClient.M2kCommand.InventoryMove(CurrentUser.DisplayName, Part.SkuNumber, SkuInput, Part.Uom, FromLoc, ToLoc, Convert.ToInt32(QuantityInput), MoveRef, App.ErpCon, NonReason);
             }
             else
             {
-                Task.Run(() => ProcessingMove(_suf, MoveHistory.Count - 1));
+                M2kClient.M2kCommand.InventoryMove(CurrentUser.DisplayName, SkuInput, "", Part.Uom, FromLoc, ToLoc, Convert.ToInt32(QuantityInput), MoveRef, App.ErpCon, NonReason);
             }
-            Quantity = null;
-            ToLoc = FromLoc = NonReason = null;
-            OnPropertyChanged(nameof(Quantity));
-            OnPropertyChanged(nameof(ToLoc));
-            OnPropertyChanged(nameof(FromLoc));*/
+            Part.SkuNumber = SkuInput;
+            Part.SkuDescription = ToLoc;
+            Part.TotalOnHand = Convert.ToInt32(QuantityInput);
+            MoveHistory.Add(Part);
+            SkuInput = string.Empty;
         }
         private bool MoveCanExecute(object parameter)
         {
-            /*if (ValidLot && Quantity > 0 && !string.IsNullOrEmpty(ToLoc))
+            if (ValidSku && QuantityInput > 0 && IsLocValid)
             {
-                if (ToLoc.ToUpper()[ToLoc.Length - 1] != 'N' || (ToLoc.ToUpper()[ToLoc.Length - 1] == 'N' && !string.IsNullOrEmpty(NonReason)))
+                if (!string.IsNullOrEmpty(ToLoc) && (ToLoc[ToLoc.Length - 1] != 'N' || (ToLoc[ToLoc.Length - 1] == 'N') && !string.IsNullOrEmpty(NonReason)))
                 {
-                    return Skew.OnHand.Count > 1 || LotType ? !string.IsNullOrEmpty(FromLoc) : true;
+                    return Part.TotalOnHand > 0 || LotType ? !string.IsNullOrEmpty(FromLoc) : true;
                 }
-            }*/
+            }
             return false;
         }
 
         #endregion
-
-        /// <summary>
-        /// View validation that the unplanned move function is working
-        /// **Only use as a task delegation**
-        /// </summary>
-        /// <param name="uID">Unique suffix to track</param>
-        /// <param name="arrayNumber">The array location of the skew to process in the MoveHistory</param>
-        /// <param name="nonReason">Non-conforming reason</param>
-        private void ProcessingMove(int uID, int arrayNumber)
-        {
-            /*MoveHistory[arrayNumber].MoveStatus = "In Que";
-            OnPropertyChanged(nameof(MoveHistory));
-            while (System.IO.File.Exists($"{Properties.Settings.Default.MoveFileLocation}LOCXFERC2K.DAT{uID}"))
-            {
-                MoveHistory[arrayNumber].MoveStatus = "Processing";
-                OnPropertyChanged(nameof(MoveHistory));
-            }
-            MoveHistory[arrayNumber].MoveStatus = "Verifing Record";
-            OnPropertyChanged(nameof(MoveHistory));
-            System.Threading.Thread.Sleep(3000);
-            if (Skew.MoveFrom[Skew.MoveFrom.Length - 1] == 'N' && Skew.MoveTo[Skew.MoveTo.Length - 1] != 'N')
-            {
-                MoveHistory[arrayNumber].MoveStatus = "Removing N-Loc Reason";
-                OnPropertyChanged(nameof(MoveHistory));
-                M2k.DeleteRecord("LOT.MASTER", 42, $"{LotNbr}|P");
-            }
-            else if (Skew.MoveFrom[Skew.MoveFrom.Length - 1] != 'N' && Skew.MoveTo[Skew.MoveTo.Length - 1] == 'N')
-            {
-                MoveHistory[arrayNumber].MoveStatus = "Adding N-Loc Reason";
-                OnPropertyChanged(nameof(MoveHistory));
-                M2k.ModifyRecord("LOT.MASTER", 42, Skew.NonConfReason, $"{LotNbr}|P");
-            }
-            MoveHistory[arrayNumber].MoveStatus = "Writing Record";
-            OnPropertyChanged(nameof(MoveHistory));
-            if (MoveHistory[arrayNumber].LotNumber == LotNbr)
-            {
-                System.Threading.Thread.Sleep(5000);
-                if (MoveHistory[arrayNumber].LotNumber == LotNbr)
-                {
-                    LotNbr = MoveHistory[arrayNumber].LotNumber;
-                }
-            }
-            MoveHistory[arrayNumber].MoveStatus = "Complete";
-            OnPropertyChanged(nameof(MoveHistory));*/
-        }
     }
 }

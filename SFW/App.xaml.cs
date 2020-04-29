@@ -93,7 +93,7 @@ namespace SFW
             string[] startUpArgs = null;
             try
             {
-                startUpArgs = AppDomain.CurrentDomain.SetupInformation.ActivationArguments.ActivationData ?? null;
+                startUpArgs = AppDomain.CurrentDomain.SetupInformation.ActivationArguments?.ActivationData ?? null;
             }
             catch (NullReferenceException)
             {

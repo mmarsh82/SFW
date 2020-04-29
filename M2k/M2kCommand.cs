@@ -202,37 +202,45 @@ namespace M2kClient
         /// <summary>
         /// Inventory move in the current ERP
         /// </summary>
-        /// <param name="name">Submitter name</param>
+        /// <param name="stationId">Submitter name</param>
         /// <param name="partNbr">Part number to move</param>
         /// <param name="lotNbr">Lot number to move, leave blank if one does not exist, unit of measure is required with no lot</param>
         /// <param name="uom">Unit of measure, only required on a non-lot transaction</param>
         /// <param name="from">Location the material will be moving from</param>
         /// <param name="to">Location the material will be moving to</param>
         /// <param name="qty">Amount of material to move</param>
+        /// <param name="reference">Move reference as open text</param>
         /// <param name="connection">Current M2k Connection to be used for processing the transaction</param>
+        /// <param name="nonConf">Optional: Non-conformance reason associated with the part being moved</param>
         /// <returns>Error number and description, when returned error number is 0 the suffix will be in the description</returns>
-        public static IReadOnlyDictionary<int, string> InventoryMove(string name, string partNbr, string lotNbr, string uom, string from, string to, int qty, M2kConnection connection)
+        public static IReadOnlyDictionary<int, string> InventoryMove(string stationId, string partNbr, string lotNbr, string uom, string from, string to, int qty, string reference, M2kConnection connection, string nonConf = "")
         {
             var _subResult = new Dictionary<int, string>();
-            var _uid = new Random().Next(10, 100);
-            var suffix = DateTime.Now.ToString("HHmmssfff");
-            if (string.IsNullOrEmpty(lotNbr) && string.IsNullOrEmpty(uom))
+            try
             {
-                _subResult.Add(1, "Unable to process transaction due to lack of information.  Missing lot number and unit of measure.");
+                //Move the product
+                var suffix = DateTime.Now.ToString($"HHmmssffff");
+                var _move = new Locxfer(stationId, partNbr.ToUpper(), from.ToUpper(), to.ToUpper(), qty, lotNbr, reference, uom.ToUpper());
+                File.WriteAllText($"{connection.BTIFolder}LOCXFERC2K.DAT{suffix}", _move.ToString());
+                //Check to see if you need to clear or add a non-conformance reason
+                if (to[to.Length - 1] != 'N' && !string.IsNullOrEmpty(nonConf))
+                {
+                    //Remove note
+
+                }
+                else if (to[to.Length - 1] == 'N')
+                {
+                    //Add note
+
+                }
+                _subResult.Add(0, string.Empty);
                 return _subResult;
             }
-            string moveText;
-            if (!string.IsNullOrEmpty(lotNbr))
+            catch (Exception ex)
             {
-                moveText = $"1~LOCXFER~2~{name}~3~{DateTime.Now.ToString("HH:mm")}~4~{DateTime.Today.ToString("MM-dd-yyyy")}~5~01~6~{partNbr}~7~{from.ToUpper()}~8~{to.ToUpper()}~9~{qty}~10~{lotNbr}|P~99~COMPLETE";
+                _subResult.Add(1, ex.Message);
+                return _subResult;
             }
-            else
-            {
-                moveText = $"1~LOCXFER~2~{name}~3~{DateTime.Now.ToString("HH:mm")}~4~{DateTime.Today.ToString("MM-dd-yyyy")}~5~01~6~{partNbr}~7~{from.ToUpper()}~8~{to.ToUpper()}~9~{qty}~12~{uom}~99~COMPLETE";
-            }
-            File.WriteAllText($"{connection.BTIFolder}LOCXFERC2K.DAT{suffix}{_uid}", moveText);
-            _subResult.Add(0, suffix);
-            return _subResult;
         }
 
         /// <summary>
@@ -248,7 +256,7 @@ namespace M2kClient
         {
             var _subResult = new Dictionary<int, string>();
             var tranCount = 0;
-            var suffix = DateTime.Now.ToString($"HHmmssffff");;
+            var suffix = DateTime.Now.ToString($"HHmmssffff");
             var _tWip = new Wip();
             var _lotList = new List<string>();
 
@@ -487,7 +495,7 @@ namespace M2kClient
             {
                 foreach (var info in mat.WipInfo.Where(o => o.RollStatus && o.OnHandCalc > 0))
                 {
-                    InventoryMove(wipRecord.Submitter, info.PartNbr, info.LotNbr, info.Uom, info.RcptLoc, "SCRAP", info.OnHandCalc, connection);
+                    InventoryMove(wipRecord.Submitter, info.PartNbr, info.LotNbr, info.Uom, info.RcptLoc, "SCRAP", info.OnHandCalc, "Roll Marked Gone", connection);
                 }
             }
 

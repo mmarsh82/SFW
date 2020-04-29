@@ -10,25 +10,24 @@ namespace SFW.Converters
     {
         public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
         {
-            if (parameter?.ToString() == "i")
+            if (parameter != null)
             {
-                return string.IsNullOrEmpty(value?.ToString()) ? Visibility.Visible : Visibility.Collapsed;
-            }
-            else if (parameter != null && parameter.ToString().Contains("~"))
-            {
-                return value.ToString() == parameter.ToString().Replace('~',' ').Trim() ? Visibility.Visible : Visibility.Collapsed;
-            }
-            else if(parameter?.ToString() == "Hide")
-            {
-                return string.IsNullOrEmpty(value?.ToString()) ? Visibility.Hidden : Visibility.Visible;
-            }
-            else if(parameter?.ToString() == "Status")
-            {
-                return value?.ToString() == "O" ? Visibility.Collapsed : Visibility.Visible;
-            }
-            else if (parameter?.ToString() == "PriTime")
-            {
-                return value?.ToString() == "999" ? Visibility.Collapsed : Visibility.Visible;
+                var _val = parameter.ToString();
+                switch (_val)
+                {
+                    case "i":
+                        return string.IsNullOrEmpty(value?.ToString()) ? Visibility.Visible : Visibility.Collapsed;
+                    case "Hide":
+                        return string.IsNullOrEmpty(value?.ToString()) ? Visibility.Hidden : Visibility.Visible;
+                    case "Status":
+                        return value?.ToString() == "O" ? Visibility.Collapsed : Visibility.Visible;
+                    case "PriTime":
+                        return value?.ToString() == "999" ? Visibility.Collapsed : Visibility.Visible;
+                    case "N":
+                        return value != null && !string.IsNullOrEmpty(value.ToString()) && value.ToString()[value.ToString().Length - 1] == 'N' ? Visibility.Visible : Visibility.Collapsed;
+                    default:
+                        return value.ToString() == parameter.ToString().Replace('~', ' ').Trim() ? Visibility.Visible : Visibility.Collapsed;
+                }
             }
             else
             {

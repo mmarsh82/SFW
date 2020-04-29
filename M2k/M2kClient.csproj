@@ -59,6 +59,7 @@
     <Compile Include="M2kADIArray\DirectLabor.cs" />
     <Compile Include="M2kADIArray\Issue.cs" />
     <Compile Include="M2kADIArray\DisplayInfo.cs" />
+    <Compile Include="M2kADIArray\Locxfer.cs" />
     <Compile Include="M2kADIArray\Wip.cs" />
     <Compile Include="M2kCommand.cs" />
     <Compile Include="M2kConnection.cs" />

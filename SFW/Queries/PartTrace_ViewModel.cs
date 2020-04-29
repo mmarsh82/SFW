@@ -142,21 +142,28 @@ namespace SFW.Queries
                             VerifyText = "Accepted with errors";
                         }
                     }
-                    SkuWIList = Sku.GetInstructions(PartNumber, CurrentUser.GetSite(), App.AppSqlCon);
-                    OnPropertyChanged(nameof(SkuWIList));
-                    var _unOrderedDict = Sku.GetStructure(PartNumber, App.AppSqlCon);
-                    SkuPartStructure = new Dictionary<Sku, int>();
-                    foreach (var items in _unOrderedDict.OrderBy(o => o.Value))
-                    {
-                        SkuPartStructure.Add(items.Key, items.Value);
-                    }
-                    OnPropertyChanged(nameof(SkuPartStructure));
                 }
                 else
                 {
 
-                    VerifyText = "Not Found";
+                    VerifyText = "No Setup.";
                 }
+                SkuWIList = Sku.GetInstructions(PartNumber, CurrentUser.GetSite(), App.AppSqlCon);
+                if (SkuWIList == null)
+                {
+                    VerifyText += " No Work Instructions.";
+                }
+                OnPropertyChanged(nameof(SkuWIList));
+                var _unOrderedDict = Sku.GetStructure(PartNumber, App.AppSqlCon);
+                SkuPartStructure = new Dictionary<Sku, int>();
+                if (_unOrderedDict != null)
+                {
+                    foreach (var items in _unOrderedDict.OrderBy(o => o.Value))
+                    {
+                        SkuPartStructure.Add(items.Key, items.Value);
+                    }
+                }
+                OnPropertyChanged(nameof(SkuPartStructure));
             }
             else
             {
@@ -185,9 +192,45 @@ namespace SFW.Queries
         {
             if (parameter == null)
             {
-                if (Sku.Exists(PartNumber, App.AppSqlCon) && parameter == null)
+                var _master = string.Empty;
+                //Check CSI first then move to WCCO
+                if(App.SiteNumber == 0)
                 {
-                    new Commands.PartSearch().Execute(Sku.GetMasterNumber(PartNumber, App.AppSqlCon));
+                    if (Sku.Exists(PartNumber, App.AppSqlCon))
+                    {
+                        _master = Sku.GetMasterNumber(PartNumber, App.AppSqlCon);
+                    }
+                    else
+                    {
+                        App.DatabaseChange("WCCO_MAIN");
+                        if (Sku.Exists(PartNumber, App.AppSqlCon))
+                        {
+                            _master = Sku.GetMasterNumber(PartNumber, App.AppSqlCon);
+                        }
+                        App.DatabaseChange("CSI_MAIN");
+                    }
+                }
+                //Check WCCO first then move to CSI
+                else
+                {
+                    if (Sku.Exists(PartNumber, App.AppSqlCon))
+                    {
+                        _master = Sku.GetMasterNumber(PartNumber, App.AppSqlCon);
+                    }
+                    else
+                    {
+                        App.DatabaseChange("CSI_MAIN");
+                        if(Sku.Exists(PartNumber, App.AppSqlCon))
+                        {
+                            _master = Sku.GetMasterNumber(PartNumber, App.AppSqlCon);
+                        }
+                        App.DatabaseChange("WCCO_MAIN");
+                    }
+                }
+                //Check to see how to open the print based on the results from the master print search
+                if (!string.IsNullOrEmpty(_master))
+                {
+                    new Commands.PartSearch().Execute(_master);
                 }
                 else if (File.Exists($"\\\\manage2\\Prints\\{PartNumber}.pdf"))
                 {

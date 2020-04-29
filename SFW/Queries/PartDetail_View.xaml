@@ -11,6 +11,8 @@
             <cmd:PartSearch x:Key="PartSearchICommand" />
             <cvtr:BoolToVisibility x:Key="BoolToVisConverter" />
             <cvtr:IntToVisibility x:Key="IntToVisConverter" />
+            <cvtr:StringToVisibility x:Key="StringToVisConverter"/>
+            <cvtr:BoolToBorderColor x:Key="BoolToBorderConverter"/>
         </Grid.Resources>
 
         <Grid.RowDefinitions>
@@ -31,23 +33,34 @@
             <ColumnDefinition Width="500" />
         </Grid.ColumnDefinitions>
 
-        <Button Grid.Row="0" Grid.Column="0"
-                Background="Transparent"
-                BorderThickness="0"
-                Command="{StaticResource Back}"
-                CommandParameter="Back"
-                HorizontalAlignment="Left">
-            <Button.Content>
-                <StackPanel Orientation="Horizontal">
-                    <Image Source="/SFW;component/Icons/BackArrow.ico" />
-                    <TextBlock Text="Back to Schedule"
-                               VerticalAlignment="Center"
-                               FontSize="16"
-                               FontWeight="Bold"
-                               Foreground="Crimson" />
-                </StackPanel>
-            </Button.Content>
-        </Button>
+        <StackPanel Orientation="Horizontal">
+
+            <Button Grid.Row="0" Grid.Column="0"
+                    Background="Transparent"
+                    BorderThickness="0"
+                    Command="{StaticResource Back}"
+                    CommandParameter="Back"
+                    HorizontalAlignment="Left">
+                <Button.Content>
+                    <StackPanel Orientation="Horizontal">
+                        <Image Source="/SFW;component/Icons/BackArrow.ico" />
+                        <TextBlock Text="Back to Schedule"
+                                   VerticalAlignment="Center"
+                                   FontSize="16"
+                                   FontWeight="Bold"
+                                   Foreground="Crimson" />
+                    </StackPanel>
+                </Button.Content>
+            </Button>
+
+            <CheckBox FontSize="16"
+                      FontWeight="Bold"
+                      Content="Non-Lot Traceable"
+                      Margin="20,0,0,0"
+                      VerticalAlignment="Center"
+                      IsChecked="{Binding LotType, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+        </StackPanel>
 
         <!--Column 0-->
         
@@ -108,7 +121,7 @@
                        TextDecorations="Underline"
                        VerticalAlignment="Center"
                        Margin="20,0,0,0"
-                       Visibility="{Binding Skew.OnHand.Count, Converter={StaticResource IntToVisConverter}, FallbackValue=Hidden}" />
+                       Visibility="{Binding Part.TotalOnHand, Converter={StaticResource IntToVisConverter}, ConverterParameter=Zero, FallbackValue=Hidden}" />
 
             <TextBox Text="{Binding ToLoc, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                      FontSize="16"
@@ -117,9 +130,11 @@
                      MaxLength="9"
                      Margin="5"
                      TabIndex="2"
+                     BorderThickness="{Binding ShowSize}"
+                     BorderBrush="{Binding IsLocValid, Converter={StaticResource BoolToBorderConverter}}"
                      AcceptsReturn="False"
                      ToolTip="Use for UNPLANNED.MOVE"
-                     Visibility="{Binding Skew.OnHand.Count, Converter={StaticResource IntToVisConverter}, FallbackValue=Hidden}"
+                     Visibility="{Binding Part.TotalOnHand, Converter={StaticResource IntToVisConverter}, ConverterParameter=Zero, FallbackValue=Hidden}"
                      Style="{DynamicResource OptionalTextBox}" />
 
             <TextBlock Text="From Location:"
@@ -128,7 +143,7 @@
                        TextDecorations="Underline"
                        VerticalAlignment="Center"
                        Margin="20,0,0,0"
-                       Visibility="{Binding FromVisibility, Converter={StaticResource BoolToVisConverter}, FallbackValue=Hidden}" />
+                       Visibility="{Binding Part.TotalOnHand, Converter={StaticResource IntToVisConverter}, ConverterParameter=Zero, FallbackValue=Hidden}" />
 
             <TextBox Text="{Binding FromLoc, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                      FontSize="16"
@@ -138,7 +153,7 @@
                      TabIndex="3"
                      AcceptsReturn="False"
                      ToolTip="Multiple Locations where detected, you must also enter in the from location."
-                     Visibility="{Binding FromVisibility, Converter={StaticResource BoolToVisConverter}, FallbackValue=Hidden}"
+                     Visibility="{Binding Part.TotalOnHand, Converter={StaticResource IntToVisConverter}, ConverterParameter=Zero, FallbackValue=Hidden}"
                      Style="{DynamicResource RequiredTextBox}" />
 
         </StackPanel>
@@ -166,7 +181,7 @@
                        VerticalAlignment="Center"
                        Visibility="{Binding SkuShow, Converter={StaticResource BoolToVisConverter}}"/>
 
-            <Button CommandParameter="{Binding Part.SkuNumber}"
+            <Button CommandParameter="{Binding Part.MasterPrint}"
                     Command="{StaticResource PartSearchICommand}"
                     Margin="5"
                     IsTabStop="False"
@@ -208,7 +223,7 @@
                        FontWeight="Bold"
                        FontSize="18" />
 
-            <TextBlock Text="{Binding Skew.DiamondNumber, Mode=OneWay}"
+            <TextBlock Text="{Binding Part.DiamondNumber, Mode=OneWay}"
                        FontSize="18"
                        FontWeight="Bold"
                        VerticalAlignment="Center"
@@ -246,7 +261,7 @@
                        VerticalAlignment="Center"
                        FontSize="18" />
 
-            <TextBlock Text="{Binding Skew.WorkOrderNumber, Mode=OneWay}"
+            <TextBlock Text="{Binding Part.WorkOrder, Mode=OneWay}"
                        FontSize="18"
                        FontWeight="Bold"
                        VerticalAlignment="Center"
@@ -259,7 +274,7 @@
                        Margin="20,0,0,0"
                        FontSize="18" />
 
-            <TextBlock Text="{Binding Skew.WorkOrderSequence, Mode=OneWay}"
+            <TextBlock Text="{Binding Part.Operation, Mode=OneWay}"
                        FontSize="18"
                        FontWeight="Bold"
                        VerticalAlignment="Center"
@@ -272,17 +287,11 @@
                        Margin="20,0,0,0"
                        FontSize="18" />
 
-            <TextBlock Text="{Binding Skew.WorkCenter.IDNumber, Mode=OneWay}"
+            <TextBlock Text="{Binding Part.Machine, Mode=OneWay}"
                        FontSize="18"
                        FontWeight="Bold"
                        VerticalAlignment="Center"
                        Margin="5,0,0,0" />
-
-            <TextBlock Text="{Binding Skew.WorkCenter.Name, Mode=OneWay}"
-                       FontSize="18"
-                       FontWeight="Bold"
-                       VerticalAlignment="Center"
-                       Margin="5,0,0,0"/>
 
         </StackPanel>
         
@@ -312,72 +321,30 @@
         
         <!--#endregion-->
 
-        <!--#region QIR Details -->
-        
+        <!--#region Move Reference-->
+
         <StackPanel Grid.Row="6"
                     Grid.Column="0"
                     Orientation="Horizontal"
-                    VerticalAlignment="Center"
-                    Margin="20,0,0,0"
-                    Visibility="{Binding ValidQir, Converter={StaticResource BoolToVisConverter}}">
+                    Visibility="{Binding Part.TotalOnHand, Converter={StaticResource IntToVisConverter}, ConverterParameter=Zero, FallbackValue=Hidden}">
 
-            <TextBlock Text="QIR Number(s):"
+            <TextBlock Text="Reference:"
                        FontWeight="Bold"
                        TextDecorations="Underline"
                        VerticalAlignment="Center"
+                       Margin="20,0,0,0"
                        FontSize="18" />
 
-            <ListBox x:Name="QIRListBox"
-                     ItemsSource="{Binding Path=Skew.QIRList, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                     Margin="15,0,0,0"
-                     Width="500"
-                     FontWeight="Bold"
-                     Cursor="Hand"
-                     BorderThickness="0"
-                     Background="Transparent"
-                     ScrollViewer.HorizontalScrollBarVisibility="Auto"
-                     ScrollViewer.VerticalScrollBarVisibility="Disabled">
-                <ListBox.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <VirtualizingStackPanel IsItemsHost="True"
-                                                Orientation="Horizontal" />
-                    </ItemsPanelTemplate>
-                </ListBox.ItemsPanel>
-
-                <ListBox.ItemTemplate>
-                    <DataTemplate>
-
-                        <TextBlock ToolTip="Click to open the QIR document.">
-                            <Hyperlink Command="{Binding DataContext.OpenQIRICommand, ElementName=QIRListBox, Mode=OneWay}"
-                                       CommandParameter="{Binding IDNumber}"
-                                       Foreground="Black"
-                                       KeyboardNavigation.IsTabStop="False">
-                                <Hyperlink.Inlines>
-                                    <Run FontSize="18"
-                                         Text="{Binding IDNumber}" />
-                                </Hyperlink.Inlines>
-                            </Hyperlink>
-                        </TextBlock>
-
-                    </DataTemplate>
-                </ListBox.ItemTemplate>
-            </ListBox>
+            <TextBox Text="{Binding MoveRef, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                     FontSize="16"
+                     Width="450"
+                     Margin="5"
+                     TabIndex="4"
+                     AcceptsReturn="False"
+                     Style="{DynamicResource OptionalTextBox}" />
 
         </StackPanel>
-        
-        <!--#endregion-->
 
-        <!--#region Non Lot Selection-->
-
-        <CheckBox Grid.Row="7"
-                  Grid.Column="0"
-                  FontSize="18"
-                  FontWeight="Bold"
-                  Content="Non-Lot Traceable"
-                  Margin="20,0,0,0"
-                  VerticalAlignment="Center"
-                  IsChecked="{Binding LotType, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-        
         <!--#endregion-->
 
         <!--#region Non-Confromance Reason Input-->
@@ -385,14 +352,14 @@
         <StackPanel Grid.Row="8"
                     Grid.Column="0"
                     Orientation="Horizontal"
+                    Visibility="{Binding ToLoc, Converter={StaticResource StringToVisConverter}, ConverterParameter=N}"
                     Margin="20,0,0,0">
 
             <TextBlock Text="Non-Conformance Reason:"
                        FontWeight="Bold"
                        FontSize="18"
                        TextDecorations="Underline"
-                       VerticalAlignment="Center"
-                       Visibility="{Binding ToLoc}" />
+                       VerticalAlignment="Center"/>
 
             <TextBox Text="{Binding NonReason, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                      FontSize="16"
@@ -401,7 +368,6 @@
                      TabIndex="4"
                      AcceptsReturn="False"
                      ToolTip="Must be entered when moving anything into an 'N' location."
-                     Visibility="{Binding ToLoc}"
                      Style="{DynamicResource RequiredTextBox}" />
 
         </StackPanel>
@@ -461,8 +427,7 @@
         
         <ListBox Grid.RowSpan="7"
                  Grid.Column="1"
-                 ItemsSource="{Binding Path=MoveHistory, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                 Visibility="{Binding MoveHistory.Count, Converter={StaticResource IntToVisConverter}}"
+                 ItemsSource="{Binding MoveHistory, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                  FontSize="15"
                  Cursor="Hand"
                  BorderThickness="0"
@@ -473,39 +438,23 @@
                 <DataTemplate>
 
                     <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="{Binding MoveStatus}">
-                            <TextBlock.Style>
-                                <Style TargetType="{x:Type TextBlock}">
-                                    <Setter Property="Foreground"
-                                            Value="Black" />
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding MoveStatus}"
-                                                     Value="Processing">
-                                            <Setter Property="Foreground"
-                                                    Value="Crimson" />
-                                        </DataTrigger>
-                                        <DataTrigger Binding="{Binding MoveStatus}"
-                                                     Value="Complete">
-                                            <Setter Property="Foreground"
-                                                    Value="PaleGreen" />
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </TextBlock.Style>
-                        </TextBlock>
-                        <TextBlock Text="{Binding LotNumber}"
+                        <TextBlock Text="Moved"
                                    Margin="5,0,0,0" />
-                        <TextBlock Text="Moving"
+                        <TextBlock Text="{Binding TotalOnHand}"
                                    Margin="5,0,0,0" />
-                        <TextBlock Text="{Binding MoveQuantity}"
+                        <TextBlock Text="{Binding Uom}"
+                                   Margin="5,0,0,0" />
+                        <TextBlock Text="of"
+                                   Margin="5,0,0,0" />
+                        <TextBlock Text="{Binding SkuNumber}"
                                    Margin="5,0,0,0" />
                         <TextBlock Text="From"
                                    Margin="5,0,0,0" />
-                        <TextBlock Text="{Binding MoveFrom}"
+                        <TextBlock Text="{Binding Location}"
                                    Margin="5,0,0,0" />
                         <TextBlock Text="To"
                                    Margin="5,0,0,0" />
-                        <TextBlock Text="{Binding MoveTo}"
+                        <TextBlock Text="{Binding SkuDescription}"
                                    Margin="5,0,0,0" />
                     </StackPanel>
 

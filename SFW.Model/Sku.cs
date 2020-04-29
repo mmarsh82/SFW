@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
-using System.Linq;
 
 //Created by Michael Marsh 4-19-18
 
@@ -25,13 +24,14 @@ namespace SFW.Model
         public string InventoryType { get; set; }
         public int CrewSize { get; set; }
         public List<string> InstructionList { get; set; }
-        public List<string> DiamondNumber { get; set; }
+        public string DiamondNumber { get; set; }
         public string Location { get; set; }
         public string WorkOrder { get; set; }
         public string Operation { get; set; }
         public string Machine { get; set; }
         public string MachineGroup { get; set; }
         public bool QTask { get; set; }
+        public string NonCon { get; set; }
 
         #endregion
 
@@ -159,13 +159,27 @@ namespace SFW.Model
                     {
                         using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database};
                                                             SELECT 
-	                                                            a.[Part_Nbr], b.[Description], b.[Um], c.[Locations], c.[Oh_Qtys]
+	                                                            a.[Part_Nbr]
+                                                                ,ISNULL(b.[Drawing_Nbrs], a.[Part_Nbr]) as 'MasterPrint'
+	                                                            ,b.[Description]
+	                                                            ,b.[Um]
+	                                                            ,c.[Locations]
+	                                                            ,c.[Oh_Qtys]
+	                                                            ,d.[Wp_Nbr]
+	                                                            ,SUBSTRING(e.[ID], CHARINDEX('*', e.[ID], 0) + 1, LEN(e.[ID])) as 'Op'
+	                                                            ,f.[Name] as 'WorkCenter'
                                                             FROM 
 	                                                            [dbo].[LOT-INIT] a 
                                                             LEFT JOIN 
 	                                                            [dbo].[IM-INIT] b ON b.[Part_Number] = a.[Part_Nbr]
                                                             LEFT JOIN
 	                                                            [dbo].[LOT-INIT_Lot_Loc_Qtys] c ON c.[ID1] = a.[Lot_Number]
+                                                            LEFT JOIN
+	                                                            [dbo].[WP-INIT_Lot_Entered] d ON d.[Lot_Entered] = a.[Lot_Number]
+                                                            LEFT JOIN
+	                                                            [dbo].[WPO-INIT] e ON e.[ID] LIKE CONCAT(d.Wp_Nbr, '*%')
+                                                            LEFT JOIN
+	                                                            [dbo].[WC-INIT] f ON f.[Wc_Nbr] = e.[Work_Center]
                                                             WHERE 
 	                                                            a.[Lot_Number] LIKE CONCAT(@p1,'|P');", sqlCon))
                         {
@@ -180,7 +194,67 @@ namespace SFW.Model
                                         SkuDescription = reader.SafeGetString("Description");
                                         Uom = reader.SafeGetString("Um");
                                         TotalOnHand = reader.SafeGetInt32("Oh_Qtys");
+                                        Location = reader.SafeGetString("Locations");
+                                        WorkOrder = reader.SafeGetString("Wp_Nbr");
+                                        Operation = reader.SafeGetString("Op");
+                                        Machine = reader.SafeGetString("WorkCenter");
+                                        MasterPrint = reader.SafeGetString("MasterPrint");
                                     }
+                                }
+                            }
+                        }
+                        DiamondNumber = GetDiamondNumber(lotNbr, sqlCon);
+                    }
+                }
+                catch (SqlException sqlEx)
+                {
+                    throw sqlEx;
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception(ex.Message);
+                }
+            }
+            else
+            {
+                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
+            }
+        }
+
+        /// <summary>
+        /// Sku Constructor
+        /// Load a Skew object based on a part number when using part structure
+        /// </summary>
+        /// <param name="partNbr">Part number to load</param>
+        /// <param name="partStructure">Enter value of 1</param>
+        /// <param name="sqlCon">Sql Connection to use</param>
+        public Sku(string partNbr, int partStructure, SqlConnection sqlCon)
+        {
+            var optional = partStructure;
+            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
+            {
+                try
+                {
+                    using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database}; SELECT 
+                                                                a.[Part_Number], a.[Description], a.[Um], a.[Bom_Rev_Date], b.[Qty_On_Hand], a.[Drawing_Nbrs], a.[Inventory_Type], c.[Crew_Size]
+                                                            FROM
+                                                                [dbo].[IM-INIT] a
+                                                            RIGHT JOIN
+                                                                [dbo].[IPL-INIT] b ON b.[Part_Nbr] = a.[Part_Number]
+                                                            WHERE
+                                                                a.[Part_Number] = @p1;", sqlCon))
+                    {
+                        cmd.Parameters.AddWithValue("p1", partNbr);
+                        using (SqlDataReader reader = cmd.ExecuteReader())
+                        {
+                            if (reader.HasRows)
+                            {
+                                while (reader.Read())
+                                {
+                                    SkuNumber = reader.SafeGetString("Part_Nbr");
+                                    SkuDescription = reader.SafeGetString("Description");
+                                    Uom = reader.SafeGetString("Um");
+                                    TotalOnHand = reader.SafeGetInt32("Oh_Qtys");
                                 }
                             }
                         }
@@ -753,7 +827,7 @@ namespace SFW.Model
         {
             var _returnList = new Dictionary<Sku, int>
             {
-                { new Sku(partNbr, false, sqlCon), 0 }
+                { new Sku(partNbr, 1, sqlCon), 0 }
             };
             if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
             {
@@ -864,23 +938,20 @@ namespace SFW.Model
                             {
                                 if (reader.HasRows)
                                 {
+                                    _partList = new List<string>();
+                                    _counter++;
                                     while (reader.Read())
                                     {
-                                        _partList = new List<string>();
-                                        _counter++;
-                                        while (reader.Read())
+                                        var _tempSku = new Sku
                                         {
-                                            var _tempSku = new Sku
-                                            {
-                                                SkuNumber = reader.SafeGetString("Part")
-                                                ,SkuDescription = reader.SafeGetString("Desc")
-                                                ,Uom = reader.SafeGetString("Uom")
-                                                ,Operation = reader.SafeGetDouble("Qpa").ToString()
-                                                ,EngStatus = reader.SafeGetString("Status")
-                                            };
-                                            _returnList.Add(_tempSku, _counter);
-                                            _partList.Add(reader.SafeGetString("Part"));
-                                        }
+                                            SkuNumber = reader.SafeGetString("Part")
+                                            ,SkuDescription = reader.SafeGetString("Desc")
+                                            ,Uom = reader.SafeGetString("Uom")
+                                            ,Operation = reader.SafeGetDouble("Qpa").ToString()
+                                            ,EngStatus = reader.SafeGetString("Status")
+                                        };
+                                        _returnList.Add(_tempSku, _counter);
+                                        _partList.Add(reader.SafeGetString("Part"));
                                     }
                                 }
                                 else
