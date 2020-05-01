@@ -154,6 +154,7 @@ namespace SFW.Queries
         private RelayCommand _filter;
         private RelayCommand _mPrint;
         private RelayCommand _move;
+        private RelayCommand _clear;
 
         #endregion
 
@@ -271,6 +272,10 @@ namespace SFW.Queries
         /// <param name="parameter">User input</param>
         private void SearchExecute(object parameter)
         {
+            if (parameter != null && parameter.ToString() == "r")
+            {
+                UserInput = UseLot ? _lot : Part.SkuNumber;
+            }
             NoLotResults = false;
             NoHistoryResults = false;
             OnPropertyChanged(nameof(NoResults));
@@ -417,8 +422,7 @@ namespace SFW.Queries
             MoveHistory.Add(_tran);
             ToLocation = MoveReference = string.Empty;
             OnPropertyChanged(nameof(MoveReference));
-            UserInput = UseLot ? _lot : Part.SkuNumber;
-            SearchExecute(null);
+            SearchExecute("r");
         }
         private bool MoveCanExecute(object parameter)
         {
@@ -431,6 +435,36 @@ namespace SFW.Queries
             }
             return false;
         }
+
+        #endregion
+
+        #region Clear History ICommand
+
+        /// <summary>
+        /// Unplanned Move Command
+        /// </summary>
+        public ICommand ClearICommand
+        {
+            get
+            {
+                if (_clear == null)
+                {
+                    _clear = new RelayCommand(ClearExecute, ClearCanExecute);
+                }
+                return _clear;
+            }
+        }
+
+        /// <summary>
+        /// Unplanned Move Command Execution
+        /// </summary>
+        /// <param name="parameter"></param>
+        private void ClearExecute(object parameter)
+        {
+            MoveHistory.Clear();
+            OnPropertyChanged(nameof(MoveHistory));
+        }
+        private bool ClearCanExecute(object parameter) => MoveHistory.Count > 0;
 
         #endregion
     }
