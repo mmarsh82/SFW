@@ -30,8 +30,8 @@
     <PublisherName>Michael Marsh</PublisherName>
     <SuiteName>WCCO Belting Inc.</SuiteName>
     <AutorunEnabled>true</AutorunEnabled>
-    <ApplicationRevision>1569</ApplicationRevision>
-    <ApplicationVersion>1.0.194.1569</ApplicationVersion>
+    <ApplicationRevision>1588</ApplicationRevision>
+    <ApplicationVersion>1.0.196.1588</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <CreateDesktopShortcut>true</CreateDesktopShortcut>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -118,7 +118,6 @@
     <Compile Include="Commands\ClearPriority.cs" />
     <Compile Include="Commands\DevTesting.cs" />
     <Compile Include="Commands\M2kWipReceipt.cs" />
-    <Compile Include="Commands\PartDetail.cs" />
     <Compile Include="Commands\PartSpec.cs" />
     <Compile Include="Commands\PartTrace.cs" />
     <Compile Include="Commands\PrintBarLabels.cs" />
@@ -147,10 +146,6 @@
     </Compile>
     <Compile Include="Enumerations\PressReportActions.cs" />
     <Compile Include="ISplashScreen.cs" />
-    <Compile Include="Queries\PartDetail_View.xaml.cs">
-      <DependentUpon>PartDetail_View.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Queries\PartDetail_ViewModel.cs" />
     <Compile Include="Queries\PartLabel_View.xaml.cs">
       <DependentUpon>PartLabel_View.xaml</DependentUpon>
     </Compile>
@@ -252,10 +247,6 @@
     </Compile>
     <Compile Include="WIP\ViewModel.cs" />
     <Page Include="DynamicSplashScreen.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Queries\PartDetail_View.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

@@ -14,6 +14,7 @@
                 <cvtr:StringToVisibility x:Key="StringToVisConverter" />
                 <cvtr:CountToVisibility x:Key="CountToVisConverter" />
                 <cvtr:BoolToVisibility x:Key="BoolToVisConverter" />
+                <cvtr:BoolToBorderColor x:Key="BoolToBorderConverter" />
                 <cmd:M2kLookQuery x:Key="LookQueryCommand" />
                 <cmd:ViewLoad x:Key="Back" />
             </Grid.Resources>
@@ -25,10 +26,13 @@
             </Grid.InputBindings>
 
             <Grid.RowDefinitions>
-                <RowDefinition Height="30" />
+                <RowDefinition Height="35" />
+                <RowDefinition Height="35"/>
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
 
+            <!--#region Row 0 Information Header and Input-->
+            
             <StackPanel Grid.Row="0"
                         Orientation="Horizontal">
                 <Button Background="Transparent"
@@ -46,37 +50,36 @@
                         </StackPanel>
                     </Button.Content>
                 </Button>
-                <TextBlock Text="Part Number"
+                <TextBlock Text="Part Number:"
+                           Visibility="{Binding UseLot, Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}"
+                           FontSize="16"
+                           FontWeight="Bold"
+                           Margin="40,0,0,0"
+                           VerticalAlignment="Center" />
+                <TextBlock Text="Lot Number:"
+                           Visibility="{Binding UseLot, Converter={StaticResource BoolToVisConverter}}"
                            FontSize="16"
                            FontWeight="Bold"
                            Margin="60,0,0,0"
                            VerticalAlignment="Center" />
                 <TextBox x:Name="SearchTextBox"
-                         Text="{Binding PartNbr, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                         Text="{Binding UserInput, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                          Width="150"
                          FontSize="14"
                          Margin="5"
+                         TabIndex="0"
                          Style="{DynamicResource RequiredTextBox}"/>
                 <Button Content="Search"
                         Command="{Binding SearchICommand}"
-                        CommandParameter="{Binding PartNbr}"
+                        CommandParameter="{Binding UserInput}"
                         Width="75"
                         Margin="2"
                         Style="{DynamicResource DefaultButton}" />
-                <TextBox x:Name="FilterTextBox"
-                         Text="{Binding Filter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                         Width="150"
-                         FontSize="14"
-                         Margin="50,5,10,5"
-                         Visibility="{Binding NoResults, ConverterParameter=i, Converter={StaticResource BoolToVisConverter}}" 
-                         Style="{DynamicResource OptionalTextBox}"/>
-                <Button Content="Filter"
-                        Command="{Binding FilterICommand}"
-                        CommandParameter="{Binding Filter}"
-                        Width="75"
-                        Margin="2"
-                        Visibility="{Binding NoResults, ConverterParameter=i, Converter={StaticResource BoolToVisConverter}}"
-                        Style="{DynamicResource DefaultButton}" />
+                <TextBlock Text="{Binding Part.SkuDescription}"
+                           FontSize="16"
+                           FontWeight="Bold"
+                           Margin="10,0,0,0"
+                           VerticalAlignment="Center" />
                 <TextBlock Text="{Binding PartNbrText, StringFormat=Showing Results for \&quot;\{0\}\&quot;}"
                            FontSize="18"
                            FontWeight="Bold"
@@ -98,7 +101,120 @@
                 </Button>
             </StackPanel>
 
+            <!--#endregion-->
+            
+            <!--#region Row 1 Detail information-->
+
+            <CheckBox Grid.Row="1"
+                      FontSize="16"
+                      FontWeight="Bold"
+                      Content="Use Lot"
+                      Margin="50,0,0,0"
+                      VerticalAlignment="Center"
+                      IsChecked="{Binding UseLot, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
             <StackPanel Grid.Row="1"
+                        Orientation="Horizontal"
+                        Visibility="{Binding NoResults, Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}">
+
+                <TextBox x:Name="FilterTextBox"
+                         Text="{Binding Filter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                         Width="150"
+                         FontSize="14"
+                         TabIndex="1"
+                         Margin="150,5,10,5"
+                         Visibility="{Binding NoResults, ConverterParameter=i, Converter={StaticResource BoolToVisConverter}}" 
+                         Style="{DynamicResource OptionalTextBox}"/>
+                <Button Content="Filter"
+                        Command="{Binding FilterICommand}"
+                        CommandParameter="{Binding Filter}"
+                        Width="75"
+                        Margin="2"
+                        Visibility="{Binding NoResults, ConverterParameter=i, Converter={StaticResource BoolToVisConverter}}"
+                        Style="{DynamicResource DefaultButton}" />
+
+                <TextBlock Text="Quantity:"
+                           FontSize="16"
+                           FontWeight="Bold"
+                           Margin="50,0,0,0"
+                           VerticalAlignment="Center" />
+                <TextBox Text="{Binding QuantityInput, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                         Width="75"
+                         FontSize="14"
+                         Margin="5"
+                         TabIndex="2"
+                         Style="{DynamicResource RequiredTextBox}"/>
+                <TextBlock Text="{Binding Part.Uom}"
+                           FontSize="16"
+                           FontWeight="Bold"
+                           VerticalAlignment="Center" />
+
+                <Button Content="Travel Card"
+                        Width="100"
+                        Margin="10,3,3,3"
+                        Command="{Binding MPrintICommand}"
+                        CommandParameter="T"
+                        Style="{DynamicResource DefaultButton}" />
+
+                <Button Content="Reference Card"
+                        Width="110"
+                        Margin="3"
+                        Command="{Binding MPrintICommand}"
+                        CommandParameter="R"
+                        Style="{DynamicResource DefaultButton}" />
+
+                <TextBlock Text="To:"
+                           FontSize="16"
+                           FontWeight="Bold"
+                           Margin="10,0,0,0"
+                           VerticalAlignment="Center" />
+                <TextBox Text="{Binding ToLocation, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                         Width="75"
+                         FontSize="14"
+                         Margin="5"
+                         TabIndex="3"
+                         BorderThickness="{Binding ToLocSize}"
+                         BorderBrush="{Binding IsToValid, Converter={StaticResource BoolToBorderConverter}}"
+                         Style="{DynamicResource RequiredTextBox}"/>
+                <TextBlock Text="From:"
+                           FontSize="16"
+                           FontWeight="Bold"
+                           Margin="10,0,0,0"
+                           VerticalAlignment="Center" />
+                <TextBox Text="{Binding FromLocation, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                         Width="75"
+                         FontSize="14"
+                         Margin="5"
+                         TabIndex="4"
+                         BorderThickness="{Binding FromLocSize}"
+                         BorderBrush="{Binding IsFromValid, Converter={StaticResource BoolToBorderConverter}}"
+                         Style="{DynamicResource RequiredTextBox}"/>
+
+                <TextBlock Text="Reference:"
+                           FontSize="16"
+                           FontWeight="Bold"
+                           Margin="10,0,0,0"
+                           VerticalAlignment="Center" />
+                <TextBox Text="{Binding MoveReference, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                         Width="300"
+                         FontSize="14"
+                         Margin="5"
+                         TabIndex="5"
+                         Style="{DynamicResource OptionalTextBox}"/>
+
+                <Button Content="Unplanned Move"
+                        Width="120"
+                        Margin="3"
+                        Command="{Binding MoveICommand}"
+                        Style="{DynamicResource DefaultButton}" />
+
+            </StackPanel>
+
+            <!--#endregion-->
+            
+            <!--#region Row 2 Data view-->
+            
+            <StackPanel Grid.Row="2"
                         Orientation="Horizontal">
 
                 <DataGrid x:Name="ILotResultsDataGrid"
@@ -206,9 +322,45 @@
                     </DataGrid.Columns>
                 </DataGrid>
 
+                <ListBox ItemsSource="{Binding MoveHistory, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                         FontSize="15"
+                         Cursor="Hand"
+                         BorderThickness="0"
+                         Background="Transparent"
+                         IsSynchronizedWithCurrentItem="True">
+
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="Moved"
+                                           Margin="5,0,0,0" />
+                                <TextBlock Text="{Binding TotalOnHand}"
+                                           Margin="5,0,0,0" />
+                                <TextBlock Text="{Binding Uom}"
+                                           Margin="5,0,0,0" />
+                                <TextBlock Text="of"
+                                           Margin="5,0,0,0" />
+                                <TextBlock Text="{Binding SkuNumber}"
+                                           Margin="5,0,0,0" />
+                                <TextBlock Text="From"
+                                           Margin="5,0,0,0" />
+                                <TextBlock Text="{Binding Location}"
+                                           Margin="5,0,0,0" />
+                                <TextBlock Text="To"
+                                           Margin="5,0,0,0" />
+                                <TextBlock Text="{Binding SkuDescription}"
+                                           Margin="5,0,0,0" />
+                            </StackPanel>
+
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+
+                </ListBox>
+
             </StackPanel>
 
-            <TextBlock Grid.Row="1"
+            <TextBlock Grid.Row="2"
                        Text="No Results"
                        Visibility="{Binding NoResults, Converter={StaticResource BoolToVisConverter}}"
                        FontSize="50"
@@ -216,9 +368,11 @@
                        VerticalAlignment="Center"
                        HorizontalAlignment="Center" />
 
-            <Control Grid.Row="1"
+            <Control Grid.Row="2"
                      Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisConverter}}"
                      Style="{DynamicResource BusyAnimationStyle}" />
+            
+            <!--#endregion-->
 
         </Grid>
     </ScrollViewer>

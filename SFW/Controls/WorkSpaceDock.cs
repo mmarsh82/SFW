@@ -56,7 +56,7 @@ namespace SFW.Controls
             MainDock.Children.Insert(3, new PartInfo_View());
 
             //Add the Part Detail View to [5]
-            MainDock.Children.Insert(5, new PartDetail_View());
+            MainDock.Children.Insert(5, new UserControl());
 
             //Add the Schedule View to [6]
             ClosedDock.Children.Insert(0, new Schedule.Closed.View());

@@ -56,32 +56,35 @@ namespace SFW.Model
                 {
                     if (partLoad)
                     {
-                        using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database}; SELECT 
-                                                                a.[Part_Number], a.[Description], a.[Um], a.[Bom_Rev_Date], b.[Qty_On_Hand], a.[Drawing_Nbrs], a.[Inventory_Type], c.[Crew_Size]
-                                                            FROM
-                                                                [dbo].[IM-INIT] a
-                                                            RIGHT JOIN
-                                                                [dbo].[IPL-INIT] b ON b.[Part_Nbr] = a.[Part_Number]
-                                                            RIGHT JOIN
-	                                                            [dbo].[RT-INIT] c ON SUBSTRING(c.[ID],0,CHARINDEX('*',c.[ID],0)) = b.[Part_Nbr]
-                                                            WHERE
-                                                                a.[Part_Number] = @p1;", sqlCon))
+                        var _valid = false;
+                        using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database};
+                                                           SELECT a.[Part_Number] FROM [dbo].[IM-INIT] a WHERE a.[Part_Number] = @p1;", sqlCon))
                         {
                             cmd.Parameters.AddWithValue("p1", partNbr);
-                            using (SqlDataReader reader = cmd.ExecuteReader())
+                            _valid = !string.IsNullOrEmpty(cmd.ExecuteScalar()?.ToString());
+                        }
+                        if (_valid)
+                        {
+                            using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database};
+                                                                SELECT 
+	                                                                a.[Description]
+	                                                                ,a.[Um]
+                                                                FROM
+                                                                    [dbo].[IM-INIT] a
+                                                                WHERE
+                                                                    a.[Part_Number] = @p1;", sqlCon))
                             {
-                                if (reader.HasRows)
+                                cmd.Parameters.AddWithValue("p1", partNbr);
+                                using (SqlDataReader reader = cmd.ExecuteReader())
                                 {
-                                    while (reader.Read())
+                                    if (reader.HasRows)
                                     {
-                                        SkuNumber = reader.SafeGetString("Part_Number");
-                                        SkuDescription = reader.SafeGetString("Description");
-                                        Uom = reader.SafeGetString("Um");
-                                        BomRevDate = reader.SafeGetDateTime("Bom_Rev_Date");
-                                        TotalOnHand = reader.SafeGetInt32("Qty_On_Hand");
-                                        MasterPrint = reader.SafeGetString("Drawing_Nbrs");
-                                        InventoryType = reader.SafeGetString("Inventory_Type");
-                                        CrewSize = reader.SafeGetInt32("Crew_Size");
+                                        while (reader.Read())
+                                        {
+                                            SkuNumber = partNbr;
+                                            SkuDescription = reader.SafeGetString("Description");
+                                            Uom = reader.SafeGetString("Um");
+                                        }
                                     }
                                 }
                             }
@@ -107,7 +110,7 @@ namespace SFW.Model
                                 {
                                     while (reader.Read())
                                     {
-                                        SkuNumber = reader.SafeGetString("Part_Number");
+                                        SkuNumber = partNbr;
                                         SkuDescription = reader.SafeGetString("Description");
                                         Uom = reader.SafeGetString("Um");
                                         BomRevDate = reader.SafeGetDateTime("Bom_Rev_Date");
@@ -160,28 +163,17 @@ namespace SFW.Model
                         using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database};
                                                             SELECT 
 	                                                            a.[Part_Nbr]
-                                                                ,ISNULL(b.[Drawing_Nbrs], a.[Part_Nbr]) as 'MasterPrint'
-	                                                            ,b.[Description]
-	                                                            ,b.[Um]
-	                                                            ,c.[Locations]
-	                                                            ,c.[Oh_Qtys]
-	                                                            ,d.[Wp_Nbr]
-	                                                            ,SUBSTRING(e.[ID], CHARINDEX('*', e.[ID], 0) + 1, LEN(e.[ID])) as 'Op'
-	                                                            ,f.[Name] as 'WorkCenter'
+	                                                            ,c.[Description]
+	                                                            ,c.[Um]
+	                                                            ,b.[Notes]
                                                             FROM 
-	                                                            [dbo].[LOT-INIT] a 
+	                                                            [dbo].[LOT-INIT] a
+                                                            LEFT JOIN
+	                                                            [dbo].[LOT-SA] b ON b.[Lot_Number] = a.[Lot_Number]
                                                             LEFT JOIN 
-	                                                            [dbo].[IM-INIT] b ON b.[Part_Number] = a.[Part_Nbr]
-                                                            LEFT JOIN
-	                                                            [dbo].[LOT-INIT_Lot_Loc_Qtys] c ON c.[ID1] = a.[Lot_Number]
-                                                            LEFT JOIN
-	                                                            [dbo].[WP-INIT_Lot_Entered] d ON d.[Lot_Entered] = a.[Lot_Number]
-                                                            LEFT JOIN
-	                                                            [dbo].[WPO-INIT] e ON e.[ID] LIKE CONCAT(d.Wp_Nbr, '*%')
-                                                            LEFT JOIN
-	                                                            [dbo].[WC-INIT] f ON f.[Wc_Nbr] = e.[Work_Center]
+	                                                            [dbo].[IM-INIT] c ON c.[Part_Number] = a.[Part_Nbr]
                                                             WHERE 
-	                                                            a.[Lot_Number] LIKE CONCAT(@p1,'|P');", sqlCon))
+	                                                            a.[Lot_Number] = CONCAT(@p1,'|P');", sqlCon))
                         {
                             cmd.Parameters.AddWithValue("p1", lotNbr);
                             using (SqlDataReader reader = cmd.ExecuteReader())
@@ -193,17 +185,11 @@ namespace SFW.Model
                                         SkuNumber = reader.SafeGetString("Part_Nbr");
                                         SkuDescription = reader.SafeGetString("Description");
                                         Uom = reader.SafeGetString("Um");
-                                        TotalOnHand = reader.SafeGetInt32("Oh_Qtys");
-                                        Location = reader.SafeGetString("Locations");
-                                        WorkOrder = reader.SafeGetString("Wp_Nbr");
-                                        Operation = reader.SafeGetString("Op");
-                                        Machine = reader.SafeGetString("WorkCenter");
-                                        MasterPrint = reader.SafeGetString("MasterPrint");
+                                        NonCon = reader.SafeGetString("Notes").Replace("/", "");
                                     }
                                 }
                             }
                         }
-                        DiamondNumber = GetDiamondNumber(lotNbr, sqlCon);
                     }
                 }
                 catch (SqlException sqlEx)

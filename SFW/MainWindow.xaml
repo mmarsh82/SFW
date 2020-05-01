@@ -10,7 +10,6 @@
 
     <Window.Resources>
         <cmd:PartInformation x:Key="PartInfoICommand"/>
-        <cmd:PartDetail x:Key="PartDetailICommand" />
         <cmd:PartSpec x:Key="PartSpecICommand"/>
         <cmd:ViewLoad x:Key="ViewLoadICommand"/>
         <cmd:SafeShutdown x:Key="ExitICommand"/>
@@ -37,8 +36,6 @@
         <KeyBinding Gesture="Alt+2" Command="{StaticResource ViewLoadICommand}" CommandParameter="SiteWcco"/>
         <KeyBinding Gesture="Alt+I"
                     Command="{StaticResource PartInfoICommand}" />
-        <KeyBinding Gesture="Alt+T"
-                    Command="{StaticResource PartDetailICommand}" />
         <KeyBinding Gesture="Alt+S"
                     Command="{StaticResource PartSpecICommand}" />
         <KeyBinding Gesture="Alt+R"
@@ -145,9 +142,6 @@
                 <MenuItem Header="Part Information"
                           Command="{StaticResource PartInfoICommand}"
                           InputGestureText="Alt+I"/>
-                <MenuItem Header="Part Tracking"
-                          Command="{StaticResource PartDetailICommand}"
-                          InputGestureText="Alt+T" />
                 <MenuItem Header="Part Specifications"
                           Command="{StaticResource PartSpecICommand}"
                           Visibility="{Binding CurrentSiteNbr, Converter={StaticResource SiteToVisConverter}}"

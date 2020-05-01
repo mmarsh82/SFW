@@ -2,7 +2,9 @@
 using SFW.Model;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Data;
+using System.Linq;
 using System.Windows.Input;
 
 //Created by Michael Marsh 4-25-18
@@ -12,6 +14,9 @@ namespace SFW.Queries
     public class PartInfo_ViewModel : ViewModelBase
     {
         #region Properties
+
+        public Sku Part { get; set; }
+        public ObservableCollection<Sku> MoveHistory { get; set; }
 
         public List<Lot> ILotResultsList { get; set; }
         private Lot selectedILotRow;
@@ -25,20 +30,23 @@ namespace SFW.Queries
                 {
                     IthResultsTable.DefaultView.RowFilter = $"LotNumber = '{value.LotNumber}'";
                     FilterText = value.LotNumber;
+                    _lot = value.LotNumber;
+                    FromLocation = value.Location;
                     OnPropertyChanged(nameof(FilterText));
                 }
                 catch (NullReferenceException)
                 {
-                    selectedILotRow = value = null;
+                    selectedILotRow = null;
                 }
             }
         }
 
-        private string part;
-        public string PartNbr
+        private string _lot;
+        private string uInput;
+        public string UserInput
         {
-            get { return part; }
-            set { part = value?.ToUpper(); OnPropertyChanged(nameof(PartNbr)); }
+            get { return uInput; }
+            set { uInput = value?.ToUpper(); OnPropertyChanged(nameof(UserInput)); }
         }
         public string PartNbrText { get; set; }
         private string filter;
@@ -84,12 +92,63 @@ namespace SFW.Queries
             set { nonLot = value; OnPropertyChanged(nameof(NonLotPart)); }
         }
 
+        private bool _useLot;
+        public bool UseLot
+        {
+            get { return _useLot; }
+            set { _useLot = value; UserInput = string.Empty; _lot = string.Empty; OnPropertyChanged(nameof(UseLot)); }
+        }
+
+        private int? qInput;
+        public int? QuantityInput
+        {
+            get { return qInput; }
+            set { qInput = value; OnPropertyChanged(nameof(QuantityInput)); }
+        }
+
+        private string _tLoc;
+        public string ToLocation
+        {
+            get
+            { return _tLoc; }
+            set
+            {
+                _tLoc = value.ToUpper();
+                OnPropertyChanged(nameof(ToLocation));
+                OnPropertyChanged(nameof(IsToValid));
+                OnPropertyChanged(nameof(ToLocSize));
+            }
+        }
+        public bool IsToValid { get { return string.IsNullOrEmpty(ToLocation) || Sku.IsValidLocation(ToLocation, App.AppSqlCon); } }
+        public int ToLocSize { get { return IsToValid ? 1 : 3; } }
+
+        private string _fLoc;
+        public string FromLocation
+        {
+            get
+            { return _fLoc; }
+            set
+            {
+                _fLoc = value.ToUpper();
+                OnPropertyChanged(nameof(FromLocation));
+                OnPropertyChanged(nameof(IsFromValid));
+                OnPropertyChanged(nameof(FromLocSize));
+            }
+        }
+        public bool IsFromValid { get { return ILotResultsList == null ? true : string.IsNullOrEmpty(FromLocation) || ILotResultsList.Any(o => o.Location == FromLocation); } }
+        public int FromLocSize { get { return IsFromValid ? 1 : 3; } }
+
+        public string MoveReference { get; set; }
+        public string NonConReason { get; set; }
+
         public delegate void ResultsDelegate(string s);
         public ResultsDelegate ResultsAsyncDelegate { get; private set; }
         public IAsyncResult SearchAsyncResult { get; set; }
 
         private RelayCommand _search;
         private RelayCommand _filter;
+        private RelayCommand _mPrint;
+        private RelayCommand _move;
 
         #endregion
 
@@ -103,6 +162,11 @@ namespace SFW.Queries
             IsLoading = false;
             ResultsAsyncDelegate = new ResultsDelegate(ResultsLoading);
             NonLotPart = false;
+            if (MoveHistory == null)
+            {
+                MoveHistory = new ObservableCollection<Sku>();
+            }
+            ToLocation = FromLocation = string.Empty;
         }
 
         /// <summary>
@@ -113,9 +177,14 @@ namespace SFW.Queries
         {
             IsLoading = false;
             ResultsAsyncDelegate = new ResultsDelegate(ResultsLoading);
-            PartNbr = partNrb;
+            UserInput = partNrb;
             SearchAsyncResult = ResultsAsyncDelegate.BeginInvoke(partNrb, new AsyncCallback(ResultsLoaded), null);
             NonLotPart = false;
+            if (MoveHistory == null)
+            {
+                MoveHistory = new ObservableCollection<Sku>();
+            }
+            ToLocation = FromLocation = string.Empty;
         }
 
         /// <summary>
@@ -127,36 +196,45 @@ namespace SFW.Queries
             IsLoading = false;
             ResultsAsyncDelegate = new ResultsDelegate(ResultsLoading);
             Filter = PreFilter = wo.OrderNumber;
-            PartNbr = wo.SkuNumber;
+            UserInput = wo.SkuNumber;
             SearchICommand.Execute(wo.SkuNumber);
+            if (MoveHistory == null)
+            {
+                MoveHistory = new ObservableCollection<Sku>();
+            }
+            ToLocation = FromLocation = string.Empty;
         }
 
         #region Load Results Async Delegation Implementation
 
-        public void ResultsLoading(string partNbr)
+        public void ResultsLoading(string inputVal)
         {
             IsLoading = true;
-            ILotResultsList = Lot.GetOnHandLotList(partNbr, App.AppSqlCon);
+            ILotResultsList = Lot.GetOnHandLotList(inputVal, App.AppSqlCon);
             NonLotPart = false;
             if (ILotResultsList.Count == 0)
             {
-                ILotResultsList = Lot.GetOnHandNonLotList(partNbr, App.AppSqlCon);
+                ILotResultsList = Lot.GetOnHandNonLotList(inputVal, App.AppSqlCon);
                 NonLotPart = true;
             }
-            IthResultsTable = Lot.GetLotHistoryTable(partNbr, App.AppSqlCon);
+            IthResultsTable = Lot.GetLotHistoryTable(inputVal, App.AppSqlCon);
         }
         public void ResultsLoaded(IAsyncResult r)
         {
             IsLoading = false;
             NoLotResults = ILotResultsList?.Count == 0;
+            if(!NoLotResults && UseLot && ILotResultsList.Count(o => o.LotNumber == _lot) == 1)
+            {
+                Part.Location = ILotResultsList.FirstOrDefault(o => o.LotNumber == _lot).Location;
+            }
             NoHistoryResults = IthResultsTable?.Rows?.Count == 0;
             if (!string.IsNullOrEmpty(PreFilter))
             {
                 FilterICommand.Execute(PreFilter);
                 PreFilter = null;
             }
-            PartNbrText = PartNbr;
-            PartNbr = null;
+            PartNbrText = UserInput;
+            UserInput = null;
             OnPropertyChanged(nameof(PartNbrText));
             OnPropertyChanged(nameof(ILotResultsList));
             OnPropertyChanged(nameof(IthResultsTable));
@@ -197,7 +275,12 @@ namespace SFW.Queries
             OnPropertyChanged(nameof(ILotResultsList));
             Filter = FilterText = null;
             OnPropertyChanged(nameof(FilterText));
-            SearchAsyncResult = ResultsAsyncDelegate.BeginInvoke(parameter.ToString(), new AsyncCallback(ResultsLoaded), null);
+            Part = UseLot ? new Sku(UserInput, App.AppSqlCon) : new Sku(UserInput, true, App.AppSqlCon);
+            OnPropertyChanged(nameof(Part));
+            _lot = UseLot ? UserInput : string.Empty;
+            PreFilter = UseLot ? UserInput : string.Empty;
+            UserInput = Part.SkuNumber;
+            SearchAsyncResult = ResultsAsyncDelegate.BeginInvoke(Part.SkuNumber, new AsyncCallback(ResultsLoaded), null);
         }
         private bool SearchCanExecute(object parameter) => !string.IsNullOrWhiteSpace(parameter?.ToString());
 
@@ -234,8 +317,106 @@ namespace SFW.Queries
             FilterText = parameter.ToString();
             OnPropertyChanged(nameof(FilterText));
             Filter = null;
+            _lot = string.Empty;
+            ToLocation = FromLocation = MoveReference = string.Empty;
+            OnPropertyChanged(nameof(MoveReference));
+            QuantityInput = null;
         }
         private bool FilterCanExecute(object parameter) => !string.IsNullOrEmpty(parameter?.ToString()) && IthResultsTable != null;
+
+        #endregion
+
+        #region Material Card Print ICommand
+
+        public ICommand MPrintICommand
+        {
+            get
+            {
+                if (_mPrint == null)
+                {
+                    _mPrint = new RelayCommand(MPrintExecute, MPrintCanExecute);
+                }
+                return _mPrint;
+            }
+        }
+
+        private void MPrintExecute(object parameter)
+        {
+            var _dmd = UseLot ? Sku.GetDiamondNumber(_lot, App.AppSqlCon): "";
+            var _qir = UseLot ? Lot.GetAssociatedQIR(_lot, App.AppSqlCon) : 0;
+            TravelCard.Create("", "technology#1",
+                Part.SkuNumber,
+                _lot,
+                Part.SkuDescription,
+                _dmd,
+                Convert.ToInt32(QuantityInput),
+                Part.Uom,
+                _qir
+                );
+            switch (parameter.ToString())
+            {
+                case "T":
+                    TravelCard.Display(FormType.Portrait);
+                    break;
+                case "R":
+                    TravelCard.Display(FormType.Landscape);
+                    break;
+
+            }
+        }
+        private bool MPrintCanExecute(object parameter) => QuantityInput > 0;
+
+        #endregion
+
+        #region Move ICommand
+
+        /// <summary>
+        /// Unplanned Move Command
+        /// </summary>
+        public ICommand MoveICommand
+        {
+            get
+            {
+                if (_move == null)
+                {
+                    _move = new RelayCommand(MoveExecute, MoveCanExecute);
+                }
+                return _move;
+            }
+        }
+
+        /// <summary>
+        /// Unplanned Move Command Execution
+        /// </summary>
+        /// <param name="parameter"></param>
+        private void MoveExecute(object parameter)
+        {
+            if (!UseLot)
+            {
+                M2kClient.M2kCommand.InventoryMove(CurrentUser.DisplayName, Part.SkuNumber, _lot, Part.Uom, FromLocation, ToLocation, Convert.ToInt32(QuantityInput), MoveReference, App.ErpCon);
+            }
+            else
+            {
+                M2kClient.M2kCommand.InventoryMove(CurrentUser.DisplayName, Part.SkuNumber, "", Part.Uom, FromLocation, ToLocation, Convert.ToInt32(QuantityInput), MoveReference, App.ErpCon);
+            }
+            Part.SkuNumber = UseLot ? _lot : Part.SkuNumber;
+            Part.SkuDescription = ToLocation;
+            Part.TotalOnHand = Convert.ToInt32(QuantityInput);
+            MoveHistory.Add(Part);
+            ToLocation = MoveReference = string.Empty;
+            OnPropertyChanged(nameof(MoveReference));
+        }
+        private bool MoveCanExecute(object parameter)
+        {
+            if (!NoResults && QuantityInput > 0 && IsToValid && IsFromValid && !string.IsNullOrEmpty(ToLocation) && !string.IsNullOrEmpty(FromLocation))
+            {
+                if (!string.IsNullOrEmpty(ToLocation) && (ToLocation[ToLocation.Length - 1] != 'N' || (ToLocation[ToLocation.Length - 1] == 'N') && !string.IsNullOrEmpty(NonConReason)))
+                {
+                    return Part.TotalOnHand > 0 || UseLot ? !string.IsNullOrEmpty(FromLocation) : true;
+                }
+            }
+            return false;
+        }
 
         #endregion
     }
