@@ -332,25 +332,43 @@
                     <ListBox.ItemTemplate>
                         <DataTemplate>
 
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="Moved"
-                                           Margin="5,0,0,0" />
-                                <TextBlock Text="{Binding TotalOnHand}"
-                                           Margin="5,0,0,0" />
-                                <TextBlock Text="{Binding Uom}"
-                                           Margin="5,0,0,0" />
-                                <TextBlock Text="of"
-                                           Margin="5,0,0,0" />
-                                <TextBlock Text="{Binding SkuNumber}"
-                                           Margin="5,0,0,0" />
-                                <TextBlock Text="From"
-                                           Margin="5,0,0,0" />
-                                <TextBlock Text="{Binding Location}"
-                                           Margin="5,0,0,0" />
-                                <TextBlock Text="To"
-                                           Margin="5,0,0,0" />
-                                <TextBlock Text="{Binding SkuDescription}"
-                                           Margin="5,0,0,0" />
+                            <StackPanel Orientation="Vertical">
+
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="Moved"
+                                               Foreground="Green"
+                                               Margin="5,0,0,0" />
+                                    <TextBlock Text="{Binding TotalOnHand}"
+                                               Margin="5,0,0,0" />
+                                    <TextBlock Text="{Binding Uom}"
+                                               Margin="5,0,0,0" />
+                                    <TextBlock Text="of"
+                                               Margin="5,0,0,0" />
+                                    <TextBlock Text="{Binding SkuNumber}"
+                                               Margin="5,0,0,0" />
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal"
+                                            Visibility="{Binding QTask, Converter={StaticResource BoolToVisConverter}}">
+                                    <TextBlock Text="Lot Number"
+                                               Margin="5,0,0,0" />
+                                    <TextBlock Text="{Binding MasterPrint}"
+                                               Margin="5,0,0,0" />
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="From"
+                                               Foreground="DodgerBlue"
+                                               Margin="5,0,0,0" />
+                                    <TextBlock Text="{Binding Location}"
+                                               Foreground="DodgerBlue"
+                                               Margin="5,0,0,0" />
+                                    <TextBlock Text="To"
+                                               Foreground="Brown"
+                                               Margin="5,0,0,0" />
+                                    <TextBlock Text="{Binding SkuDescription}"
+                                               Foreground="Brown"
+                                               Margin="5,0,0,0" />
+                                </StackPanel>
+
                             </StackPanel>
 
                         </DataTemplate>

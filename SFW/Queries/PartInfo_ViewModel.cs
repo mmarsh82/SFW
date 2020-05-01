@@ -28,11 +28,16 @@ namespace SFW.Queries
                 selectedILotRow = value;
                 try
                 {
-                    IthResultsTable.DefaultView.RowFilter = $"LotNumber = '{value.LotNumber}'";
-                    FilterText = value.LotNumber;
-                    _lot = value.LotNumber;
-                    FromLocation = value.Location;
+                    if (value != null)
+                    {
+                        UseLot = true;
+                        IthResultsTable.DefaultView.RowFilter = $"LotNumber = '{value.LotNumber}'";
+                        FilterText = value.LotNumber;
+                        _lot = value.LotNumber;
+                        FromLocation = value.Location;
+                    }
                     OnPropertyChanged(nameof(FilterText));
+                    OnPropertyChanged(nameof(SelectedILotRow));
                 }
                 catch (NullReferenceException)
                 {
@@ -96,7 +101,7 @@ namespace SFW.Queries
         public bool UseLot
         {
             get { return _useLot; }
-            set { _useLot = value; UserInput = string.Empty; _lot = string.Empty; OnPropertyChanged(nameof(UseLot)); }
+            set { _useLot = value; OnPropertyChanged(nameof(UseLot)); }
         }
 
         private int? qInput;
@@ -312,14 +317,15 @@ namespace SFW.Queries
             if (parameter.ToString() == "r")
             {
                 parameter = string.Empty;
+                UseLot = false;
+                SelectedILotRow = null;
+                ToLocation = FromLocation = MoveReference = string.Empty;
+                OnPropertyChanged(nameof(MoveReference));
             }
             IthResultsTable.Search(parameter.ToString());
             FilterText = parameter.ToString();
             OnPropertyChanged(nameof(FilterText));
             Filter = null;
-            _lot = string.Empty;
-            ToLocation = FromLocation = MoveReference = string.Empty;
-            OnPropertyChanged(nameof(MoveReference));
             QuantityInput = null;
         }
         private bool FilterCanExecute(object parameter) => !string.IsNullOrEmpty(parameter?.ToString()) && IthResultsTable != null;
@@ -391,7 +397,7 @@ namespace SFW.Queries
         /// <param name="parameter"></param>
         private void MoveExecute(object parameter)
         {
-            if (!UseLot)
+            if (UseLot)
             {
                 M2kClient.M2kCommand.InventoryMove(CurrentUser.DisplayName, Part.SkuNumber, _lot, Part.Uom, FromLocation, ToLocation, Convert.ToInt32(QuantityInput), MoveReference, App.ErpCon);
             }
@@ -399,12 +405,20 @@ namespace SFW.Queries
             {
                 M2kClient.M2kCommand.InventoryMove(CurrentUser.DisplayName, Part.SkuNumber, "", Part.Uom, FromLocation, ToLocation, Convert.ToInt32(QuantityInput), MoveReference, App.ErpCon);
             }
-            Part.SkuNumber = UseLot ? _lot : Part.SkuNumber;
-            Part.SkuDescription = ToLocation;
-            Part.TotalOnHand = Convert.ToInt32(QuantityInput);
-            MoveHistory.Add(Part);
+            var _tran = new Sku
+            {
+                SkuNumber = Part.SkuNumber
+                ,QTask = UseLot
+                ,MasterPrint = _lot
+                ,SkuDescription = ToLocation
+                ,TotalOnHand = Convert.ToInt32(QuantityInput)
+                ,Location = FromLocation
+            };
+            MoveHistory.Add(_tran);
             ToLocation = MoveReference = string.Empty;
             OnPropertyChanged(nameof(MoveReference));
+            UserInput = UseLot ? _lot : Part.SkuNumber;
+            SearchExecute(null);
         }
         private bool MoveCanExecute(object parameter)
         {
