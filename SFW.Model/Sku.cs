@@ -222,7 +222,7 @@ namespace SFW.Model
                 try
                 {
                     using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database}; SELECT 
-                                                                a.[Part_Number], a.[Description], a.[Um], a.[Bom_Rev_Date], b.[Qty_On_Hand], a.[Drawing_Nbrs], a.[Inventory_Type], c.[Crew_Size]
+                                                                a.[Part_Number], a.[Description], a.[Um], a.[Bom_Rev_Date], b.[Qty_On_Hand], a.[Drawing_Nbrs], a.[Inventory_Type]
                                                             FROM
                                                                 [dbo].[IM-INIT] a
                                                             RIGHT JOIN
@@ -237,10 +237,10 @@ namespace SFW.Model
                             {
                                 while (reader.Read())
                                 {
-                                    SkuNumber = reader.SafeGetString("Part_Nbr");
+                                    SkuNumber = reader.SafeGetString("Part_Number");
                                     SkuDescription = reader.SafeGetString("Description");
                                     Uom = reader.SafeGetString("Um");
-                                    TotalOnHand = reader.SafeGetInt32("Oh_Qtys");
+                                    TotalOnHand = reader.SafeGetInt32("Qty_On_Hand");
                                 }
                             }
                         }

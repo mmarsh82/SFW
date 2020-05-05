@@ -30,7 +30,7 @@ namespace SFW.Queries
                 {
                     if (value != null)
                     {
-                        UseLot = true;
+                        UseLot = !string.IsNullOrEmpty(value.LotNumber);
                         IthResultsTable.DefaultView.RowFilter = $"LotNumber = '{value.LotNumber}'";
                         FilterText = value.LotNumber;
                         _lot = value.LotNumber;

@@ -211,7 +211,7 @@ namespace SFW.Model
                     LEFT JOIN
 	                    [dbo].[CM-INIT] f ON f.[Cust_Nbr] = CASE WHEN CHARINDEX('*',c.[Cust_Nbr], 0) > 0 THEN SUBSTRING(c.[Cust_Nbr], 0, CHARINDEX('*',c.[Cust_Nbr], 0)) ELSE c.[Cust_Nbr] END
                     WHERE
-                        a.[D_esc] <> 'DO NOT USE' AND (c.[Status_Flag] = 'R' OR c.[Status_Flag] = 'A') AND (b.[Seq_Complete_Flag] IS NULL OR b.[Seq_Complete_Flag] = 'N') AND b.[Alt_Seq_Status] IS NULL
+                        a.[D_esc] <> 'DO NOT USE' AND ((c.[Status_Flag] = 'R' OR c.[Status_Flag] = 'A') AND (b.[Seq_Complete_Flag] IS NULL OR b.[Seq_Complete_Flag] = 'N')) AND b.[Alt_Seq_Status] IS NULL
                     ORDER BY
                         MachineNumber, WO_Priority, PriTime, Sched_Priority, WO_SchedStartDate, WO_Number ASC;";
 
