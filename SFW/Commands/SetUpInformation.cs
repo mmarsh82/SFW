@@ -43,7 +43,7 @@ namespace SFW.Commands
                                 case "PRESS":
                                 case "ENG":
                                     _fileName = ExcelReader.GetSetupPrintNumber(_wo.SkuNumber, Machine.GetMachineName(App.AppSqlCon, _wo), "\\\\manage2\\server\\Engineering\\Product\\Press Setups\\press setup and part number crossreference.xlsm", "Production");
-                                    if (!string.IsNullOrEmpty(_fileName))
+                                    if (!string.IsNullOrEmpty(_fileName) && !_fileName.Contains("ERR:"))
                                     {
                                         var _fileheader = string.Empty;
                                         for (int i = 0; i < 8 - _fileName.Length; i++)

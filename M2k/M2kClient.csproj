@@ -56,6 +56,7 @@
     <Compile Include="M2kADIArray\Adjust.cs" />
     <Compile Include="M2kADIArray\CodeType.cs" />
     <Compile Include="M2kADIArray\CompInfo.cs" />
+    <Compile Include="M2kADIArray\Cyclect.cs" />
     <Compile Include="M2kADIArray\DirectLabor.cs" />
     <Compile Include="M2kADIArray\Issue.cs" />
     <Compile Include="M2kADIArray\DisplayInfo.cs" />

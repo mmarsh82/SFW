@@ -50,7 +50,7 @@ namespace M2kClient.M2kADIArray
         /// <summary>
         /// Field 8
         /// Item Number
-        /// Only one can be sent per transaction, and be a valid part number
+        /// Only one can be sent per transaction, and must be a valid part number
         /// </summary>
         public string ItemNumber { get; set; }
 
