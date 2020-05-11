@@ -42,7 +42,7 @@ namespace SFW.Commands
                             {
                                 case "PRESS":
                                 case "ENG":
-                                    _fileName = ExcelReader.GetSetupPrintNumber(_wo.SkuNumber, Machine.GetMachineName(App.AppSqlCon, _wo), "\\\\manage2\\server\\Engineering\\Product\\Press Setups\\press setup and part number crossreference.xlsm", "Production");
+                                    _fileName = ExcelReader.GetSetupPrintNumber(_wo.SkuNumber, Machine.GetMachineName(App.AppSqlCon, _wo), "\\\\fs-wcco\\WCCO-Engineering\\Product\\Press Setups\\press setup and part number crossreference.xlsm", "Production");
                                     if (!string.IsNullOrEmpty(_fileName) && !_fileName.Contains("ERR:"))
                                     {
                                         var _fileheader = string.Empty;
@@ -51,7 +51,7 @@ namespace SFW.Commands
                                             _fileheader += "0";
                                         }
                                         _fileName = _fileheader + _fileName;
-                                        _filePath = $"\\\\manage2\\Prints\\{_fileName}.PDF";
+                                        _filePath = $"\\\\fs-wcco\\WCCO-Prints\\{_fileName}.PDF";
                                     }
                                     else
                                     {
@@ -59,8 +59,8 @@ namespace SFW.Commands
                                     }
                                     break;
                                 case "FABE":
-                                    _fileName = ExcelReader.GetSetupPrintNumber(_wo.SkuNumber, Machine.GetMachineName(App.AppSqlCon, _wo), "\\\\manage2\\server\\Engineering\\Product\\Sysco Press Setups\\SYSCO PRESS - Setup cross reference.xlsx", "PRODUCTION");
-                                    _filePath = $"\\\\manage2\\Prints\\{_fileName}.PDF";
+                                    _fileName = ExcelReader.GetSetupPrintNumber(_wo.SkuNumber, Machine.GetMachineName(App.AppSqlCon, _wo), "\\\\fs-wcco\\WCCO-Engineering\\Product\\Sysco Press Setups\\SYSCO PRESS - Setup cross reference.xlsx", "PRODUCTION");
+                                    _filePath = $"\\\\fs-wcco\\WCCO-Prints\\{_fileName}.PDF";
                                     break;
                             }             
                             if (!string.IsNullOrEmpty(_filePath))

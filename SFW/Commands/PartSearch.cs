@@ -27,7 +27,7 @@ namespace SFW.Commands
                     {
                         parameter = parameter.ToString().Split('*')[0];
                     }
-                    Process.Start($"\\\\fs-csi\\prints\\part\\{parameter}.pdf");
+                    Process.Start($"\\\\fs-csi\\CSI-Prints\\part\\{parameter}.pdf");
                 }
                 //WCCO Part search
                 else
@@ -40,7 +40,7 @@ namespace SFW.Commands
                     if (!string.IsNullOrEmpty(parameter?.ToString()))
                     {
                         ///TODO: Remove hard coded print location
-                        Process.Start($"\\\\manage2\\Prints\\{parameter}.pdf");
+                        Process.Start($"\\\\fs-wcco\\WCCO-Prints\\{parameter}.pdf");
                     }
                     else
                     {

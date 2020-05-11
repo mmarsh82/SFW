@@ -10,7 +10,7 @@ namespace SFW.Commands
 
         public void Execute(object parameter)
         {
-            var _trimList = Helpers.ExcelReader.GetTrimmingSetupInfo(parameter.ToString(), "\\\\manage2\\server\\Engineering\\Product\\Trimmin Info\\SFW_Trimming Info.xlsx", "Trimming");
+            var _trimList = Helpers.ExcelReader.GetTrimmingSetupInfo(parameter.ToString(), "\\\\fs-wcco\\WCCO-Engineering\\Product\\Trimmin Info\\SFW_Trimming Info.xlsx", "Trimming");
             if (_trimList != null)
             {
                 new PartTrimInfo_View { DataContext = new PartTrimInfo_ViewModel(_trimList) }.ShowDialog();

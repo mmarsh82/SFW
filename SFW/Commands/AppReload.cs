@@ -17,7 +17,7 @@ namespace SFW.Commands
                 File.WriteAllText($"{Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)}\\SFW\\SSO.txt", CurrentUser.DomainUserName);
             }
             //TODO: remove hard code out to the global config file for the application global location
-            Process.Start($"\\\\manage2\\FSW\\ShopFloorWorkbench\\SFW.application");
+            Process.Start($"\\\\fs-wcco\\WCCO-SFW\\ShopFloorWorkbench\\SFW.application");
             Application.Current.Shutdown();
         }
 

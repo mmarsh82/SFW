@@ -67,15 +67,15 @@ namespace SFW.Helpers
                 switch (formType)
                 {
                     case FormType.Portrait:
-                        FilePath = "\\\\manage2\\server\\Document Center\\Production\\FORM5125 - Travel Card.pdf";
+                        FilePath = "\\\\fs-wcco\\WCCO-PublishedDocuments\\FORM5125 - Travel Card.pdf";
                         break;
                     case FormType.Landscape:
-                        FilePath = "\\\\manage2\\server\\Document Center\\Production\\FORM5127 - Reference Travel Card.pdf";
+                        FilePath = "\\\\fs-wcco\\WCCO-PublishedDocuments\\FORM5127 - Reference Travel Card.pdf";
                         break;
                 }
                 using (PdfReader reader = new PdfReader(FilePath, PdfEncodings.ConvertToBytes(Password, "ASCII")))
                 {
-                    using (PdfStamper stamp = new PdfStamper(reader, new FileStream($"\\\\manage2\\server\\OMNI\\Application Data\\temp\\{LotNbr}.pdf", FileMode.Create)))
+                    using (PdfStamper stamp = new PdfStamper(reader, new FileStream($"\\\\fs-wcco\\WCCO-OMNI\\Application Data\\temp\\{LotNbr}.pdf", FileMode.Create)))
                     {
                         if (formType == FormType.Portrait)
                         {
@@ -146,7 +146,7 @@ namespace SFW.Helpers
             try
             {
                 CreatePDF(formType);
-                Process.Start($"\\\\manage2\\server\\OMNI\\Application Data\\temp\\{LotNbr}.pdf");
+                Process.Start($"\\\\fs-wcco\\WCCO-OMNI\\Application Data\\temp\\{LotNbr}.pdf");
                 DeleteDocuments();
             }
             catch (Exception)
@@ -164,7 +164,7 @@ namespace SFW.Helpers
             try
             {
                 CreatePDF(formType);
-                var _documentName = $"\\\\manage2\\server\\OMNI\\Application Data\\temp\\{LotNbr}.pdf";
+                var _documentName = $"\\\\fs-wcco\\WCCO-OMNI\\Application Data\\temp\\{LotNbr}.pdf";
                 using (Spire.Pdf.PdfDocument doc = new Spire.Pdf.PdfDocument(_documentName, "technology#1"))
                 {
                     using (PrintDialog pdialog = new PrintDialog { AllowPrintToFile = true, AllowSomePages = true })
@@ -196,11 +196,11 @@ namespace SFW.Helpers
         /// </summary>
         private static void DeleteDocuments()
         {
-            foreach (var f in Directory.GetFiles("\\\\manage2\\server\\OMNI\\Application Data\\temp\\"))
+            foreach (var f in Directory.GetFiles("\\\\fs-wcco\\WCCO-OMNI\\Application Data\\temp\\"))
             {
                 try
                 {
-                    if (f != $"\\\\manage2\\server\\OMNI\\Application Data\\temp\\{LotNbr}.pdf")
+                    if (f != $"\\\\fs-wcco\\WCCO-OMNI\\Application Data\\temp\\{LotNbr}.pdf")
                     {
                         File.Delete(f);
                     }

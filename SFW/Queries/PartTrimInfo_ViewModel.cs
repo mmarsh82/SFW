@@ -73,7 +73,7 @@ namespace SFW.Queries
             try
             {
                 var _tool = string.Empty;
-                var _path = "\\\\manage2\\Prints\\";
+                var _path = "\\\\fs-wcco\\WCCO-Prints\\";
                 if (parameter.ToString().Contains("*"))
                 {
                     var _type = parameter.ToString().Split('*');

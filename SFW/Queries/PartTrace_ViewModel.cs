@@ -111,7 +111,7 @@ namespace SFW.Queries
                 var _machName = Machine.GetMachineName(App.AppSqlCon, PartNumber);
                 if (!string.IsNullOrEmpty(_machName))
                 {
-                    var _fileName = ExcelReader.GetSetupPrintNumber(PartNumber, _machName, "\\\\manage2\\server\\Engineering\\Product\\Press Setups\\press setup and part number crossreference.xlsm", "Production");
+                    var _fileName = ExcelReader.GetSetupPrintNumber(PartNumber, _machName, "\\\\fs-wcco\\WCCO-Engineering\\Product\\Press Setups\\press setup and part number crossreference.xlsm", "Production");
                     if (_fileName.Contains("ERR:"))
                     {
                         ErrorMsg = "Main file is open, contact Engineering.";
@@ -125,15 +125,15 @@ namespace SFW.Queries
                             _fileheader += "0";
                         }
                         _fileName = _fileheader + _fileName;
-                        SetupPrint = $"\\\\manage2\\Prints\\{_fileName}.PDF";
+                        SetupPrint = $"\\\\fs-wcco\\WCCO-Prints\\{_fileName}.PDF";
                         VerifyText = "Accepted";
                     }
                     else
                     {
-                        _fileName = ExcelReader.GetSetupPrintNumber(PartNumber, Machine.GetMachineName(App.AppSqlCon, PartNumber), "\\\\manage2\\server\\Engineering\\Product\\Sysco Press Setups\\SYSCO PRESS - Setup cross reference.xlsx", "PRODUCTION");
+                        _fileName = ExcelReader.GetSetupPrintNumber(PartNumber, Machine.GetMachineName(App.AppSqlCon, PartNumber), "\\\\fs-wcco\\WCCO-Engineering\\Product\\Sysco Press Setups\\SYSCO PRESS - Setup cross reference.xlsx", "PRODUCTION");
                         if (!string.IsNullOrEmpty(_fileName))
                         {
-                            SetupPrint = $"\\\\manage2\\Prints\\{_fileName}.PDF";
+                            SetupPrint = $"\\\\fs-wcco\\WCCO-Prints\\{_fileName}.PDF";
                             VerifyText = "Accepted";
                         }
                         else
@@ -232,9 +232,9 @@ namespace SFW.Queries
                 {
                     new Commands.PartSearch().Execute(_master);
                 }
-                else if (File.Exists($"\\\\manage2\\Prints\\{PartNumber}.pdf"))
+                else if (File.Exists($"\\\\fs-wcco\\WCCO-Prints\\{PartNumber}.pdf"))
                 {
-                    Process.Start($"\\\\manage2\\Prints\\{PartNumber}.pdf");
+                    Process.Start($"\\\\fs-wcco\\WCCO-Prints\\{PartNumber}.pdf");
                 }
                 else
                 {
@@ -296,7 +296,7 @@ namespace SFW.Queries
             {
                 try
                 {
-                    var _file = $"\\\\manage2\\server\\Document Center\\Production\\{parameter}";
+                    var _file = $"\\\\fs-wcco\\WCCO-PublishedDocuments\\{parameter}";
                     Process.Start(_file);
                 }
                 catch (Exception)

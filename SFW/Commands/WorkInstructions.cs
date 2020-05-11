@@ -19,7 +19,7 @@ namespace SFW.Commands
                 }
                 else
                 {
-                    Process.Start($"\\\\manage2\\server\\Document Center\\Production\\{parameter}");
+                    Process.Start($"\\\\fs-wcco\\WCCO-PublishedDocuments\\{parameter}");
                 }
             }
             catch (System.ComponentModel.Win32Exception)

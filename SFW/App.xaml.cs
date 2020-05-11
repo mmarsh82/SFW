@@ -331,18 +331,18 @@ namespace SFW
                                     new XElement("FilePath",
                                         new XElement("Print",
                                             new XElement("Part",
-                                                new XAttribute("CADPart", "\\\\manage2\\server\\Engineering\\Product\\Prints\\Controlled Production Prints\\"),
-                                                new XAttribute("SlatPart", "\\\\manage2\\server\\Engineering\\Product\\Prints\\R SLAT MASTER PRINT.xlsx"),
-                                                new XAttribute("ExtPart", "\\\\manage2\\server\\Engineering\\Product\\Prints\\R EXT MASTER PRINT.xlsx")
+                                                new XAttribute("CADPart", "\\\\fs-wcco\\WCCO-Engineering\\Product\\Prints\\Controlled Production Prints\\"),
+                                                new XAttribute("SlatPart", "\\\\fs-wcco\\WCCO-Engineering\\Product\\Prints\\R SLAT MASTER PRINT.xlsx"),
+                                                new XAttribute("ExtPart", "\\\\fs-wcco\\WCCO-Engineering\\Product\\Prints\\R EXT MASTER PRINT.xlsx")
                                             ),
                                             new XElement("SetUp",
-                                                new XAttribute("Press", "\\\\manage2\\server\\Engineering\\Product\\Press Setups\\press setup and part number crossreference.xlsm"),
+                                                new XAttribute("Press", "\\\\fs-wcco\\WCCO-Engineering\\Product\\Press Setups\\press setup and part number crossreference.xlsm"),
                                                 new XAttribute("Sysco", ""),
                                                 new XAttribute("Trimming", "")
                                             )
                                         ),
                                         new XElement("Process",
-                                            new XAttribute("WIorSOP", "\\\\manage2\\server\\Document Center\\Production\\")
+                                            new XAttribute("WIorSOP", "\\\\fs-wcco\\WCCO-PublishedDocuments\\Production\\")
                                         )
                                     )
                                 ),
