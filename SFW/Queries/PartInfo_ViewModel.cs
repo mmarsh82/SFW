@@ -35,6 +35,7 @@ namespace SFW.Queries
                         FilterText = value.LotNumber;
                         _lot = value.LotNumber;
                         FromLocation = value.Location;
+                        QuantityInput = value.Onhand;
                     }
                     OnPropertyChanged(nameof(FilterText));
                     OnPropertyChanged(nameof(SelectedILotRow));
@@ -286,6 +287,11 @@ namespace SFW.Queries
             Filter = FilterText = null;
             OnPropertyChanged(nameof(FilterText));
             Part = UseLot ? new Sku(UserInput, App.AppSqlCon) : new Sku(UserInput, true, App.AppSqlCon);
+            if (UseLot && Part != null)
+            {
+                QuantityInput = Part.TotalOnHand;
+                FromLocation = Part.Location;
+            }
             OnPropertyChanged(nameof(Part));
             _lot = UseLot ? UserInput : string.Empty;
             PreFilter = UseLot ? UserInput : string.Empty;
@@ -331,7 +337,10 @@ namespace SFW.Queries
             FilterText = parameter.ToString();
             OnPropertyChanged(nameof(FilterText));
             Filter = null;
-            QuantityInput = null;
+            if (Part == null || Part.TotalOnHand == 0)
+            {
+                QuantityInput = null;
+            }
         }
         private bool FilterCanExecute(object parameter) => !string.IsNullOrEmpty(parameter?.ToString()) && IthResultsTable != null;
 

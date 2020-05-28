@@ -148,6 +148,40 @@ namespace SFW.Model
         public Sku(string lotNbr, SqlConnection sqlCon)
         {
             var _valid = false;
+            var _selectCmd = sqlCon.Database == "CSI_MAIN"
+                ? @"SELECT 
+                        a.[Part_Nbr]
+                        ,b.[Description]
+	                    ,b.[Um]
+                        ,'' as 'Notes'
+	                    ,c.[Oh_Qtys] as 'Qty'
+	                    ,c.[Locations] as 'Loc'
+                    FROM
+                        [dbo].[LOT-INIT] a
+                    LEFT JOIN
+                        [dbo].[IM-INIT] b ON b.[Part_Number] = a.[Part_Nbr]
+                    LEFT JOIN
+	                    [dbo].[LOT-INIT_Lot_Loc_Qtys] c ON c.[ID1] = a.[Lot_Number]
+                    WHERE
+                        a.[Lot_Number] = CONCAT(@p1,'|P');"
+
+                : @"SELECT 
+	                    a.[Part_Nbr]
+	                    ,c.[Description]
+	                    ,c.[Um]
+	                    ,b.[Notes]
+	                    ,d.[Oh_Qtys] as 'Qty'
+	                    ,d.[Locations] as 'Loc'
+                    FROM 
+	                    [dbo].[LOT-INIT] a
+                    LEFT JOIN
+	                    [dbo].[LOT-SA] b ON b.[Lot_Number] = a.[Lot_Number]
+                    LEFT JOIN 
+	                    [dbo].[IM-INIT] c ON c.[Part_Number] = a.[Part_Nbr]
+                    LEFT JOIN
+	                    [dbo].[LOT-INIT_Lot_Loc_Qtys] d ON d.[ID1] = a.[Lot_Number]
+                    WHERE 
+	                    a.[Lot_Number] = CONCAT(@p1,'|P');";
             if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
             {
                 try
@@ -160,20 +194,7 @@ namespace SFW.Model
                     }
                     if (_valid)
                     {
-                        using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database};
-                                                            SELECT 
-	                                                            a.[Part_Nbr]
-	                                                            ,c.[Description]
-	                                                            ,c.[Um]
-	                                                            ,b.[Notes]
-                                                            FROM 
-	                                                            [dbo].[LOT-INIT] a
-                                                            LEFT JOIN
-	                                                            [dbo].[LOT-SA] b ON b.[Lot_Number] = a.[Lot_Number]
-                                                            LEFT JOIN 
-	                                                            [dbo].[IM-INIT] c ON c.[Part_Number] = a.[Part_Nbr]
-                                                            WHERE 
-	                                                            a.[Lot_Number] = CONCAT(@p1,'|P');", sqlCon))
+                        using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database}; {_selectCmd}", sqlCon))
                         {
                             cmd.Parameters.AddWithValue("p1", lotNbr);
                             using (SqlDataReader reader = cmd.ExecuteReader())
@@ -186,6 +207,8 @@ namespace SFW.Model
                                         SkuDescription = reader.SafeGetString("Description");
                                         Uom = reader.SafeGetString("Um");
                                         NonCon = reader.SafeGetString("Notes").Replace("/", "");
+                                        TotalOnHand = reader.SafeGetInt32("Qty");
+                                        Location = reader.SafeGetString("Loc");
                                     }
                                 }
                             }
@@ -435,15 +458,16 @@ namespace SFW.Model
         /// </summary>
         /// <param name="woNbr">Sku ID Number</param>
         /// <param name="siteNbr">Facility number to run on</param>
+        /// <param name="filepath">Path to the file</param>
         /// <param name="sqlCon">Sql Connection to use</param>
         /// <returns>A list of URL strings to open the work instructions</returns>
-        public static List<string> GetInstructions(string partNbr, int siteNbr, SqlConnection sqlCon)
+        public static List<string> GetInstructions(string partNbr, int siteNbr, string filepath, SqlConnection sqlCon)
         {
             //TODO: this code will need to be reformated once CSI has moved to the same process model as WCCO
             var _inst = new List<string>();
             if (siteNbr == 0)
             {
-                if(System.IO.File.Exists($"\\\\FS-CSI\\prints\\WI\\{partNbr}.pdf"))
+                if(System.IO.File.Exists($"{filepath}{partNbr}.pdf"))
                 {
                     _inst.Add(partNbr);
                 }

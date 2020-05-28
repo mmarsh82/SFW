@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Windows.Input;
 
 namespace SFW.Commands
@@ -10,16 +11,15 @@ namespace SFW.Commands
 
         public void Execute(object parameter)
         {
-            //TODO: move the file path to global config file
             try
             {
-                if (App.SiteNumber == 0)
+                if (parameter != null)
                 {
-                    Process.Start($"\\\\FS-CSI\\prints\\WI\\{parameter}.pdf");
-                }
-                else
-                {
-                    Process.Start($"\\\\fs-wcco\\WCCO-PublishedDocuments\\{parameter}");
+                    if (parameter.ToString().IndexOf(".pdf", StringComparison.OrdinalIgnoreCase) == -1)
+                    {
+                        parameter += ".pdf";
+                    }
+                    Process.Start($"{App.GlobalConfig.First(o => $"{o.Site}_MAIN" == App.Site).WI}{parameter}");
                 }
             }
             catch (System.ComponentModel.Win32Exception)

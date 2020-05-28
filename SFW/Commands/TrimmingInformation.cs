@@ -1,5 +1,6 @@
 ﻿using SFW.Queries;
 using System;
+using System.Linq;
 using System.Windows.Input;
 
 namespace SFW.Commands
@@ -10,7 +11,7 @@ namespace SFW.Commands
 
         public void Execute(object parameter)
         {
-            var _trimList = Helpers.ExcelReader.GetTrimmingSetupInfo(parameter.ToString(), "\\\\fs-wcco\\WCCO-Engineering\\Product\\Trimmin Info\\SFW_Trimming Info.xlsx", "Trimming");
+            var _trimList = Helpers.ExcelReader.GetTrimmingSetupInfo(parameter.ToString(), App.GlobalConfig.FirstOrDefault(o => $"{o.Site}_MAIN" == App.Site).TrimSetup, "Trimming");
             if (_trimList != null)
             {
                 new PartTrimInfo_View { DataContext = new PartTrimInfo_ViewModel(_trimList) }.ShowDialog();

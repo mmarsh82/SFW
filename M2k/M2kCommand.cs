@@ -221,7 +221,7 @@ namespace M2kClient
                 //Move the product
                 var suffix = DateTime.Now.ToString($"HHmmssffff");
                 var _move = new Locxfer(stationId, partNbr.ToUpper(), from.ToUpper(), to.ToUpper(), qty, lotNbr, reference, uom.ToUpper());
-                File.WriteAllText($"{connection.BTIFolder}LOCXFERC2K.DAT{suffix}", _move.ToString());
+                File.WriteAllText($"{connection.BTIFolder}LOCXFER{connection.AdiServer}.DAT{suffix}", _move.ToString());
                 //Check to see if you need to clear or add a non-conformance reason
                 if (to[to.Length - 1] != 'N' && !string.IsNullOrEmpty(nonConf))
                 {
@@ -286,7 +286,7 @@ namespace M2kClient
                 _tWip = new Wip(wipRecord);
                 if (!string.IsNullOrEmpty(_tWip.StationId))
                 {
-                    File.WriteAllText($"{connection.SFDCFolder}WPC2K.DAT{suffix}{tranCount}", _tWip.ToString());
+                    File.WriteAllText($"{connection.SFDCFolder}WP{connection.AdiServer}.DAT{suffix}{tranCount}", _tWip.ToString());
                     tranCount++;
                     if (_lotEntered)
                     {
@@ -356,7 +356,7 @@ namespace M2kClient
                     _tWip = new Wip(wipRecord) { QtyReceived = Convert.ToInt32(wipRecord.WipQty), ComponentInfoList = _tComp };
                     if (!string.IsNullOrEmpty(_tWip.StationId))
                     {
-                        File.WriteAllText($"{connection.SFDCFolder}WPC2K.DAT{suffix}{tranCount}", _tWip.ToString());
+                        File.WriteAllText($"{connection.SFDCFolder}WP{connection.AdiServer}.DAT{suffix}{tranCount}", _tWip.ToString());
                         tranCount++;
                     }
                     else
@@ -395,7 +395,7 @@ namespace M2kClient
                         }
                         if (c.WipInfo.Sum(o => o.BaseQty) > 0)
                         {
-                            File.WriteAllText($"{connection.BTIFolder}ISSUEC2K.DAT{suffix}{tranCount}", _issue.ToString());
+                            File.WriteAllText($"{connection.BTIFolder}ISSUE{connection.AdiServer}.DAT{suffix}{tranCount}", _issue.ToString());
                             tranCount++;
                         }
                     }
@@ -454,7 +454,7 @@ namespace M2kClient
             {
                 foreach (var s in _tWip.AdjustmentList)
                 {
-                    File.WriteAllText($"{connection.BTIFolder}ADJUSTC2K.DAT{suffix}{tranCount}", s.ToString());
+                    File.WriteAllText($"{connection.BTIFolder}ADJUST{connection.AdiServer}.DAT{suffix}{tranCount}", s.ToString());
                     tranCount++;
                 }
             }
@@ -579,14 +579,14 @@ namespace M2kClient
                         var _outDL = crew > 0
                             ? new DirectLabor(stationId, empID, 'O', time, _wSplit[0], _wSplit[1], qtyComp, 0, machID, CompletionFlag.N, crew)
                             : new DirectLabor(stationId, empID, 'O', time, _wSplit[0], _wSplit[1], qtyComp, 0, machID, CompletionFlag.N);
-                        File.WriteAllText($"{connection.SFDCFolder}LBC2K.DAT{suffix}{empID}", $"{_inDL.ToString()}\n\n{_outDL.ToString()}");
+                        File.WriteAllText($"{connection.SFDCFolder}LB{connection.AdiServer}.DAT{suffix}{empID}", $"{_inDL.ToString()}\n\n{_outDL.ToString()}");
                     }
                     else
                     {
                         var _tempDL = crew > 0
                             ? new DirectLabor(stationId, empID, clockTranType, time, _wSplit[0], _wSplit[1], qtyComp, 0, machID, CompletionFlag.N, crew)
                             : new DirectLabor(stationId, empID, clockTranType, time, _wSplit[0], _wSplit[1], qtyComp, 0, machID, CompletionFlag.N);
-                        File.WriteAllText($"{connection.SFDCFolder}LBC2K.DAT{suffix}{empID}", _tempDL.ToString());
+                        File.WriteAllText($"{connection.SFDCFolder}LB{connection.AdiServer}.DAT{suffix}{empID}", _tempDL.ToString());
                     }
                     _subResult.Add(0, string.Empty);
                     return _subResult;
@@ -600,7 +600,7 @@ namespace M2kClient
         }
 
         /// <summary>
-        /// Process an inventory adjustment in current ERP system with in the standard EDI template
+        /// Process an inventory adjustment in current ERP system with in the standard ADI template
         /// </summary>
         /// <param name="stationId">Station ID</param>
         /// <param name="reference">Adjustment reference</param>
@@ -634,7 +634,7 @@ namespace M2kClient
                     tranQty,
                     location,
                     lot);
-                File.WriteAllText($"{connection.BTIFolder}ADJUSTC2K.DAT{suffix}{_uid}", _tScrap.ToString());
+                File.WriteAllText($"{connection.BTIFolder}ADJUST{connection.AdiServer}.DAT{suffix}{_uid}", _tScrap.ToString());
                 _subResult.Add(0, string.Empty);
                 return _subResult;
             }
@@ -645,7 +645,52 @@ namespace M2kClient
             }
         }
 
+        /// <summary>
+        /// Process a cycle count entry in current ERP system with in the standard ADI template
+        /// </summary>
+        /// <param name="stationId">Station ID</param>
+        /// <param name="ccNbr">Cycle Count Number</param>
+        /// <param name="partNbr">Part Number</param>
+        /// <param name="aCode">Adjustment code</param>
+        /// <param name="tranQty">Transation quantity</param>
+        /// <param name="location">Location</param>
+        /// <param name="connection">Current M2k Connection to be used for processing the transaction</param>
+        /// <param name="lot">Optional: Lot number</param>
+        /// <returns>Error number and error description, when returned as 0 and a empty string the transaction posted with no errors</returns>
+        public static IReadOnlyDictionary<int, string> CycleCount(string stationId, string ccNbr, string partNbr, AdjustCode aCode, int tranQty, string location, M2kConnection connection, string lot = "")
+        {
+            var _subResult = new Dictionary<int, string>();
+            try
+            {
+                var _uid = new Random().Next(10, 100);
+                var suffix = DateTime.Now.ToString("HHmmssffff");
+                if (tranQty < 0)
+                {
+                    _subResult.Add(1, "Transaction Quantity must have a value greater then 0.");
+                    return _subResult;
+                }
+                var _count = new Cyclect(
+                    stationId,
+                    "01",
+                    ccNbr,
+                    CompletionFlag.N,
+                    partNbr,
+                    aCode,
+                    tranQty,
+                    location,
+                    lot);
+                File.WriteAllText($"{connection.BTIFolder}CYCLECT{connection.AdiServer}.DAT{suffix}{_uid}", _count.ToString());
+                _subResult.Add(0, string.Empty);
+                return _subResult;
+            }
+            catch (Exception ex)
+            {
+                _subResult.Add(1, ex.Message);
+                return _subResult;
+            }
+        }
 
+        //Not implemented yet
         public static IReadOnlyDictionary<int, string> ItemIssue(string stationId, string compNbr, string woNbr)
         {
             var suffix = DateTime.Now.ToString("HHmmssfff");

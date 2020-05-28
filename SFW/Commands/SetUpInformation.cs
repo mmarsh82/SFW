@@ -3,6 +3,7 @@ using SFW.Model;
 using SFW.Reports;
 using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Windows.Input;
 
 namespace SFW.Commands
@@ -27,7 +28,7 @@ namespace SFW.Commands
                         case 0:
                             try
                             {
-                                Process.Start($"\\\\FS-CSI\\prints\\Setup\\{_wo.SkuNumber}.pdf");
+                                Process.Start($"{App.GlobalConfig.First(o => $"{o.Site}_MAIN" == App.Site).PressSetup}{_wo.SkuNumber}.pdf");
                             }
                             catch (Exception)
                             {
@@ -42,7 +43,7 @@ namespace SFW.Commands
                             {
                                 case "PRESS":
                                 case "ENG":
-                                    _fileName = ExcelReader.GetSetupPrintNumber(_wo.SkuNumber, Machine.GetMachineName(App.AppSqlCon, _wo), "\\\\fs-wcco\\WCCO-Engineering\\Product\\Press Setups\\press setup and part number crossreference.xlsm", "Production");
+                                    _fileName = ExcelReader.GetSetupPrintNumber(_wo.SkuNumber, Machine.GetMachineName(App.AppSqlCon, _wo), App.GlobalConfig.First(o => $"{o.Site}_MAIN" == App.Site).PressSetup, "Production");
                                     if (!string.IsNullOrEmpty(_fileName) && !_fileName.Contains("ERR:"))
                                     {
                                         var _fileheader = string.Empty;
@@ -51,16 +52,20 @@ namespace SFW.Commands
                                             _fileheader += "0";
                                         }
                                         _fileName = _fileheader + _fileName;
-                                        _filePath = $"\\\\fs-wcco\\WCCO-Prints\\{_fileName}.PDF";
+                                        _filePath = $"{App.GlobalConfig.First(o => $"{o.Site}_MAIN" == App.Site).PartPrint}{_fileName}.PDF";
                                     }
-                                    else
+                                    else if (_fileName.Contains("ERR:"))
                                     {
                                         System.Windows.MessageBox.Show("The origin file is currently open by an administrator,\nplease contact ME for further assistance.", "File Lock", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Exclamation);
                                     }
+                                    else
+                                    {
+                                        System.Windows.MessageBox.Show("No setup file exists.", "No File Exists", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Exclamation);
+                                    }
                                     break;
                                 case "FABE":
-                                    _fileName = ExcelReader.GetSetupPrintNumber(_wo.SkuNumber, Machine.GetMachineName(App.AppSqlCon, _wo), "\\\\fs-wcco\\WCCO-Engineering\\Product\\Sysco Press Setups\\SYSCO PRESS - Setup cross reference.xlsx", "PRODUCTION");
-                                    _filePath = $"\\\\fs-wcco\\WCCO-Prints\\{_fileName}.PDF";
+                                    _fileName = ExcelReader.GetSetupPrintNumber(_wo.SkuNumber, Machine.GetMachineName(App.AppSqlCon, _wo), App.GlobalConfig.First(o => $"{o.Site}_MAIN" == App.Site).SyscoSetup, "PRODUCTION");
+                                    _filePath = $"{App.GlobalConfig.First(o => $"{o.Site}_MAIN" == App.Site).PartPrint}{_fileName}.PDF";
                                     break;
                             }             
                             if (!string.IsNullOrEmpty(_filePath))

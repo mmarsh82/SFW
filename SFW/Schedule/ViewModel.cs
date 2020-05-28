@@ -33,7 +33,7 @@ namespace SFW.Schedule
                 if (value != null)
                 {
                     var _tempDock = App.SiteNumber == 0 ? WorkSpaceDock.CsiDock : WorkSpaceDock.WccoDock;
-                    var _wo = new WorkOrder(value.Row, App.SiteNumber, App.AppSqlCon);
+                    var _wo = new WorkOrder(value.Row, App.SiteNumber, App.GlobalConfig.First(o => $"{o.Site}_MAIN" == App.Site).WI, App.AppSqlCon);
                     _tempDock.Children.RemoveAt(1);
                     if (!int.TryParse(_wo.EngStatus, out int i))
                     {

@@ -12,6 +12,7 @@
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="40"/>
+            <RowDefinition Height="40"/>
             <RowDefinition Height="50"/>
         </Grid.RowDefinitions>
 
@@ -43,13 +44,34 @@
 
         </StackPanel>
 
-        <Button Grid.Row="3"
+        <StackPanel Grid.Row="1"
+                    Orientation="Horizontal">
+
+            <TextBlock Text="Number of Copies:"
+                       FontSize="18"
+                       FontWeight="Bold"
+                       TextDecorations="Underline"
+                       VerticalAlignment="Center"
+                       Margin="10,0,0,0"/>
+
+            <TextBox Text="{Binding Copies, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                     FontSize="18"
+                     FontWeight="Bold"
+                     Background="LightGray"
+                     Margin="5"
+                     Width="125"
+                     TabIndex="0"
+                     Style="{DynamicResource RequiredTextBox}" />
+
+        </StackPanel>
+
+        <Button Grid.Row="2"
                 Content="Print"
                 Margin="5"
                 Width="100"
                 FontSize="18"
                 Command="{StaticResource PrintLabelICommand}"
-                CommandParameter="{Binding DiamondNumber}"
+                CommandParameter="{Binding PrintParam}"
                 Style="{DynamicResource DefaultButton}"/>
     </Grid>
 </Window>

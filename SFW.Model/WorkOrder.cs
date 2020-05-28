@@ -47,7 +47,10 @@ namespace SFW.Model
         /// Will create a new WorkOrder Object based on a DataRow from any DataTable Object
         /// </summary>
         /// <param name="drow">DataRow with the item array values for the work order</param>
-        public WorkOrder(DataRow drow, int siteNbr, SqlConnection sqlCon)
+        /// <param name="siteNbr">Work Site number</param>
+        /// <param name="docFilePath">Document File Path</param>
+        /// <param name="sqlCon">Sql Connection to use</param>
+        public WorkOrder(DataRow drow, int siteNbr, string docFilePath, SqlConnection sqlCon)
         {
             if (drow != null)
             {
@@ -96,7 +99,7 @@ namespace SFW.Model
                 Picklist = Component.GetComponentPickList(_wo[0], Operation, StartQty - CurrentQty, sqlCon);
                 Notes = GetNotes(_wo[0],sqlCon);
                 ShopNotes = GetShopNotes(_wo[0], sqlCon);
-                InstructionList = GetInstructions(SkuNumber, siteNbr, sqlCon);
+                InstructionList = GetInstructions(SkuNumber, siteNbr, docFilePath, sqlCon);
             }
         }
 
@@ -104,7 +107,7 @@ namespace SFW.Model
         /// Retrieve a list of Work orders based on a work center
         /// </summary>
         /// <param name="workCntNbr">Work Center Number or ID</param>
-        /// /// <param name="sqlCon">Sql Connection to use</param>
+        /// <param name="sqlCon">Sql Connection to use</param>
         /// <returns>List of WorkOrder objects</returns>
         public static List<WorkOrder> GetWorkOrderList(string workCntNbr, SqlConnection sqlCon)
         {

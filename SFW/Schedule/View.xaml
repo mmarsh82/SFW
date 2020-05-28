@@ -93,7 +93,7 @@
                        TextDecorations="Underline"
                        Margin="10,0,0,0"
                        VerticalAlignment="Center" />
-            
+
             <TextBox x:Name="SearchTextBox"
                      Text="{Binding SearchFilter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                      Width="200"
@@ -317,8 +317,7 @@
                             </MultiDataTrigger.Conditions>
                             <Setter Property="Background" Value="LightCoral"/>
                             <Setter Property="Foreground" Value="Black"/>
-                            <Setter Property="BorderBrush"
-                                    Value="DarkMagenta" />
+                            <Setter Property="BorderBrush" Value="RoyalBlue" />
                         </MultiDataTrigger>
                         <MultiDataTrigger>
                             <MultiDataTrigger.Conditions>
@@ -328,7 +327,7 @@
                             </MultiDataTrigger.Conditions>
                             <Setter Property="Background" Value="DarkSeaGreen"/>
                             <Setter Property="Foreground" Value="Black"/>
-                            <Setter Property="BorderBrush" Value="DarkMagenta" />
+                            <Setter Property="BorderBrush" Value="RoyalBlue" />
                         </MultiDataTrigger>
                         <MultiDataTrigger>
                             <MultiDataTrigger.Conditions>
@@ -337,8 +336,7 @@
                             </MultiDataTrigger.Conditions>
                             <Setter Property="Background" Value="Gray"/>
                             <Setter Property="Foreground" Value="Black"/>
-                            <Setter Property="BorderBrush"
-                                    Value="DarkMagenta" />
+                            <Setter Property="BorderBrush" Value="RoyalBlue" />
                         </MultiDataTrigger>
                         <MultiDataTrigger>
                             <MultiDataTrigger.Conditions>
@@ -347,8 +345,7 @@
                             </MultiDataTrigger.Conditions>
                             <Setter Property="Background" Value="Beige"/>
                             <Setter Property="Foreground" Value="Black"/>
-                            <Setter Property="BorderBrush"
-                                    Value="DarkMagenta" />
+                            <Setter Property="BorderBrush" Value="RoyalBlue" />
                         </MultiDataTrigger>
                         <MultiDataTrigger>
                             <MultiDataTrigger.Conditions>
@@ -358,8 +355,7 @@
                             </MultiDataTrigger.Conditions>
                             <Setter Property="Background" Value="LightBlue"/>
                             <Setter Property="Foreground" Value="Black"/>
-                            <Setter Property="BorderBrush"
-                                    Value="DarkMagenta" />
+                            <Setter Property="BorderBrush" Value="RoyalBlue" />
                         </MultiDataTrigger>
                         
                     </Style.Triggers>

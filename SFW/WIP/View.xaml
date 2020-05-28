@@ -429,10 +429,10 @@
                                         <Style TargetType="{x:Type TextBlock}">
                                             <Style.Triggers>
                                                 <DataTrigger Binding="{Binding IsDirect}" Value="True">
-                                                    <Setter Property="Foreground" Value="Purple"/>
+                                                    <Setter Property="Foreground" Value="ForestGreen"/>
                                                 </DataTrigger>
                                                 <DataTrigger Binding="{Binding IsDirect}" Value="False">
-                                                    <Setter Property="Foreground" Value="MidnightBlue"/>
+                                                    <Setter Property="Foreground" Value="Brown"/>
                                                 </DataTrigger>
                                             </Style.Triggers>
                                         </Style>

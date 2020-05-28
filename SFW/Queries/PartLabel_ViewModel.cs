@@ -4,13 +4,36 @@
     {
         #region Properties
 
-        private string dmdNbr;
+        private string _dmdNbr;
         public string DiamondNumber 
         {
             get
-            { return dmdNbr; }
+            { return _dmdNbr; }
             set
-            { dmdNbr = value; OnPropertyChanged(nameof(DiamondNumber)); }
+            {
+                _dmdNbr = value;
+                OnPropertyChanged(nameof(DiamondNumber));
+                OnPropertyChanged(nameof(PrintParam));
+            }
+        }
+
+        private int _copy;
+        public int Copies
+        {
+            get
+            { return _copy == 0 ? 1 : _copy; }
+            set
+            {
+                _copy = value;
+                OnPropertyChanged(nameof(Copies));
+                OnPropertyChanged(nameof(PrintParam));
+            }
+        }
+
+        public string PrintParam
+        {
+            get
+            { return $"{DiamondNumber}*{Copies}"; }
         }
 
         #endregion

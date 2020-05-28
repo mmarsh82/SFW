@@ -88,7 +88,7 @@ namespace M2kClient.M2kADIArray
 
         /// <summary>
         /// Field 15
-        /// Lot Number
+        /// Optional field, Lot Number
         /// </summary>
         public string LotNumber { get; set; }
 

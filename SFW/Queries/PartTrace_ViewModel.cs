@@ -111,7 +111,7 @@ namespace SFW.Queries
                 var _machName = Machine.GetMachineName(App.AppSqlCon, PartNumber);
                 if (!string.IsNullOrEmpty(_machName))
                 {
-                    var _fileName = ExcelReader.GetSetupPrintNumber(PartNumber, _machName, "\\\\fs-wcco\\WCCO-Engineering\\Product\\Press Setups\\press setup and part number crossreference.xlsm", "Production");
+                    var _fileName = ExcelReader.GetSetupPrintNumber(PartNumber, _machName, $"{App.GlobalConfig.First(o => $"{o.Site}_MAIN" == App.Site).PressSetup}", "Production");
                     if (_fileName.Contains("ERR:"))
                     {
                         ErrorMsg = "Main file is open, contact Engineering.";
@@ -125,15 +125,15 @@ namespace SFW.Queries
                             _fileheader += "0";
                         }
                         _fileName = _fileheader + _fileName;
-                        SetupPrint = $"\\\\fs-wcco\\WCCO-Prints\\{_fileName}.PDF";
+                        SetupPrint = $"{App.GlobalConfig.First(o => $"{o.Site}_MAIN" == App.Site).PartPrint}{_fileName}.PDF";
                         VerifyText = "Accepted";
                     }
                     else
                     {
-                        _fileName = ExcelReader.GetSetupPrintNumber(PartNumber, Machine.GetMachineName(App.AppSqlCon, PartNumber), "\\\\fs-wcco\\WCCO-Engineering\\Product\\Sysco Press Setups\\SYSCO PRESS - Setup cross reference.xlsx", "PRODUCTION");
+                        _fileName = ExcelReader.GetSetupPrintNumber(PartNumber, Machine.GetMachineName(App.AppSqlCon, PartNumber), $"{App.GlobalConfig.First(o => $"{o.Site}_MAIN" == App.Site).SyscoSetup}", "PRODUCTION");
                         if (!string.IsNullOrEmpty(_fileName))
                         {
-                            SetupPrint = $"\\\\fs-wcco\\WCCO-Prints\\{_fileName}.PDF";
+                            SetupPrint = $"{App.GlobalConfig.First(o => $"{o.Site}_MAIN" == App.Site).PartPrint}{ _fileName}.PDF";
                             VerifyText = "Accepted";
                         }
                         else
@@ -148,7 +148,7 @@ namespace SFW.Queries
 
                     VerifyText = "No Setup.";
                 }
-                SkuWIList = Sku.GetInstructions(PartNumber, CurrentUser.GetSite(), App.AppSqlCon);
+                SkuWIList = Sku.GetInstructions(PartNumber, CurrentUser.GetSite(), App.GlobalConfig.First(o => $"{o.Site}_MAIN" == App.Site).WI, App.AppSqlCon);
                 if (SkuWIList == null)
                 {
                     VerifyText += " No Work Instructions.";
@@ -232,9 +232,9 @@ namespace SFW.Queries
                 {
                     new Commands.PartSearch().Execute(_master);
                 }
-                else if (File.Exists($"\\\\fs-wcco\\WCCO-Prints\\{PartNumber}.pdf"))
+                else if (File.Exists($"{App.GlobalConfig.First(o => $"{o.Site}_MAIN" == App.Site).PartPrint}{ PartNumber}.pdf"))
                 {
-                    Process.Start($"\\\\fs-wcco\\WCCO-Prints\\{PartNumber}.pdf");
+                    Process.Start($"{App.GlobalConfig.First(o => $"{o.Site}_MAIN" == App.Site).PartPrint}{ PartNumber}.pdf");
                 }
                 else
                 {
@@ -296,7 +296,7 @@ namespace SFW.Queries
             {
                 try
                 {
-                    var _file = $"\\\\fs-wcco\\WCCO-PublishedDocuments\\{parameter}";
+                    var _file = $"{App.GlobalConfig.First(o => $"{o.Site}_MAIN" == App.Site).WI}{ parameter}";
                     Process.Start(_file);
                 }
                 catch (Exception)

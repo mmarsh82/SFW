@@ -1,4 +1,6 @@
-﻿namespace M2kClient
+﻿using System.Collections;
+
+namespace M2kClient
 {
     public class M2kConnection
     {
@@ -33,6 +35,26 @@
         /// Manage 2000 SFDC folder for ADI requests files that are in the SFDC format
         /// </summary>
         public string SFDCFolder { get; internal set; }
+
+        /// <summary>
+        /// Manage 2000 BTI and SFDC server to use as part of the suffix in the transactions
+        /// </summary>
+        public string AdiServer 
+        {
+            get
+            { switch (Database)
+                {
+                    case Database.CSI:
+                    case Database.CSITRAIN:
+                        return "CSI";
+                    case Database.WCCO:
+                    case Database.WCCOTRAIN:
+                        return "C2K";
+                    default:
+                        return string.Empty;
+                } 
+            }
+        }
 
         public string UniService { get { return "udcs"; } }
         public string UniAccount

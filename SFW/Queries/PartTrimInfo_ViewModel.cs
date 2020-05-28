@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Linq;
 using System.Windows.Input;
 
 namespace SFW.Queries
@@ -73,7 +74,6 @@ namespace SFW.Queries
             try
             {
                 var _tool = string.Empty;
-                var _path = "\\\\fs-wcco\\WCCO-Prints\\";
                 if (parameter.ToString().Contains("*"))
                 {
                     var _type = parameter.ToString().Split('*');
@@ -97,7 +97,7 @@ namespace SFW.Queries
                 {
                     _tool = SetupNumber;
                 }
-                Process.Start($"{_path}{_tool}.pdf");
+                Process.Start($"{App.GlobalConfig.First(o => $"{o.Site}_MAIN" == App.Site).PartPrint}{ _tool}.pdf");
             }
             catch (Win32Exception)
             {
