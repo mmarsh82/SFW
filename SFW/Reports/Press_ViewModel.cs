@@ -4,7 +4,6 @@ using SFW.Model;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
 using System.Windows.Controls;
 using System.Windows.Input;
 
@@ -17,8 +16,21 @@ namespace SFW.Reports
         public PressReport Report { get; set; }
         public ObservableCollection<TabItem> ShiftCollection { get; set; }
         public TabItem SelectedShift { get; set; }
+        public bool IsBlankVis { get { return Report.ShopOrder.Uom == "EA" || Report.ShopOrder.Uom == "PC"; } }
+        public bool CanCreate { get { return Report.IsNew; } }
+        public string ReportAction { get { return CanCreate ? "Submit" : "Update"; } }
+
+        private int? _shift;
+        public int? Shift
+        {
+            get
+            { return _shift; }
+            set
+            { _shift = value; OnPropertyChanged(nameof(Shift)); }
+        }
 
         private RelayCommand _reportAction;
+        private RelayCommand _addShift;
 
         #endregion
 
@@ -26,19 +38,11 @@ namespace SFW.Reports
         /// Overridden Constructor
         /// </summary>
         /// <param name="wo">Work Order Object</param>
-        /// <param name="isNew">Determines if this is a report creation or reader</param>
+        /// <param name="pressAction">Type of action to take on loading the report</param>
         public Press_ViewModel(WorkOrder wo, PressReportActions pressAction)
         {
             switch (pressAction)
             {
-                case PressReportActions.New:
-                    Report = new PressReport(wo, null);
-                    Report.ShiftReportList.Add(new Press_ShiftReport(CurrentUser.FirstName, CurrentUser.LastName, Machine.GetMachineName(App.AppSqlCon, wo), DateTime.Today, App.AppSqlCon));
-                    break;
-                case PressReportActions.StartShift:
-                    Report = new PressReport(wo, App.AppSqlCon);
-                    Report.ShiftReportList.Insert(0, new Press_ShiftReport(CurrentUser.FirstName, CurrentUser.LastName, Machine.GetMachineName(App.AppSqlCon, wo), DateTime.Today, App.AppSqlCon));
-                    break;
                 case PressReportActions.ViewReport:
                     Report = new PressReport(wo, App.AppSqlCon);
                     break;
@@ -77,32 +81,6 @@ namespace SFW.Reports
             return _tempList;
         }
 
-        /// <summary>
-        /// Post labor to the ERP on either submission
-        /// </summary>
-        /// <param name="index">Index number of the Press Shift report object to use in the Press shift report list</param>
-        public void PostLaborToERP(int index)
-        {
-            //TODO: need to add in the update pieces to here
-            var _tempCon = new M2kClient.M2kConnection("manage", "omniquery", "omniquery", M2kClient.Database.WCCOTRAIN); //meant to only be used for testing
-            var _machId = WorkOrder.GetAssignedMachineID(Report.ShopOrder.OrderNumber, Report.ShopOrder.Seq, App.AppSqlCon);
-            var _count = 0;
-            if (index > 0)
-            {
-                var _qtyComp = int.TryParse(Report.ShiftReportList[index - 1].RoundTable.Compute("SUM(RoundSlats)", string.Empty).ToString(), out int i) ? i : 0;
-                _count = Report.ShiftReportList[index - 1].CrewList.Count;
-                foreach (var c in Report.ShiftReportList[index - 1].CrewList)
-                {
-                    M2kClient.M2kCommand.PostLabor("PRESS SFW", c.IdNumber, c.Shift, $"{Report.ShopOrder.OrderNumber}*{Report.ShopOrder.Seq}", _qtyComp, _machId, 'O', _tempCon, DateTime.Now.ToString("HH:mm"), _count);
-                }
-            }
-            _count = Report.ShiftReportList[index].CrewList.Count(o => !string.IsNullOrEmpty(o.Name));
-            foreach (var c in Report.ShiftReportList[index].CrewList.Where(o => !string.IsNullOrEmpty(o.Name)))
-            {
-                M2kClient.M2kCommand.PostLabor("PRESS SFW", c.IdNumber, c.Shift, $"{Report.ShopOrder.OrderNumber}*{Report.ShopOrder.Seq}", 0, _machId, 'I', _tempCon, c.LastClock, _count);
-            }
-        }
-
         #region Report Action ICommand
 
         public ICommand ReportActionICommand
@@ -119,32 +97,43 @@ namespace SFW.Reports
 
         private void ReportActionExecute(object parameter)
         {
-            var _tempVM = (PressShift_ViewModel)parameter;
-            switch (_tempVM.ReportAction)
+            switch (parameter.ToString())
             {
                 case "Submit":
-                    ((PressShift_ViewModel)parameter).UpdateView(Report.Submit(Report, _tempVM.PSReport, App.AppSqlCon), "Update");
-                    PostLaborToERP(Report.ShiftReportList.IndexOf(_tempVM.PSReport));
+                    PressReport.Submit(Report, App.AppSqlCon);
+                    OnPropertyChanged(nameof(CanCreate));
                     break;
                 case "Update":
-                    Report.Update(Report, _tempVM.PSReport, App.AppSqlCon);
-
+                    //Report.Update(Report, App.AppSqlCon);
                     break;
             }
         }
         private bool ReportActionCanExecute(object parameter)
         {
-            var _tempVM = (PressShift_ViewModel)parameter;
-            switch (_tempVM.ReportAction)
+            return Report.SlatTransfer > 0 && Report.RollLength > 0 && (Report.SlatBlankout > 0 || !IsBlankVis);
+        }
+
+        #endregion
+
+        #region Add Shift ICommand
+
+        public ICommand AddShiftICommand
+        {
+            get
             {
-                case "Submit":
-                    return _tempVM.PSReport?.CrewList?.Count > 0;
-                case "Update":
-                    return _tempVM.PSReport?.CrewList?.Count > 0 && _tempVM.PSReport?.ReportID > 0;
-                default:
-                    return false;
+                if (_addShift == null)
+                {
+                    _addShift = new RelayCommand(AddShiftExecute, AddShiftCanExecute);
+                }
+                return _addShift;
             }
         }
+
+        private void AddShiftExecute(object parameter)
+        {
+            
+        }
+        private bool AddShiftCanExecute(object parameter) => !CanCreate && Shift > 0 && Shift < 4;
 
         #endregion
 
@@ -157,10 +146,10 @@ namespace SFW.Reports
             if (disposing)
             {
                 Report = null;
-                PressReport.CrewListUpdates = null;
                 ShiftCollection = null;
                 SelectedShift = null;
                 _reportAction = null;
+                _addShift = null;
             }
         }
     }

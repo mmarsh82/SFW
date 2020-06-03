@@ -74,9 +74,10 @@ namespace SFW.Helpers
                         FilePath = "\\\\fs-wcco\\WCCO-PublishedDocuments\\FORM5127 - Reference Travel Card.pdf";
                         break;
                 }
+                var _fileName = string.IsNullOrEmpty(LotNbr) ? PartNbr : LotNbr;
                 using (PdfReader reader = new PdfReader(FilePath, PdfEncodings.ConvertToBytes(Password, "ASCII")))
                 {
-                    using (PdfStamper stamp = new PdfStamper(reader, new FileStream($"\\\\fs-wcco\\WCCO-OMNI\\Application Data\\temp\\{LotNbr}.pdf", FileMode.Create)))
+                    using (PdfStamper stamp = new PdfStamper(reader, new FileStream($"\\\\fs-wcco\\WCCO-OMNI\\Application Data\\temp\\{_fileName}.pdf", FileMode.Create)))
                     {
                         if (formType == FormType.Portrait)
                         {
@@ -146,8 +147,9 @@ namespace SFW.Helpers
         {
             try
             {
+                var _fileName = string.IsNullOrEmpty(LotNbr) ? PartNbr : LotNbr;
                 CreatePDF(formType);
-                Process.Start($"\\\\fs-wcco\\WCCO-OMNI\\Application Data\\temp\\{LotNbr}.pdf");
+                Process.Start($"\\\\fs-wcco\\WCCO-OMNI\\Application Data\\temp\\{_fileName}.pdf");
                 DeleteDocuments();
             }
             catch (Exception)
@@ -165,7 +167,8 @@ namespace SFW.Helpers
             try
             {
                 CreatePDF(formType);
-                var _documentName = $"\\\\fs-wcco\\WCCO-OMNI\\Application Data\\temp\\{LotNbr}.pdf";
+                var _fileName = string.IsNullOrEmpty(LotNbr) ? PartNbr : LotNbr;
+                var _documentName = $"\\\\fs-wcco\\WCCO-OMNI\\Application Data\\temp\\{_fileName}.pdf";
                 using (Spire.Pdf.PdfDocument doc = new Spire.Pdf.PdfDocument(_documentName, "technology#1"))
                 {
                     using (PrintDialog pdialog = new PrintDialog { AllowPrintToFile = true, AllowSomePages = true })
@@ -201,7 +204,8 @@ namespace SFW.Helpers
             {
                 try
                 {
-                    if (f != $"\\\\fs-wcco\\WCCO-OMNI\\Application Data\\temp\\{LotNbr}.pdf")
+                    var _fileName = string.IsNullOrEmpty(LotNbr) ? PartNbr : LotNbr;
+                    if (f != $"\\\\fs-wcco\\WCCO-OMNI\\Application Data\\temp\\{_fileName}.pdf")
                     {
                         File.Delete(f);
                     }

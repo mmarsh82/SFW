@@ -135,7 +135,7 @@ namespace SFW.Queries
             { return _fLoc; }
             set
             {
-                _fLoc = value.ToUpper();
+                _fLoc = value?.ToUpper();
                 OnPropertyChanged(nameof(FromLocation));
                 OnPropertyChanged(nameof(IsFromValid));
                 OnPropertyChanged(nameof(FromLocSize));
@@ -291,6 +291,7 @@ namespace SFW.Queries
             {
                 QuantityInput = Part.TotalOnHand;
                 FromLocation = Part.Location;
+                ToLocation = string.Empty;
             }
             OnPropertyChanged(nameof(Part));
             _lot = UseLot ? UserInput : string.Empty;
@@ -428,10 +429,11 @@ namespace SFW.Queries
                 ,TotalOnHand = Convert.ToInt32(QuantityInput)
                 ,Location = FromLocation
             };
-            MoveHistory.Add(_tran);
+            MoveHistory.Insert(0, _tran);
             ToLocation = MoveReference = string.Empty;
             OnPropertyChanged(nameof(MoveReference));
             SearchExecute("r");
+            QuantityInput = null;
         }
         private bool MoveCanExecute(object parameter)
         {

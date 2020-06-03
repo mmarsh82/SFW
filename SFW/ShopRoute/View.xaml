@@ -50,20 +50,6 @@
 
                 <StackPanel Grid.Row="0"
                             Orientation="Horizontal">
-                    <Button Content="Start"
-                            FontSize="16"
-                            IsEnabled="{Binding CanWip, Source={StaticResource User}}"
-                            Visibility="{Binding CanStart, Converter={StaticResource BoolToVisConverter}}"
-                            Command="{Binding ReportICommand}"
-                            CommandParameter="0"
-                            Style="{DynamicResource MenuButtonStyle}" />
-                    <Button Content="Start Shift"
-                            FontSize="16"
-                            Visibility="{Binding HasStarted, Converter={StaticResource BoolToVisConverter}}"
-                            IsEnabled="{Binding Path=CanWip, Source={StaticResource User}}"
-                            Command="{Binding ReportICommand}"
-                            CommandParameter="1"
-                            Style="{DynamicResource MenuButtonStyle}" />
                     <Button Content="Set-up Info"
                             FontSize="16"
                             Command="{StaticResource SetupCommand}"
@@ -83,28 +69,12 @@
                             Command="{StaticResource WipCommand}"
                             CommandParameter="{Binding ShopOrder}"
                             Style="{DynamicResource MenuButtonStyle}" />
-                    <Button Content="Log Round"
-                            FontSize="16"
-                            Visibility="{Binding HasStarted, Converter={StaticResource BoolToVisConverter}}"
-                            IsEnabled="{Binding CanWip, Source={StaticResource User}}"
-                            Command="{Binding ReportICommand}"
-                            CommandParameter="3"
-                            Style="{DynamicResource MenuButtonStyle}" />
                     <Button Content="ITH"
                             FontSize="16"
                             Visibility="{Binding CanCheckHistory, Converter={StaticResource BoolToVisConverter}}"
                             Command="{StaticResource PartInfoCommand}"
                             CommandParameter="{Binding ShopOrder}"
                             Style="{DynamicResource MenuButtonStyle}" />
-                    <Button Content="Report Sheet"
-                            FontSize="16"
-                            Width="110"
-                            IsEnabled="{Binding HasStarted, Source={StaticResource User}}"
-                            Visibility="{Binding CanReport, Converter={StaticResource BoolToVisConverter}}"
-                            Command="{Binding ReportICommand}"
-                            CommandParameter="2"
-                            Style="{DynamicResource MenuButtonStyle}" />
-
                     <Menu Style="{DynamicResource ModernMenu}"
                           Visibility="{Binding ShopOrder.InstructionList.Count, Converter={StaticResource CountToVisConverter}}">
                         <MenuItem Header="Work&#10;Instructions"
@@ -123,6 +93,19 @@
                             </MenuItem.ItemContainerStyle>
                         </MenuItem>
                     </Menu>
+                    <Button Content="Log Round"
+                            FontSize="16"
+                            Visibility="{Binding CanReport, Converter={StaticResource BoolToVisConverter}}"
+                            Command="{Binding ReportICommand}"
+                            CommandParameter="3"
+                            Style="{DynamicResource MenuButtonStyle}" />
+                    <Button Content="Report Sheet"
+                            FontSize="16"
+                            Width="110"
+                            Visibility="{Binding CanReport, Converter={StaticResource BoolToVisConverter}}"
+                            Command="{Binding ReportICommand}"
+                            CommandParameter="2"
+                            Style="{DynamicResource MenuButtonStyle}" />
 
                 </StackPanel>
 

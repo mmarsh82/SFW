@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
 using System.Data.SqlClient;
-using System.Linq;
 
 namespace SFW.Model
 {
@@ -20,11 +18,6 @@ namespace SFW.Model
         /// Report Work Center Name
         /// </summary>
         public string MachineName { get; set; }
-
-        /// <summary>
-        /// Press shift report crew list to use for the labor part of the transaction
-        /// </summary>
-        public BindingList<CrewMember> CrewList { get; set; }
 
         /// <summary>
         /// Round data for the press report per shift
@@ -57,13 +50,11 @@ namespace SFW.Model
         /// <summary>
         /// Press shift report object constructor
         /// </summary>
-        /// <param name="subFName">Current user full name</param>
-        /// <param name="subLName">Current user last name</param>
         /// <param name="wcName">Machine name</param>
         /// <param name="rDate">Report or submit date</param>
         /// <param name="sqlCon">Sql Connection to use</param>
         /// <param name="shift">Optional: shift for this report</param>
-        public Press_ShiftReport(string subFName, string subLName, string wcName, DateTime rDate, SqlConnection sqlCon, int shift = 0)
+        public Press_ShiftReport(string wcName, DateTime rDate, SqlConnection sqlCon, int shift = 0)
         {
             if (shift == 0)
             {
@@ -85,12 +76,6 @@ namespace SFW.Model
             MachineName = wcName;
             ReportStatus = "O";
             ModelBase.ModelSqlCon = sqlCon;
-            CrewList = new BindingList<CrewMember>
-                {
-                    new CrewMember { IdNumber = CrewMember.GetCrewIdNumber(sqlCon, subFName, subLName), Name = $"{subFName} {subLName}" }
-                };
-            CrewList.AddNew();
-            CrewList.ListChanged += CrewList_ListChanged;
             if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
             {
                 try
@@ -135,29 +120,11 @@ namespace SFW.Model
             MachineName = wcName;
             ReportDate = rDate;
             Shift = shift;
-            CrewList = new BindingList<CrewMember>();
             RoundTable = new DataTable();
             if (sqlCon != null || sqlCon.State != ConnectionState.Closed || sqlCon.State != ConnectionState.Broken)
             {
                 try
                 {
-                    using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database};
-                                                                SELECT [UserID] FROM [dbo].[PRM-CSTM_Crew] WHERE [ReportID] = @p1", sqlCon))
-                    {
-                        cmd.Parameters.AddWithValue("p1", reportID);
-                        using (SqlDataReader reader = cmd.ExecuteReader())
-                        {
-                            if (reader.HasRows)
-                            {
-                                while (reader.Read())
-                                {
-                                    CrewList.Add(new CrewMember { IdNumber = reader.SafeGetString("UserID"), Name = CrewMember.GetCrewDisplayName(sqlCon, reader.SafeGetString("UserID")) });
-                                }
-                                CrewList.AddNew();
-                                CrewList.ListChanged += CrewList_ListChanged;
-                            }
-                        }
-                    }
                     using (SqlDataAdapter adapter = new SqlDataAdapter($@"USE {sqlCon.Database}; SELECT [Time], [RoundNumber], [QtyComplete], [RoundSlats], [Notes] FROM [dbo].[PRM-CSTM]_Round WHERE [ReportID] = @p1", sqlCon))
                     {
                         adapter.SelectCommand.Parameters.AddWithValue("p1", reportID);
@@ -176,38 +143,6 @@ namespace SFW.Model
             else
             {
                 throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
-            }
-        }
-
-        /// <summary>
-        /// Happens when an item is added or changed in the CrewMember Binding List property
-        /// </summary>
-        /// <param name="sender">BindingList<CompWipInfo> list passed without changes</param>
-        /// <param name="e">Change info</param>
-        private void CrewList_ListChanged(object sender, ListChangedEventArgs e)
-        {
-            //TODO: need to add in the ability to post labor here or set up a que so that the update know what to post
-            if (e.ListChangedType == ListChangedType.ItemChanged && e.PropertyDescriptor.DisplayName == "IdNumber")
-            {
-                ((BindingList<CrewMember>)sender)[e.NewIndex].Name = string.Empty;
-                var _dName = CrewMember.GetCrewDisplayName(ModelBase.ModelSqlCon, ((BindingList<CrewMember>)sender)[e.NewIndex].IdNumber);
-                var _duplicate = ((BindingList<CrewMember>)sender).Any(o => o.Name == _dName);
-                if (!string.IsNullOrEmpty(_dName) && !_duplicate)
-                {
-                    ((BindingList<CrewMember>)sender)[e.NewIndex].Name = _dName;
-                    PressReport.CrewListUpdates.Add(((BindingList<CrewMember>)sender)[e.NewIndex]);
-                    if (((BindingList<CrewMember>)sender).Count == e.NewIndex + 1)
-                    {
-                        ((BindingList<CrewMember>)sender).AddNew();
-                    }
-                }
-            }
-            if (e.ListChangedType == ListChangedType.ItemDeleted)
-            {
-                if (!PressReport.CrewListUpdates.Contains(((BindingList<CrewMember>)sender)[e.NewIndex]))
-                {
-                    PressReport.CrewListUpdates.Add(((BindingList<CrewMember>)sender)[e.NewIndex]);
-                }
             }
         }
 
@@ -240,12 +175,9 @@ namespace SFW.Model
                                         Shift = reader.SafeGetInt32("Shift"),
                                         ReportStatus = reader.SafeGetString("Status"),
                                         MachineName = machineName,
-                                        CrewList = CrewMember.GetCrewBindingList(reader.SafeGetInt32("ReportID"), sqlCon),
                                         RoundTable = GetRoundTable(reader.SafeGetInt32("ReportID"), sqlCon)
                                     });
                                 }
-                                _tempList[0].CrewList.AddNew();
-                                _tempList[0].CrewList.ListChanged += _tempList[_tempList.Count - 1].CrewList_ListChanged;
                                 ModelBase.ModelSqlCon = sqlCon;
                             }
                         }
@@ -321,8 +253,8 @@ namespace SFW.Model
                     var oldID = 0;
                     using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database};
                                                                 SELECT
-	                                                                ISNULL((SELECT [ReportID] FROM [dbo].[PRM-CSTM_Shift] WHERE [WorkOrder] = '222382' AND [Status] = 'O' AND [Shift] != '1'), 0) as 'Open',
-	                                                                (SELECT COUNT([ReportID]) FROM [dbo].[PRM-CSTM_Shift] WHERE [WorkOrder] = '222382' AND [Shift] = '1' AND [Status] = 'O') as 'Duplicate';", sqlCon))
+	                                                                ISNULL((SELECT [ReportID] FROM [dbo].[PRM-CSTM_Shift] WHERE [WorkOrder] = @p1 AND [Status] = 'O' AND [Shift] != @p2), 0) as 'Open',
+	                                                                (SELECT COUNT([ReportID]) FROM [dbo].[PRM-CSTM_Shift] WHERE [WorkOrder] = @p1 AND [Shift] = @p2 AND [Status] = 'O') as 'Duplicate';", sqlCon))
                     {
                         cmd.Parameters.AddWithValue("p1", woNbr);
                         cmd.Parameters.AddWithValue("p2", psReport.Shift);
@@ -363,21 +295,6 @@ namespace SFW.Model
                         cmd.Parameters.AddWithValue("p3", psReport.Shift);
                         cmd.Parameters.AddWithValue("p4", psReport.ReportStatus);
                         psReport.ReportID = Convert.ToInt32(cmd.ExecuteScalar());
-                    }
-
-                    //Writing the Crew to the database in 1 query, requires the parsing of the the crewlist property
-                    var cmdString = $@"USE { sqlCon.Database};";
-                    var _counter = 1;
-                    using (SqlCommand cmd = new SqlCommand(cmdString, sqlCon))
-                    {
-                        foreach (var s in psReport.CrewList.Where(o => !string.IsNullOrEmpty(o.Name)))
-                        {
-                            cmd.CommandText += $" INSERT INTO [dbo].[PRM-CSTM_Crew] ([ReportID], [UserID]) VALUES(@p{_counter}, @p{_counter + 1});";
-                            cmd.Parameters.AddWithValue($"p{_counter}", psReport.ReportID);
-                            cmd.Parameters.AddWithValue($"p{_counter + 1}", s.IdNumber);
-                            _counter = _counter + 2;
-                        }
-                        cmd.ExecuteNonQuery();
                     }
                     return Convert.ToInt32(psReport.ReportID);
                 }

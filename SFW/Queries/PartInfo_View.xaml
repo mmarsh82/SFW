@@ -344,6 +344,7 @@
                             Style="{DynamicResource DefaultButton}" />
 
                     <ListBox ItemsSource="{Binding MoveHistory, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                             Margin="0,0,0,20"
                              FontSize="15"
                              Cursor="Hand"
                              BorderThickness="0"

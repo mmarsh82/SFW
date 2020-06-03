@@ -504,5 +504,19 @@ namespace SFW
             }
         }
 
+        /// <summary>
+        /// Closes any window of type T in the application that is currently showing
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        public static void CloseWindow<T>() where T : Window
+        {
+            foreach(Window w in Current.Windows)
+            {
+                if (w.GetType() == typeof(T))
+                {
+                    w.Close();
+                }
+            }
+        }
     }
 }

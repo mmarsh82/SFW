@@ -1,7 +1,7 @@
 ﻿using M2kClient;
 using SFW.Helpers;
 using SFW.Model;
-using System;
+using SFW.Reports;
 using System.Windows;
 using System.Windows.Input;
 
@@ -23,8 +23,6 @@ namespace SFW.ShopRoute
                 ShopOrderNotes = null;
                 MachineGroup = string.Empty;
                 OnPropertyChanged(nameof(CanCheckHistory));
-                OnPropertyChanged(nameof(HasStarted));
-                OnPropertyChanged(nameof(CanStart));
                 OnPropertyChanged(nameof(CanSeeWip));
             }
         }
@@ -65,11 +63,8 @@ namespace SFW.ShopRoute
         }
 
         public bool CanCheckHistory { get { return ShopOrder?.StartQty != ShopOrder?.CurrentQty; } }
-        public bool HasStarted { get { return CurrentUser.IsLoggedIn && MachineGroup == "PRESS" && ShopOrder.ActStartDate != DateTime.MinValue; } }
-        public bool CanStart { get { return CurrentUser.IsLoggedIn && MachineGroup == "PRESS" && ShopOrder.ActStartDate == DateTime.MinValue; } }
         public bool CanSeeWip { get { return CurrentUser.IsLoggedIn; } }
-        public bool CanReport { get { return CurrentUser.IsLoggedIn && MachineGroup == "PRESS" && HasStarted; } }
-        public bool CanIntReport { get { return CurrentUser.IsLoggedIn && MachineGroup != "PRESS" && CanCheckHistory && CurrentSite == 1; } }
+        public bool CanReport { get { return CurrentUser.IsLoggedIn && MachineGroup == "PRESS"; } }
         public bool CanSeeTrim { get { return MachineGroup == "PRESS"; } }
 
         private RelayCommand _noteChange;
@@ -103,8 +98,6 @@ namespace SFW.ShopRoute
         public void UpdateView()
         {
             OnPropertyChanged(nameof(CanSeeWip));
-            OnPropertyChanged(nameof(HasStarted));
-            OnPropertyChanged(nameof(CanStart));
         }
 
         #region Work Order Note Change ICommand
@@ -132,6 +125,40 @@ namespace SFW.ShopRoute
             }
         }
         private bool NoteChgCanExecute(object parameter) => true;
+
+        #endregion
+
+        #region Press Report ICommand
+
+        public ICommand ReportICommand
+        {
+            get
+            {
+                if (_loadReport == null)
+                {
+                    _loadReport = new RelayCommand(ReportExecute, ReportCanExecute);
+                }
+                return _loadReport;
+            }
+        }
+
+        private void ReportExecute(object parameter)
+        {
+            if (int.TryParse(parameter.ToString(), out int i))
+            {
+                var _repType = (Enumerations.PressReportActions)i;
+                var _rep = new PressReport(shopOrder, App.AppSqlCon);
+                if (_repType == Enumerations.PressReportActions.LogProgress && (_rep.IsNew || _rep.ShiftReportList.Count == 0))
+                {
+                    MessageBox.Show("There is currently no report created for this work order.\nPlease click on the report sheet button and submit a new report.", "No Report Sheet", MessageBoxButton.OK, MessageBoxImage.Exclamation);
+                }
+                else
+                {
+                    new Press_View { DataContext = new Press_ViewModel(ShopOrder, _repType) }.Show();
+                }
+            }
+        }
+        private bool ReportCanExecute(object parameter) => true;
 
         #endregion
     }

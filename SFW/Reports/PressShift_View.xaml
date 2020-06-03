@@ -13,8 +13,6 @@
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="40" />
-            <RowDefinition Height="35" />
-            <RowDefinition Height="150" />
             <RowDefinition Height="*" />
             <RowDefinition Height="40" />
         </Grid.RowDefinitions>
@@ -28,144 +26,11 @@
                    Foreground="Black" />
         
         <!--#endregion-->
-
-        <!--#region Seperator-->
-
-        <Rectangle Grid.Row="1"
-                   Fill="#FF135185"
-                   HorizontalAlignment="Stretch"
-                   VerticalAlignment="Stretch"/>
-        <TextBlock Grid.Row="1"
-                   HorizontalAlignment="Center"
-                   VerticalAlignment="Center"
-                   Text="Crew Members"
-                   FontWeight="Bold"
-                   FontSize="20"
-                   Foreground="WhiteSmoke"/>
-
-        <!--#endregion-->
-
-        <!--#region Crew Inputs-->
-
-        <ItemsControl Name="CrewMembers"
-                      Grid.Row="2"
-                      ItemsSource="{Binding Path=PSReport.CrewList}"
-                      Margin="10,0,0,0"
-                      FontSize="18"
-                      Cursor="Hand"
-                      Background="Transparent"
-                      Foreground="Black"
-                      Focusable="False">
-
-            <ItemsControl.ItemsPanel>
-                <ItemsPanelTemplate>
-                    <VirtualizingStackPanel IsItemsHost="True"
-                                            Orientation="Vertical" />
-                </ItemsPanelTemplate>
-            </ItemsControl.ItemsPanel>
-
-            <ItemsControl.ItemTemplate>
-                <DataTemplate>
-
-                    <StackPanel Orientation="Vertical">
-                        <StackPanel Orientation="Horizontal">
-                            
-                            <TextBlock Text="Employee Nbr:"
-                                       TextDecorations="Underline"
-                                       FontWeight="Bold" />
-                            
-                            <TextBox Text="{Binding IdNumber, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                     FontSize="16"
-                                     Width="100"
-                                     CharacterCasing="Upper"
-                                     MaxLength="7"
-                                     Margin="3"
-                                     Background="LightGray" 
-                                     IsEnabled="{Binding DataContext.CanEdit, ElementName=PressShift_UserControl}"/>
-                            
-                            <TextBlock Text="{Binding Name}"
-                                       VerticalAlignment="Center"
-                                       Margin="10,0,0,0" />
-                            
-                            <TextBlock Text="Shift:"
-                                       TextDecorations="Underline"
-                                       FontWeight="Bold"
-                                       VerticalAlignment="Center"
-                                       Margin="10,0,0,0">
-                                <TextBlock.Visibility>
-                                    <MultiBinding Converter="{StaticResource CrewtoVisConverter}">
-                                        <Binding Path="IsDirect" />
-                                        <Binding Path="Name" />
-                                    </MultiBinding>
-                                </TextBlock.Visibility>
-                            </TextBlock>
-                            
-                            <TextBlock Text="{Binding Shift}"
-                                       VerticalAlignment="Center"
-                                       Margin="5,0,0,0">
-                                <TextBlock.Visibility>
-                                    <MultiBinding Converter="{StaticResource CrewtoVisConverter}">
-                                        <Binding Path="IsDirect" />
-                                        <Binding Path="Name" />
-                                    </MultiBinding>
-                                </TextBlock.Visibility>
-                            </TextBlock>
-                            
-                            <TextBlock Text="In Time:"
-                                       TextDecorations="Underline"
-                                       FontWeight="Bold"
-                                       VerticalAlignment="Center"
-                                       Margin="10,0,0,0">
-                                <TextBlock.Visibility>
-                                    <MultiBinding Converter="{StaticResource CrewtoVisConverter}">
-                                        <Binding Path="IsDirect" />
-                                        <Binding Path="Name" />
-                                    </MultiBinding>
-                                </TextBlock.Visibility>
-                            </TextBlock>
-
-                            <TextBox Text="{Binding LastClock}"
-                                     VerticalAlignment="Center"
-                                     Margin="3"
-                                     FontSize="18"
-                                     Background="LightGray"
-                                     Width="75"
-                                     MaxLength="5"
-                                     IsTabStop="False"
-                                     IsEnabled="{Binding DataContext.CanEdit, ElementName=PressShift_UserControl}"
-                                     Style="{DynamicResource RequiredTextBox}">
-                                <TextBox.Visibility>
-                                    <MultiBinding Converter="{StaticResource CrewtoVisConverter}">
-                                        <Binding Path="IsDirect" />
-                                        <Binding Path="Name" />
-                                    </MultiBinding>
-                                </TextBox.Visibility>
-                            </TextBox>
-
-                            <Button Command="{Binding DataContext.RemoveCrewICommand, ElementName=PressShift_UserControl}"
-                                    CommandParameter="{Binding IdNumber}"
-                                    Visibility="{Binding DataContext.CanEdit, ElementName=PressShift_UserControl, Converter={StaticResource BoolToVisConverter}}"
-                                    Width="20"
-                                    Height="20"
-                                    Margin="10,0 0 0"
-                                    Style="{DynamicResource DefaultButton}">
-                                <Button.Content>
-                                    <Image Source="/SFW;component/Icons/Delete.ico" />
-                                </Button.Content>
-                            </Button>
-                        </StackPanel>
-                    </StackPanel>
-                </DataTemplate>
-            </ItemsControl.ItemTemplate>
-
-        </ItemsControl>
-
-        <!--#endregion-->
         
         <!--#region Round Report-->
 
         <DataGrid x:Name="RoundReport"
-                  Grid.Row="3"
+                  Grid.Row="1"
                   ItemsSource="{Binding PSReport.RoundTable}"
                   HorizontalAlignment="Left"
                   AlternatingRowBackground="LightGray"
@@ -175,7 +40,7 @@
 
         <!--#region Footer-->
         
-        <StackPanel Grid.Row="4"
+        <StackPanel Grid.Row="2"
                     Orientation="Horizontal"
                     HorizontalAlignment="Left"
                     Margin="10,0,0,0">
@@ -194,7 +59,7 @@
                        
         </StackPanel>
 
-        <Button Grid.Row="4"
+        <Button Grid.Row="2"
                 Content="{Binding ReportAction}"
                 Command="{Binding DataContext.ReportActionICommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type TabControl}}}"
                 CommandParameter="{Binding DataContext, ElementName=PressShift_UserControl}"
