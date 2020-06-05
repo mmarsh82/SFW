@@ -52,8 +52,8 @@ namespace SFW.Controls
             //Add the Part Info View to [3]
             MainDock.Children.Insert(3, new PartInfo_View());
 
-            //Empty Child [4]
-            MainDock.Children.Insert(3, new PartInfo_View());
+            //Add the Cycle Count View to [4]
+            MainDock.Children.Insert(4, new CycleCount.CC_View { DataContext = new CycleCount.CC_ViewModel() });
 
             //Add the Part Detail View to [5]
             MainDock.Children.Insert(5, new UserControl());

@@ -128,21 +128,12 @@
                        Margin="10,0,0,0" 
                        Visibility="{Binding IsBlankVis, Converter={StaticResource BoolToVisConverter}}"/>
 
-            <Button x:Name="FormButton"
-                    Content="{Binding ReportAction}"
-                    Margin="30,0,0,0"
-                    Width="100"
-                    Command="{Binding ReportActionICommand}"
-                    CommandParameter="{Binding ReportAction}"
-                    Style="{DynamicResource DefaultButton}"/>
-
             <TextBlock Text="Shift:"
                        TextDecorations="Underline"
                        FontSize="20"
                        FontWeight="Bold"
                        Foreground="#FF135185"
-                       Margin="40,0,0,0" 
-                       Visibility="{Binding CanCreate, ConverterParameter=i, Converter={StaticResource BoolToVisConverter}}"/>
+                       Margin="40,0,0,0"/>
             
             <TextBox Text="{Binding Shift, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                      Background="LightGray"
@@ -152,8 +143,16 @@
                      FontSize="20"
                      FontWeight="Bold"
                      Margin="10,0,0,0"
-                     TabIndex="3"
-                     Visibility="{Binding CanCreate, ConverterParameter=i, Converter={StaticResource BoolToVisConverter}}"/>
+                     TabIndex="3"/>
+
+            <Button x:Name="FormButton"
+                    Content="{Binding ReportAction}"
+                    Margin="30,0,0,0"
+                    Width="100"
+                    Command="{Binding ReportActionICommand}"
+                    CommandParameter="{Binding ReportAction}"
+                    Visibility="{Binding CanCreate, Converter={StaticResource BoolToVisConverter}}"
+                    Style="{DynamicResource DefaultButton}"/>
 
             <Button Content="Add Shift"
                     Margin="10,0,0,0"

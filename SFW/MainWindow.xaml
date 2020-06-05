@@ -133,10 +133,10 @@
                           Command="{StaticResource ViewLoadICommand}"
                           CommandParameter="ClosedSched"
                           InputGestureText="Shift+Ctrl+C"/>
-                <MenuItem Header="Scheduler"
+                <MenuItem Header="Cycle Count"
                           Command="{StaticResource ViewLoadICommand}"
-                          CommandParameter="Scheduler"
-                          IsEnabled="False" />
+                          CommandParameter="CycleCount"
+                          Visibility="{Binding Path=(local:CurrentUser.IsInventoryControl), Converter={StaticResource BoolToVisConverter}}"/>
             </MenuItem>
             <MenuItem Header="Tools">
                 <MenuItem Header="Part Information"

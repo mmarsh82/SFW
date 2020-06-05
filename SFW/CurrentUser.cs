@@ -147,6 +147,18 @@ namespace SFW
             }
         }
 
+        private static bool _isInvCtrl;
+        public static bool IsInventoryControl
+        {
+            get
+            { return _isInvCtrl; }
+            private set
+            {
+                _isInvCtrl = value;
+                StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(IsInventoryControl)));
+            }
+        }
+
         private static string _uID;
         public static string UserIDNbr
         {
@@ -206,6 +218,7 @@ namespace SFW
             CanSchedule = _groups.Exists(o => o.ToString().Contains("SFW_Sched"));
             IsAdmin = _groups.Exists(o => o.ToString().Contains("SFW_Admin"));
             IsSupervisor = _groups.Exists(o => o.ToString().Contains("SFW_Super"));
+            IsInventoryControl = _groups.Exists(o => o.ToString().Contains("SFW_IC"));
             IsLoggedIn = true;
             CanWip = user.UserPrincipalName.Contains("wcco");
             UserIDNbr = user.EmployeeId;

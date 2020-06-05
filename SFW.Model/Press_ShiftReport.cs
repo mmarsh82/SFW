@@ -49,43 +49,59 @@ namespace SFW.Model
 
         /// <summary>
         /// Press shift report object constructor
+        /// To be used when creating a new shift report sheet
         /// </summary>
-        /// <param name="wcName">Machine name</param>
+        /// <param name="woNbr">Work Order number</param>
         /// <param name="rDate">Report or submit date</param>
+        /// <param name="shift">Shift for this report</param>
         /// <param name="sqlCon">Sql Connection to use</param>
-        /// <param name="shift">Optional: shift for this report</param>
-        public Press_ShiftReport(string wcName, DateTime rDate, SqlConnection sqlCon, int shift = 0)
+        public Press_ShiftReport(WorkOrder wo, DateTime rDate, int shift, SqlConnection sqlCon)
         {
-            if (shift == 0)
-            {
-                if (DateTime.Now.Hour >= 7 && DateTime.Now.Hour < 15)
-                {
-                    shift = 1;
-                }
-                else if (DateTime.Now.Hour >= 15 && DateTime.Now.Hour < 23)
-                {
-                    shift = 2;
-                }
-                else
-                {
-                    shift = 3;
-                }
-            }
             Shift = shift;
             ReportDate = rDate;
-            MachineName = wcName;
             ReportStatus = "O";
-            ModelBase.ModelSqlCon = sqlCon;
+            MachineName = wo.Machine;
             if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
             {
                 try
                 {
+                    using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database};
+                                                                SELECT COUNT([WorkOrder])
+                                                                FROM [dbo].[PRM-CSTM_Shift]
+                                                                WHERE [WorkOrder] = @p1 AND [Status] = 'O';", sqlCon))
+                    {
+                        cmd.Parameters.AddWithValue("p1", wo.OrderNumber);
+                        if(int.TryParse(cmd.ExecuteScalar().ToString(), out int i) && i > 0)
+                        {
+                            using (SqlCommand nCmd = new SqlCommand($@"USE {sqlCon.Database};
+                                                                        UPDATE [dbo].[PRM-CSTM_Shift]
+                                                                        SET [Status] = 'C'
+                                                                        WHERE [WorkOrder] = @p1 AND [Status] = 'O';", sqlCon))
+                            {
+                                nCmd.Parameters.AddWithValue("p1", wo.OrderNumber);
+                                nCmd.ExecuteNonQuery();
+                            }
+                        }
+                    }
+                    using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database};
+                                                                INSERT INTO [dbo].[PRM-CSTM_Shift]
+                                                                ([SubmitDate], [WorkOrder], [Shift], [Status])
+                                                                VALUES(@p1, @p2, @p3, @p4);
+                                                                SELECT [ReportID] FROM [PRM-CSTM_Shift] WHERE [ReportID] = @@IDENTITY;", sqlCon))
+                    {
+                        cmd.Parameters.AddWithValue("p1", ReportDate);
+                        cmd.Parameters.AddWithValue("p2", wo.OrderNumber);
+                        cmd.Parameters.AddWithValue("p3", Shift);
+                        cmd.Parameters.AddWithValue("p4", ReportStatus);
+                        ReportID = int.TryParse(cmd.ExecuteScalar().ToString(), out int i) ? i : 0;
+                    }
                     using (SqlDataAdapter adapter = new SqlDataAdapter($@"USE {sqlCon.Database};
                                                                             SELECT TOP (0) [Time]
-                                                                                ,[RoundNumber] as 'Round Number'
-                                                                                ,[QtyComplete] as 'Qty Done'
-                                                                                ,[RoundSlats] as 'Slats per Round'
+                                                                                ,[RoundNumber] as 'Round'
+                                                                                ,[QtyComplete] as 'Quantity'
+                                                                                ,[Qlty_Flag] as 'Flag'
                                                                                 ,[Notes]
+                                                                                ,[RollNbr] as 'Roll'
                                                                             FROM [dbo].[PRM-CSTM_Round]", sqlCon))
                     {
                         RoundTable = new DataTable();
@@ -125,7 +141,7 @@ namespace SFW.Model
             {
                 try
                 {
-                    using (SqlDataAdapter adapter = new SqlDataAdapter($@"USE {sqlCon.Database}; SELECT [Time], [RoundNumber], [QtyComplete], [RoundSlats], [Notes] FROM [dbo].[PRM-CSTM]_Round WHERE [ReportID] = @p1", sqlCon))
+                    using (SqlDataAdapter adapter = new SqlDataAdapter($@"USE {sqlCon.Database}; SELECT [Time], [RoundNbr], [Quantity], [Notes] FROM [dbo].[PRM-CSTM]_Round WHERE [ReportID] = @p1", sqlCon))
                     {
                         adapter.SelectCommand.Parameters.AddWithValue("p1", reportID);
                         adapter.Fill(RoundTable);
@@ -213,7 +229,15 @@ namespace SFW.Model
                 {
                     try
                     {
-                        using (SqlDataAdapter adapter = new SqlDataAdapter($@"USE {sqlCon.Database}; SELECT [Time], [RoundNumber], [QtyComplete], [RoundSlats], [Notes] FROM [dbo].[PRM-CSTM_Round] WHERE [ReportID] = @p1", sqlCon))
+                        using (SqlDataAdapter adapter = new SqlDataAdapter($@"USE {sqlCon.Database};
+                                                                            SELECT [Time]
+                                                                                ,[RoundNbr] as 'Round'
+                                                                                ,[Quantity]
+                                                                                ,[QualityFlg] as 'Flag'
+                                                                                ,[Notes]
+                                                                                ,[RollNbr] as 'Roll'
+                                                                            FROM [dbo].[PRM-CSTM_Round]
+                                                                            WHERE [ReportID] = @p1", sqlCon))
                         {
                             adapter.SelectCommand.Parameters.AddWithValue("p1", reportID);
                             adapter.Fill(table);
@@ -236,79 +260,6 @@ namespace SFW.Model
             }
         }
 
-        /// <summary>
-        /// Submit the Press shift report object to a SQL Database
-        /// </summary>
-        /// <param name="woNbr">Work order number</param>
-        /// <param name="psReport">Press shift report object to submit</param>
-        /// <param name="sqlCon">Sql Connection to use</param>
-        /// <returns>Report unique ID</returns>
-        public int Submit(string woNbr, Press_ShiftReport psReport, SqlConnection sqlCon)
-        {
-            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
-            {
-                try
-                {
-                    //Validation to see if this is a duplicate entry and close out any open reports from the origin work order
-                    var oldID = 0;
-                    using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database};
-                                                                SELECT
-	                                                                ISNULL((SELECT [ReportID] FROM [dbo].[PRM-CSTM_Shift] WHERE [WorkOrder] = @p1 AND [Status] = 'O' AND [Shift] != @p2), 0) as 'Open',
-	                                                                (SELECT COUNT([ReportID]) FROM [dbo].[PRM-CSTM_Shift] WHERE [WorkOrder] = @p1 AND [Shift] = @p2 AND [Status] = 'O') as 'Duplicate';", sqlCon))
-                    {
-                        cmd.Parameters.AddWithValue("p1", woNbr);
-                        cmd.Parameters.AddWithValue("p2", psReport.Shift);
-                        using (SqlDataReader reader = cmd.ExecuteReader())
-                        {
-                            if (reader.HasRows)
-                            {
-                                while (reader.Read())
-                                {
-                                    if (reader.SafeGetInt32("Duplicate") == 1)
-                                    {
-                                        return -1;
-                                    }
-                                    oldID = reader.SafeGetInt32("Open");
-                                }
-                            }
-                        }
-                    }
-                    if (oldID > 0)
-                    {
-                        var prevShift = psReport.Shift == 1 ? 3 : psReport.Shift - 1;
-                        using (SqlCommand cmd = new SqlCommand(@"UPDATE [dbo].[PRM-CSTM_Shift] SET [Status] = @p1 WHERE [ReportID] = @p2 AND [WorkOrder] = @p3 AND [Shift] = @p4", sqlCon))
-                        {
-                            cmd.Parameters.AddWithValue("p1", "C");
-                            cmd.Parameters.AddWithValue("p2", oldID);
-                            cmd.Parameters.AddWithValue("p3", woNbr);
-                            cmd.Parameters.AddWithValue("p4", prevShift);
-                            cmd.ExecuteNonQuery();
-                        }
-                    }
-
-                    //Insertion of the new report sheet data into the Sql database
-                    using (SqlCommand cmd = new SqlCommand(@"INSERT INTO [dbo].[PRM-CSTM_Shift] ([SubmitDate], [WorkOrder], [Shift], [Status]) VALUES(@p1, @p2, @p3, @p4);
-                                                                SELECT [ReportID] FROM [PRM-CSTM_Shift] WHERE [ReportID] = @@IDENTITY;", sqlCon))
-                    {
-                        cmd.Parameters.AddWithValue("p1", psReport.ReportDate);
-                        cmd.Parameters.AddWithValue("p2", woNbr);
-                        cmd.Parameters.AddWithValue("p3", psReport.Shift);
-                        cmd.Parameters.AddWithValue("p4", psReport.ReportStatus);
-                        psReport.ReportID = Convert.ToInt32(cmd.ExecuteScalar());
-                    }
-                    return Convert.ToInt32(psReport.ReportID);
-                }
-                catch (Exception ex)
-                {
-                    throw ex;
-                }
-            }
-            else
-            {
-                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
-            }
-        }
-
         public void Update(string woNbr, Press_ShiftReport psReport, SqlConnection sqlCon)
         {
 
@@ -327,7 +278,7 @@ namespace SFW.Model
                 try
                 {
                     //Variable initialization
-                    var _time = DateTime.Now.TimeOfDay;
+                    var _time = DateTime.Now.ToString("HH:mm");
                     var _slats = Machine.GetPress_Length(sqlCon, psReport.MachineName) - pReport.SlatTransfer;
                     var _rollNbr = 0;
                     var _qty = 0;
@@ -339,8 +290,8 @@ namespace SFW.Model
                     using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database};
                                                                 DECLARE @rndNbr int;
                                                                 DECLARE @qtyComp int;
-                                                                SET @rndNbr = (SELECT COUNT(DISTINCT([RoundNumber])) FROM [dbo].[PRM-CSTM_Round] WHERE [ReportID] = @p1);
-                                                                SET @qtyComp = (SELECT [QtyComplete] FROM [dbo].[PRM-CSTM_Round] WHERE [RoundNumber] = @rndNbr AND [ReportID] = @p1);
+                                                                SET @rndNbr = (SELECT COUNT(DISTINCT([RoundNbr])) FROM [dbo].[PRM-CSTM_Round] WHERE [ReportID] = @p1);
+                                                                SET @qtyComp = (SELECT [Quantity] FROM [dbo].[PRM-CSTM_Round] WHERE [RoundNbr] = @rndNbr AND [ReportID] = @p1);
                                                                 SELECT
 	                                                                MAX([RollNbr]) as 'RollNbr',
 	                                                                @qtyComp as 'QtyComp',
@@ -369,20 +320,19 @@ namespace SFW.Model
                     //If it is the first round, SQL query to find out the previous shifts max quantity completed and roll number
                     if (_rndNbr == 1)
                     {
-                        var _prevShift = psReport.Shift == 1 ? psReport.Shift + 2 : psReport.Shift - 1;
                         using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database};
                                                                     DECLARE @repID int;
                                                                     SET @repID = (SELECT TOP(1) [ReportID] FROM [PRM-CSTM_Shift] WHERE [WorkOrder] = @p1 AND [Shift] = @p2 ORDER BY [ReportID] DESC);
                                                                     SELECT
 	                                                                    MAX([RollNbr]) as 'RollNbr',
-	                                                                    SUM([RoundSlats]) as 'QtyComp'
+	                                                                    SUM([Quantity]) as 'QtyComp'
                                                                     FROM
 	                                                                    [dbo].[PRM-CSTM_Round]
                                                                     WHERE
 	                                                                    [ReportID] = @repID AND [RollNbr] = (SELECT MAX([RollNbr]) FROM [dbo].[PRM-CSTM_Round] WHERE [ReportID] = @repID);", sqlCon))
                         {
                             cmd.Parameters.AddWithValue("p1", pReport.ShopOrder.OrderNumber);
-                            cmd.Parameters.AddWithValue("p2", _prevShift);
+                            cmd.Parameters.AddWithValue("p2", pReport.ShiftReportList.Count == 1 ? pReport.ShiftReportList[0].Shift : pReport.ShiftReportList[1].Shift);
                             using (SqlDataReader reader = cmd.ExecuteReader())
                             {
                                 if (reader.HasRows)
@@ -398,7 +348,7 @@ namespace SFW.Model
                     }
 
                     //Roll length calculation along with the SQL insert command
-                    //There is also a check to see if the current submission quantity is more that what the work order has determined as the max length
+                    //There is also a check to see if the current submission quantity is more than what the work order has determined as the max length
                     //If there is more than the determined max length then there is a second calculation along with a second SQL insert command
                     var _tempLen = pReport.RollLength;
                     var _tempSlat = pReport.SlatTransfer;
@@ -414,15 +364,14 @@ namespace SFW.Model
                     }
                     using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database};
                                                                 INSERT INTO
-                                                                    [dbo].[PRM-CSTM_Round] ([ReportID], [RoundNumber], [Time], [QtyComplete], [RoundSlats], [RollNbr])
-                                                                VALUES (@p1, @p2, @p3, @p4, @p5, @p6)", sqlCon))
+                                                                    [dbo].[PRM-CSTM_Round] ([ReportID], [RoundNbr], [Time], [Quantity], [RollNbr])
+                                                                VALUES (@p1, @p2, @p3, @p4, @p5)", sqlCon))
                     {
                         cmd.Parameters.AddWithValue("p1", psReport.ReportID);
                         cmd.Parameters.AddWithValue("p2", _rndNbr);
                         cmd.Parameters.AddWithValue("p3", _time);
                         cmd.Parameters.AddWithValue("p4", _tempLen);
-                        cmd.Parameters.AddWithValue("p5", _tempSlat);
-                        cmd.Parameters.AddWithValue("p6", _rollNbr);
+                        cmd.Parameters.AddWithValue("p5", _rollNbr);
                         cmd.ExecuteNonQuery();
                     }
                     if (_cut)
@@ -430,16 +379,15 @@ namespace SFW.Model
                         _rollNbr++;
                         using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database};
                                                                 INSERT INTO
-                                                                    [dbo].[PRM-CSTM_Round] ([ReportID], [RoundNumber], [Time], [QtyComplete], [RoundSlats], [RollNbr], [Notes])
-                                                                VALUES (@p1, @p2, @p3, @p4, @p5, @p6, @p7)", sqlCon))
+                                                                    [dbo].[PRM-CSTM_Round] ([ReportID], [RoundNbr], [Time], [Quantity], [RollNbr], [Notes])
+                                                                VALUES (@p1, @p2, @p3, @p4, @p5, @p6)", sqlCon))
                         {
                             cmd.Parameters.AddWithValue("p1", psReport.ReportID);
                             cmd.Parameters.AddWithValue("p2", _rndNbr);
                             cmd.Parameters.AddWithValue("p3", _time);
                             cmd.Parameters.AddWithValue("p4", (_qty + _slats) - _tempLen);
-                            cmd.Parameters.AddWithValue("p5", _slats - _tempSlat);
-                            cmd.Parameters.AddWithValue("p6", _rollNbr);
-                            cmd.Parameters.AddWithValue("p7", "**New Roll**");
+                            cmd.Parameters.AddWithValue("p5", _rollNbr);
+                            cmd.Parameters.AddWithValue("p6", "**New Roll**");
                             cmd.ExecuteNonQuery();
                         }
                     }

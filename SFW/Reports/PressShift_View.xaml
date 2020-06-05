@@ -24,7 +24,39 @@
                    FontWeight="Bold"
                    FontSize="24" 
                    Foreground="Black" />
-        
+
+        <StackPanel Grid.Row="0"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Center"
+                    Margin="10,0,0,0">
+
+            <TextBlock Text="Status:"
+                       FontSize="24"
+                       Foreground="Black"
+                       FontWeight="Bold"
+                       TextDecorations="Underline" />
+
+            <TextBlock FontWeight="Bold"
+                       FontSize="24"
+                       Margin="10,0,0,0">
+                <TextBlock.Style>
+                    <Style TargetType="{x:Type TextBlock}">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding PSReport.ReportStatus}" Value="O">
+                                <Setter Property="Text" Value="Open"/>
+                                <Setter Property="Foreground" Value="Green"/>
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding PSReport.ReportStatus}" Value="C">
+                                <Setter Property="Text" Value="Complete"/>
+                                <Setter Property="Foreground" Value="Crimson"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBlock.Style>
+            </TextBlock>
+
+        </StackPanel>
+
         <!--#endregion-->
         
         <!--#region Round Report-->
@@ -34,6 +66,7 @@
                   ItemsSource="{Binding PSReport.RoundTable}"
                   HorizontalAlignment="Left"
                   AlternatingRowBackground="LightGray"
+                  CanUserAddRows="False"
                   FontSize="16"/>
 
         <!--#endregion-->

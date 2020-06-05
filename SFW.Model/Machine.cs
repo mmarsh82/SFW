@@ -41,12 +41,11 @@ namespace SFW.Model
             {
                 _tempList.Add(new Machine { MachineNumber = "0", MachineName = "All", IsLoaded = true, MachineGroup = "All" });
             }
-            _tempList.Add(new Machine { MachineNumber = "1", MachineName = "WG Order", IsLoaded = true, MachineGroup = "Custom" });
             if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
             {
                 try
                 {
-                    using (SqlCommand cmd = new SqlCommand($"USE {sqlCon.Database}; SELECT [Wc_Nbr], [Name], [D_esc], [Work_Ctr_Group] FROM [dbo].[WC-INIT] WHERE [D_esc] <> 'DO NOT USE'", sqlCon))
+                    using (SqlCommand cmd = new SqlCommand($"USE {sqlCon.Database}; SELECT [Wc_Nbr], [Name], [D_esc], [Work_Ctr_Group] FROM [dbo].[WC-INIT] WHERE [D_esc] <> 'DO NOT USE' AND [Name] IS NOT NULL", sqlCon))
                     {
                         using (SqlDataReader reader = cmd.ExecuteReader())
                         {

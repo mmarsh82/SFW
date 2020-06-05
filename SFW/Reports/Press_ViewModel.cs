@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Linq;
 
 namespace SFW.Reports
 {
@@ -101,7 +102,11 @@ namespace SFW.Reports
             {
                 case "Submit":
                     PressReport.Submit(Report, App.AppSqlCon);
+                    AddShiftExecute(null);
+                    Report.IsNew = false;
+                    Shift = null;
                     OnPropertyChanged(nameof(CanCreate));
+                    OnPropertyChanged(nameof(ReportAction));
                     break;
                 case "Update":
                     //Report.Update(Report, App.AppSqlCon);
@@ -131,7 +136,23 @@ namespace SFW.Reports
 
         private void AddShiftExecute(object parameter)
         {
-            
+            if (Report.ShiftReportList.Count(o => o.Shift == Shift && o.ReportDate == DateTime.Today) == 0)
+            {
+                if (int.TryParse(Shift.ToString(), out int i))
+                {
+                    new Press_ShiftReport(Report.ShopOrder, DateTime.Now, i, App.AppSqlCon);
+                    ShiftCollection = new ObservableCollection<TabItem>(LoadShiftCollection(Press_ShiftReport.GetPress_ShiftReportList(Report.ShopOrder.OrderNumber, Report.ShopOrder.Machine, App.AppSqlCon)));
+                    OnPropertyChanged(nameof(ShiftCollection));
+                    Shift = null;
+                    SelectedShift = ShiftCollection[0];
+                    OnPropertyChanged(nameof(SelectedShift));
+                }
+            }
+            else
+            {
+                //TODO: add in a focus command so that instead of a warning with instructions it will focus the TabItem
+                System.Windows.MessageBox.Show($"Report sheet for this shift already exists.\nPlease select {DateTime.Today.ToShortDateString()} Shift {Shift} in the workspace.", "Duplicate Entry", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
+            }
         }
         private bool AddShiftCanExecute(object parameter) => !CanCreate && Shift > 0 && Shift < 4;
 

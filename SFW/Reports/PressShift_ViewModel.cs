@@ -1,7 +1,4 @@
-﻿using SFW.Helpers;
-using SFW.Model;
-using System.Linq;
-using System.Windows.Input;
+﻿using SFW.Model;
 
 namespace SFW.Reports
 {
