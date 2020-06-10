@@ -16,6 +16,7 @@ namespace SFW.Controls
         public static DockPanel CsiDock { get; set; }
         public static DockPanel WccoDock { get; set; }
         public static DockPanel ClosedDock { get; set; }
+        public static DockPanel CountDock { get; set; }
         public static bool ClosedView { get; set; }
 
         #endregion
@@ -32,6 +33,7 @@ namespace SFW.Controls
             CsiDock = new DockPanel();
             WccoDock = new DockPanel();
             ClosedDock = new DockPanel();
+            CountDock = new DockPanel();
 
 
             //Add the CSI Schedule View to [0]
@@ -53,7 +55,9 @@ namespace SFW.Controls
             MainDock.Children.Insert(3, new PartInfo_View());
 
             //Add the Cycle Count View to [4]
-            MainDock.Children.Insert(4, new CycleCount.CC_View { DataContext = new CycleCount.CC_ViewModel() });
+            CountDock.Children.Insert(0, new CycleCount.Sched_View());
+            CountDock.Children.Insert(1, new CycleCount.Form_View { DataContext = new CycleCount.Form_ViewModel() });
+            MainDock.Children.Insert(4, CountDock);
 
             //Add the Part Detail View to [5]
             MainDock.Children.Insert(5, new UserControl());
@@ -133,6 +137,14 @@ namespace SFW.Controls
                 if (MainWindowViewModel.SelectedMachineGroup == null)
                 {
                     MainWindowViewModel.SelectedMachineGroup = ((Schedule.ViewModel)((Schedule.View)_tempDock.Children[0]).DataContext).MachineGroupList[0];
+                }
+            }
+            else if (index == 4)
+            {
+                ((CycleCount.Sched_View)_tempDock.Children[0]).DataContext = dataContext;
+                if (((CycleCount.Form_View)_tempDock.Children[1]).DataContext != null)
+                {
+                    ((CycleCount.Form_ViewModel)((CycleCount.Form_View)_tempDock.Children[1]).DataContext).CountTran = new Model.Count();
                 }
             }
             else if (index == 6)

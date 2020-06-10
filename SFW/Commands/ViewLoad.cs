@@ -44,7 +44,7 @@ namespace SFW.Commands
                         WorkSpaceDock.SwitchView(2, new Scheduler.ViewModel());
                         break;
                     case "CycleCount":
-                        WorkSpaceDock.SwitchView(4, new CycleCount.CC_ViewModel());
+                        WorkSpaceDock.SwitchView(4, null);
                         break;
                     case "SiteCsi":
                         if (!App.DatabaseChange("CSI_MAIN"))

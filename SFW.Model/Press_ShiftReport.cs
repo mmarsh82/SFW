@@ -97,9 +97,9 @@ namespace SFW.Model
                     }
                     using (SqlDataAdapter adapter = new SqlDataAdapter($@"USE {sqlCon.Database};
                                                                             SELECT TOP (0) [Time]
-                                                                                ,[RoundNumber] as 'Round'
-                                                                                ,[QtyComplete] as 'Quantity'
-                                                                                ,[Qlty_Flag] as 'Flag'
+                                                                                ,[RoundNbr] as 'Round'
+                                                                                ,[Quantity] as 'Quantity'
+                                                                                ,[QualityFlg] as 'Flag'
                                                                                 ,[Notes]
                                                                                 ,[RollNbr] as 'Roll'
                                                                             FROM [dbo].[PRM-CSTM_Round]", sqlCon))
@@ -280,26 +280,16 @@ namespace SFW.Model
                     //Variable initialization
                     var _time = DateTime.Now.ToString("HH:mm");
                     var _slats = Machine.GetPress_Length(sqlCon, psReport.MachineName) - pReport.SlatTransfer;
-                    var _rollNbr = 0;
+                    var _rollNbr = 1;
                     var _qty = 0;
-                    var _rndNbr = 0;
+                    var _rndNbr = 1;
                     var _cut = false;
+                    var _isNew = false;
 
                     //SQL Query to grab any information about the previous rounds
                     //All returned data is used in the calculations for round number, quantity complete and roll number
                     using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database};
-                                                                DECLARE @rndNbr int;
-                                                                DECLARE @qtyComp int;
-                                                                SET @rndNbr = (SELECT COUNT(DISTINCT([RoundNbr])) FROM [dbo].[PRM-CSTM_Round] WHERE [ReportID] = @p1);
-                                                                SET @qtyComp = (SELECT [Quantity] FROM [dbo].[PRM-CSTM_Round] WHERE [RoundNbr] = @rndNbr AND [ReportID] = @p1);
-                                                                SELECT
-	                                                                MAX([RollNbr]) as 'RollNbr',
-	                                                                @qtyComp as 'QtyComp',
-	                                                                @rndNbr + 1 as 'RoundNbr'
-                                                                FROM
-	                                                                [dbo].[PRM-CSTM_Round]
-                                                                WHERE
-	                                                                [ReportID] = @p1 AND [RollNbr] = (SELECT MAX([RollNbr]) FROM [dbo].[PRM-CSTM_Round] WHERE [ReportID] = @p1);", sqlCon))
+                                                                SELECT TOP(1) * FROM [dbo].[PRM-CSTM_Round] WHERE [ReportID] = @p1 ORDER BY [RollNbr] DESC, [RoundNbr] DESC;", sqlCon))
                     {
                         cmd.Parameters.AddWithValue("p1", psReport.ReportID);
                         using (SqlDataReader reader = cmd.ExecuteReader())
@@ -309,30 +299,33 @@ namespace SFW.Model
                                 while (reader.Read())
                                 {
                                     _rollNbr = reader.SafeGetInt32("RollNbr");
-                                    _qty = reader.SafeGetInt32("QtyComp");
-                                    _rndNbr = reader.SafeGetInt32("RoundNbr");
+                                    _qty = reader.SafeGetInt32("Quantity");
+                                    _rndNbr = reader.SafeGetInt32("RoundNbr") + 1;
                                 }
+                            }
+                            else
+                            {
+                                _isNew = true;
                             }
                         }
                     }
 
                     //Check to see if this is the first round submitted for a shift
                     //If it is the first round, SQL query to find out the previous shifts max quantity completed and roll number
-                    if (_rndNbr == 1)
+                    if (_isNew)
                     {
                         using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database};
-                                                                    DECLARE @repID int;
-                                                                    SET @repID = (SELECT TOP(1) [ReportID] FROM [PRM-CSTM_Shift] WHERE [WorkOrder] = @p1 AND [Shift] = @p2 ORDER BY [ReportID] DESC);
-                                                                    SELECT
-	                                                                    MAX([RollNbr]) as 'RollNbr',
-	                                                                    SUM([Quantity]) as 'QtyComp'
+                                                                    SELECT TOP(1)
+	                                                                    [RollNbr] as 'RollNbr',
+	                                                                    [Quantity] as 'QtyComp'
                                                                     FROM
 	                                                                    [dbo].[PRM-CSTM_Round]
                                                                     WHERE
-	                                                                    [ReportID] = @repID AND [RollNbr] = (SELECT MAX([RollNbr]) FROM [dbo].[PRM-CSTM_Round] WHERE [ReportID] = @repID);", sqlCon))
+	                                                                    [ReportID] = @p1
+                                                                    ORDER BY
+	                                                                    [RollNbr] DESC, [RoundNbr] DESC;", sqlCon))
                         {
-                            cmd.Parameters.AddWithValue("p1", pReport.ShopOrder.OrderNumber);
-                            cmd.Parameters.AddWithValue("p2", pReport.ShiftReportList.Count == 1 ? pReport.ShiftReportList[0].Shift : pReport.ShiftReportList[1].Shift);
+                            cmd.Parameters.AddWithValue("p1", pReport.ShiftReportList.Count == 1 ? pReport.ShiftReportList[0].ReportID : pReport.ShiftReportList[1].ReportID);
                             using (SqlDataReader reader = cmd.ExecuteReader())
                             {
                                 if (reader.HasRows)

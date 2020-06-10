@@ -52,6 +52,7 @@
     <Compile Include="Component.cs" />
     <Compile Include="CompWipInfo.cs" />
     <Compile Include="CrewMember.cs" />
+    <Compile Include="Count.cs" />
     <Compile Include="Enumerations\Complete.cs" />
     <Compile Include="Enumerations\Extensions.cs" />
     <Compile Include="Lot.cs" />

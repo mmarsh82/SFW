@@ -9,9 +9,19 @@ namespace SFW.Converters
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
+            var _brdrClr = Colors.Gray;
+            switch (parameter?.ToString())
+            {
+                case "B":
+                    _brdrClr = Colors.Black;
+                    break;
+                default:
+                    _brdrClr = Colors.Gray;
+                    break;
+            }
             if (value.GetType() == typeof(bool))
             {
-                return (bool)value ? new SolidColorBrush(Colors.Gray) : new SolidColorBrush(Colors.Crimson);
+                return (bool)value ? new SolidColorBrush(_brdrClr) : new SolidColorBrush(Colors.Crimson);
             }
             else
             {

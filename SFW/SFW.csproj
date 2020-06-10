@@ -30,8 +30,8 @@
     <PublisherName>Michael Marsh</PublisherName>
     <SuiteName>WCCO Belting Inc.</SuiteName>
     <AutorunEnabled>true</AutorunEnabled>
-    <ApplicationRevision>1708</ApplicationRevision>
-    <ApplicationVersion>1.0.215.1708</ApplicationVersion>
+    <ApplicationRevision>1723</ApplicationRevision>
+    <ApplicationVersion>1.0.222.1723</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <CreateDesktopShortcut>true</CreateDesktopShortcut>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -142,10 +142,14 @@
     <Compile Include="Converters\StringConcat.cs" />
     <Compile Include="Converters\WoPriorityToBool.cs" />
     <Compile Include="CurrentUser.cs" />
-    <Compile Include="CycleCount\CC_View.xaml.cs">
-      <DependentUpon>CC_View.xaml</DependentUpon>
+    <Compile Include="CycleCount\Form_View.xaml.cs">
+      <DependentUpon>Form_View.xaml</DependentUpon>
     </Compile>
-    <Compile Include="CycleCount\CC_ViewModel.cs" />
+    <Compile Include="CycleCount\Form_ViewModel.cs" />
+    <Compile Include="CycleCount\Sched_View.xaml.cs">
+      <DependentUpon>Sched_View.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="CycleCount\Sched_ViewModel.cs" />
     <Compile Include="DynamicSplashScreen.xaml.cs">
       <DependentUpon>DynamicSplashScreen.xaml</DependentUpon>
     </Compile>
@@ -251,7 +255,11 @@
       <DependentUpon>View.xaml</DependentUpon>
     </Compile>
     <Compile Include="WIP\ViewModel.cs" />
-    <Page Include="CycleCount\CC_View.xaml">
+    <Page Include="CycleCount\Form_View.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="CycleCount\Sched_View.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
