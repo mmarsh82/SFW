@@ -139,8 +139,8 @@ namespace M2kClient.M2kADIArray
 
 
             return !string.IsNullOrEmpty(LotNumber)
-                ? $"1~{TranType}~2~{StationId}~3~{TranTime}~4~{TranDate}~5~{FacilityCode}~6~{CcNumber}~8~{ItemNumber}~10~{ReasonCode}~12~{TranOperation}~13~{TranQuantity}~14~{Location}~15~{LotNumber}|P~99~COMPLETE"
-                : $"1~{TranType}~2~{StationId}~3~{TranTime}~4~{TranDate}~5~{FacilityCode}~6~{CcNumber}~8~{ItemNumber}~10~{ReasonCode}~12~{TranOperation}~13~{TranQuantity}~14~{Location}~99~COMPLETE";
+                ? $"1~{TranType}~2~{StationId}~3~{TranTime}~4~{TranDate}~5~{FacilityCode}~6~{CcNumber}~7~{IcFlag}~8~{ItemNumber}~10~{ReasonCode}~12~{TranOperation}~13~{TranQuantity}~14~{Location}~15~{LotNumber}|P~99~COMPLETE"
+                : $"1~{TranType}~2~{StationId}~3~{TranTime}~4~{TranDate}~5~{FacilityCode}~6~{CcNumber}~7~{IcFlag}~8~{ItemNumber}~10~{ReasonCode}~12~{TranOperation}~13~{TranQuantity}~14~{Location}~99~COMPLETE";
         }
     }
 }

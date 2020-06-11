@@ -101,8 +101,7 @@ namespace SFW.CycleCount
 
         private void CountSubmitExecute(object parameter)
         {
-            var _id = CountTran.CountID.Split('*');
-            M2kCommand.CycleCount(CurrentUser.DisplayName, _id[0], CountTran.PartNumber, AdjustCode.CC, CountTran.CountQty, CountTran.CountLoc, App.ErpCon, CountTran.LotNumber);
+            M2kCommand.CycleCount(CurrentUser.DisplayName, CountTran.CountNumber, CountTran.PartNumber, AdjustCode.CC, CountTran.CountQty, CountTran.CountLoc, App.ErpCon, CountTran.LotNumber);
             ((Sched_ViewModel)Controls.WorkSpaceDock.CountDock.GetChildOfType<Sched_View>().DataContext).RefreshSchedule(CountTran.CountID);
         }
         private bool CountSubmitCanExecute(object parameter) => IsLocValid;

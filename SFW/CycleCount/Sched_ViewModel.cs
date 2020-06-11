@@ -163,14 +163,21 @@ namespace SFW.CycleCount
             try
             {
                 var _oldItem = ScheduleView.CurrentItem;
-                ScheduleView = CollectionViewSource.GetDefaultView(Count.GetScheduleData(App.AppSqlCon));
+                var _schedData = Count.GetScheduleData(App.AppSqlCon);
+                _schedData.Rows.Remove(_schedData.Select($"CountID == '{filter}'")[0]);
+                _schedData.AcceptChanges();
+                ScheduleView = CollectionViewSource.GetDefaultView(_schedData);
                 ScheduleView.GroupDescriptions.Add(new PropertyGroupDescription("CountLoc"));
                 OnPropertyChanged(nameof(ScheduleView));
-                ((DataView)ScheduleView.SourceCollection).RowFilter = $"CountID != '{filter}'";
                 ScheduleView.Refresh();
                 if (!string.IsNullOrEmpty(SearchFilter))
                 {
                     SearchFilter = SearchFilter;
+                }
+                if (((DataView)ScheduleView.SourceCollection).Count == 0)
+                {
+                    WorkSpaceDock.CountDock.Children.RemoveAt(1);
+                    WorkSpaceDock.CountDock.Children.Insert(1, new Form_View { DataContext = new Form_ViewModel() });
                 }
             }
             catch (Exception)

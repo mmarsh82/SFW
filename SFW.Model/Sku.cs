@@ -552,6 +552,7 @@ namespace SFW.Model
         /// <returns>valid location as bool</returns>
         public static bool IsValidLocation(string location, SqlConnection sqlCon)
         {
+            location = location ?? string.Empty;
             if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
             {
                 try

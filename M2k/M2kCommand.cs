@@ -673,7 +673,7 @@ namespace M2kClient
                     stationId,
                     "01",
                     ccNbr,
-                    CompletionFlag.N,
+                    CompletionFlag.Y,
                     partNbr,
                     aCode,
                     tranQty,

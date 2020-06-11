@@ -11,176 +11,208 @@
         <cvtr:NegativeIntToBool x:Key="NegIntToBoolConverter"/>
         <cvtr:BoolToBorderColor x:Key="BoolToBorderConverter"/>
     </UserControl.Resources>
-    
-    <Grid Visibility="{Binding CountTran.CountID, Converter={StaticResource StringToVisConverter}, ConverterParameter=Hide}">
 
-        <Grid.RowDefinitions>
-            <RowDefinition x:Name="Row0" Height="40"/>
-            <RowDefinition x:Name="Row1" Height="50"/>
-            <RowDefinition x:Name="Row2" Height="40"/>
-            <RowDefinition x:Name="Row3" Height="40"/>
-            <RowDefinition x:Name="Row4" Height="auto"/>
-        </Grid.RowDefinitions>
+    <Grid>
 
-        <!--#region Command Array-->
-        
-        <StackPanel Grid.Row="0"
-                    Orientation="Horizontal">
-            
-            <Button Content="Submit"
-                    FontSize="16"
-                    Command="{Binding CntSubmitICommand}"
-                    Style="{DynamicResource MenuButtonStyle}" />
-            
-        </StackPanel>
-        
-        <!--#endregion-->
-        
-        <!--#region Form Header-->
+        <TextBlock Grid.RowSpan="10"
+                   Text="No Results"
+                   Visibility="{Binding CountTran.CountID, Converter={StaticResource StringToVisConverter}, ConverterParameter=i}"
+                   FontSize="50"
+                   FontWeight="Bold"
+                   VerticalAlignment="Center"
+                   HorizontalAlignment="Center" />
 
-        <StackPanel Grid.Row="1" Orientation="Horizontal"
-                    HorizontalAlignment="Left" VerticalAlignment="Center">
+        <Grid Visibility="{Binding CountTran.CountID, Converter={StaticResource StringToVisConverter}, ConverterParameter=Hide}">
 
-            <TextBlock Text="Cycle Count Number:"
-                       FontSize="32"
-                       FontWeight="Bold"
-                       Foreground="#FF135185"
-                       TextDecorations="Underline"/>
+            <Grid.RowDefinitions>
+                <RowDefinition x:Name="Row0" Height="40"/>
+                <RowDefinition x:Name="Row1" Height="50"/>
+                <RowDefinition x:Name="Row2" Height="40"/>
+                <RowDefinition x:Name="Row3" Height="40"/>
+                <RowDefinition x:Name="Row4" Height="40"/>
+                <RowDefinition x:Name="Row5" Height="auto"/>
+            </Grid.RowDefinitions>
 
-            <TextBlock Text="{Binding CountTran.CountID}"
-                       FontSize="32"
-                       FontWeight="Bold"
-                       Margin="10,0,0,0" />
+            <!--#region Command Array-->
 
-        </StackPanel>
+            <StackPanel Grid.Row="0"
+                        Orientation="Horizontal">
 
-        <!--#endregion-->
+                <Button Content="Submit"
+                        FontSize="16"
+                        Command="{Binding CntSubmitICommand}"
+                        Style="{DynamicResource MenuButtonStyle}" />
 
-        <!--#region Part Information-->
+            </StackPanel>
 
-        <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="20,0,0,0">
+            <!--#endregion-->
 
-            <Button Margin="5"
-                    Width="50"
-                    Command="{StaticResource PartInfoCommand}"
-                    CommandParameter="{Binding CountTran.PartNumber}"
-                    Style="{DynamicResource DefaultButton}">
-                <Image Source="/SFW;component/Icons/Search.ico"
-                       Margin="1"/>
-            </Button>
+            <!--#region Form Header-->
 
-            <TextBlock Text="Part Number:"
-                       FontSize="24"
-                       FontWeight="Bold"
-                       TextDecorations="UnderLine"
-                       Foreground="#FF135185"/>
+            <StackPanel Grid.Row="1" Orientation="Horizontal"
+                        HorizontalAlignment="Left" VerticalAlignment="Center">
 
-            <TextBlock Text="{Binding CountTran.PartNumber}"
-                       FontSize="24"
-                       FontWeight="Bold"
-                       Margin="10,0,0,0"/>
+                <TextBlock Text="Cycle Count Number:"
+                           FontSize="32"
+                           FontWeight="Bold"
+                           Foreground="#FF135185"
+                           TextDecorations="Underline"/>
 
-            <TextBlock Text="{Binding CountTran.PartDesc}"
-                       FontSize="24"
-                       FontWeight="Bold"
-                       Margin="10,0,0,0"/>
+                <TextBlock Text="{Binding CountTran.CountNumber}"
+                           FontSize="32"
+                           FontWeight="Bold"
+                           Margin="10,0,0,0" />
 
-            <TextBlock Text="Unit of Measure:"
-                       FontSize="24"
-                       FontWeight="Bold"
-                       Margin="50,0,0,0"
-                       TextDecorations="Underline"
-                       Foreground="#FF135185"/>
+            </StackPanel>
 
-            <TextBlock Text="{Binding CountTran.Uom}"
-                       FontSize="24"
-                       FontWeight="Bold"
-                       Margin="10,0,0,0" />
+            <!--#endregion-->
 
-        </StackPanel>
+            <!--#region Part Header-->
 
-        <!--#endregion-->
+            <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="20,0,0,0">
 
-        <!--#region Count Information-->
+                <Button Margin="5"
+                        Width="50"
+                        Command="{StaticResource PartInfoCommand}"
+                        CommandParameter="{Binding CountTran.PartNumber}"
+                        Style="{DynamicResource DefaultButton}">
+                    <Image Source="/SFW;component/Icons/Search.ico"
+                           Margin="1"/>
+                </Button>
 
-        <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="20,0,0,0">
+                <TextBlock Text="Part Number:"
+                           FontSize="24"
+                           FontWeight="Bold"
+                           TextDecorations="UnderLine"
+                           Margin="10,0,0,0"
+                           VerticalAlignment="Center"
+                           Foreground="#FF135185"/>
 
-            <TextBlock Text="Count Quantity:"
-                       FontSize="24"
-                       VerticalAlignment="Center"
-                       FontWeight="Bold"
-                       TextDecorations="UnderLine"
-                       Foreground="#FF135185"/>
+                <TextBlock Text="{Binding CountTran.PartNumber}"
+                           FontSize="24"
+                           FontWeight="Bold"
+                           VerticalAlignment="Center"
+                           Margin="10,0,0,0"/>
 
-            <TextBox Text="{Binding CountTran.CountQty}"
-                     FontSize="21"
-                     VerticalContentAlignment="Center"
-                     FontWeight="Bold"
-                     Margin="5"
-                     Background="LightGray"
-                     BorderBrush="Black"
-                     Style="{DynamicResource RequiredTextBox}"/>
+                <TextBlock Text="{Binding CountTran.PartDesc}"
+                           FontSize="24"
+                           FontWeight="Bold"
+                           VerticalAlignment="Center"
+                           Margin="10,0,0,0"/>
 
-            <TextBlock Text="Count Location:"
-                       FontSize="24"
-                       VerticalAlignment="Center"
-                       FontWeight="Bold"
-                       Margin="50,0,0,0"
-                       TextDecorations="Underline"
-                       Foreground="#FF135185"/>
+            </StackPanel>
 
-            <TextBox Text="{Binding CountLocation, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                     FontSize="21"
-                     VerticalContentAlignment="Center"
-                     FontWeight="Bold"
-                     Margin="5"
-                     Background="LightGray"
-                     BorderThickness="{Binding LocSize}"
-                     BorderBrush="{Binding IsLocValid, Converter={StaticResource BoolToBorderConverter}, ConverterParameter=B}"
-                     Style="{DynamicResource RequiredTextBox}"/>
+            <!--#endregion-->
 
-        </StackPanel>
+            <!--#region Part Details-->
 
-        <!--#endregion-->
+            <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="20,0,0,0">
 
-        <!--#region System Information-->
+                <TextBlock Text="Lot Number:"
+                           FontSize="24"
+                           FontWeight="Bold"
+                           TextDecorations="UnderLine"
+                           VerticalAlignment="Center"
+                           Visibility="{Binding CountTran.LotNumber, Converter={StaticResource StringToVisConverter}}"
+                           Foreground="#FF135185"/>
 
-        <DataGrid Grid.Row="4"
-                  x:Name="ILotResultsDataGrid"
-                  ItemsSource="{Binding ILotResultsList}"
-                  HorizontalAlignment="Left"
-                  VerticalAlignment="Top"
-                  FontSize="18"
-                  FontWeight="Bold"
-                  AlternatingRowBackground="LightSteelBlue"
-                  AutoGenerateColumns="False"
-                  IsReadOnly="True"
-                  Margin="20,10,0,0">
-            <DataGrid.Columns>
-                <DataGridTextColumn Header="Lot Number"
-                                            Binding="{Binding LotNumber}" />
-                <DataGridTextColumn Header="On Hand"
-                                            Binding="{Binding Onhand}">
-                    <DataGridTextColumn.CellStyle>
-                        <Style TargetType="{x:Type DataGridCell}">
-                            <Setter Property="Foreground"
-                                            Value="Black" />
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding Onhand, Converter={StaticResource NegIntToBoolConverter}}"
-                                                     Value="true">
-                                    <Setter Property="Foreground"
-                                                    Value="Crimson" />
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </DataGridTextColumn.CellStyle>
-                </DataGridTextColumn>
-                <DataGridTextColumn Header="Location"
-                                            Binding="{Binding Location}" />
-            </DataGrid.Columns>
-        </DataGrid>
+                <TextBlock Text="{Binding CountTran.LotNumber}"
+                           Visibility="{Binding CountTran.LotNumber, Converter={StaticResource StringToVisConverter}}"
+                           FontSize="24"
+                           FontWeight="Bold"
+                           VerticalAlignment="Center"
+                           Margin="10,0,0,0"/>
 
-        <!--#endregion-->
+            </StackPanel>
 
+            <!--#endregion-->
+
+            <!--#region Count Information-->
+
+            <StackPanel Grid.Row="4" Orientation="Horizontal" Margin="20,0,0,0">
+
+                <TextBlock Text="Count Quantity:"
+                           FontSize="24"
+                           VerticalAlignment="Center"
+                           FontWeight="Bold"
+                           TextDecorations="UnderLine"
+                           Foreground="#FF135185"/>
+
+                <TextBox Text="{Binding CountTran.CountQty}"
+                         FontSize="21"
+                         VerticalContentAlignment="Center"
+                         FontWeight="Bold"
+                         Margin="5"
+                         Background="LightGray"
+                         BorderBrush="Black"
+                         Style="{DynamicResource RequiredTextBox}"/>
+
+                <TextBlock Text="{Binding CountTran.Uom}"
+                           FontSize="24"
+                           VerticalAlignment="Center"
+                           FontWeight="Bold"/>
+
+                <TextBlock Text="Count Location:"
+                           FontSize="24"
+                           VerticalAlignment="Center"
+                           FontWeight="Bold"
+                           Margin="50,0,0,0"
+                           TextDecorations="Underline"
+                           Foreground="#FF135185"/>
+
+                <TextBox Text="{Binding CountLocation, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                         FontSize="21"
+                         VerticalContentAlignment="Center"
+                         FontWeight="Bold"
+                         Margin="5"
+                         Background="LightGray"
+                         BorderThickness="{Binding LocSize}"
+                         BorderBrush="{Binding IsLocValid, Converter={StaticResource BoolToBorderConverter}, ConverterParameter=B}"
+                         Style="{DynamicResource RequiredTextBox}"/>
+
+            </StackPanel>
+
+            <!--#endregion-->
+
+            <!--#region System Information-->
+
+            <DataGrid Grid.Row="5"
+                      x:Name="ILotResultsDataGrid"
+                      ItemsSource="{Binding ILotResultsList}"
+                      HorizontalAlignment="Left"
+                      VerticalAlignment="Top"
+                      FontSize="18"
+                      FontWeight="Bold"
+                      AlternatingRowBackground="LightSteelBlue"
+                      AutoGenerateColumns="False"
+                      IsReadOnly="True"
+                      Margin="20,10,0,0">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Lot Number"
+                                        Binding="{Binding LotNumber}" />
+                    <DataGridTextColumn Header="On Hand"
+                                        Binding="{Binding Onhand}">
+                        <DataGridTextColumn.CellStyle>
+                            <Style TargetType="{x:Type DataGridCell}">
+                                <Setter Property="Foreground"
+                                        Value="Black" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Onhand, Converter={StaticResource NegIntToBoolConverter}}"
+                                                 Value="true">
+                                        <Setter Property="Foreground"
+                                                Value="Crimson" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </DataGridTextColumn.CellStyle>
+                    </DataGridTextColumn>
+                    <DataGridTextColumn Header="Location"
+                                        Binding="{Binding Location}" />
+                </DataGrid.Columns>
+            </DataGrid>
+
+            <!--#endregion-->
+
+        </Grid>
     </Grid>
 </UserControl>

@@ -9,6 +9,7 @@ namespace SFW.Model
         #region Properties
 
         public string CountID { get; set; }
+        public string CountNumber { get; set; }
         public string PartNumber { get; set; }
         public string PartDesc { get; set; }
         public string Uom { get; set; }
@@ -30,6 +31,7 @@ namespace SFW.Model
             if (drow != null)
             {
                 CountID = drow.Field<string>("CountID");
+                CountNumber = drow.Field<string>("CountNumber");
                 PartNumber = drow.Field<string>("PartNumber");
                 PartDesc = drow.Field<string>("PartDesc");
                 Uom = drow.Field<string>("Uom");
@@ -48,6 +50,7 @@ namespace SFW.Model
         {
             var _selectCmd = @"SELECT
 	                            CONCAT(CONCAT(a.[ID], '*'), b.[ID2]) as 'CountID'
+                                ,a.[ID] as 'CountNumber'
 	                            ,a.[Part_Nbr] as 'PartNumber'
 	                            ,c.[Description] as 'PartDesc'
 	                            ,a.[Part_Nbr_Uom] as 'Uom'
@@ -61,7 +64,9 @@ namespace SFW.Model
                             LEFT JOIN
 	                            [dbo].[IM-INIT] c ON c.[Part_Number] = a.[Part_Nbr]
                             WHERE
-	                            b.[Count_Complete] IS NULL OR b.[Count_Complete] = 'N';";
+	                            (b.[Count_Complete] IS NULL OR b.[Count_Complete] = 'N') AND b.[Qty_Counted] IS NOT NULL
+                            ORDER BY
+                                b.[Location];";
 
             using (var _tempTable = new DataTable())
             {

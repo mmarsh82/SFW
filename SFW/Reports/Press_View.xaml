@@ -75,11 +75,11 @@
                      Margin="10,0,0,0"
                      TabIndex="0"/>
 
-            <TextBlock Text="Slats"
+            <TextBlock Text="{Binding Report.ShopOrder.Uom}"
                        FontSize="20"
                        FontWeight="Bold"
-                       Foreground="#FF135185"
-                       Margin="10,0,0,0" />
+                       Margin="10,0,0,0"
+                       Foreground="#FF135185" />
 
             <TextBlock Text="Roll Length"
                        FontSize="20"
