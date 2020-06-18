@@ -32,14 +32,19 @@ namespace SFW.Model
         /// Get a list of work centers
         /// </summary>
         /// <param name="sqlCon">Sql Connection to use</param>
-        /// <param name="incAll">Include all in the top of the list</param>
+        /// <param name="incAll">Include all at the top of the list</param>
+        /// <param name="incNone">Include None at the top of the list</param>
         /// <returns>generic list of worcenter objects</returns>
-        public static List<Machine> GetMachineList(SqlConnection sqlCon, bool incAll)
+        public static List<Machine> GetMachineList(SqlConnection sqlCon, bool incAll, bool incNone)
         {
             var _tempList = new List<Machine>();
             if (incAll)
             {
                 _tempList.Add(new Machine { MachineNumber = "0", MachineName = "All", IsLoaded = true, MachineGroup = "All" });
+            }
+            if (incNone)
+            {
+                _tempList.Add(new Machine { MachineNumber = "0", MachineName = "None", IsLoaded = false, MachineGroup = "None" });
             }
             if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
             {

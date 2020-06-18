@@ -30,8 +30,8 @@
     <PublisherName>Michael Marsh</PublisherName>
     <SuiteName>WCCO Belting Inc.</SuiteName>
     <AutorunEnabled>true</AutorunEnabled>
-    <ApplicationRevision>1736</ApplicationRevision>
-    <ApplicationVersion>1.0.224.1736</ApplicationVersion>
+    <ApplicationRevision>1752</ApplicationRevision>
+    <ApplicationVersion>1.0.225.1752</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <CreateDesktopShortcut>true</CreateDesktopShortcut>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -119,7 +119,6 @@
     <Compile Include="Commands\ClearPriority.cs" />
     <Compile Include="Commands\DevTesting.cs" />
     <Compile Include="Commands\M2kWipReceipt.cs" />
-    <Compile Include="Commands\PartSpec.cs" />
     <Compile Include="Commands\PartTrace.cs" />
     <Compile Include="Commands\PrintBarLabels.cs" />
     <Compile Include="Commands\PrintUserControl.cs" />
@@ -160,10 +159,6 @@
       <DependentUpon>PartLabel_View.xaml</DependentUpon>
     </Compile>
     <Compile Include="Queries\PartLabel_ViewModel.cs" />
-    <Compile Include="Queries\PartSpec_View.xaml.cs">
-      <DependentUpon>PartSpec_View.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Queries\PartSpec_ViewModel.cs" />
     <Compile Include="Queries\PartSplit_View.xaml.cs">
       <DependentUpon>PartSplit_View.xaml</DependentUpon>
     </Compile>
@@ -273,10 +268,6 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Queries\PartLabel_View.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Queries\PartSpec_View.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

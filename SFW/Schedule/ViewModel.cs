@@ -103,7 +103,7 @@ namespace SFW.Schedule
         /// </summary>
         public ViewModel()
         {
-            MachineList = Machine.GetMachineList(App.AppSqlCon, true);
+            MachineList = Machine.GetMachineList(App.AppSqlCon, true, false);
             MachineGroupList = MachineList.Where(o => !string.IsNullOrEmpty(o.MachineGroup)).Select(o => o.MachineGroup).Distinct().ToList();
             LoadAsyncDelegate = new LoadDelegate(ViewLoading);
             FilterAsyncDelegate = new LoadDelegate(FilterView);

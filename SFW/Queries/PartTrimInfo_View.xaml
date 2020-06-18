@@ -193,6 +193,25 @@
                 </Hyperlink>
             </TextBlock>
 
+            <TextBlock Text="Cross:"
+                       TextDecorations="Underline"
+                       FontSize="16"
+                       FontWeight="Bold"
+                       Margin="50,0,0,0"
+                       Visibility="{Binding CrossBar, Converter={StaticResource StringToVisConverter}}"/>
+            <TextBlock FontSize="16"
+                       Margin="10,0,0,0"
+                       Visibility="{Binding CrossBar, Converter={StaticResource StringToVisConverter}}">
+                <Hyperlink Command="{Binding OpenSetupICommand}"
+                           CommandParameter="2*X"
+                           KeyboardNavigation.IsTabStop="False">
+                    <Hyperlink.Inlines>
+                        <Run FontSize="16"
+                             Text="{Binding RecessBar}" />
+                    </Hyperlink.Inlines>
+                </Hyperlink>
+            </TextBlock>
+
             <TextBlock Text="Modular Assembly:"
                        TextDecorations="Underline"
                        FontSize="16"

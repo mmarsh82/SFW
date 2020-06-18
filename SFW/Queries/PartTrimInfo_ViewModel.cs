@@ -20,6 +20,7 @@ namespace SFW.Queries
         public string CenterGuideBarLoc { get; set; }
         public string SlideRailLoc { get; set; }
         public string VGuideBar { get; set; }
+        public string CrossBar { get; set; }
         public string ModTemplate { get; set; }
         public string CenterGuideBar { get; set; }
         public string RecessBar { get; set; }
@@ -49,10 +50,11 @@ namespace SFW.Queries
             CenterGuideBarLoc = trimInfo[5];
             SlideRailLoc = trimInfo[6];
             VGuideBar = trimInfo[7];
-            ModTemplate = trimInfo[8];
-            CenterGuideBar = trimInfo[9];
-            RecessBar = trimInfo[10];
-            Notes = trimInfo[11];
+            CrossBar = trimInfo[8];
+            ModTemplate = trimInfo[9];
+            CenterGuideBar = trimInfo[10];
+            RecessBar = trimInfo[11];
+            Notes = trimInfo[12];
         }
 
         #region Open Setup Print ICommand
@@ -90,6 +92,9 @@ namespace SFW.Queries
                             break;
                         case "M":
                             _tool = ModTemplate;
+                            break;
+                        case "X":
+                            _tool = CrossBar;
                             break;
                     }
                 }

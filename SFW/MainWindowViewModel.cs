@@ -207,6 +207,17 @@ namespace SFW
             }
         }
 
+        private static bool _lowView;
+        public static bool LimitedView
+        {
+            get { return _lowView; }
+            set 
+            {
+                _lowView = value;
+                StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(LimitedView)));
+            }
+        }
+
         private static bool IsChanging;
         public static event EventHandler<PropertyChangedEventArgs> StaticPropertyChanged;
         public event EventHandler CanExecuteChanged;
@@ -219,8 +230,14 @@ namespace SFW
         /// </summary>
         public MainWindowViewModel()
         {
-            DefaultMachineList = Machine.GetMachineList(App.AppSqlCon, false);
-            DefaultMachineList.Insert(0, new Machine { MachineName = "None" });
+            DefaultMachineList = Machine.GetMachineList(App.AppSqlCon, false, true);
+            if (App.DefualtWorkCenter.Count > 0)
+            {
+                foreach (var m in App.DefualtWorkCenter.Where(o => o.SiteNumber == App.SiteNumber && !string.IsNullOrEmpty(o.MachineNumber)))
+                {
+                    DefaultMachineList.FirstOrDefault(o => o.MachineNumber == m.MachineNumber).IsLoaded = true;
+                }
+            }
             IsChanging = false;
             CanUpdate = false;
             InTraining = false;
@@ -233,9 +250,8 @@ namespace SFW
         /// </summary>
         public void UpdateProperties()
         {
-            MachineList = Machine.GetMachineList(App.AppSqlCon, true);
-            DefaultMachineList = Machine.GetMachineList(App.AppSqlCon, false);
-            DefaultMachineList.Insert(0, new Machine { MachineName = "None" });
+            MachineList = Machine.GetMachineList(App.AppSqlCon, true, false);
+            DefaultMachineList = Machine.GetMachineList(App.AppSqlCon, false, true);
             SelectedMachine = MachineList.First();
             MachineGroupList = Machine.GetMachineGroupList(App.AppSqlCon, true);
             SelectedMachineGroup = MachineGroupList.First();
@@ -302,6 +318,7 @@ namespace SFW
             xEle.Attribute("Position").Value = "1";
             xDoc.Save($"{folder}\\SFW\\SfwConfig.xml");
             SelectedMachine = (Machine)parameter;
+            DefaultMachineList.FirstOrDefault(o => o.MachineName == ((Machine)parameter).MachineName).IsLoaded = true;
         }
         private bool SelectedDefaultCanExecute(object parameter) => true;
 

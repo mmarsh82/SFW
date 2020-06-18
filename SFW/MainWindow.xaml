@@ -10,7 +10,6 @@
 
     <Window.Resources>
         <cmd:PartInformation x:Key="PartInfoICommand"/>
-        <cmd:PartSpec x:Key="PartSpecICommand"/>
         <cmd:ViewLoad x:Key="ViewLoadICommand"/>
         <cmd:SafeShutdown x:Key="ExitICommand"/>
         <cmd:ShowLogInWindow x:Key="LogInICommand" />
@@ -36,8 +35,6 @@
         <KeyBinding Gesture="Alt+2" Command="{StaticResource ViewLoadICommand}" CommandParameter="SiteWcco"/>
         <KeyBinding Gesture="Alt+I"
                     Command="{StaticResource PartInfoICommand}" />
-        <KeyBinding Gesture="Alt+S"
-                    Command="{StaticResource PartSpecICommand}" />
         <KeyBinding Gesture="Alt+R"
                     Command="{StaticResource RollSplitICommand}" />
         <KeyBinding Gesture="Shift+Ctrl+C"
@@ -92,9 +89,11 @@
                     <MenuItem.ItemContainerStyle>
                         <Style TargetType="MenuItem">
                             <Setter Property="Command"
-                                    Value="{Binding DataContext.SelectedDefaultICommand, ElementName=SourceWindow}" />
+                                    Value="{Binding DataContext.SelectedDefaultICommand, ElementName=Source_Window}" />
                             <Setter Property="CommandParameter"
                                     Value="{Binding}" />
+                            <Setter Property="IsChecked"
+                                    Value="{Binding IsLoaded}"/>
                         </Style>
                     </MenuItem.ItemContainerStyle>
                 </MenuItem>
@@ -142,10 +141,6 @@
                 <MenuItem Header="Part Information"
                           Command="{StaticResource PartInfoICommand}"
                           InputGestureText="Alt+I"/>
-                <MenuItem Header="Part Specifications"
-                          Command="{StaticResource PartSpecICommand}"
-                          Visibility="{Binding CurrentSiteNbr, Converter={StaticResource SiteToVisConverter}}"
-                          InputGestureText="Alt+S" />
                 <MenuItem Header="Print Label"
                           Command="{StaticResource ShowWindowICommand}"
                           CommandParameter="SFW.Queries.PartLabel_View"

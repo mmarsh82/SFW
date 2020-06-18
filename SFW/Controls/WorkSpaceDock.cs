@@ -1,6 +1,7 @@
 ﻿using M2kClient;
 using SFW.Queries;
 using System;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -68,7 +69,7 @@ namespace SFW.Controls
             MainDock.Children.Insert(6, ClosedDock);
 
             //Add the Part Detail View to [7]
-            MainDock.Children.Insert(7, new PartSpec_View());
+            MainDock.Children.Insert(7, new UserControl());
 
             //Add the Part Trace View to [8]
             MainDock.Children.Insert(8, new PartTrace_View());
@@ -127,8 +128,18 @@ namespace SFW.Controls
             if (index <= 1)
             {
                 MainWindowViewModel.MachineList = ((Schedule.ViewModel)((Schedule.View)_tempDock.Children[0]).DataContext).MachineList;
-                MainWindowViewModel.DefaultMachineList = Model.Machine.GetMachineList(App.AppSqlCon, false);
-                MainWindowViewModel.DefaultMachineList.Insert(0, new Model.Machine { MachineName = "None" });
+                MainWindowViewModel.DefaultMachineList = Model.Machine.GetMachineList(App.AppSqlCon, false, true);
+                if (App.DefualtWorkCenter.Count > 0)
+                {
+                    foreach (var m in App.DefualtWorkCenter.Where(o => o.SiteNumber == App.SiteNumber && !string.IsNullOrEmpty(o.MachineNumber)))
+                    {
+                        MainWindowViewModel.DefaultMachineList.FirstOrDefault(o => o.MachineNumber == m.MachineNumber).IsLoaded = true;
+                    }
+                    if (MainWindowViewModel.DefaultMachineList.Count(o => o.IsLoaded) == 0)
+                    {
+                        MainWindowViewModel.DefaultMachineList[0].IsLoaded = true;
+                    }
+                }
                 if (MainWindowViewModel.SelectedMachine == null)
                 {
                     MainWindowViewModel.SelectedMachine = ((Schedule.ViewModel)((Schedule.View)_tempDock.Children[0]).DataContext).MachineList[0];

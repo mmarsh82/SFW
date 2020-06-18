@@ -78,7 +78,7 @@ namespace SFW.Schedule.Closed
         /// </summary>
         public ViewModel()
         {
-            MachineList = Machine.GetMachineList(App.AppSqlCon, true);
+            MachineList = Machine.GetMachineList(App.AppSqlCon, true, false);
             MachineGroupList = MachineList.Where(o => !string.IsNullOrEmpty(o.MachineGroup)).Select(o => o.MachineGroup).Distinct().ToList();
             var _filter = App.DefualtWorkCenter?.Count > 0 ? App.DefualtWorkCenter.FirstOrDefault(o => o.SiteNumber == App.SiteNumber).MachineNumber : null;
             ClosedScheduleView = CollectionViewSource.GetDefaultView(Machine.GetClosedScheduleData(App.AppSqlCon));
