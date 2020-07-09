@@ -31,6 +31,12 @@ namespace SFW
             get { return _siteNbr; }
             set { _siteNbr = value; StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(SiteNumber))); }
         }
+        public static bool _focused;
+        public static bool IsFocused
+        {
+            get { return _focused; }
+            set { _focused = value; StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(IsFocused))); }
+        }
 
         //Hardcoded application location will need to be changed based on actual file path
         public static string AppFilePath { get { return "\\\\fs-wcco\\WCCO-SFW\\ShopFloorWorkbench\\"; } }
@@ -455,22 +461,30 @@ namespace SFW
                         var wSettings = new XmlWriterSettings { Indent = true, IndentChars = "\t", NewLineOnAttributes = true };
                         using (var writer = XmlWriter.Create(wStream, wSettings))
                         {
+                            writer.WriteStartElement("SFW_User_Config");
+
+                            writer.WriteComment("Default View");
+                            writer.WriteComment("Defines how the schedule is going to show work orders");
+                            writer.WriteComment("true will only show approved, false will show all work orders");
+
+                            writer.WriteStartElement("Default_View");
+                            writer.WriteAttributeString("Focus", "false");
+                            writer.WriteEndElement();
+
                             writer.WriteComment("Default Work Centers");
-                            writer.WriteComment("Work center name and schedule position seperated by Site number" );
+                            writer.WriteComment("Work center name and schedule position seperated by Site number");
 
                             writer.WriteStartElement("Default_WC");
 
                             writer.WriteStartElement("Site_0");
-
                             writer.WriteAttributeString("WC_Nbr", "");
                             writer.WriteAttributeString("Position", "1");
-
                             writer.WriteEndElement();
 
                             writer.WriteStartElement("Site_1");
-
                             writer.WriteAttributeString("WC_Nbr", "");
                             writer.WriteAttributeString("Position", "1");
+                            writer.WriteEndElement();
 
                             writer.WriteEndElement();
 
@@ -489,8 +503,15 @@ namespace SFW
                             {
                                 if (reader.NodeType == XmlNodeType.Element)
                                 {
-                                    var _site = Convert.ToInt32(reader.Name.Substring(reader.Name.Length - 1));
-                                    _uConf.Add(new UConfig { SiteNumber = _site, MachineNumber = reader.GetAttribute("WC_Nbr"), Position = Convert.ToInt32(reader.GetAttribute("Position")) });
+                                    if (reader.Name.Contains("Site"))
+                                    {
+                                        var _site = Convert.ToInt32(reader.Name.Substring(reader.Name.Length - 1));
+                                        _uConf.Add(new UConfig { SiteNumber = _site, MachineNumber = reader.GetAttribute("WC_Nbr"), Position = Convert.ToInt32(reader.GetAttribute("Position")) });
+                                    }
+                                    else if (reader.Name == "Default_View")
+                                    {
+                                        IsFocused = bool.TryParse(reader.GetAttribute("Focus").ToString(), out bool b) && b;
+                                    }
                                 }
                             }
                         }

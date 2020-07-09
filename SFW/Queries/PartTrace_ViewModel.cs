@@ -148,7 +148,7 @@ namespace SFW.Queries
 
                     VerifyText = "No Setup.";
                 }
-                SkuWIList = Sku.GetInstructions(PartNumber, CurrentUser.GetSite(), App.GlobalConfig.First(o => $"{o.Site}_MAIN" == App.Site).WI, App.AppSqlCon);
+                SkuWIList = Sku.GetInstructions(PartNumber, App.SiteNumber, App.GlobalConfig.First(o => $"{o.Site}_MAIN" == App.Site).WI, App.AppSqlCon);
                 if (SkuWIList == null)
                 {
                     VerifyText += " No Work Instructions.";

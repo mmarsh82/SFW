@@ -107,7 +107,28 @@ namespace SFW.Schedule
             MachineGroupList = MachineList.Where(o => !string.IsNullOrEmpty(o.MachineGroup)).Select(o => o.MachineGroup).Distinct().ToList();
             LoadAsyncDelegate = new LoadDelegate(ViewLoading);
             FilterAsyncDelegate = new LoadDelegate(FilterView);
-            var _filter = App.DefualtWorkCenter?.Count > 0 ? App.DefualtWorkCenter.FirstOrDefault(o => o.SiteNumber == App.SiteNumber).MachineNumber : null;
+            var _filter = string.Empty;
+            if (App.DefualtWorkCenter?.Count(o => o.SiteNumber == App.SiteNumber) == 1)
+            {
+                _filter = $@"{App.DefualtWorkCenter.FirstOrDefault(o => o.SiteNumber == App.SiteNumber).MachineNumber}
+                                *MachineNumber = '{App.DefualtWorkCenter.FirstOrDefault(o => o.SiteNumber == App.SiteNumber).MachineNumber}'";
+            }
+            else if (App.DefualtWorkCenter?.Count(o => o.SiteNumber == App.SiteNumber) > 1)
+            {
+                foreach (var m in App.DefualtWorkCenter.Where(o => o.SiteNumber == App.SiteNumber))
+                {
+                    _filter += string.IsNullOrEmpty(_filter) ? $"(MachineNumber = '{m.MachineNumber}'" : $" OR MachineNumber = '{m.MachineNumber}'";
+                }
+                _filter += ")";
+            }
+            if (App.IsFocused && string.IsNullOrEmpty(_filter))
+            {
+                _filter = "WO_Priority = 'A' OR WO_Priority = 'B'";
+            }
+            else if (App.IsFocused)
+            {
+                _filter += " AND (WO_Priority = 'A' OR WO_Priority = 'B')";
+            }
             LoadAsyncComplete = LoadAsyncDelegate.BeginInvoke(_filter, new AsyncCallback(ViewLoaded), null);
             RefreshTimer.Add(RefreshSchedule);
             VMDataBase = App.AppSqlCon.Database;
@@ -145,21 +166,27 @@ namespace SFW.Schedule
             }
             else
             {
-                ((DataView)ScheduleView.SourceCollection).RowFilter = $"MachineNumber = '{filter}'";
+                filter = filter.Contains('*') ? filter.Split('*')[1] : filter;
+                ((DataView)ScheduleView.SourceCollection).RowFilter = filter;
                 OnPropertyChanged(nameof(ScheduleView));
             }
         }
 
-        public void ViewLoading(string machineNbr)
+        public void ViewLoading(string filter)
         {
             IsLoading = true;
-
             ScheduleView = CollectionViewSource.GetDefaultView(Machine.GetScheduleData(App.AppSqlCon));
             ScheduleView.GroupDescriptions.Add(new PropertyGroupDescription("MachineNumber", new WorkCenterNameConverter(MachineList)));
-            if (!string.IsNullOrEmpty(machineNbr))
+            if (!string.IsNullOrEmpty(filter))
             {
-                MainWindowViewModel.SelectedMachine = MachineList.FirstOrDefault(o => o.MachineNumber == machineNbr);
-                ((DataView)ScheduleView.SourceCollection).RowFilter = $"MachineName = '{MainWindowViewModel.SelectedMachine.MachineName}'";
+                var _filter = filter;
+                if (filter.Contains('*'))
+                {
+                    var _fSplit = filter.Split('*');
+                    MainWindowViewModel.SelectedMachine = MachineList.FirstOrDefault(o => o.MachineNumber == _fSplit[0]);
+                    _filter = _fSplit[1];
+                }
+                ((DataView)ScheduleView.SourceCollection).RowFilter = _filter;
             }
         }
         public void ViewLoaded(IAsyncResult r)
@@ -181,6 +208,7 @@ namespace SFW.Schedule
                 {
                     var _db = string.Empty;
                     var _oldItem = ScheduleView.CurrentItem;
+                    var _oldFilter = ((DataView)ScheduleView.SourceCollection).RowFilter;
                     RefreshTimer.IsRefreshing = IsLoading = true;
                     if (App.AppSqlCon.Database != VMDataBase)
                     {
@@ -196,14 +224,7 @@ namespace SFW.Schedule
                         var listIndex = schedList.FindIndex(r => r.Field<string>("WO_Number") == ((DataRowView)_oldItem).Row.Field<string>("WO_Number"));
                         ScheduleView.MoveCurrentToPosition(listIndex);
                     }
-                    if (MainWindowViewModel.SelectedMachine.MachineName != "All" && string.IsNullOrEmpty(_db))
-                    {
-                        ((DataView)ScheduleView.SourceCollection).RowFilter = $"MachineName = '{MainWindowViewModel.SelectedMachine.MachineName}'";
-                    }
-                    else if (MainWindowViewModel.SelectedMachineGroup != "All" && string.IsNullOrEmpty(_db))
-                    {
-                        ((DataView)ScheduleView.SourceCollection).RowFilter = $"MachineGroup = '{MainWindowViewModel.SelectedMachineGroup}'";
-                    }
+                    ((DataView)ScheduleView.SourceCollection).RowFilter = _oldFilter;
                     if (!string.IsNullOrEmpty(_db))
                     {
                         App.DatabaseChange(_db);

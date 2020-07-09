@@ -183,6 +183,18 @@ namespace SFW
             }
         }
 
+        private static string _site;
+        public static string Site
+        {
+            get
+            { return _site; }
+            set
+            {
+                _site = value;
+                StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(Site)));
+            }
+        }
+
 
 
         public static event EventHandler<PropertyChangedEventArgs> StaticPropertyChanged;
@@ -215,6 +227,7 @@ namespace SFW
             DomainUserName = user.SamAccountName;
             DisplayName = user.DisplayName;
             Email = user.EmailAddress;
+            Site = user.DistinguishedName.Contains("WCCO") ? "WCCO" : "CSI";
             CanSchedule = _groups.Exists(o => o.ToString().Contains("SFW_Sched"));
             IsAdmin = _groups.Exists(o => o.ToString().Contains("SFW_Admin"));
             IsSupervisor = _groups.Exists(o => o.ToString().Contains("SFW_Super"));
@@ -243,7 +256,7 @@ namespace SFW
             {
                 _user = System.Security.Principal.WindowsIdentity.GetCurrent().Name;
             }
-            using (PrincipalContext pContext = new PrincipalContext(ContextType.Domain))
+            using (PrincipalContext pContext = GetPrincipal(_user))
             {
                 using (UserPrincipal uPrincipal = UserPrincipal.FindByIdentity(pContext, _user))
                 {
@@ -261,7 +274,7 @@ namespace SFW
         /// <param name="userName">User Name</param>
         public static void LogIn(string userName)
         {
-            using (PrincipalContext pContext = new PrincipalContext(ContextType.Domain))
+            using (PrincipalContext pContext = GetPrincipal(userName))
             {
                 using (UserPrincipal uPrincipal = UserPrincipal.FindByIdentity(pContext, userName))
                 {
@@ -282,7 +295,7 @@ namespace SFW
         {
             try
             {
-                using (PrincipalContext pCon = new PrincipalContext(ContextType.Domain))
+                using (PrincipalContext pCon = GetPrincipal(userName))
                 {
                     return (UserPrincipal.FindByIdentity(pCon, userName) != null);
                 }
@@ -301,21 +314,21 @@ namespace SFW
         public static int GetSite()
         {
             var _user = System.Security.Principal.WindowsIdentity.GetCurrent().Name;
-            using (PrincipalContext pContext = new PrincipalContext(ContextType.Domain))
+            using (PrincipalContext pContext = GetPrincipal(_user))
             {
                 using (UserPrincipal uPrincipal = UserPrincipal.FindByIdentity(pContext, _user))
                 {
-                    if (uPrincipal.DistinguishedName.Contains("WCCO"))
+                    if (uPrincipal.DistinguishedName.Contains("CSI"))
+                    {
+                        return 0;
+                    }
+                    else if (uPrincipal.DistinguishedName.Contains("WCCO"))
                     {
                         return 1;
                     }
-                    else if (uPrincipal.DistinguishedName.Contains("CSI"))
-                    {
-                        return 2;
-                    }
                     else
                     {
-                        return 0;
+                        return -1;
                     }
                 }
             }
@@ -338,7 +351,7 @@ namespace SFW
             var _resultVal = string.Empty;
             try
             {
-                using (PrincipalContext pContext = new PrincipalContext(ContextType.Domain))
+                using (PrincipalContext pContext = GetPrincipal(userName))
                 {
                     using (UserPrincipal uPrincipal = UserPrincipal.FindByIdentity(pContext, userName))
                     {
@@ -360,10 +373,10 @@ namespace SFW
                                 _resultKey = 3;
                                 _resultVal = "Your account is currently disabled.\nPlease contact IT for assistance.";
                             }
-                            else if (!pContext.ValidateCredentials(userName, pwd))
+                            else if (!pContext.ValidateCredentials(userName, pwd, ContextOptions.Negotiate))
                             {
                                 _resultKey = 4;
-                                _resultVal =  "Invalid credentials.\nPlease check your user name and password and try again.\nIf you feel you have reached this message in error,\nplease contact IT for further assistance.";
+                                _resultVal = "Invalid credentials.\nPlease check your user name and password and try again.\nIf you feel you have reached this message in error,\nplease contact IT for further assistance.";
                             }
                             if (!string.IsNullOrEmpty(_resultVal))
                             {
@@ -402,7 +415,6 @@ namespace SFW
             CanSchedule = false;
             CanWip = false;
             UserIDNbr = string.Empty;
-            //TODO: make sure the schedule is on the site of the domain
         }
 
         /// <summary>
@@ -412,7 +424,7 @@ namespace SFW
         {
             if (IsLoggedIn)
             {
-                using (PrincipalContext pContext = new PrincipalContext(ContextType.Domain))
+                using (PrincipalContext pContext = GetPrincipal(DomainUserName))
                 {
                     using (UserPrincipal uPrincipal = UserPrincipal.FindByIdentity(pContext, DomainUserName))
                     {
@@ -431,37 +443,49 @@ namespace SFW
         /// <returns>Any error that was reflected from the AD, will be null if no errors occured</returns>
         public static string UpdatePassword(string userName, string oldPwd, string newPwd)
         {
-            //TODO: add in the logic and arguments for updating the password
-            using (var context = new PrincipalContext(ContextType.Domain))
+            using (var context = GetPrincipal(userName))
             {
                 try
                 {
                     using (var user = UserPrincipal.FindByIdentity(context, IdentityType.SamAccountName, userName))
                     {
-                        
                         user.ChangePassword(oldPwd, newPwd);
                         user.Save();
                     }
                 }
-                catch(PasswordException e)
+                catch(PasswordException passEx)
                 {
-                    if (e.Message == "The specified network password is not correct. (Exception from HRESULT: 0x80070056)")
+                    if (passEx.Message == "The specified network password is not correct. (Exception from HRESULT: 0x80070056)")
                         return "The old password is incorrect";
-                    else if (e.Message == "The password does not meet the password policy requirements. Check the minimum password length, password complexity and password history requirements. (Exception from HRESULT: 0x800708C5)")
+                    else if (passEx.Message == "The password does not meet the password policy requirements. Check the minimum password length, password complexity and password history requirements. (Exception from HRESULT: 0x800708C5)")
                         return "The password does not meet the password policy requirements.";
                     else
-                        return e.Message;
+                        return passEx.Message;
                 }
-                catch(Exception e)
+                catch(Exception)
                 {
-                    
                     return "Unknown error";
                 }
             }
-
-
             return null;
         }
 
+        /// <summary>
+        /// Get a Dynamic PrincipalContext based on the username submitted
+        /// </summary>
+        /// <param name="username">User name</param>
+        /// <returns>Dynamic PrincipalContext</returns>
+        public static PrincipalContext GetPrincipal(string username)
+        {
+            if (username.Contains("\\"))
+            {
+                var uSplit = username.Split('\\');
+                return new PrincipalContext(ContextType.Domain, uSplit[0]);
+            }
+            else
+            {
+                return new PrincipalContext(ContextType.Domain);
+            }
+        }
     }
 }

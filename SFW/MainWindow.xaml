@@ -74,32 +74,6 @@
                           CommandParameter="out"
                           InputGestureText="Esc"
                           Visibility="{Binding Path=(local:CurrentUser.IsLoggedIn), Converter={StaticResource BoolToVisConverter}}"/>
-                <MenuItem Header="Password Reset"
-                          Command="{StaticResource LogInICommand}"
-                          CommandParameter="reset"
-                          InputGestureText=""/>
-                <MenuItem Header="Train Mode"
-                          IsCheckable="True"
-                          IsChecked="{Binding InTraining, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                          Visibility="{Binding Path=(local:CurrentUser.IsAdmin), Converter={StaticResource BoolToVisConverter}}"/>
-                <MenuItem Header="Default Work Center"
-                          ItemsSource="{Binding DefaultMachineList}"
-                          DisplayMemberPath="MachineName"
-                          Visibility="{Binding Path=(local:CurrentUser.IsAdmin), Converter={StaticResource BoolToVisConverter}}">
-                    <MenuItem.ItemContainerStyle>
-                        <Style TargetType="MenuItem">
-                            <Setter Property="Command"
-                                    Value="{Binding DataContext.SelectedDefaultICommand, ElementName=Source_Window}" />
-                            <Setter Property="CommandParameter"
-                                    Value="{Binding}" />
-                            <Setter Property="IsChecked"
-                                    Value="{Binding IsLoaded}"/>
-                        </Style>
-                    </MenuItem.ItemContainerStyle>
-                </MenuItem>
-                <MenuItem Header="Dev Testing" 
-                          Visibility="{Binding Path=(local:CurrentUser.IsAdmin), Converter={StaticResource BoolToVisConverter}}"
-                          Command="{StaticResource TestICommand}"/>
                 <MenuItem Header="Exit"
                           Command="{StaticResource ExitICommand}"
                           InputGestureText="Alt+F4">
@@ -109,6 +83,10 @@
                 </MenuItem>
             </MenuItem>
             <MenuItem Header="View">
+                <MenuItem Header="Refresh Schedule"
+                          Command="{StaticResource ViewLoadICommand}"
+                          CommandParameter="Schedule"
+                          InputGestureText="F5"/>
                 <MenuItem Header="Site"
                           Visibility="{Binding Path=(local:CurrentUser.CanSchedule), Converter={StaticResource BoolToVisConverter}}">
                     <MenuItem Header="CSI"
@@ -124,10 +102,6 @@
                               IsChecked="{Binding CurrentSiteNbr, Converter={StaticResource SiteToBoolConverter}, ConverterParameter=WCCO}"
                               InputGestureText="Alt+2"/>
                 </MenuItem>
-                <MenuItem Header="Refresh Schedule"
-                          Command="{StaticResource ViewLoadICommand}"
-                          CommandParameter="Schedule"
-                          InputGestureText="F5"/>
                 <MenuItem Header="Closed Work Orders"
                           Command="{StaticResource ViewLoadICommand}"
                           CommandParameter="ClosedSched"
@@ -164,7 +138,39 @@
                     <Separator/>
                 </MenuItem>
             </MenuItem>
+            
+            <MenuItem Header="Admin"
+                      Visibility="{Binding Path=(local:CurrentUser.IsAdmin), Converter={StaticResource BoolToVisConverter}}">
+                <MenuItem Header="Password Reset"
+                          Command="{StaticResource LogInICommand}"
+                          CommandParameter="reset"
+                          InputGestureText=""/>
+                <MenuItem Header="Train Mode"
+                          IsCheckable="True"
+                          IsChecked="{Binding InTraining, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                <MenuItem Header="Default Work Center"
+                          ItemsSource="{Binding DefaultMachineList, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                          DisplayMemberPath="MachineName">
+                    <MenuItem.ItemContainerStyle>
+                        <Style TargetType="MenuItem">
+                            <Setter Property="Command"
+                                    Value="{Binding DataContext.SelectedDefaultICommand, ElementName=Source_Window}" />
+                            <Setter Property="CommandParameter"
+                                    Value="{Binding}" />
+                            <Setter Property="IsChecked"
+                                    Value="{Binding IsLoaded}"/>
+                        </Style>
+                    </MenuItem.ItemContainerStyle>
+                </MenuItem>
+                <MenuItem Header="Focus View"
+                          IsCheckable="True"
+                          IsChecked="{Binding Path=(local:App.IsFocused), Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                          Command="{Binding SetFocusICommand}"/>
+                <MenuItem Header="Dev Testing"
+                          Command="{StaticResource TestICommand}"/>
+            </MenuItem>
         </Menu>
+        
         <StackPanel Orientation="Horizontal"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center"
@@ -172,11 +178,13 @@
             <ComboBox ItemsSource="{Binding MachineList}"
                       DisplayMemberPath="MachineName"
                       SelectedItem="{Binding SelectedMachine, NotifyOnSourceUpdated=True, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                      Visibility="{Binding Path=(local:App.IsFocused), Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}"
                       Width="150"
                       FontSize="14"
                       FontWeight="Bold"/>
             <ComboBox ItemsSource="{Binding MachineGroupList}"
                       SelectedItem="{Binding SelectedMachineGroup, NotifyOnSourceUpdated=True, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                      Visibility="{Binding Path=(local:App.IsFocused), Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}"
                       Width="100"
                       FontSize="14"
                       FontWeight="Bold"/>

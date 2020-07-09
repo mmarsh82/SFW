@@ -1,4 +1,5 @@
-﻿using M2kClient;
+﻿using DocumentFormat.OpenXml.Drawing.Charts;
+using M2kClient;
 using SFW.Queries;
 using System;
 using System.Linq;
@@ -75,20 +76,11 @@ namespace SFW.Controls
             MainDock.Children.Insert(8, new PartTrace_View());
 
             //Set up and display the intial view
-            switch (Environment.UserDomainName)
-            {
-                case "AD":
-                    App.DatabaseChange("WCCO_MAIN");
-                    App.ErpCon.DatabaseChange(Database.WCCO);
-                    SwitchView(1, null);
-                    break;
-                case "CSI":
-                case "BELT":
-                    App.DatabaseChange("CSI_MAIN");
-                    App.ErpCon.DatabaseChange(Database.CSI);
-                    SwitchView(0, null);
-                    break;
-            }
+            var _siteNbr = CurrentUser.GetSite();
+            var _site = !string.IsNullOrEmpty(CurrentUser.Site) ? CurrentUser.Site : "CSI";
+            App.DatabaseChange($"{_site}_MAIN");
+            App.ErpCon.DatabaseChange(Enum.TryParse(_site, out Database _db) ? _db : Database.CSI);
+            SwitchView(_siteNbr, null);
             RefreshTimer.IsRefreshing = false;
         }
 

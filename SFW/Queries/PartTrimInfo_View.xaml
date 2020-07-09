@@ -207,7 +207,7 @@
                            KeyboardNavigation.IsTabStop="False">
                     <Hyperlink.Inlines>
                         <Run FontSize="16"
-                             Text="{Binding RecessBar}" />
+                             Text="{Binding CrossBar}" />
                     </Hyperlink.Inlines>
                 </Hyperlink>
             </TextBlock>

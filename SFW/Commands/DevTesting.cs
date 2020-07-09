@@ -1,4 +1,7 @@
-﻿using System;
+﻿using SFW.Controls;
+using SFW.Model;
+using System;
+using System.Data;
 using System.Windows.Input;
 
 namespace SFW.Commands
@@ -13,30 +16,22 @@ namespace SFW.Commands
         /// <param name="parameter"></param>
         public void Execute(object parameter)
         {
-            parameter = "123546";
-            var _test = string.Empty;
-            foreach (string printer in System.Drawing.Printing.PrinterSettings.InstalledPrinters)
+            var _dock = App.SiteNumber == 0
+                            ? WorkSpaceDock.CsiDock
+                            : WorkSpaceDock.WccoDock;
+            _dock.Dispatcher.BeginInvoke(new Action(() =>
             {
-                if (printer.Contains("GX420"))
+                if (((Schedule.ViewModel)((Schedule.View)_dock.Children[0]).DataContext).ScheduleView != null)
                 {
-                    _test = printer;
-                    break;
+                    if (((DataView)((Schedule.ViewModel)((Schedule.View)_dock.Children[0]).DataContext).ScheduleView.SourceCollection).Table.Select($"WO_Priority = 'A'").Length == 0)
+                    {
+                        ((ShopRoute.ViewModel)((ShopRoute.View)_dock.Children[1]).DataContext).ShopOrder = new WorkOrder();
+                    }
+                    ((DataView)((Schedule.ViewModel)((Schedule.View)_dock.Children[0]).DataContext).ScheduleView.SourceCollection).RowFilter = "WO_Priority = 'A'";
+                    ((Schedule.ViewModel)((Schedule.View)_dock.Children[0]).DataContext).SearchFilter = null;
+                    ((Schedule.ViewModel)((Schedule.View)_dock.Children[0]).DataContext).ScheduleView.Refresh();
                 }
-            }
-            if (!string.IsNullOrEmpty(_test))
-            {
-                string s = $@"CT~~CD,~CC^~CT~
-                            ^XA~TA000~JSN^LT0^MNW^MTD^PON^PMN^LH0,0^JMA^PR6,6~SD15^JUS^LRN^CI0^XZ
-                            ^XA
-                            ^MMT
-                            ^PW609
-                            ^LL0406
-                            ^LS0
-                            ^BY2,3,335^FT431,38^B3I,N,,Y,N
-                            ^FDW{parameter}^FS
-                            ^PQ1,0,1,Y^XZ";
-                Helpers.RawPrinter.SendStringToPrinter(_test, s, 1);
-            }
+            }));
         }
         public bool CanExecute(object parameter) => true;
     }
