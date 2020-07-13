@@ -54,7 +54,7 @@ namespace SFW.Queries
             ModTemplate = trimInfo[9];
             CenterGuideBar = trimInfo[10];
             RecessBar = trimInfo[11];
-            Notes = trimInfo[12];
+            Notes = trimInfo.Count > 12 ? trimInfo[12] : string.Empty;
         }
 
         #region Open Setup Print ICommand

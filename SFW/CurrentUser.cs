@@ -320,10 +320,12 @@ namespace SFW
                 {
                     if (uPrincipal.DistinguishedName.Contains("CSI"))
                     {
+                        Site = "CSI";
                         return 0;
                     }
                     else if (uPrincipal.DistinguishedName.Contains("WCCO"))
                     {
+                        Site = "WCCO";
                         return 1;
                     }
                     else
