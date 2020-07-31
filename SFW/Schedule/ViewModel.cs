@@ -175,7 +175,8 @@ namespace SFW.Schedule
         public void ViewLoading(string filter)
         {
             IsLoading = true;
-            ScheduleView = CollectionViewSource.GetDefaultView(Machine.GetScheduleData(App.AppSqlCon));
+            ScheduleView = CollectionViewSource.GetDefaultView(Machine.GetScheduleData(UConfig.GetIROD(), App.AppSqlCon));
+            ScheduleView.SortDescriptions.Add(new SortDescription("MachineOrder", ListSortDirection.Ascending));
             ScheduleView.GroupDescriptions.Add(new PropertyGroupDescription("MachineNumber", new WorkCenterNameConverter(MachineList)));
             if (!string.IsNullOrEmpty(filter))
             {
@@ -215,7 +216,7 @@ namespace SFW.Schedule
                         _db = App.AppSqlCon.Database;
                         App.DatabaseChange(VMDataBase);
                     }
-                    ScheduleView = CollectionViewSource.GetDefaultView(Machine.GetScheduleData(App.AppSqlCon));
+                    ScheduleView = CollectionViewSource.GetDefaultView(Machine.GetScheduleData(UConfig.GetIROD(), App.AppSqlCon));
                     ScheduleView.GroupDescriptions.Add(new PropertyGroupDescription("MachineNumber", new WorkCenterNameConverter(MachineList)));
                     OnPropertyChanged(nameof(ScheduleView));
                     if (_oldItem != null && ((DataView)ScheduleView.SourceCollection).Table.AsEnumerable().Any(r => r.Field<string>("WO_Number") == ((DataRowView)_oldItem).Row.Field<string>("WO_Number")))
@@ -231,6 +232,7 @@ namespace SFW.Schedule
                         MainWindowViewModel.InTraining = MainWindowViewModel.InTraining;
                     }
                     RefreshTimer.IsRefreshing = IsLoading = false;
+                    ScheduleView.SortDescriptions.Add(new SortDescription("MachineOrder", ListSortDirection.Ascending));
                     ScheduleView.Refresh();
                     if (!string.IsNullOrEmpty(SearchFilter))
                     {
@@ -258,19 +260,19 @@ namespace SFW.Schedule
 
         private void StateChangeExecute(object parameter)
         {
-            var _oldPri = SelectedWorkOrder?.Row?.ItemArray[10].ToString();
-            if (char.TryParse(SelectedWorkOrder?.Row?.ItemArray[10].ToString(), out char _oldPriChar))
+            var _oldPri = SelectedWorkOrder?.Row?.SafeGetField<string>("WO_Priority").ToString();
+            if (char.TryParse(SelectedWorkOrder?.Row?.SafeGetField<string>("WO_Priority").ToString(), out char _oldPriChar))
             {
                 var _oldPriInt = _oldPriChar % 32;
                 var _newPriInt = Convert.ToChar(parameter) % 32;
-                if (_oldPriInt < _newPriInt && (SelectedWorkOrder?.Row?.ItemArray[15].ToString() != "999" || SelectedWorkOrder?.Row?.ItemArray[16].ToString() != "999"))
+                if (_oldPriInt < _newPriInt && (SelectedWorkOrder?.Row?.SafeGetField<string>("PriTime").ToString() != "999" || SelectedWorkOrder?.Row?.SafeGetField<int>("Sched_Priority").ToString() != "999"))
                 {
                     new ClearPriority().Execute(SelectedWorkOrder);
                 }
             }
             if (!string.IsNullOrEmpty(parameter?.ToString()))
             {
-                var _woNumber = SelectedWorkOrder?.Row?.ItemArray[0].ToString().Split('*')[0];
+                var _woNumber = SelectedWorkOrder?.Row?.SafeGetField<string>("WO_Number").ToString().Split('*')[0];
                 var _changeRequest = M2kCommand.EditRecord("WP", _woNumber, 40, parameter.ToString(), App.ErpCon);
                 if (!string.IsNullOrEmpty(_changeRequest))
                 {
@@ -307,9 +309,9 @@ namespace SFW.Schedule
 
         private void PriorityChangeExecute(object parameter)
         {
-            var _shift = ((DataRowView)parameter).Row.ItemArray[16].ToString() == "9" ? 0 : Convert.ToInt32(((DataRowView)parameter).Row.ItemArray[16]);
-            var _pri = ((DataRowView)parameter).Row.ItemArray[17].ToString() == "9" ? 0 : Convert.ToInt32(((DataRowView)parameter).Row.ItemArray[17]);
-            var _woNumber = ((DataRowView)parameter).Row.ItemArray[0].ToString().Split('*')[0];
+            var _shift = ((DataRowView)parameter).Row.SafeGetField<string>("PriTime").ToString() == "9" ? 0 : Convert.ToInt32(((DataRowView)parameter).Row.SafeGetField<string>("PriTime"));
+            var _pri = ((DataRowView)parameter).Row.SafeGetField<int>("Sched_Priority").ToString() == "9" ? 0 : Convert.ToInt32(((DataRowView)parameter).Row.SafeGetField<int>("Sched_Priority"));
+            var _woNumber = ((DataRowView)parameter).Row.SafeGetField<string>("WO_Number").ToString().Split('*')[0];
             using (var _editPri = new Tools.PriorityEdit_ViewModel(_woNumber, _shift, _pri))
             {
                 new Tools.PriorityEdit_View { DataContext = _editPri }.ShowDialog();

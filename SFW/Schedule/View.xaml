@@ -369,7 +369,7 @@
                             <Setter Property="Template">
                                 <Setter.Value>
                                     <ControlTemplate TargetType="{x:Type GroupItem}">
-                                        <Expander BorderBrush="Black" IsExpanded="True" Background="#FF135185" Foreground="Black" BorderThickness="1">
+                                        <Expander BorderBrush="Black" IsExpanded="True" Background="#FF135185" Foreground="Black" BorderThickness="1" >
                                             <i:Interaction.Behaviors>
                                                 <bhvr:ExpanderState GroupName="{Binding Name}"/>
                                             </i:Interaction.Behaviors>

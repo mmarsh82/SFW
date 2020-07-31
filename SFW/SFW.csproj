@@ -30,8 +30,8 @@
     <PublisherName>Michael Marsh</PublisherName>
     <SuiteName>WCCO Belting Inc.</SuiteName>
     <AutorunEnabled>true</AutorunEnabled>
-    <ApplicationRevision>1779</ApplicationRevision>
-    <ApplicationVersion>1.0.228.1779</ApplicationVersion>
+    <ApplicationRevision>1790</ApplicationRevision>
+    <ApplicationVersion>1.0.231.1790</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <CreateDesktopShortcut>true</CreateDesktopShortcut>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -116,6 +116,7 @@
     </ApplicationDefinition>
     <Compile Include="AppGlobal.cs" />
     <Compile Include="Commands\AppReload.cs" />
+    <Compile Include="Commands\Class1.cs" />
     <Compile Include="Commands\ClearPriority.cs" />
     <Compile Include="Commands\DevTesting.cs" />
     <Compile Include="Commands\M2kWipReceipt.cs" />
@@ -140,6 +141,7 @@
     <Compile Include="Converters\SiteNumberToBool.cs" />
     <Compile Include="Converters\SiteToVisibility.cs" />
     <Compile Include="Converters\StringConcat.cs" />
+    <Compile Include="Converters\StringToBool.cs" />
     <Compile Include="Converters\WoPriorityToBool.cs" />
     <Compile Include="CurrentUser.cs" />
     <Compile Include="CycleCount\Form_View.xaml.cs">

@@ -89,9 +89,10 @@ namespace SFW.Model
         /// <summary>
         /// Retrieve a DataTable with all the data relevent to a schedule
         /// </summary>
-        /// /// <param name="sqlCon">Sql Connection to use</param>
+        /// <param name="machOrder">Dictionary containing the order property for the machines, based on the user config</param>
+        /// <param name="sqlCon">Sql Connection to use</param>
         /// <returns>DataTable with the schedule data results</returns>
-        public static DataTable GetScheduleData(SqlConnection sqlCon)
+        public static DataTable GetScheduleData(IReadOnlyDictionary<string, int> machOrder, SqlConnection sqlCon)
         {
             //Currently written with the old Q-Task module, will need to be replaced when the new Q-Task module is developed
             var _selectCmd = sqlCon.Database == "CSI_MAIN"
@@ -104,6 +105,7 @@ namespace SFW.Model
 	                    a.[Name] as 'MachineName',
 	                    a.[D_esc] as 'MachineDesc',
 	                    a.[Work_Ctr_Group] as 'MachineGroup',
+                        0 as 'MachineOrder',
                         ISNULL(b.[Qty_Avail], b.[Qty_Req] - ISNULL(b.[Qty_Compl], 0)) as 'WO_CurrentQty',
 	                    ISNULL(b.[Date_Start], '1999-01-01') as 'WO_SchedStartDate',
                         ISNULL(b.[Date_Act_Start], '1999-01-01') as 'WO_ActStartDate',
@@ -165,6 +167,7 @@ namespace SFW.Model
 	                    a.[Name] as 'MachineName',
 	                    a.[D_esc] as 'MachineDesc',
 	                    a.[Work_Ctr_Group] as 'MachineGroup',
+                        0 as 'MachineOrder',
                         ISNULL(b.[Qty_Avail], b.[Qty_Req] - ISNULL(b.[Qty_Compl], 0)) as 'WO_CurrentQty',
 	                    ISNULL(b.[Date_Start], '1999-01-01') as 'WO_SchedStartDate',
                         ISNULL(b.[Date_Act_Start], '1999-01-01') as 'WO_ActStartDate',
@@ -228,6 +231,18 @@ namespace SFW.Model
                         using (SqlDataAdapter adapter = new SqlDataAdapter(_selectCmd, sqlCon))
                         {
                             adapter.Fill(_tempTable);
+                            if(machOrder.Count > 0)
+                            {
+                                var _cnt = 0;
+                                foreach (DataRow dr in _tempTable.Rows)
+                                {
+                                    if (machOrder.ContainsKey(dr.ItemArray[2].ToString()))
+                                    {
+                                        _tempTable.Rows[_cnt].SetField("MachineOrder", machOrder.TryGetValue(dr.ItemArray[2].ToString(), out int i) ? i : 0);
+                                    }
+                                    _cnt++;
+                                }
+                            }
                             return _tempTable;
                         }
                     }

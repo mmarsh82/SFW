@@ -107,7 +107,6 @@ namespace SFW.Behaviors
                 dict = new Dictionary<object, bool>();
                 itemsControl?.SetValue(ExpandedStateStoreProperty, dict);
             }
-
             return dict;
         }
 
