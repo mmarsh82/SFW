@@ -221,7 +221,14 @@ namespace SFW
             }
             catch
             {
-                _groups = user.GetGroups().Where(o => o.Name.Contains("SFW_")).ToList().ConvertAll(o => o.Name);
+                try
+                {
+                    _groups = user.GetGroups().Where(o => o.Name.Contains("SFW_")).ToList().ConvertAll(o => o.Name);
+                }
+                catch
+                {
+                    _groups = new List<string>();
+                }
             }
             DomainName = context.ConnectedServer;
             DomainUserName = user.SamAccountName;
@@ -246,26 +253,33 @@ namespace SFW
         /// </summary>
         public static void LogIn()
         {
-            var _user = string.Empty;
-            if (File.Exists($"{Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)}\\SFW\\SSO.txt"))
+            try
             {
-                _user = File.ReadAllText($"{Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)}\\SFW\\SSO.txt");
-                File.Delete($"{Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)}\\SFW\\SSO.txt");
-            }
-            else
-            {
-                _user = System.Security.Principal.WindowsIdentity.GetCurrent().Name;
-            }
-            _user = _user.Length <= 20 ? _user : _user.Substring(0, 20);
-            using (PrincipalContext pContext = GetPrincipal(_user))
-            {
-                using (UserPrincipal uPrincipal = UserPrincipal.FindByIdentity(pContext, _user))
+                var _user = string.Empty;
+                if (File.Exists($"{Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)}\\SFW\\SSO.txt"))
                 {
-                    if (uPrincipal.GetAuthorizationGroups().ToList().ConvertAll(o => o.Name).Exists(o => o.Contains("SFW_")))
+                    _user = File.ReadAllText($"{Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)}\\SFW\\SSO.txt");
+                    File.Delete($"{Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)}\\SFW\\SSO.txt");
+                }
+                else
+                {
+                    _user = System.Security.Principal.WindowsIdentity.GetCurrent().Name;
+                }
+                _user = _user.Length <= 20 ? _user : _user.Substring(0, 20);
+                using (PrincipalContext pContext = GetPrincipal(_user))
+                {
+                    using (UserPrincipal uPrincipal = UserPrincipal.FindByIdentity(pContext, _user))
                     {
-                        new CurrentUser(pContext, uPrincipal);
+                        if (uPrincipal.GetAuthorizationGroups().ToList().ConvertAll(o => o.Name).Exists(o => o.Contains("SFW_")))
+                        {
+                            new CurrentUser(pContext, uPrincipal);
+                        }
                     }
                 }
+            }
+            catch (Exception)
+            {
+
             }
         }
 
