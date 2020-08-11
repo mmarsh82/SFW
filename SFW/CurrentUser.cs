@@ -256,6 +256,7 @@ namespace SFW
             {
                 _user = System.Security.Principal.WindowsIdentity.GetCurrent().Name;
             }
+            _user = _user.Length <= 20 ? _user : _user.Substring(0, 20);
             using (PrincipalContext pContext = GetPrincipal(_user))
             {
                 using (UserPrincipal uPrincipal = UserPrincipal.FindByIdentity(pContext, _user))
@@ -274,6 +275,7 @@ namespace SFW
         /// <param name="userName">User Name</param>
         public static void LogIn(string userName)
         {
+            userName = userName.Length <= 20 ? userName : userName.Substring(0, 20);
             using (PrincipalContext pContext = GetPrincipal(userName))
             {
                 using (UserPrincipal uPrincipal = UserPrincipal.FindByIdentity(pContext, userName))
@@ -283,6 +285,75 @@ namespace SFW
                         new CurrentUser(pContext, uPrincipal);
                     }
                 }
+            }
+        }
+
+        /// <summary>
+        /// Log in method for the current user
+        /// </summary>
+        /// <param name="userName">User Name</param>
+        /// <param name="pwd">User password</param>
+        /// <returns>
+        /// IReadOnlyDictionary
+        /// Key is Pass/Fail check passed back as an int value of error
+        /// Value is Error that was encountered as a string, will return empty string on 0 key
+        /// </returns>
+        public static IReadOnlyDictionary<int, string> LogIn(string userName, string pwd)
+        {
+            userName = userName.Length <= 20 ? userName : userName.Substring(0, 20);
+            var _result = new Dictionary<int, string>();
+            var _resultKey = 0;
+            var _resultVal = string.Empty;
+            try
+            {
+                using (PrincipalContext pContext = GetPrincipal(userName))
+                {
+                    using (UserPrincipal uPrincipal = UserPrincipal.FindByIdentity(pContext, userName))
+                    {
+                        using (DirectoryEntry dEntry = uPrincipal.GetUnderlyingObject() as DirectoryEntry)
+                        {
+                            var _expireDate = !uPrincipal.PasswordNeverExpires ? Convert.ToDateTime(dEntry.InvokeGet("PasswordExpirationDate")) : DateTime.Today.AddDays(1);
+                            if (_expireDate <= DateTime.Today && _expireDate != new DateTime(1970, 1, 1))
+                            {
+                                _resultKey = 1;
+                                _resultVal = "Expired Password.";
+                            }
+                            else if (uPrincipal.IsAccountLockedOut())
+                            {
+                                _resultKey = 2;
+                                _resultVal = "Your account is currently locked out.\nPlease contact IT for assistance.";
+                            }
+                            else if (uPrincipal.Enabled == false)
+                            {
+                                _resultKey = 3;
+                                _resultVal = "Your account is currently disabled.\nPlease contact IT for assistance.";
+                            }
+                            else if (!pContext.ValidateCredentials(userName, pwd, ContextOptions.Negotiate))
+                            {
+                                _resultKey = 4;
+                                _resultVal = "Invalid credentials.\nPlease check your user name and password and try again.\nIf you feel you have reached this message in error,\nplease contact IT for further assistance.";
+                            }
+                            if (!string.IsNullOrEmpty(_resultVal))
+                            {
+                                _result.Add(_resultKey, _resultVal);
+                                return _result;
+                            }
+                            else
+                            {
+                                new CurrentUser(pContext, uPrincipal);
+                                _result.Add(_resultKey, _resultVal);
+                                return _result;
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                _resultKey = -1;
+                _resultVal = "Your account does not exist on the domain.\nPlease contact IT for assistance.";
+                _result.Add(_resultKey, _resultVal);
+                return _result;
             }
         }
 
@@ -333,74 +404,6 @@ namespace SFW
                         return -1;
                     }
                 }
-            }
-        }
-
-        /// <summary>
-        /// Log in method for the current user
-        /// </summary>
-        /// <param name="userName">User Name</param>
-        /// <param name="pwd">User password</param>
-        /// <returns>
-        /// IReadOnlyDictionary
-        /// Key is Pass/Fail check passed back as an int value of error
-        /// Value is Error that was encountered as a string, will return empty string on 0 key
-        /// </returns>
-        public static IReadOnlyDictionary<int, string> LogIn(string userName, string pwd)
-        {
-            var _result = new Dictionary<int, string>();
-            var _resultKey = 0;
-            var _resultVal = string.Empty;
-            try
-            {
-                using (PrincipalContext pContext = GetPrincipal(userName))
-                {
-                    using (UserPrincipal uPrincipal = UserPrincipal.FindByIdentity(pContext, userName))
-                    {
-                        using (DirectoryEntry dEntry = uPrincipal.GetUnderlyingObject() as DirectoryEntry)
-                        {
-                            var _expireDate = !uPrincipal.PasswordNeverExpires ?  Convert.ToDateTime(dEntry.InvokeGet("PasswordExpirationDate")) : DateTime.Today.AddDays(1);
-                            if(_expireDate <= DateTime.Today && _expireDate != new DateTime(1970,1,1))
-                            {
-                                _resultKey = 1;
-                                _resultVal = "Expired Password.";
-                            }
-                            else if (uPrincipal.IsAccountLockedOut())
-                            {
-                                _resultKey = 2;
-                                _resultVal = "Your account is currently locked out.\nPlease contact IT for assistance.";
-                            }
-                            else if (uPrincipal.Enabled == false)
-                            {
-                                _resultKey = 3;
-                                _resultVal = "Your account is currently disabled.\nPlease contact IT for assistance.";
-                            }
-                            else if (!pContext.ValidateCredentials(userName, pwd, ContextOptions.Negotiate))
-                            {
-                                _resultKey = 4;
-                                _resultVal = "Invalid credentials.\nPlease check your user name and password and try again.\nIf you feel you have reached this message in error,\nplease contact IT for further assistance.";
-                            }
-                            if (!string.IsNullOrEmpty(_resultVal))
-                            {
-                                _result.Add(_resultKey, _resultVal);
-                                return _result;
-                            }
-                            else
-                            {
-                                new CurrentUser(pContext, uPrincipal);
-                                _result.Add(_resultKey, _resultVal);
-                                return _result;
-                            }
-                        }
-                    }
-                }
-            }
-            catch (Exception)
-            {
-                _resultKey = -1;
-                _resultVal = "Your account does not exist on the domain.\nPlease contact IT for assistance.";
-                _result.Add(_resultKey, _resultVal);
-                return _result;
             }
         }
 
