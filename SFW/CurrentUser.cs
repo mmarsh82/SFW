@@ -265,6 +265,7 @@ namespace SFW
                 {
                     _user = System.Security.Principal.WindowsIdentity.GetCurrent().Name;
                 }
+                _user = _user.Contains("\\") ? _user.Split('\\')[1] : _user;
                 _user = _user.Length <= 20 ? _user : _user.Substring(0, 20);
                 using (PrincipalContext pContext = GetPrincipal(_user))
                 {
@@ -277,7 +278,7 @@ namespace SFW
                     }
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
 
             }
@@ -380,6 +381,7 @@ namespace SFW
         {
             try
             {
+                userName = userName.Length <= 20 ? userName : userName.Substring(0, 20);
                 using (PrincipalContext pCon = GetPrincipal(userName))
                 {
                     return (UserPrincipal.FindByIdentity(pCon, userName) != null);
@@ -462,11 +464,12 @@ namespace SFW
         /// <returns>Any error that was reflected from the AD, will be null if no errors occured</returns>
         public static string UpdatePassword(string userName, string oldPwd, string newPwd)
         {
-            using (var context = GetPrincipal(userName))
+            userName = userName.Length <= 20 ? userName : userName.Substring(0, 20);
+            using (PrincipalContext context = GetPrincipal(userName))
             {
                 try
                 {
-                    using (var user = UserPrincipal.FindByIdentity(context, IdentityType.SamAccountName, userName))
+                    using (UserPrincipal user = UserPrincipal.FindByIdentity(context, IdentityType.SamAccountName, userName))
                     {
                         user.ChangePassword(oldPwd, newPwd);
                         user.Save();

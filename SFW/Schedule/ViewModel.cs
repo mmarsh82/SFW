@@ -30,9 +30,9 @@ namespace SFW.Schedule
             set
             {
                 _selectedWO = value;
+                var _tempDock = App.SiteNumber == 0 ? WorkSpaceDock.CsiDock : WorkSpaceDock.WccoDock;
                 if (value != null)
                 {
-                    var _tempDock = App.SiteNumber == 0 ? WorkSpaceDock.CsiDock : WorkSpaceDock.WccoDock;
                     var _wo = new WorkOrder(value.Row, App.SiteNumber, App.GlobalConfig.First(o => $"{o.Site}_MAIN" == App.Site).WI, App.AppSqlCon);
                     _tempDock.Children.RemoveAt(1);
                     if (!int.TryParse(_wo.EngStatus, out int i))
@@ -43,6 +43,11 @@ namespace SFW.Schedule
                     {
                         _tempDock.Children.Insert(1, new ShopRoute.QTask.View { DataContext = new ShopRoute.QTask.ViewModel(_wo) });
                     }
+                }
+                else
+                {
+                    _tempDock.Children.RemoveAt(1);
+                    _tempDock.Children.Insert(1, new ShopRoute.View { DataContext = new ShopRoute.ViewModel() });
                 }
                 OnPropertyChanged(nameof(SelectedWorkOrder));
             }
@@ -224,6 +229,11 @@ namespace SFW.Schedule
                         var schedList = ((DataView)ScheduleView.SourceCollection).Table.AsEnumerable().ToList();
                         var listIndex = schedList.FindIndex(r => r.Field<string>("WO_Number") == ((DataRowView)_oldItem).Row.Field<string>("WO_Number"));
                         ScheduleView.MoveCurrentToPosition(listIndex);
+                    }
+                    else
+                    {
+                        ScheduleView.MoveCurrentToPosition(-1);
+                        SelectedWorkOrder = null;
                     }
                     ((DataView)ScheduleView.SourceCollection).RowFilter = _oldFilter;
                     if (!string.IsNullOrEmpty(_db))

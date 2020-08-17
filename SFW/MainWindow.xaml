@@ -123,7 +123,7 @@
                           Command="{StaticResource RollSplitICommand}"
                           Visibility="{Binding Path=(local:CurrentUser.IsSupervisor), Converter={StaticResource BoolToVisConverter}}"
                           InputGestureText="Alt+R"/>
-                <MenuItem Header="Part Search"
+                <MenuItem Header="Print Search"
                           Command="{StaticResource PartTraceICommand}"
                           InputGestureText="Alt+T"/>
 

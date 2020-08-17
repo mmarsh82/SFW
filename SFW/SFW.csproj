@@ -30,8 +30,8 @@
     <PublisherName>Michael Marsh</PublisherName>
     <SuiteName>WCCO Belting Inc.</SuiteName>
     <AutorunEnabled>true</AutorunEnabled>
-    <ApplicationRevision>1795</ApplicationRevision>
-    <ApplicationVersion>1.0.233.1795</ApplicationVersion>
+    <ApplicationRevision>1821</ApplicationRevision>
+    <ApplicationVersion>1.0.237.1821</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <CreateDesktopShortcut>true</CreateDesktopShortcut>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -481,6 +481,7 @@
     <Resource Include="Icons\Admin.ico" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="Schedule.Daily\" />
     <Folder Include="ShopRoute\Details\" />
   </ItemGroup>
   <ItemGroup>

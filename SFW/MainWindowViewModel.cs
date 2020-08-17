@@ -307,17 +307,6 @@ namespace SFW
             {
                 throw new Exception(ex.Message);
             }
-            if (CurrentUser.IsLoggedIn)
-            {
-                var _endTime = CrewMember.GetShiftEndTime(CurrentUser.UserIDNbr, App.AppSqlCon);
-                if (DateTime.TryParse(_endTime, out DateTime dt))
-                {
-                    if (dt < DateTime.Now)
-                    {
-                        CurrentUser.LogOff();
-                    }
-                }
-            }
         }
 
         #region Selected Default Machine ICommand

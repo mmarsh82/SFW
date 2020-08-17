@@ -80,17 +80,33 @@ namespace SFW.Schedule.Closed
         {
             MachineList = Machine.GetMachineList(App.AppSqlCon, true, false);
             MachineGroupList = MachineList.Where(o => !string.IsNullOrEmpty(o.MachineGroup)).Select(o => o.MachineGroup).Distinct().ToList();
-            var _filter = App.DefualtWorkCenter?.Count > 0 ? App.DefualtWorkCenter.FirstOrDefault(o => o.SiteNumber == App.SiteNumber).MachineNumber : null;
             ClosedScheduleView = CollectionViewSource.GetDefaultView(Machine.GetClosedScheduleData(App.AppSqlCon));
             ClosedScheduleView.GroupDescriptions.Add(new PropertyGroupDescription("MachineNumber", new WorkCenterNameConverter(MachineList)));
             ClosedScheduleView.Refresh();
-            if (MainWindowViewModel.SelectedMachine != null && MainWindowViewModel.SelectedMachine.MachineName != "All")
+            if (App.DefualtWorkCenter?.Count(o => o.SiteNumber == App.SiteNumber) == 1)
             {
-                ((DataView)ClosedScheduleView.SourceCollection).RowFilter = $"MachineName = '{MainWindowViewModel.SelectedMachine.MachineName}'";
+                ((DataView)ClosedScheduleView.SourceCollection).RowFilter = $"MachineNumber = '{App.DefualtWorkCenter.FirstOrDefault(o => o.SiteNumber == App.SiteNumber).MachineNumber}'";
             }
-            if (MainWindowViewModel.SelectedMachine != null && MainWindowViewModel.SelectedMachineGroup != "All" && MainWindowViewModel.SelectedMachine.MachineName == "All")
+            else if (App.DefualtWorkCenter?.Count(o => o.SiteNumber == App.SiteNumber) > 1)
             {
-                ((DataView)ClosedScheduleView.SourceCollection).RowFilter = $"MachineGroup = '{MainWindowViewModel.SelectedMachineGroup}'";
+                var _filter = string.Empty;
+                foreach (var m in App.DefualtWorkCenter.Where(o => o.SiteNumber == App.SiteNumber))
+                {
+                    _filter += string.IsNullOrEmpty(_filter) ? $"(MachineNumber = '{m.MachineNumber}'" : $" OR MachineNumber = '{m.MachineNumber}'";
+                }
+                _filter += ")";
+                ((DataView)ClosedScheduleView.SourceCollection).RowFilter = _filter;
+            }
+            else
+            {
+                if (MainWindowViewModel.SelectedMachine != null && MainWindowViewModel.SelectedMachine.MachineName != "All")
+                {
+                    ((DataView)ClosedScheduleView.SourceCollection).RowFilter = $"MachineName = '{MainWindowViewModel.SelectedMachine.MachineName}'";
+                }
+                if (MainWindowViewModel.SelectedMachine != null && MainWindowViewModel.SelectedMachineGroup != "All" && MainWindowViewModel.SelectedMachine.MachineName == "All")
+                {
+                    ((DataView)ClosedScheduleView.SourceCollection).RowFilter = $"MachineGroup = '{MainWindowViewModel.SelectedMachineGroup}'";
+                }
             }
         }
     }

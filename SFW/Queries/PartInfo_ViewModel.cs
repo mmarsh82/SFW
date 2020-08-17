@@ -185,7 +185,7 @@ namespace SFW.Queries
             IsLoading = false;
             ResultsAsyncDelegate = new ResultsDelegate(ResultsLoading);
             UserInput = partNrb;
-            SearchAsyncResult = ResultsAsyncDelegate.BeginInvoke(partNrb, new AsyncCallback(ResultsLoaded), null);
+            SearchICommand.Execute(partNrb);
             NonLotPart = false;
             if (MoveHistory == null)
             {
