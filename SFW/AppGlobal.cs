@@ -10,6 +10,8 @@
         public string SyscoSetup { get; set; }
         public string TrimSetup { get; set; }
         public string WI { get; set; }
+        public string WorkOrderWeb { get; set; }
+        public string SalesOrderWeb { get; set; }
 
         #endregion
 

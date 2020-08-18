@@ -83,7 +83,7 @@ namespace SFW.Schedule.Closed
             ClosedScheduleView = CollectionViewSource.GetDefaultView(Machine.GetClosedScheduleData(App.AppSqlCon));
             ClosedScheduleView.GroupDescriptions.Add(new PropertyGroupDescription("MachineNumber", new WorkCenterNameConverter(MachineList)));
             ClosedScheduleView.Refresh();
-            if (App.DefualtWorkCenter?.Count(o => o.SiteNumber == App.SiteNumber) == 1)
+            if (App.DefualtWorkCenter?.Count(o => o.SiteNumber == App.SiteNumber) == 1 && !string.IsNullOrEmpty(App.DefualtWorkCenter.FirstOrDefault(o => o.SiteNumber == App.SiteNumber).MachineNumber))
             {
                 ((DataView)ClosedScheduleView.SourceCollection).RowFilter = $"MachineNumber = '{App.DefualtWorkCenter.FirstOrDefault(o => o.SiteNumber == App.SiteNumber).MachineNumber}'";
             }

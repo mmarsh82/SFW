@@ -370,9 +370,7 @@ namespace SFW.Model
                         using (SqlDataAdapter adapter = new SqlDataAdapter($@"USE [{sqlCon.Database}];
                                                                             SELECT
 	                                                                            DISTINCT(b.[ID]) as 'WO_Number',
-                                                                                CASE WHEN b.[Next_Seq] IS NULL AND b.[Prev_Seq] IS NULL
-		                                                                                THEN '10'
-		                                                                                ELSE SUBSTRING(b.[ID], CHARINDEX('*',b.[ID],0) + 1,LEN(b.[ID])) END as 'Operation',
+                                                                                SUBSTRING(b.[ID], CHARINDEX('*',b.[ID],0) + 1,LEN(b.[ID])) as 'Operation',
                                                                                 a.[Wc_Nbr] as 'MachineNumber',
 	                                                                            a.[Name] as 'MachineName',
 	                                                                            a.[D_esc] as 'MachineDesc',

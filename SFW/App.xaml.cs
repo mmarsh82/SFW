@@ -292,6 +292,7 @@ namespace SFW
         {
             try
             {
+                //TODO: need to add in the version check here and rewrite when the version is updated
                 if (!File.Exists($"{AppFilePath}GlobalConfig.xml"))
                 {
                     using (var wStream = new FileStream($"{AppFilePath}GlobalConfig.xml", FileMode.CreateNew))
@@ -438,7 +439,7 @@ namespace SFW
                 }
                 return _tempList;
             }
-            catch(Exception ex)
+            catch(Exception)
             {
                 return null;
             }
