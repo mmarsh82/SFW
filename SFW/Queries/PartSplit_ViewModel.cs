@@ -29,7 +29,7 @@ namespace SFW.Queries
                 }
                 else if (_valid)
                 {
-                    if (value.Count() >= 7)
+                    if (value.Count() >= 4)
                     {
                         _startingQty = LotQuantity = Lot.GetLotOnHandQuantity(value, App.AppSqlCon);
                         LotLocation = Lot.GetLotLocation(value, App.AppSqlCon);
