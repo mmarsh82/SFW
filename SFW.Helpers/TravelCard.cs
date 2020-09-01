@@ -1,5 +1,6 @@
 ﻿using iTextSharp.text.pdf;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing.Printing;
 using System.IO;
@@ -59,8 +60,8 @@ namespace SFW.Helpers
         /// Create a PDF travel card of the object
         /// </summary>
         /// <param name="formType">Type of form to create 0 = Portrait, 1 = Landscape</param>
-        /// <returns>Successful completion of file creation</returns>
-        public static bool CreatePDF(FormType formType)
+        /// <returns>Successful Creation will return true, with file name.  Failed creation will return false with the error message</returns>
+        public static IReadOnlyDictionary<bool, string> CreatePDF(FormType formType)
         {
             //TODO:Need to write the parts of this into the global config
             try
@@ -74,7 +75,7 @@ namespace SFW.Helpers
                         FilePath = "\\\\fs-wcco\\WCCO-PublishedDocuments\\FORM5127 - Reference Travel Card.pdf";
                         break;
                 }
-                var _fileName = string.IsNullOrEmpty(LotNbr) ? PartNbr : LotNbr;
+                var _fileName = string.IsNullOrEmpty(LotNbr) ? $"{PartNbr}-{DateTime.Now}" : $"{LotNbr}-{DateTime.Now}";
                 using (PdfReader reader = new PdfReader(FilePath, PdfEncodings.ConvertToBytes(Password, "ASCII")))
                 {
                     using (PdfStamper stamp = new PdfStamper(reader, new FileStream($"\\\\fs-wcco\\WCCO-OMNI\\Application Data\\temp\\{_fileName}.pdf", FileMode.Create)))
@@ -132,11 +133,11 @@ namespace SFW.Helpers
                         stamp.FormFlattening = false;
                     }
                 }
-                return true;
+                return new Dictionary<bool, string> { { true, _fileName } };
             }
-            catch
+            catch (Exception ex)
             {
-                return false;
+                return new Dictionary<bool, string> { { false, ex.Message } };
             }
         }
 
@@ -147,10 +148,18 @@ namespace SFW.Helpers
         {
             try
             {
-                var _fileName = string.IsNullOrEmpty(LotNbr) ? PartNbr : LotNbr;
-                CreatePDF(formType);
-                Process.Start($"\\\\fs-wcco\\WCCO-OMNI\\Application Data\\temp\\{_fileName}.pdf");
-                DeleteDocuments();
+                var _response = CreatePDF(formType);
+                if (_response.ContainsKey(true))
+                {
+                    _response.TryGetValue(true, out string _fileName);
+                    Process.Start($"\\\\fs-wcco\\WCCO-OMNI\\Application Data\\temp\\{_fileName}.pdf");
+                    DeleteDocuments();
+                }
+                else
+                {
+                    _response.TryGetValue(false, out string _message);
+                    MessageBox.Show(_message, "Creation Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
             }
             catch (Exception)
             {
@@ -166,28 +175,35 @@ namespace SFW.Helpers
         {
             try
             {
-                CreatePDF(formType);
-                var _fileName = string.IsNullOrEmpty(LotNbr) ? PartNbr : LotNbr;
-                var _documentName = $"\\\\fs-wcco\\WCCO-OMNI\\Application Data\\temp\\{_fileName}.pdf";
-                using (Spire.Pdf.PdfDocument doc = new Spire.Pdf.PdfDocument(_documentName, "technology#1"))
+                var _response = CreatePDF(formType);
+                if (_response.ContainsKey(true))
                 {
-                    using (PrintDialog pdialog = new PrintDialog { AllowPrintToFile = true, AllowSomePages = true })
+                    _response.TryGetValue(true, out string _fileName);
+                    var _documentName = $"\\\\fs-wcco\\WCCO-OMNI\\Application Data\\temp\\{_fileName}.pdf";
+                    using (Spire.Pdf.PdfDocument doc = new Spire.Pdf.PdfDocument(_documentName, "technology#1"))
                     {
-                        pdialog.PrinterSettings.MinimumPage = 1;
-                        pdialog.PrinterSettings.MaximumPage = doc.Pages.Count;
-                        pdialog.PrinterSettings.FromPage = 1;
-                        pdialog.PrinterSettings.ToPage = doc.Pages.Count;
-                        pdialog.PrinterSettings.DefaultPageSettings.Landscape = formType == FormType.Landscape;
-                        doc.PageSettings.Orientation = formType == FormType.Landscape ? Spire.Pdf.PdfPageOrientation.Landscape : Spire.Pdf.PdfPageOrientation.Portrait;
-                        using (PrintDocument pDoc = doc.PrintDocument)
+                        using (PrintDialog pdialog = new PrintDialog { AllowPrintToFile = true, AllowSomePages = true })
                         {
-                            pdialog.Document = pDoc;
-                            pDoc.Print();
+                            pdialog.PrinterSettings.MinimumPage = 1;
+                            pdialog.PrinterSettings.MaximumPage = doc.Pages.Count;
+                            pdialog.PrinterSettings.FromPage = 1;
+                            pdialog.PrinterSettings.ToPage = doc.Pages.Count;
+                            pdialog.PrinterSettings.DefaultPageSettings.Landscape = formType == FormType.Landscape;
+                            doc.PageSettings.Orientation = formType == FormType.Landscape ? Spire.Pdf.PdfPageOrientation.Landscape : Spire.Pdf.PdfPageOrientation.Portrait;
+                            using (PrintDocument pDoc = doc.PrintDocument)
+                            {
+                                pdialog.Document = pDoc;
+                                pDoc.Print();
+                            }
                         }
                     }
+                    DeleteDocuments();
+                    return string.Empty;
                 }
-                DeleteDocuments();
-                return string.Empty;
+                else
+                {
+                    return _response.TryGetValue(false, out string _message) ? _message : "Error";
+                }
             }
             catch (Exception ex)
             {
@@ -200,6 +216,7 @@ namespace SFW.Helpers
         /// </summary>
         private static void DeleteDocuments()
         {
+            //TODO:Rewreite to handle multiple deletions
             foreach (var f in Directory.GetFiles("\\\\fs-wcco\\WCCO-OMNI\\Application Data\\temp\\"))
             {
                 try

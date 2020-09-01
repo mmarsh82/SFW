@@ -223,15 +223,16 @@ namespace M2kClient
                 var _move = new Locxfer(stationId, partNbr.ToUpper(), from.ToUpper(), to.ToUpper(), qty, lotNbr, reference, uom.ToUpper());
                 File.WriteAllText($"{connection.BTIFolder}LOCXFER{connection.AdiServer}.DAT{suffix}", _move.ToString());
                 //Check to see if you need to clear or add a non-conformance reason
-                if (to[to.Length - 1] != 'N' && !string.IsNullOrEmpty(nonConf))
+
+                if (!to.EndsWith("N") && !string.IsNullOrEmpty(nonConf))
                 {
                     //Remove note
-
+                    RemoveRecord("LOT.MASTER", $"{lotNbr}|P", 42, connection);
                 }
-                else if (to[to.Length - 1] == 'N')
+                else if (to.EndsWith("N"))
                 {
                     //Add note
-
+                    EditRecord("LOT.MASTER", $"{lotNbr}|P", 42, nonConf, connection);
                 }
                 _subResult.Add(0, string.Empty);
                 return _subResult;

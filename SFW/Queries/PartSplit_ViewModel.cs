@@ -85,6 +85,7 @@ namespace SFW.Queries
             {
                 if (int.TryParse(value, out int i) && i > 0 && ValidLot)
                 {
+                    var _lot = int.TryParse(LotNumber, out int r) ? LotNumber : LotNumber.Substring(0, LotNumber.Length - 1);
                     _rQty = i;
                     OnPropertyChanged(nameof(LotQuantity));
                     SplitLotList.Clear();
@@ -92,7 +93,11 @@ namespace SFW.Queries
                     var _alphaCount = 65;
                     while (_tempCount != 0)
                     {
-                        SplitLotList.Add(new Lot { LotNumber = $"{LotNumber}{Convert.ToChar(_alphaCount)}", TransactionQty = string.Empty, Location = LotLocation });
+                        while (Lot.IsValid($"{_lot}{Convert.ToChar(_alphaCount)}", App.AppSqlCon))
+                        {
+                            _alphaCount++;
+                        }
+                        SplitLotList.Add(new Lot { LotNumber = $"{_lot}{Convert.ToChar(_alphaCount)}", TransactionQty = string.Empty, Location = LotLocation });
                         _tempCount--;
                         _alphaCount++;
                     }

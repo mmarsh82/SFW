@@ -35,6 +35,7 @@ namespace SFW.Queries
                         FilterText = value.LotNumber;
                         _lot = value.LotNumber;
                         FromLocation = value.Location;
+                        NonConReason = FromLocation.EndsWith("N") ? Lot.GetNCRNote(value.LotNumber, App.AppSqlCon) : string.Empty;
                         QuantityInput = value.Onhand;
                     }
                     OnPropertyChanged(nameof(FilterText));
@@ -112,6 +113,13 @@ namespace SFW.Queries
             set { qInput = value; OnPropertyChanged(nameof(QuantityInput)); }
         }
 
+        private string _nonConReason;
+        public string NonConReason 
+        {
+            get { return _nonConReason; }
+            set { _nonConReason = value;  OnPropertyChanged(nameof(NonConReason)); }
+        }
+
         private string _tLoc;
         public string ToLocation
         {
@@ -123,10 +131,12 @@ namespace SFW.Queries
                 OnPropertyChanged(nameof(ToLocation));
                 OnPropertyChanged(nameof(IsToValid));
                 OnPropertyChanged(nameof(ToLocSize));
+                OnPropertyChanged(nameof(IsNCR));
             }
         }
         public bool IsToValid { get { return string.IsNullOrEmpty(ToLocation) || Sku.IsValidLocation(ToLocation, App.AppSqlCon); } }
         public int ToLocSize { get { return IsToValid ? 1 : 3; } }
+        public bool IsNCR { get { return ToLocation.EndsWith("N") || FromLocation.EndsWith("N"); } }
 
         private string _fLoc;
         public string FromLocation
@@ -139,13 +149,13 @@ namespace SFW.Queries
                 OnPropertyChanged(nameof(FromLocation));
                 OnPropertyChanged(nameof(IsFromValid));
                 OnPropertyChanged(nameof(FromLocSize));
+                OnPropertyChanged(nameof(IsNCR));
             }
         }
-        public bool IsFromValid { get { return ILotResultsList == null ? true : string.IsNullOrEmpty(FromLocation) || ILotResultsList.Any(o => o.Location == FromLocation); } }
+        public bool IsFromValid { get { return ILotResultsList == null || string.IsNullOrEmpty(FromLocation) || ILotResultsList.Any(o => o.Location == FromLocation); } }
         public int FromLocSize { get { return IsFromValid ? 1 : 3; } }
 
         public string MoveReference { get; set; }
-        public string NonConReason { get; set; }
 
         public delegate void ResultsDelegate(string s);
         public ResultsDelegate ResultsAsyncDelegate { get; private set; }
@@ -414,11 +424,11 @@ namespace SFW.Queries
         {
             if (UseLot)
             {
-                M2kClient.M2kCommand.InventoryMove(CurrentUser.DisplayName, Part.SkuNumber, _lot, Part.Uom, FromLocation, ToLocation, Convert.ToInt32(QuantityInput), MoveReference, App.ErpCon);
+                M2kClient.M2kCommand.InventoryMove(CurrentUser.DisplayName, Part.SkuNumber, _lot, Part.Uom, FromLocation, ToLocation, Convert.ToInt32(QuantityInput), MoveReference, App.ErpCon, NonConReason);
             }
             else
             {
-                M2kClient.M2kCommand.InventoryMove(CurrentUser.DisplayName, Part.SkuNumber, "", Part.Uom, FromLocation, ToLocation, Convert.ToInt32(QuantityInput), MoveReference, App.ErpCon);
+                M2kClient.M2kCommand.InventoryMove(CurrentUser.DisplayName, Part.SkuNumber, "", Part.Uom, FromLocation, ToLocation, Convert.ToInt32(QuantityInput), MoveReference, App.ErpCon, NonConReason);
             }
             var _tran = new Sku
             {
@@ -439,9 +449,9 @@ namespace SFW.Queries
         {
             if (!NoResults && QuantityInput > 0 && IsToValid && IsFromValid && !string.IsNullOrEmpty(ToLocation) && !string.IsNullOrEmpty(FromLocation))
             {
-                if (!string.IsNullOrEmpty(ToLocation) && (ToLocation[ToLocation.Length - 1] != 'N' || (ToLocation[ToLocation.Length - 1] == 'N') && !string.IsNullOrEmpty(NonConReason)))
+                if (!string.IsNullOrEmpty(ToLocation) && (!ToLocation.EndsWith("N") || (ToLocation.EndsWith("N") && !string.IsNullOrEmpty(NonConReason))))
                 {
-                    return Part.TotalOnHand > 0 || UseLot ? !string.IsNullOrEmpty(FromLocation) : true;
+                    return Part.TotalOnHand <= 0 && !UseLot || !string.IsNullOrEmpty(FromLocation);
                 }
             }
             return false;
