@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing.Printing;
 using System.IO;
+using System.Threading;
 using System.Windows.Forms;
 
 //Created 1-22-2019 by Michael Marsh
@@ -75,7 +76,7 @@ namespace SFW.Helpers
                         FilePath = "\\\\fs-wcco\\WCCO-PublishedDocuments\\FORM5127 - Reference Travel Card.pdf";
                         break;
                 }
-                var _fileName = string.IsNullOrEmpty(LotNbr) ? $"{PartNbr}-{DateTime.Now}" : $"{LotNbr}-{DateTime.Now}";
+                var _fileName = string.IsNullOrEmpty(LotNbr) ? $"{PartNbr}-{DateTime.Now}" : $"{LotNbr.Replace("-","")}{DateTime.Now:MMyyHHmm}";
                 using (PdfReader reader = new PdfReader(FilePath, PdfEncodings.ConvertToBytes(Password, "ASCII")))
                 {
                     using (PdfStamper stamp = new PdfStamper(reader, new FileStream($"\\\\fs-wcco\\WCCO-OMNI\\Application Data\\temp\\{_fileName}.pdf", FileMode.Create)))
@@ -153,6 +154,7 @@ namespace SFW.Helpers
                 {
                     _response.TryGetValue(true, out string _fileName);
                     Process.Start($"\\\\fs-wcco\\WCCO-OMNI\\Application Data\\temp\\{_fileName}.pdf");
+                    Thread.Sleep(1000);
                     DeleteDocuments();
                 }
                 else
