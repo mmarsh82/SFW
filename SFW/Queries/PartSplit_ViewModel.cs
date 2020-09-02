@@ -85,7 +85,7 @@ namespace SFW.Queries
             {
                 if (int.TryParse(value, out int i) && i > 0 && ValidLot)
                 {
-                    var _lot = int.TryParse(LotNumber, out int r) ? LotNumber : LotNumber.Substring(0, LotNumber.Length - 1);
+                    var _lot = int.TryParse(LotNumber.Last().ToString(), out int _) ? LotNumber : LotNumber.Substring(0, LotNumber.Length - 1);
                     _rQty = i;
                     OnPropertyChanged(nameof(LotQuantity));
                     SplitLotList.Clear();
