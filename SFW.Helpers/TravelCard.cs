@@ -76,7 +76,7 @@ namespace SFW.Helpers
                         FilePath = "\\\\fs-wcco\\WCCO-PublishedDocuments\\FORM5127 - Reference Travel Card.pdf";
                         break;
                 }
-                var _fileName = string.IsNullOrEmpty(LotNbr) ? $"{PartNbr}-{DateTime.Now}" : $"{LotNbr.Replace("-","")}{DateTime.Now:MMyyHHmm}";
+                var _fileName = string.IsNullOrEmpty(LotNbr) ? $"{PartNbr}{DateTime.Now:MMyyHHmm}" : $"{LotNbr.Replace("-","")}{DateTime.Now:MMyyHHmm}";
                 using (PdfReader reader = new PdfReader(FilePath, PdfEncodings.ConvertToBytes(Password, "ASCII")))
                 {
                     using (PdfStamper stamp = new PdfStamper(reader, new FileStream($"\\\\fs-wcco\\WCCO-OMNI\\Application Data\\temp\\{_fileName}.pdf", FileMode.Create)))
