@@ -697,5 +697,12 @@ namespace M2kClient
             var suffix = DateTime.Now.ToString("HHmmssfff");
             return null;
         }
+
+        //Not implemented yet
+        public static IReadOnlyDictionary<int, string> Shipment(string stationId, string compNbr, string woNbr)
+        {
+            var suffix = DateTime.Now.ToString("HHmmssfff");
+            return null;
+        }
     }
 }

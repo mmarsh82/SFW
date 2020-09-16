@@ -18,6 +18,7 @@ namespace SFW.Queries
             { return _lot; }
             set
             {
+                value = value.ToUpper();
                 var _valid = Lot.IsValid(value, App.AppSqlCon);
                 if (ValidLot && !_valid)
                 {
