@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
+using System.IO;
 
 //Created by Michael Marsh 4-19-18
 
@@ -467,7 +468,7 @@ namespace SFW.Model
             var _inst = new List<string>();
             if (siteNbr == 0)
             {
-                if(System.IO.File.Exists($"{filepath}{partNbr}.pdf"))
+                if(File.Exists($"{filepath}{partNbr}.pdf"))
                 {
                     _inst.Add(partNbr);
                 }
@@ -479,7 +480,7 @@ namespace SFW.Model
                 {
                     try
                     {
-                        using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database}; SELECT RIGHT([Url], CHARINDEX('\', REVERSE([Url]),1) - 1) as 'Url' FROM [dbo].[IM-INIT_Url_Codes] WHERE [ID1] = @p1;", sqlCon))
+                        using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database}; SELECT [Url] FROM [dbo].[IM-INIT_Url_Codes] WHERE [ID1] = @p1;", sqlCon))
                         {
                             cmd.Parameters.AddWithValue("p1", partNbr);
                             using (SqlDataReader reader = cmd.ExecuteReader())
@@ -488,7 +489,12 @@ namespace SFW.Model
                                 {
                                     while (reader.Read())
                                     {
-                                        _inst.Add($"{reader.SafeGetString("Url")}");
+                                        var dir = new DirectoryInfo(filepath);
+                                        var fileList = dir.GetFiles($"*{reader.SafeGetString("Url")}*");
+                                        foreach (var file in fileList)
+                                        {
+                                            _inst.Add(file.Name);
+                                        }
                                     }
                                 }
                             }
