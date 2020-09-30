@@ -125,7 +125,7 @@ namespace SFW.Model
 	                    ISNULL(c.[Wo_Type], 'S') as 'WO_Type',
 	                    c.[Qty_To_Start] as 'WO_StartQty',
 	                    c.[So_Reference] as 'WO_SalesRef',
-                        c.[Cust_Nbr],
+                        f.[Cust_Nbr],
                         CASE WHEN c.[Time_Wanted] IS NOT NULL THEN CONVERT(VARCHAR(2), CAST(c.[Time_Wanted] as TIME),108) ELSE '999' END as 'PriTime',
                         CASE WHEN c.[Time_Wanted] IS NOT NULL THEN DATEPART(MINUTE, CAST(c.[Time_Wanted] as TIME)) ELSE '999' END as 'Sched_Priority',
                         d.[Part_Number]as 'SkuNumber',
@@ -138,7 +138,7 @@ namespace SFW.Model
 	                    CASE WHEN b.[Date_Start] < GETDATE() AND c.[Qty_To_Start] = b.[Qty_Avail] THEN 1 ELSE 0 END as 'IsStartLate',
                         e.[Engineering_Status] as 'EngStatus',
 	                    (SELECT [Description] FROM [dbo].[TM-INIT_Eng_Status] WHERE [ID] = e.[Engineering_Status]) as 'EngStatusDesc',
-                        (SELECT [Name] FROM [dbo].[CM-INIT] WHERE [Cust_Nbr] = c.[Cust_Nbr]) as 'Cust_Name',
+                        f.[Name] as 'Cust_Name',
 	                    (SELECT [Cust_Part_Nbr] FROM [dbo].[SOD-INIT] WHERE [ID] = SUBSTRING(c.[So_Reference],0,LEN(c.[So_Reference])-1)) as 'Cust_Part_Nbr',
 	                    CAST((SELECT [Ln_Bal_Qty] FROM [dbo].[SOD-INIT] WHERE [ID] = SUBSTRING(c.[So_Reference],0,LEN(c.[So_Reference])-1)) as int) as 'Ln_Bal_Qty',
                         ISNULL((SELECT [Load_Pattern] FROM [dbo].[CM-INIT] WHERE [Cust_Nbr] = c.[Cust_Nbr]),'') as 'LoadPattern',
@@ -153,6 +153,8 @@ namespace SFW.Model
                         [dbo].[IM-INIT] d ON d.[Part_Number] = c.[Part_Wo_Desc]
                     RIGHT JOIN
                         [dbo].[IPL-INIT] e ON e.[Part_Nbr] = d.[Part_Number]
+                    LEFT JOIN
+	                    [dbo].[CM-INIT] f ON f.[Cust_Nbr] = CASE WHEN CHARINDEX('*',c.[Cust_Nbr], 0) > 0 THEN SUBSTRING(c.[Cust_Nbr], 0, CHARINDEX('*',c.[Cust_Nbr], 0)) ELSE c.[Cust_Nbr] END
                     WHERE
                         a.[D_esc] <> 'DO NOT USE' AND (c.[Status_Flag] = 'R' OR c.[Status_Flag] = 'A') AND (b.[Seq_Complete_Flag] IS NULL OR b.[Seq_Complete_Flag] = 'N') AND b.[Alt_Seq_Status] IS NULL
                     ORDER BY
