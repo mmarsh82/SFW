@@ -240,7 +240,7 @@ namespace SFW
             IsSupervisor = _groups.Exists(o => o.ToString().Contains("SFW_Super"));
             IsInventoryControl = _groups.Exists(o => o.ToString().Contains("SFW_IC"));
             IsLoggedIn = true;
-            CanWip = user.UserPrincipalName.Contains("wcco");
+            CanWip = GetSite() == 1;
             UserIDNbr = user.EmployeeId;
             FirstName = user.GivenName;
             LastName = user.Surname;
