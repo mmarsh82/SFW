@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace SFW
 {
-    public class UConfig
+    public class UserConfig
     {
         #region Properties
 
@@ -16,21 +16,24 @@ namespace SFW
         /// <summary>
         /// Default Constructor
         /// </summary>
-        public UConfig()
+        public UserConfig()
         { }
 
         /// <summary>
-        /// 
+        /// Get the values for the user config object
         /// </summary>
-        /// <returns></returns>
+        /// <returns>Dictionary of user config values</returns>
         public static IReadOnlyDictionary<string, int> GetIROD()
         {
             var _irod = new Dictionary<string, int>();
-            if(App.DefualtWorkCenter.Count(o => o.SiteNumber == App.SiteNumber && !string.IsNullOrEmpty(o.MachineNumber)) > 0)
+            if (App.DefualtWorkCenter != null)
             {
-                foreach (var v in App.DefualtWorkCenter.Where(o => o.SiteNumber == App.SiteNumber && !string.IsNullOrEmpty(o.MachineNumber)))
+                if (App.DefualtWorkCenter.Count(o => o.SiteNumber == App.SiteNumber && !string.IsNullOrEmpty(o.MachineNumber)) > 0)
                 {
-                    _irod.Add(v.MachineNumber, v.Position);
+                    foreach (var v in App.DefualtWorkCenter.Where(o => o.SiteNumber == App.SiteNumber && !string.IsNullOrEmpty(o.MachineNumber)))
+                    {
+                        _irod.Add(v.MachineNumber, v.Position);
+                    }
                 }
             }
             return _irod;

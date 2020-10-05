@@ -21,11 +21,18 @@ namespace SFW.Commands
             else if(parameter?.ToString() == "out")
             {
                 CurrentUser.LogOff();
-                if ((ShopRoute.ViewModel)Controls.WorkSpaceDock.WccoDock.GetChildOfType<ShopRoute.View>().DataContext != null)
-                {
-                    ((ShopRoute.ViewModel)Controls.WorkSpaceDock.WccoDock.GetChildOfType<ShopRoute.View>().DataContext).UpdateView();
-                }
             }
+            if (CurrentUser.IsAdmin || CurrentUser.IsSupervisor || CurrentUser.IsInventoryControl)
+            {
+                App.DefualtWorkCenter.Clear();
+                App.IsFocused = false;
+            }
+            else
+            {
+                App.DefualtWorkCenter = App.LoadUserAppConfig();
+            }
+            Schedule.ViewModel.UserRefresh = true;
+            RefreshTimer.RefreshTimerTick();
         }
 
         public bool CanExecute(object parameter) => true;

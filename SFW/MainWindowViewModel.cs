@@ -39,15 +39,12 @@ namespace SFW
             get { return mach; }
             set
             {
+                var _dock = App.SiteNumber == 0
+                            ? WorkSpaceDock.CsiDock
+                            : WorkSpaceDock.WccoDock;
                 if (value == null)
                 {
-                    var _default = App.DefualtWorkCenter.FirstOrDefault(o => o.SiteNumber == App.SiteNumber);
-                    if (_default != null && MachineList != null)
-                    {
-                        value = string.IsNullOrEmpty(_default.MachineNumber)
-                        ? MachineList.FirstOrDefault(o => o.MachineName == "All")
-                        : MachineList.FirstOrDefault(o => o.MachineNumber == _default.MachineNumber);
-                    }
+                    value = MachineList?.FirstOrDefault(o => o.MachineName == "All");
                 }
                 if (mach != value && !IsChanging)
                 {
@@ -75,38 +72,11 @@ namespace SFW
                     }
                     else
                     {
-                        var _dock = App.SiteNumber == 0
-                            ? WorkSpaceDock.CsiDock
-                            : WorkSpaceDock.WccoDock;
                         if (((Schedule.ViewModel)((Schedule.View)_dock.Children[0]).DataContext).ScheduleView != null)
                         {
                             if (((DataView)((Schedule.ViewModel)((Schedule.View)_dock.Children[0]).DataContext).ScheduleView.SourceCollection).Table.Select($"MachineNumber = '{value.MachineNumber}'").Length == 0)
                             {
                                 ((ShopRoute.ViewModel)((ShopRoute.View)_dock.Children[1]).DataContext).ShopOrder = new WorkOrder();
-                            }
-                            var _oldFilter = ((DataView)((Schedule.ViewModel)((Schedule.View)_dock.Children[0]).DataContext).ScheduleView.SourceCollection).RowFilter;
-                            if (App.DefualtWorkCenter.Count(o => o.SiteNumber == App.SiteNumber && !string.IsNullOrEmpty(o.MachineNumber)) >= 1)
-                            {
-                                _filter = _oldFilter;
-                            }
-                            else if (App.IsFocused && _oldFilter.Contains("MachineNumber"))
-                            {
-                                if (string.IsNullOrEmpty(_filter))
-                                {
-                                    _filter = _oldFilter.Remove(0, _oldFilter.IndexOf('(')).Replace("(", "").Replace(")", "");
-                                }
-                                else
-                                {
-                                    _filter = $"{_filter} AND {_oldFilter.Remove(0, _oldFilter.IndexOf('('))}";
-                                }
-                            }
-                            else if(App.IsFocused && !string.IsNullOrEmpty(_filter))
-                            {
-                                _filter = $"{_filter} AND ({_oldFilter})";
-                            }
-                            else if (App.IsFocused && string.IsNullOrEmpty(_filter))
-                            {
-                                _filter = _oldFilter;
                             }
                             ((DataView)((Schedule.ViewModel)((Schedule.View)_dock.Children[0]).DataContext).ScheduleView.SourceCollection).RowFilter = _filter;
                             ((Schedule.ViewModel)((Schedule.View)_dock.Children[0]).DataContext).SearchFilter = null;
@@ -368,7 +338,7 @@ namespace SFW
                     else
                     {
                         xEle.Add(new XElement($"Site_{App.SiteNumber}", new XAttribute("WC_Nbr", _machine.MachineNumber), new XAttribute("Position", (App.DefualtWorkCenter.Count(o => o.SiteNumber == App.SiteNumber) + 1).ToString())));
-                        App.DefualtWorkCenter.Add(new UConfig { MachineNumber = _machine.MachineNumber, Position = App.DefualtWorkCenter.Count(o => o.SiteNumber == App.SiteNumber) + 1, SiteNumber = App.SiteNumber });
+                        App.DefualtWorkCenter.Add(new UserConfig { MachineNumber = _machine.MachineNumber, Position = App.DefualtWorkCenter.Count(o => o.SiteNumber == App.SiteNumber) + 1, SiteNumber = App.SiteNumber });
                     }
                     var _filter = string.Empty;
                     foreach (var m in App.DefualtWorkCenter.Where(o => o.SiteNumber == App.SiteNumber))
@@ -414,7 +384,7 @@ namespace SFW
             }
         }
 
-        private void SetFocusExecute(object parameter)
+        public static void SetFocusExecute(object parameter)
         {
             var folder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
             var xDoc = XDocument.Load($"{folder}\\SFW\\SfwConfig.xml");
@@ -425,7 +395,7 @@ namespace SFW
             ((DataView)((Schedule.ViewModel)((Schedule.View)_dock.Children[0]).DataContext).ScheduleView.SourceCollection).RowFilter = App.IsFocused
                 ? "WO_Priority = 'A' OR WO_Priority = 'B'"
                 : "";
-            new Commands.ViewLoad().Execute("Schedule");
+            RefreshTimer.RefreshTimerTick();
         }
         private bool SetFocusCanExecute(object parameter) => true;
 

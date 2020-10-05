@@ -233,7 +233,7 @@ namespace SFW.Model
                         using (SqlDataAdapter adapter = new SqlDataAdapter(_selectCmd, sqlCon))
                         {
                             adapter.Fill(_tempTable);
-                            if(machOrder.Count > 0)
+                            if(machOrder != null && machOrder.Count > 0)
                             {
                                 var _cnt = 0;
                                 foreach (DataRow dr in _tempTable.Rows)

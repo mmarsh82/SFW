@@ -172,19 +172,18 @@
         </Menu>
         
         <StackPanel Orientation="Horizontal"
+                    Visibility="{Binding Path=(local:App.IsFocused), Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center"
                     Margin="1">
             <ComboBox ItemsSource="{Binding MachineList}"
                       DisplayMemberPath="MachineName"
                       SelectedItem="{Binding SelectedMachine, NotifyOnSourceUpdated=True, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
-                      Visibility="{Binding Path=(local:App.IsFocused), Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}"
                       Width="150"
                       FontSize="14"
                       FontWeight="Bold"/>
             <ComboBox ItemsSource="{Binding MachineGroupList}"
                       SelectedItem="{Binding SelectedMachineGroup, NotifyOnSourceUpdated=True, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
-                      Visibility="{Binding Path=(local:App.IsFocused), Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}"
                       Width="100"
                       FontSize="14"
                       FontWeight="Bold"/>

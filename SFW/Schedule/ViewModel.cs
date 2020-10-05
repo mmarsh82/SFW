@@ -97,6 +97,7 @@ namespace SFW.Schedule
         public List<string> MachineGroupList { get; set; }
 
         public string VMDataBase { get; set; }
+        public static bool UserRefresh { get; set; }
 
         private RelayCommand _stateChange;
         private RelayCommand _priChange;
@@ -112,11 +113,35 @@ namespace SFW.Schedule
             MachineGroupList = MachineList.Where(o => !string.IsNullOrEmpty(o.MachineGroup)).Select(o => o.MachineGroup).Distinct().ToList();
             LoadAsyncDelegate = new LoadDelegate(ViewLoading);
             FilterAsyncDelegate = new LoadDelegate(FilterView);
+            var _filter = BuildFilter();
+            LoadAsyncComplete = LoadAsyncDelegate.BeginInvoke(_filter, new AsyncCallback(ViewLoaded), null);
+            RefreshTimer.Add(RefreshSchedule);
+            VMDataBase = App.AppSqlCon.Database;
+            UserRefresh = false;
+        }
+
+        /// <summary>
+        /// Schedule ViewModel constructor for loading in a specific workcenter
+        /// </summary>
+        /// <param name="machineNumber">Machine Number to load into the schedule</param>
+        public ViewModel(string machineNumber)
+        {
+            LoadAsyncDelegate = new LoadDelegate(ViewLoading);
+            FilterAsyncDelegate = new LoadDelegate(FilterView);
+            LoadAsyncComplete = LoadAsyncDelegate.BeginInvoke(machineNumber, new AsyncCallback(ViewLoaded), null);
+            VMDataBase = App.AppSqlCon.Database;
+        }
+
+        /// <summary>
+        /// Builds the orginal filter for the Schedule view based on the application user config file
+        /// </summary>
+        /// <returns>DataTable filter string</returns>
+        public string BuildFilter()
+        {
             var _filter = string.Empty;
-            if (App.DefualtWorkCenter?.Count(o => o.SiteNumber == App.SiteNumber) == 1)
+            if (App.DefualtWorkCenter?.Count(o => o.SiteNumber == App.SiteNumber) == 1 && !string.IsNullOrEmpty(App.DefualtWorkCenter.FirstOrDefault(o => o.SiteNumber == App.SiteNumber).MachineNumber))
             {
-                _filter = $@"{App.DefualtWorkCenter.FirstOrDefault(o => o.SiteNumber == App.SiteNumber).MachineNumber}
-                                *MachineNumber = '{App.DefualtWorkCenter.FirstOrDefault(o => o.SiteNumber == App.SiteNumber).MachineNumber}'";
+                _filter = $@"MachineNumber = '{App.DefualtWorkCenter.FirstOrDefault(o => o.SiteNumber == App.SiteNumber).MachineNumber}'";
             }
             else if (App.DefualtWorkCenter?.Count(o => o.SiteNumber == App.SiteNumber) > 1)
             {
@@ -134,21 +159,7 @@ namespace SFW.Schedule
             {
                 _filter += " AND (WO_Priority = 'A' OR WO_Priority = 'B')";
             }
-            LoadAsyncComplete = LoadAsyncDelegate.BeginInvoke(_filter, new AsyncCallback(ViewLoaded), null);
-            RefreshTimer.Add(RefreshSchedule);
-            VMDataBase = App.AppSqlCon.Database;
-        }
-
-        /// <summary>
-        /// Schedule ViewModel constructor for loading in a specific workcenter
-        /// </summary>
-        /// <param name="machineNumber">Machine Number to load into the schedule</param>
-        public ViewModel(string machineNumber)
-        {
-            LoadAsyncDelegate = new LoadDelegate(ViewLoading);
-            FilterAsyncDelegate = new LoadDelegate(FilterView);
-            LoadAsyncComplete = LoadAsyncDelegate.BeginInvoke(machineNumber, new AsyncCallback(ViewLoaded), null);
-            VMDataBase = App.AppSqlCon.Database;
+            return _filter;
         }
 
         /// <summary>
@@ -165,34 +176,19 @@ namespace SFW.Schedule
         public void FilterView(string filter)
         {
             IsLoading = true;
-            if (string.IsNullOrEmpty(filter))
-            {
-                ViewLoading(string.Empty);
-            }
-            else
-            {
-                filter = filter.Contains('*') ? filter.Split('*')[1] : filter;
-                ((DataView)ScheduleView.SourceCollection).RowFilter = filter;
-                OnPropertyChanged(nameof(ScheduleView));
-            }
+            ViewLoading(filter);
         }
 
         public void ViewLoading(string filter)
         {
             IsLoading = true;
-            ScheduleView = CollectionViewSource.GetDefaultView(Machine.GetScheduleData(UConfig.GetIROD(), App.AppSqlCon));
+            ScheduleView = CollectionViewSource.GetDefaultView(Machine.GetScheduleData(UserConfig.GetIROD(), App.AppSqlCon));
             ScheduleView.SortDescriptions.Add(new SortDescription("MachineOrder", ListSortDirection.Ascending));
             ScheduleView.GroupDescriptions.Add(new PropertyGroupDescription("MachineNumber", new WorkCenterNameConverter(MachineList)));
             if (!string.IsNullOrEmpty(filter))
             {
-                var _filter = filter;
-                if (filter.Contains('*'))
-                {
-                    var _fSplit = filter.Split('*');
-                    MainWindowViewModel.SelectedMachine = MachineList.FirstOrDefault(o => o.MachineNumber == _fSplit[0]);
-                    _filter = _fSplit[1];
-                }
-                ((DataView)ScheduleView.SourceCollection).RowFilter = _filter;
+                ((DataView)ScheduleView.SourceCollection).RowFilter = filter;
+                OnPropertyChanged(nameof(ScheduleView));
             }
         }
         public void ViewLoaded(IAsyncResult r)
@@ -215,15 +211,27 @@ namespace SFW.Schedule
                     var _db = string.Empty;
                     var _oldItem = ScheduleView.CurrentItem;
                     var _oldFilter = ((DataView)ScheduleView.SourceCollection).RowFilter;
+                    if (UserRefresh && VMDataBase == App.AppSqlCon.Database)
+                    {
+                        _oldItem = null;
+                        if (App.DefualtWorkCenter.Count == 0)
+                        {
+                            _oldFilter = string.Empty;
+                        }
+                        else
+                        {
+                            _oldFilter = BuildFilter();
+                        }
+                        UserRefresh = false;
+                    }
                     RefreshTimer.IsRefreshing = IsLoading = true;
                     if (App.AppSqlCon.Database != VMDataBase)
                     {
                         _db = App.AppSqlCon.Database;
                         App.DatabaseChange(VMDataBase);
                     }
-                    ScheduleView = CollectionViewSource.GetDefaultView(Machine.GetScheduleData(UConfig.GetIROD(), App.AppSqlCon));
+                    ScheduleView = CollectionViewSource.GetDefaultView(Machine.GetScheduleData(UserConfig.GetIROD(), App.AppSqlCon));
                     ScheduleView.GroupDescriptions.Add(new PropertyGroupDescription("MachineNumber", new WorkCenterNameConverter(MachineList)));
-                    OnPropertyChanged(nameof(ScheduleView));
                     if (_oldItem != null && ((DataView)ScheduleView.SourceCollection).Table.AsEnumerable().Any(r => r.Field<string>("WO_Number") == ((DataRowView)_oldItem).Row.Field<string>("WO_Number")))
                     {
                         var schedList = ((DataView)ScheduleView.SourceCollection).Table.AsEnumerable().ToList();
@@ -243,6 +251,7 @@ namespace SFW.Schedule
                     }
                     RefreshTimer.IsRefreshing = IsLoading = false;
                     ScheduleView.SortDescriptions.Add(new SortDescription("MachineOrder", ListSortDirection.Ascending));
+                    OnPropertyChanged(nameof(ScheduleView));
                     ScheduleView.Refresh();
                     if (!string.IsNullOrEmpty(SearchFilter))
                     {
@@ -250,8 +259,10 @@ namespace SFW.Schedule
                     }
                 }
             }
-            catch (Exception)
-            { }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
         }
 
         #region Order State Change ICommand

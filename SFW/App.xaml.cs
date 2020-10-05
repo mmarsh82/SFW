@@ -46,7 +46,7 @@ namespace SFW
         public static SqlConnection AppSqlCon { get; set; }
         public static M2kConnection ErpCon { get; set; }
 
-        public static List<UConfig> DefualtWorkCenter { get; set; }
+        public static List<UserConfig> DefualtWorkCenter { get; set; }
 
         public static event EventHandler<PropertyChangedEventArgs> StaticPropertyChanged;
 
@@ -448,9 +448,9 @@ namespace SFW
         /// <summary>
         /// Load the user XML config file into a list of objects
         /// </summary>
-        private List<UConfig> LoadUserAppConfig()
+        public static List<UserConfig> LoadUserAppConfig()
         {
-            var _uConf = new List<UConfig>();
+            var _uConf = new List<UserConfig>();
             try
             {
                 var folder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
@@ -507,7 +507,7 @@ namespace SFW
                                     if (reader.Name.Contains("Site"))
                                     {
                                         var _site = Convert.ToInt32(reader.Name.Substring(reader.Name.Length - 1));
-                                        _uConf.Add(new UConfig { SiteNumber = _site, MachineNumber = reader.GetAttribute("WC_Nbr"), Position = Convert.ToInt32(reader.GetAttribute("Position")) });
+                                        _uConf.Add(new UserConfig { SiteNumber = _site, MachineNumber = reader.GetAttribute("WC_Nbr"), Position = Convert.ToInt32(reader.GetAttribute("Position")) });
                                     }
                                     else if (reader.Name == "Default_View")
                                     {
@@ -520,7 +520,7 @@ namespace SFW
                 }
                 return _uConf;
             }
-            catch(Exception ex)
+            catch(Exception)
             {
                 return null;
             }

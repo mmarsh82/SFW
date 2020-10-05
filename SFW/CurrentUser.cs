@@ -356,9 +356,9 @@ namespace SFW
                             else
                             {
                                 new CurrentUser(pContext, uPrincipal);
-                                _result.Add(_resultKey, _resultVal);
-                                return _result;
                             }
+                            _result.Add(_resultKey, _resultVal);
+                            return _result;
                         }
                     }
                 }
@@ -435,6 +435,9 @@ namespace SFW
             IsLoggedIn = false;
             CanSchedule = false;
             CanWip = false;
+            IsAdmin = false;
+            IsInventoryControl = false;
+            IsSupervisor = false;
             UserIDNbr = string.Empty;
         }
 

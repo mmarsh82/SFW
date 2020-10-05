@@ -132,12 +132,12 @@ namespace SFW.Controls
                         MainWindowViewModel.DefaultMachineList[0].IsLoaded = true;
                     }
                 }
-                if (MainWindowViewModel.SelectedMachine == null)
+                if (MainWindowViewModel.SelectedMachine == null && !App.IsFocused)
                 {
                     MainWindowViewModel.SelectedMachine = ((Schedule.ViewModel)((Schedule.View)_tempDock.Children[0]).DataContext).MachineList[0];
                 }
                 MainWindowViewModel.MachineGroupList = ((Schedule.ViewModel)((Schedule.View)_tempDock.Children[0]).DataContext).MachineGroupList;
-                if (MainWindowViewModel.SelectedMachineGroup == null)
+                if (MainWindowViewModel.SelectedMachineGroup == null && !App.IsFocused)
                 {
                     MainWindowViewModel.SelectedMachineGroup = ((Schedule.ViewModel)((Schedule.View)_tempDock.Children[0]).DataContext).MachineGroupList[0];
                 }
