@@ -422,7 +422,7 @@ namespace SFW.Model
                                                                             RIGHT JOIN
                                                                                 [dbo].[IPL-INIT] e ON e.[Part_Nbr] = d.[Part_Number]
                                                                             WHERE
-                                                                                a.[D_esc] <> 'DO NOT USE' AND c.[Status_Flag] = 'C' AND b.[Seq_Complete_Flag] = 'C' AND b.[Alt_Seq_Status] IS NULL
+                                                                                a.[D_esc] <> 'DO NOT USE' AND c.[Status_Flag] = 'C' AND b.[Alt_Seq_Status] IS NULL
                                                                             ORDER BY
                                                                                 MachineNumber, WO_Priority, WO_SchedStartDate, WO_Number ASC;", sqlCon))
                         {
