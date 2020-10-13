@@ -9,6 +9,7 @@
     <UserControl.Resources>
         <cvtr:BoolToVisibility x:Key="BooltoVisConverter"/>
         <cvtr:StringToVisibility x:Key="StringtoVisConverter"/>
+        <cvtr:ValueToMargin x:Key="ValToMargin"/>
     </UserControl.Resources>
 
     <UserControl.InputBindings>
@@ -233,13 +234,14 @@
                         <Grid>
 
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="20"/>
+                                <ColumnDefinition Width="auto"/>
                                 <ColumnDefinition Width="auto"/>
                             </Grid.ColumnDefinitions>
 
                             <TextBlock Grid.Column="0"
                                        Text="{Binding Value, StringFormat={}{0}.}"
                                        FontSize="18"
+                                       Margin="{Binding Value, Converter={StaticResource ValToMargin}, ConverterParameter=R}"
                                        FontWeight="Bold"
                                        TextDecorations="Underline"
                                        HorizontalAlignment="Center"/>

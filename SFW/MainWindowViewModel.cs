@@ -391,11 +391,6 @@ namespace SFW
             var xEle = xDoc.Descendants($"Default_View").Single();
             xEle.Attribute("Focus").Value = App.IsFocused.ToString();
             xDoc.Save($"{folder}\\SFW\\SfwConfig.xml");
-            var _dock = App.SiteNumber == 0 ? WorkSpaceDock.CsiDock : WorkSpaceDock.WccoDock;
-            ((DataView)((Schedule.ViewModel)((Schedule.View)_dock.Children[0]).DataContext).ScheduleView.SourceCollection).RowFilter = App.IsFocused
-                ? "WO_Priority = 'A' OR WO_Priority = 'B'"
-                : "";
-            RefreshTimer.RefreshTimerTick();
         }
         private bool SetFocusCanExecute(object parameter) => true;
 

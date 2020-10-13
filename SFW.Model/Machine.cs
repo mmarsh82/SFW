@@ -540,7 +540,7 @@ namespace SFW.Model
             {
                 try
                 {
-                    using (SqlCommand cmd = new SqlCommand($"USE {sqlCon.Database}; SELECT [Name] FROM [dbo].[WC-INIT] WHERE [Wc_Nbr] = (SELECT [Wc_Nbr] FROM [dbo].[RT-INIT] WHERE [ID] LIKE CONCAT(@p1,'*%'));", sqlCon))
+                    using (SqlCommand cmd = new SqlCommand($"USE {sqlCon.Database}; SELECT [Name] FROM [dbo].[WC-INIT] WHERE [Wc_Nbr] = (SELECT [Wc_Nbr] FROM [dbo].[RT-INIT] WHERE [ID] LIKE CONCAT(@p1,'*%') AND [Prev_Seq] IS NULL);", sqlCon))
                     {
                         cmd.Parameters.AddWithValue("p1", partNbr);
                         return cmd.ExecuteScalar()?.ToString();
