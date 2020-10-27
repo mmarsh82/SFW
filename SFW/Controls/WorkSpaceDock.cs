@@ -1,8 +1,6 @@
-﻿using DocumentFormat.OpenXml.Drawing.Charts;
-using M2kClient;
+﻿using M2kClient;
 using SFW.Queries;
 using System;
-using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -43,7 +41,7 @@ namespace SFW.Controls
             CsiDock.Children.Insert(1, new ShopRoute.View { DataContext = new ShopRoute.ViewModel() });
             MainDock.Children.Insert(0, CsiDock);
 
-            //Add the Schedule View to [1]
+            //Add the WCCO Schedule View to [1]
             App.DatabaseChange("WCCO_MAIN");
             WccoDock.Children.Insert(0, new Schedule.View());
             WccoDock.Children.Insert(1, new ShopRoute.View { DataContext = new ShopRoute.ViewModel() });
@@ -61,8 +59,8 @@ namespace SFW.Controls
             CountDock.Children.Insert(1, new CycleCount.Form_View { DataContext = new CycleCount.Form_ViewModel() });
             MainDock.Children.Insert(4, CountDock);
 
-            //Add the Part Detail View to [5]
-            MainDock.Children.Insert(5, new UserControl());
+            //Add the Admin View to [5]
+            MainDock.Children.Insert(5, new Admin.View { DataContext = new Admin.ViewModel() });
 
             //Add the Schedule View to [6]
             ClosedDock.Children.Insert(0, new Schedule.Closed.View());
@@ -102,7 +100,6 @@ namespace SFW.Controls
                     ((UserControl)o).Visibility = Visibility.Collapsed;
                 }
             }
-            MainDock.Children[index].Visibility = Visibility.Visible;
             ClosedView = index == 6;
             var _tempDock = new DockPanel();
             switch(index)
@@ -120,18 +117,6 @@ namespace SFW.Controls
             if (index <= 1)
             {
                 MainWindowViewModel.MachineList = ((Schedule.ViewModel)((Schedule.View)_tempDock.Children[0]).DataContext).MachineList;
-                MainWindowViewModel.DefaultMachineList = Model.Machine.GetMachineList(App.AppSqlCon, false, true);
-                if (App.DefualtWorkCenter.Count > 0)
-                {
-                    foreach (var m in App.DefualtWorkCenter.Where(o => o.SiteNumber == App.SiteNumber && !string.IsNullOrEmpty(o.MachineNumber)))
-                    {
-                        MainWindowViewModel.DefaultMachineList.FirstOrDefault(o => o.MachineNumber == m.MachineNumber).IsLoaded = true;
-                    }
-                    if (MainWindowViewModel.DefaultMachineList.Count(o => o.IsLoaded) == 0)
-                    {
-                        MainWindowViewModel.DefaultMachineList[0].IsLoaded = true;
-                    }
-                }
                 if (MainWindowViewModel.SelectedMachine == null && !App.IsFocused)
                 {
                     MainWindowViewModel.SelectedMachine = ((Schedule.ViewModel)((Schedule.View)_tempDock.Children[0]).DataContext).MachineList[0];
@@ -141,6 +126,9 @@ namespace SFW.Controls
                 {
                     MainWindowViewModel.SelectedMachineGroup = ((Schedule.ViewModel)((Schedule.View)_tempDock.Children[0]).DataContext).MachineGroupList[0];
                 }
+                MainDock.Children.RemoveAt(5);
+                MainDock.Children.Insert(5, new Admin.View { DataContext = new Admin.ViewModel() });
+                MainDock.Children[5].Visibility = Visibility.Collapsed;
             }
             else if (index == 4)
             {
@@ -162,6 +150,7 @@ namespace SFW.Controls
             {
                 ((UserControl)MainDock.Children[index]).DataContext = dataContext;
             }
+            MainDock.Children[index].Visibility = Visibility.Visible;
         }
 
         /// <summary>

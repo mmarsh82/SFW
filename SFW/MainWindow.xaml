@@ -93,13 +93,13 @@
                               Command="{StaticResource ViewLoadICommand}"
                               CommandParameter="SiteCsi"
                               IsCheckable="True"
-                              IsChecked="{Binding CurrentSiteNbr, Converter={StaticResource SiteToBoolConverter}, ConverterParameter=CSI}"
+                              IsChecked="{Binding Path=(local:App.SiteNumber), Converter={StaticResource SiteToBoolConverter}, ConverterParameter=CSI}"
                               InputGestureText="Alt+1"/>
                     <MenuItem Header="WCCO"
                               Command="{StaticResource ViewLoadICommand}"
                               CommandParameter="SiteWcco"
                               IsCheckable="True"
-                              IsChecked="{Binding CurrentSiteNbr, Converter={StaticResource SiteToBoolConverter}, ConverterParameter=WCCO}"
+                              IsChecked="{Binding Path=(local:App.SiteNumber), Converter={StaticResource SiteToBoolConverter}, ConverterParameter=WCCO}"
                               InputGestureText="Alt+2"/>
                 </MenuItem>
                 <MenuItem Header="Closed Work Orders"
@@ -148,24 +148,9 @@
                 <MenuItem Header="Train Mode"
                           IsCheckable="True"
                           IsChecked="{Binding InTraining, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-                <MenuItem Header="Default Work Center"
-                          ItemsSource="{Binding DefaultMachineList, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
-                          DisplayMemberPath="MachineName">
-                    <MenuItem.ItemContainerStyle>
-                        <Style TargetType="MenuItem">
-                            <Setter Property="Command"
-                                    Value="{Binding DataContext.SelectedDefaultICommand, ElementName=Source_Window}" />
-                            <Setter Property="CommandParameter"
-                                    Value="{Binding}" />
-                            <Setter Property="IsChecked"
-                                    Value="{Binding IsLoaded}"/>
-                        </Style>
-                    </MenuItem.ItemContainerStyle>
-                </MenuItem>
-                <MenuItem Header="Focus View"
-                          IsCheckable="True"
-                          IsChecked="{Binding Path=(local:App.IsFocused), Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                          Command="{Binding SetFocusICommand}"/>
+                <MenuItem Header="Modify App"
+                          Command="{StaticResource ViewLoadICommand}"
+                          CommandParameter="Admin"/>
                 <MenuItem Header="Dev Testing"
                           Command="{StaticResource TestICommand}"/>
             </MenuItem>

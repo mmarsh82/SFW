@@ -29,7 +29,7 @@ namespace SFW.Commands
             }
             else
             {
-                App.DefualtWorkCenter = App.LoadUserAppConfig();
+                App.DefualtWorkCenter = UserConfig.GetUserConfigList();
             }
             Schedule.ViewModel.UserRefresh = true;
             RefreshTimer.RefreshTimerTick();

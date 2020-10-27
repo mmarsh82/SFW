@@ -618,8 +618,7 @@ namespace M2kClient
             var _subResult = new Dictionary<int, string>();
             try
             {
-                var _uid = new Random().Next(10, 100);
-                var suffix = DateTime.Now.ToString("HHmmssffff");
+                var suffix = DateTime.Now.ToString("HHmmssff");
                 if (tranQty <= 0)
                 {
                     _subResult.Add(1, "Transaction Quantity must have a value greater then 0.");
@@ -635,7 +634,7 @@ namespace M2kClient
                     tranQty,
                     location,
                     lot);
-                File.WriteAllText($"{connection.BTIFolder}ADJUST{connection.AdiServer}.DAT{suffix}{_uid}", _tScrap.ToString());
+                File.WriteAllText($"{connection.BTIFolder}ADJUST{connection.AdiServer}.DAT{suffix}{aCode}", _tScrap.ToString());
                 _subResult.Add(0, string.Empty);
                 return _subResult;
             }

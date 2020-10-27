@@ -60,27 +60,26 @@ namespace SFW.Schedule
             set { _isLoading = value; OnPropertyChanged(nameof(IsLoading)); }
         }
 
-        private string _originalFilter;
         private string _sFilter;
         public string SearchFilter
         {
             get { return _sFilter; }
             set
             {
-                if (_sFilter == null || value == null)
-                {
-                    _originalFilter = ((DataView)ScheduleView.SourceCollection).RowFilter;
-                }
+                var _tempFilter = ((DataView)ScheduleView.SourceCollection).Table.SearchRowFilter(_sFilter);
                 if (!string.IsNullOrEmpty(value))
                 {
+                    var _oldFilter = _sFilter != null && ((DataView)ScheduleView.SourceCollection).RowFilter.Contains(_tempFilter)
+                        ? ((DataView)ScheduleView.SourceCollection).RowFilter.Replace(_tempFilter, "")
+                        : ((DataView)ScheduleView.SourceCollection).RowFilter;
                     var _sRowFilter = ((DataView)ScheduleView.SourceCollection).Table.SearchRowFilter(value);
-                    ((DataView)ScheduleView.SourceCollection).RowFilter = !string.IsNullOrEmpty(_originalFilter)
-                        ? $"{_originalFilter} AND ({_sRowFilter})"
+                    ((DataView)ScheduleView.SourceCollection).RowFilter = !string.IsNullOrEmpty(_oldFilter)
+                        ? $"{_oldFilter} AND ({_sRowFilter})"
                         :_sRowFilter;
                 }
-                else
+                else if (MainWindowViewModel.SelectedMachine != null)
                 {
-                    ((DataView)ScheduleView.SourceCollection).RowFilter = _originalFilter;
+                    ((DataView)ScheduleView.SourceCollection).RowFilter = ((DataView)ScheduleView.SourceCollection).RowFilter.Replace(_tempFilter, "");
                 }
                 _sFilter = value == "" ? null : value;
                 OnPropertyChanged(nameof(SearchFilter));
@@ -113,8 +112,8 @@ namespace SFW.Schedule
             MachineGroupList = MachineList.Where(o => !string.IsNullOrEmpty(o.MachineGroup)).Select(o => o.MachineGroup).Distinct().ToList();
             LoadAsyncDelegate = new LoadDelegate(ViewLoading);
             FilterAsyncDelegate = new LoadDelegate(FilterView);
-            var _filter = BuildFilter();
-            LoadAsyncComplete = LoadAsyncDelegate.BeginInvoke(_filter, new AsyncCallback(ViewLoaded), null);
+            App.ViewFilter[App.SiteNumber] = BuildFilter();
+            LoadAsyncComplete = LoadAsyncDelegate.BeginInvoke(App.ViewFilter[App.SiteNumber], new AsyncCallback(ViewLoaded), null);
             RefreshTimer.Add(RefreshSchedule);
             VMDataBase = App.AppSqlCon.Database;
             UserRefresh = false;

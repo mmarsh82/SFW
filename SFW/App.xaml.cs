@@ -37,6 +37,12 @@ namespace SFW
             get { return _focused; }
             set { _focused = value; StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(IsFocused))); }
         }
+        public static IDictionary<int, string> _filter;
+        public static IDictionary<int, string> ViewFilter
+        {
+            get { return _filter; }
+            set { _filter = value; StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(ViewFilter))); }
+        }
 
         //Hardcoded application location will need to be changed based on actual file path
         public static string AppFilePath { get { return "\\\\fs-wcco\\WCCO-SFW\\ShopFloorWorkbench\\"; } }
@@ -71,7 +77,7 @@ namespace SFW
             Site = "CSI_MAIN";
             SiteNumber = 0;
             GlobalConfig = LoadGlobalAppConfig();
-            DefualtWorkCenter = LoadUserAppConfig();
+            DefualtWorkCenter = UserConfig.GetUserConfigList();
             if (AppSqlCon != null)
             {
                 AppSqlCon.Open();
@@ -91,6 +97,11 @@ namespace SFW
             {
                 Directory.CreateDirectory($"{_folder}\\SFW\\Labor\\");
             }
+            ViewFilter = new Dictionary<int, string>
+            {
+                { 0, "" }
+                ,{ 1, "" }
+            };
         }
 
         /// <summary>
@@ -438,87 +449,6 @@ namespace SFW
                     }
                 }
                 return _tempList;
-            }
-            catch(Exception)
-            {
-                return null;
-            }
-        }
-
-        /// <summary>
-        /// Load the user XML config file into a list of objects
-        /// </summary>
-        public static List<UserConfig> LoadUserAppConfig()
-        {
-            var _uConf = new List<UserConfig>();
-            try
-            {
-                var folder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-                if (!File.Exists($"{folder}\\SFW\\SfwConfig.xml"))
-                {
-                    Directory.CreateDirectory($"{folder}\\SFW");
-                    using (var wStream = new FileStream($"{folder}\\SFW\\SfwConfig.xml", FileMode.CreateNew))
-                    {
-                        var wSettings = new XmlWriterSettings { Indent = true, IndentChars = "\t", NewLineOnAttributes = true };
-                        using (var writer = XmlWriter.Create(wStream, wSettings))
-                        {
-                            writer.WriteStartElement("SFW_User_Config");
-
-                            writer.WriteComment("Default View");
-                            writer.WriteComment("Defines how the schedule is going to show work orders");
-                            writer.WriteComment("true will only show approved, false will show all work orders");
-
-                            writer.WriteStartElement("Default_View");
-                            writer.WriteAttributeString("Focus", "false");
-                            writer.WriteEndElement();
-
-                            writer.WriteComment("Default Work Centers");
-                            writer.WriteComment("Work center name and schedule position seperated by Site number");
-
-                            writer.WriteStartElement("Default_WC");
-
-                            writer.WriteStartElement("Site_0");
-                            writer.WriteAttributeString("WC_Nbr", "");
-                            writer.WriteAttributeString("Position", "1");
-                            writer.WriteEndElement();
-
-                            writer.WriteStartElement("Site_1");
-                            writer.WriteAttributeString("WC_Nbr", "");
-                            writer.WriteAttributeString("Position", "1");
-                            writer.WriteEndElement();
-
-                            writer.WriteEndElement();
-
-                            writer.WriteEndElement();
-                        }
-                    }
-                }
-                using (var rStream = new FileStream($"{folder}\\SFW\\SfwConfig.xml", FileMode.Open))
-                {
-                    var rSettings = new XmlReaderSettings { IgnoreComments = true, IgnoreWhitespace = true };
-                    using (var reader = XmlReader.Create(rStream, rSettings))
-                    {
-                        while (reader.Read())
-                        {
-                            if (reader.HasAttributes)
-                            {
-                                if (reader.NodeType == XmlNodeType.Element)
-                                {
-                                    if (reader.Name.Contains("Site"))
-                                    {
-                                        var _site = Convert.ToInt32(reader.Name.Substring(reader.Name.Length - 1));
-                                        _uConf.Add(new UserConfig { SiteNumber = _site, MachineNumber = reader.GetAttribute("WC_Nbr"), Position = Convert.ToInt32(reader.GetAttribute("Position")) });
-                                    }
-                                    else if (reader.Name == "Default_View")
-                                    {
-                                        IsFocused = bool.TryParse(reader.GetAttribute("Focus").ToString(), out bool b) && b;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                return _uConf;
             }
             catch(Exception)
             {

@@ -1,5 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Xml;
 
 namespace SFW
 {
@@ -8,7 +11,7 @@ namespace SFW
         #region Properties
 
         public int SiteNumber { get; set; }
-        public int Position { get; set; }
+        public int? Position { get; set; }
         public string MachineNumber { get; set; }
 
         #endregion
@@ -18,6 +21,103 @@ namespace SFW
         /// </summary>
         public UserConfig()
         { }
+
+        /// <summary>
+        /// Get a list of the user XML config file
+        /// </summary>
+        public static List<UserConfig> GetUserConfigList()
+        {
+            var _uConf = new List<UserConfig>();
+            try
+            {
+                var folder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+                if (!File.Exists($"{folder}\\SFW\\SfwConfig.xml"))
+                {
+                    CreateNewConfigFile();
+                }
+                using (var rStream = new FileStream($"{folder}\\SFW\\SfwConfig.xml", FileMode.Open))
+                {
+                    var rSettings = new XmlReaderSettings { IgnoreComments = true, IgnoreWhitespace = true };
+                    using (var reader = XmlReader.Create(rStream, rSettings))
+                    {
+                        while (reader.Read())
+                        {
+                            if (reader.HasAttributes)
+                            {
+                                if (reader.NodeType == XmlNodeType.Element)
+                                {
+                                    if (reader.Name.Contains("Site"))
+                                    {
+                                        var _site = Convert.ToInt32(reader.Name.Substring(reader.Name.Length - 1));
+                                        _uConf.Add(new UserConfig { SiteNumber = _site, MachineNumber = reader.GetAttribute("WC_Nbr"), Position = Convert.ToInt32(reader.GetAttribute("Position")) });
+                                    }
+                                    else if (reader.Name == "Default_View")
+                                    {
+                                        App.IsFocused = bool.TryParse(reader.GetAttribute("Focus").ToString(), out bool b) && b;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                return _uConf;
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Create a new user config file for the SFW application 
+        /// </summary>
+        public static void CreateNewConfigFile()
+        {
+            try
+            {
+                var folder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+                Directory.CreateDirectory($"{folder}\\SFW");
+                using (var wStream = new FileStream($"{folder}\\SFW\\SfwConfig.xml", FileMode.CreateNew))
+                {
+                    var wSettings = new XmlWriterSettings { Indent = true, IndentChars = "\t", NewLineOnAttributes = true };
+                    using (var writer = XmlWriter.Create(wStream, wSettings))
+                    {
+                        writer.WriteStartElement("SFW_User_Config");
+
+                        writer.WriteComment("Default View");
+                        writer.WriteComment("Defines how the schedule is going to show work orders");
+                        writer.WriteComment("true will only show approved, false will show all work orders");
+
+                        writer.WriteStartElement("Default_View");
+                        writer.WriteAttributeString("Focus", "false");
+                        writer.WriteEndElement();
+
+                        writer.WriteComment("Default Work Centers");
+                        writer.WriteComment("Work center name and schedule position seperated by Site number");
+
+                        writer.WriteStartElement("Default_WC");
+
+                        writer.WriteStartElement("Site_0");
+                        writer.WriteAttributeString("WC_Nbr", "");
+                        writer.WriteAttributeString("Position", "1");
+                        writer.WriteEndElement();
+
+                        writer.WriteStartElement("Site_1");
+                        writer.WriteAttributeString("WC_Nbr", "");
+                        writer.WriteAttributeString("Position", "1");
+                        writer.WriteEndElement();
+
+                        writer.WriteEndElement();
+
+                        writer.WriteEndElement();
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                throw new Exception();
+            }
+        }
 
         /// <summary>
         /// Get the values for the user config object
@@ -30,13 +130,33 @@ namespace SFW
             {
                 if (App.DefualtWorkCenter.Count(o => o.SiteNumber == App.SiteNumber && !string.IsNullOrEmpty(o.MachineNumber)) > 0)
                 {
-                    foreach (var v in App.DefualtWorkCenter.Where(o => o.SiteNumber == App.SiteNumber && !string.IsNullOrEmpty(o.MachineNumber)))
+                    foreach (var v in App.DefualtWorkCenter.Where(o => o.SiteNumber == App.SiteNumber && !string.IsNullOrEmpty(o.MachineNumber) && o.Position != null))
                     {
-                        _irod.Add(v.MachineNumber, v.Position);
+                        _irod.Add(v.MachineNumber, int.TryParse(v.Position.ToString(), out int r) ? r : 0);
                     }
                 }
             }
             return _irod;
+        }
+
+        /// <summary>
+        /// Get the values for the user config object
+        /// </summary>
+        /// <returns>Dictionary of user config values</returns>
+        public static Dictionary<string, int> GetDict()
+        {
+            var _dict = new Dictionary<string, int>();
+            if (App.DefualtWorkCenter != null)
+            {
+                if (App.DefualtWorkCenter.Count(o => o.SiteNumber == App.SiteNumber && !string.IsNullOrEmpty(o.MachineNumber)) > 0)
+                {
+                    foreach (var v in App.DefualtWorkCenter.Where(o => o.SiteNumber == App.SiteNumber && !string.IsNullOrEmpty(o.MachineNumber) && o.Position != null))
+                    {
+                        _dict.Add(v.MachineNumber, int.TryParse(v.Position.ToString(), out int r) ? r : 0);
+                    }
+                }
+            }
+            return _dict;
         }
     }
 }

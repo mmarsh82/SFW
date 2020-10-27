@@ -13,7 +13,11 @@ namespace SFW.Converters
 
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (value != null)
+            if (value != null && parameter != null)
+            {
+                return System.Convert.ToInt32(value) > 1 ? Visibility.Visible : Visibility.Collapsed;
+            }
+            else if (value != null)
             {
                 return System.Convert.ToInt32(value) > 0 ? Visibility.Visible : Visibility.Collapsed;
             }

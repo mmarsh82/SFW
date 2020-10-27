@@ -10,6 +10,7 @@ namespace SFW.Model
     public class Component
     {
         #region Properties
+
         public string CompNumber { get; set; }
         public string CompDescription { get; set; }
         public int CurrentOnHand { get; set; }
@@ -211,6 +212,7 @@ namespace SFW.Model
 	                                                                SUBSTRING(a.[ID], CHARINDEX('*', a.[ID], 0) + 1, LEN(a.[ID])) as 'Component',
 	                                                                a.[Qty_Per_Assy],
 	                                                                b.[Description],
+                                                                    b.[Drawing_Nbrs],
 	                                                                b.[Um]
                                                                 FROM
 	                                                                [dbo].[PS-INIT] a
@@ -234,6 +236,7 @@ namespace SFW.Model
                                         CompNumber = reader.SafeGetString("Component"),
                                         AssemblyQty = reader.SafeGetDouble("Qty_Per_Assy"),
                                         CompDescription = reader.SafeGetString("Description"),
+                                        CompMasterPrint = reader.SafeGetString("Drawing_Nbrs"),
                                         CompUom = reader.SafeGetString("Um")
                                     });
                                 }

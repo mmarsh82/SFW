@@ -1,0 +1,165 @@
+﻿<UserControl x:Class="SFW.Admin.View"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:cmd="clr-namespace:SFW.Commands"
+             xmlns:cvtr="clr-namespace:SFW.Converters"
+             xmlns:local="clr-namespace:SFW"
+             x:Name="Admin_UC">
+    <Grid Background="LightGray">
+
+        <Grid.Resources>
+            <cmd:ViewLoad x:Key="Back" />
+            <cvtr:BoolToVisibility x:Key="BooltoVisConverter"/>
+            <cvtr:CountToVisibility x:Key="CounttoVisConverter"/>
+        </Grid.Resources>
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="50"/>
+            <RowDefinition Height="40"/>
+            <RowDefinition Height="340"/>
+        </Grid.RowDefinitions>
+
+        <Button Grid.Row="0"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Center"
+                Background="Transparent"
+                BorderThickness="0"
+                Command="{StaticResource Back}"
+                CommandParameter="Back">
+            <Button.Content>
+                <StackPanel Orientation="Horizontal">
+                    <Image Source="/SFW;component/Icons/BackArrow.ico" />
+                    <TextBlock Text="Back to Schedule"
+                               VerticalAlignment="Center"
+                               FontSize="16"
+                               FontWeight="Bold"
+                               Foreground="Crimson"/>
+                </StackPanel>
+            </Button.Content>
+        </Button>
+        
+        <!--#region Focus View Setting-->
+
+        <CheckBox Grid.Row="1"
+                  Content="Focus View"
+                  FontSize="24"
+                  FontWeight="Bold"
+                  Margin="10,0,0,0"
+                  VerticalAlignment="Center"
+                  VerticalContentAlignment="Center"
+                  IsChecked="{Binding Path=(local:App.IsFocused)}"/>
+
+        <!--#endregion-->
+
+        <!--#region Default Machine Selection-->
+
+        <StackPanel Grid.Row="2"
+                    Orientation="Vertical"
+                    HorizontalAlignment="Left">
+
+            <StackPanel Orientation="Horizontal">
+
+                <TextBlock Text="Default Machines"
+                           FontSize="24"
+                           FontWeight="Bold"
+                           Margin="10,0,0,0"
+                           VerticalAlignment="Center" />
+
+                <Button Command="{Binding ListICommand}"
+                        CommandParameter="Add"
+                        Width="30"
+                        Height="30"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        Margin="10,0 0 0"
+                        Style="{DynamicResource DefaultButton}">
+                    <Button.Content>
+                        <Image Source="/SFW;component/Icons/Add.ico" />
+                    </Button.Content>
+                </Button>
+
+            </StackPanel>
+
+            <ItemsControl x:Name="MachineInput"
+                          Grid.Row="1"
+                          HorizontalAlignment="Left"
+                          ScrollViewer.CanContentScroll="True"
+                          ScrollViewer.VerticalScrollBarVisibility="Auto"
+                          Margin="20,0,0,0"
+                          ItemsSource="{Binding MachineConfig, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <VirtualizingStackPanel IsItemsHost="True"
+                                                Orientation="Vertical" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Horizontal">
+
+                            <TextBlock Text="Machine:"
+                                       FontSize="18"
+                                       FontWeight="Bold"
+                                       TextDecorations="Underline"
+                                       VerticalAlignment="Center"
+                                       Margin="10,0,0,0" />
+                            <ComboBox ItemsSource="{Binding DataContext.MachineList, ElementName=Admin_UC}"
+                                      SelectedValue="{Binding MachineNumber}"
+                                      FontSize="18"
+                                      FontWeight="Bold"
+                                      Margin="5"
+                                      Width="175"
+                                      TabIndex="6" />
+                            <TextBlock Text="Order:"
+                                       FontSize="18"
+                                       FontWeight="Bold"
+                                       TextDecorations="Underline"
+                                       VerticalAlignment="Center"
+                                       Margin="10,0,0,0" />
+                            <TextBox Text="{Binding Position, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                     FontSize="18"
+                                     FontWeight="Bold"
+                                     Margin="5"
+                                     Width="50"
+                                     MaxLength="2"
+                                     Style="{DynamicResource RequiredTextBox}" />
+
+                            <Button Command="{Binding DataContext.ListICommand, ElementName=Admin_UC}"
+                                    CommandParameter="{Binding}"
+                                    Visibility="{Binding ElementName=MachineInput, Path=Items.Count, Mode=OneWay, Converter={StaticResource CounttoVisConverter}, ConverterParameter=i}"
+                                    Width="30"
+                                    Height="30"
+                                    Background="Transparent"
+                                    BorderThickness="0"
+                                    Margin="10,0 0 0"
+                                    Style="{DynamicResource DefaultButton}">
+                                <Button.Content>
+                                    <Image Source="/SFW;component/Icons/Delete.ico" />
+                                </Button.Content>
+                            </Button>
+
+                            <Button Command="{Binding DataContext.ListICommand, ElementName=Admin_UC}"
+                                    CommandParameter="{Binding}"
+                                    Width="30"
+                                    Height="30"
+                                    Background="Transparent"
+                                    BorderThickness="0"
+                                    Margin="10,0 0 0"
+                                    Style="{DynamicResource DefaultButton}">
+                                <Button.Content>
+                                    <Image Source="/SFW;component/Icons/Accept.ico" />
+                                </Button.Content>
+                            </Button>
+
+                        </StackPanel>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+        </StackPanel>
+
+        <!--#endregion-->
+
+    </Grid>
+</UserControl>

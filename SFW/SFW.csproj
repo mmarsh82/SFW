@@ -30,8 +30,8 @@
     <PublisherName>Michael Marsh</PublisherName>
     <SuiteName>WCCO Belting Inc.</SuiteName>
     <AutorunEnabled>true</AutorunEnabled>
-    <ApplicationRevision>1894</ApplicationRevision>
-    <ApplicationVersion>1.0.263.1894</ApplicationVersion>
+    <ApplicationRevision>1912</ApplicationRevision>
+    <ApplicationVersion>1.0.264.1912</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <CreateDesktopShortcut>true</CreateDesktopShortcut>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -114,6 +114,10 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Admin\View.xaml.cs">
+      <DependentUpon>View.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Admin\ViewModel.cs" />
     <Compile Include="AppGlobal.cs" />
     <Compile Include="Commands\AppReload.cs" />
     <Compile Include="Commands\ClearPriority.cs" />
@@ -253,6 +257,10 @@
       <DependentUpon>View.xaml</DependentUpon>
     </Compile>
     <Compile Include="WIP\ViewModel.cs" />
+    <Page Include="Admin\View.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="CycleCount\Form_View.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -499,6 +507,12 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Icons\workbench.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Icons\Accept.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Icons\Add.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

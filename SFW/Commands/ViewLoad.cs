@@ -46,6 +46,9 @@ namespace SFW.Commands
                     case "CycleCount":
                         WorkSpaceDock.SwitchView(4, null);
                         break;
+                    case "Admin":
+                        WorkSpaceDock.SwitchView(5, null);
+                        break;
                     case "SiteCsi":
                         if (!App.DatabaseChange("CSI_MAIN"))
                         {
@@ -54,8 +57,6 @@ namespace SFW.Commands
                         }
                         App.ErpCon.DatabaseChange(Database.CSI);
                         WorkSpaceDock.SwitchView(0, null);
-                        MainWindowViewModel.CurrentSite = "";
-                        MainWindowViewModel.CurrentSiteNbr = 0;
                         break;
                     case "SiteWcco":
                         if (!App.DatabaseChange("WCCO_MAIN"))
@@ -65,8 +66,6 @@ namespace SFW.Commands
                         }
                         App.ErpCon.DatabaseChange(Database.WCCO);
                         WorkSpaceDock.SwitchView(1, null);
-                        MainWindowViewModel.CurrentSite = "";
-                        MainWindowViewModel.CurrentSiteNbr = 0;
                         break;
                     default:
                         WorkSpaceDock.SwitchView(App.SiteNumber, null);
