@@ -66,7 +66,15 @@ namespace SFW.Schedule
             get { return _sFilter; }
             set
             {
-                var _tempFilter = ((DataView)ScheduleView.SourceCollection).Table.SearchRowFilter(_sFilter);
+                var _tempFilter = string.Empty;
+                if (!string.IsNullOrEmpty(_sFilter))
+                {
+                    _tempFilter = ((DataView)ScheduleView.SourceCollection).Table.SearchRowFilter(_sFilter);
+                    if (!string.IsNullOrEmpty(((DataView)ScheduleView.SourceCollection).RowFilter.Replace(_tempFilter, "")))
+                    {
+                        _tempFilter = $" AND ({_tempFilter})";
+                    }
+                }
                 if (!string.IsNullOrEmpty(value))
                 {
                     var _oldFilter = _sFilter != null && ((DataView)ScheduleView.SourceCollection).RowFilter.Contains(_tempFilter)
@@ -77,7 +85,7 @@ namespace SFW.Schedule
                         ? $"{_oldFilter} AND ({_sRowFilter})"
                         :_sRowFilter;
                 }
-                else if (MainWindowViewModel.SelectedMachine != null)
+                else if (MainWindowViewModel.SelectedMachine != null || (!string.IsNullOrEmpty(_sFilter) && string.IsNullOrEmpty(value)))
                 {
                     ((DataView)ScheduleView.SourceCollection).RowFilter = ((DataView)ScheduleView.SourceCollection).RowFilter.Replace(_tempFilter, "");
                 }

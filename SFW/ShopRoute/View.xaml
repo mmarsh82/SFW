@@ -13,6 +13,7 @@
                 <cvtr:SkuMasterPrint x:Key="PartSearchConverter"/>
                 <cvtr:BoolToVisibility x:Key="BoolToVisConverter"/>
                 <cvtr:DateToVisibility x:Key="DateToVisConverter" />
+                <cvtr:StringToHeight x:Key="StringToHeightConverter"/>
                 <cmd:M2kLookQuery x:Key="ShowQuery"/>
                 <cmd:PartSearch x:Key="PartSearchICommand"/>
                 <cmd:PartInformation x:Key="PartInfoCommand"/>
@@ -40,10 +41,11 @@
                     <RowDefinition x:Name="Row4" Height="10"/>
                     <RowDefinition x:Name="Row5" Height="60"/>
                     <RowDefinition x:Name="Row6" Height="40"/>
-                    <RowDefinition x:Name="Row7" Height="205"/>
-                    <RowDefinition x:Name="Row8" Height="40"/>
-                    <RowDefinition x:Name="Row9" Height="30"/>
-                    <RowDefinition x:Name="Row10" Height="Auto" />
+                    <RowDefinition x:Name="Row7" Height="185"/>
+                    <RowDefinition x:Name="Row8" Height="{Binding ShopOrder.SalesOrder.SalesNumber, Converter={StaticResource StringToHeightConverter}, ConverterParameter=40}"/>
+                    <RowDefinition x:Name="Row9" Height="{Binding ShopOrder.SalesOrder.SalesNumber, Converter={StaticResource StringToHeightConverter}, ConverterParameter=30}"/>
+                    <RowDefinition x:Name="Row10" Height="{Binding ShopOrder.SalesOrder.InternalComments, Converter={StaticResource StringToHeightConverter}, ConverterParameter=30}"/>
+                    <RowDefinition x:Name="Row11" Height="Auto" />
                 </Grid.RowDefinitions>
 
                 <!--#region Grid.Row 0  Command Array-->
@@ -440,12 +442,11 @@
                 <!--#region Grid.Row 8  Sales Order Header-->
 
                 <StackPanel Grid.Row="8" Orientation="Horizontal"
-                        HorizontalAlignment="Left" VerticalAlignment="Center"
-                        Visibility="{Binding ShopOrder.SalesOrder.SalesNumber, Converter={StaticResource StringToVisConverter}}">
+                        HorizontalAlignment="Left" VerticalAlignment="Center">
 
                     <Button Content="Open"
                             FontSize="18"
-                            Margin="5,0,20,5"
+                            Margin="0,1,20,1"
                             Width="75"
                             Command="{StaticResource ShowQuery}"
                             CommandParameter="{Binding FqSalesOrder}"
@@ -483,9 +484,9 @@
 
                 <!--#endregion-->
 
-                <!--#region Grid.Row 9  Sales Order-->
+                <!--#region Grid.Row 9  Sales Order Details-->
 
-                <Grid Grid.Row="9" Visibility="{Binding ShopOrder.SalesOrder.SalesNumber, Converter={StaticResource StringToVisConverter}}">
+                <Grid Grid.Row="9">
 
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="130"/>
@@ -540,9 +541,31 @@
 
                 <!--#endregion-->
 
-                <!--#region Grid.Row 10  Tab Control for Work order BOM and reports-->
+                <!--#region Grid.Row 10  Sales Order Comments-->
 
-                <TabControl Grid.Row="10"
+                <Grid Grid.Row="10">
+
+                    <StackPanel Orientation="Horizontal">
+
+                        <TextBlock Text="Internal Comments:"
+                               FontSize="18"
+                               TextDecorations="Underline"
+                               Foreground="#FF135185"/>
+
+                        <TextBlock Text="{Binding ShopOrder.SalesOrder.InternalComments}"
+                               FontSize="18"
+                               FontWeight="Bold"
+                               Margin="10,0,0,0"/>
+
+                    </StackPanel>
+
+                </Grid>
+
+                <!--#endregion-->
+
+                <!--#region Grid.Row 11  Tab Control for Work order BOM and reports-->
+
+                <TabControl Grid.Row="11"
                             Background="Transparent"
                             BorderThickness="0">
 

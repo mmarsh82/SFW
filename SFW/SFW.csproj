@@ -30,8 +30,8 @@
     <PublisherName>Michael Marsh</PublisherName>
     <SuiteName>WCCO Belting Inc.</SuiteName>
     <AutorunEnabled>true</AutorunEnabled>
-    <ApplicationRevision>1912</ApplicationRevision>
-    <ApplicationVersion>1.0.264.1912</ApplicationVersion>
+    <ApplicationRevision>1923</ApplicationRevision>
+    <ApplicationVersion>1.0.266.1923</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <CreateDesktopShortcut>true</CreateDesktopShortcut>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -145,6 +145,7 @@
     <Compile Include="Converters\SiteToVisibility.cs" />
     <Compile Include="Converters\StringConcat.cs" />
     <Compile Include="Converters\StringToBool.cs" />
+    <Compile Include="Converters\StringToHeight.cs" />
     <Compile Include="Converters\ValueToMargin.cs" />
     <Compile Include="Converters\WoPriorityToBool.cs" />
     <Compile Include="CurrentUser.cs" />

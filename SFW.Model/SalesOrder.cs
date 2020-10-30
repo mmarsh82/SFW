@@ -18,6 +18,7 @@ namespace SFW.Model
         public int LineQuantity { get; set; }
         public string LineNotes { get; set; }
         public bool LoadPattern { get; set; }
+        public string InternalComments { get; set; }
 
         #endregion
 
@@ -70,6 +71,67 @@ namespace SFW.Model
                                         CustomerPart = reader.SafeGetString("Cust_Part_Nbr");
                                         LineQuantity = reader.SafeGetInt32("Ln_Bal_Qty");
                                         LineNotes = string.Empty;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    catch (SqlException sqlEx)
+                    {
+                        throw sqlEx;
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new Exception(ex.Message);
+                    }
+                }
+                else
+                {
+                    throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
+                }
+            }
+        }
+
+        /// <summary>
+        /// Get the sales order internal comments
+        /// </summary>
+        /// <param name="sqlCon">Sql Connection to use</param>
+        public void GetInternalComments(SqlConnection sqlCon)
+        {
+            if (!string.IsNullOrEmpty(SalesNumber))
+            {
+                if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
+                {
+                    var _tempSales = string.Empty;
+                    if (SalesNumber.Contains("*"))
+                    {
+                        _tempSales = SalesNumber.Split('*')[0];
+                    }
+                    try
+                    {
+                        using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database};
+                                                                SELECT
+                                                                    [Internal_Comments] as 'IntComm'
+                                                                FROM
+                                                                    [dbo].[SOH-INIT_Internal_Comments]
+                                                                WHERE
+                                                                    [So_Nbr] = @p1;", sqlCon))
+                        {
+                            cmd.Parameters.AddWithValue("p1", _tempSales);
+                            using (SqlDataReader reader = cmd.ExecuteReader())
+                            {
+                                if (reader.HasRows)
+                                {
+                                    while (reader.Read())
+                                    {
+                                        if (!string.IsNullOrEmpty(InternalComments))
+                                        {
+                                            InternalComments += $" {reader.SafeGetString("IntComm")}";
+                                        }
+                                        else
+                                        {
+                                            InternalComments = reader.SafeGetString("IntComm");
+                                        }
                                     }
                                 }
                             }

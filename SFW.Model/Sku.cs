@@ -358,11 +358,11 @@ namespace SFW.Model
                                         _dmdNbr = reader.SafeGetString("Comp_Lot");
                                         _found = true;
                                     }
-                                    else if (string.IsNullOrEmpty(_lot))
+                                    else if (string.IsNullOrEmpty(_lot) && reader.SafeGetString("Type") != "HM")
                                     {
                                         _lot += $"a.[Parent_Lot] = '{reader.SafeGetString("Comp_Lot")}|P'";
                                     }
-                                    else
+                                    else if (reader.SafeGetString("Type") != "HM")
                                     {
                                         _lot += $" OR a.[Parent_Lot] = '{reader.SafeGetString("Comp_Lot")}|P'";
                                     }

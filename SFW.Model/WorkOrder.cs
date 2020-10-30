@@ -88,6 +88,7 @@ namespace SFW.Model
                         LineQuantity = drow.SafeGetField<int>("Ln_Bal_Qty"),
                         LoadPattern = drow.Field<string>("LoadPattern").ToUpper() == "PLASTIC"
                      };
+                    SalesOrder.GetInternalComments(sqlCon);
                 }
                 else
                 {
