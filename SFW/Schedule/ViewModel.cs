@@ -85,9 +85,12 @@ namespace SFW.Schedule
                         ? $"{_oldFilter} AND ({_sRowFilter})"
                         :_sRowFilter;
                 }
-                else if (MainWindowViewModel.SelectedMachine != null || (!string.IsNullOrEmpty(_sFilter) && string.IsNullOrEmpty(value)))
+                else if ((MainWindowViewModel.SelectedMachine != null && MainWindowViewModel.SelectedMachine.MachineName != "All") || (!string.IsNullOrEmpty(_sFilter) && string.IsNullOrEmpty(value)))
                 {
-                    ((DataView)ScheduleView.SourceCollection).RowFilter = ((DataView)ScheduleView.SourceCollection).RowFilter.Replace(_tempFilter, "");
+                    if (!string.IsNullOrEmpty(_tempFilter))
+                    {
+                        ((DataView)ScheduleView.SourceCollection).RowFilter = ((DataView)ScheduleView.SourceCollection).RowFilter.Replace(_tempFilter, "");
+                    }
                 }
                 _sFilter = value == "" ? null : value;
                 OnPropertyChanged(nameof(SearchFilter));

@@ -13,6 +13,7 @@ namespace SFW.Commands
         /// <param name="parameter"></param>
         public void Execute(object parameter)
         {
+            new PartSearch().Execute("test");
             try
             {
                 

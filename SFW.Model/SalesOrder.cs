@@ -102,11 +102,7 @@ namespace SFW.Model
             {
                 if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
                 {
-                    var _tempSales = string.Empty;
-                    if (SalesNumber.Contains("*"))
-                    {
-                        _tempSales = SalesNumber.Split('*')[0];
-                    }
+                    var _tempSales = SalesNumber.Contains("*") ? SalesNumber.Split('*')[0] : SalesNumber;
                     try
                     {
                         using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database};
@@ -118,20 +114,27 @@ namespace SFW.Model
                                                                     [So_Nbr] = @p1;", sqlCon))
                         {
                             cmd.Parameters.AddWithValue("p1", _tempSales);
+                            var _counter = 0;
                             using (SqlDataReader reader = cmd.ExecuteReader())
                             {
                                 if (reader.HasRows)
                                 {
                                     while (reader.Read())
                                     {
+                                        if (_counter == 2)
+                                        {
+                                            InternalComments += "\n";
+                                            _counter = 0;
+                                        }
                                         if (!string.IsNullOrEmpty(InternalComments))
                                         {
-                                            InternalComments += $" {reader.SafeGetString("IntComm")}";
+                                            InternalComments += $" {reader.SafeGetString("IntComm").Replace('"', ' ')}";
                                         }
                                         else
                                         {
-                                            InternalComments = reader.SafeGetString("IntComm");
+                                            InternalComments = reader.SafeGetString("IntComm").Replace('"', ' ');
                                         }
+                                        _counter++;
                                     }
                                 }
                             }

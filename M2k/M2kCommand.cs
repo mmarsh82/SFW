@@ -533,7 +533,7 @@ namespace M2kClient
             var _subResult = new Dictionary<int, string>();
             try
             {
-                var suffix = DateTime.Now.ToString($"HHmmssfff");
+                var suffix = DateTime.Now.ToString($"ssffff");
                 if (!woAndSeq.Contains('*'))
                 {
                     _subResult.Add(1, "Work order or sequence is not in the correct format to pass into M2k.");
@@ -618,7 +618,8 @@ namespace M2kClient
             var _subResult = new Dictionary<int, string>();
             try
             {
-                var suffix = DateTime.Now.ToString("HHmmssff");
+                var suffix = DateTime.Now.ToString("ssffff");
+                suffix += string.IsNullOrEmpty(lot) ? $"{partNbr}{aCode}" : lot.Replace("-", "");
                 if (tranQty <= 0)
                 {
                     _subResult.Add(1, "Transaction Quantity must have a value greater then 0.");
@@ -634,7 +635,7 @@ namespace M2kClient
                     tranQty,
                     location,
                     lot);
-                File.WriteAllText($"{connection.BTIFolder}ADJUST{connection.AdiServer}.DAT{suffix}{aCode}", _tScrap.ToString());
+                File.WriteAllText($"{connection.BTIFolder}ADJUST{connection.AdiServer}.DAT{suffix}", _tScrap.ToString());
                 _subResult.Add(0, string.Empty);
                 return _subResult;
             }
@@ -662,8 +663,8 @@ namespace M2kClient
             var _subResult = new Dictionary<int, string>();
             try
             {
-                var _uid = new Random().Next(10, 100);
-                var suffix = DateTime.Now.ToString("HHmmssffff");
+                var suffix = DateTime.Now.ToString("ssffff");
+                suffix += string.IsNullOrEmpty(lot) ? $"{partNbr}{aCode}" : lot.Replace("-", "");
                 if (tranQty < 0)
                 {
                     _subResult.Add(1, "Transaction Quantity must have a value greater then 0.");
@@ -679,7 +680,7 @@ namespace M2kClient
                     tranQty,
                     location,
                     lot);
-                File.WriteAllText($"{connection.BTIFolder}CYCLECT{connection.AdiServer}.DAT{suffix}{_uid}", _count.ToString());
+                File.WriteAllText($"{connection.BTIFolder}CYCLECT{connection.AdiServer}.DAT{suffix}", _count.ToString());
                 _subResult.Add(0, string.Empty);
                 return _subResult;
             }

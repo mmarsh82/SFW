@@ -39,9 +39,17 @@ namespace SFW.Commands
                     MessageBox.Show("The part number that you have selected is either invalid or does not exist.", "Invalid or Missing Part Number", MessageBoxButton.OK, MessageBoxImage.Hand);
                 }
             }
-            catch (Win32Exception)
+            catch (Win32Exception wEx)
             {
-                MessageBox.Show("The Print for this part number was not found.\nPlease contact engineering for further support.", "Missing Print Document", MessageBoxButton.OK, MessageBoxImage.Hand);
+                switch (wEx.NativeErrorCode)
+                {
+                    case 53:
+                        MessageBox.Show("The share drive is currently not available.\nPlease contact IT for further assistance.", "Unable to Reach Share Drive", MessageBoxButton.OK, MessageBoxImage.Hand);
+                        break;
+                    case 2:
+                        MessageBox.Show("The Print for this part number was not found.\nPlease contact engineering for further support.", "Missing Print Document", MessageBoxButton.OK, MessageBoxImage.Hand);
+                        break;
+                }
             }
             catch (Exception)
             {

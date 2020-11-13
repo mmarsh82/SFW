@@ -41,10 +41,10 @@
                     <RowDefinition x:Name="Row4" Height="10"/>
                     <RowDefinition x:Name="Row5" Height="60"/>
                     <RowDefinition x:Name="Row6" Height="40"/>
-                    <RowDefinition x:Name="Row7" Height="185"/>
+                    <RowDefinition x:Name="Row7" Height="200"/>
                     <RowDefinition x:Name="Row8" Height="{Binding ShopOrder.SalesOrder.SalesNumber, Converter={StaticResource StringToHeightConverter}, ConverterParameter=40}"/>
                     <RowDefinition x:Name="Row9" Height="{Binding ShopOrder.SalesOrder.SalesNumber, Converter={StaticResource StringToHeightConverter}, ConverterParameter=30}"/>
-                    <RowDefinition x:Name="Row10" Height="{Binding ShopOrder.SalesOrder.InternalComments, Converter={StaticResource StringToHeightConverter}, ConverterParameter=30}"/>
+                    <RowDefinition x:Name="Row10" Height="{Binding ShopOrder.SalesOrder.InternalComments, Converter={StaticResource StringToHeightConverter}, ConverterParameter=L30}"/>
                     <RowDefinition x:Name="Row11" Height="Auto" />
                 </Grid.RowDefinitions>
 
@@ -548,14 +548,15 @@
                     <StackPanel Orientation="Horizontal">
 
                         <TextBlock Text="Internal Comments:"
-                               FontSize="18"
-                               TextDecorations="Underline"
-                               Foreground="#FF135185"/>
+                                   FontSize="18"
+                                   TextDecorations="Underline"
+                                   Foreground="#FF135185"/>
 
                         <TextBlock Text="{Binding ShopOrder.SalesOrder.InternalComments}"
-                               FontSize="18"
-                               FontWeight="Bold"
-                               Margin="10,0,0,0"/>
+                                   FontSize="18"
+                                   FontWeight="Bold"
+                                   Foreground="Crimson"
+                                   Margin="10,0,0,0"/>
 
                     </StackPanel>
 
