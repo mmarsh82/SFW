@@ -373,6 +373,16 @@ namespace SFW.Model
                                 return !string.IsNullOrEmpty(_dmdNbr) ? _dmdNbr : lotNbr;
                             }
                         }
+                        if (string.IsNullOrEmpty(_lot))
+                        {
+                            using (SqlDataReader reader = cmd.ExecuteReader())
+                            {
+                                while (reader.Read())
+                                {
+                                    _lot = $"a.[Parent_Lot] = '{reader.SafeGetString("Comp_Lot")}|P'";
+                                }
+                            }
+                        }
                     }
                 }
                 return _dmdNbr;
