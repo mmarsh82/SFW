@@ -94,6 +94,7 @@ namespace SFW.Model
                 {
                     SalesOrder = new SalesOrder();
                 }
+                ToolList = GetTools(SkuNumber, Operation, sqlCon);
                 Machine = drow.Field<string>("MachineName");
                 MachineGroup = drow.Field<string>("MachineGroup");
                 Bom = Component.GetComponentBomList(SkuNumber, Operation, sqlCon);

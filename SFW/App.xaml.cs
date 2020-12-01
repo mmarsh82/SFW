@@ -92,11 +92,6 @@ namespace SFW
             {
                 CurrentUser.LogIn();
             }
-            var _folder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-            if (!Directory.Exists($"{_folder}\\SFW\\Labor\\"))
-            {
-                Directory.CreateDirectory($"{_folder}\\SFW\\Labor\\");
-            }
             ViewFilter = new Dictionary<int, string>
             {
                 { 0, "" }
@@ -418,7 +413,8 @@ namespace SFW
                                                                             Password={reader.GetAttribute("ServicePass")};
                                                                             DataBase={Site};
                                                                             Connection Timeout={reader.GetAttribute("TimeOut")};
-                                                                            MultipleActiveResultSets=True");
+                                                                            MultipleActiveResultSets=True;
+                                                                            Pooling=False;");
                                             break;
                                         //SiteDocumentation Element is written below
                                         //Make sure any site added in the SiteDocumentation element exists in the main application site list

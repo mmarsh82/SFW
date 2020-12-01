@@ -95,6 +95,24 @@
                             </MenuItem.ItemContainerStyle>
                         </MenuItem>
                     </Menu>
+                    <Menu Style="{DynamicResource ModernMenu}"
+                          Visibility="{Binding ShopOrder.ToolList.Count, Converter={StaticResource CountToVisConverter}}">
+                        <MenuItem Header="Tools and Dies"
+                                  ItemsSource="{Binding ShopOrder.ToolList}"
+                                  FontSize="14"
+                                  Width="110"
+                                  Height="39"
+                                  Style="{DynamicResource ModernMenuItem}">
+                            <MenuItem.ItemContainerStyle>
+                                <Style TargetType="MenuItem">
+                                    <Setter Property="Command"
+                                            Value="{StaticResource PartSearchICommand}" />
+                                    <Setter Property="CommandParameter"
+                                            Value="{Binding}" />
+                                </Style>
+                            </MenuItem.ItemContainerStyle>
+                        </MenuItem>
+                    </Menu>
                     <Button Content="Log Round"
                             FontSize="16"
                             Visibility="{Binding CanReport, Converter={StaticResource BoolToVisConverter}}"

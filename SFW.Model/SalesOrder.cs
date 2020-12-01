@@ -114,27 +114,16 @@ namespace SFW.Model
                                                                     [So_Nbr] = @p1;", sqlCon))
                         {
                             cmd.Parameters.AddWithValue("p1", _tempSales);
-                            var _counter = 0;
                             using (SqlDataReader reader = cmd.ExecuteReader())
                             {
                                 if (reader.HasRows)
                                 {
                                     while (reader.Read())
                                     {
-                                        if (_counter == 2)
-                                        {
-                                            InternalComments += "\n";
-                                            _counter = 0;
-                                        }
-                                        if (!string.IsNullOrEmpty(InternalComments))
+                                        if (reader.SafeGetString("IntComm").Contains("bag"))
                                         {
                                             InternalComments += $" {reader.SafeGetString("IntComm").Replace('"', ' ')}";
                                         }
-                                        else
-                                        {
-                                            InternalComments = reader.SafeGetString("IntComm").Replace('"', ' ');
-                                        }
-                                        _counter++;
                                     }
                                 }
                             }

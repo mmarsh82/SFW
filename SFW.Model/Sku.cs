@@ -33,6 +33,7 @@ namespace SFW.Model
         public string MachineGroup { get; set; }
         public bool QTask { get; set; }
         public string NonCon { get; set; }
+        public List<string> ToolList { get; set; }
 
         #endregion
 
@@ -465,7 +466,7 @@ namespace SFW.Model
         }
 
         /// <summary>
-        /// Get a work order's work instructions
+        /// Get a Sku's work instructions
         /// </summary>
         /// <param name="woNbr">Sku ID Number</param>
         /// <param name="siteNbr">Facility number to run on</param>
@@ -524,6 +525,51 @@ namespace SFW.Model
                 {
                     throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
                 }
+            }
+        }
+
+        /// <summary>
+        /// Get a work order's work instructions
+        /// </summary>
+        /// <param name="woNbr">Sku ID Number</param>
+        /// <param name="woSeq">Work order sequence</param>
+        /// <param name="sqlCon">Sql Connection to use</param>
+        /// <returns>A list of tool's associated with the Sku</returns>
+        public static List<string> GetTools(string partNbr, string woSeq, SqlConnection sqlCon)
+        {
+            var _tempList = new List<string>();
+            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
+            {
+                try
+                {
+                    using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database}; SELECT [Tool_Tape] as 'Tool' FROM [dbo].[RT-INIT_Tool_Tape] WHERE [ID1] = @p1;", sqlCon))
+                    {
+                        cmd.Parameters.AddWithValue("p1", $"{partNbr}*{woSeq}");
+                        using (SqlDataReader reader = cmd.ExecuteReader())
+                        {
+                            if (reader.HasRows)
+                            {
+                                while (reader.Read())
+                                {
+                                    _tempList.Add(reader.SafeGetString("Tool"));
+                                }
+                            }
+                        }
+                    }
+                    return _tempList;
+                }
+                catch (SqlException sqlEx)
+                {
+                    throw sqlEx;
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception(ex.Message);
+                }
+            }
+            else
+            {
+                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
             }
         }
 
