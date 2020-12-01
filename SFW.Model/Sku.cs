@@ -560,7 +560,7 @@ namespace SFW.Model
                 }
                 catch (SqlException sqlEx)
                 {
-                    throw sqlEx;
+                    return null;
                 }
                 catch (Exception ex)
                 {
