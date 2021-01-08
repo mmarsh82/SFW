@@ -48,7 +48,8 @@ namespace SFW.Model
         /// <returns>DataTable with the schedule data results</returns>
         public static DataTable GetScheduleData(SqlConnection sqlCon)
         {
-            var _selectCmd = @"SELECT
+            var _selectCmd = $@"USE {sqlCon.Database};
+                            SELECT
 	                            CONCAT(CONCAT(a.[ID], '*'), b.[ID2]) as 'CountID'
                                 ,a.[ID] as 'CountNumber'
 	                            ,a.[Part_Nbr] as 'PartNumber'
@@ -70,6 +71,7 @@ namespace SFW.Model
 
             using (var _tempTable = new DataTable())
             {
+                while (sqlCon.State == ConnectionState.Connecting) { }
                 if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
                 {
                     try

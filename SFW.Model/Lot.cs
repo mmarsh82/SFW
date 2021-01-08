@@ -109,7 +109,7 @@ namespace SFW.Model
         /// <summary>
         /// Get a List of lot numbers associated with a part number
         /// </summary>
-        /// <param name="partNbr">SKU Part Number</param>
+        /// <param name="partNbr">Part Number</param>
         /// <param name="sqlCon">Sql Connection to use</param>
         /// <returns>List of lots associated with the part number</returns>
         public static List<Lot> GetOnHandLotList(string partNbr, SqlConnection sqlCon)
@@ -129,7 +129,7 @@ namespace SFW.Model
                                                                 RIGHT JOIN
                                                                     [dbo].[LOT-INIT_Lot_Loc_Qtys] b ON b.[ID1] = a.[Lot_Number]
                                                                 WHERE
-                                                                    a.[Part_Nbr] = @p1 AND [Stores_Oh] != 0
+                                                                    a.[Part_Nbr] = @p1
                                                                 ORDER BY
 	                                                                [LotNumber] ASC;", sqlCon))
                             {
@@ -167,7 +167,7 @@ namespace SFW.Model
         /// <summary>
         /// Get a List of lot numbers associated with a part number
         /// </summary>
-        /// <param name="partNbr">SKU Part Number</param>
+        /// <param name="partNbr">Part Number</param>
         /// <param name="sqlCon">Sql Connection to use</param>
         /// <returns>List of lots associated with the part number</returns>
         public static List<Lot> GetOnHandNonLotList(string partNbr, SqlConnection sqlCon)
@@ -220,7 +220,7 @@ namespace SFW.Model
         /// <summary>
         /// Get a DataTable of historical transactions of lots based on part number
         /// </summary>
-        /// <param name="partNbr">SKU Part Number</param>
+        /// <param name="partNbr">Part Number</param>
         /// <param name="sqlCon">Sql Connection to use</param>
         /// <returns>DataTable of historical lot transactions</returns>
         public static DataTable GetLotHistoryTable(string partNbr, SqlConnection sqlCon)
@@ -265,8 +265,8 @@ namespace SFW.Model
         /// <summary>
         /// Get a list of lots for work order dedication
         /// </summary>
-        /// <param name="partNbr">SKU Part Number</param>
-        /// <param name="woNbr">Lot Number</param>
+        /// <param name="partNbr">Part Number</param>
+        /// <param name="woNbr">Work Order Number</param>
         /// <param name="sqlCon">Sql Connection to use</param>
         public static List<Lot> GetDedicatedLotList(string partNbr, string woNbr, SqlConnection sqlCon)
         {
@@ -324,21 +324,32 @@ namespace SFW.Model
         /// <param name="lotNbr">Lot Number</param>
         /// <param name="partNbr">Part Number</param>
         /// <param name="sqlCon">Sql Connection to use</param>
+        /// <param name="woNbr">Optional: Work Order Number</param>
         /// <returns>Validation response</returns>
-        public static bool LotValidation(string lotNbr, string partNbr, SqlConnection sqlCon)
+        public static bool LotValidation(string lotNbr, string partNbr, SqlConnection sqlCon, string woNbr = null)
         {
             if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
             {
                 try
                 {
-                    using (SqlCommand cmd = new SqlCommand($"USE {sqlCon.Database}; SELECT COUNT([Lot_Number]) FROM [dbo].[LOT-INIT] WHERE [Part_Nbr] = @p1 AND [Lot_Number] = CONCAT(@p2, '|P');", sqlCon))
+                    var _cmdString = string.IsNullOrEmpty(woNbr)
+                        ? "SELECT COUNT([Lot_Number]) FROM [dbo].[LOT-INIT] WHERE [Part_Nbr] = @p1 AND [Lot_Number] = CONCAT(@p2, '|P');"
+                        : @"SELECT COUNT([Lot_Number])
+                            FROM [dbo].[LOT-INIT]
+                            WHERE [Part_Nbr] = @p1 AND [Lot_Number] = CONCAT(@p2, '|P')
+                                AND (SELECT COUNT([ID]) FROM[dbo].[WP-INIT_Lot_Entered] WHERE[Lot_Entered] = CONCAT(@p2, '|P') AND[Wp_Nbr] != @p3) = 0;";
+                    using (SqlCommand cmd = new SqlCommand($"USE {sqlCon.Database}; {_cmdString}", sqlCon))
                     {
                         cmd.Parameters.AddWithValue("p1", partNbr);
                         cmd.Parameters.AddWithValue("p2", lotNbr);
+                        if (!string.IsNullOrEmpty(woNbr))
+                        {
+                            cmd.Parameters.AddWithValue("p3", woNbr);
+                        }
                         return Convert.ToInt32(cmd.ExecuteScalar()) > 0;
                     }
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
                     return false;
                 }

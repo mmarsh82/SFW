@@ -257,7 +257,7 @@ namespace M2kClient
         {
             var _subResult = new Dictionary<int, string>();
             var tranCount = 0;
-            var suffix = DateTime.Now.ToString($"HHmmssffff");
+            var suffix = DateTime.Now.ToString($"ssffff");
             var _tWip = new Wip();
             var _lotList = new List<string>();
 
@@ -287,7 +287,7 @@ namespace M2kClient
                 _tWip = new Wip(wipRecord);
                 if (!string.IsNullOrEmpty(_tWip.StationId))
                 {
-                    File.WriteAllText($"{connection.SFDCFolder}WP{connection.AdiServer}.DAT{suffix}{tranCount}", _tWip.ToString());
+                    File.WriteAllText($"{connection.SFDCFolder}WP{connection.AdiServer}.DAT{suffix}w{tranCount}", _tWip.ToString());
                     tranCount++;
                     if (_lotEntered)
                     {
@@ -357,7 +357,7 @@ namespace M2kClient
                     _tWip = new Wip(wipRecord) { QtyReceived = Convert.ToInt32(wipRecord.WipQty), ComponentInfoList = _tComp };
                     if (!string.IsNullOrEmpty(_tWip.StationId))
                     {
-                        File.WriteAllText($"{connection.SFDCFolder}WP{connection.AdiServer}.DAT{suffix}{tranCount}", _tWip.ToString());
+                        File.WriteAllText($"{connection.SFDCFolder}WP{connection.AdiServer}.DAT{suffix}w{tranCount}", _tWip.ToString());
                         tranCount++;
                     }
                     else
@@ -396,7 +396,7 @@ namespace M2kClient
                         }
                         if (c.WipInfo.Sum(o => o.BaseQty) > 0)
                         {
-                            File.WriteAllText($"{connection.BTIFolder}ISSUE{connection.AdiServer}.DAT{suffix}{tranCount}", _issue.ToString());
+                            File.WriteAllText($"{connection.BTIFolder}ISSUE{connection.AdiServer}.DAT{suffix}i{tranCount}", _issue.ToString());
                             tranCount++;
                         }
                     }
@@ -455,7 +455,7 @@ namespace M2kClient
             {
                 foreach (var s in _tWip.AdjustmentList)
                 {
-                    File.WriteAllText($"{connection.BTIFolder}ADJUST{connection.AdiServer}.DAT{suffix}{tranCount}", s.ToString());
+                    File.WriteAllText($"{connection.BTIFolder}ADJUST{connection.AdiServer}.DAT{suffix}s{tranCount}", s.ToString());
                     tranCount++;
                 }
             }

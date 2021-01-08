@@ -46,6 +46,7 @@ namespace SFW.Model
             {
                 _tempList.Add(new Machine { MachineNumber = "0", MachineName = "None", IsLoaded = false, MachineGroup = "None" });
             }
+            while (sqlCon.State == ConnectionState.Connecting) { }
             if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
             {
                 try
@@ -94,13 +95,93 @@ namespace SFW.Model
         /// <returns>DataTable with the schedule data results</returns>
         public static DataTable GetScheduleData(IReadOnlyDictionary<string, int> machOrder, SqlConnection sqlCon)
         {
+            var _conString = sqlCon.Database.Contains("WCCO") ?
+                @"SELECT
+	                DISTINCT b.ID AS WO_Number
+	                ,CASE WHEN b.[Next_Seq] IS NULL AND b.[Prev_Seq] IS NULL THEN '10' ELSE SUBSTRING(b.[ID], CHARINDEX('*', b.[ID], 0) + 1
+	                ,LEN(b.[ID])) END AS Operation
+	                ,a.Wc_Nbr AS MachineNumber
+	                ,a.Name AS MachineName
+	                ,a.D_esc AS MachineDesc
+	                ,a.Work_Ctr_Group AS MachineGroup
+	                ,0 AS MachineOrder
+	                ,ISNULL(b.Qty_Avail, b.Qty_Req - ISNULL(b.Qty_Compl, 0)) AS WO_CurrentQty, ISNULL(b.Date_Start, '1999-01-01') AS WO_SchedStartDate
+	                ,ISNULL(b.Date_Act_Start, '1999-01-01') AS WO_ActStartDate
+	                ,ISNULL(b.Due_Date, b.Date_Start) AS WO_DueDate
+	                ,CAST(ROUND(b.Mach_Load_Hrs_Rem, 1) AS FLOAT) AS RunTime
+	                ,ISNULL(CASE WHEN (SELECT [Ord_Type] FROM [dbo].[SOH-INIT] WHERE [So_Nbr] = SUBSTRING(c.[So_Reference], 0, CHARINDEX('*', c.[So_Reference], 0))) = 'DAI' THEN 'A'
+		                WHEN c.[Wo_Type] = 'R' THEN 'B' ELSE c.[Mgt_Priority_Code] END, 'D') AS WO_Priority
+	                ,ISNULL(c.Wo_Type, 'S') AS WO_Type
+	                ,c.Qty_To_Start AS WO_StartQty
+	                ,c.So_Reference AS WO_SalesRef
+	                ,f.Cust_Nbr, CASE WHEN c.[Time_Wanted] IS NOT NULL THEN CONVERT(VARCHAR(2), CAST(c.[Time_Wanted] AS TIME), 108) 
+                                            ELSE '999' END AS PriTime, CASE WHEN c.[Time_Wanted] IS NOT NULL THEN DATEPART(MINUTE, CAST(c.[Time_Wanted] AS TIME)) ELSE '999' END AS Sched_Priority, d.Part_Number AS SkuNumber, 
+                                            d.Description AS SkuDesc, d.Um AS SkuUom, d.Drawing_Nbrs AS SkuMasterPrint, ISNULL(c.Bom_Rev_Date, '1999-01-01') AS BomRevDate, ISNULL(c.Bom_Rev_Level, '') AS BomRevLvl, ISNULL(e.Qty_On_Hand, 0) 
+                                            AS SkuOnHand, CASE WHEN b.[Due_Date] < GETDATE() THEN 1 ELSE 0 END AS IsLate, CASE WHEN b.[Date_Start] < GETDATE() AND c.[Qty_To_Start] = b.[Qty_Avail] THEN 1 ELSE 0 END AS IsStartLate, 
+                                            e.Engineering_Status AS EngStatus,
+                                                (SELECT        Description
+                                                FROM            dbo.[TM-INIT_Eng_Status]
+                                                WHERE        (ID = e.Engineering_Status)) AS EngStatusDesc, f.Name AS Cust_Name,
+                                                (SELECT        Cust_Part_Nbr
+                                                FROM            dbo.[SOD-INIT]
+                                                WHERE        (ID = SUBSTRING(c.So_Reference, 0, LEN(c.So_Reference) - 1))) AS Cust_Part_Nbr, CAST
+                                                ((SELECT        Ln_Bal_Qty
+                                                    FROM            dbo.[SOD-INIT] AS [SOD-INIT_1]
+                                                    WHERE        (ID = SUBSTRING(c.So_Reference, 0, LEN(c.So_Reference) - 1))) AS int) AS Ln_Bal_Qty, ISNULL(f.Load_Pattern, '') AS LoadPattern,
+                                                (SELECT        COUNT(Qtask_Type) AS Expr1
+                                                FROM            dbo.[IM_UDEF-INIT_Quality_Tasks]
+                                                WHERE        (Qtask_Initiated_By IS NOT NULL) AND (Qtask_Release_Date IS NULL) AND (ID1 = e.Part_Nbr)) AS QTask
+                FROM            dbo.[WC-INIT] AS a RIGHT OUTER JOIN
+                                            dbo.[WPO-INIT] AS b ON b.Work_Center = a.Wc_Nbr RIGHT OUTER JOIN
+                                            dbo.[WP-INIT] AS c ON b.ID LIKE { fn CONCAT(c.Wp_Nbr, '%') } RIGHT OUTER JOIN
+                                            dbo.[IM-INIT] AS d ON d.Part_Number = c.Part_Wo_Desc RIGHT OUTER JOIN
+                                            dbo.[IPL-INIT] AS e ON e.Part_Nbr = d.Part_Number LEFT OUTER JOIN
+                                            dbo.[CM-INIT] AS f ON f.Cust_Nbr = CASE WHEN CHARINDEX('*', c.[Cust_Nbr], 0) > 0 THEN SUBSTRING(c.[Cust_Nbr], 0, CHARINDEX('*', c.[Cust_Nbr], 0)) ELSE c.[Cust_Nbr] END
+                WHERE        (a.D_esc <> 'DO NOT USE') AND (c.Status_Flag = 'R' OR
+                                            c.Status_Flag = 'A') AND (b.Seq_Complete_Flag IS NULL OR
+                                            b.Seq_Complete_Flag = 'N') AND (b.Alt_Seq_Status IS NULL)" :
+                 @"SELECT DISTINCT 
+                         TOP (100) PERCENT b.ID AS WO_Number, CASE WHEN b.[Next_Seq] IS NULL AND b.[Prev_Seq] IS NULL THEN '10' ELSE SUBSTRING(b.[ID], CHARINDEX('*', b.[ID], 0) + 1, LEN(b.[ID])) END AS Operation, 
+                         a.Wc_Nbr AS MachineNumber, a.Name AS MachineName, a.D_esc AS MachineDesc, a.Work_Ctr_Group AS MachineGroup, 0 AS MachineOrder, ISNULL(b.Qty_Avail, b.Qty_Req - ISNULL(b.Qty_Compl, 0)) AS WO_CurrentQty, 
+                         ISNULL(b.Date_Start, '1999-01-01') AS WO_SchedStartDate, ISNULL(b.Date_Act_Start, '1999-01-01') AS WO_ActStartDate, ISNULL(b.Due_Date, b.Date_Start) AS WO_DueDate, CAST(ROUND(b.Mach_Load_Hrs_Rem, 1) AS FLOAT) 
+                         AS RunTime, ISNULL(CASE WHEN
+                             (SELECT        [Ord_Type]
+                               FROM            [dbo].[SOH-INIT]
+                               WHERE        [So_Nbr] = SUBSTRING(c.[So_Reference], 0, CHARINDEX('*', c.[So_Reference], 0))) = 'DAI' THEN 'A' WHEN c.[Wo_Type] = 'R' THEN 'B' ELSE c.[Mgt_Priority_Code] END, 'D') AS WO_Priority, ISNULL(c.Wo_Type, 
+                         'S') AS WO_Type, c.Qty_To_Start AS WO_StartQty, c.So_Reference AS WO_SalesRef, f.Cust_Nbr, CASE WHEN c.[Time_Wanted] IS NOT NULL THEN CONVERT(VARCHAR(2), CAST(c.[Time_Wanted] AS TIME), 108) 
+                         ELSE '999' END AS PriTime, CASE WHEN c.[Time_Wanted] IS NOT NULL THEN DATEPART(MINUTE, CAST(c.[Time_Wanted] AS TIME)) ELSE '999' END AS Sched_Priority, d.Part_Number AS SkuNumber, 
+                         d.Description AS SkuDesc, d.Um AS SkuUom, d.Drawing_Nbrs AS SkuMasterPrint, ISNULL(c.Bom_Rev_Date, '1999-01-01') AS BomRevDate, ISNULL(c.Bom_Rev_Level, '') AS BomRevLvl, ISNULL(e.Qty_On_Hand, 0) 
+                         AS SkuOnHand, CASE WHEN b.[Due_Date] < GETDATE() THEN 1 ELSE 0 END AS IsLate, CASE WHEN b.[Date_Start] < GETDATE() AND c.[Qty_To_Start] = b.[Qty_Avail] THEN 1 ELSE 0 END AS IsStartLate, 
+                         e.Engineering_Status AS EngStatus,
+                             (SELECT        Description
+                               FROM            dbo.[TM-INIT_Eng_Status]
+                               WHERE        (ID = e.Engineering_Status)) AS EngStatusDesc, f.Name AS Cust_Name,
+                             (SELECT        Cust_Part_Nbr
+                               FROM            dbo.[SOD-INIT]
+                               WHERE        (ID = SUBSTRING(c.So_Reference, 0, LEN(c.So_Reference) - 1))) AS Cust_Part_Nbr, CAST
+                             ((SELECT        Ln_Bal_Qty
+                                 FROM            dbo.[SOD-INIT] AS [SOD-INIT_1]
+                                 WHERE        (ID = SUBSTRING(c.So_Reference, 0, LEN(c.So_Reference) - 1))) AS int) AS Ln_Bal_Qty, ISNULL
+                             ((SELECT        Load_Pattern
+                                 FROM            dbo.[CM-INIT]
+                                 WHERE        (Cust_Nbr = c.Cust_Nbr)), '') AS LoadPattern, 0 AS QTask
+                    FROM            dbo.[WC-INIT] AS a RIGHT OUTER JOIN
+                                                dbo.[WPO-INIT] AS b ON b.Work_Center = a.Wc_Nbr RIGHT OUTER JOIN
+                                                dbo.[WP-INIT] AS c ON b.ID LIKE { fn CONCAT(c.Wp_Nbr, '%') } RIGHT OUTER JOIN
+                                                dbo.[IM-INIT] AS d ON d.Part_Number = c.Part_Wo_Desc RIGHT OUTER JOIN
+                                                dbo.[IPL-INIT] AS e ON e.Part_Nbr = d.Part_Number LEFT OUTER JOIN
+                                                dbo.[CM-INIT] AS f ON f.Cust_Nbr = CASE WHEN CHARINDEX('*', c.[Cust_Nbr], 0) > 0 THEN SUBSTRING(c.[Cust_Nbr], 0, CHARINDEX('*', c.[Cust_Nbr], 0)) ELSE c.[Cust_Nbr] END
+                    WHERE        (a.D_esc <> 'DO NOT USE') AND (c.Status_Flag = 'R' OR
+                                                c.Status_Flag = 'A') AND (b.Seq_Complete_Flag IS NULL OR
+                                                b.Seq_Complete_Flag = 'N') AND (b.Alt_Seq_Status IS NULL)";
+            //For what ever reason a view does not work for remote clients so had to use the above connection strings
             using (var _tempTable = new DataTable())
             {
                 if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
                 {
                     try
                     {
-                        using (SqlDataAdapter adapter = new SqlDataAdapter("SELECT * FROM [dbo].[SFW_WorkOrderView] ORDER BY MachineNumber, WO_Priority, PriTime, Sched_Priority, WO_SchedStartDate, WO_Number ASC;", sqlCon))
+                        using (SqlDataAdapter adapter = new SqlDataAdapter($"USE {sqlCon.Database}; {_conString} ORDER BY MachineNumber, WO_Priority, PriTime, Sched_Priority, WO_SchedStartDate, WO_Number ASC;", sqlCon))
                         {
                             adapter.Fill(_tempTable);
                             if(machOrder != null && machOrder.Count > 0)

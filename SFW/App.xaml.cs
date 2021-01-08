@@ -414,6 +414,7 @@ namespace SFW
                                                                             DataBase={Site};
                                                                             Connection Timeout={reader.GetAttribute("TimeOut")};
                                                                             MultipleActiveResultSets=True;
+                                                                            Max Pool Size=3;
                                                                             Pooling=False;");
                                             break;
                                         //SiteDocumentation Element is written below

@@ -72,14 +72,16 @@ namespace SFW.WIP
             {
                 if (!string.IsNullOrEmpty(value))
                 {
-                    if (Lot.LotValidation(value, WipRecord.WipWorkOrder.SkuNumber, App.AppSqlCon))
+                    if (Lot.LotValidation(value, WipRecord.WipWorkOrder.SkuNumber, App.AppSqlCon, WipRecord.WipWorkOrder.OrderNumber))
                     {
                         WipRecord.ReceiptLocation = Lot.GetLotLocation(value, App.AppSqlCon);
                         OnPropertyChanged(nameof(WipRecord));
+                        IsLotValid = true;
                     }
                     else
                     {
                         WipRecord.ReceiptLocation = string.Empty;
+                        IsLotValid = false;
                     }
                 }
                 WipRecord.WipLot.LotNumber = value;
@@ -389,9 +391,6 @@ namespace SFW.WIP
 
                     var _baseValid = false;
                     var _locValid = !string.IsNullOrEmpty(WipRecord.ReceiptLocation) && WipReceipt.ValidLocation(WipRecord.ReceiptLocation, App.AppSqlCon);
-                    IsLotValid = WipRecord.IsLotTracable && !string.IsNullOrEmpty(WipRecord.WipLot.LotNumber)
-                        ? Lot.LotValidation(WipRecord.WipLot.LotNumber, WipRecord.WipWorkOrder.SkuNumber, App.AppSqlCon)
-                        : true;
                     if (WipRecord.WipQty > 0)
                     {
                         _baseValid = _locValid && (string.IsNullOrEmpty(WipRecord.WipLot.LotNumber) || IsLotValid) && ValidateComponents();
