@@ -129,7 +129,7 @@ namespace SFW.Model
                                                                 RIGHT JOIN
                                                                     [dbo].[LOT-INIT_Lot_Loc_Qtys] b ON b.[ID1] = a.[Lot_Number]
                                                                 WHERE
-                                                                    a.[Part_Nbr] = @p1
+                                                                    a.[Part_Nbr] = @p1 AND b.[Oh_Qtys] != 0
                                                                 ORDER BY
 	                                                                [LotNumber] ASC;", sqlCon))
                             {

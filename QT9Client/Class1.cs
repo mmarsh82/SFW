@@ -40,14 +40,11 @@ namespace QT9Client
             {
                 _testXDoc.Save(stream);
             }
-            //Geting response from request    
             using (WebResponse Serviceres = _testReq.GetResponse())
             {
                 using (StreamReader rd = new StreamReader(Serviceres.GetResponseStream()))
                 {
-                    //reading stream    
                     var ServiceResult = rd.ReadToEnd();
-                    //writting stream result on console
                     return ServiceResult;
                 }
             }
