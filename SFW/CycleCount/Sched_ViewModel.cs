@@ -12,7 +12,7 @@ namespace SFW.CycleCount
     {
         #region Properties
 
-        public ICollectionView ScheduleView { get; set; }
+        public ICollectionView CountView { get; set; }
 
         private DataRowView _selCnt;
         public DataRowView SelectedCount
@@ -40,22 +40,22 @@ namespace SFW.CycleCount
             {
                 if (_sFilter == null || value == null)
                 {
-                    _originalFilter = ((DataView)ScheduleView.SourceCollection).RowFilter;
+                    _originalFilter = ((DataView)CountView.SourceCollection).RowFilter;
                 }
                 if (!string.IsNullOrEmpty(value))
                 {
-                    var _sRowFilter = ((DataView)ScheduleView.SourceCollection).Table.SearchRowFilter(value);
-                    ((DataView)ScheduleView.SourceCollection).RowFilter = !string.IsNullOrEmpty(_originalFilter)
+                    var _sRowFilter = ((DataView)CountView.SourceCollection).Table.SearchRowFilter(value);
+                    ((DataView)CountView.SourceCollection).RowFilter = !string.IsNullOrEmpty(_originalFilter)
                         ? $"{_originalFilter} AND ({_sRowFilter})"
                         : _sRowFilter;
                 }
                 else
                 {
-                    ((DataView)ScheduleView.SourceCollection).RowFilter = _originalFilter;
+                    ((DataView)CountView.SourceCollection).RowFilter = _originalFilter;
                 }
                 _sFilter = value == "" ? null : value;
                 OnPropertyChanged(nameof(SearchFilter));
-                ScheduleView.Refresh();
+                CountView.Refresh();
             }
         }
 
@@ -109,20 +109,20 @@ namespace SFW.CycleCount
             }
             else
             {
-                ((DataView)ScheduleView.SourceCollection).RowFilter = $"PartNumber = '{filter}'";
-                OnPropertyChanged(nameof(ScheduleView));
+                ((DataView)CountView.SourceCollection).RowFilter = $"PartNumber = '{filter}'";
+                OnPropertyChanged(nameof(CountView));
             }
         }
 
-        public void ViewLoading(string machineNbr)
+        public void ViewLoading(string filter)
         {
-            ScheduleView = CollectionViewSource.GetDefaultView(Model.Count.GetScheduleData(App.AppSqlCon));
-            ScheduleView.GroupDescriptions.Add(new PropertyGroupDescription("CountLoc"));
-            EmptyCount = ScheduleView.Cast<object>().Count() == 0;
+            CountView = CollectionViewSource.GetDefaultView(Count.GetScheduleData(App.AppSqlCon));
+            CountView.GroupDescriptions.Add(new PropertyGroupDescription("CountLoc"));
+            EmptyCount = CountView.Cast<object>().Count() == 0;
         }
         public void ViewLoaded(IAsyncResult r)
         {
-            ScheduleView.Refresh();
+            CountView.Refresh();
         }
 
         #endregion
@@ -134,17 +134,17 @@ namespace SFW.CycleCount
         {
             try
             {
-                var _oldItem = ScheduleView.CurrentItem;
-                ScheduleView = CollectionViewSource.GetDefaultView(Model.Count.GetScheduleData(App.AppSqlCon));
-                ScheduleView.GroupDescriptions.Add(new PropertyGroupDescription("CountLoc"));
-                OnPropertyChanged(nameof(ScheduleView));
-                if (_oldItem != null && ((DataView)ScheduleView.SourceCollection).Table.AsEnumerable().Any(r => r.Field<string>("CountID") == ((DataRowView)_oldItem).Row.Field<string>("CountID")))
+                var _oldItem = CountView.CurrentItem;
+                CountView = CollectionViewSource.GetDefaultView(Count.GetScheduleData(App.AppSqlCon));
+                CountView.GroupDescriptions.Add(new PropertyGroupDescription("CountLoc"));
+                OnPropertyChanged(nameof(CountView));
+                if (_oldItem != null && ((DataView)CountView.SourceCollection).Table.AsEnumerable().Any(r => r.Field<string>("CountID") == ((DataRowView)_oldItem).Row.Field<string>("CountID")))
                 {
-                    var schedList = ((DataView)ScheduleView.SourceCollection).Table.AsEnumerable().ToList();
+                    var schedList = ((DataView)CountView.SourceCollection).Table.AsEnumerable().ToList();
                     var listIndex = schedList.FindIndex(r => r.Field<string>("CountID") == ((DataRowView)_oldItem).Row.Field<string>("CountID"));
-                    ScheduleView.MoveCurrentToPosition(listIndex);
+                    CountView.MoveCurrentToPosition(listIndex);
                 }
-                ScheduleView.Refresh();
+                CountView.Refresh();
                 if (!string.IsNullOrEmpty(SearchFilter))
                 {
                     SearchFilter = SearchFilter;
@@ -162,19 +162,19 @@ namespace SFW.CycleCount
         {
             try
             {
-                var _oldItem = ScheduleView.CurrentItem;
+                var _oldItem = CountView.CurrentItem;
                 var _schedData = Count.GetScheduleData(App.AppSqlCon);
                 _schedData.Rows.Remove(_schedData.Select($"CountID == '{filter}'")[0]);
                 _schedData.AcceptChanges();
-                ScheduleView = CollectionViewSource.GetDefaultView(_schedData);
-                ScheduleView.GroupDescriptions.Add(new PropertyGroupDescription("CountLoc"));
-                OnPropertyChanged(nameof(ScheduleView));
-                ScheduleView.Refresh();
+                CountView = CollectionViewSource.GetDefaultView(_schedData);
+                CountView.GroupDescriptions.Add(new PropertyGroupDescription("CountLoc"));
+                OnPropertyChanged(nameof(CountView));
+                CountView.Refresh();
                 if (!string.IsNullOrEmpty(SearchFilter))
                 {
                     SearchFilter = SearchFilter;
                 }
-                if (((DataView)ScheduleView.SourceCollection).Count == 0)
+                if (((DataView)CountView.SourceCollection).Count == 0)
                 {
                     WorkSpaceDock.CountDock.Children.RemoveAt(1);
                     WorkSpaceDock.CountDock.Children.Insert(1, new Form_View { DataContext = new Form_ViewModel() });

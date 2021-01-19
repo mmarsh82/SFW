@@ -110,6 +110,9 @@ namespace SFW.Controls
                 case 1:
                     _tempDock = WccoDock;
                     break;
+                case 4:
+                    _tempDock = CountDock;
+                    break;
                 case 6:
                     _tempDock = ClosedDock;
                     break;
@@ -129,14 +132,6 @@ namespace SFW.Controls
                 MainDock.Children.RemoveAt(5);
                 MainDock.Children.Insert(5, new Admin.View { DataContext = new Admin.ViewModel() });
                 MainDock.Children[5].Visibility = Visibility.Collapsed;
-            }
-            else if (index == 4)
-            {
-                ((CycleCount.Sched_View)_tempDock.Children[0]).DataContext = dataContext;
-                if (((CycleCount.Form_View)_tempDock.Children[1]).DataContext != null)
-                {
-                    ((CycleCount.Form_ViewModel)((CycleCount.Form_View)_tempDock.Children[1]).DataContext).CountTran = new Model.Count();
-                }
             }
             else if (index == 6)
             {

@@ -10,37 +10,34 @@
     <UserControl.Resources>
         <cmd:ViewLoad x:Key="Back" />
         <cvtr:BoolToVisibility x:Key="BoolToVisConverter"/>
-        <cvtr:SelectedRowToBool x:Key="SelToExpdConverter"/>
     </UserControl.Resources>
 
     <Grid>
 
         <Grid.RowDefinitions>
             <RowDefinition Height="40" />
-            <RowDefinition Height="40" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <Button Grid.Row="0"
-                Background="Transparent"
-                BorderThickness="0"
-                Command="{StaticResource Back}"
-                CommandParameter="Back"
-                HorizontalAlignment="Left">
-            <Button.Content>
-                <StackPanel Orientation="Horizontal">
-                    <Image Source="/SFW;component/Icons/BackArrow.ico" />
-                    <TextBlock Text="Back to Schedule"
-                               VerticalAlignment="Center"
-                               FontSize="16"
-                               FontWeight="Bold"
-                               Foreground="Crimson" />
-                </StackPanel>
-            </Button.Content>
-        </Button>
-
-        <StackPanel Grid.Row="1"
+        <StackPanel Grid.Row="0"
                     Orientation="Horizontal">
+
+            <Button Background="Transparent"
+                    BorderThickness="0"
+                    Command="{StaticResource Back}"
+                    CommandParameter="Back"
+                    HorizontalAlignment="Left">
+                <Button.Content>
+                    <StackPanel Orientation="Horizontal">
+                        <Image Source="/SFW;component/Icons/BackArrow.ico" />
+                        <TextBlock Text="Back to Schedule"
+                                   VerticalAlignment="Center"
+                                   FontSize="16"
+                                   FontWeight="Bold"
+                                   Foreground="Crimson" />
+                    </StackPanel>
+                </Button.Content>
+            </Button>
 
             <TextBlock Text="Search:"
                        FontSize="18"
@@ -61,8 +58,8 @@
         </StackPanel>
 
         <DataGrid x:Name="CountSchedule"
-                  Grid.Row="2"
-                  ItemsSource="{Binding ScheduleView, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"
+                  Grid.Row="1"
+                  ItemsSource="{Binding CountView, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"
                   SelectedItem="{Binding SelectedCount, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                   HorizontalAlignment="Left"
                   HeadersVisibility="None"
@@ -71,6 +68,7 @@
                   IsReadOnly="True"
                   SelectionMode="Single"
                   IsSynchronizedWithCurrentItem="True"
+                  VirtualizingStackPanel.VirtualizationMode ="Recycling"
                   VirtualizingPanel.IsVirtualizingWhenGrouping="True"
                   ScrollViewer.CanContentScroll="True">
 
@@ -142,7 +140,7 @@
                             <Setter Property="Template">
                                 <Setter.Value>
                                     <ControlTemplate TargetType="{x:Type GroupItem}">
-                                        <Expander BorderBrush="Black" IsExpanded="{Binding SelectedCount, Converter={StaticResource SelToExpdConverter}}" Background="#FF135185" Foreground="Black" BorderThickness="1">
+                                        <Expander BorderBrush="Black" IsExpanded="True" Background="#FF135185" Foreground="Black" BorderThickness="1">
                                             <i:Interaction.Behaviors>
                                                 <bhvr:ExpanderState GroupName="{Binding Name}"/>
                                             </i:Interaction.Behaviors>

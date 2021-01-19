@@ -153,6 +153,18 @@ namespace SFW.Queries
             }
         }
 
+        private string _aNote;
+        public string ActionNote
+        {
+            get
+            { return _aNote; }
+            set
+            {
+                _aNote = value;
+                OnPropertyChanged(nameof(ActionNote));
+            }
+        }
+
         RelayCommand _split;
 
         #endregion
@@ -196,6 +208,7 @@ namespace SFW.Queries
 
         private void SplitExecute(object parameter)
         {
+            ActionNote = "Building...";
             var _part = Lot.GetSkuNumber(LotNumber, App.AppSqlCon);
             var _scrap = int.TryParse(LotScrap, out int lotInt) ? Convert.ToInt32(LotScrap) : 0;
             var _onHandDelta = _startingQty - LotQuantity;
@@ -204,11 +217,27 @@ namespace SFW.Queries
             {
                 M2kClient.M2kCommand.InventoryAdjustment(CurrentUser.DisplayName, $"Split from {LotNumber}", _part, M2kClient.AdjustCode.CC, 'A', Convert.ToInt32(l.TransactionQty), l.Location, App.ErpCon, l.LotNumber);
             }
+            ActionNote = "Scrapping...";
             if (_scrap > 0)
             {
                 M2kClient.M2kCommand.InventoryAdjustment(CurrentUser.DisplayName, $"Scrap Split", _part, M2kClient.AdjustCode.CC, 'A', _scrap, "SCRAP", App.ErpCon, $"{LotNumber}Z");
-                M2kClient.M2kCommand.EditRecord("LOT.MASTER", $"{LotNumber}Z|P", 42, ScrapNote, App.ErpCon);
+                var _counter = 0;
+                while (!Lot.IsValid($"{LotNumber}Z", App.AppSqlCon) || _counter >= 2000)
+                {
+                    _counter++;
+                }
+                if (_counter >= 2000)
+                {
+                    System.Windows.MessageBox.Show($"Splitting of lot {LotNumber} has been completed.\nThe scrap note has encountered an error, please contact IT for further assitance.", "Transaction Complete", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
+                }
+                else
+                {
+                    var _note = new string[1];
+                    _note[0] = ScrapNote;
+                    M2kClient.M2kCommand.EditMVRecord("LOT.MASTER", $"{LotNumber}Z|P", 42, _note, App.ErpCon);
+                }
             }
+            ActionNote = "Complete";
             System.Windows.MessageBox.Show($"Splitting of lot {LotNumber} has been completed.", "Transaction Complete", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
             foreach (object w in System.Windows.Application.Current.Windows)
             {

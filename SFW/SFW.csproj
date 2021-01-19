@@ -30,8 +30,8 @@
     <PublisherName>Michael Marsh</PublisherName>
     <SuiteName>WCCO Belting Inc.</SuiteName>
     <AutorunEnabled>true</AutorunEnabled>
-    <ApplicationRevision>1980</ApplicationRevision>
-    <ApplicationVersion>1.0.276.1980</ApplicationVersion>
+    <ApplicationRevision>1990</ApplicationRevision>
+    <ApplicationVersion>1.0.277.1990</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <CreateDesktopShortcut>true</CreateDesktopShortcut>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -190,6 +190,10 @@
       <DependentUpon>View.xaml</DependentUpon>
     </Compile>
     <Compile Include="Schedule.Closed\ViewModel.cs" />
+    <Compile Include="Schedule.SalesOrder\View.xaml.cs">
+      <DependentUpon>View.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Schedule.SalesOrder\ViewModel.cs" />
     <Compile Include="ShopRoute\QTask\View.xaml.cs">
       <DependentUpon>View.xaml</DependentUpon>
     </Compile>
@@ -313,6 +317,10 @@
     <Page Include="Schedule.Closed\View.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Schedule.SalesOrder\View.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Scheduler\View.xaml">
       <SubType>Designer</SubType>
@@ -494,7 +502,6 @@
     <Resource Include="Icons\Admin.ico" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Schedule.Daily\" />
     <Folder Include="ShopRoute\Details\" />
   </ItemGroup>
   <ItemGroup>

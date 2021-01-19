@@ -22,6 +22,7 @@
 
         <Grid.Resources>
             <cvtr:BoolToVisibility x:Key="BooltoVisConverter"/>
+            <cvtr:StringToVisibility x:Key="StringtoVisConverter"/>
         </Grid.Resources>
         
         <!--#region Parent Lot Inputs-->
@@ -221,6 +222,18 @@
                 Width="100"
                 FontSize="18"
                 Command="{Binding SplitSubmitICommand}"
+                Visibility="{Binding ActionNote, Converter={StaticResource StringtoVisConverter}, ConverterParameter=i}"
                 Style="{DynamicResource DefaultButton}"/>
+
+        <TextBlock Grid.Row="4"
+                   Text="{Binding ActionNote}"
+                   FontSize="22"
+                   Foreground="Crimson"
+                   FontWeight="Bold"
+                   VerticalAlignment="Center"
+                   HorizontalAlignment="Center"
+                   Margin="10,0,0,0"
+                   Visibility="{Binding ActionNote, Converter={StaticResource StringtoVisConverter}}"/>
+        
     </Grid>
 </Window>
