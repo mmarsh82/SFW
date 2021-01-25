@@ -29,27 +29,30 @@ namespace SFW.Schedule
             get { return _selectedWO; }
             set
             {
-                _selectedWO = value;
-                var _tempDock = App.SiteNumber == 0 ? WorkSpaceDock.CsiDock : WorkSpaceDock.WccoDock;
-                if (value != null)
+                if (VMDataBase == App.AppSqlCon.Database)
                 {
-                    var _wo = new WorkOrder(value.Row, App.SiteNumber, App.GlobalConfig.First(o => $"{o.Site}_MAIN" == App.Site).WI, App.AppSqlCon);
-                    _tempDock.Children.RemoveAt(1);
-                    if (!int.TryParse(_wo.EngStatus, out int i))
+                    _selectedWO = value;
+                    var _tempDock = App.SiteNumber == 0 ? WorkSpaceDock.CsiDock : WorkSpaceDock.WccoDock;
+                    if (value != null)
                     {
-                        _tempDock.Children.Insert(1, new ShopRoute.View { DataContext = new ShopRoute.ViewModel(_wo) });
+                        var _wo = new WorkOrder(value.Row, App.SiteNumber, App.GlobalConfig.First(o => $"{o.Site}_MAIN" == App.Site).WI, App.AppSqlCon);
+                        _tempDock.Children.RemoveAt(1);
+                        if (!int.TryParse(_wo.EngStatus, out int i))
+                        {
+                            _tempDock.Children.Insert(1, new ShopRoute.View { DataContext = new ShopRoute.ViewModel(_wo) });
+                        }
+                        else
+                        {
+                            _tempDock.Children.Insert(1, new ShopRoute.QTask.View { DataContext = new ShopRoute.QTask.ViewModel(_wo) });
+                        }
                     }
                     else
                     {
-                        _tempDock.Children.Insert(1, new ShopRoute.QTask.View { DataContext = new ShopRoute.QTask.ViewModel(_wo) });
+                        _tempDock.Children.RemoveAt(1);
+                        _tempDock.Children.Insert(1, new ShopRoute.View { DataContext = new ShopRoute.ViewModel() });
                     }
+                    OnPropertyChanged(nameof(SelectedWorkOrder));
                 }
-                else
-                {
-                    _tempDock.Children.RemoveAt(1);
-                    _tempDock.Children.Insert(1, new ShopRoute.View { DataContext = new ShopRoute.ViewModel() });
-                }
-                OnPropertyChanged(nameof(SelectedWorkOrder));
             }
         }
 
