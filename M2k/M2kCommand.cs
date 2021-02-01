@@ -379,7 +379,7 @@ namespace M2kClient
             {
                 try
                 {
-                    foreach (var c in wipRecord.WipWorkOrder.Bom)
+                    foreach (var c in wipRecord.WipWorkOrder.Picklist)
                     {
                         var _issue = new Issue(wipRecord.Submitter, "010", c.CompNumber, wipRecord.WipWorkOrder.OrderNumber, wipRecord.WipWorkOrder.Seq, "II", new List<Transaction>());
 
