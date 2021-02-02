@@ -79,9 +79,10 @@ namespace M2kClient.M2kADIArray
         /// <param name="facCode">Facility code</param>
         /// <param name="partNbr">Part Number</param>
         /// <param name="woNbr">Work Order Number</param>
-        /// <param name="op">Operation also know as sequence number</param>
         /// <param name="rsn">Issue reason</param>
-        public Issue(string stationId, string facCode, string partNbr, string woNbr, string op, string rsn, List<Transaction> tranList)
+        /// <param name="tranList">Transaction object list</param>
+        /// <param name="op">Optional: Operation also know as sequence number</param>
+        public Issue(string stationId, string facCode, string partNbr, string woNbr, string rsn, List<Transaction> tranList, string op = "")
         {
             StationId = stationId;
             FacilityCode = facCode;
@@ -106,7 +107,9 @@ namespace M2kClient.M2kADIArray
             //13~Transaction Quantity~14~Location~15~Lot Number~99~COMPLETE
             //Must meet this format in order to work with M2k
 
-            var _rValue = $"1~{TranType}~2~{StationId}~3~{TranTime}~4~{TranDate}~5~{FacilityCode}~6~{PartNbr}~7~{WorkOrderNbr}~8~{Operation}~10~{Reason}";
+            var _rValue = !string.IsNullOrEmpty(Operation)
+                ? $"1~{TranType}~2~{StationId}~3~{TranTime}~4~{TranDate}~5~{FacilityCode}~6~{PartNbr}~7~{WorkOrderNbr}~8~{Operation}~10~{Reason}"
+                : $"1~{TranType}~2~{StationId}~3~{TranTime}~4~{TranDate}~5~{FacilityCode}~6~{PartNbr}~7~{WorkOrderNbr}~10~{Reason}";
             foreach (var t in TranList)
             {
                 _rValue += !string.IsNullOrEmpty(t.LotNumber) ? $"\n13~{t.Quantity}~14~{t.Location}~15~{t.LotNumber}|P" : $"\n13~{t.Quantity}~14~{t.Location}";

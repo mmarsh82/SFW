@@ -17,6 +17,7 @@ namespace SFW.Controls
         public static DockPanel WccoDock { get; set; }
         public static DockPanel ClosedDock { get; set; }
         public static DockPanel CountDock { get; set; }
+        public static DockPanel SalesDock { get; set; }
         public static bool ClosedView { get; set; }
 
         #endregion
@@ -34,6 +35,7 @@ namespace SFW.Controls
             WccoDock = new DockPanel();
             ClosedDock = new DockPanel();
             CountDock = new DockPanel();
+            SalesDock = new DockPanel();
 
 
             //Add the CSI Schedule View to [0]
@@ -62,7 +64,7 @@ namespace SFW.Controls
             //Add the Admin View to [5]
             MainDock.Children.Insert(5, new Admin.View { DataContext = new Admin.ViewModel() });
 
-            //Add the Schedule View to [6]
+            //Add the Closed Schedule View to [6]
             ClosedDock.Children.Insert(0, new Schedule.Closed.View());
             ClosedDock.Children.Insert(1, new ShopRoute.View { DataContext = new ShopRoute.ViewModel() });
             MainDock.Children.Insert(6, ClosedDock);
@@ -72,6 +74,11 @@ namespace SFW.Controls
 
             //Add the Part Trace View to [8]
             MainDock.Children.Insert(8, new PartTrace_View());
+
+            //Add the Sales Order Schedule View to [9]
+            SalesDock.Children.Insert(0, new Schedule.SalesOrder.View());
+            ClosedDock.Children.Insert(1, new ShopRoute.SalesOrder.View { DataContext = new ShopRoute.SalesOrder.ViewModel() });
+            MainDock.Children.Insert(9, SalesDock);
 
             //Set up and display the intial view
             var _siteNbr = CurrentUser.GetSite();
@@ -115,6 +122,9 @@ namespace SFW.Controls
                     break;
                 case 6:
                     _tempDock = ClosedDock;
+                    break;
+                case 9:
+                    _tempDock = SalesDock;
                     break;
             }
             if (index <= 1)

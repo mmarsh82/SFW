@@ -381,18 +381,11 @@ namespace M2kClient
                 {
                     foreach (var c in wipRecord.WipWorkOrder.Picklist)
                     {
-                        var _issue = new Issue(wipRecord.Submitter, "010", c.CompNumber, wipRecord.WipWorkOrder.OrderNumber, wipRecord.WipWorkOrder.Seq, "II", new List<Transaction>());
+                        var _issue = new Issue(wipRecord.Submitter, "010", c.CompNumber, wipRecord.WipWorkOrder.OrderNumber, "II", new List<Transaction>());
 
-                        foreach (var w in c.WipInfo)
+                        foreach (var w in c.WipInfo.Where(o => !string.IsNullOrEmpty(o.LotNbr)))
                         {
-                            if (w.LotQty == null)
-                            {
-                                _issue.TranList.Add(new Transaction { Location = c.BackflushLoc, Quantity = Convert.ToInt32(w.BaseQty) });
-                            }
-                            else
-                            {
-                                _issue.TranList.Add(new Transaction { Location = c.BackflushLoc, Quantity = Convert.ToInt32(w.LotQty) });
-                            }
+                            _issue.TranList.Add(new Transaction { Location = w.RcptLoc, LotNumber = w.LotNbr, Quantity = Convert.ToInt32(w.LotQty) });
                         }
                         if (c.WipInfo.Sum(o => o.BaseQty) > 0)
                         {
