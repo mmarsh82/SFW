@@ -46,47 +46,47 @@ namespace SFW.Model
         /// Work Order Object constructor
         /// Will create a new WorkOrder Object based on a DataRow from any DataTable Object
         /// </summary>
-        /// <param name="drow">DataRow with the item array values for the work order</param>
+        /// <param name="dRow">DataRow with the item array values for the work order</param>
         /// <param name="siteNbr">Work Site number</param>
         /// <param name="docFilePath">Document File Path</param>
         /// <param name="sqlCon">Sql Connection to use</param>
-        public WorkOrder(DataRow drow, int siteNbr, string docFilePath, SqlConnection sqlCon)
+        public WorkOrder(DataRow dRow, int siteNbr, string docFilePath, SqlConnection sqlCon)
         {
-            if (drow != null)
+            if (dRow != null)
             {
-                var _wo = drow.Field<string>("WO_Number").Split('*');
+                var _wo = dRow.Field<string>("WO_Number").Split('*');
                 OrderNumber = _wo[0];
                 Seq = _wo[1];
-                Operation = drow.Field<string>("Operation");
-                OpDesc = GetOperationDescription(drow.Field<string>("WO_Number"), sqlCon);
-                Priority = drow.Field<string>("WO_Priority");
-                TaskType = drow.Field<string>("WO_Type");
-                StartQty = drow.Field<int>("WO_StartQty");
-                CurrentQty = Convert.ToInt32(drow.Field<decimal>("WO_CurrentQty"));
-                SchedStartDate = drow.Field<DateTime>("WO_SchedStartDate");
-                ActStartDate = drow.Field<DateTime>("WO_ActStartDate") != Convert.ToDateTime("1999-01-01") ? drow.Field<DateTime>("WO_ActStartDate") : DateTime.MinValue;
-                DueDate = drow.Field<DateTime>("WO_DueDate");
-                SkuNumber = drow.Field<string>("SkuNumber");
-                SkuDescription = drow.Field<string>("SkuDesc");
-                Uom = drow.Field<string>("SkuUom");
-                MasterPrint = drow.Field<string>("SkuMasterPrint");
-                TotalOnHand = drow.Field<int>("SkuOnHand");
-                BomRevDate = drow.Field<DateTime>("BomRevDate") != Convert.ToDateTime("1999-01-01") ? drow.Field<DateTime>("BomRevDate") : DateTime.MinValue;
-                BomRevLevel = drow.Field<string>("BomRevLvl");
-                EngStatus = drow.Field<string>("EngStatus");
-                EngStatusDesc = drow.Field<string>("EngStatusDesc");
-                if (!string.IsNullOrEmpty(drow.Field<string>("WO_SalesRef")))
+                Operation = dRow.Field<string>("Operation");
+                OpDesc = GetOperationDescription(dRow.Field<string>("WO_Number"), sqlCon);
+                Priority = dRow.Field<string>("WO_Priority");
+                TaskType = dRow.Field<string>("WO_Type");
+                StartQty = dRow.Field<int>("WO_StartQty");
+                CurrentQty = Convert.ToInt32(dRow.Field<decimal>("WO_CurrentQty"));
+                SchedStartDate = dRow.Field<DateTime>("WO_SchedStartDate");
+                ActStartDate = dRow.Field<DateTime>("WO_ActStartDate") != Convert.ToDateTime("1999-01-01") ? dRow.Field<DateTime>("WO_ActStartDate") : DateTime.MinValue;
+                DueDate = dRow.Field<DateTime>("WO_DueDate");
+                SkuNumber = dRow.Field<string>("SkuNumber");
+                SkuDescription = dRow.Field<string>("SkuDesc");
+                Uom = dRow.Field<string>("SkuUom");
+                MasterPrint = dRow.Field<string>("SkuMasterPrint");
+                TotalOnHand = dRow.Field<int>("SkuOnHand");
+                BomRevDate = dRow.Field<DateTime>("BomRevDate") != Convert.ToDateTime("1999-01-01") ? dRow.Field<DateTime>("BomRevDate") : DateTime.MinValue;
+                BomRevLevel = dRow.Field<string>("BomRevLvl");
+                EngStatus = dRow.Field<string>("EngStatus");
+                EngStatusDesc = dRow.Field<string>("EngStatusDesc");
+                if (!string.IsNullOrEmpty(dRow.Field<string>("WO_SalesRef")))
                 {
-                    var _so = drow.Field<string>("WO_SalesRef").Split('*');
+                    var _so = dRow.Field<string>("WO_SalesRef").Split('*');
                     SalesOrder = new SalesOrder
                     {
                         SalesNumber = _so[0],
-                        CustomerName = drow.Field<string>("Cust_Name"),
-                        CustomerNumber = drow.Field<string>("Cust_Nbr"),
-                        CustomerPart = drow.Field<string>("Cust_Part_Nbr"),
+                        CustomerName = dRow.Field<string>("Cust_Name"),
+                        CustomerNumber = dRow.Field<string>("Cust_Nbr"),
+                        CustomerPart = dRow.Field<string>("Cust_Part_Nbr"),
                         LineNumber = Convert.ToInt32(_so[1]),
-                        LineQuantity = drow.SafeGetField<int>("Ln_Bal_Qty"),
-                        LoadPattern = drow.Field<string>("LoadPattern").ToUpper() == "PLASTIC"
+                        LineQuantity = dRow.SafeGetField<int>("Ln_Bal_Qty"),
+                        LoadPattern = dRow.Field<string>("LoadPattern").ToUpper() == "PLASTIC"
                      };
                     SalesOrder.GetInternalComments(sqlCon);
                 }
@@ -95,8 +95,8 @@ namespace SFW.Model
                     SalesOrder = new SalesOrder();
                 }
                 ToolList = GetTools(SkuNumber, Operation, sqlCon);
-                Machine = drow.Field<string>("MachineName");
-                MachineGroup = drow.Field<string>("MachineGroup");
+                Machine = dRow.Field<string>("MachineName");
+                MachineGroup = dRow.Field<string>("MachineGroup");
                 Bom = Component.GetComponentBomList(SkuNumber, Operation, sqlCon);
                 Picklist = Component.GetComponentPickList(_wo[0], Operation, StartQty - CurrentQty, sqlCon);
                 Notes = GetNotes(_wo[0],sqlCon);

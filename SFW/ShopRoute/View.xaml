@@ -14,6 +14,7 @@
                 <cvtr:BoolToVisibility x:Key="BoolToVisConverter"/>
                 <cvtr:DateToVisibility x:Key="DateToVisConverter" />
                 <cvtr:StringToHeight x:Key="StringToHeightConverter"/>
+                <cvtr:MultiValueParameter x:Key="MultiValConverter"/>
                 <cmd:M2kLookQuery x:Key="ShowQuery"/>
                 <cmd:PartSearch x:Key="PartSearchICommand"/>
                 <cmd:PartInformation x:Key="PartInfoCommand"/>
@@ -462,13 +463,20 @@
                 <StackPanel Grid.Row="8" Orientation="Horizontal"
                         HorizontalAlignment="Left" VerticalAlignment="Center">
 
-                    <Button Content="Open"
+                    <Button Name="SO"
+                            Content="Open"
                             FontSize="18"
                             Margin="0,1,20,1"
                             Width="75"
                             Command="{StaticResource ShowQuery}"
-                            CommandParameter="{Binding FqSalesOrder}"
-                            Style="{DynamicResource DefaultButton}" />
+                            Style="{DynamicResource DefaultButton}">
+                        <Button.CommandParameter>
+                            <MultiBinding Converter="{StaticResource MultiValConverter}">
+                                <Binding Path="Name" RelativeSource="{RelativeSource Self}"/>
+                                <Binding Path="FqSalesOrder"/>
+                            </MultiBinding>
+                        </Button.CommandParameter>
+                    </Button>
 
                     <TextBlock Text="Sales Order:"
                                FontSize="24"

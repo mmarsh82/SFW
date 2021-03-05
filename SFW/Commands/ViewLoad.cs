@@ -46,6 +46,9 @@ namespace SFW.Commands
                     case "CycleCount":
                         WorkSpaceDock.SwitchView(4, null);
                         break;
+                    case "SalesSched":
+                        WorkSpaceDock.SwitchView(9, null);
+                        break;
                     case "Admin":
                         WorkSpaceDock.SwitchView(5, null);
                         break;

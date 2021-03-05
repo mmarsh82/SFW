@@ -1,6 +1,4 @@
-﻿using System.Collections;
-
-namespace M2kClient
+﻿namespace M2kClient
 {
     public class M2kConnection
     {

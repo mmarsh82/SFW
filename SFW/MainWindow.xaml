@@ -40,6 +40,9 @@
         <KeyBinding Gesture="Shift+Ctrl+C"
                     Command="{StaticResource ViewLoadICommand}"
                     CommandParameter="ClosedSched" />
+        <KeyBinding Gesture="Shift+Ctrl+S"
+                    Command="{StaticResource ViewLoadICommand}"
+                    CommandParameter="SalesSched" />
         <KeyBinding Gesture="Alt+P"
                     Command="{StaticResource ShowWindowICommand}"
                     CommandParameter="SFW.Queries.PartLabel_View"/>
@@ -106,6 +109,17 @@
                           Command="{StaticResource ViewLoadICommand}"
                           CommandParameter="ClosedSched"
                           InputGestureText="Shift+Ctrl+C"/>
+                <MenuItem Header="Sales Orders"
+                          Command="{StaticResource ViewLoadICommand}"
+                          CommandParameter="SalesSched"
+                          InputGestureText="Shift+Ctrl+S">
+                    <MenuItem.Visibility>
+                        <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="i">
+                            <Binding Path="(local:CurrentUser.Site)"/>
+                            <Binding Path="(local:App.IsFocused)"/>
+                        </MultiBinding>
+                    </MenuItem.Visibility>
+                </MenuItem>
                 <MenuItem Header="Cycle Count"
                           Command="{StaticResource ViewLoadICommand}"
                           CommandParameter="CycleCount"

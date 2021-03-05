@@ -21,12 +21,19 @@ namespace SFW.Commands
                 var _site = App.Site.Split('_')[0];
                 if (parameter.ToString().Contains("*"))
                 {
-                    var _soDetail = parameter.ToString().Split('*');
-                    Process.Start($"http://intranet-wcco-1/{_site}.MAIN/SOP/SoLineDetail/SoLineDetail.aspx?SoNbr={_soDetail[0]}&LineNbr={_soDetail[1]}");
-                }
-                else
-                {
-                    Process.Start($"http://intranet-wcco-1/{_site}.MAIN/SFC/IssuedMaterialDetail/IssuedMaterialDetail.aspx?WorkOrder={parameter}");
+                    var _parSplit = parameter.ToString().Split('*');
+                    switch (_parSplit[0])
+                    {
+                        case "WO":
+                            Process.Start($"http://intranet-wcco-1/{_site}.MAIN/SFC/IssuedMaterialDetail/IssuedMaterialDetail.aspx?WorkOrder={_parSplit[1]}");
+                            break;
+                        case "SO":
+                            var _startInfo = _parSplit.Length == 2
+                                ? $"http://intranet-wcco-1/{_site}.MAIN/SOP/SoLineDetail/SoLineDetail.aspx?SoNbr={_parSplit[1]}&LineNbr=1"
+                                : $"http://intranet-wcco-1/{_site}.MAIN/SOP/SoLineDetail/SoLineDetail.aspx?SoNbr={_parSplit[1]}&LineNbr={_parSplit[2]}";
+                            Process.Start(_startInfo);
+                            break;
+                    }
                 }
             }
             catch (Exception)

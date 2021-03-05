@@ -77,7 +77,7 @@ namespace SFW.Controls
 
             //Add the Sales Order Schedule View to [9]
             SalesDock.Children.Insert(0, new Schedule.SalesOrder.View());
-            ClosedDock.Children.Insert(1, new ShopRoute.SalesOrder.View { DataContext = new ShopRoute.SalesOrder.ViewModel() });
+            SalesDock.Children.Insert(1, new ShopRoute.SalesOrder.View { DataContext = new ShopRoute.SalesOrder.ViewModel() });
             MainDock.Children.Insert(9, SalesDock);
 
             //Set up and display the intial view
@@ -166,6 +166,27 @@ namespace SFW.Controls
             ((MainWindow)Application.Current.Windows[0]).WorkSpaceDock.Children.Clear();
             MainDock = null;
             new WorkSpaceDock();
+        }
+
+        /// <summary>
+        /// Update a child component of an internal work space dockpanel
+        /// </summary>
+        /// <param name="parentUCIndex">Parent UserControl Index</param>
+        /// <param name="childUCIndex">Child Usercontrol Index</param>
+        /// <param name="viewModel">Child DataContext as a ViewModelBase object</param>
+        public static void UpdateChildDock(int parentUCIndex, int childUCIndex, ViewModelBase viewModel)
+        {
+            if (MainDock.Children[parentUCIndex].GetType() == typeof(DockPanel))
+            {
+                try
+                {
+                    ((UserControl)((DockPanel)MainDock.Children[parentUCIndex]).Children[childUCIndex]).DataContext = viewModel;
+                }
+                catch
+                {
+
+                }
+            }
         }
     }
 }

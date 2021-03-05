@@ -11,6 +11,7 @@
             <cmd:ViewLoad x:Key="Back" />
             <cvtr:BoolToVisibility x:Key="BooltoVisConverter"/>
             <cvtr:CountToVisibility x:Key="CounttoVisConverter"/>
+            <cvtr:StringConcat x:Key="StringConcatConverter"/>
         </Grid.Resources>
 
         <Grid.RowDefinitions>

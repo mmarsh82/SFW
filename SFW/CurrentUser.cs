@@ -195,8 +195,6 @@ namespace SFW
             }
         }
 
-
-
         public static event EventHandler<PropertyChangedEventArgs> StaticPropertyChanged;
 
         #endregion

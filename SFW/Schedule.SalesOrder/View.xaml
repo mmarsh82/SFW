@@ -26,14 +26,6 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <TextBlock Text="Loading..."
-                   FontSize="32"
-                   FontWeight="Bold"
-                   Margin="100,0,100,0"
-                   HorizontalAlignment="Center"
-                   VerticalAlignment="Center"
-                   Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisConverter}}"/>
-
         <StackPanel Grid.Row="0"
                     Orientation="Horizontal">
 
@@ -62,7 +54,7 @@
                        Margin="10,0,0,0"
                        VerticalAlignment="Center" />
             <TextBox x:Name="SearchTextBox"
-                     Text="{Binding SearchFilter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                     Text="{Binding SearchFilter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, FallbackValue={x:Null}}"
                      Width="200"
                      FontSize="18"
                      Margin="5"
@@ -70,10 +62,10 @@
                      Style="{DynamicResource OptionalTextBox}" />
         </StackPanel>
 
-        <DataGrid x:Name="WorkCenterSchedule"
+        <DataGrid x:Name="SalesSchedule"
                   Grid.Row="1"
-                  ItemsSource="{Binding ClosedScheduleView, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                  SelectedItem="{Binding SelectedWorkOrder, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                  ItemsSource="{Binding SalesScheduleView, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                  SelectedItem="{Binding SelectedSalesOrder, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                   HorizontalAlignment="Left"
                   HeadersVisibility="None"
                   AutoGenerateColumns="False"
@@ -84,8 +76,7 @@
                   IsSynchronizedWithCurrentItem="True"
                   VirtualizingStackPanel.VirtualizationMode ="Recycling"
                   VirtualizingStackPanel.IsVirtualizing="True"
-                  VirtualizingPanel.IsVirtualizingWhenGrouping="True"
-                  Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}">
+                  VirtualizingPanel.IsVirtualizingWhenGrouping="True">
 
             <DataGrid.Columns>
                 <DataGridTemplateColumn>
@@ -94,84 +85,25 @@
                             <StackPanel Orientation="Vertical" MinWidth="690">
                                 <Grid>
                                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Left">
-                                        <TextBlock Text="{Binding WO_Number, Converter={StaticResource WorkOrderConverter}}" FontSize="24" FontWeight="Bold"/>
-                                        <Image Source="/SFW;component/Icons/Late.ico"
-                                               Visibility="{Binding IsLate, Converter={StaticResource BoolToVisConverter}}"
-                                               ToolTip="Work Order is currently past the due date!"
-                                               Margin="10,0,0,0" Height="25" Width="25"/>
-                                        <Image Source="/SFW;component/Icons/Warning.ico"
-                                               Visibility="{Binding IsStartLate, Converter={StaticResource BoolToVisConverter}}"
-                                               ToolTip="Work Order has currently went past it's expected start date."
-                                               Margin="10,0,0,0" Height="25" Width="25"/>
-                                        <Image Source="/SFW;component/Icons/Critical.ico"
-                                               Visibility="{Binding EngStatus, Converter={StaticResource IntToVisConverter}}"
-                                               ToolTip="Work Order needs special attention!"
-                                               Margin="10,0,0,0"
-                                               Height="25"
-                                               Width="25" />
+                                        <TextBlock Text="{Binding ID}" FontSize="24" FontWeight="Bold" Margin="10,0,0,0"/>
                                     </StackPanel>
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                                        <TextBlock Text="{Binding SkuNumber}" VerticalAlignment="Center"/>
-                                        <TextBlock Text="{Binding SkuDesc}" Margin="10,0,10,0" VerticalAlignment="Center"/>
-                                        <Button Command="{StaticResource PartSearchCommand}"
-                                                Margin="0,0,10,0"
-                                                Height="30"
-                                                IsTabStop="False"
-                                                Style="{DynamicResource ResourceKey=DefaultButton}">
-                                            <Image Source="/SFW;component/Icons/PartSearch.ico"/>
-                                            <Button.CommandParameter>
-                                                <MultiBinding Converter="{StaticResource PartSearchConverter}">
-                                                    <Binding Path="SkuNumber"/>
-                                                    <Binding Path="SkuMasterPrint"/>
-                                                </MultiBinding>
-                                            </Button.CommandParameter>
-                                        </Button>
+                                        <TextBlock Text="{Binding Part_Wo_Gl}" VerticalAlignment="Center"/>
+                                        <TextBlock Text="{Binding Description}" Margin="10,0,10,0" VerticalAlignment="Center"/>
                                     </StackPanel>
                                 </Grid>
                                 <Grid>
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
-                                        <TextBlock Text="Start:" TextDecorations="Underline"/>
-                                        <TextBlock Text="{Binding WO_SchedStartDate, StringFormat=d}" Margin="5,0,0,0"/>
-                                        <TextBlock Text="Due:" Margin="20,0,0,0" TextDecorations="Underline"/>
-                                        <TextBlock Text="{Binding WO_DueDate, StringFormat=d}" Margin="5,0,0,0"/>
-                                        <TextBlock Text="Run:" Margin="20,0,0,0" TextDecorations="Underline"/>
-                                        <TextBlock Text="{Binding RunTime, StringFormat={}{0} hr}" Margin="5,0,0,0"/>
+                                        <TextBlock Text="Commit:" TextDecorations="Underline"/>
+                                        <TextBlock Text="{Binding Commit_Ship_Date, StringFormat=d}" Margin="5,0,0,0"/>
+                                        <TextBlock Text="Promise:" Margin="20,0,0,0" TextDecorations="Underline"/>
+                                        <TextBlock Text="{Binding Promise_Date20, StringFormat=d}" Margin="5,0,0,0"/>
+                                        <TextBlock Text="Requested:" Margin="20,0,0,0" TextDecorations="Underline"/>
+                                        <TextBlock Text="{Binding Requested_Date, StringFormat=d}" Margin="5,0,0,0"/>
                                     </StackPanel>
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                                        <TextBlock Text="Need" Margin="0,0,5,0">
-                                            <TextBlock.Visibility>
-                                                <MultiBinding Converter="{StaticResource IntEqualConverter}">
-                                                    <Binding Path="WO_StartQty"/>
-                                                    <Binding Path="WO_CurrentQty"/>
-                                                </MultiBinding>
-                                            </TextBlock.Visibility>
-                                        </TextBlock>
-                                        <TextBlock Text="{Binding WO_CurrentQty, StringFormat=n0}">
-                                            <TextBlock.Visibility>
-                                                <MultiBinding Converter="{StaticResource IntEqualConverter}">
-                                                    <Binding Path="WO_StartQty"/>
-                                                    <Binding Path="WO_CurrentQty"/>
-                                                </MultiBinding>
-                                            </TextBlock.Visibility>
-                                        </TextBlock>
-                                        <TextBlock Text="{Binding SkuUom}" Margin="5,0,5,0">
-                                            <TextBlock.Visibility>
-                                                <MultiBinding Converter="{StaticResource IntEqualConverter}">
-                                                    <Binding Path="WO_StartQty"/>
-                                                    <Binding Path="WO_CurrentQty"/>
-                                                </MultiBinding>
-                                            </TextBlock.Visibility>
-                                        </TextBlock>
-                                        <TextBlock Text="of">
-                                            <TextBlock.Visibility>
-                                                <MultiBinding Converter="{StaticResource IntEqualConverter}">
-                                                    <Binding Path="WO_StartQty"/>
-                                                    <Binding Path="WO_CurrentQty"/>
-                                                </MultiBinding>
-                                            </TextBlock.Visibility>
-                                        </TextBlock>
-                                        <TextBlock Text="{Binding WO_StartQty, StringFormat=n0}" Margin="5,0,0,0"/>
-                                        <TextBlock Text="{Binding SkuUom}" Margin="5,0,5,0"/>
+                                        <TextBlock Text="{Binding Ln_Bal_Qty, StringFormat=n0}"/>
+                                        <TextBlock Text="{Binding Um_Base}" Margin="5,0,5,0"/>
                                     </StackPanel>
                                 </Grid>
                             </StackPanel>
@@ -186,7 +118,7 @@
                     <Setter Property="FontSize"
                             Value="18" />
                     <Style.Triggers>
-                        <DataTrigger Binding="{Binding WO_Priority}" Value="D">
+                        <DataTrigger Binding="{Binding Type}" Value="FCO">
                             <Setter Property="Background">
                                 <Setter.Value>
                                     <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
@@ -196,7 +128,7 @@
                                 </Setter.Value>
                             </Setter>
                         </DataTrigger>
-                        <DataTrigger Binding="{Binding WO_Priority}" Value="A">
+                        <DataTrigger Binding="{Binding Type}" Value="DAI">
                             <Setter Property="Background">
                                 <Setter.Value>
                                     <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
@@ -206,7 +138,7 @@
                                 </Setter.Value>
                             </Setter>
                         </DataTrigger>
-                        <DataTrigger Binding="{Binding WO_Priority}" Value="B">
+                        <DataTrigger Binding="{Binding Type}" Value="STD">
                             <Setter Property="Background">
                                 <Setter.Value>
                                     <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
@@ -216,7 +148,7 @@
                                 </Setter.Value>
                             </Setter>
                         </DataTrigger>
-                        <DataTrigger Binding="{Binding WO_Priority}" Value="C">
+                        <DataTrigger Binding="{Binding Type}" Value="EDI">
                             <Setter Property="Background">
                                 <Setter.Value>
                                     <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
@@ -226,7 +158,7 @@
                                 </Setter.Value>
                             </Setter>
                         </DataTrigger>
-                        <DataTrigger Binding="{Binding WO_Type}" Value="R">
+                        <DataTrigger Binding="{Binding Type}" Value="EOP">
                             <Setter Property="Background">
                                 <Setter.Value>
                                     <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
@@ -249,7 +181,7 @@
                         <MultiDataTrigger>
                             <MultiDataTrigger.Conditions>
                                 <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsSelected}" Value="True"/>
-                                <Condition Binding="{Binding WO_Priority}" Value="A"/>
+                                <Condition Binding="{Binding Type}" Value="DAI"/>
                             </MultiDataTrigger.Conditions>
                             <Setter Property="Background" Value="LightCoral"/>
                             <Setter Property="Foreground" Value="Black"/>
@@ -259,8 +191,7 @@
                         <MultiDataTrigger>
                             <MultiDataTrigger.Conditions>
                                 <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsSelected}" Value="True"/>
-                                <Condition Binding="{Binding WO_Priority}" Value="B"/>
-                                <Condition Binding="{Binding WO_Type}" Value="{x:Null}"/>
+                                <Condition Binding="{Binding Type}" Value="STD"/>
                             </MultiDataTrigger.Conditions>
                             <Setter Property="Background" Value="DarkSeaGreen"/>
                             <Setter Property="Foreground" Value="Black"/>
@@ -269,7 +200,7 @@
                         <MultiDataTrigger>
                             <MultiDataTrigger.Conditions>
                                 <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsSelected}" Value="True"/>
-                                <Condition Binding="{Binding WO_Priority}" Value="C"/>
+                                <Condition Binding="{Binding Type}" Value="EDI"/>
                             </MultiDataTrigger.Conditions>
                             <Setter Property="Background" Value="Gray"/>
                             <Setter Property="Foreground" Value="Black"/>
@@ -279,7 +210,7 @@
                         <MultiDataTrigger>
                             <MultiDataTrigger.Conditions>
                                 <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsSelected}" Value="True"/>
-                                <Condition Binding="{Binding WO_Priority}" Value="D"/>
+                                <Condition Binding="{Binding Type}" Value="FCO"/>
                             </MultiDataTrigger.Conditions>
                             <Setter Property="Background" Value="Beige"/>
                             <Setter Property="Foreground" Value="Black"/>
@@ -289,8 +220,7 @@
                         <MultiDataTrigger>
                             <MultiDataTrigger.Conditions>
                                 <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsSelected}" Value="True"/>
-                                <Condition Binding="{Binding WO_Priority}" Value="B"/>
-                                <Condition Binding="{Binding WO_Type}" Value="R"/>
+                                <Condition Binding="{Binding Type}" Value="EOP"/>
                             </MultiDataTrigger.Conditions>
                             <Setter Property="Background" Value="LightBlue"/>
                             <Setter Property="Foreground" Value="Black"/>
@@ -313,7 +243,7 @@
                                                 <bhvr:ExpanderState GroupName="{Binding Name}"/>
                                             </i:Interaction.Behaviors>
                                             <Expander.Header>
-                                                <Grid Width="250">
+                                                <Grid Width="650">
                                                     <TextBlock x:Name="ExpanderName" HorizontalAlignment="Left" FontWeight="Bold" Foreground="WhiteSmoke" FontSize="24" Text="{Binding Name, StringFormat=d}"/>
                                                 </Grid>
                                             </Expander.Header>

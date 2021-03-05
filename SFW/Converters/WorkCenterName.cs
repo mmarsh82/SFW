@@ -25,7 +25,7 @@ namespace SFW.Converters
             try
             {
                 return value != null && value != DependencyProperty.UnsetValue
-                        ? $"{MachineList.FirstOrDefault(o => o.MachineNumber == value.ToString()).MachineName} ({value.ToString()})"
+                        ? $"{MachineList.FirstOrDefault(o => o.MachineNumber == value.ToString()).MachineName} ({value})"
                         : string.Empty;
             }
             catch
