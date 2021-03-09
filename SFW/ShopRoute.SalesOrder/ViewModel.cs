@@ -18,14 +18,21 @@ namespace SFW.ShopRoute.SalesOrder
             {
                 _order = value;
                 OnPropertyChanged(nameof(Order));
-                Part = new Model.Sku();
+            }
+        }
+
+        private Model.Sku _part;
+        public Model.Sku Part
+        {
+            get { return _part; }
+            set
+            {
+                _part = value;
                 OnPropertyChanged(nameof(Part));
             }
         }
-        public Model.Sku Part { get; set; }
 
         #endregion
-
 
         /// <summary>
         /// Shop Route Default Constructor
@@ -42,9 +49,11 @@ namespace SFW.ShopRoute.SalesOrder
         /// Shop Route Constructor for loading work orders
         /// </summary>
         /// <param name="salesOrder">Sales Order Object</param>
-        public ViewModel(Model.SalesOrder salesOrder)
+        /// <param name="part">Sku Object</param>
+        public ViewModel(Model.SalesOrder salesOrder, Model.Sku part)
         {
             Order = salesOrder;
+            Part = part;
         }
     }
 }

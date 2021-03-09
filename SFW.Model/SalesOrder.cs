@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 
@@ -11,14 +12,23 @@ namespace SFW.Model
         #region Properties
 
         public string SalesNumber { get; set; }
+        public string PartNumber { get; set; }
         public string CustomerNumber { get; set; }
         public string CustomerName { get; set; }
         public string CustomerPart { get; set; }
         public int LineNumber { get; set; }
         public int LineQuantity { get; set; }
+        public string LineDesc { get; set; }
         public string LineNotes { get; set; }
         public bool LoadPattern { get; set; }
         public string InternalComments { get; set; }
+        public bool Expedited { get; set; }
+        public string ShipName { get; set; }
+        public string[] ShipAddress { get; set; }
+        public string ShipCity { get; set; }
+        public string ShipState { get; set; }
+        public string ShipZip { get; set; }
+        public string ShipCountry { get; set; }
 
         #endregion
 
@@ -92,13 +102,33 @@ namespace SFW.Model
             }
         }
 
-        public SalesOrder(DataRow dRow)
+        /// <summary>
+        /// Sales Order Object constructor
+        /// Will create a new SalesOrder Object based on a DataRow from any DataTable Object
+        /// </summary>
+        /// <param name="dRow">DataRow with the item array values for the sales order</param>
+        /// <param name="sqlCon">Sql Connection to use</param>
+        public SalesOrder(DataRow dRow, SqlConnection sqlCon)
         {
-            SalesNumber = dRow.Field<string>("So_Nbr");
-            CustomerNumber = dRow.Field<string>("Cust_Nbr");
-            CustomerName = dRow.Field<string>("Cust_Name");
-            CustomerPart = dRow.Field<string>("Cust_Part_Nbr");
-            LineNumber = dRow.Field<int>("LineNumber");
+            SalesNumber = dRow.Field<string>("SoNbr");
+            PartNumber = dRow.Field<string>("PartNbr");
+            CustomerNumber = dRow.Field<string>("CustNbr");
+            CustomerName = dRow.Field<string>("CustName");
+            CustomerPart = dRow.Field<string>("CustPartNbr");
+            LineNumber = dRow.Field<int>("LineNbr");
+            LineQuantity = dRow.Field<int>("BalQty");
+            LineDesc = dRow.Field<string>("Description");
+            LoadPattern = dRow.Field<string>("LoadPattern").ToUpper() == "PLASTIC";
+            GetInternalComments(sqlCon);
+            Expedited = dRow.Field<int>("Expedited") > 0;
+            ShipName = dRow.Field<string>("ShipName");
+            ShipAddress = new string[2];
+            ShipAddress[0] = dRow.Field<string>("ShipAddr1");
+            ShipAddress[1] = dRow.Field<string>("ShipAddr2");
+            ShipCity = dRow.Field<string>("ShipCity");
+            ShipState = dRow.Field<string>("ShipState");
+            ShipZip = dRow.Field<string>("ShipZip");
+            ShipCountry = dRow.Field<string>("ShipCountry");
         }
 
         /// <summary>
@@ -169,39 +199,41 @@ namespace SFW.Model
                     {
                         using (SqlDataAdapter adapter = new SqlDataAdapter(@"SELECT
                                                                                 b.[ID]
-	                                                                            ,a.[So_Nbr]
-	                                                                            ,CAST(b.[Line_Nbr] as int) as 'LineNumber'
-	                                                                            ,b.[Part_Wo_Gl]
-                                                                                ,b.[Ln_Bal_Qty]
-	                                                                            ,b.[Um_Base]
+	                                                                            ,a.[So_Nbr] as 'SoNbr'
+	                                                                            ,CAST(SUBSTRING(b.[ID], CHARINDEX('*', b.[ID], 0) + 1, LEN(b.[ID])) as int) as 'LineNbr'
+	                                                                            ,b.[Part_Wo_Gl] as 'PartNbr'
+                                                                                ,CAST(b.[Ln_Bal_Qty] as int) as 'BalQty'
+	                                                                            ,b.[Um_Base] as 'Uom'
 	                                                                            ,ISNULL(b.[D_esc], (SELECT aa.[Description] FROM [dbo].[IM-INIT] aa WHERE aa.[Part_Number] = b.[Part_Wo_Gl])) as 'Description'
-	                                                                            ,b.[Comp]
-                                                                                ,a.[Cust_Nbr]
-	                                                                            ,(SELECT ab.[Name] FROM [dbo].[CM-INIT] ab WHERE ab.[Cust_Nbr] = a.[Cust_Nbr]) as 'Cust_Name'
-	                                                                            ,a.[Cust_Ord]
-                                                                                ,b.[Cust_Part_Nbr]
-	                                                                            ,a.[Credit_Code]
+                                                                                ,a.[Cust_Nbr] as 'CustNbr'
+	                                                                            ,(SELECT ab.[Name] FROM [dbo].[CM-INIT] ab WHERE ab.[Cust_Nbr] = a.[Cust_Nbr]) as 'CustName'
+                                                                                ,b.[Cust_Part_Nbr] as 'CustPartNbr'
+	                                                                            ,a.[Credit_Code] as 'CredStatus'
 	                                                                            ,CASE WHEN a.[Ord_Type] = 'FSE' OR a.[Ord_Type] LIKE '%DE' THEN 'EOP' ELSE a.[Ord_Type] END as 'Type'
-	                                                                            ,a.[Frght_Type]
-	                                                                            ,a.[Jump_Reason]
-	                                                                            ,a.[Ship_To_Name]
-	                                                                            ,a.[Ship_To_Addr1]
-	                                                                            ,a.[Ship_To_Addr2]
-	                                                                            ,a.[Ship_To_City]
-	                                                                            ,a.[Ship_To_State]
-	                                                                            ,a.[Ship_To_Zip]
-	                                                                            ,ISNULL(a.[Ship_To_Country], 'US') as 'Ship_To_Country'
-	                                                                            ,CAST(a.[Change_Date] as date) as 'Change_Date'
-	                                                                            ,CAST(a.[Date_Added] as date) as 'Date_Added'
-	                                                                            ,CAST(a.[Delivery_Date] as date) as 'Delivery_Date'
-	                                                                            ,CAST(a.[Cust_Promise_Date] as date) as 'Cust_Promise_Date'
-	                                                                            ,CAST(a.[Requested_Date] as date) as 'Requested_Date'
-	                                                                            ,CAST(a.[Promise_Date20] as date) as 'Promise_Date20'
-	                                                                            ,CAST(a.[Commit_Ship_Date] as date) as 'Commit_Ship_Date'
+	                                                                            ,CAST(CASE WHEN a.[Jump_Reason] IS NULL
+		                                                                            THEN 0
+		                                                                            ELSE 1
+	                                                                            END as int) as 'Expedited'
+	                                                                            ,a.[Ship_To_Name] as 'ShipName'
+	                                                                            ,a.[Ship_To_Addr1] as 'ShipAddr1'
+	                                                                            ,a.[Ship_To_Addr2] as 'ShipAddr2'
+	                                                                            ,a.[Ship_To_City] as 'ShipCity'
+	                                                                            ,a.[Ship_To_State] as 'ShipState'
+	                                                                            ,a.[Ship_To_Zip] as 'ShipZip'
+	                                                                            ,ISNULL(a.[Ship_To_Country], 'US') as 'ShipCountry'
+	                                                                            ,CAST(a.[Change_Date] as date) as 'ChangeDate'
+	                                                                            ,CAST(a.[Date_Added] as date) as 'DateAdded'
+	                                                                            ,CAST(a.[Delivery_Date] as date) as 'DelDate'
+	                                                                            ,CAST(a.[Cust_Promise_Date] as date) as 'PromDate'
+	                                                                            ,CAST(a.[Requested_Date] as date) as 'ReqDate'
+	                                                                            ,CAST(a.[Promise_Date20] as date) as 'Prom20Date'
+	                                                                            ,CAST(a.[Commit_Ship_Date] as date) as 'ShipDate'
+                                                                                ,(SELECT ISNULL(aa.[Load_Pattern], '') FROM [dbo].[CM-INIT] aa WHERE aa.[Cust_Nbr] = a.[Cust_Nbr]) AS 'LoadPattern'
+                                                                                ,CASE WHEN b.[Make_To_Order] = 'Y' THEN 1 ELSE 0 END as 'MTO'
                                                                             FROM
 	                                                                            [dbo].[SOH-INIT] a
                                                                             RIGHT JOIN
-	                                                                            [dbo].[SOD-INIT] b ON b.[So_Nbr] = a.[So_Nbr]
+	                                                                            [dbo].[SOD-INIT] b ON SUBSTRING(b.[ID], 0, CHARINDEX('*', b.[ID], 0)) = a.[So_Nbr]
                                                                             WHERE
 	                                                                            a.[Order_Status] IS NULL AND b.[Comp] = 'O' AND (b.[Part_Wo_Gl] IS NOT NULL OR b.[D_esc] IS NOT NULL) AND a.[So_Nbr] IS NOT NULL
                                                                             ORDER BY
@@ -224,6 +256,50 @@ namespace SFW.Model
                 {
                     throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
                 }
+            }
+        }
+
+        /// <summary>
+        /// Get a list of the differnt types of sales orders
+        /// </summary>
+        /// <param name="sqlCon">Sql Connection to use</param>
+        /// <returns>list of sales order types as IList<string></returns>
+        public static IList<string> GetOrderTypeList(SqlConnection sqlCon)
+        {
+            var _rtnList = new List<string>();
+            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
+            {
+                try
+                {
+                    using (SqlCommand _cmd = new SqlCommand(@"SELECT
+	                                                            DISTINCT(CASE WHEN a.[Ord_Type] = 'FSE' OR a.[Ord_Type] LIKE '%DE' THEN 'EOP' ELSE a.[Ord_Type] END) as 'Type'     
+                                                            FROM
+	                                                            [dbo].[SOH-INIT] a
+                                                            WHERE
+	                                                            a.[Order_Status] IS NULL", sqlCon))
+                    {
+                        using (SqlDataReader reader = _cmd.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                _rtnList.Add(reader.SafeGetString("Type"));
+                            }
+                        }
+                    }
+                    return _rtnList;
+                }
+                catch (SqlException sqlEx)
+                {
+                    throw sqlEx;
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception(ex.Message);
+                }
+            }
+            else
+            {
+                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
             }
         }
     }

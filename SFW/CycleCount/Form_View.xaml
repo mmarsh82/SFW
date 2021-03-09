@@ -6,8 +6,8 @@
              xmlns:cmd="clr-namespace:SFW.Commands">
 
     <UserControl.Resources>
+        <cmd:ViewLoad x:Key="ViewLoadCommand"/>
         <cvtr:StringToVisibility x:Key="StringToVisConverter"/>
-        <cmd:PartInformation x:Key="PartInfoCommand"/>
         <cvtr:NegativeIntToBool x:Key="NegIntToBoolConverter"/>
         <cvtr:BoolToBorderColor x:Key="BoolToBorderConverter"/>
     </UserControl.Resources>
@@ -73,7 +73,7 @@
 
                 <Button Margin="5"
                         Width="50"
-                        Command="{StaticResource PartInfoCommand}"
+                        Command="{StaticResource ViewLoadCommand}"
                         CommandParameter="{Binding CountTran.PartNumber}"
                         Style="{DynamicResource DefaultButton}">
                     <Image Source="/SFW;component/Icons/Search.ico"

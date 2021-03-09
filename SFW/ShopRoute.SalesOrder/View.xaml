@@ -15,7 +15,7 @@
                 <cvtr:StringToHeight x:Key="StringToHeightConverter"/>
                 <cmd:M2kLookQuery x:Key="ShowQuery"/>
                 <cmd:PartSearch x:Key="PartSearchICommand"/>
-                <cmd:PartInformation x:Key="PartInfoCommand"/>
+                <cmd:ViewLoad x:Key="ViewLoadCommand"/>
                 <cmd:SetUpInformation x:Key="SetupCommand" />
                 <cmd:TrimmingInformation x:Key="TrimSetupICommand"/>
                 <cmd:M2kWipReceipt x:Key="WipCommand" />
@@ -163,7 +163,7 @@
 
                     <Button Margin="0,5,10,5"
                             Width="50"
-                            Command="{StaticResource PartInfoCommand}"
+                            Command="{StaticResource ViewLoadCommand}"
                             CommandParameter="{Binding Part.SkuNumber}"
                             Style="{DynamicResource DefaultButton}">
                         <Image Source="/SFW;component/Icons/Search.ico"

@@ -15,9 +15,9 @@
                 <cvtr:DateToVisibility x:Key="DateToVisConverter" />
                 <cvtr:StringToHeight x:Key="StringToHeightConverter"/>
                 <cvtr:MultiValueParameter x:Key="MultiValConverter"/>
+                <cmd:ViewLoad x:Key="ViewLoadCommand" />
                 <cmd:M2kLookQuery x:Key="ShowQuery"/>
                 <cmd:PartSearch x:Key="PartSearchICommand"/>
-                <cmd:PartInformation x:Key="PartInfoCommand"/>
                 <cmd:SetUpInformation x:Key="SetupCommand" />
                 <cmd:TrimmingInformation x:Key="TrimSetupICommand"/>
                 <cmd:M2kWipReceipt x:Key="WipCommand" />
@@ -75,7 +75,7 @@
                     <Button Content="ITH"
                             FontSize="16"
                             Visibility="{Binding CanCheckHistory, Converter={StaticResource BoolToVisConverter}}"
-                            Command="{StaticResource PartInfoCommand}"
+                            Command="{StaticResource ViewLoadCommand}"
                             CommandParameter="{Binding ShopOrder}"
                             Style="{DynamicResource MenuButtonStyle}" />
                     <Menu Style="{DynamicResource ModernMenu}"
@@ -191,7 +191,7 @@
 
                     <Button Margin="0,0,10,0"
                             Width="50"
-                            Command="{StaticResource PartInfoCommand}"
+                            Command="{StaticResource ViewLoadCommand}"
                             CommandParameter="{Binding ShopOrder.SkuNumber}"
                             Style="{DynamicResource DefaultButton}">
                         <Image Source="/SFW;component/Icons/Search.ico"
@@ -688,7 +688,7 @@
                                 <DataGridTemplateColumn>
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
-                                            <Button Command="{StaticResource PartInfoCommand}"
+                                            <Button Command="{StaticResource ViewLoadCommand}"
                                                     CommandParameter="{Binding CompNumber}"
                                                     Height="20"
                                                     Width="50"
@@ -867,7 +867,7 @@
                                 <DataGridTemplateColumn>
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
-                                            <Button Command="{StaticResource PartInfoCommand}"
+                                            <Button Command="{StaticResource ViewLoadCommand}"
                                                     CommandParameter="{Binding CompNumber}"
                                                     Height="20"
                                                     Width="50"
@@ -880,83 +880,6 @@
                             </DataGrid.Columns>
 
                         </DataGrid>
-
-                    </TabItem>
-                    
-                    <!--#endregion-->
-
-                    <!--#region Report Sheet Tab-->
-
-                    <TabItem Header="Report Sheet"
-                             FontSize="20"
-                             FontWeight="Bold"
-                             Foreground="#FF135185"
-                             HorizontalAlignment="Left"
-                             VerticalAlignment="Center"
-                             Background="Transparent"
-                             BorderThickness="0"
-                             Visibility="Collapsed">
-
-                        <Grid>
-
-                            <Control HorizontalAlignment="Center"
-                                     VerticalAlignment="Center"
-                                     Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisConverter}}"
-                                     Background="Transparent"
-                                     Style="{DynamicResource BusyAnimationStyle}" />
-
-                            <DataGrid ItemsSource="{Binding ReportView}"
-                                      FontSize="15"
-                                      HorizontalAlignment="Left"
-                                      VerticalAlignment="Top"
-                                      IsReadOnly="True"
-                                      AlternatingRowBackground="LightSteelBlue"
-                                      AutoGenerateColumns="False"
-                                      VerticalContentAlignment="Center"
-                                      HorizontalContentAlignment="Center"
-                                      Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}">
-                                <DataGrid.Columns>
-
-                                    <DataGridTextColumn Header="Date"
-                                                        Binding="{Binding Date, StringFormat=d}" />
-                                    <DataGridTextColumn Header="Shift"
-                                                        Binding="{Binding Shift}" />
-                                    <DataGridTextColumn Header="Name"
-                                                        Binding="{Binding Name}" />
-                                    <DataGridTextColumn Header="Qty. Good"
-                                                        Binding="{Binding QtyGood}" />
-                                    <DataGridTextColumn Header="From Lot Nbr."
-                                                        Binding="{Binding FromLot}" />
-                                    <DataGridTextColumn Header="To Lot Nbr."
-                                                        Binding="{Binding ToLot}" />
-                                    <DataGridTextColumn Header="From Part Nbr."
-                                                        Binding="{Binding FromPart}" />
-                                    <DataGridTextColumn Header="BOM Scrap"
-                                                        Binding="{Binding BomScrap}" />
-                                    <DataGridTextColumn Header="BOM QIR"
-                                                        Binding="{Binding BomQir}" />
-                                    <DataGridTextColumn Header="Part Scrap"
-                                                        Binding="{Binding PartScrap}" />
-                                    <DataGridTextColumn Header="Part QIR"
-                                                        Binding="{Binding PartQir}" />
-                                    
-                                </DataGrid.Columns>
-                                <DataGrid.CellStyle>
-                                    <Style TargetType="{x:Type DataGridCell}">
-                                        <Setter Property="Template">
-                                            <Setter.Value>
-                                                <ControlTemplate TargetType="{x:Type DataGridCell}">
-                                                    <Grid Background="{TemplateBinding Background}">
-                                                        <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Center" />
-                                                    </Grid>
-                                                </ControlTemplate>
-                                            </Setter.Value>
-                                        </Setter>
-                                    </Style>
-                                </DataGrid.CellStyle>
-                            </DataGrid>
-
-                        </Grid>
 
                     </TabItem>
                     

@@ -1,7 +1,8 @@
 ﻿using M2kClient;
 using SFW.Controls;
+using SFW.Queries;
 using System;
-using System.Data;
+using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Input;
 
@@ -11,6 +12,8 @@ namespace SFW.Commands
 {
     public class ViewLoad : ICommand
     {
+        public static IList<int> HistoryList { get; set; }
+
         public event EventHandler CanExecuteChanged;
 
         /// <summary>
@@ -19,15 +22,47 @@ namespace SFW.Commands
         /// <param name="parameter">View to Load</param>
         public void Execute(object parameter)
         {
+            if (HistoryList == null)
+            {
+                HistoryList = new List<int>();
+            }
             try
             {
                 var _temp = App.AppSqlCon.Database;
-                switch (parameter.ToString())
+                var _wo = new object();
+                if (parameter.GetType() == typeof(Model.WorkOrder) || parameter.ToString().Length > 3)
                 {
-                    case "Back":
-                        WorkSpaceDock.SwitchView(App.SiteNumber, null);
+                    _wo = parameter;
+                    parameter = 3;
+                }
+                var _view = int.TryParse(parameter.ToString(), out int i) ? i : App.SiteNumber;
+                var _viewModel = new object();
+                _viewModel = null;
+                //Handling the back function
+                if (_view == -1)
+                {
+                    _view = App.SiteNumber;
+                    if (HistoryList.Count > 0 && HistoryList.Count - 1 > 0)
+                    {
+                        HistoryList.RemoveAt(HistoryList.Count - 1);
+                        _view = HistoryList[HistoryList.Count - 1];
+                    }
+                }
+                if (_view == App.SiteNumber)
+                {
+                    HistoryList.Clear();
+                }
+                switch (_view)
+                {
+                    //The part information command calls can either send a work order object, part number or a null variable.  Need to handle each case
+                    case 3:
+                        if (_wo != null)
+                        {
+                            _viewModel = parameter.GetType() == typeof(Model.WorkOrder) ? new PartInfo_ViewModel((Model.WorkOrder)_wo) : new PartInfo_ViewModel(_wo.ToString());
+                        }
                         break;
-                    case "Schedule":
+                    //Handles the refresh schedule calls
+                    case -2:
                         if (!RefreshTimer.IsRefreshing)
                         {
                             RefreshTimer.RefreshTimerTick();
@@ -37,51 +72,32 @@ namespace SFW.Commands
                             MessageBox.Show("The work load is currently refreshing.");
                         }
                         break;
-                    case "ClosedSched":
-                        WorkSpaceDock.SwitchView(6, new Schedule.Closed.ViewModel());
+                    //Currently the closed work orders are site agnostic so need to load the viewmodel at the time of the call
+                    case 6:
+                        _viewModel= new Schedule.Closed.ViewModel();
                         break;
-                    case "Scheduler":
-                        WorkSpaceDock.SwitchView(2, new Scheduler.ViewModel());
-                        break;
-                    case "CycleCount":
-                        WorkSpaceDock.SwitchView(4, null);
-                        break;
-                    case "SalesSched":
-                        WorkSpaceDock.SwitchView(9, null);
-                        break;
-                    case "Admin":
-                        WorkSpaceDock.SwitchView(5, null);
-                        break;
-                    case "SiteCsi":
+                    //Each site has its own build out for the database change
+                    case 0:
                         if (!App.DatabaseChange("CSI_MAIN"))
                         {
                             App.DatabaseChange(_temp);
                             return;
                         }
                         App.ErpCon.DatabaseChange(Database.CSI);
-                        WorkSpaceDock.SwitchView(0, null);
                         break;
-                    case "SiteWcco":
+                    case 1:
                         if (!App.DatabaseChange("WCCO_MAIN"))
                         {
                             App.DatabaseChange(_temp);
                             return;
                         }
                         App.ErpCon.DatabaseChange(Database.WCCO);
-                        WorkSpaceDock.SwitchView(1, null);
                         break;
-                    default:
-                        WorkSpaceDock.SwitchView(App.SiteNumber, null);
-                        var _tempDock = App.SiteNumber == 0 ? WorkSpaceDock.CsiDock : WorkSpaceDock.WccoDock;
-                        if (int.TryParse(parameter.ToString(), out int i))
-                        {
-                            ((DataView)((Schedule.ViewModel)((Schedule.View)_tempDock.Children[0]).DataContext).ScheduleView.SourceCollection).RowFilter = $"MachineNumber = {parameter}";
-                        }
-                        else
-                        {
-                            ((DataView)((Schedule.ViewModel)((Schedule.View)_tempDock.Children[0]).DataContext).ScheduleView.SourceCollection).RowFilter = $"MachineGroup = '{parameter}'";
-                        }
-                        break;
+                }
+                if(_view != -2)
+                {
+                    HistoryList.Add(_view);
+                    WorkSpaceDock.SwitchView(_view, _viewModel);
                 }
             }
             catch (Exception)

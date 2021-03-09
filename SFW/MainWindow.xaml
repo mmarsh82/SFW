@@ -9,7 +9,6 @@
     Title="Shop Floor Workbench" MinWidth="1000" MinHeight="400" WindowState="Maximized" WindowStartupLocation="CenterScreen" Closing="SourceWindow_Closing">
 
     <Window.Resources>
-        <cmd:PartInformation x:Key="PartInfoICommand"/>
         <cmd:ViewLoad x:Key="ViewLoadICommand"/>
         <cmd:SafeShutdown x:Key="ExitICommand"/>
         <cmd:ShowLogInWindow x:Key="LogInICommand" />
@@ -18,7 +17,6 @@
         <cmd:UnplanScrap x:Key="UnplanScrapICommand"/>
         <cmd:SplitRoll x:Key="RollSplitICommand"/>
         <cmd:ShowNewWindow x:Key="ShowWindowICommand"/>
-        <cmd:PartTrace x:Key="PartTraceICommand"/>
         <cvtr:SiteNumberToBool x:Key="SiteToBoolConverter"/>
         <cvtr:BoolToVisibility x:Key="BoolToVisConverter" />
         <cvtr:SiteToVisibility x:Key="SiteToVisConverter"/>
@@ -30,24 +28,26 @@
         <KeyBinding Gesture="Esc" Command="{StaticResource LogInICommand}" CommandParameter="out"/>
         <KeyBinding Gesture="F5"
                     Command="{StaticResource ViewLoadICommand}"
-                    CommandParameter="Schedule" />
-        <KeyBinding Gesture="Alt+1" Command="{StaticResource ViewLoadICommand}" CommandParameter="SiteCsi"/>
-        <KeyBinding Gesture="Alt+2" Command="{StaticResource ViewLoadICommand}" CommandParameter="SiteWcco"/>
+                    CommandParameter="-2" />
+        <KeyBinding Gesture="Alt+1" Command="{StaticResource ViewLoadICommand}" CommandParameter="0"/>
+        <KeyBinding Gesture="Alt+2" Command="{StaticResource ViewLoadICommand}" CommandParameter="1"/>
         <KeyBinding Gesture="Alt+I"
-                    Command="{StaticResource PartInfoICommand}" />
+                    Command="{StaticResource ViewLoadICommand}"
+                    CommandParameter="3"/>
         <KeyBinding Gesture="Alt+R"
                     Command="{StaticResource RollSplitICommand}" />
         <KeyBinding Gesture="Shift+Ctrl+C"
                     Command="{StaticResource ViewLoadICommand}"
-                    CommandParameter="ClosedSched" />
+                    CommandParameter="6" />
         <KeyBinding Gesture="Shift+Ctrl+S"
                     Command="{StaticResource ViewLoadICommand}"
-                    CommandParameter="SalesSched" />
+                    CommandParameter="9" />
         <KeyBinding Gesture="Alt+P"
                     Command="{StaticResource ShowWindowICommand}"
                     CommandParameter="SFW.Queries.PartLabel_View"/>
         <KeyBinding Gesture="Alt+T"
-                    Command="{StaticResource PartTraceICommand}" />
+                    Command="{StaticResource ViewLoadICommand}"
+                    CommandParameter="8"/>
     </Window.InputBindings>
 
     <Grid>
@@ -88,30 +88,30 @@
             <MenuItem Header="View">
                 <MenuItem Header="Refresh Schedule"
                           Command="{StaticResource ViewLoadICommand}"
-                          CommandParameter="Schedule"
+                          CommandParameter="-2"
                           InputGestureText="F5"/>
                 <MenuItem Header="Site"
                           Visibility="{Binding Path=(local:CurrentUser.CanSchedule), Converter={StaticResource BoolToVisConverter}}">
                     <MenuItem Header="CSI"
                               Command="{StaticResource ViewLoadICommand}"
-                              CommandParameter="SiteCsi"
+                              CommandParameter="0"
                               IsCheckable="True"
                               IsChecked="{Binding Path=(local:App.SiteNumber), Converter={StaticResource SiteToBoolConverter}, ConverterParameter=CSI}"
                               InputGestureText="Alt+1"/>
                     <MenuItem Header="WCCO"
                               Command="{StaticResource ViewLoadICommand}"
-                              CommandParameter="SiteWcco"
+                              CommandParameter="1"
                               IsCheckable="True"
                               IsChecked="{Binding Path=(local:App.SiteNumber), Converter={StaticResource SiteToBoolConverter}, ConverterParameter=WCCO}"
                               InputGestureText="Alt+2"/>
                 </MenuItem>
                 <MenuItem Header="Closed Work Orders"
                           Command="{StaticResource ViewLoadICommand}"
-                          CommandParameter="ClosedSched"
+                          CommandParameter="6"
                           InputGestureText="Shift+Ctrl+C"/>
                 <MenuItem Header="Sales Orders"
                           Command="{StaticResource ViewLoadICommand}"
-                          CommandParameter="SalesSched"
+                          CommandParameter="9"
                           InputGestureText="Shift+Ctrl+S">
                     <MenuItem.Visibility>
                         <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="i">
@@ -122,12 +122,13 @@
                 </MenuItem>
                 <MenuItem Header="Cycle Count"
                           Command="{StaticResource ViewLoadICommand}"
-                          CommandParameter="CycleCount"
+                          CommandParameter="4"
                           Visibility="{Binding Path=(local:CurrentUser.IsInventoryControl), Converter={StaticResource BoolToVisConverter}}"/>
             </MenuItem>
             <MenuItem Header="Tools">
                 <MenuItem Header="Part Information"
-                          Command="{StaticResource PartInfoICommand}"
+                          Command="{StaticResource ViewLoadICommand}"
+                          CommandParameter="3"
                           InputGestureText="Alt+I"/>
                 <MenuItem Header="Print Label"
                           Command="{StaticResource ShowWindowICommand}"
@@ -138,7 +139,8 @@
                           Visibility="{Binding Path=(local:CurrentUser.IsSupervisor), Converter={StaticResource BoolToVisConverter}}"
                           InputGestureText="Alt+R"/>
                 <MenuItem Header="Print Search"
-                          Command="{StaticResource PartTraceICommand}"
+                          Command="{StaticResource ViewLoadICommand}"
+                          CommandParameter="8"
                           InputGestureText="Alt+T"/>
 
             </MenuItem>
@@ -164,7 +166,7 @@
                           IsChecked="{Binding InTraining, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                 <MenuItem Header="Modify App"
                           Command="{StaticResource ViewLoadICommand}"
-                          CommandParameter="Admin"/>
+                          CommandParameter="5"/>
                 <MenuItem Header="Dev Testing"
                           Command="{StaticResource TestICommand}"/>
             </MenuItem>

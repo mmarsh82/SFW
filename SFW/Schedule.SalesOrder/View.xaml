@@ -8,7 +8,7 @@
              xmlns:cvtr="clr-namespace:SFW.Converters">
     
     <UserControl.Resources>
-        <cmd:ViewLoad x:Key="Back" />
+        <cmd:ViewLoad x:Key="ViewLoadCommand" />
         <cmd:PartSearch x:Key="PartSearchCommand"/>
         <cvtr:BoolToVisibility x:Key="BoolToVisConverter"/>
         <cvtr:WorkOrderNumber x:Key="WorkOrderConverter"/>
@@ -32,13 +32,13 @@
             <Button Grid.Row="0" Grid.Column="0"
                 Background="Transparent"
                 BorderThickness="0"
-                Command="{StaticResource Back}"
-                CommandParameter="Back"
+                Command="{StaticResource ViewLoadCommand}"
+                CommandParameter="-1"
                 HorizontalAlignment="Left">
                 <Button.Content>
                     <StackPanel Orientation="Horizontal">
                         <Image Source="/SFW;component/Icons/BackArrow.ico" />
-                        <TextBlock Text="Back to Schedule"
+                        <TextBlock Text="Back"
                                VerticalAlignment="Center"
                                FontSize="16"
                                FontWeight="Bold"
@@ -60,6 +60,30 @@
                      Margin="5"
                      Background="LightGray"
                      Style="{DynamicResource OptionalTextBox}" />
+
+            <TextBlock Text="Type:"
+                       FontSize="18"
+                       FontWeight="Bold"
+                       TextDecorations="Underline"
+                       Margin="10,0,0,0"
+                       VerticalAlignment="Center" />
+            <ComboBox ItemsSource="{Binding OrderTypeList}"
+                      SelectedItem="{Binding SelectedType, NotifyOnSourceUpdated=True, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                      Width="60"
+                      FontSize="14"
+                      Margin="5"
+                      FontWeight="Bold"/>
+            <CheckBox IsChecked="{Binding PickSelected}"
+                      VerticalAlignment="Center"
+                      FontSize="18"
+                      Margin="10,0,0,0"
+                      Style="{DynamicResource SliderCheckBox}">
+                <CheckBox.Content>
+                    <TextBlock Text="Pick:"
+                               TextDecorations="Underline"/>
+                </CheckBox.Content>
+            </CheckBox>
+            
         </StackPanel>
 
         <DataGrid x:Name="SalesSchedule"
@@ -86,24 +110,28 @@
                                 <Grid>
                                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Left">
                                         <TextBlock Text="{Binding ID}" FontSize="24" FontWeight="Bold" Margin="10,0,0,0"/>
+                                        <Image Source="/SFW;component/Icons/Warning.ico"
+                                               Visibility="{Binding Expedited, Converter={StaticResource BoolToVisConverter}}"
+                                               ToolTip="Sales order has been expedited."
+                                               Margin="10,0,0,0" Height="25" Width="25"/>
                                     </StackPanel>
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                                        <TextBlock Text="{Binding Part_Wo_Gl}" VerticalAlignment="Center"/>
+                                        <TextBlock Text="{Binding PartNbr}" VerticalAlignment="Center"/>
                                         <TextBlock Text="{Binding Description}" Margin="10,0,10,0" VerticalAlignment="Center"/>
                                     </StackPanel>
                                 </Grid>
                                 <Grid>
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
                                         <TextBlock Text="Commit:" TextDecorations="Underline"/>
-                                        <TextBlock Text="{Binding Commit_Ship_Date, StringFormat=d}" Margin="5,0,0,0"/>
+                                        <TextBlock Text="{Binding ShipDate, StringFormat=d}" Margin="5,0,0,0"/>
                                         <TextBlock Text="Promise:" Margin="20,0,0,0" TextDecorations="Underline"/>
-                                        <TextBlock Text="{Binding Promise_Date20, StringFormat=d}" Margin="5,0,0,0"/>
+                                        <TextBlock Text="{Binding Prom20Date, StringFormat=d}" Margin="5,0,0,0"/>
                                         <TextBlock Text="Requested:" Margin="20,0,0,0" TextDecorations="Underline"/>
-                                        <TextBlock Text="{Binding Requested_Date, StringFormat=d}" Margin="5,0,0,0"/>
+                                        <TextBlock Text="{Binding ReqDate, StringFormat=d}" Margin="5,0,0,0"/>
                                     </StackPanel>
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                                        <TextBlock Text="{Binding Ln_Bal_Qty, StringFormat=n0}"/>
-                                        <TextBlock Text="{Binding Um_Base}" Margin="5,0,5,0"/>
+                                        <TextBlock Text="{Binding BalQty, StringFormat=n0}"/>
+                                        <TextBlock Text="{Binding Uom}" Margin="5,0,5,0"/>
                                     </StackPanel>
                                 </Grid>
                             </StackPanel>

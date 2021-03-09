@@ -10,6 +10,7 @@ namespace SFW.Scheduler
         public View()
         {
             InitializeComponent();
+            DataContext = new ViewModel();
         }
     }
 }

@@ -21,7 +21,7 @@
 
         <Grid.Resources>
             <cmd:M2kLookQuery x:Key="LookQueryCommand" />
-            <cmd:ViewLoad x:Key="Back" />
+            <cmd:ViewLoad x:Key="ViewLoadCommand" />
         </Grid.Resources>
 
         <Grid.RowDefinitions>
@@ -43,12 +43,12 @@
                 VerticalAlignment="Center"
                 Background="Transparent"
                 BorderThickness="0"
-                Command="{StaticResource Back}"
-                CommandParameter="Back">
+                Command="{StaticResource ViewLoadCommand}"
+                CommandParameter="-1">
             <Button.Content>
                 <StackPanel Orientation="Horizontal">
                     <Image Source="/SFW;component/Icons/BackArrow.ico" />
-                    <TextBlock Text="Back to Schedule"
+                    <TextBlock Text="Back"
                                VerticalAlignment="Center"
                                FontSize="16"
                                FontWeight="Bold"

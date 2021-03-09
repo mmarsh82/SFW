@@ -8,7 +8,7 @@
              xmlns:cvtr="clr-namespace:SFW.Converters">
 
     <UserControl.Resources>
-        <cmd:ViewLoad x:Key="Back" />
+        <cmd:ViewLoad x:Key="ViewLoadCommand" />
         <cmd:PartSearch x:Key="PartSearchCommand"/>
         <cvtr:BoolToVisibility x:Key="BoolToVisConverter"/>
         <cvtr:WorkOrderNumber x:Key="WorkOrderConverter"/>
@@ -40,13 +40,13 @@
             <Button Grid.Row="0" Grid.Column="0"
                 Background="Transparent"
                 BorderThickness="0"
-                Command="{StaticResource Back}"
-                CommandParameter="Back"
+                Command="{StaticResource ViewLoadCommand}"
+                CommandParameter="-1"
                 HorizontalAlignment="Left">
                 <Button.Content>
                     <StackPanel Orientation="Horizontal">
                         <Image Source="/SFW;component/Icons/BackArrow.ico" />
-                        <TextBlock Text="Back to Schedule"
+                        <TextBlock Text="Back"
                                VerticalAlignment="Center"
                                FontSize="16"
                                FontWeight="Bold"

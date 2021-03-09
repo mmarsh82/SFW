@@ -30,8 +30,8 @@
     <PublisherName>Michael Marsh</PublisherName>
     <SuiteName>WCCO Belting Inc.</SuiteName>
     <AutorunEnabled>true</AutorunEnabled>
-    <ApplicationRevision>2029</ApplicationRevision>
-    <ApplicationVersion>1.0.283.2029</ApplicationVersion>
+    <ApplicationRevision>2053</ApplicationRevision>
+    <ApplicationVersion>1.0.285.2053</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <CreateDesktopShortcut>true</CreateDesktopShortcut>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -123,7 +123,6 @@
     <Compile Include="Commands\ClearPriority.cs" />
     <Compile Include="Commands\DevTesting.cs" />
     <Compile Include="Commands\M2kWipReceipt.cs" />
-    <Compile Include="Commands\PartTrace.cs" />
     <Compile Include="Commands\PrintBarLabels.cs" />
     <Compile Include="Commands\PrintUserControl.cs" />
     <Compile Include="Commands\SetUpInformation.cs" />
@@ -220,7 +219,6 @@
     <Compile Include="RefreshTimer.cs" />
     <Compile Include="Behaviors\ExpanderState.cs" />
     <Compile Include="Commands\M2kLookQuery.cs" />
-    <Compile Include="Commands\PartInformation.cs" />
     <Compile Include="Commands\PartSearch.cs" />
     <Compile Include="Commands\SafeShutdown.cs" />
     <Compile Include="Commands\ViewLoad.cs" />
@@ -364,6 +362,10 @@
       <SubType>Code</SubType>
     </Compile>
     <Page Include="ShopRoute\View.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Styles\CheckBox.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
