@@ -124,13 +124,43 @@
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
                                         <TextBlock Text="Commit:" TextDecorations="Underline"/>
                                         <TextBlock Text="{Binding ShipDate, StringFormat=d}" Margin="5,0,0,0"/>
-                                        <TextBlock Text="Promise:" Margin="20,0,0,0" TextDecorations="Underline"/>
-                                        <TextBlock Text="{Binding Prom20Date, StringFormat=d}" Margin="5,0,0,0"/>
                                         <TextBlock Text="Requested:" Margin="20,0,0,0" TextDecorations="Underline"/>
                                         <TextBlock Text="{Binding ReqDate, StringFormat=d}" Margin="5,0,0,0"/>
                                     </StackPanel>
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                                        <TextBlock Text="{Binding BalQty, StringFormat=n0}"/>
+                                        <TextBlock Text="Need" Margin="0,0,5,0">
+                                            <TextBlock.Visibility>
+                                                <MultiBinding Converter="{StaticResource IntEqualConverter}">
+                                                    <Binding Path="BaseQty"/>
+                                                    <Binding Path="BalQty"/>
+                                                </MultiBinding>
+                                            </TextBlock.Visibility>
+                                        </TextBlock>
+                                        <TextBlock Text="{Binding BalQty, StringFormat=n0}">
+                                            <TextBlock.Visibility>
+                                                <MultiBinding Converter="{StaticResource IntEqualConverter}">
+                                                    <Binding Path="BaseQty"/>
+                                                    <Binding Path="BalQty"/>
+                                                </MultiBinding>
+                                            </TextBlock.Visibility>
+                                        </TextBlock>
+                                        <TextBlock Text="{Binding Uom}" Margin="5,0,0,0">
+                                            <TextBlock.Visibility>
+                                                <MultiBinding Converter="{StaticResource IntEqualConverter}">
+                                                    <Binding Path="BaseQty"/>
+                                                    <Binding Path="BalQty"/>
+                                                </MultiBinding>
+                                            </TextBlock.Visibility>
+                                        </TextBlock>
+                                        <TextBlock Text="of">
+                                            <TextBlock.Visibility>
+                                                <MultiBinding Converter="{StaticResource IntEqualConverter}">
+                                                    <Binding Path="BaseQty"/>
+                                                    <Binding Path="BalQty"/>
+                                                </MultiBinding>
+                                            </TextBlock.Visibility>
+                                        </TextBlock>
+                                        <TextBlock Text="{Binding BaseQty, StringFormat=n0}" Margin="5,0,0,0"/>
                                         <TextBlock Text="{Binding Uom}" Margin="5,0,5,0"/>
                                     </StackPanel>
                                 </Grid>

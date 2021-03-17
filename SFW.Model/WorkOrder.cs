@@ -85,7 +85,7 @@ namespace SFW.Model
                         CustomerNumber = dRow.Field<string>("Cust_Nbr"),
                         CustomerPart = dRow.Field<string>("Cust_Part_Nbr"),
                         LineNumber = Convert.ToInt32(_so[1]),
-                        LineQuantity = dRow.SafeGetField<int>("Ln_Bal_Qty"),
+                        LineBalQuantity = dRow.SafeGetField<int>("Ln_Bal_Qty"),
                         LoadPattern = dRow.Field<string>("LoadPattern").ToUpper() == "PLASTIC"
                      };
                     SalesOrder.GetInternalComments(sqlCon);

@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace SFW.ShopRoute.SalesOrder
+﻿namespace SFW.ShopRoute.SalesOrder
 {
     public class ViewModel : ViewModelBase
     {
@@ -17,6 +11,10 @@ namespace SFW.ShopRoute.SalesOrder
             set
             {
                 _order = value;
+                if (!string.IsNullOrEmpty(value.SalesNumber))
+                {
+                    Order.LineList = Model.SalesOrder.GetLineList(value.SalesNumber, App.AppSqlCon, Order.LineNumber);
+                }
                 OnPropertyChanged(nameof(Order));
             }
         }

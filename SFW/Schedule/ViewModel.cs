@@ -1,6 +1,5 @@
 ﻿using M2kClient;
 using SFW.Commands;
-using SFW.Controls;
 using SFW.Converters;
 using SFW.Helpers;
 using SFW.Model;
@@ -29,30 +28,25 @@ namespace SFW.Schedule
             get { return _selectedWO; }
             set
             {
-                if (VMDataBase == App.AppSqlCon.Database)
+                var _siteNbr = VMDataBase == "CSI_MAIN" ? 0 : 1;
+                _selectedWO = value;
+                if (value != null)
                 {
-                    _selectedWO = value;
-                    var _tempDock = App.SiteNumber == 0 ? WorkSpaceDock.CsiDock : WorkSpaceDock.WccoDock;
-                    if (value != null)
+                    var _wo = new WorkOrder(value.Row, _siteNbr, App.GlobalConfig.First(o => $"{o.Site}_MAIN" == VMDataBase).WI, App.AppSqlCon);
+                    if (!int.TryParse(_wo.EngStatus, out int i))
                     {
-                        var _wo = new WorkOrder(value.Row, App.SiteNumber, App.GlobalConfig.First(o => $"{o.Site}_MAIN" == App.Site).WI, App.AppSqlCon);
-                        _tempDock.Children.RemoveAt(1);
-                        if (!int.TryParse(_wo.EngStatus, out int i))
-                        {
-                            _tempDock.Children.Insert(1, new ShopRoute.View { DataContext = new ShopRoute.ViewModel(_wo) });
-                        }
-                        else
-                        {
-                            _tempDock.Children.Insert(1, new ShopRoute.QTask.View { DataContext = new ShopRoute.QTask.ViewModel(_wo) });
-                        }
+                        Controls.WorkSpaceDock.UpdateChildDock(_siteNbr, 1, new ShopRoute.ViewModel(_wo));
                     }
                     else
                     {
-                        _tempDock.Children.RemoveAt(1);
-                        _tempDock.Children.Insert(1, new ShopRoute.View { DataContext = new ShopRoute.ViewModel() });
+                        Controls.WorkSpaceDock.UpdateChildDock(_siteNbr, 1, new ShopRoute.QTask.ViewModel(_wo));
                     }
-                    OnPropertyChanged(nameof(SelectedWorkOrder));
                 }
+                else
+                {
+                    Controls.WorkSpaceDock.UpdateChildDock(_siteNbr, 1, new ShopRoute.ViewModel());
+                }
+                OnPropertyChanged(nameof(SelectedWorkOrder));
             }
         }
 
@@ -247,9 +241,8 @@ namespace SFW.Schedule
                     ScheduleView.GroupDescriptions.Add(new PropertyGroupDescription("MachineNumber", new WorkCenterNameConverter(MachineList)));
                     if (_oldItem != null && ((DataView)ScheduleView.SourceCollection).Table.AsEnumerable().Any(r => r.Field<string>("WO_Number") == ((DataRowView)_oldItem).Row.Field<string>("WO_Number")))
                     {
-                        var schedList = ((DataView)ScheduleView.SourceCollection).Table.AsEnumerable().ToList();
-                        var listIndex = schedList.FindIndex(r => r.Field<string>("WO_Number") == ((DataRowView)_oldItem).Row.Field<string>("WO_Number"));
-                        ScheduleView.MoveCurrentToPosition(listIndex);
+                        var _index = ScheduleView.IndexOf(_oldItem, "Wo_Number");  
+                        ScheduleView.MoveCurrentToPosition(_index);
                     }
                     else
                     {

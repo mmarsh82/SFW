@@ -140,8 +140,9 @@ namespace SFW.Model
                 WHERE        (a.D_esc <> 'DO NOT USE') AND (c.Status_Flag = 'R' OR
                                             c.Status_Flag = 'A') AND (b.Seq_Complete_Flag IS NULL OR
                                             b.Seq_Complete_Flag = 'N') AND (b.Alt_Seq_Status IS NULL)" :
-                 @"SELECT DISTINCT 
-                         TOP (100) PERCENT b.ID AS WO_Number, CASE WHEN b.[Next_Seq] IS NULL AND b.[Prev_Seq] IS NULL THEN '10' ELSE SUBSTRING(b.[ID], CHARINDEX('*', b.[ID], 0) + 1, LEN(b.[ID])) END AS Operation, 
+                 @"SELECT
+                        DISTINCT b.ID AS WO_Number
+                        ,CASE WHEN b.[Next_Seq] IS NULL AND b.[Prev_Seq] IS NULL THEN '10' ELSE SUBSTRING(b.[ID], CHARINDEX('*', b.[ID], 0) + 1, LEN(b.[ID])) END AS Operation, 
                          a.Wc_Nbr AS MachineNumber, a.Name AS MachineName, a.D_esc AS MachineDesc, a.Work_Ctr_Group AS MachineGroup, 0 AS MachineOrder, ISNULL(b.Qty_Avail, b.Qty_Req - ISNULL(b.Qty_Compl, 0)) AS WO_CurrentQty, 
                          ISNULL(b.Date_Start, '1999-01-01') AS WO_SchedStartDate, ISNULL(b.Date_Act_Start, '1999-01-01') AS WO_ActStartDate, ISNULL(b.Due_Date, b.Date_Start) AS WO_DueDate, CAST(ROUND(b.Mach_Load_Hrs_Rem, 1) AS FLOAT) 
                          AS RunTime, ISNULL(CASE WHEN

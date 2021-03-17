@@ -13,6 +13,7 @@
                 <cvtr:BoolToVisibility x:Key="BoolToVisConverter"/>
                 <cvtr:DateToVisibility x:Key="DateToVisConverter" />
                 <cvtr:StringToHeight x:Key="StringToHeightConverter"/>
+                <cvtr:CountToHeight x:Key="CountToHeightConverter"/>
                 <cmd:M2kLookQuery x:Key="ShowQuery"/>
                 <cmd:PartSearch x:Key="PartSearchICommand"/>
                 <cmd:ViewLoad x:Key="ViewLoadCommand"/>
@@ -40,6 +41,8 @@
                     <RowDefinition x:Name="Row5" Height="{Binding Part.SkuNumber, Converter={StaticResource StringToHeightConverter}, ConverterParameter=L40}"/>
                     <RowDefinition x:Name="Row6" Height="60"/>
                     <RowDefinition x:Name="Row7" Height="{Binding Order.InternalComments, Converter={StaticResource StringToHeightConverter}, ConverterParameter=L30}"/>
+                    <RowDefinition x:Name="Row8" Height="{Binding Order.LineList.Count, Converter={StaticResource CountToHeightConverter}, ConverterParameter=S30}"/>
+                    <RowDefinition x:Name="Row9" Height="{Binding Order.LineList.Count, Converter={StaticResource CountToHeightConverter}}"/>
                 </Grid.RowDefinitions>
 
                 <!--#region Grid.Row 0  Command Array-->
@@ -102,6 +105,16 @@
                                Foreground="#FF135185" />
 
                     <TextBlock Text="{Binding Order.LineNumber}"
+                               FontSize="20"
+                               FontWeight="Bold"
+                               Margin="10,0,0,0" />
+
+                    <TextBlock Text="of"
+                               FontSize="20"
+                               FontWeight="Bold"
+                               Margin="10,0,0,0" />
+
+                    <TextBlock Text="{Binding Order.LineTotalNumber}"
                                FontSize="20"
                                FontWeight="Bold"
                                Margin="10,0,0,0" />
@@ -235,7 +248,7 @@
                                    TextDecorations="Underline"
                                    Foreground="#FF135185"/>
 
-                            <TextBlock Text="{Binding Order.RequestDate, StringFormat=d}"
+                            <TextBlock Text="{Binding Order.DeliveryDate, StringFormat=d}"
                                    FontSize="18"
                                    FontWeight="Bold"
                                    Margin="10,0,0,0"/>
@@ -252,10 +265,15 @@
                                    TextDecorations="Underline"
                                    Foreground="#FF135185"/>
 
-                            <TextBlock Text="{Binding Order.LineQty}"
+                            <TextBlock Text="{Binding Order.LineBaseQuantity}"
                                    FontSize="18"
                                    FontWeight="Bold"
                                    Margin="10,0,0,0"/>
+
+                            <TextBlock Text="{Binding Part.Uom}"
+                                   FontSize="18"
+                                   FontWeight="Bold"
+                                   Margin="5,0,0,0"/>
 
                         </StackPanel>
 
@@ -266,10 +284,15 @@
                                    TextDecorations="Underline"
                                    Foreground="#FF135185"/>
 
-                            <TextBlock Text="{Binding Order.CurrentQty}"
+                            <TextBlock Text="{Binding Order.LineBalQuantity}"
                                    FontSize="18"
                                    FontWeight="Bold"
                                    Margin="10,0,0,0"/>
+
+                            <TextBlock Text="{Binding Part.Uom}"
+                                   FontSize="18"
+                                   FontWeight="Bold"
+                                   Margin="5,0,0,0"/>
 
                         </StackPanel>
                     </StackPanel>
@@ -298,6 +321,89 @@
                     </StackPanel>
 
                 </Grid>
+
+                <!--#endregion-->
+
+                <!--#region Grid.Row 8 Other Line Header-->
+
+                <StackPanel Grid.Row="8"
+                            Orientation="Horizontal">
+
+                    <TextBlock Text="Other Line Items:"
+                               FontSize="20"
+                               FontWeight="Bold"
+                               TextDecorations="UnderLine"
+                               Foreground="#FF135185"/>
+
+                </StackPanel>
+
+                <!--#endregion-->
+
+                <!--#region Grid.Row 9 Other Line Items-->
+
+                <ItemsControl Name="OtherLines"
+                              Grid.Row="9"
+                              ItemsSource="{Binding Path=Order.LineList}"
+                              Margin="20,0,0,0"
+                              FontSize="18"
+                              Background="Transparent"
+                              Foreground="Black"
+                              Focusable="False">
+
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <VirtualizingStackPanel IsItemsHost="True"
+                                                    Orientation="Vertical" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+
+                            <StackPanel Orientation="Vertical">
+                                <StackPanel Orientation="Horizontal">
+
+                                    <TextBlock Text="Line:"
+                                               TextDecorations="Underline"
+                                               FontWeight="Bold" 
+                                               Foreground="#FF135185"/>
+
+                                    <TextBlock Text="{Binding LineNumber, UpdateSourceTrigger=PropertyChanged}"
+                                               FontWeight="Bold"
+                                               Margin="5,0,0,0" />
+
+                                    <TextBlock Text="Part:"
+                                               TextDecorations="Underline"
+                                               FontWeight="Bold"
+                                               Margin="20,0,0,0"
+                                               Foreground="#FF135185"/>
+
+                                    <TextBlock Text="{Binding PartNumber, UpdateSourceTrigger=PropertyChanged}"
+                                               FontWeight="Bold"
+                                               Margin="5,0,0,0" />
+                                    <TextBlock Text="{Binding LineDesc, UpdateSourceTrigger=PropertyChanged}"
+                                               FontWeight="Bold"
+                                               Margin="5,0,0,0" />
+
+                                    <TextBlock Text="Balance:"
+                                               TextDecorations="Underline"
+                                               FontWeight="Bold"
+                                               Margin="20,0,0,0"
+                                               Foreground="#FF135185"/>
+
+                                    <TextBlock Text="{Binding LineBalQuantity, UpdateSourceTrigger=PropertyChanged}"
+                                               FontWeight="Bold"
+                                               Margin="5,0,0,0" />
+                                    <TextBlock Text="{Binding LineNotes, UpdateSourceTrigger=PropertyChanged}"
+                                               FontWeight="Bold"
+                                               Margin="5,0,0,0" />
+
+                                </StackPanel>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+
+                </ItemsControl>
 
                 <!--#endregion-->
 

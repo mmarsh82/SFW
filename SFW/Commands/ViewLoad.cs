@@ -36,11 +36,13 @@ namespace SFW.Commands
                     parameter = 3;
                 }
                 var _view = int.TryParse(parameter.ToString(), out int i) ? i : App.SiteNumber;
+                var _addhist = _view == App.SiteNumber ? false : true;
                 var _viewModel = new object();
                 _viewModel = null;
                 //Handling the back function
                 if (_view == -1)
                 {
+                    _addhist = false;
                     _view = App.SiteNumber;
                     if (HistoryList.Count > 0 && HistoryList.Count - 1 > 0)
                     {
@@ -50,6 +52,7 @@ namespace SFW.Commands
                 }
                 if (_view == App.SiteNumber)
                 {
+                    _addhist = false;
                     HistoryList.Clear();
                 }
                 switch (_view)
@@ -58,7 +61,7 @@ namespace SFW.Commands
                     case 3:
                         if (_wo != null)
                         {
-                            _viewModel = parameter.GetType() == typeof(Model.WorkOrder) ? new PartInfo_ViewModel((Model.WorkOrder)_wo) : new PartInfo_ViewModel(_wo.ToString());
+                            _viewModel = _wo.GetType() == typeof(Model.WorkOrder) ? new PartInfo_ViewModel((Model.WorkOrder)_wo) : new PartInfo_ViewModel(_wo.ToString());
                         }
                         break;
                     //Handles the refresh schedule calls
@@ -96,7 +99,10 @@ namespace SFW.Commands
                 }
                 if(_view != -2)
                 {
-                    HistoryList.Add(_view);
+                    if(_addhist)
+                    {
+                        HistoryList.Add(_view);
+                    }
                     WorkSpaceDock.SwitchView(_view, _viewModel);
                 }
             }

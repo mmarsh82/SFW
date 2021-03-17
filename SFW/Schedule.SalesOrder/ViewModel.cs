@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Linq;
 using System.Windows.Data;
 
 namespace SFW.Schedule.SalesOrder
@@ -25,6 +26,10 @@ namespace SFW.Schedule.SalesOrder
                     var _soObj = new Model.SalesOrder(value.Row, App.AppSqlCon);
                     Controls.WorkSpaceDock.UpdateChildDock(9, 1, new ShopRoute.SalesOrder.ViewModel(_soObj, _sku));
                 }
+                else
+                {
+                    Controls.WorkSpaceDock.UpdateChildDock(9, 1, new ShopRoute.SalesOrder.ViewModel());
+                }
                 OnPropertyChanged(nameof(SelectedSalesOrder));
             }
         }
@@ -43,6 +48,7 @@ namespace SFW.Schedule.SalesOrder
                 _sFilter = value == "" ? null : value;
                 OnPropertyChanged(nameof(SearchFilter));
                 SelectedType = SelectedType;
+                PickSelected = PickSelected;
             }
         }
 
@@ -143,7 +149,7 @@ namespace SFW.Schedule.SalesOrder
         public void ViewLoading(string filter)
         {
             SalesScheduleView = CollectionViewSource.GetDefaultView(Model.SalesOrder.GetScheduleData(App.AppSqlCon));
-            SalesScheduleView.GroupDescriptions.Add(new PropertyGroupDescription("CustName"));
+            SalesScheduleView.GroupDescriptions.Add(new PropertyGroupDescription("FullCustName"));
             if (!string.IsNullOrEmpty(filter))
             {
                 ((DataView)SalesScheduleView.SourceCollection).RowFilter = filter;
@@ -165,19 +171,22 @@ namespace SFW.Schedule.SalesOrder
         {
             try
             {
-                var _srch = SearchFilter;
-                var _drow = SelectedSalesOrder;
+                var _drow = SalesScheduleView.CurrentItem;
                 SalesScheduleView = CollectionViewSource.GetDefaultView(Model.SalesOrder.GetScheduleData(App.AppSqlCon));
-                SalesScheduleView.GroupDescriptions.Add(new PropertyGroupDescription("Cust_Name"));
+                SalesScheduleView.GroupDescriptions.Add(new PropertyGroupDescription("FullCustName"));
+                if (_drow != null && ((DataView)SalesScheduleView.SourceCollection).Table.AsEnumerable().Any(r => r.Field<string>("ID") == ((DataRowView)_drow).Row.Field<string>("ID")))
+                {
+                    var _index = SalesScheduleView.IndexOf(_drow, "ID");
+                    SalesScheduleView.MoveCurrentToPosition(_index);
+                }
+                else
+                {
+                    SalesScheduleView.MoveCurrentToPosition(-1);
+                    SelectedSalesOrder = null;
+                }
+                SearchFilter = SearchFilter;
                 OnPropertyChanged(nameof(SalesScheduleView));
-                if(_drow != null)
-                {
-                    SelectedSalesOrder = _drow;
-                }
-                if(!string.IsNullOrEmpty(_srch))
-                {
-                    SearchFilter = _srch;
-                }
+                SalesScheduleView.Refresh();
             }
             catch (Exception)
             {
