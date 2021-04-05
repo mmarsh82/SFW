@@ -176,44 +176,6 @@ namespace SFW.Model
         /// </summary>
         public BindingList<Scrap> ScrapList { get; set; }
 
-        private Complete isReclaim;
-        /// <summary>
-        /// Determines if there is relaim for the wip receipt
-        /// </summary>
-        public Complete IsReclaim
-        {
-            get { return isReclaim; }
-            set
-            {
-                isReclaim = value;
-                if (value == Complete.N)
-                {
-                    ReclaimQty = null;
-                    ReclaimReference = null;
-                }
-            }
-        }
-
-        /// <summary>
-        /// Quantity of reclaim for the wip receipt
-        /// </summary>
-        public int? ReclaimQty { get; set; }
-
-        /// <summary>
-        /// Parent part number for the reclaim transaction
-        /// </summary>
-        public string ReclaimParent { get; set; }
-
-        /// <summary>
-        /// Reference information for a reclaim transaction, typically the work order and QIR number
-        /// </summary>
-        public string ReclaimReference { get; set; }
-
-        /// <summary>
-        /// Assembly Quantity for a reclaim transaction
-        /// </summary>
-        public double ReclaimAssyQty { get; set; }
-
         /// <summary>
         /// Determines if a work order is eligable for the Multi-Wip function
         /// </summary>
@@ -249,7 +211,6 @@ namespace SFW.Model
             WipLot = new Lot();
             WipWorkOrder = workOrder;
             WipWorkOrder.CrewSize = Sku.GetCrewSize(WipWorkOrder.SkuNumber, WipWorkOrder.Seq, sqlCon);
-            //HasCrew = Machine.GetMachineGroup(sqlCon, workOrder.OrderNumber, workOrder.Seq) != "PRESS";
             HasCrew = true;
             if (HasCrew)
             {
@@ -261,21 +222,6 @@ namespace SFW.Model
             IsLotTracable = Sku.IsLotTracable(workOrder.SkuNumber, sqlCon);
             IsScrap = Complete.N;
             ScrapList = new BindingList<Scrap>();
-            IsReclaim = Complete.N;
-            if (workOrder.MachineGroup == "EXT")
-            {
-                if (workOrder.Picklist.Count(o => o.InventoryType == "RC") > 0)
-                {
-                    ReclaimParent = workOrder.Picklist.Where(o => o.InventoryType == "RC").FirstOrDefault().CompNumber;
-                    ReclaimAssyQty = workOrder.Picklist.Where(o => o.InventoryType == "RC").FirstOrDefault().AssemblyQty;
-                }
-                else if (workOrder.Picklist.Count() == 1)
-                {
-                    var _tempComp = new Component(workOrder.Picklist[0].CompNumber, sqlCon, "RC");
-                    ReclaimParent = _tempComp.CompNumber;
-                    ReclaimAssyQty = workOrder.Picklist[0].AssemblyQty * _tempComp.AssemblyQty;
-                }
-            }
             CanMulti = workOrder.MachineGroup == "SLIT";
         }
 

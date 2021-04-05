@@ -18,6 +18,7 @@ namespace SFW.ShopRoute
             set
             {
                 shopOrder = value;
+                shopOrder.ToolList = shopOrder.ToolList ?? new System.Collections.Generic.List<string>();
                 OnPropertyChanged(nameof(ShopOrder));
                 OnPropertyChanged(nameof(FqSalesOrder));
                 ShopOrderNotes = null;
@@ -63,7 +64,7 @@ namespace SFW.ShopRoute
         }
 
         public bool CanCheckHistory { get { return ShopOrder?.StartQty != ShopOrder?.CurrentQty; } }
-        public bool CanSeeWip { get { return CurrentUser.IsLoggedIn; } }
+        public bool CanSeeWip { get { return CurrentUser.IsLoggedIn && CurrentSite != 0; } }
         public bool CanReport { get { return CurrentUser.IsLoggedIn && MachineGroup == "PRESS"; } }
         public bool CanSeeTrim { get { return MachineGroup == "PRESS"; } }
 

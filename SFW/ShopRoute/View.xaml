@@ -542,7 +542,7 @@
                                    TextDecorations="Underline"
                                    Foreground="#FF135185" />
 
-                        <TextBlock Text="{Binding ShopOrder.SalesOrder.LineQuantity}"
+                        <TextBlock Text="{Binding ShopOrder.SalesOrder.LineBalQuantity}"
                                    FontSize="18"
                                    FontWeight="Bold"
                                    Margin="10,0,0,0" />

@@ -11,7 +11,8 @@ namespace SFW.Schedule.SalesOrder
     {
         #region Properties
 
-        public ICollectionView SalesScheduleView { get; set; }
+        public static string[] SalesTableFilter;
+        public static ICollectionView SalesScheduleView { get; set; }
 
         private DataRowView _selectedSO;
         public DataRowView SelectedSalesOrder
@@ -40,15 +41,10 @@ namespace SFW.Schedule.SalesOrder
             get { return _sFilter; }
             set
             {
-                ((DataView)SalesScheduleView.SourceCollection).RowFilter = "";
-                if (!string.IsNullOrEmpty(value))
-                {
-                    ((DataView)SalesScheduleView.SourceCollection).RowFilter = $"({((DataView)SalesScheduleView.SourceCollection).Table.SearchRowFilter(value)})";
-                }
+                var _fltr = !string.IsNullOrEmpty(value) ? $"{((DataView)SalesScheduleView.SourceCollection).Table.SearchRowFilter(_sFilter)}" : "";
+                FilterSchedule(_fltr, 0);
                 _sFilter = value == "" ? null : value;
                 OnPropertyChanged(nameof(SearchFilter));
-                SelectedType = SelectedType;
-                PickSelected = PickSelected;
             }
         }
 
@@ -59,19 +55,8 @@ namespace SFW.Schedule.SalesOrder
             get { return _selType; }
             set
             {
-                ((DataView)SalesScheduleView.SourceCollection).RowFilter = ((DataView)SalesScheduleView.SourceCollection).RowFilter.Replace($" AND [Type]='{_selType}'", "");
-                ((DataView)SalesScheduleView.SourceCollection).RowFilter = ((DataView)SalesScheduleView.SourceCollection).RowFilter.Replace($"[Type]='{_selType}'", "");
-                if (value != "All")
-                {
-                    if (string.IsNullOrEmpty(((DataView)SalesScheduleView.SourceCollection).RowFilter))
-                    {
-                        ((DataView)SalesScheduleView.SourceCollection).RowFilter = $"[Type]='{value}'";
-                    }
-                    else
-                    {
-                        ((DataView)SalesScheduleView.SourceCollection).RowFilter += $" AND [Type]='{value}'";
-                    }
-                }
+                var _fltr = value != "All" ? $"[Type]='{value}'" : "";
+                FilterSchedule(_fltr, 1);
                 _selType = value;
                 OnPropertyChanged(nameof(SelectedType));
             }
@@ -84,27 +69,13 @@ namespace SFW.Schedule.SalesOrder
             set
             {
                 var _valAsInt = value ? 1 : 0;
-                if (value)
-                {
-                    if (string.IsNullOrEmpty(((DataView)SalesScheduleView.SourceCollection).RowFilter))
-                    {
-                        ((DataView)SalesScheduleView.SourceCollection).RowFilter = $"[MTO]='{_valAsInt}'";
-                    }
-                    else
-                    {
-                        ((DataView)SalesScheduleView.SourceCollection).RowFilter += $" AND [MTO]='{_valAsInt}'";
-                    }
-                }
-                else
-                {
-                    _valAsInt = _pickSel ? 1 : 0;
-                    ((DataView)SalesScheduleView.SourceCollection).RowFilter = ((DataView)SalesScheduleView.SourceCollection).RowFilter.Replace($" AND [MTO]='{_valAsInt}'", "");
-                    ((DataView)SalesScheduleView.SourceCollection).RowFilter = ((DataView)SalesScheduleView.SourceCollection).RowFilter.Replace($"[MTO]='{_valAsInt}'", "");
-                }
+                FilterSchedule($"[MTO]='{_valAsInt}'", 2);
                 _pickSel = value;
                 OnPropertyChanged(nameof(PickSelected));
+                OnPropertyChanged(nameof(PickContent));
             }
         }
+        public string PickContent { get { return PickSelected ? "Pick:" : "MTO:"; } }
 
         public delegate void LoadDelegate(string s);
         public LoadDelegate LoadAsyncDelegate { get; private set; }
@@ -118,6 +89,7 @@ namespace SFW.Schedule.SalesOrder
         /// </summary>
         public ViewModel()
         {
+            SalesTableFilter = new string[5];
             if (OrderTypeList == null)
             {
                 OrderTypeList = Model.SalesOrder.GetOrderTypeList(App.AppSqlCon);
@@ -127,7 +99,39 @@ namespace SFW.Schedule.SalesOrder
             FilterAsyncDelegate = new LoadDelegate(FilterView);
             var _filter = "";
             LoadAsyncComplete = LoadAsyncDelegate.BeginInvoke(_filter, new AsyncCallback(ViewLoaded), null);
+            PickSelected = false;
+            SelectedType = OrderTypeList.FirstOrDefault();
             RefreshTimer.Add(RefreshSchedule);
+            if (!string.IsNullOrEmpty(MainWindowViewModel.MachineFilter))
+            {
+                FilterSchedule(MainWindowViewModel.MachineFilter, 3);
+            }
+        }
+
+        /// <summary>
+        /// Filter the schedule view
+        /// Index values
+        /// 0 = Search Filter
+        /// 1 = Order Type Filter
+        /// 2 = Pick Selected Filter
+        /// 3 = Work Center Filter
+        /// 4 = Work Center Group Filter
+        /// </summary>
+        /// <param name="filter">Filter string to use on the default view</param>
+        /// <param name="index">Index of the filter string list you are adding to our changing</param>
+        public static void FilterSchedule(string filter, int index)
+        {
+            if (SalesScheduleView != null)
+            {
+                SalesTableFilter[index] = filter;
+                var _filterStr = string.Empty;
+                foreach (var s in SalesTableFilter.Where(o => !string.IsNullOrEmpty(o)))
+                {
+                    _filterStr += string.IsNullOrEmpty(_filterStr) ? $"({s})" : $" AND ({s})";
+                }
+                ((DataView)SalesScheduleView.SourceCollection).RowFilter = _filterStr;
+                SalesScheduleView.Refresh();
+            }
         }
 
         /// <summary>

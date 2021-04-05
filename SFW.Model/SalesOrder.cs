@@ -24,17 +24,18 @@ namespace SFW.Model
         public string LineNotes { get; set; }
         public bool LoadPattern { get; set; }
         public string InternalComments { get; set; }
-        public bool Expedited { get; set; }
+        public bool IsExpedited { get; set; }
         public string ShipName { get; set; }
         public string[] ShipAddress { get; set; }
         public string ShipCity { get; set; }
         public string ShipState { get; set; }
         public string ShipZip { get; set; }
         public string ShipCountry { get; set; }
-        public DateTime PromiseDate { get; set; }
+        public bool IsBackOrder { get { return LineBalQuantity < LineBaseQuantity; } }
         public DateTime CommitDate { get; set; }
         public DateTime RequestDate { get; set; }
         public DateTime DeliveryDate { get; set; }
+        public bool IsLate { get { return CommitDate > DateTime.Today; } }
         public IList<SalesOrder> LineList { get; set; }
 
         #endregion
@@ -129,7 +130,7 @@ namespace SFW.Model
             LineDesc = dRow.Field<string>("Description");
             LoadPattern = dRow.Field<string>("LoadPattern").ToUpper() == "PLASTIC";
             GetInternalComments(sqlCon);
-            Expedited = dRow.Field<int>("Expedited") > 0;
+            IsExpedited = dRow.Field<int>("IsExpedited") > 0;
             ShipName = dRow.Field<string>("ShipName");
             ShipAddress = new string[2];
             ShipAddress[0] = dRow.Field<string>("ShipAddr1");
@@ -138,7 +139,6 @@ namespace SFW.Model
             ShipState = dRow.Field<string>("ShipState");
             ShipZip = dRow.Field<string>("ShipZip");
             ShipCountry = dRow.Field<string>("ShipCountry");
-            PromiseDate = dRow.Field<DateTime>("Prom20Date");
             CommitDate = dRow.Field<DateTime>("ShipDate");
             RequestDate = dRow.Field<DateTime>("ReqDate");
             DeliveryDate = dRow.Field<DateTime>("DelDate");
@@ -226,7 +226,7 @@ namespace SFW.Model
                                                                                 ,b.[Cust_Part_Nbr] as 'CustPartNbr'
 	                                                                            ,a.[Credit_Code] as 'CredStatus'
 	                                                                            ,CASE WHEN a.[Ord_Type] = 'FSE' OR a.[Ord_Type] LIKE '%DE' THEN 'EOP' ELSE a.[Ord_Type] END as 'Type'
-	                                                                            ,CAST(CASE WHEN a.[Jump_Reason] IS NULL THEN 0 ELSE 1 END as int) as 'Expedited'
+	                                                                            ,CAST(CASE WHEN a.[Jump_Reason] IS NULL THEN 0 ELSE 1 END as int) as 'IsExpedited'
 	                                                                            ,a.[Ship_To_Name] as 'ShipName'
 	                                                                            ,a.[Ship_To_Addr1] as 'ShipAddr1'
 	                                                                            ,a.[Ship_To_Addr2] as 'ShipAddr2'
@@ -237,10 +237,10 @@ namespace SFW.Model
 	                                                                            ,CAST(a.[Date_Added] as date) as 'DateAdded'
 	                                                                            ,CAST(a.[Delivery_Date] as date) as 'DelDate'
 	                                                                            ,CAST(a.[Requested_Date] as date) as 'ReqDate'
-	                                                                            ,CAST(a.[Promise_Date20] as date) as 'Prom20Date'
 	                                                                            ,CAST(a.[Commit_Ship_Date] as date) as 'ShipDate'
                                                                                 ,(SELECT ISNULL(aa.[Load_Pattern], '') FROM [dbo].[CM-INIT] aa WHERE aa.[Cust_Nbr] = a.[Cust_Nbr]) AS 'LoadPattern'
                                                                                 ,CASE WHEN b.[Make_To_Order] = 'Y' THEN 1 ELSE 0 END as 'MTO'
+                                                                                ,CASE WHEN CAST(b.[Ln_Del_Qty] as int) - CAST(b.[Ln_Bal_Qty] as int) = 0 THEN 0 ELSE 1 END AS 'IsBackOrder'
                                                                             FROM
 	                                                                            [dbo].[SOH-INIT] a
                                                                             RIGHT JOIN
@@ -336,14 +336,14 @@ namespace SFW.Model
                     try
                     {
                         using (SqlCommand _cmd = new SqlCommand(@"SELECT
-	                                                            SUBSTRING(a.[ID], CHARINDEX('*', a.[ID],0) + 1, LEN(a.[ID])) as 'LineNbr'
-	                                                            ,a.[Part_Wo_Gl] as 'PartNbr'
-	                                                            ,(SELECT aa.[Description] FROM [dbo].[IM-INIT] aa WHERE aa.[Part_Number] = a.[Part_Wo_Gl]) as 'PartDesc'
-	                                                            ,a.[Ln_Bal_Qty] as 'BalQty'
-	                                                            ,a.[Ln_Del_Qty] as 'BaseQty'
-	                                                            ,a.[Um_Base] as 'Uom'
-                                                            FROM [dbo].[SOD-INIT] a
-                                                            WHERE a.[ID] LIKE CONCAT(@p1, '*%')", sqlCon))
+	                                                                SUBSTRING(a.[ID], CHARINDEX('*', a.[ID],0) + 1, LEN(a.[ID])) as 'LineNbr'
+	                                                                ,a.[Part_Wo_Gl] as 'PartNbr'
+	                                                                ,(SELECT aa.[Description] FROM [dbo].[IM-INIT] aa WHERE aa.[Part_Number] = a.[Part_Wo_Gl]) as 'PartDesc'
+	                                                                ,a.[Ln_Bal_Qty] as 'BalQty'
+	                                                                ,a.[Ln_Del_Qty] as 'BaseQty'
+	                                                                ,a.[Um_Base] as 'Uom'
+                                                                FROM [dbo].[SOD-INIT] a
+                                                                WHERE a.[ID] LIKE CONCAT(@p1, '*%')", sqlCon))
                         {
                             if (!string.IsNullOrEmpty(_condString))
                             {

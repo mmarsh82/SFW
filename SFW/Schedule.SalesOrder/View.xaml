@@ -79,7 +79,7 @@
                       Margin="10,0,0,0"
                       Style="{DynamicResource SliderCheckBox}">
                 <CheckBox.Content>
-                    <TextBlock Text="Pick:"
+                    <TextBlock Text="{Binding PickContent}"
                                TextDecorations="Underline"/>
                 </CheckBox.Content>
             </CheckBox>
@@ -111,8 +111,12 @@
                                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Left">
                                         <TextBlock Text="{Binding ID}" FontSize="24" FontWeight="Bold" Margin="10,0,0,0"/>
                                         <Image Source="/SFW;component/Icons/Warning.ico"
-                                               Visibility="{Binding Expedited, Converter={StaticResource BoolToVisConverter}}"
+                                               Visibility="{Binding IsExpedited, Converter={StaticResource BoolToVisConverter}}"
                                                ToolTip="Sales order has been expedited."
+                                               Margin="10,0,0,0" Height="25" Width="25"/>
+                                        <Image Source="/SFW;component/Icons/Late.ico"
+                                               Visibility="{Binding IsBackOrder, Converter={StaticResource BoolToVisConverter}}"
+                                               ToolTip="Sales order contains product that is currently on back order."
                                                Margin="10,0,0,0" Height="25" Width="25"/>
                                     </StackPanel>
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
@@ -122,10 +126,10 @@
                                 </Grid>
                                 <Grid>
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
-                                        <TextBlock Text="Commit:" TextDecorations="Underline"/>
-                                        <TextBlock Text="{Binding ShipDate, StringFormat=d}" Margin="5,0,0,0"/>
-                                        <TextBlock Text="Requested:" Margin="20,0,0,0" TextDecorations="Underline"/>
+                                        <TextBlock Text="Requested:" Margin="5,0,0,0" TextDecorations="Underline"/>
                                         <TextBlock Text="{Binding ReqDate, StringFormat=d}" Margin="5,0,0,0"/>
+                                        <TextBlock Text="Ship:" TextDecorations="Underline" Margin="20,0,0,0"/>
+                                        <TextBlock Text="{Binding ShipDate, StringFormat=d}" Margin="5,0,0,0"/>
                                     </StackPanel>
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
                                         <TextBlock Text="Need" Margin="0,0,5,0">

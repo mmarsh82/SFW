@@ -104,32 +104,6 @@
                              Margin="10,0,0,0"
                              Visibility="{Binding Path=IsChecked, ElementName=MultiCheck, Converter={StaticResource BooltoVisConverter}, ConverterParameter=i}"/>
 
-                <TextBlock Text="Reclaim:"
-                           FontSize="18"
-                           FontWeight="Bold"
-                           TextDecorations="Underline"
-                           VerticalAlignment="Center"
-                           Margin="50,0,0,0" 
-                           Visibility="{Binding WipRecord.ReclaimParent, Converter={StaticResource StringtoVisConverter}}" />
-                <RadioButton GroupName="reclaim"
-                             IsChecked="{Binding Reclaim, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource EnumtoBoolConverter}, ConverterParameter=Y}"
-                             Content="Yes"
-                             FontSize="18"
-                             FontWeight="Bold"
-                             VerticalAlignment="Center"
-                             IsTabStop="False"
-                             Margin="10,0,0,0"
-                             Visibility="{Binding WipRecord.ReclaimParent, Converter={StaticResource StringtoVisConverter}}"/>
-                <RadioButton GroupName="reclaim"
-                             IsChecked="{Binding Reclaim, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource EnumtoBoolConverter}, ConverterParameter=N}"
-                             Content="No"
-                             FontSize="18"
-                             FontWeight="Bold"
-                             VerticalAlignment="Center"
-                             IsTabStop="False"
-                             Margin="10,0,0,0" 
-                             Visibility="{Binding WipRecord.ReclaimParent, Converter={StaticResource StringtoVisConverter}}"/>
-
                 <CheckBox x:Name="MultiCheck"
                           IsChecked="{Binding Multi, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                           Content="Multi-WIP"

@@ -23,6 +23,7 @@ namespace SFW
             set { _mList = value; StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(MachineList))); }
         }
 
+        public static string MachineFilter;
         private static Machine mach;
         public static Machine SelectedMachine
         {
@@ -43,7 +44,7 @@ namespace SFW
                     {
                         SelectedMachineGroup = value.MachineGroup;
                     }
-                    var _mFilter = value.MachineName == "All" ? "" : $"MachineNumber = '{value.MachineNumber}'";
+                    MachineFilter = value.MachineName == "All" ? "" : $"MachineNumber = '{value.MachineNumber}'";
                     if (WorkSpaceDock.ClosedView)
                     {
                         WorkSpaceDock.ClosedDock.Dispatcher.BeginInvoke(new Action(() =>
@@ -55,9 +56,9 @@ namespace SFW
                                     ((ShopRoute.ViewModel)((ShopRoute.View)WorkSpaceDock.ClosedDock.Children[1]).DataContext).ShopOrder = new WorkOrder();
                                 }
                                 ((Schedule.Closed.ViewModel)((Schedule.Closed.View)WorkSpaceDock.ClosedDock.Children[0]).DataContext).SearchFilter = null;
-                                ((DataView)((Schedule.Closed.ViewModel)((Schedule.Closed.View)WorkSpaceDock.ClosedDock.Children[0]).DataContext).ClosedScheduleView.SourceCollection).RowFilter = string.IsNullOrEmpty(_mFilter) 
+                                ((DataView)((Schedule.Closed.ViewModel)((Schedule.Closed.View)WorkSpaceDock.ClosedDock.Children[0]).DataContext).ClosedScheduleView.SourceCollection).RowFilter = string.IsNullOrEmpty(MachineFilter) 
                                     ? App.ViewFilter[App.SiteNumber]
-                                    : _mFilter;
+                                    : MachineFilter;
                                 ((Schedule.Closed.ViewModel)((Schedule.Closed.View)WorkSpaceDock.ClosedDock.Children[0]).DataContext).ClosedScheduleView.Refresh();
                             }
                         }));
@@ -71,14 +72,15 @@ namespace SFW
                                 ((ShopRoute.ViewModel)((ShopRoute.View)_dock.Children[1]).DataContext).ShopOrder = new WorkOrder();
                             }
                             ((Schedule.ViewModel)((Schedule.View)_dock.Children[0]).DataContext).SearchFilter = null;
-                            ((DataView)((Schedule.ViewModel)((Schedule.View)_dock.Children[0]).DataContext).ScheduleView.SourceCollection).RowFilter = string.IsNullOrEmpty(_mFilter)
+                            ((DataView)((Schedule.ViewModel)((Schedule.View)_dock.Children[0]).DataContext).ScheduleView.SourceCollection).RowFilter = string.IsNullOrEmpty(MachineFilter)
                                 ? App.ViewFilter[App.SiteNumber]
-                                : _mFilter;
+                                : MachineFilter;
                             ((Schedule.ViewModel)((Schedule.View)_dock.Children[0]).DataContext).ScheduleView.Refresh();
                         }
                     }
                     IsChanging = false;
                 }
+                //Schedule.SalesOrder.ViewModel.FilterSchedule(MachineFilter, 3);
                 mach = value;
                 StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(SelectedMachine)));
             }

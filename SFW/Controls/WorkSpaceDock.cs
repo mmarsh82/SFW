@@ -188,5 +188,28 @@ namespace SFW.Controls
                 }
             }
         }
+
+        /// <summary>
+        /// Update a child component of an internal work space dockpanel
+        /// </summary>
+        /// <param name="parentUCIndex">Parent UserControl Index</param>
+        /// <param name="childUCIndex">Child Usercontrol Index</param>
+        /// <param name="userCtrl">Child View to load</param>
+        public static void UpdateChildDock(int parentUCIndex, int childUCIndex, UserControl userCtrl)
+        {
+            if (MainDock.Children[parentUCIndex].GetType() == typeof(DockPanel))
+            {
+                try
+                {
+                    ((DockPanel)MainDock.Children[parentUCIndex]).Children.RemoveAt(childUCIndex);
+                    ((DockPanel)MainDock.Children[parentUCIndex]).Children.Insert(childUCIndex, userCtrl);
+
+                }
+                catch
+                {
+
+                }
+            }
+        }
     }
 }

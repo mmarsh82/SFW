@@ -105,14 +105,6 @@ namespace SFW.WIP
             }
         }
 
-        public Model.Enumerations.Complete Reclaim
-        {
-            get
-            { return WipRecord.IsReclaim; }
-            set
-            { WipRecord.IsReclaim = value; OnPropertyChanged(nameof(Reclaim)); OnPropertyChanged(nameof(WipRecord)); }
-        }
-
         public string RollQuantity
         {
             get { return WipRecord.RollQty.ToString(); }
@@ -397,11 +389,7 @@ namespace SFW.WIP
                     }
                     else if (WipRecord.WipQty == 0)
                     {
-                        if (WipRecord.IsReclaim == Model.Enumerations.Complete.Y)
-                        {
-                            _baseValid = _locValid;
-                        }
-                        else if (WipRecord.IsScrap == Model.Enumerations.Complete.Y)
+                        if (WipRecord.IsScrap == Model.Enumerations.Complete.Y)
                         {
                             _baseValid = _locValid && IsLotValid;
                         }
@@ -429,8 +417,7 @@ namespace SFW.WIP
 
                     var _laborValid = WipRecord.CrewList.Where(o => DateTime.TryParse(o.LastClock, out var dt) && !string.IsNullOrEmpty(o.Name) && o.IsDirect).ToList().Count() == WipRecord.CrewList.Count(o => !string.IsNullOrEmpty(o.Name) && o.IsDirect);
                     var _multiValid = !WipRecord.IsMulti || (WipRecord.IsMulti && WipRecord.RollQty > 0);
-                    var _reclaimValid = WipRecord.IsReclaim == Model.Enumerations.Complete.N || (WipRecord.IsReclaim == Model.Enumerations.Complete.Y && WipRecord.ReclaimQty > 0 && !string.IsNullOrEmpty(WipRecord.ReclaimReference));
-                    return _baseValid && _scrapValid && _reclaimValid && _multiValid && _laborValid;
+                    return _baseValid && _scrapValid && _multiValid && _laborValid;
                 }
                 else
                 {

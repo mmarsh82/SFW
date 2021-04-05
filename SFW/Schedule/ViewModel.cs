@@ -33,13 +33,20 @@ namespace SFW.Schedule
                 if (value != null)
                 {
                     var _wo = new WorkOrder(value.Row, _siteNbr, App.GlobalConfig.First(o => $"{o.Site}_MAIN" == VMDataBase).WI, App.AppSqlCon);
-                    if (!int.TryParse(_wo.EngStatus, out int i))
+                    if (_siteNbr == 0)
                     {
-                        Controls.WorkSpaceDock.UpdateChildDock(_siteNbr, 1, new ShopRoute.ViewModel(_wo));
+                        if (!int.TryParse(_wo.EngStatus, out int i))
+                        {
+                            Controls.WorkSpaceDock.UpdateChildDock(_siteNbr, 1, new ShopRoute.View { DataContext = new ShopRoute.ViewModel(_wo) });
+                        }
+                        else
+                        {
+                            Controls.WorkSpaceDock.UpdateChildDock(_siteNbr, 1, new ShopRoute.QTask.View { DataContext = new ShopRoute.QTask.ViewModel(_wo) });
+                        }
                     }
                     else
                     {
-                        Controls.WorkSpaceDock.UpdateChildDock(_siteNbr, 1, new ShopRoute.QTask.ViewModel(_wo));
+                        Controls.WorkSpaceDock.UpdateChildDock(_siteNbr, 1, new ShopRoute.ViewModel(_wo));
                     }
                 }
                 else
