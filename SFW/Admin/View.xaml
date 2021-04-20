@@ -73,9 +73,24 @@
                         Background="Transparent"
                         BorderThickness="0"
                         Margin="10,0 0 0"
+                        ToolTip="Add new machine row."
                         Style="{DynamicResource DefaultButton}">
                     <Button.Content>
                         <Image Source="/SFW;component/Icons/Add.ico" />
+                    </Button.Content>
+                </Button>
+
+                <Button Command="{Binding DataContext.ListICommand}"
+                        CommandParameter="Save"
+                        Width="30"
+                        Height="30"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        Margin="20,0 0 0"
+                        ToolTip="Save all changes."
+                        Style="{DynamicResource DefaultButton}">
+                    <Button.Content>
+                        <Image Source="/SFW;component/Icons/Accept.ico" />
                     </Button.Content>
                 </Button>
 
@@ -105,8 +120,10 @@
                                        TextDecorations="Underline"
                                        VerticalAlignment="Center"
                                        Margin="10,0,0,0" />
-                            <ComboBox ItemsSource="{Binding DataContext.MachineList, ElementName=Admin_UC}"
-                                      SelectedValue="{Binding MachineNumber}"
+                            <ComboBox ItemsSource="{Binding DataContext.MachineCollection, ElementName=Admin_UC}"
+                                      SelectedValue="{Binding MachineNumber, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                      SelectedValuePath="MachineNumber"
+                                      DisplayMemberPath="MachineName"
                                       FontSize="18"
                                       FontWeight="Bold"
                                       Margin="5"
@@ -134,22 +151,10 @@
                                     Background="Transparent"
                                     BorderThickness="0"
                                     Margin="10,0 0 0"
+                                    ToolTip="Delete this row."
                                     Style="{DynamicResource DefaultButton}">
                                 <Button.Content>
                                     <Image Source="/SFW;component/Icons/Delete.ico" />
-                                </Button.Content>
-                            </Button>
-
-                            <Button Command="{Binding DataContext.ListICommand, ElementName=Admin_UC}"
-                                    CommandParameter="{Binding}"
-                                    Width="30"
-                                    Height="30"
-                                    Background="Transparent"
-                                    BorderThickness="0"
-                                    Margin="10,0 0 0"
-                                    Style="{DynamicResource DefaultButton}">
-                                <Button.Content>
-                                    <Image Source="/SFW;component/Icons/Accept.ico" />
                                 </Button.Content>
                             </Button>
 

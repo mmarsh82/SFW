@@ -159,6 +159,18 @@ namespace SFW
             }
         }
 
+        private static bool _isAcctRec;
+        public static bool IsAccountsReceivable
+        {
+            get
+            { return _isAcctRec; }
+            private set
+            {
+                _isAcctRec = value;
+                StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(IsAccountsReceivable)));
+            }
+        }
+
         private static string _uID;
         public static string UserIDNbr
         {
@@ -233,10 +245,17 @@ namespace SFW
             DisplayName = user.DisplayName;
             Email = user.EmailAddress;
             Site = user.DistinguishedName.Contains("WCCO") ? "WCCO" : "CSI";
-            CanSchedule = _groups.Exists(o => o.ToString().Contains("SFW_Sched"));
-            IsAdmin = _groups.Exists(o => o.ToString().Contains("SFW_Admin"));
-            IsSupervisor = _groups.Exists(o => o.ToString().Contains("SFW_Super"));
-            IsInventoryControl = _groups.Exists(o => o.ToString().Contains("SFW_IC"));
+            if (_groups.Exists(o => o.ToString().Contains("SFW_Admin")))
+            {
+                CanSchedule = IsSupervisor = IsInventoryControl = IsAccountsReceivable = IsAdmin = true;
+            }
+            else
+            {
+                CanSchedule = _groups.Exists(o => o.ToString().Contains("SFW_Sched"));
+                IsSupervisor = _groups.Exists(o => o.ToString().Contains("SFW_Super"));
+                IsInventoryControl = _groups.Exists(o => o.ToString().Contains("SFW_IC"));
+                IsAccountsReceivable = _groups.Exists(o => o.ToString().Contains("SFW_AR"));
+            }
             IsLoggedIn = true;
             CanWip = GetSite() == 1;
             UserIDNbr = user.EmployeeId;

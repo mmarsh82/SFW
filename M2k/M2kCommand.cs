@@ -18,7 +18,7 @@ namespace M2kClient
         { }
 
         /// <summary>
-        /// Will edit any record in Manage 2000
+        /// Will edit any attribute in a Manage 2000 record
         /// ***WARNING***
         /// DO NOT attempt to edit any record value that has business logic associated with it
         /// Contact your ERP administrator if you need help verifing
@@ -64,8 +64,63 @@ namespace M2kClient
             }
         }
 
+        /// <summary>
+        /// Will edit multiple attributes in a Manage 2000 record
+        /// ***WARNING***
+        /// DO NOT attempt to edit any record value that has business logic associated with it
+        /// Contact your ERP administrator if you need help verifing
+        /// </summary>
+        /// <param name="file">Manage 2000 file to be edited</param>
+        /// <param name="recordID">Record ID value to be edited</param>
+        /// <param name="attributes">Array of attribute numbers that the new value will be associated with, see the warning</param>
+        /// <param name="newValues">Array of New values to be written into the record</param>
+        /// <param name="connection">UniConnection to use for the edit</param>
+        /// <returns>Change request error, if none exists then it will return a null value</returns>
+        public static string EditRecord(string file, string recordID, int[] attributes, string[] newValues, M2kConnection connection)
+        {
+            if (attributes.Length != newValues.Length)
+            {
+                try
+                {
+                    using (UniSession uSession = UniObjects.OpenSession(connection.HostName, connection.UserName, connection.Password, connection.UniAccount, connection.UniService))
+                    {
+                        try
+                        {
+                            using (UniFile uFile = uSession.CreateUniFile(file))
+                            {
+                                using (UniDynArray udArray = uFile.Read(recordID))
+                                {
+                                    var _counter = 1;
+                                    while (attributes.Length <= _counter)
+                                    {
+                                        udArray.Replace(attributes[_counter - 1], newValues[_counter - 1]);
+                                    }
+                                    uFile.Write(recordID, udArray);
+                                }
+                            }
+                            UniObjects.CloseSession(uSession);
+                            return null;
+                        }
+                        catch (Exception ex)
+                        {
+                            if (uSession != null)
+                            {
+                                UniObjects.CloseSession(uSession);
+                            }
+                            return ex.Message;
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    return ex.Message;
+                }
+            }
+            return "There is either more attributes to edit than new edit values or more edit values have been included that attributes to edit.";
+        }
+
         ///<summary>
-        /// Will edit any Multi-Value record in Manage 2000
+        /// Will edit any Multi-Value attribute in a Manage 2000 record
         /// ***WARNING***
         /// DO NOT attempt to edit any record value that has business logic associated with it
         /// Contact your ERP administrator if you need help verifing

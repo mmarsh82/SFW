@@ -16,6 +16,10 @@ namespace SFW.Converters
             if (parameter != null)
             {
                 var _val = parameter.ToString();
+                if (_val.Contains("*"))
+                {
+                    return _val.Replace("*", "") == value.ToString() ? Visibility.Visible : Visibility.Collapsed;
+                }
                 switch (_val)
                 {
                     case "i":

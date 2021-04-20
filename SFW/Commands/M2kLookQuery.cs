@@ -33,6 +33,9 @@ namespace SFW.Commands
                                 : $"http://intranet-wcco-1/{_site}.MAIN/SOP/SoLineDetail/SoLineDetail.aspx?SoNbr={_parSplit[1]}&LineNbr={_parSplit[2]}";
                             Process.Start(_startInfo);
                             break;
+                        case "AR":
+                            Process.Start($"http://intranet-wcco-1/WCCO.MAIN/ROIPortals/CustomerPortal/CustomerPortal.aspx?CustNbr={_parSplit[1]}");
+                            break;
                     }
                 }
             }

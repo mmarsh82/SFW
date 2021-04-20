@@ -1,18 +1,56 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Xml;
 
 namespace SFW
 {
-    public class UserConfig
+    public class UserConfig : INotifyPropertyChanged
     {
         #region Properties
 
-        public int SiteNumber { get; set; }
-        public int? Position { get; set; }
-        public string MachineNumber { get; set; }
+        private int _siteNbr;
+        public int SiteNumber 
+        {
+            get { return _siteNbr; }
+            set { _siteNbr = value; OnPropertyChanged(nameof(SiteNumber)); }
+        }
+
+        private int? _pos;
+        public int? Position
+        {
+            get { return _pos; }
+            set { _pos = value; OnPropertyChanged(nameof(Position)); }
+        }
+
+        private string _machNbr;
+        public string MachineNumber
+        {
+            get { return _machNbr; }
+            set { _machNbr = value; OnPropertyChanged(nameof(MachineNumber)); }
+        }
+
+        #endregion
+
+        #region INotifyPropertyChanged Implementation
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        /// <summary>
+        /// Reflects changes from the ViewModel properties to the View
+        /// </summary>
+        /// <param name="propertyName">Property Name</param>
+        protected virtual void OnPropertyChanged(string propertyName)
+        {
+            var handler = PropertyChanged;
+            if (handler != null)
+            {
+                var e = new PropertyChangedEventArgs(propertyName);
+                handler(this, e);
+            }
+        }
 
         #endregion
 

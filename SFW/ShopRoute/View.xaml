@@ -13,7 +13,7 @@
                 <cvtr:SkuMasterPrint x:Key="PartSearchConverter"/>
                 <cvtr:BoolToVisibility x:Key="BoolToVisConverter"/>
                 <cvtr:DateToVisibility x:Key="DateToVisConverter" />
-                <cvtr:StringToHeight x:Key="StringToHeightConverter"/>
+                <cvtr:ValueToHeight x:Key="ValueToHeightConverter"/>
                 <cvtr:MultiValueParameter x:Key="MultiValConverter"/>
                 <cmd:ViewLoad x:Key="ViewLoadCommand" />
                 <cmd:M2kLookQuery x:Key="ShowQuery"/>
@@ -43,9 +43,9 @@
                     <RowDefinition x:Name="Row5" Height="60"/>
                     <RowDefinition x:Name="Row6" Height="40"/>
                     <RowDefinition x:Name="Row7" Height="200"/>
-                    <RowDefinition x:Name="Row8" Height="{Binding ShopOrder.SalesOrder.SalesNumber, Converter={StaticResource StringToHeightConverter}, ConverterParameter=40}"/>
-                    <RowDefinition x:Name="Row9" Height="{Binding ShopOrder.SalesOrder.SalesNumber, Converter={StaticResource StringToHeightConverter}, ConverterParameter=30}"/>
-                    <RowDefinition x:Name="Row10" Height="{Binding ShopOrder.SalesOrder.InternalComments, Converter={StaticResource StringToHeightConverter}, ConverterParameter=L30}"/>
+                    <RowDefinition x:Name="Row8" Height="{Binding ShopOrder.SalesOrder.SalesNumber, Converter={StaticResource ValueToHeightConverter}, ConverterParameter=40}"/>
+                    <RowDefinition x:Name="Row9" Height="{Binding ShopOrder.SalesOrder.SalesNumber, Converter={StaticResource ValueToHeightConverter}, ConverterParameter=30}"/>
+                    <RowDefinition x:Name="Row10" Height="{Binding ShopOrder.SalesOrder.InternalComments, Converter={StaticResource ValueToHeightConverter}, ConverterParameter=L30}"/>
                     <RowDefinition x:Name="Row11" Height="Auto" />
                 </Grid.RowDefinitions>
 

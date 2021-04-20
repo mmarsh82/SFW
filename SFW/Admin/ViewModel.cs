@@ -1,7 +1,6 @@
 ﻿using SFW.Helpers;
 using SFW.Model;
-using System;
-using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Windows.Input;
@@ -19,12 +18,7 @@ namespace SFW.Admin
             set { mCon = value; OnPropertyChanged(nameof(MachineConfig)); }
         }
 
-        private List<string> mach;
-        public List<string> MachineList
-        {
-            get { return mach; }
-            set { mach = value; OnPropertyChanged(nameof(MachineList)); }
-        }
+        public ObservableCollection<Machine> MachineCollection { get; set; }
 
         RelayCommand _listCom;
 
@@ -35,13 +29,23 @@ namespace SFW.Admin
         /// </summary>
         public ViewModel()
         {
-            var _tempList = Machine.GetMachineList(App.AppSqlCon, false, false);
-            MachineList = new List<string> { "" };
-            foreach (var m in _tempList)
-            {
-                MachineList.Add(m.MachineNumber);
-            }
+            MachineCollection = new ObservableCollection<Machine>(Machine.GetMachineList(App.AppSqlCon, false, false));
+            MachineCollection.Insert(0, new Machine { MachineName = "" });
             MachineConfig = new BindingList<UserConfig>(App.DefualtWorkCenter.Where(o => o.SiteNumber == App.SiteNumber).ToList());
+            MachineConfig.ListChanged += MachineConfig_ListChanged;
+        }
+
+        /// <summary>
+        /// Triggers anytime the MachineConfig list changes
+        /// </summary>
+        /// <param name="sender">Values in the change</param>
+        /// <param name="e">All the change informtion</param>
+        private void MachineConfig_ListChanged(object sender, ListChangedEventArgs e)
+        {
+            if (e.ListChangedType == ListChangedType.ItemChanged && e.NewIndex == 0)
+            {
+                MachineCollection.Remove(MachineCollection.FirstOrDefault(o => o.MachineNumber == ((UserConfig)sender).MachineNumber));
+            }
         }
 
         #region List ICommands
@@ -60,13 +64,9 @@ namespace SFW.Admin
 
         private void ListExecute(object parameter)
         {
-            if (parameter == null)
+            if (parameter.GetType() == typeof(UserConfig))
             {
-                MachineConfig.RemoveAt(MachineConfig.IndexOf(MachineConfig.FirstOrDefault(o => string.IsNullOrEmpty(o.MachineNumber))));
-            }
-            else if (MachineList.Contains(parameter.ToString()))
-            {
-                MachineConfig.RemoveAt(MachineConfig.IndexOf(MachineConfig.FirstOrDefault(o => o.MachineNumber == parameter.ToString())));
+                MachineConfig.Remove((UserConfig)parameter);
             }
             else
             {

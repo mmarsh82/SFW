@@ -219,7 +219,7 @@ namespace SFW.Model
                                                                 RIGHT JOIN
 	                                                                [dbo].[IM-INIT] b ON b.[Part_Number] = SUBSTRING(a.[ID], CHARINDEX('*', a.[ID], 0) + 1, LEN(a.[ID]))
                                                                 WHERE
-	                                                                a.[ID] LIKE CONCAT(@p1, '%') AND (a.[Routing_Seq] = @p2 OR a.[Routing_Seq] IS NULL)
+	                                                                a.[ID] LIKE CONCAT(@p1, '*%') AND (a.[Routing_Seq] = @p2 OR a.[Routing_Seq] IS NULL)
                                                                 ORDER BY
                                                                     Lot_Trace, Component;", sqlCon))
                     {
