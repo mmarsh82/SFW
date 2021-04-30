@@ -26,7 +26,7 @@
 
         <Grid.RowDefinitions>
             <RowDefinition x:Name="Row0" Height="40" />
-            <RowDefinition x:Name="Row1" Height="{Binding Path=(app:CurrentUser.IsAccountsReceivable), Converter={StaticResource ValueToHeightConverter}, ConverterParameter=40}"/>
+            <RowDefinition x:Name="Row1" Height="40" />
             <RowDefinition x:Name="Row2" Height="*" />
         </Grid.RowDefinitions>
 
@@ -67,43 +67,11 @@
                      Background="LightGray"
                      Style="{DynamicResource OptionalTextBox}" />
 
-            <TextBlock Text="Type:"
-                       FontSize="18"
-                       FontWeight="Bold"
-                       TextDecorations="Underline"
-                       Margin="10,0,0,0"
-                       VerticalAlignment="Center" />
-            <ComboBox ItemsSource="{Binding OrderTypeList}"
-                      SelectedItem="{Binding SelectedType, NotifyOnSourceUpdated=True, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
-                      Width="60"
-                      FontSize="14"
-                      Margin="5"
-                      FontWeight="Bold"/>
-            <CheckBox IsChecked="{Binding PickSelected}"
-                      VerticalAlignment="Center"
-                      FontSize="18"
-                      Margin="10,0,0,0"
-                      Style="{DynamicResource SliderCheckBox}">
-                <CheckBox.Content>
-                    <TextBlock Text="{Binding PickContent}"
-                               TextDecorations="Underline"/>
-                </CheckBox.Content>
-            </CheckBox>
-
-        </StackPanel>
-        
-        <!--#endregion-->
-
-        <!--#region Grid.Row 1 Schedule AR Header -->
-
-        <StackPanel Grid.Row="1"
-                    Orientation="Horizontal"
-                    HorizontalAlignment="center">
-
             <CheckBox IsChecked="{Binding ScheduleType}"
                       VerticalAlignment="Center"
                       FontSize="18"
                       Margin="10,0,0,0"
+                      Visibility="{Binding Path=(app:CurrentUser.IsAccountsReceivable), Converter={StaticResource BoolToVisConverter}}"
                       Style="{DynamicResource SliderCheckBox}">
                 <CheckBox.Content>
                     <TextBlock Text="{Binding ScheduleTypeContent}"
@@ -116,13 +84,61 @@
                        FontWeight="Bold"
                        TextDecorations="Underline"
                        Margin="10,0,0,0"
+                       Visibility="{Binding Path=(app:CurrentUser.IsAccountsReceivable), Converter={StaticResource BoolToVisConverter}}"
                        VerticalAlignment="Center" />
             <ComboBox ItemsSource="{Binding CreditStatusList}"
                       SelectedItem="{Binding SelectedCredStatus, NotifyOnSourceUpdated=True, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
                       Width="60"
                       FontSize="14"
                       Margin="5"
+                      FontWeight="Bold"
+                      Visibility="{Binding Path=(app:CurrentUser.IsAccountsReceivable), Converter={StaticResource BoolToVisConverter}}"/>
+
+        </StackPanel>
+        
+        <!--#endregion-->
+
+        <!--#region Grid.Row 1 Schedule Filter Header -->
+
+        <StackPanel Grid.Row="1"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="center">
+
+            <TextBlock Text="Type:"
+                       FontSize="18"
+                       FontWeight="Bold"
+                       TextDecorations="Underline"
+                       Margin="10,0,0,0"
+                       VerticalAlignment="Center" />
+            <ComboBox ItemsSource="{Binding OrderTypeList}"
+                      SelectedItem="{Binding SelectedType, NotifyOnSourceUpdated=True, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                      Width="60"
+                      FontSize="14"
+                      Margin="5"
                       FontWeight="Bold"/>
+            
+            <CheckBox IsChecked="{Binding PickSelected}"
+                      VerticalAlignment="Center"
+                      FontSize="18"
+                      Margin="10,0,0,0"
+                      Style="{DynamicResource SliderCheckBox}">
+                <CheckBox.Content>
+                    <TextBlock Text="{Binding PickContent}"
+                               TextDecorations="Underline"/>
+                </CheckBox.Content>
+            </CheckBox>
+
+            <CheckBox IsChecked="{Binding IsSchedule}"
+                      VerticalAlignment="Center"
+                      FontSize="18"
+                      Margin="10,0,0,0"
+                      Visibility="{Binding Path=(app:CurrentUser.CanSchedule), Converter={StaticResource BoolToVisConverter}}"
+                      Style="{DynamicResource SliderCheckBox}">
+                <CheckBox.Content>
+                    <TextBlock Text="{Binding IsScheduleContent}"
+                               TextDecorations="Underline"/>
+                </CheckBox.Content>
+            </CheckBox>
 
         </StackPanel>
 

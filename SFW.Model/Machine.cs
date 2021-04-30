@@ -131,6 +131,7 @@ namespace SFW.Model
                                                 (SELECT        COUNT(Qtask_Type) AS Expr1
                                                 FROM            dbo.[IM_UDEF-INIT_Quality_Tasks]
                                                 WHERE        (Qtask_Initiated_By IS NOT NULL) AND (Qtask_Release_Date IS NULL) AND (ID1 = e.Part_Nbr)) AS QTask
+                    ,(SELECT TOP(1) aa.[Remarks] FROM [dbo].[WPO_REMARKS-INIT_Remarks] aa WHERE aa.[ID] = b.[ID]) as 'OpDesc'
                 FROM            dbo.[WC-INIT] AS a RIGHT OUTER JOIN
                                             dbo.[WPO-INIT] AS b ON b.Work_Center = a.Wc_Nbr RIGHT OUTER JOIN
                                             dbo.[WP-INIT] AS c ON b.ID LIKE { fn CONCAT(c.Wp_Nbr, '%') } RIGHT OUTER JOIN
@@ -166,6 +167,7 @@ namespace SFW.Model
                              ((SELECT        Load_Pattern
                                  FROM            dbo.[CM-INIT]
                                  WHERE        (Cust_Nbr = c.Cust_Nbr)), '') AS LoadPattern, 0 AS QTask
+                        ,(SELECT TOP(1) aa.[Remarks] FROM [dbo].[WPO_REMARKS-INIT_Remarks] aa WHERE aa.[ID] = b.[ID]) as 'OpDesc'
                     FROM            dbo.[WC-INIT] AS a RIGHT OUTER JOIN
                                                 dbo.[WPO-INIT] AS b ON b.Work_Center = a.Wc_Nbr RIGHT OUTER JOIN
                                                 dbo.[WP-INIT] AS c ON b.ID LIKE { fn CONCAT(c.Wp_Nbr, '%') } RIGHT OUTER JOIN

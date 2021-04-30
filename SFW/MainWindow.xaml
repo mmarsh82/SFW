@@ -21,7 +21,7 @@
         <cvtr:BoolToVisibility x:Key="BoolToVisConverter" />
         <cvtr:SiteToVisibility x:Key="SiteToVisConverter"/>
     </Window.Resources>
-    
+
     <Window.InputBindings>
         <KeyBinding Gesture="Alt+F4" Command="{StaticResource ExitICommand}"/>
         <KeyBinding Gesture="F1" Command="{StaticResource LogInICommand}" CommandParameter="in"/>
@@ -154,7 +154,7 @@
                     <Separator/>
                 </MenuItem>
             </MenuItem>
-            
+
             <MenuItem Header="Admin"
                       Visibility="{Binding Path=(local:CurrentUser.IsAdmin), Converter={StaticResource BoolToVisConverter}}">
                 <MenuItem Header="Password Reset"
@@ -171,7 +171,7 @@
                           Command="{StaticResource TestICommand}"/>
             </MenuItem>
         </Menu>
-        
+
         <StackPanel Orientation="Horizontal"
                     Visibility="{Binding Path=(local:App.IsFocused), Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}"
                     HorizontalAlignment="Center"
@@ -213,7 +213,7 @@
                     <MenuItem Header="IsAdmin" IsChecked="{Binding Path=(local:CurrentUser.IsAdmin), Mode=OneWay}"/>
                 </MenuItem>
             </Menu>
-           
+
             <TextBlock Text="{Binding Path=(local:RefreshTimer.LastRefresh), StringFormat='Last Refresh: {0}'}"
                        Margin="20,0,20,0"
                        VerticalAlignment="Center"
@@ -228,14 +228,14 @@
         </StackPanel>
 
         <!--#endregion-->
-        
+
         <!--#region WorkSpace Grid-->
 
         <Grid x:Name="WorkSpaceDock"
-                   Grid.Row="1"/>
+              Grid.Row="1"/>
 
         <!--#endregion-->
-        
+
         <!--#region Footer-->
 
         <Grid Grid.Row="2"
@@ -272,6 +272,7 @@
         </Grid>
 
         <!--#endregion-->
-        
+
     </Grid>
+
 </Window>

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
+using System.Linq;
 
 //Created by Michael Marsh 5-4-18
 
@@ -322,7 +323,9 @@ namespace SFW.Model
 	                                                                            ,CAST(a.[Requested_Date] as date) as 'ReqDate'
 	                                                                            ,CAST(a.[Commit_Ship_Date] as date) as 'ShipDate'
                                                                                 ,(SELECT ISNULL(aa.[Load_Pattern], '') FROM [dbo].[CM-INIT] aa WHERE aa.[Cust_Nbr] = a.[Cust_Nbr]) AS 'LoadPattern'
-                                                                                ,CASE WHEN b.[Make_To_Order] = 'Y' THEN 1 ELSE 0 END as 'MTO'
+                                                                                ,CASE WHEN b.[Make_To_Order] = 'Y' THEN 1
+		                                                                            WHEN b.[Make_To_Order] = 'N' THEN 0
+		                                                                            ELSE -1 END as 'MTO'
                                                                                 ,CASE WHEN CAST(b.[Ln_Del_Qty] as int) - CAST(b.[Ln_Bal_Qty] as int) = 0 THEN 0 ELSE 1 END AS 'IsBackOrder'
                                                                                 ,c.[Ar_Credit_Limit] as 'AR_Limit'
 	                                                                            ,c.[Balance] as 'AR_Bal'
@@ -330,19 +333,26 @@ namespace SFW.Model
 	                                                                            ,c.[Alloc_Bal] as 'AR_ABal'
 	                                                                            ,c.[Ar_Credit_Limit] - (c.[Balance] + c.[Ship_Bal] + c.[Alloc_Bal]) as 'AR_Credit'
 	                                                                            ,a.[Order_Bal_Ext_Price] as 'AR_OrdBal'
+                                                                                ,CASE WHEN d.[Wp_Nbr] IS NOT NULL THEN 1 ELSE 0 END as 'IsWOLinked'
                                                                             FROM
 	                                                                            [dbo].[SOH-INIT] a
                                                                             RIGHT JOIN
 	                                                                            [dbo].[SOD-INIT] b ON SUBSTRING(b.[ID], 0, CHARINDEX('*', b.[ID], 0)) = a.[So_Nbr]
                                                                             RIGHT JOIN
 	                                                                            [dbo].[CM-INIT] c ON c.[Cust_Nbr] = a.[Cust_Nbr]
+                                                                            LEFT JOIN
+	                                                                            [dbo].[WP-INIT] d ON d.[So_Reference] = CONCAT(b.[ID], '*1')
                                                                             WHERE
 	                                                                            a.[Order_Status] IS NULL AND b.[Comp] = 'O' AND (b.[Part_Wo_Gl] IS NOT NULL OR b.[D_esc] IS NOT NULL) AND a.[So_Nbr] IS NOT NULL
                                                                             ORDER BY
                                                                                 a.[Commit_Ship_Date], b.[ID] ASC", sqlCon))
                         {
                             adapter.Fill(_tempTable);
-                            return _tempTable;
+                            //TODO: need to get this to a table for return.
+                            return _tempTable.AsEnumerable()
+                                .GroupBy(r => r.Field<string>("ID"))
+                                .Select(g => g.First())
+                                .CopyToDataTable();
                         }
                     }
                     catch (SqlException sqlEx)

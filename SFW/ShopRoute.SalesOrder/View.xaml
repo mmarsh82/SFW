@@ -434,7 +434,7 @@
                             Grid.Row="11"
                             BorderThickness="3"
                             BorderBrush="#FF135185"
-                            Width="830"
+                            HorizontalAlignment="Left"
                             Style="{DynamicResource ModernTabControl}">
 
                     <TabItem Header="Accounts Receivable"
@@ -445,7 +445,7 @@
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="170"/>
                                 <ColumnDefinition Width="200"/>
-                                <ColumnDefinition Width="100"/>
+                                <ColumnDefinition Width="25"/>
                                 <ColumnDefinition Width="140"/>
                                 <ColumnDefinition Width="200"/>
                             </Grid.ColumnDefinitions>

@@ -5,8 +5,11 @@
              xmlns:cmd="clr-namespace:SFW.Commands"
              xmlns:main="clr-namespace:SFW"
              x:Name="ShopRouteUserControl">
-    <ScrollViewer x:Name="MainScroll" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" Margin="0,0,0,20">
+    <ScrollViewer x:Name="MainScroll" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" Margin="0,0,0,20" VerticalAlignment="Top">
         <Grid>
+
+            <!--#region Resources -->
+
             <Grid.Resources>
                 <cvtr:StringToVisibility x:Key="StringToVisConverter"/>
                 <cvtr:CountToVisibility x:Key="CountToVisConverter"/>
@@ -24,6 +27,8 @@
                 <cmd:WorkInstructions x:Key="WorkInstICommand" />
                 <main:CurrentUser x:Key="User" />
             </Grid.Resources>
+
+            <!--#endregion-->
 
             <TextBlock Text="Nothing Selected"
                        FontSize="32"
@@ -159,7 +164,7 @@
                 </StackPanel>
 
                 <!--#endregion-->
-                
+
                 <!--#region Grid.Row 2 Operation Description-->
 
                 <StackPanel Grid.Row="2"
@@ -197,7 +202,7 @@
                         <Image Source="/SFW;component/Icons/Search.ico"
                                Margin="1"/>
                     </Button>
-                    
+
                     <TextBlock Text="Part Number:"
                            FontSize="24"
                            FontWeight="Bold"
@@ -379,11 +384,11 @@
                 <Grid Grid.Row="7">
 
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*" MaxWidth="550"/>
+                        <ColumnDefinition Width="*" MaxWidth="550"/>
                     </Grid.ColumnDefinitions>
 
-                    <StackPanel Grid.Column="0" Orientation="Vertical">
+                    <StackPanel Grid.Column="0" Orientation="Vertical" MaxWidth="550">
 
                         <TextBox Text="Work Order Notes"
                                  FontSize="18"
@@ -429,7 +434,7 @@
 
                     </StackPanel>
 
-                    <StackPanel Grid.Column="1" Orientation="Vertical">
+                    <StackPanel Grid.Column="1" Orientation="Vertical" MaxWidth="550">
 
                         <TextBox Text="Shop Floor Notes"
                                  FontSize="18"
@@ -806,9 +811,9 @@
                     </TabItem>
 
                     <!--#endregion-->
-                    
+
                     <!--#region Bill of Material Tab-->
-                    
+
                     <TabItem Header="Bill of Material (BOM)"
                              FontSize="20"
                              FontWeight="Bold"
@@ -882,7 +887,7 @@
                         </DataGrid>
 
                     </TabItem>
-                    
+
                     <!--#endregion-->
 
                 </TabControl>
@@ -893,4 +898,5 @@
 
         </Grid>
     </ScrollViewer>
+
 </UserControl>

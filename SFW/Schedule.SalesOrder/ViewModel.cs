@@ -76,20 +76,28 @@ namespace SFW.Schedule.SalesOrder
             }
         }
 
-        private bool _pickSel;
-        public bool PickSelected
+        private bool? _pickSel;
+        public bool? PickSelected
         {
             get { return _pickSel; }
             set
             {
-                var _valAsInt = value ? 1 : 0;
-                FilterSchedule($"[MTO]='{_valAsInt}'", 2);
+                var _valAsStr = string.Empty;
+                if (value == null)
+                {
+                    _valAsStr = "[MTO]='-1'";
+                }
+                else if (value == true)
+                {
+                    _valAsStr = "[MTO]='1'";
+                }
+                FilterSchedule(_valAsStr, 2);
                 _pickSel = value;
                 OnPropertyChanged(nameof(PickSelected));
                 OnPropertyChanged(nameof(PickContent));
             }
         }
-        public string PickContent { get { return PickSelected ? "Pick:" : "MTO:"; } }
+        public string PickContent { get { return PickSelected == null ? "Off:" : PickSelected == true ? "Pick:" : "MTO:"; } }
 
         private bool _schedType;
         public bool ScheduleType
@@ -123,6 +131,32 @@ namespace SFW.Schedule.SalesOrder
         }
         public string ScheduleTypeContent { get { return ScheduleType ? "Detail:" : "Header:"; } }
         private bool _inLoad;
+
+        private bool _isSched;
+        public bool IsSchedule
+        {
+            get { return _isSched; }
+            set
+            {
+                var _valAsStr = string.Empty;
+                if (value)
+                {
+                    _valAsStr = "[IsWOLinked]=0";
+                    SelectedType = OrderTypeList.FirstOrDefault(o => o.Contains("DAI"));
+                    PickSelected = null;
+                }
+                else
+                {
+                    SelectedType = OrderTypeList.FirstOrDefault(o => o.Contains("All"));
+                    PickSelected = false;
+                }
+                FilterSchedule(_valAsStr, 6);
+                _isSched = value;
+                OnPropertyChanged(nameof(IsSchedule));
+                OnPropertyChanged(nameof(IsScheduleContent));
+            }
+        }
+        public string IsScheduleContent { get { return IsSchedule ? "New:" : "Open:"; } }
 
         public static event EventHandler<PropertyChangedEventArgs> StaticPropertyChanged;
 
@@ -167,6 +201,7 @@ namespace SFW.Schedule.SalesOrder
                 FilterSchedule(MainWindowViewModel.MachineFilter, 3);
             }
             _inLoad = true;
+            IsSchedule = false;
             ScheduleType = true;
         }
 
@@ -179,6 +214,7 @@ namespace SFW.Schedule.SalesOrder
         /// 3 = Work Center Filter
         /// 4 = Work Center Group Filter
         /// 5 = Credit Status Filter
+        /// 6 = Scheduling Status Filter
         /// </summary>
         /// <param name="filter">Filter string to use on the default view</param>
         /// <param name="index">Index of the filter string list you are adding to our changing</param>

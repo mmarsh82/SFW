@@ -78,7 +78,7 @@ namespace M2kClient
         /// <returns>Change request error, if none exists then it will return a null value</returns>
         public static string EditRecord(string file, string recordID, int[] attributes, string[] newValues, M2kConnection connection)
         {
-            if (attributes.Length != newValues.Length)
+            if (attributes.Length == newValues.Length)
             {
                 try
                 {
@@ -91,7 +91,7 @@ namespace M2kClient
                                 using (UniDynArray udArray = uFile.Read(recordID))
                                 {
                                     var _counter = 1;
-                                    while (attributes.Length <= _counter)
+                                    while (attributes.Length >= _counter)
                                     {
                                         udArray.Replace(attributes[_counter - 1], newValues[_counter - 1]);
                                     }
@@ -506,6 +506,34 @@ namespace M2kClient
                     File.WriteAllText($"{connection.BTIFolder}ADJUST{connection.AdiServer}.DAT{suffix}s{tranCount}", s.ToString());
                     tranCount++;
                 }
+            }
+
+            #endregion
+
+            #region Reclaim Adjustment
+
+            //Adjusting out any reclaim from the system and then adjusting it back in as the raw compound
+            if (wipRecord.IsReclaim == SFW.Model.Enumerations.Complete.Y)
+            {
+                var test = Convert.ToInt32(Math.Round(Convert.ToDouble(wipRecord.ReclaimQty) * wipRecord.ReclaimAssyQty, 0, MidpointRounding.AwayFromZero));
+                //Adjustment out
+                InventoryAdjustment(wipRecord.Submitter,
+                    $"{wipRecord.ReclaimReference}*{wipRecord.WipWorkOrder.OrderNumber}",
+                    wipRecord.WipWorkOrder.SkuNumber,
+                    AdjustCode.REC,
+                    'S',
+                    Convert.ToInt32(wipRecord.ReclaimQty),
+                    wipRecord.ReceiptLocation,
+                    connection);
+                //Adjustment in
+                InventoryAdjustment(wipRecord.Submitter,
+                    $"{wipRecord.ReclaimReference}*{wipRecord.WipWorkOrder.OrderNumber}",
+                    wipRecord.ReclaimParent,
+                    AdjustCode.REC,
+                    'A',
+                    Convert.ToInt32(Math.Round(Convert.ToDouble(wipRecord.ReclaimQty) * wipRecord.ReclaimAssyQty, 0, MidpointRounding.AwayFromZero)),
+                    "EXT-1",
+                    connection);
             }
 
             #endregion
