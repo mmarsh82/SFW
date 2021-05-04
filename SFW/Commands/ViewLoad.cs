@@ -28,17 +28,17 @@ namespace SFW.Commands
             }
             try
             {
-                var _temp = App.AppSqlCon.Database;
                 var _wo = new object();
                 if (parameter.GetType() == typeof(Model.WorkOrder) || parameter.ToString().Length > 3)
                 {
                     _wo = parameter;
-                    parameter = 3;
+                    parameter = 2;
                 }
                 var _view = int.TryParse(parameter.ToString(), out int i) ? i : App.SiteNumber;
                 var _addhist = _view == App.SiteNumber ? false : true;
                 var _viewModel = new object();
                 _viewModel = null;
+                var refreshView = true;
                 //Handling the back function
                 if (_view == -1)
                 {
@@ -49,6 +49,7 @@ namespace SFW.Commands
                         HistoryList.RemoveAt(HistoryList.Count - 1);
                         _view = HistoryList[HistoryList.Count - 1];
                     }
+                    refreshView = false;
                 }
                 if (_view == App.SiteNumber)
                 {
@@ -58,7 +59,7 @@ namespace SFW.Commands
                 switch (_view)
                 {
                     //The part information command calls can either send a work order object, part number or a null variable.  Need to handle each case
-                    case 3:
+                    case 2:
                         if (_wo != null)
                         {
                             _viewModel = _wo.GetType() == typeof(Model.WorkOrder) ? new PartInfo_ViewModel((Model.WorkOrder)_wo) : new PartInfo_ViewModel(_wo.ToString());
@@ -76,23 +77,21 @@ namespace SFW.Commands
                         }
                         break;
                     //Currently the closed work orders are site agnostic so need to load the viewmodel at the time of the call
-                    case 6:
+                    case 5:
                         _viewModel= new Schedule.Closed.ViewModel();
                         break;
                     //Each site has its own build out for the database change
                     case 0:
                         if (!App.DatabaseChange("CSI_MAIN"))
                         {
-                            App.DatabaseChange(_temp);
-                            return;
+                            MessageBox.Show("Unable to switch to the alternate site.");
                         }
                         App.ErpCon.DatabaseChange(Database.CSI);
                         break;
                     case 1:
                         if (!App.DatabaseChange("WCCO_MAIN"))
                         {
-                            App.DatabaseChange(_temp);
-                            return;
+                            MessageBox.Show("Unable to switch to the alternate site.");
                         }
                         App.ErpCon.DatabaseChange(Database.WCCO);
                         break;
@@ -103,7 +102,7 @@ namespace SFW.Commands
                     {
                         HistoryList.Add(_view);
                     }
-                    WorkSpaceDock.SwitchView(_view, _viewModel);
+                    WorkSpaceDock.SwitchView(_view, _viewModel, refreshView);
                 }
             }
             catch (Exception)

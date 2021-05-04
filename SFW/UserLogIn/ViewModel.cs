@@ -125,10 +125,6 @@ namespace SFW.UserLogIn
                             if (w.Title == "Password Reset")
                             {
                                 w.Close();
-                                if ((ShopRoute.ViewModel)Controls.WorkSpaceDock.WccoDock.GetChildOfType<ShopRoute.View>().DataContext != null)
-                                {
-                                    ((ShopRoute.ViewModel)Controls.WorkSpaceDock.WccoDock.GetChildOfType<ShopRoute.View>().DataContext).UpdateView();
-                                }
                             }
                         }
                     }
@@ -161,10 +157,6 @@ namespace SFW.UserLogIn
                             if (w.Title == "User Log In")
                             {
                                 w.Close();
-                                if ((ShopRoute.ViewModel)Controls.WorkSpaceDock.WccoDock.GetChildOfType<ShopRoute.View>().DataContext != null)
-                                {
-                                    ((ShopRoute.ViewModel)Controls.WorkSpaceDock.WccoDock.GetChildOfType<ShopRoute.View>().DataContext).UpdateView();
-                                }
                             }
                         }
                     }

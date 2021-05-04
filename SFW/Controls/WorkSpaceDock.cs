@@ -1,6 +1,4 @@
-﻿using M2kClient;
-using SFW.Queries;
-using System;
+﻿using SFW.Queries;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -13,8 +11,7 @@ namespace SFW.Controls
         #region Properties
 
         public static Grid MainDock { get; set; }
-        public static DockPanel CsiDock { get; set; }
-        public static DockPanel WccoDock { get; set; }
+        public static DockPanel SchedDock { get; set; }
         public static DockPanel ClosedDock { get; set; }
         public static DockPanel CountDock { get; set; }
         public static DockPanel SalesDock { get; set; }
@@ -31,61 +28,53 @@ namespace SFW.Controls
             ClosedView = false;
             //Create the Control
             MainDock = ((MainWindow)Application.Current.Windows[0]).WorkSpaceDock;
-            CsiDock = new DockPanel();
-            WccoDock = new DockPanel();
+            SchedDock = new DockPanel();
             ClosedDock = new DockPanel();
             CountDock = new DockPanel();
             SalesDock = new DockPanel();
 
+            //Add the Site Schedule View to [0]
+            SchedDock.Children.Insert(0, new Schedule.View());
+            SchedDock.Children.Insert(1, new ShopRoute.View { DataContext = new ShopRoute.ViewModel() });
+            MainDock.Children.Insert(0, SchedDock);
 
-            //Add the CSI Schedule View to [0]
-            CsiDock.Children.Insert(0, new Schedule.View());
-            CsiDock.Children.Insert(1, new ShopRoute.View { DataContext = new ShopRoute.ViewModel() });
-            MainDock.Children.Insert(0, CsiDock);
+            //Add a spacer to [1]
+            MainDock.Children.Insert(1, new UserControl());
 
-            //Add the WCCO Schedule View to [1]
-            App.DatabaseChange("WCCO_MAIN");
-            WccoDock.Children.Insert(0, new Schedule.View());
-            WccoDock.Children.Insert(1, new ShopRoute.View { DataContext = new ShopRoute.ViewModel() });
-            MainDock.Children.Insert(1, WccoDock);
+            //Add the Part Info View to [2]
+            MainDock.Children.Insert(2, new PartInfo_View());
 
+            //Add the Cycle Count View to [3]
+            if(CurrentUser.IsInventoryControl)
+            {
+                CountDock.Children.Insert(0, new CycleCount.Sched_View());
+                CountDock.Children.Insert(1, new CycleCount.Form_View { DataContext = new CycleCount.Form_ViewModel() });
+            }
+            MainDock.Children.Insert(3, CountDock);
 
-            //Add the Scheduler View to [2]
-            MainDock.Children.Insert(2, new Scheduler.View { DataContext = new Scheduler.ViewModel() });
+            //Add the Admin View to [4]
+            MainDock.Children.Insert(4, new Admin.View { DataContext = new Admin.ViewModel() });
 
-            //Add the Part Info View to [3]
-            MainDock.Children.Insert(3, new PartInfo_View());
-
-            //Add the Cycle Count View to [4]
-            CountDock.Children.Insert(0, new CycleCount.Sched_View());
-            CountDock.Children.Insert(1, new CycleCount.Form_View { DataContext = new CycleCount.Form_ViewModel() });
-            MainDock.Children.Insert(4, CountDock);
-
-            //Add the Admin View to [5]
-            MainDock.Children.Insert(5, new Admin.View { DataContext = new Admin.ViewModel() });
-
-            //Add the Closed Schedule View to [6]
+            //Add the Closed Schedule View to [5]
             ClosedDock.Children.Insert(0, new Schedule.Closed.View());
             ClosedDock.Children.Insert(1, new ShopRoute.View { DataContext = new ShopRoute.ViewModel() });
-            MainDock.Children.Insert(6, ClosedDock);
+            MainDock.Children.Insert(5, ClosedDock);
 
-            //Add the Part Detail View to [7]
-            MainDock.Children.Insert(7, new UserControl());
+            //Add the Part Detail View to [6]
+            MainDock.Children.Insert(6, new UserControl());
 
-            //Add the Part Trace View to [8]
-            MainDock.Children.Insert(8, new PartTrace_View());
+            //Add the Part Trace View to [7]
+            MainDock.Children.Insert(7, new PartTrace_View());
 
-            //Add the Sales Order Schedule View to [9]
-            SalesDock.Children.Insert(0, new Schedule.SalesOrder.View());
-            SalesDock.Children.Insert(1, new ShopRoute.SalesOrder.View { DataContext = new ShopRoute.SalesOrder.ViewModel() });
-            MainDock.Children.Insert(9, SalesDock);
+            //Add the Sales Order Schedule View to [8]
+            if (CurrentUser.HasSalesOrderModule)
+            {
+                SalesDock.Children.Insert(0, new Schedule.SalesOrder.View());
+                SalesDock.Children.Insert(1, new ShopRoute.SalesOrder.View { DataContext = new ShopRoute.SalesOrder.ViewModel() });
+            }
+            MainDock.Children.Insert(8, SalesDock);
 
-            //Set up and display the intial view
-            var _siteNbr = CurrentUser.GetSite();
-            var _site = !string.IsNullOrEmpty(CurrentUser.Site) ? CurrentUser.Site : "CSI";
-            App.DatabaseChange($"{_site}_MAIN");
-            App.ErpCon.DatabaseChange(Enum.TryParse(_site, out Database _db) ? _db : Database.CSI);
-            SwitchView(_siteNbr, null);
+            SwitchView(App.SiteNumber, null);
             RefreshTimer.IsRefreshing = false;
         }
 
@@ -94,7 +83,8 @@ namespace SFW.Controls
         /// </summary>
         /// <param name="index">Child object index</param>
         /// <param name="dataContext">DataContext to attached to the loaded child object</param>
-        public static void SwitchView(int index, object dataContext)
+        /// <param name="refresh">Optional: triggers a refresh on the docked views</param>
+        public static void SwitchView(int index, object dataContext, bool refreshDock = true)
         {
             foreach (object o in MainDock.Children)
             {
@@ -107,28 +97,28 @@ namespace SFW.Controls
                     ((UserControl)o).Visibility = Visibility.Collapsed;
                 }
             }
-            ClosedView = index == 6;
+            ClosedView = index == 5;
             var _tempDock = new DockPanel();
             switch(index)
             {
                 case 0:
-                    _tempDock = CsiDock;
-                    break;
                 case 1:
-                    _tempDock = WccoDock;
+                    _tempDock = SchedDock;
+                    index = 0;
                     break;
-                case 4:
+                case 3:
                     _tempDock = CountDock;
                     break;
-                case 6:
+                case 5:
                     _tempDock = ClosedDock;
                     break;
-                case 9:
+                case 8:
                     _tempDock = SalesDock;
                     break;
             }
-            if (index <= 1)
+            if (index <= 1 && refreshDock)
             {
+                ((Schedule.ViewModel)((Schedule.View)_tempDock.Children[0]).DataContext).RefreshSchedule();
                 MainWindowViewModel.MachineList = ((Schedule.ViewModel)((Schedule.View)_tempDock.Children[0]).DataContext).MachineList;
                 if (MainWindowViewModel.SelectedMachine == null && !App.IsFocused)
                 {
@@ -139,11 +129,11 @@ namespace SFW.Controls
                 {
                     MainWindowViewModel.SelectedMachineGroup = ((Schedule.ViewModel)((Schedule.View)_tempDock.Children[0]).DataContext).MachineGroupList[0];
                 }
-                MainDock.Children.RemoveAt(5);
-                MainDock.Children.Insert(5, new Admin.View { DataContext = new Admin.ViewModel() });
-                MainDock.Children[5].Visibility = Visibility.Collapsed;
+                MainDock.Children.RemoveAt(3);
+                MainDock.Children.Insert(3, new Admin.View { DataContext = new Admin.ViewModel() });
+                MainDock.Children[3].Visibility = Visibility.Collapsed;
             }
-            else if (index == 6)
+            else if (index == 5)
             {
                 ((Schedule.Closed.View)_tempDock.Children[0]).DataContext = dataContext;
                 if(((ShopRoute.View)_tempDock.Children[1]).DataContext != null)

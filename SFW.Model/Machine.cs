@@ -97,50 +97,61 @@ namespace SFW.Model
         {
             var _conString = sqlCon.Database.Contains("WCCO") ?
                 @"SELECT
-	                DISTINCT b.ID AS WO_Number
-	                ,CASE WHEN b.[Next_Seq] IS NULL AND b.[Prev_Seq] IS NULL THEN '10' ELSE SUBSTRING(b.[ID], CHARINDEX('*', b.[ID], 0) + 1
-	                ,LEN(b.[ID])) END AS Operation
-	                ,a.Wc_Nbr AS MachineNumber
-	                ,a.Name AS MachineName
-	                ,a.D_esc AS MachineDesc
-	                ,a.Work_Ctr_Group AS MachineGroup
-	                ,0 AS MachineOrder
-	                ,ISNULL(b.Qty_Avail, b.Qty_Req - ISNULL(b.Qty_Compl, 0)) AS WO_CurrentQty, ISNULL(b.Date_Start, '1999-01-01') AS WO_SchedStartDate
-	                ,ISNULL(b.Date_Act_Start, '1999-01-01') AS WO_ActStartDate
-	                ,ISNULL(b.Due_Date, b.Date_Start) AS WO_DueDate
-	                ,CAST(ROUND(b.Mach_Load_Hrs_Rem, 1) AS FLOAT) AS RunTime
-	                ,ISNULL(CASE WHEN (SELECT [Ord_Type] FROM [dbo].[SOH-INIT] WHERE [So_Nbr] = SUBSTRING(c.[So_Reference], 0, CHARINDEX('*', c.[So_Reference], 0))) = 'DAI' THEN 'A'
-		                WHEN c.[Wo_Type] = 'R' THEN 'B' ELSE c.[Mgt_Priority_Code] END, 'D') AS WO_Priority
-	                ,ISNULL(c.Wo_Type, 'S') AS WO_Type
-	                ,c.Qty_To_Start AS WO_StartQty
-	                ,c.So_Reference AS WO_SalesRef
-	                ,f.Cust_Nbr, CASE WHEN c.[Time_Wanted] IS NOT NULL THEN CONVERT(VARCHAR(2), CAST(c.[Time_Wanted] AS TIME), 108) 
-                                            ELSE '999' END AS PriTime, CASE WHEN c.[Time_Wanted] IS NOT NULL THEN DATEPART(MINUTE, CAST(c.[Time_Wanted] AS TIME)) ELSE '999' END AS Sched_Priority, d.Part_Number AS SkuNumber, 
-                                            d.Description AS SkuDesc, d.Um AS SkuUom, d.Drawing_Nbrs AS SkuMasterPrint, ISNULL(c.Bom_Rev_Date, '1999-01-01') AS BomRevDate, ISNULL(c.Bom_Rev_Level, '') AS BomRevLvl, ISNULL(e.Qty_On_Hand, 0) 
-                                            AS SkuOnHand, CASE WHEN b.[Due_Date] < GETDATE() THEN 1 ELSE 0 END AS IsLate, CASE WHEN b.[Date_Start] < GETDATE() AND c.[Qty_To_Start] = b.[Qty_Avail] THEN 1 ELSE 0 END AS IsStartLate, 
+	                DISTINCT(wpo.[ID]) as 'WO_Number'
+	                ,SUBSTRING(wpo.[ID], CHARINDEX('*', wpo.[ID], 0) + 1, LEN(wpo.[ID])) as 'Operation'
+	                ,wc.[Wc_Nbr] as 'MachineNumber'
+	                ,wc.[Name] as 'MachineName'
+	                ,wc.[D_esc] as 'MachineDesc'
+	                ,wc.[Work_Ctr_Group] as 'MachineGroup'
+	                ,0 as 'MachineOrder'
+	                ,ISNULL(wpo.[Qty_Avail], wpo.[Qty_Req] - ISNULL(wpo.[Qty_Compl], 0)) as 'WO_CurrentQty'
+	                ,ISNULL(wpo.[Date_Start], '1999-01-01') as 'WO_SchedStartDate'
+	                ,ISNULL(wpo.[Date_Act_Start], '1999-01-01') as 'WO_ActStartDate'
+	                ,ISNULL(wpo.[Due_Date], wpo.[Date_Start]) as 'WO_DueDate'
+	                ,CAST(ROUND(wpo.[Mach_Load_Hrs_Rem], 1) as float) as 'RunTime'
+	                ,ISNULL(CASE 
+		                WHEN (SELECT [Ord_Type] FROM [dbo].[SOH-INIT] WHERE [So_Nbr] = SUBSTRING(wp.[So_Reference], 0, CHARINDEX('*', wp.[So_Reference], 0))) = 'DAI' THEN 'A'
+		                WHEN wp.[Wo_Type] = 'R' THEN 'B'
+		                ELSE wp.[Mgt_Priority_Code] END, 'D') as 'WO_Priority'
+	                ,ISNULL(wp.[Wo_Type], 'S') as 'WO_Type'
+	                ,wp.[Qty_To_Start] as 'WO_StartQty'
+	                ,wp.[So_Reference] as 'WO_SalesRef'
+	                ,f.Cust_Nbr
+	                ,CASE WHEN wp.[Time_Wanted] IS NOT NULL THEN DATEPART(HOUR, CAST(wp.[Time_Wanted] as time)) ELSE '999' END as 'PriTime'
+	                ,CASE WHEN wp.[Time_Wanted] IS NOT NULL THEN DATEPART(MINUTE, CAST(wp.[Time_Wanted] as time)) ELSE '999' END as 'Sched_Priority'
+	                ,im.[Part_Number] as 'SkuNumber'
+	                ,im.[Description] as 'SkuDesc'
+	                ,im.[Um] as 'SkuUom'
+	                ,im.[Drawing_Nbrs] as 'SkuMasterPrint'
+	                ,ISNULL(wp.Bom_Rev_Date, '1999-01-01') AS BomRevDate, ISNULL(wp.Bom_Rev_Level, '') AS BomRevLvl, ISNULL(e.Qty_On_Hand, 0) 
+                                            AS SkuOnHand, CASE WHEN wpo.[Due_Date] < GETDATE() THEN 1 ELSE 0 END AS IsLate, CASE WHEN wpo.[Date_Start] < GETDATE() AND wp.[Qty_To_Start] = wpo.[Qty_Avail] THEN 1 ELSE 0 END AS IsStartLate, 
                                             e.Engineering_Status AS EngStatus,
                                                 (SELECT        Description
                                                 FROM            dbo.[TM-INIT_Eng_Status]
                                                 WHERE        (ID = e.Engineering_Status)) AS EngStatusDesc, f.Name AS Cust_Name,
                                                 (SELECT        Cust_Part_Nbr
                                                 FROM            dbo.[SOD-INIT]
-                                                WHERE        (ID = SUBSTRING(c.So_Reference, 0, LEN(c.So_Reference) - 1))) AS Cust_Part_Nbr, CAST
+                                                WHERE        (ID = SUBSTRING(wp.So_Reference, 0, LEN(wp.So_Reference) - 1))) AS Cust_Part_Nbr, CAST
                                                 ((SELECT        Ln_Bal_Qty
                                                     FROM            dbo.[SOD-INIT] AS [SOD-INIT_1]
-                                                    WHERE        (ID = SUBSTRING(c.So_Reference, 0, LEN(c.So_Reference) - 1))) AS int) AS Ln_Bal_Qty, ISNULL(f.Load_Pattern, '') AS LoadPattern,
+                                                    WHERE        (ID = SUBSTRING(wp.So_Reference, 0, LEN(wp.So_Reference) - 1))) AS int) AS Ln_Bal_Qty, ISNULL(f.Load_Pattern, '') AS LoadPattern,
                                                 (SELECT        COUNT(Qtask_Type) AS Expr1
                                                 FROM            dbo.[IM_UDEF-INIT_Quality_Tasks]
-                                                WHERE        (Qtask_Initiated_By IS NOT NULL) AND (Qtask_Release_Date IS NULL) AND (ID1 = e.Part_Nbr)) AS QTask
-                    ,(SELECT TOP(1) aa.[Remarks] FROM [dbo].[WPO_REMARKS-INIT_Remarks] aa WHERE aa.[ID] = b.[ID]) as 'OpDesc'
-                FROM            dbo.[WC-INIT] AS a RIGHT OUTER JOIN
-                                            dbo.[WPO-INIT] AS b ON b.Work_Center = a.Wc_Nbr RIGHT OUTER JOIN
-                                            dbo.[WP-INIT] AS c ON b.ID LIKE { fn CONCAT(c.Wp_Nbr, '%') } RIGHT OUTER JOIN
-                                            dbo.[IM-INIT] AS d ON d.Part_Number = c.Part_Wo_Desc RIGHT OUTER JOIN
-                                            dbo.[IPL-INIT] AS e ON e.Part_Nbr = d.Part_Number LEFT OUTER JOIN
-                                            dbo.[CM-INIT] AS f ON f.Cust_Nbr = CASE WHEN CHARINDEX('*', c.[Cust_Nbr], 0) > 0 THEN SUBSTRING(c.[Cust_Nbr], 0, CHARINDEX('*', c.[Cust_Nbr], 0)) ELSE c.[Cust_Nbr] END
-                WHERE        (a.D_esc <> 'DO NOT USE') AND (c.Status_Flag = 'R' OR
-                                            c.Status_Flag = 'A') AND (b.Seq_Complete_Flag IS NULL OR
-                                            b.Seq_Complete_Flag = 'N') AND (b.Alt_Seq_Status IS NULL)" :
+                                                WHERE        (Qtask_Initiated_By IS NOT NULL) AND (Qtask_Release_Date IS NULL) AND (ID1 = im.[Part_Number])) AS QTask
+                FROM
+	                dbo.[WC-INIT] wc
+                RIGHT OUTER JOIN
+	                dbo.[WPO-INIT] wpo ON wpo.[Work_Center] = wc.[Wc_Nbr] AND (wpo.Seq_Complete_Flag IS NULL OR wpo.Seq_Complete_Flag = 'N') AND (wpo.Alt_Seq_Status IS NULL)
+                RIGHT OUTER JOIN
+	                dbo.[WP-INIT] wp ON wp.[Wp_Nbr] = SUBSTRING(wpo.[ID], 0, CHARINDEX('*', wpo.[ID], 0)) AND (wp.Status_Flag = 'R' OR wp.Status_Flag = 'A')
+                RIGHT OUTER JOIN
+	                dbo.[IM-INIT] im ON im.[Part_Number] = wp.[Part_Wo_Desc]
+                RIGHT OUTER JOIN
+	                dbo.[IPL-INIT] e ON e.[Part_Nbr] = im.[Part_Number]
+                LEFT OUTER JOIN
+	                dbo.[CM-INIT] f ON f.[Cust_Nbr] = CASE WHEN CHARINDEX('*', wp.[Cust_Nbr], 0) > 0 THEN SUBSTRING(wp.[Cust_Nbr], 0, CHARINDEX('*', wp.[Cust_Nbr], 0)) ELSE wp.[Cust_Nbr] END
+                WHERE
+	                (wc.D_esc <> 'DO NOT USE')" :
                  @"SELECT
                         DISTINCT b.ID AS WO_Number
                         ,CASE WHEN b.[Next_Seq] IS NULL AND b.[Prev_Seq] IS NULL THEN '10' ELSE SUBSTRING(b.[ID], CHARINDEX('*', b.[ID], 0) + 1, LEN(b.[ID])) END AS Operation, 

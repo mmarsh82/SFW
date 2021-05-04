@@ -58,7 +58,7 @@ namespace SFW.Model
                 OrderNumber = _wo[0];
                 Seq = _wo[1];
                 Operation = dRow.Field<string>("Operation");
-                OpDesc = dRow.Field<string>("OpDesc");
+                OpDesc = string.Empty; //TODO: Write in a method to query this
                 Priority = dRow.Field<string>("WO_Priority");
                 TaskType = dRow.Field<string>("WO_Type");
                 StartQty = dRow.Field<int>("WO_StartQty");

@@ -107,28 +107,23 @@
                 </MenuItem>
                 <MenuItem Header="Closed Work Orders"
                           Command="{StaticResource ViewLoadICommand}"
-                          CommandParameter="6"
+                          CommandParameter="5"
                           InputGestureText="Shift+Ctrl+C"/>
                 <MenuItem Header="Sales Orders"
                           Command="{StaticResource ViewLoadICommand}"
-                          CommandParameter="9"
-                          InputGestureText="Shift+Ctrl+S">
-                    <MenuItem.Visibility>
-                        <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="i">
-                            <Binding Path="(local:CurrentUser.Site)"/>
-                            <Binding Path="(local:App.IsFocused)"/>
-                        </MultiBinding>
-                    </MenuItem.Visibility>
+                          CommandParameter="8"
+                          InputGestureText="Shift+Ctrl+S"
+                          Visibility="{Binding Path=(local:CurrentUser.HasSalesOrderModule), Converter={StaticResource BoolToVisConverter}}">
                 </MenuItem>
                 <MenuItem Header="Cycle Count"
                           Command="{StaticResource ViewLoadICommand}"
-                          CommandParameter="4"
+                          CommandParameter="3"
                           Visibility="{Binding Path=(local:CurrentUser.IsInventoryControl), Converter={StaticResource BoolToVisConverter}}"/>
             </MenuItem>
             <MenuItem Header="Tools">
                 <MenuItem Header="Part Information"
                           Command="{StaticResource ViewLoadICommand}"
-                          CommandParameter="3"
+                          CommandParameter="2"
                           InputGestureText="Alt+I"/>
                 <MenuItem Header="Print Label"
                           Command="{StaticResource ShowWindowICommand}"
@@ -140,7 +135,7 @@
                           InputGestureText="Alt+R"/>
                 <MenuItem Header="Print Search"
                           Command="{StaticResource ViewLoadICommand}"
-                          CommandParameter="8"
+                          CommandParameter="7"
                           InputGestureText="Alt+T"/>
 
             </MenuItem>
@@ -166,7 +161,7 @@
                           IsChecked="{Binding InTraining, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                 <MenuItem Header="Modify App"
                           Command="{StaticResource ViewLoadICommand}"
-                          CommandParameter="5"/>
+                          CommandParameter="4"/>
                 <MenuItem Header="Dev Testing"
                           Command="{StaticResource TestICommand}"/>
             </MenuItem>
@@ -210,6 +205,9 @@
                     <MenuItem Header="{Binding Path=(local:CurrentUser.Email)}" HeaderStringFormat="Email: {0}"/>
                     <MenuItem Header="CanSchedule" IsChecked="{Binding Path=(local:CurrentUser.CanSchedule), Mode=OneWay}"/>
                     <MenuItem Header="CanWip" IsChecked="{Binding Path=(local:CurrentUser.CanWip), Mode=OneWay}"/>
+                    <MenuItem Header="IsSupervisor" IsChecked="{Binding Path=(local:CurrentUser.IsSupervisor), Mode=OneWay}"/>
+                    <MenuItem Header="IsAccountsReceivable" IsChecked="{Binding Path=(local:CurrentUser.IsAccountsReceivable), Mode=OneWay}"/>
+                    <MenuItem Header="HasSalesOrderModule" IsChecked="{Binding Path=(local:CurrentUser.HasSalesOrderModule), Mode=OneWay}"/>
                     <MenuItem Header="IsAdmin" IsChecked="{Binding Path=(local:CurrentUser.IsAdmin), Mode=OneWay}"/>
                 </MenuItem>
             </Menu>

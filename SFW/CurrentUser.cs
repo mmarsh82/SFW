@@ -171,6 +171,18 @@ namespace SFW
             }
         }
 
+        private static bool _hasSOM;
+        public static bool HasSalesOrderModule
+        {
+            get
+            { return _hasSOM; }
+            private set
+            {
+                _hasSOM = value;
+                StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(HasSalesOrderModule)));
+            }
+        }
+
         private static string _uID;
         public static string UserIDNbr
         {
@@ -247,7 +259,7 @@ namespace SFW
             Site = user.DistinguishedName.Contains("WCCO") ? "WCCO" : "CSI";
             if (_groups.Exists(o => o.ToString().Contains("SFW_Admin")))
             {
-                CanSchedule = IsSupervisor = IsInventoryControl = IsAccountsReceivable = IsAdmin = true;
+                CanSchedule = IsSupervisor = IsInventoryControl = IsAccountsReceivable = IsAdmin = HasSalesOrderModule = true;
             }
             else
             {
@@ -255,6 +267,7 @@ namespace SFW
                 IsSupervisor = _groups.Exists(o => o.ToString().Contains("SFW_Super"));
                 IsInventoryControl = _groups.Exists(o => o.ToString().Contains("SFW_IC"));
                 IsAccountsReceivable = _groups.Exists(o => o.ToString().Contains("SFW_AR"));
+                HasSalesOrderModule = _groups.Exists(o => o.ToString().Contains("SFW_SalesOrderModule"));
             }
             IsLoggedIn = true;
             CanWip = GetSite() == 1;

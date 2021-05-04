@@ -28,30 +28,29 @@ namespace SFW.Schedule
             get { return _selectedWO; }
             set
             {
-                var _siteNbr = VMDataBase == "CSI_MAIN" ? 0 : 1;
                 _selectedWO = value;
                 if (value != null)
                 {
-                    var _wo = new WorkOrder(value.Row, _siteNbr, App.GlobalConfig.First(o => $"{o.Site}_MAIN" == VMDataBase).WI, App.AppSqlCon);
-                    if (_siteNbr == 0)
+                    var _wo = new WorkOrder(value.Row, App.SiteNumber, App.GlobalConfig.First(o => $"{o.Site}_MAIN" == App.Site).WI, App.AppSqlCon);
+                    if (App.SiteNumber == 0)
                     {
                         if (!int.TryParse(_wo.EngStatus, out int i))
                         {
-                            Controls.WorkSpaceDock.UpdateChildDock(_siteNbr, 1, new ShopRoute.View { DataContext = new ShopRoute.ViewModel(_wo) });
+                            Controls.WorkSpaceDock.UpdateChildDock(0, 1, new ShopRoute.View { DataContext = new ShopRoute.ViewModel(_wo) });
                         }
                         else
                         {
-                            Controls.WorkSpaceDock.UpdateChildDock(_siteNbr, 1, new ShopRoute.QTask.View { DataContext = new ShopRoute.QTask.ViewModel(_wo) });
+                            Controls.WorkSpaceDock.UpdateChildDock(0, 1, new ShopRoute.QTask.View { DataContext = new ShopRoute.QTask.ViewModel(_wo) });
                         }
                     }
                     else
                     {
-                        Controls.WorkSpaceDock.UpdateChildDock(_siteNbr, 1, new ShopRoute.ViewModel(_wo));
+                        Controls.WorkSpaceDock.UpdateChildDock(0, 1, new ShopRoute.ViewModel(_wo));
                     }
                 }
                 else
                 {
-                    Controls.WorkSpaceDock.UpdateChildDock(_siteNbr, 1, new ShopRoute.ViewModel());
+                    Controls.WorkSpaceDock.UpdateChildDock(0, 1, new ShopRoute.ViewModel());
                 }
                 OnPropertyChanged(nameof(SelectedWorkOrder));
             }
@@ -110,7 +109,6 @@ namespace SFW.Schedule
         public List<Machine> MachineList { get; set; }
         public List<string> MachineGroupList { get; set; }
 
-        public string VMDataBase { get; set; }
         public static bool UserRefresh { get; set; }
 
         private RelayCommand _stateChange;
@@ -130,7 +128,6 @@ namespace SFW.Schedule
             App.ViewFilter[App.SiteNumber] = BuildFilter();
             LoadAsyncComplete = LoadAsyncDelegate.BeginInvoke(App.ViewFilter[App.SiteNumber], new AsyncCallback(ViewLoaded), null);
             RefreshTimer.Add(RefreshSchedule);
-            VMDataBase = App.AppSqlCon.Database;
             UserRefresh = false;
         }
 
@@ -143,7 +140,6 @@ namespace SFW.Schedule
             LoadAsyncDelegate = new LoadDelegate(ViewLoading);
             FilterAsyncDelegate = new LoadDelegate(FilterView);
             LoadAsyncComplete = LoadAsyncDelegate.BeginInvoke(machineNumber, new AsyncCallback(ViewLoaded), null);
-            VMDataBase = App.AppSqlCon.Database;
         }
 
         /// <summary>
@@ -222,10 +218,9 @@ namespace SFW.Schedule
             {
                 if (!IsLoading)
                 {
-                    var _db = string.Empty;
                     var _oldItem = ScheduleView.CurrentItem;
                     var _oldFilter = ((DataView)ScheduleView.SourceCollection).RowFilter;
-                    if (UserRefresh && VMDataBase == App.AppSqlCon.Database)
+                    if (UserRefresh)
                     {
                         _oldItem = null;
                         if (App.DefualtWorkCenter.Count == 0)
@@ -239,10 +234,10 @@ namespace SFW.Schedule
                         UserRefresh = false;
                     }
                     RefreshTimer.IsRefreshing = IsLoading = true;
-                    if (App.AppSqlCon.Database != VMDataBase)
+                    if (App.Site != $"{CurrentUser.Site}_MAIN")
                     {
-                        _db = App.AppSqlCon.Database;
-                        App.DatabaseChange(VMDataBase);
+                        MachineList = Machine.GetMachineList(App.AppSqlCon, true, false);
+                        MachineGroupList = MachineList.Where(o => !string.IsNullOrEmpty(o.MachineGroup)).Select(o => o.MachineGroup).Distinct().ToList();
                     }
                     ScheduleView = CollectionViewSource.GetDefaultView(Machine.GetScheduleData(UserConfig.GetIROD(), App.AppSqlCon));
                     ScheduleView.GroupDescriptions.Add(new PropertyGroupDescription("MachineNumber", new WorkCenterNameConverter(MachineList)));
@@ -257,11 +252,6 @@ namespace SFW.Schedule
                         SelectedWorkOrder = null;
                     }
                     ((DataView)ScheduleView.SourceCollection).RowFilter = _oldFilter;
-                    if (!string.IsNullOrEmpty(_db))
-                    {
-                        App.DatabaseChange(_db);
-                        MainWindowViewModel.InTraining = MainWindowViewModel.InTraining;
-                    }
                     RefreshTimer.IsRefreshing = IsLoading = false;
                     ScheduleView.SortDescriptions.Add(new SortDescription("MachineOrder", ListSortDirection.Ascending));
                     OnPropertyChanged(nameof(ScheduleView));
@@ -343,7 +333,7 @@ namespace SFW.Schedule
 
         private void PriorityChangeExecute(object parameter)
         {
-            var _shift = ((DataRowView)parameter).Row.SafeGetField<string>("PriTime").ToString() == "9" ? 0 : Convert.ToInt32(((DataRowView)parameter).Row.SafeGetField<string>("PriTime"));
+            var _shift = ((DataRowView)parameter).Row.SafeGetField<int>("PriTime").ToString() == "9" ? 0 : Convert.ToInt32(((DataRowView)parameter).Row.SafeGetField<int>("PriTime"));
             var _pri = ((DataRowView)parameter).Row.SafeGetField<int>("Sched_Priority").ToString() == "9" ? 0 : Convert.ToInt32(((DataRowView)parameter).Row.SafeGetField<int>("Sched_Priority"));
             var _woNumber = ((DataRowView)parameter).Row.SafeGetField<string>("WO_Number").ToString().Split('*')[0];
             using (var _editPri = new Tools.PriorityEdit_ViewModel(_woNumber, _shift, _pri))

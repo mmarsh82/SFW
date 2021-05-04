@@ -72,11 +72,17 @@
                     <Button Content="Wip Receipt"
                             FontSize="16"
                             Width="110"
-                            Visibility="{Binding CanSeeWip, Converter={StaticResource BoolToVisConverter}}"
                             IsEnabled="{Binding CanWip, Source={StaticResource User}}"
                             Command="{StaticResource WipCommand}"
                             CommandParameter="{Binding ShopOrder}"
-                            Style="{DynamicResource MenuButtonStyle}" />
+                            Style="{DynamicResource MenuButtonStyle}">
+                        <Button.Visibility>
+                            <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="i">
+                                <Binding Path="(main:CurrentUser.IsLoggedIn)"/>
+                                <Binding Path="(main:App.SiteNumber)"/>
+                            </MultiBinding>
+                        </Button.Visibility>
+                    </Button>
                     <Button Content="ITH"
                             FontSize="16"
                             Visibility="{Binding CanCheckHistory, Converter={StaticResource BoolToVisConverter}}"

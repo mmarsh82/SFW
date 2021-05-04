@@ -98,7 +98,7 @@ namespace SFW.Tools
                     ((Window)w).Close();
                 }
             }
-            ((Schedule.ViewModel)Controls.WorkSpaceDock.WccoDock.GetChildOfType<Schedule.View>().DataContext).RefreshSchedule();
+            new Commands.ViewLoad().Execute(-2);
         }
         private bool PriorityChangeCanExecute(object parameter)
         {

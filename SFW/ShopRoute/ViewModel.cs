@@ -24,7 +24,6 @@ namespace SFW.ShopRoute
                 ShopOrderNotes = null;
                 MachineGroup = string.Empty;
                 OnPropertyChanged(nameof(CanCheckHistory));
-                OnPropertyChanged(nameof(CanSeeWip));
             }
         }
 
@@ -64,7 +63,6 @@ namespace SFW.ShopRoute
         }
 
         public bool CanCheckHistory { get { return ShopOrder?.StartQty != ShopOrder?.CurrentQty; } }
-        public bool CanSeeWip { get { return CurrentUser.IsLoggedIn && CurrentSite != 0; } }
         public bool CanReport { get { return CurrentUser.IsLoggedIn && MachineGroup == "PRESS"; } }
         public bool CanSeeTrim { get { return MachineGroup == "PRESS"; } }
 
@@ -91,14 +89,6 @@ namespace SFW.ShopRoute
         public ViewModel(WorkOrder workOrder)
         {
             ShopOrder = workOrder;
-        }
-
-        /// <summary>
-        /// Updates static properties from the CurrentUser object to the local view
-        /// </summary>
-        public void UpdateView()
-        {
-            OnPropertyChanged(nameof(CanSeeWip));
         }
 
         #region Work Order Note Change ICommand

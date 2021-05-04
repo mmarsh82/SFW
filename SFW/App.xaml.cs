@@ -73,11 +73,17 @@ namespace SFW
             SplashThread.Name = "Splash Screen";
             SplashThread.Start();
             ResetSplashCreated.WaitOne();
-            //Loading application
-            Site = "CSI_MAIN";
-            SiteNumber = 0;
+
+            //Initialization of default application properties
+            if (!CurrentUser.IsLoggedIn)
+            {
+                CurrentUser.LogIn();
+            }
+            SiteNumber = CurrentUser.GetSite();
+            Site = $"{CurrentUser.Site}_MAIN";
             GlobalConfig = LoadGlobalAppConfig();
             DefualtWorkCenter = UserConfig.GetUserConfigList();
+            ErpCon.DatabaseChange(Enum.TryParse(Site.Replace("_MAIN", ""), out Database _db) ? _db : Database.CSI);
             if (AppSqlCon != null)
             {
                 AppSqlCon.Open();
@@ -88,10 +94,6 @@ namespace SFW
             AppDomain.CurrentDomain.UnhandledException += App_ExceptionCrash;
             Current.DispatcherUnhandledException += App_DispatherCrash;
             SystemEvents.PowerModeChanged += OnPowerChange;
-            if (!CurrentUser.IsLoggedIn)
-            {
-                CurrentUser.LogIn();
-            }
             ViewFilter = new Dictionary<int, string>
             {
                 { 0, "" }

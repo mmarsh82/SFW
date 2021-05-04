@@ -30,9 +30,6 @@ namespace SFW
             get { return mach; }
             set
             {
-                var _dock = App.SiteNumber == 0
-                            ? WorkSpaceDock.CsiDock
-                            : WorkSpaceDock.WccoDock;
                 if (value == null)
                 {
                     value = MachineList?.FirstOrDefault(o => o.MachineName == "All");
@@ -65,17 +62,17 @@ namespace SFW
                     }
                     else
                     {
-                        if (((Schedule.ViewModel)((Schedule.View)_dock.Children[0]).DataContext).ScheduleView != null)
+                        if (((Schedule.ViewModel)((Schedule.View)WorkSpaceDock.SchedDock.Children[0]).DataContext).ScheduleView != null)
                         {
-                            if (((DataView)((Schedule.ViewModel)((Schedule.View)_dock.Children[0]).DataContext).ScheduleView.SourceCollection).Table.Select($"MachineNumber = '{value.MachineNumber}'").Length == 0)
+                            if (((DataView)((Schedule.ViewModel)((Schedule.View)WorkSpaceDock.SchedDock.Children[0]).DataContext).ScheduleView.SourceCollection).Table.Select($"MachineNumber = '{value.MachineNumber}'").Length == 0)
                             {
-                                ((ShopRoute.ViewModel)((ShopRoute.View)_dock.Children[1]).DataContext).ShopOrder = new WorkOrder();
+                                ((ShopRoute.ViewModel)((ShopRoute.View)WorkSpaceDock.SchedDock.Children[1]).DataContext).ShopOrder = new WorkOrder();
                             }
-                            ((Schedule.ViewModel)((Schedule.View)_dock.Children[0]).DataContext).SearchFilter = null;
-                            ((DataView)((Schedule.ViewModel)((Schedule.View)_dock.Children[0]).DataContext).ScheduleView.SourceCollection).RowFilter = string.IsNullOrEmpty(MachineFilter)
+                            ((Schedule.ViewModel)((Schedule.View)WorkSpaceDock.SchedDock.Children[0]).DataContext).SearchFilter = null;
+                            ((DataView)((Schedule.ViewModel)((Schedule.View)WorkSpaceDock.SchedDock.Children[0]).DataContext).ScheduleView.SourceCollection).RowFilter = string.IsNullOrEmpty(MachineFilter)
                                 ? App.ViewFilter[App.SiteNumber]
                                 : MachineFilter;
-                            ((Schedule.ViewModel)((Schedule.View)_dock.Children[0]).DataContext).ScheduleView.Refresh();
+                            ((Schedule.ViewModel)((Schedule.View)WorkSpaceDock.SchedDock.Children[0]).DataContext).ScheduleView.Refresh();
                         }
                     }
                     IsChanging = false;
@@ -116,13 +113,10 @@ namespace SFW
                     }
                     else
                     {
-                        var _dock = App.SiteNumber == 0
-                            ? WorkSpaceDock.CsiDock
-                            : WorkSpaceDock.WccoDock;
-                        if (((Schedule.ViewModel)((Schedule.View)_dock.Children[0]).DataContext).ScheduleView != null)
+                        if (((Schedule.ViewModel)((Schedule.View)WorkSpaceDock.SchedDock.Children[0]).DataContext).ScheduleView != null)
                         {
-                            ((DataView)((Schedule.ViewModel)((Schedule.View)_dock.Children[0]).DataContext).ScheduleView.SourceCollection).RowFilter = _temp;
-                            ((Schedule.ViewModel)((Schedule.View)_dock.Children[0]).DataContext).SearchFilter = null;
+                            ((DataView)((Schedule.ViewModel)((Schedule.View)WorkSpaceDock.SchedDock.Children[0]).DataContext).ScheduleView.SourceCollection).RowFilter = _temp;
+                            ((Schedule.ViewModel)((Schedule.View)WorkSpaceDock.SchedDock.Children[0]).DataContext).SearchFilter = null;
                         }
                     }
                     SelectedMachine = MachineList.FirstOrDefault(o => o.MachineName == "All");

@@ -747,10 +747,13 @@ namespace SFW.WIP
         {
             if (disposing)
             {
+                if (IsSubmitted)
+                {
+                    new ViewLoad().Execute(-2);
+                }
                 WipRecord = null;
                 _wip = null;
                 _lotList = null;
-                ((Schedule.ViewModel)Controls.WorkSpaceDock.WccoDock.GetChildOfType<Schedule.View>().DataContext).RefreshSchedule();
             }
         }
     }
