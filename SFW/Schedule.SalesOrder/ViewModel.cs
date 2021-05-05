@@ -25,11 +25,11 @@ namespace SFW.Schedule.SalesOrder
                 {
                     var _sku = new Model.Sku(value.Row.Field<string>("PartNbr"), true, App.AppSqlCon);
                     var _soObj = new Model.SalesOrder(value.Row, App.AppSqlCon);
-                    Controls.WorkSpaceDock.UpdateChildDock(9, 1, new ShopRoute.SalesOrder.ViewModel(_soObj, _sku));
+                    Controls.WorkSpaceDock.UpdateChildDock(8, 1, new ShopRoute.SalesOrder.ViewModel(_soObj, _sku));
                 }
                 else
                 {
-                    Controls.WorkSpaceDock.UpdateChildDock(9, 1, new ShopRoute.SalesOrder.ViewModel());
+                    Controls.WorkSpaceDock.UpdateChildDock(8, 1, new ShopRoute.SalesOrder.ViewModel());
                 }
                 OnPropertyChanged(nameof(SelectedSalesOrder));
             }
@@ -90,6 +90,10 @@ namespace SFW.Schedule.SalesOrder
                 else if (value == true)
                 {
                     _valAsStr = "[MTO]='1'";
+                }
+                else
+                {
+                    _valAsStr = "[MTO]='0'";
                 }
                 FilterSchedule(_valAsStr, 2);
                 _pickSel = value;
@@ -192,17 +196,12 @@ namespace SFW.Schedule.SalesOrder
             FilterAsyncDelegate = new LoadDelegate(FilterView);
             var _filter = "";
             LoadAsyncComplete = LoadAsyncDelegate.BeginInvoke(_filter, new AsyncCallback(ViewLoaded), null);
-            PickSelected = false;
-            SelectedType = OrderTypeList.FirstOrDefault();
-            SelectedCredStatus = CreditStatusList.FirstOrDefault();
             RefreshTimer.Add(RefreshSchedule);
             if (!string.IsNullOrEmpty(MainWindowViewModel.MachineFilter))
             {
                 FilterSchedule(MainWindowViewModel.MachineFilter, 3);
             }
             _inLoad = true;
-            IsSchedule = false;
-            ScheduleType = true;
         }
 
         /// <summary>
@@ -258,7 +257,9 @@ namespace SFW.Schedule.SalesOrder
                 ((DataView)SalesScheduleView.SourceCollection).RowFilter = filter;
                 OnPropertyChanged(nameof(SalesScheduleView));
             }
-            SelectedType = OrderTypeList[0];
+            SelectedCredStatus = CreditStatusList[0];
+            IsSchedule = false;
+            ScheduleType = true;
         }
         public void ViewLoaded(IAsyncResult r)
         {

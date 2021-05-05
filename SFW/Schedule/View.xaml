@@ -141,15 +141,15 @@
                                                Height="25"
                                                Width="25" />
                                         <Image Source="/SFW;component/Icons/First.ico"
-                                               Visibility="{Binding PriTime, Converter={StaticResource StringToVisConverter}, ConverterParameter=~01}"
+                                               Visibility="{Binding PriTime, Converter={StaticResource StringToVisConverter}, ConverterParameter=~1}"
                                                ToolTip="Work order created for 1st shift."
                                                Margin="10,0,0,0" Height="25" Width="25"/>
                                         <Image Source="/SFW;component/Icons/Second.ico"
-                                               Visibility="{Binding PriTime, Converter={StaticResource StringToVisConverter}, ConverterParameter=~02}"
+                                               Visibility="{Binding PriTime, Converter={StaticResource StringToVisConverter}, ConverterParameter=~2}"
                                                ToolTip="Work order created for 2nd shift."
                                                Margin="10,0,0,0" Height="25" Width="25"/>
                                         <Image Source="/SFW;component/Icons/Third.ico"
-                                               Visibility="{Binding PriTime, Converter={StaticResource StringToVisConverter}, ConverterParameter=~03}"
+                                               Visibility="{Binding PriTime, Converter={StaticResource StringToVisConverter}, ConverterParameter=~3}"
                                                ToolTip="Work order created for 3rd shift."
                                                Margin="10,0,0,0" Height="25" Width="25"/>
                                         <Button Content="Q-Task"

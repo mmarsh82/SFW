@@ -100,6 +100,7 @@ namespace SFW.Schedule
                 ScheduleView.Refresh();
             }
         }
+        public static bool FullRefresh { get; set; }
 
         public delegate void LoadDelegate(string s);
         public LoadDelegate LoadAsyncDelegate { get; private set; }
@@ -234,8 +235,9 @@ namespace SFW.Schedule
                         UserRefresh = false;
                     }
                     RefreshTimer.IsRefreshing = IsLoading = true;
-                    if (App.Site != $"{CurrentUser.Site}_MAIN")
+                    if (FullRefresh)
                     {
+                        FullRefresh = false;
                         MachineList = Machine.GetMachineList(App.AppSqlCon, true, false);
                         MachineGroupList = MachineList.Where(o => !string.IsNullOrEmpty(o.MachineGroup)).Select(o => o.MachineGroup).Distinct().ToList();
                     }

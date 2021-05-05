@@ -142,5 +142,16 @@ namespace SFW
                 RefreshActionGroup -= action;
             }
         }
+
+        /// <summary>
+        /// Clears all actions from the refresh timer que
+        /// </summary>
+        public static void Clear()
+        {
+            foreach (Action a in RefreshActionGroup.GetInvocationList())
+            {
+                RefreshActionGroup -= a;
+            }
+        }
     }
 }

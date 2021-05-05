@@ -267,7 +267,7 @@ namespace SFW
                 IsSupervisor = _groups.Exists(o => o.ToString().Contains("SFW_Super"));
                 IsInventoryControl = _groups.Exists(o => o.ToString().Contains("SFW_IC"));
                 IsAccountsReceivable = _groups.Exists(o => o.ToString().Contains("SFW_AR"));
-                HasSalesOrderModule = _groups.Exists(o => o.ToString().Contains("SFW_SalesOrderModule"));
+                HasSalesOrderModule = _groups.Exists(o => o.ToString().Contains("SFW_SalesOrderMod"));
             }
             IsLoggedIn = true;
             CanWip = GetSite() == 1;
@@ -386,6 +386,7 @@ namespace SFW
                             else
                             {
                                 new CurrentUser(pContext, uPrincipal);
+                                Controls.WorkSpaceDock.RefreshMainDock();
                             }
                             _result.Add(_resultKey, _resultVal);
                             return _result;
@@ -469,6 +470,9 @@ namespace SFW
             IsInventoryControl = false;
             IsSupervisor = false;
             UserIDNbr = string.Empty;
+            IsAccountsReceivable = false;
+            HasSalesOrderModule = false;
+            Controls.WorkSpaceDock.RefreshMainDock();
         }
 
         /// <summary>

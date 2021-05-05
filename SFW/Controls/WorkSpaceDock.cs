@@ -118,6 +118,7 @@ namespace SFW.Controls
             }
             if (index <= 1 && refreshDock)
             {
+                Schedule.ViewModel.FullRefresh = true;
                 ((Schedule.ViewModel)((Schedule.View)_tempDock.Children[0]).DataContext).RefreshSchedule();
                 MainWindowViewModel.MachineList = ((Schedule.ViewModel)((Schedule.View)_tempDock.Children[0]).DataContext).MachineList;
                 if (MainWindowViewModel.SelectedMachine == null && !App.IsFocused)
@@ -153,9 +154,9 @@ namespace SFW.Controls
         /// </summary>
         public static void RefreshMainDock()
         {
-            ((MainWindow)Application.Current.Windows[0]).WorkSpaceDock.Children.Clear();
-            MainDock = null;
-            new WorkSpaceDock();
+            RefreshTimer.Clear();
+            Application.Current.MainWindow = Application.Current.Windows[0];
+            Application.Current.MainWindow = new MainWindow { DataContext = new MainWindowViewModel() };
         }
 
         /// <summary>

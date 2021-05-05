@@ -20,7 +20,7 @@ namespace SFW
 
         private void SourceWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            //TODO: add in the closing logic here
+            new Commands.SafeShutdown().Execute(null);
         }
     }
 }

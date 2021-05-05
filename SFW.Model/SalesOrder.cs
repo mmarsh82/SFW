@@ -324,7 +324,7 @@ namespace SFW.Model
 	                                                                            ,CAST(a.[Commit_Ship_Date] as date) as 'ShipDate'
                                                                                 ,(SELECT ISNULL(aa.[Load_Pattern], '') FROM [dbo].[CM-INIT] aa WHERE aa.[Cust_Nbr] = a.[Cust_Nbr]) AS 'LoadPattern'
                                                                                 ,CASE WHEN b.[Make_To_Order] = 'Y' THEN 1
-		                                                                            WHEN b.[Make_To_Order] = 'N' THEN 0
+		                                                                            WHEN b.[Make_To_Order] = 'N' OR d.[Wp_Nbr] IS NOT NULL THEN 0
 		                                                                            ELSE -1 END as 'MTO'
                                                                                 ,CASE WHEN CAST(b.[Ln_Del_Qty] as int) - CAST(b.[Ln_Bal_Qty] as int) = 0 THEN 0 ELSE 1 END AS 'IsBackOrder'
                                                                                 ,c.[Ar_Credit_Limit] as 'AR_Limit'
