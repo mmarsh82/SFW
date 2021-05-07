@@ -33,15 +33,15 @@
         <KeyBinding Gesture="Alt+2" Command="{StaticResource ViewLoadICommand}" CommandParameter="1"/>
         <KeyBinding Gesture="Alt+I"
                     Command="{StaticResource ViewLoadICommand}"
-                    CommandParameter="3"/>
+                    CommandParameter="2"/>
         <KeyBinding Gesture="Alt+R"
                     Command="{StaticResource RollSplitICommand}" />
         <KeyBinding Gesture="Shift+Ctrl+C"
                     Command="{StaticResource ViewLoadICommand}"
-                    CommandParameter="6" />
+                    CommandParameter="5" />
         <KeyBinding Gesture="Shift+Ctrl+S"
                     Command="{StaticResource ViewLoadICommand}"
-                    CommandParameter="9" />
+                    CommandParameter="8" />
         <KeyBinding Gesture="Alt+P"
                     Command="{StaticResource ShowWindowICommand}"
                     CommandParameter="SFW.Queries.PartLabel_View"/>

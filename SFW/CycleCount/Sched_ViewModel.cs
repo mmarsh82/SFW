@@ -1,5 +1,4 @@
-﻿using SFW.Controls;
-using SFW.Model;
+﻿using SFW.Model;
 using System;
 using System.ComponentModel;
 using System.Data;
@@ -24,8 +23,7 @@ namespace SFW.CycleCount
                 if (value != null)
                 {
                     var _cnt = new Count(value.Row);
-                    WorkSpaceDock.CountDock.Children.RemoveAt(1);
-                    WorkSpaceDock.CountDock.Children.Insert(1, new Form_View { DataContext = new Form_ViewModel(_cnt) });
+                    Controls.WorkSpaceDock.UpdateChildDock(3, 1, new Form_ViewModel(_cnt));
                 }
                 OnPropertyChanged(nameof(SelectedCount));
             }
@@ -83,11 +81,17 @@ namespace SFW.CycleCount
         /// </summary>
         public Sched_ViewModel()
         {
-            LoadAsyncDelegate = new LoadDelegate(ViewLoading);
-            FilterAsyncDelegate = new LoadDelegate(FilterView);
-            var _filter = "";
-            LoadAsyncComplete = LoadAsyncDelegate.BeginInvoke(_filter, new AsyncCallback(ViewLoaded), null);
-            RefreshTimer.Add(RefreshSchedule);
+            if (CurrentUser.IsInventoryControl)
+            {
+                LoadAsyncDelegate = new LoadDelegate(ViewLoading);
+                FilterAsyncDelegate = new LoadDelegate(FilterView);
+                var _filter = "";
+                LoadAsyncComplete = LoadAsyncDelegate.BeginInvoke(_filter, new AsyncCallback(ViewLoaded), null);
+                if (CurrentUser.IsInventoryControl)
+                {
+                    RefreshTimer.Add(RefreshSchedule);
+                }
+            }
         }
 
         /// <summary>
@@ -176,8 +180,7 @@ namespace SFW.CycleCount
                 }
                 if (((DataView)CountView.SourceCollection).Count == 0)
                 {
-                    WorkSpaceDock.CountDock.Children.RemoveAt(1);
-                    WorkSpaceDock.CountDock.Children.Insert(1, new Form_View { DataContext = new Form_ViewModel() });
+                    Controls.WorkSpaceDock.UpdateChildDock(3, 1, new Form_ViewModel());
                 }
             }
             catch (Exception)

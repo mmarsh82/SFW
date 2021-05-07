@@ -45,11 +45,8 @@ namespace SFW.Controls
             MainDock.Children.Insert(2, new PartInfo_View());
 
             //Add the Cycle Count View to [3]
-            if(CurrentUser.IsInventoryControl)
-            {
-                CountDock.Children.Insert(0, new CycleCount.Sched_View());
-                CountDock.Children.Insert(1, new CycleCount.Form_View { DataContext = new CycleCount.Form_ViewModel() });
-            }
+            CountDock.Children.Insert(0, new CycleCount.Sched_View());
+            CountDock.Children.Insert(1, new CycleCount.Form_View { DataContext = new CycleCount.Form_ViewModel() });
             MainDock.Children.Insert(3, CountDock);
 
             //Add the Admin View to [4]
@@ -67,11 +64,8 @@ namespace SFW.Controls
             MainDock.Children.Insert(7, new PartTrace_View());
 
             //Add the Sales Order Schedule View to [8]
-            if (CurrentUser.HasSalesOrderModule)
-            {
-                SalesDock.Children.Insert(0, new Schedule.SalesOrder.View());
-                SalesDock.Children.Insert(1, new ShopRoute.SalesOrder.View { DataContext = new ShopRoute.SalesOrder.ViewModel() });
-            }
+            SalesDock.Children.Insert(0, new Schedule.SalesOrder.View());
+            SalesDock.Children.Insert(1, new ShopRoute.SalesOrder.View { DataContext = new ShopRoute.SalesOrder.ViewModel() });
             MainDock.Children.Insert(8, SalesDock);
 
             SwitchView(App.SiteNumber, null);
@@ -130,9 +124,9 @@ namespace SFW.Controls
                 {
                     MainWindowViewModel.SelectedMachineGroup = ((Schedule.ViewModel)((Schedule.View)_tempDock.Children[0]).DataContext).MachineGroupList[0];
                 }
-                MainDock.Children.RemoveAt(3);
-                MainDock.Children.Insert(3, new Admin.View { DataContext = new Admin.ViewModel() });
-                MainDock.Children[3].Visibility = Visibility.Collapsed;
+                MainDock.Children.RemoveAt(4);
+                MainDock.Children.Insert(4, new Admin.View { DataContext = new Admin.ViewModel() });
+                MainDock.Children[4].Visibility = Visibility.Collapsed;
             }
             else if (index == 5)
             {
@@ -154,9 +148,22 @@ namespace SFW.Controls
         /// </summary>
         public static void RefreshMainDock()
         {
-            RefreshTimer.Clear();
-            Application.Current.MainWindow = Application.Current.Windows[0];
-            Application.Current.MainWindow = new MainWindow { DataContext = new MainWindowViewModel() };
+            if (CurrentUser.IsLoggedIn)
+            {
+                if (CurrentUser.HasSalesOrderModule)
+                {
+                    ((Schedule.SalesOrder.View)SalesDock.Children[0]).DataContext = new Schedule.SalesOrder.ViewModel();
+                }
+                if (CurrentUser.IsInventoryControl)
+                {
+                    ((CycleCount.Sched_View)CountDock.Children[0]).DataContext = new CycleCount.Sched_ViewModel();
+                }
+            }
+            else
+            {
+                RefreshTimer.Clear();
+                RefreshTimer.Add(((Schedule.ViewModel)((Schedule.View)SchedDock.Children[0]).DataContext).RefreshSchedule);
+            }
         }
 
         /// <summary>

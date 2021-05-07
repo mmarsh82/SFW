@@ -176,32 +176,38 @@ namespace SFW.Schedule.SalesOrder
         /// </summary>
         public ViewModel()
         {
-            SalesTableFilter = new string[10];
-            if (OrderTypeList == null)
+            if (CurrentUser.HasSalesOrderModule)
             {
-                OrderTypeList = Model.SalesOrder.GetOrderTypeList(App.AppSqlCon);
-                OrderTypeList.Insert(0, "All");
-            }
-            if (CreditStatusList == null)
-            {
-                CreditStatusList = new List<string>
+                SalesTableFilter = new string[10];
+                if (OrderTypeList == null)
+                {
+                    OrderTypeList = Model.SalesOrder.GetOrderTypeList(App.AppSqlCon);
+                    OrderTypeList.Insert(0, "All");
+                }
+                if (CreditStatusList == null)
+                {
+                    CreditStatusList = new List<string>
                 {
                     "Any"
                     ,"A"
                     ,"H"
                     ,"W"
                 };
+                }
+                LoadAsyncDelegate = new LoadDelegate(ViewLoading);
+                FilterAsyncDelegate = new LoadDelegate(FilterView);
+                var _filter = "";
+                LoadAsyncComplete = LoadAsyncDelegate.BeginInvoke(_filter, new AsyncCallback(ViewLoaded), null);
+                if (CurrentUser.HasSalesOrderModule)
+                {
+                    RefreshTimer.Add(RefreshSchedule);
+                }
+                if (!string.IsNullOrEmpty(MainWindowViewModel.MachineFilter))
+                {
+                    FilterSchedule(MainWindowViewModel.MachineFilter, 3);
+                }
+                _inLoad = true;
             }
-            LoadAsyncDelegate = new LoadDelegate(ViewLoading);
-            FilterAsyncDelegate = new LoadDelegate(FilterView);
-            var _filter = "";
-            LoadAsyncComplete = LoadAsyncDelegate.BeginInvoke(_filter, new AsyncCallback(ViewLoaded), null);
-            RefreshTimer.Add(RefreshSchedule);
-            if (!string.IsNullOrEmpty(MainWindowViewModel.MachineFilter))
-            {
-                FilterSchedule(MainWindowViewModel.MachineFilter, 3);
-            }
-            _inLoad = true;
         }
 
         /// <summary>
@@ -297,6 +303,5 @@ namespace SFW.Schedule.SalesOrder
 
             }
         }
-
     }
 }
