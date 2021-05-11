@@ -343,7 +343,7 @@ namespace SFW.Model
                                                                             LEFT JOIN
 	                                                                            [dbo].[WP-INIT] d ON d.[So_Reference] = CONCAT(b.[ID], '*1')
                                                                             WHERE
-	                                                                            a.[Order_Status] IS NULL AND b.[Comp] = 'O' AND (b.[Part_Wo_Gl] IS NOT NULL OR b.[D_esc] IS NOT NULL) AND a.[So_Nbr] IS NOT NULL
+	                                                                            a.[Order_Status] IS NULL AND b.[Comp] = 'O' AND (b.[Part_Wo_Gl] IS NOT NULL OR b.[D_esc] IS NOT NULL) AND a.[So_Nbr] IS NOT NULL AND b.[Part_Wo_Gl] != '1010199'
                                                                             ORDER BY
                                                                                 a.[Commit_Ship_Date], b.[ID] ASC", sqlCon))
                         {
