@@ -20,6 +20,20 @@
         <cvtr:WoPriorityToBool x:Key="PriToBoolConverter" />
         <cvtr:StringToVisibility x:Key="StringToVisConverter" />
         <cvtr:ValueToHeight x:Key="ValueToHeightConverter"/>
+
+        <ContextMenu x:Key="rowMenu">
+            <MenuItem Header="Pick"
+                      FontSize="16"
+                      Visibility="{Binding Path=(app:CurrentUser.CanSchedule), Converter={StaticResource BoolToVisConverter}}"
+                      Command="{Binding DataContext.PriorityChangeICommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type DataGrid}}}"
+                      CommandParameter="{Binding}"/>
+            <MenuItem Header="Link Work Order"
+                      FontSize="16"
+                      Visibility="{Binding Path=(app:CurrentUser.CanSchedule), Converter={StaticResource BoolToVisConverter}}"
+                      CommandParameter="{Binding}">
+            </MenuItem>
+        </ContextMenu>
+
     </UserControl.Resources>
 
     <Grid>
@@ -250,6 +264,7 @@
                     <Setter Property="FontWeight" Value="Bold"/>
                     <Setter Property="FontSize"
                             Value="18" />
+                    <Setter Property="ContextMenu" Value="{StaticResource rowMenu}"/>
                     <Style.Triggers>
                         <DataTrigger Binding="{Binding Type}" Value="FCO">
                             <Setter Property="Background">

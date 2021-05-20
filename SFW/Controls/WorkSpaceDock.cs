@@ -37,6 +37,7 @@ namespace SFW.Controls
             SchedDock.Children.Insert(0, new Schedule.View());
             SchedDock.Children.Insert(1, new ShopRoute.View { DataContext = new ShopRoute.ViewModel() });
             MainDock.Children.Insert(0, SchedDock);
+            while (!Schedule.ViewModel.LoadAsyncComplete.IsCompleted) { }
 
             //Add a spacer to [1]
             MainDock.Children.Insert(1, new UserControl());
@@ -48,6 +49,10 @@ namespace SFW.Controls
             CountDock.Children.Insert(0, new CycleCount.Sched_View());
             CountDock.Children.Insert(1, new CycleCount.Form_View { DataContext = new CycleCount.Form_ViewModel() });
             MainDock.Children.Insert(3, CountDock);
+            if (CycleCount.Sched_ViewModel.LoadAsyncComplete != null)
+            {
+                while (!CycleCount.Sched_ViewModel.LoadAsyncComplete.IsCompleted) { }
+            }
 
             //Add the Admin View to [4]
             MainDock.Children.Insert(4, new Admin.View { DataContext = new Admin.ViewModel() });
@@ -67,6 +72,10 @@ namespace SFW.Controls
             SalesDock.Children.Insert(0, new Schedule.SalesOrder.View());
             SalesDock.Children.Insert(1, new ShopRoute.SalesOrder.View { DataContext = new ShopRoute.SalesOrder.ViewModel() });
             MainDock.Children.Insert(8, SalesDock);
+            if (Schedule.SalesOrder.ViewModel.LoadAsyncComplete != null)
+            {
+                while (!Schedule.SalesOrder.ViewModel.LoadAsyncComplete.IsCompleted) { }
+            }
 
             SwitchView(App.SiteNumber, null);
             RefreshTimer.IsRefreshing = false;

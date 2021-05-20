@@ -922,6 +922,7 @@ namespace SFW.Model
 	                                                                ,a.[Bom_Uom] as 'Uom'
 	                                                                ,a.[Qty_Per_Assy] as 'Qpa'
 	                                                                ,b.[Accounting_Status] as 'Status'
+                                                                    ,b.[Drawing_Nbrs] as 'Master'
                                                                 FROM
 	                                                                [dbo].[PS-INIT] a
                                                                 RIGHT JOIN
@@ -954,10 +955,11 @@ namespace SFW.Model
                                         var _tempSku = new Sku
                                         {
                                             SkuNumber = reader.SafeGetString("Part")
-                                            ,SkuDescription = reader.SafeGetString("Desc")
-                                            ,Uom = reader.SafeGetString("Uom")
-                                            ,Operation = reader.SafeGetDouble("Qpa").ToString()
-                                            ,EngStatus = reader.SafeGetString("Status")
+                                            , SkuDescription = reader.SafeGetString("Desc")
+                                            , Uom = reader.SafeGetString("Uom")
+                                            , Operation = reader.SafeGetDouble("Qpa").ToString()
+                                            , EngStatus = reader.SafeGetString("Status")
+                                            , MasterPrint = reader.SafeGetString("Master")
                                         };
                                         _returnList.Add(_tempSku, _counter);
                                         _partList.Add(reader.SafeGetString("Part"));

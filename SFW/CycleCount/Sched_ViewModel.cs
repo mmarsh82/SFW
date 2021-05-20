@@ -72,7 +72,7 @@ namespace SFW.CycleCount
         public delegate void LoadDelegate(string s);
         public LoadDelegate LoadAsyncDelegate { get; private set; }
         public LoadDelegate FilterAsyncDelegate { get; private set; }
-        public IAsyncResult LoadAsyncComplete { get; set; }
+        public static IAsyncResult LoadAsyncComplete { get; set; }
 
         #endregion
 
