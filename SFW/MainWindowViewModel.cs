@@ -66,7 +66,7 @@ namespace SFW
                         {
                             if (((DataView)((Schedule.ViewModel)((Schedule.View)WorkSpaceDock.SchedDock.Children[0]).DataContext).ScheduleView.SourceCollection).Table.Select($"MachineNumber = '{value.MachineNumber}'").Length == 0)
                             {
-                                ((ShopRoute.ViewModel)((ShopRoute.View)WorkSpaceDock.SchedDock.Children[1]).DataContext).ShopOrder = new WorkOrder();
+                                WorkSpaceDock.UpdateChildDock(0, 1, new ShopRoute.View { DataContext = new ShopRoute.ViewModel() });
                             }
                             ((Schedule.ViewModel)((Schedule.View)WorkSpaceDock.SchedDock.Children[0]).DataContext).SearchFilter = null;
                             ((DataView)((Schedule.ViewModel)((Schedule.View)WorkSpaceDock.SchedDock.Children[0]).DataContext).ScheduleView.SourceCollection).RowFilter = string.IsNullOrEmpty(MachineFilter)

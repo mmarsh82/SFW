@@ -20,17 +20,69 @@
         <cvtr:WoPriorityToBool x:Key="PriToBoolConverter" />
         <cvtr:StringToVisibility x:Key="StringToVisConverter" />
         <cvtr:ValueToHeight x:Key="ValueToHeightConverter"/>
+        <cvtr:MultiValueParameter x:Key="MultiValParamConverter"/>
 
         <ContextMenu x:Key="rowMenu">
-            <MenuItem Header="Pick"
+            <MenuItem Header="Mark as Pick"
                       FontSize="16"
-                      Visibility="{Binding Path=(app:CurrentUser.CanSchedule), Converter={StaticResource BoolToVisConverter}}"
-                      Command="{Binding DataContext.PriorityChangeICommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type DataGrid}}}"
-                      CommandParameter="{Binding}"/>
+                      Command="{Binding DataContext.SchedActionICommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type DataGrid}}}">
+                <MenuItem.Visibility>
+                    <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="Imto">
+                        <Binding Path="(app:CurrentUser.CanSchedule)"/>
+                        <Binding Path="MTO"/>
+                        <Binding Path="IsWOLinked"/>
+                    </MultiBinding>
+                </MenuItem.Visibility>
+                <MenuItem.CommandParameter>
+                    <MultiBinding Converter="{StaticResource MultiValParamConverter}">
+                        <Binding Path="SoNbr"/>
+                        <Binding Path="LineNbr"/>
+                        <Binding Path="MTO"/>
+                    </MultiBinding>
+                </MenuItem.CommandParameter>
+            </MenuItem>
+            <MenuItem Header="Clear Pick"
+                      FontSize="16"
+                      Command="{Binding DataContext.SchedActionICommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type DataGrid}}}">
+                <MenuItem.Visibility>
+                    <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="mto">
+                        <Binding Path="(app:CurrentUser.CanSchedule)"/>
+                        <Binding Path="MTO"/>
+                        <Binding Path="IsWOLinked"/>
+                    </MultiBinding>
+                </MenuItem.Visibility>
+                <MenuItem.CommandParameter>
+                    <MultiBinding Converter="{StaticResource MultiValParamConverter}">
+                        <Binding Path="SoNbr"/>
+                        <Binding Path="LineNbr"/>
+                        <Binding Path="MTO"/>
+                    </MultiBinding>
+                </MenuItem.CommandParameter>
+            </MenuItem>
+            
             <MenuItem Header="Link Work Order"
                       FontSize="16"
-                      Visibility="{Binding Path=(app:CurrentUser.CanSchedule), Converter={StaticResource BoolToVisConverter}}"
+                      Command="{Binding DataContext.SchedActionICommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type DataGrid}}}"
                       CommandParameter="{Binding}">
+                <MenuItem.Visibility>
+                    <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="Iwo">
+                        <Binding Path="(app:CurrentUser.CanSchedule)"/>
+                        <Binding Path="MTO"/>
+                        <Binding Path="IsWOLinked"/>
+                    </MultiBinding>
+                </MenuItem.Visibility>
+            </MenuItem>
+            <MenuItem Header="Clear Work Order"
+                      FontSize="16"
+                      Command="{Binding DataContext.SchedActionICommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type DataGrid}}}"
+                      CommandParameter="{Binding}">
+                <MenuItem.Visibility>
+                    <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="wo">
+                        <Binding Path="(app:CurrentUser.CanSchedule)"/>
+                        <Binding Path="MTO"/>
+                        <Binding Path="IsWOLinked"/>
+                    </MultiBinding>
+                </MenuItem.Visibility>
             </MenuItem>
         </ContextMenu>
 

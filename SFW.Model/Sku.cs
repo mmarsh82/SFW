@@ -491,7 +491,7 @@ namespace SFW.Model
                 {
                     try
                     {
-                        using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database}; SELECT [Url] FROM [dbo].[IM-INIT_Url_Codes] WHERE [ID1] = @p1;", sqlCon))
+                        using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database}; SELECT [Work_Instructions] as 'WI' FROM [dbo].[IM-INIT_Work_Instructions] WHERE [Part_Number] = @p1;", sqlCon))
                         {
                             cmd.Parameters.AddWithValue("p1", partNbr);
                             using (SqlDataReader reader = cmd.ExecuteReader())
@@ -501,7 +501,7 @@ namespace SFW.Model
                                     while (reader.Read())
                                     {
                                         var dir = new DirectoryInfo(filepath);
-                                        var fileList = dir.GetFiles($"*{reader.SafeGetString("Url")}*");
+                                        var fileList = dir.GetFiles($"*{reader.SafeGetInt32("WI")}*");
                                         foreach (var file in fileList)
                                         {
                                             _inst.Add(file.Name);

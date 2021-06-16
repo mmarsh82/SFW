@@ -9,7 +9,7 @@ namespace SFW.Converters
     {
         public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
         {
-            var _rtnVal = "";
+            var _rtnVal = parameter == null ? "" : $"{parameter}*";
             if (!values.Contains(null))
             {
                 foreach (var v in values)

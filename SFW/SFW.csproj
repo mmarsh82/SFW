@@ -30,8 +30,8 @@
     <PublisherName>Michael Marsh</PublisherName>
     <SuiteName>WCCO Belting Inc.</SuiteName>
     <AutorunEnabled>true</AutorunEnabled>
-    <ApplicationRevision>2189</ApplicationRevision>
-    <ApplicationVersion>1.0.311.2189</ApplicationVersion>
+    <ApplicationRevision>2204</ApplicationRevision>
+    <ApplicationVersion>1.0.312.2204</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <CreateDesktopShortcut>true</CreateDesktopShortcut>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -123,6 +123,7 @@
     <Compile Include="Commands\AppReload.cs" />
     <Compile Include="Commands\ClearPriority.cs" />
     <Compile Include="Commands\DevTesting.cs" />
+    <Compile Include="Commands\M2kValueEdit.cs" />
     <Compile Include="Commands\M2kWipReceipt.cs" />
     <Compile Include="Commands\PrintBarLabels.cs" />
     <Compile Include="Commands\PrintUserControl.cs" />
@@ -208,6 +209,10 @@
     </Compile>
     <Compile Include="ShopRoute\Temp.QTask\ViewModel.cs" />
     <Compile Include="Styles\Converters\RequiredWidthCutoff.cs" />
+    <Compile Include="Tools\ItemLink_View.xaml.cs">
+      <DependentUpon>ItemLink_View.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Tools\ItemLink_ViewModel.cs" />
     <Compile Include="Tools\PriorityEdit_View.xaml.cs">
       <DependentUpon>PriorityEdit_View.xaml</DependentUpon>
     </Compile>
@@ -391,6 +396,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Styles\TextBox.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Tools\ItemLink_View.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

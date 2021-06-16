@@ -314,10 +314,10 @@ namespace SFW
 
                             writer.WriteComment("ERP connection parameters");
                             writer.WriteStartElement("M2kConnection");
-                            writer.WriteAttributeString("Name", "ERP-WCCO");
-                            writer.WriteAttributeString("IP", "172.16.0.10");
-                            writer.WriteAttributeString("ServiceUser", "omniquery");
-                            writer.WriteAttributeString("ServicePass", "omniquery");
+                            writer.WriteAttributeString("Name", "");
+                            writer.WriteAttributeString("IP", "");
+                            writer.WriteAttributeString("ServiceUser", "");
+                            writer.WriteAttributeString("ServicePass", "");
                             writer.WriteEndElement();
 
                             writer.WriteComment("SFW Automatic Refresh rate");
@@ -331,10 +331,10 @@ namespace SFW
                             writer.WriteComment("SQL connection parameters");
                             writer.WriteComment("Connection Timeout is in seconds");
                             writer.WriteStartElement("SqlConnection");
-                            writer.WriteAttributeString("Name", "SQL-WCCO");
-                            writer.WriteAttributeString("IP", "172.16.0.114");
-                            writer.WriteAttributeString("ServiceUser", "omni");
-                            writer.WriteAttributeString("ServicePass", "Public2017@WORK!");
+                            writer.WriteAttributeString("Name", "");
+                            writer.WriteAttributeString("IP", "");
+                            writer.WriteAttributeString("ServiceUser", "");
+                            writer.WriteAttributeString("ServicePass", "");
                             writer.WriteAttributeString("TimeOut", "60");
                             writer.WriteEndElement();
 
@@ -366,17 +366,17 @@ namespace SFW
                             writer.WriteStartElement("SiteDocumentation");
 
                             writer.WriteStartElement("WCCO");
-                            writer.WriteAttributeString("PartPrint", "\\\\fs-wcco\\WCCO-Prints\\");
-                            writer.WriteAttributeString("PressSetup", "\\\\fs-wcco\\WCCO-Engineering\\Product\\Press Setups\\press setup and part number crossreference.xlsm");
-                            writer.WriteAttributeString("SyscoSetup", "\\\\fs-wcco\\WCCO-Engineering\\Product\\Sysco Press Setups\\SYSCO PRESS - Setup cross reference.xlsx");
-                            writer.WriteAttributeString("TrimSetup", "\\\\fs-wcco\\WCCO-Engineering\\Product\\Trimmin Info\\SFW_Trimming Info.xlsx");
-                            writer.WriteAttributeString("WI", "\\\\fs-wcco\\WCCO-PublishedDocuments\\");
+                            writer.WriteAttributeString("PartPrint", "");
+                            writer.WriteAttributeString("PressSetup", "");
+                            writer.WriteAttributeString("SyscoSetup", "");
+                            writer.WriteAttributeString("TrimSetup", "");
+                            writer.WriteAttributeString("WI", "");
                             writer.WriteEndElement();
 
                             writer.WriteStartElement("CSI");
-                            writer.WriteAttributeString("PartPrint", "\\\\fs-csi\\CSI-Prints\\part\\");
-                            writer.WriteAttributeString("Setup", "\\\\fs-csi\\CSI-Prints\\setup\\");
-                            writer.WriteAttributeString("WI", "\\\\fs-csi\\prints\\WI\\");
+                            writer.WriteAttributeString("PartPrint", "");
+                            writer.WriteAttributeString("Setup", "");
+                            writer.WriteAttributeString("WI", "");
                             writer.WriteEndElement();
 
                             writer.WriteEndElement();

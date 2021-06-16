@@ -62,21 +62,50 @@ namespace SFW.Converters
             }
             var _param = parameter?.ToString();
             var _rtnVal = true;
-            if (parameter == null)
+            if (values.Length < 3)
             {
                 foreach (var o in values)
                 {
                     if (o != DependencyProperty.UnsetValue && !System.Convert.ToBoolean(o))
                     {
-                        _rtnVal = _param == "i" ? true : false;
+                        _rtnVal = _param == "i";
                     }
                     if (o != DependencyProperty.UnsetValue && int.TryParse(o.ToString(), out int i))
                     {
                         if (i >= 999)
                         {
-                            _rtnVal = _param == "i" ? true : false;
+                            _rtnVal = _param == "i";
+                        }
+                        else if (i > 0)
+                        {
+                            _rtnVal = _param != "i";
                         }
                     }
+                }
+            }
+            else
+            {
+                if (values[0].GetType() == typeof(bool) && System.Convert.ToBoolean(values[0]))
+                {
+                    int.TryParse(values[1].ToString(), out int mto);
+                    int.TryParse(values[2].ToString(), out int wo);
+                    switch (_param)
+                    {
+                        case "mto":
+                            _rtnVal = mto == 1;
+                            break;
+                        case "wo":
+                            _rtnVal = wo == 1;
+                            break;
+                        case "Imto":
+                        case "Iwo":
+                            _rtnVal = mto + wo <= 0;
+                            break;
+                    }
+                }
+                else
+                {
+                    _rtnVal = false;
                 }
             }
             return _rtnVal ? Visibility.Visible : Visibility.Collapsed;

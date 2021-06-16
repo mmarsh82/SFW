@@ -350,7 +350,6 @@
                         <MultiDataTrigger>
                             <MultiDataTrigger.Conditions>
                                 <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsSelected}" Value="True"/>
-                                <Condition Binding="{Binding WO_Priority}" Value="B"/>
                                 <Condition Binding="{Binding WO_Type}" Value="R"/>
                             </MultiDataTrigger.Conditions>
                             <Setter Property="Background" Value="LightBlue"/>

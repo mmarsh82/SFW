@@ -1,9 +1,11 @@
-﻿using System;
+﻿using SFW.Helpers;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Linq;
 using System.Windows.Data;
+using System.Windows.Input;
 
 namespace SFW.Schedule.SalesOrder
 {
@@ -168,6 +170,8 @@ namespace SFW.Schedule.SalesOrder
         public LoadDelegate LoadAsyncDelegate { get; private set; }
         public LoadDelegate FilterAsyncDelegate { get; private set; }
         public static IAsyncResult LoadAsyncComplete { get; set; }
+
+        private RelayCommand _schedAction;
 
         #endregion
 
