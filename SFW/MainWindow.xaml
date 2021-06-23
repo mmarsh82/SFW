@@ -150,15 +150,19 @@
                 </MenuItem>
             </MenuItem>
 
+            <MenuItem Header="Training"
+                      Visibility="{Binding Path=(local:CurrentUser.CanTrain), Converter={StaticResource BoolToVisConverter}}">
+                <MenuItem Header="Train Mode"
+                          IsCheckable="True"
+                          IsChecked="{Binding InTraining, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+            </MenuItem>
+
             <MenuItem Header="Admin"
                       Visibility="{Binding Path=(local:CurrentUser.IsAdmin), Converter={StaticResource BoolToVisConverter}}">
                 <MenuItem Header="Password Reset"
                           Command="{StaticResource LogInICommand}"
                           CommandParameter="reset"
                           InputGestureText=""/>
-                <MenuItem Header="Train Mode"
-                          IsCheckable="True"
-                          IsChecked="{Binding InTraining, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                 <MenuItem Header="Modify App"
                           Command="{StaticResource ViewLoadICommand}"
                           CommandParameter="4"/>

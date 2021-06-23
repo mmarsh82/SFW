@@ -123,6 +123,18 @@ namespace SFW
             }
         }
 
+        private static bool _canTrain;
+        public static bool CanTrain
+        {
+            get
+            { return _canTrain; }
+            private set
+            {
+                _canTrain = value;
+                StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(CanTrain)));
+            }
+        }
+
         private static bool _isAdmin;
         public static bool IsAdmin
         {
@@ -259,7 +271,7 @@ namespace SFW
             Site = user.DistinguishedName.Contains("WCCO") ? "WCCO" : "CSI";
             if (_groups.Exists(o => o.ToString().Contains("SFW_Admin")))
             {
-                CanSchedule = IsSupervisor = IsInventoryControl = IsAccountsReceivable = IsAdmin = HasSalesOrderModule = true;
+                CanTrain = CanSchedule = IsSupervisor = IsInventoryControl = IsAccountsReceivable = IsAdmin = HasSalesOrderModule = true;
             }
             else
             {
@@ -268,6 +280,7 @@ namespace SFW
                 IsInventoryControl = _groups.Exists(o => o.ToString().Contains("SFW_IC"));
                 IsAccountsReceivable = _groups.Exists(o => o.ToString().Contains("SFW_AR"));
                 HasSalesOrderModule = _groups.Exists(o => o.ToString().Contains("SFW_SalesOrderMod"));
+                CanTrain = _groups.Exists(o => o.ToString().Contains("SFW_Trainer"));
             }
             IsLoggedIn = true;
             CanWip = GetSite() == 1;

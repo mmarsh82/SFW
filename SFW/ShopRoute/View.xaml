@@ -75,13 +75,8 @@
                             IsEnabled="{Binding CanWip, Source={StaticResource User}}"
                             Command="{StaticResource WipCommand}"
                             CommandParameter="{Binding ShopOrder}"
+                            Visibility="{Binding CanWip, Source={StaticResource User}, Converter={StaticResource BoolToVisConverter}}"
                             Style="{DynamicResource MenuButtonStyle}">
-                        <Button.Visibility>
-                            <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="i">
-                                <Binding Path="(main:CurrentUser.IsLoggedIn)"/>
-                                <Binding Path="(main:App.SiteNumber)"/>
-                            </MultiBinding>
-                        </Button.Visibility>
                     </Button>
                     <Button Content="ITH"
                             FontSize="16"
