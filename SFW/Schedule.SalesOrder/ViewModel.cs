@@ -229,7 +229,7 @@ namespace SFW.Schedule.SalesOrder
         /// <param name="index">Index of the filter string list you are adding to our changing</param>
         public static void FilterSchedule(string filter, int index)
         {
-            if (SalesScheduleView != null)
+            if (SalesScheduleView != null && !filter.Contains("Machine")) 
             {
                 SalesTableFilter[index] = filter;
                 var _filterStr = string.Empty;

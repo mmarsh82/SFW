@@ -190,7 +190,7 @@ namespace SFW
         /// <summary>
         /// Updates all the static properties in the MainWindow View components when other views require new data
         /// </summary>
-        public void UpdateProperties()
+        public static void UpdateProperties()
         {
             MachineList = Machine.GetMachineList(App.AppSqlCon, true, false);
             SelectedMachine = MachineList.First();

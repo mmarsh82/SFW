@@ -327,11 +327,11 @@ namespace SFW.Model
 		                                                                            WHEN b.[Make_To_Order] = 'N' OR d.[Wp_Nbr] IS NOT NULL THEN 0
 		                                                                            ELSE -1 END as 'MTO'
                                                                                 ,CASE WHEN CAST(b.[Ln_Del_Qty] as int) - CAST(b.[Ln_Bal_Qty] as int) = 0 THEN 0 ELSE 1 END AS 'IsBackOrder'
-                                                                                ,c.[Ar_Credit_Limit] as 'AR_Limit'
+                                                                                ,ISNULL(c.[Ar_Credit_Limit], 0) as 'AR_Limit'
 	                                                                            ,c.[Balance] as 'AR_Bal'
 	                                                                            ,c.[Ship_Bal] as 'AR_SBal'
 	                                                                            ,c.[Alloc_Bal] as 'AR_ABal'
-	                                                                            ,c.[Ar_Credit_Limit] - (c.[Balance] + c.[Ship_Bal] + c.[Alloc_Bal]) as 'AR_Credit'
+	                                                                            ,ISNULL(c.[Ar_Credit_Limit] - (c.[Balance] + c.[Ship_Bal] + c.[Alloc_Bal]), 0.00) as 'AR_Credit'
 	                                                                            ,a.[Order_Bal_Ext_Price] as 'AR_OrdBal'
                                                                                 ,CASE WHEN d.[Wp_Nbr] IS NOT NULL THEN 1 ELSE 0 END as 'IsWOLinked'
                                                                             FROM

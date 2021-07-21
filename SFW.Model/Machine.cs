@@ -211,7 +211,7 @@ namespace SFW.Model
                 {
                     try
                     {
-                        using (SqlDataAdapter adapter = new SqlDataAdapter($"USE {sqlCon.Database}; {_conString} ORDER BY MachineNumber, WO_Priority, PriTime, Sched_Priority, WO_SchedStartDate, WO_Number ASC;", sqlCon))
+                        using (SqlDataAdapter adapter = new SqlDataAdapter($"USE {sqlCon.Database}; {_conString} ORDER BY MachineNumber, WO_Priority, PriTime, Sched_Priority, WO_SchedStartDate, WO_Number ASC", sqlCon))
                         {
                             adapter.Fill(_tempTable);
                             if(machOrder != null && machOrder.Count > 0)

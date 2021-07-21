@@ -485,6 +485,7 @@ namespace SFW
             UserIDNbr = string.Empty;
             IsAccountsReceivable = false;
             HasSalesOrderModule = false;
+            MainWindowViewModel.UpdateProperties();
             Controls.WorkSpaceDock.RefreshMainDock();
         }
 

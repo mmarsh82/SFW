@@ -108,6 +108,15 @@ namespace SFW.Model
             {
                 try
                 {
+                    var _count = 0;
+                    using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database};
+                                                                SELECT COUNT(a.[ID]) FROM [dbo].[PL-INIT] a WHERE a.[ID] LIKE CONCAT(@p1, '%') AND (a.[Routing_Seq] = @p2 OR a.[Routing_Seq] IS NULL)", sqlCon))
+                    {
+                        cmd.Parameters.AddWithValue("p1", woNbr);
+                        cmd.Parameters.AddWithValue("p2", operation);
+                        int.TryParse(cmd.ExecuteScalar().ToString(), out _count);
+                    }
+                    operation = _count == 0 ? "10" : operation;
                     using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database};
                                                                 SELECT
 	                                                                SUBSTRING(a.[ID], CHARINDEX('*', a.[ID], 0) + 1, LEN(a.[ID])) as 'Component',
@@ -207,13 +216,22 @@ namespace SFW.Model
             {
                 try
                 {
+                    var _count = 0;
+                    using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database};
+                                                                SELECT COUNT(a.[ID]) FROM [dbo].[PS-INIT] a WHERE a.[ID] LIKE CONCAT(@p1, '*%') AND (a.[Routing_Seq] = @p2 OR a.[Routing_Seq] IS NULL)", sqlCon))
+                    {
+                        cmd.Parameters.AddWithValue("p1", skuNbr);
+                        cmd.Parameters.AddWithValue("p2", operation);
+                        int.TryParse(cmd.ExecuteScalar().ToString(), out _count);
+                    }
+                    operation = _count == 0 ? "10" : operation;
                     using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database};
                                                                 SELECT
-	                                                                SUBSTRING(a.[ID], CHARINDEX('*', a.[ID], 0) + 1, LEN(a.[ID])) as 'Component',
-	                                                                a.[Qty_Per_Assy],
-	                                                                b.[Description],
-                                                                    b.[Drawing_Nbrs],
-	                                                                b.[Um]
+	                                                                SUBSTRING(a.[ID], CHARINDEX('*', a.[ID], 0) + 1, LEN(a.[ID])) as 'Component'
+	                                                                ,a.[Qty_Per_Assy]
+	                                                                ,b.[Description]
+                                                                    ,b.[Drawing_Nbrs]
+	                                                                ,b.[Um]
                                                                 FROM
 	                                                                [dbo].[PS-INIT] a
                                                                 RIGHT JOIN
