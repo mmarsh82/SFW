@@ -368,6 +368,20 @@
                                 </Setter.Value>
                             </Setter>
                         </DataTrigger>
+                        <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                                <Condition Binding="{Binding CanShip}" Value="0"/>
+                                <Condition Binding="{Binding Type}" Value="DAI"/>
+                            </MultiDataTrigger.Conditions>
+                            <Setter Property="Background">
+                                <Setter.Value>
+                                    <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                                        <GradientStop Color="White" Offset="0"/>
+                                        <GradientStop Color="DarkOrchid" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </Setter.Value>
+                            </Setter>
+                        </MultiDataTrigger>
                     </Style.Triggers>
                 </Style>
             </DataGrid.RowStyle>
@@ -385,8 +399,6 @@
                             </MultiDataTrigger.Conditions>
                             <Setter Property="Background" Value="LightCoral"/>
                             <Setter Property="Foreground" Value="Black"/>
-                            <Setter Property="BorderBrush"
-                                    Value="DarkMagenta" />
                         </MultiDataTrigger>
                         <MultiDataTrigger>
                             <MultiDataTrigger.Conditions>
@@ -395,7 +407,6 @@
                             </MultiDataTrigger.Conditions>
                             <Setter Property="Background" Value="DarkSeaGreen"/>
                             <Setter Property="Foreground" Value="Black"/>
-                            <Setter Property="BorderBrush" Value="DarkMagenta" />
                         </MultiDataTrigger>
                         <MultiDataTrigger>
                             <MultiDataTrigger.Conditions>
@@ -404,8 +415,6 @@
                             </MultiDataTrigger.Conditions>
                             <Setter Property="Background" Value="Gray"/>
                             <Setter Property="Foreground" Value="Black"/>
-                            <Setter Property="BorderBrush"
-                                    Value="DarkMagenta" />
                         </MultiDataTrigger>
                         <MultiDataTrigger>
                             <MultiDataTrigger.Conditions>
@@ -414,8 +423,6 @@
                             </MultiDataTrigger.Conditions>
                             <Setter Property="Background" Value="Beige"/>
                             <Setter Property="Foreground" Value="Black"/>
-                            <Setter Property="BorderBrush"
-                                    Value="DarkMagenta" />
                         </MultiDataTrigger>
                         <MultiDataTrigger>
                             <MultiDataTrigger.Conditions>
@@ -424,8 +431,15 @@
                             </MultiDataTrigger.Conditions>
                             <Setter Property="Background" Value="LightBlue"/>
                             <Setter Property="Foreground" Value="Black"/>
-                            <Setter Property="BorderBrush"
-                                    Value="DarkMagenta" />
+                        </MultiDataTrigger>
+                        <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                                <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsSelected}" Value="True"/>
+                                <Condition Binding="{Binding CanShip}" Value="0"/>
+                                <Condition Binding="{Binding Type}" Value="DAI"/>
+                            </MultiDataTrigger.Conditions>
+                            <Setter Property="Background" Value="Orchid"/>
+                            <Setter Property="Foreground" Value="Black"/>
                         </MultiDataTrigger>
                     </Style.Triggers>
                 </Style>

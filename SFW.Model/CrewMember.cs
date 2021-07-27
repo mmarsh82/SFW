@@ -269,41 +269,6 @@ namespace SFW.Model
         }
 
         /// <summary>
-        /// Get an crew member's Id number
-        /// </summary>
-        /// <param name="sqlCon">Sql Connection to use</param>
-        /// <param name="firstName">Crew member's first name</param>
-        /// <param name="lastName">Crew member's last name</param>
-        /// <returns>Crew member's ID Number</returns>
-        public static string GetCrewIdNumber(SqlConnection sqlCon, string firstName, string lastName)
-        {
-            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
-            {
-                try
-                {
-                    using (SqlCommand cmd = new SqlCommand($"USE {sqlCon.Database}; SELECT [Emp_No] FROM [dbo].[EMPLOYEE_MASTER-INIT] WHERE [First_Name] = @p1 AND [Last_Name] = @p2 AND [Pay_Status] = 'A';", sqlCon))
-                    {
-                        cmd.Parameters.AddWithValue("p1", firstName);
-                        cmd.Parameters.AddWithValue("p2", lastName);
-                        return cmd.ExecuteScalar().ToString();
-                    }
-                }
-                catch (SqlException sqlEx)
-                {
-                    throw sqlEx;
-                }
-                catch (Exception ex)
-                {
-                    throw new Exception(ex.Message);
-                }
-            }
-            else
-            {
-                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
-            }
-        }
-
-        /// <summary>
         /// Get a crew member's display name
         /// </summary>
         /// <param name="sqlCon">Sql Connection to use</param>

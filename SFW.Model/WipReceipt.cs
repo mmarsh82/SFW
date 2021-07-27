@@ -236,14 +236,15 @@ namespace SFW.Model
         /// <summary>
         /// Wip Receipt Constructor
         /// </summary>
+        /// <param name="userId">Currently logged in user ID</param>
         /// <param name="subFName">Currently logged in user First Name</param>
         /// <param name="subLName">Currently logged in user Last Name</param>
         /// <param name="workOrder">Work order object to process</param>
         /// <param name="sqlCon">Sql Connection to use</param>
-        public WipReceipt(string subFName, string subLName, WorkOrder workOrder, SqlConnection sqlCon)
+        public WipReceipt(string userId, string subFName, string subLName, WorkOrder workOrder, SqlConnection sqlCon)
         {
             Submitter = $"{subFName} {subLName}";
-            var _crewID = CrewMember.GetCrewIdNumber(sqlCon, subFName, subLName);
+            var _crewID = userId;
             ModelBase.ModelSqlCon = sqlCon;
             SeqComplete = Complete.N;
             WipLot = new Lot();

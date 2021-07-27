@@ -336,7 +336,7 @@ namespace SFW
             userName = userName.Length <= 20 ? userName : userName.Substring(0, 20);
             using (PrincipalContext pContext = GetPrincipal(userName))
             {
-                using (UserPrincipal uPrincipal = UserPrincipal.FindByIdentity(pContext, userName))
+                using (UserPrincipal uPrincipal = UserPrincipal.FindByIdentity(pContext,userName))
                 {
                     if (uPrincipal.GetAuthorizationGroups().ToList().ConvertAll(o => o.Name).Exists(o => o.Contains("SFW_")))
                     {

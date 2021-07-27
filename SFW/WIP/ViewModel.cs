@@ -210,7 +210,7 @@ namespace SFW.WIP
         /// </summary>
         public ViewModel(WorkOrder woObject)
         {
-            WipRecord = new WipReceipt(CurrentUser.FirstName, CurrentUser.LastName, woObject, App.AppSqlCon);
+            WipRecord = new WipReceipt(CurrentUser.UserIDNbr, CurrentUser.FirstName, CurrentUser.LastName, woObject, App.AppSqlCon);
             if (ScrapReasonCollection == null)
             {
                 var _tempList = Enum.GetValues(typeof(M2kClient.AdjustCode)).Cast<M2kClient.AdjustCode>().Where(o => o != M2kClient.AdjustCode.CC && o != M2kClient.AdjustCode.REC);
