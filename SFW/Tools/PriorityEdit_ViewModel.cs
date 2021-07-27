@@ -98,7 +98,6 @@ namespace SFW.Tools
                     ((Window)w).Close();
                 }
             }
-            new Commands.ViewLoad().Execute(-2);
         }
         private bool PriorityChangeCanExecute(object parameter)
         {

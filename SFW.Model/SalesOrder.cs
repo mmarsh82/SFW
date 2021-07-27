@@ -334,9 +334,9 @@ namespace SFW.Model
 	                                                                            ,ISNULL(c.[Ar_Credit_Limit] - (c.[Balance] + c.[Ship_Bal] + c.[Alloc_Bal]), 0.00) as 'AR_Credit'
 	                                                                            ,a.[Order_Bal_Ext_Price] as 'AR_OrdBal'
                                                                                 ,CASE WHEN d.[Wp_Nbr] IS NOT NULL THEN 1 ELSE 0 END as 'IsWOLinked'
-                                                                                ,CASE WHEN CAST(b.[Ln_Bal_Qty] as int) <= (SELECT ab.[Qty_On_Hand] FROM [dbo].[IPL-INIT] ab WHERE ab.[Part_Nbr] = b.[Part_Wo_Gl]) AND CAST(a.[Commit_Ship_Date] as date) >= GETDATE()
+                                                                                ,CASE WHEN CAST(b.[Ln_Bal_Qty] as int) <= (SELECT ab.[Qty_On_Hand] FROM [dbo].[IPL-INIT] ab WHERE ab.[Part_Nbr] = b.[Part_Wo_Gl]) AND CAST(a.[Commit_Ship_Date] as date) >= CAST(GETDATE() as date)
 		                                                                            THEN 1
-		                                                                            ELSE 0 
+		                                                                            ELSE 0
 	                                                                            END as 'CanShip'
                                                                             FROM
 	                                                                            [dbo].[SOH-INIT] a
