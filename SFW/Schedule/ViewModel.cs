@@ -286,33 +286,40 @@ namespace SFW.Schedule
 
         private void StateChangeExecute(object parameter)
         {
-            var _oldPri = SelectedWorkOrder?.Row?.SafeGetField<string>("WO_Priority").ToString();
-            if (char.TryParse(SelectedWorkOrder?.Row?.SafeGetField<string>("WO_Priority").ToString(), out char _oldPriChar))
+            try
             {
-                var _oldPriInt = _oldPriChar % 32;
-                var _newPriInt = Convert.ToChar(parameter) % 32;
-                if (_oldPriInt < _newPriInt && (SelectedWorkOrder?.Row?.SafeGetField<string>("PriTime").ToString() != "999" || SelectedWorkOrder?.Row?.SafeGetField<int>("Sched_Priority").ToString() != "999"))
+                var _oldPri = SelectedWorkOrder?.Row?.SafeGetField<string>("WO_Priority").ToString();
+                if (char.TryParse(SelectedWorkOrder?.Row?.SafeGetField<string>("WO_Priority").ToString(), out char _oldPriChar))
                 {
-                    new ClearPriority().Execute(SelectedWorkOrder);
+                    var _oldPriInt = _oldPriChar % 32;
+                    var _newPriInt = Convert.ToChar(parameter) % 32;
+                    if (_oldPriInt < _newPriInt && (SelectedWorkOrder?.Row?.SafeGetField<string>("PriTime").ToString() != "999" || SelectedWorkOrder?.Row?.SafeGetField<int>("Sched_Priority").ToString() != "999"))
+                    {
+                        new ClearPriority().Execute(SelectedWorkOrder);
+                    }
+                }
+                if (!string.IsNullOrEmpty(parameter?.ToString()))
+                {
+                    var _woNumber = SelectedWorkOrder?.Row?.SafeGetField<string>("WO_Number").ToString().Split('*')[0];
+                    var _changeRequest = M2kCommand.EditRecord("WP", _woNumber, 40, parameter.ToString(), App.ErpCon);
+                    if (!string.IsNullOrEmpty(_changeRequest))
+                    {
+                        MessageBox.Show(_changeRequest, "ERP Record Error");
+                        SelectedWorkOrder.BeginEdit();
+                        SelectedWorkOrder["WO_Priority"] = _oldPri;
+                        SelectedWorkOrder.EndEdit();
+                    }
+                    else
+                    {
+                        SelectedWorkOrder.BeginEdit();
+                        SelectedWorkOrder["WO_Priority"] = parameter.ToString();
+                        SelectedWorkOrder.EndEdit();
+                    }
                 }
             }
-            if (!string.IsNullOrEmpty(parameter?.ToString()))
+            catch (Exception ex)
             {
-                var _woNumber = SelectedWorkOrder?.Row?.SafeGetField<string>("WO_Number").ToString().Split('*')[0];
-                var _changeRequest = M2kCommand.EditRecord("WP", _woNumber, 40, parameter.ToString(), App.ErpCon);
-                if (!string.IsNullOrEmpty(_changeRequest))
-                {
-                    MessageBox.Show(_changeRequest, "ERP Record Error");
-                    SelectedWorkOrder.BeginEdit();
-                    SelectedWorkOrder["WO_Priority"] = _oldPri;
-                    SelectedWorkOrder.EndEdit();
-                }
-                else
-                {
-                    SelectedWorkOrder.BeginEdit();
-                    SelectedWorkOrder["WO_Priority"] = parameter.ToString();
-                    SelectedWorkOrder.EndEdit();
-                }
+                MessageBox.Show(ex.Message, "Unhandled Exception");
             }
         }
         private bool StateChangeCanExecute(object parameter) => true;
