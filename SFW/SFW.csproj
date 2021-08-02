@@ -30,8 +30,8 @@
     <PublisherName>Michael Marsh</PublisherName>
     <SuiteName>WCCO Belting Inc.</SuiteName>
     <AutorunEnabled>true</AutorunEnabled>
-    <ApplicationRevision>2256</ApplicationRevision>
-    <ApplicationVersion>1.0.321.2256</ApplicationVersion>
+    <ApplicationRevision>2271</ApplicationRevision>
+    <ApplicationVersion>1.0.323.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <CreateDesktopShortcut>true</CreateDesktopShortcut>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -180,6 +180,10 @@
       <DependentUpon>PartTrimInfo_View.xaml</DependentUpon>
     </Compile>
     <Compile Include="Queries\PartTrimInfo_ViewModel.cs" />
+    <Compile Include="Queries\Quality_View.xaml.cs">
+      <DependentUpon>Quality_View.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Queries\Quality_ViewModel.cs" />
     <Compile Include="Queries\UnplanScrap_View.xaml.cs">
       <DependentUpon>UnplanScrap_View.xaml</DependentUpon>
     </Compile>
@@ -304,6 +308,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Queries\PartTrimInfo_View.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Queries\Quality_View.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

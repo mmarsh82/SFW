@@ -137,6 +137,10 @@
                           Command="{StaticResource ViewLoadICommand}"
                           CommandParameter="7"
                           InputGestureText="Alt+T"/>
+                <MenuItem Header="Diamond Validation"
+                          Visibility="{Binding Path=(local:CurrentUser.IsQuality), Converter={StaticResource BoolToVisConverter}}"
+                          Command="{StaticResource ViewLoadICommand}"
+                          CommandParameter="9"/>
 
             </MenuItem>
             <MenuItem Header="Help">
@@ -212,6 +216,7 @@
                     <MenuItem Header="IsSupervisor" IsChecked="{Binding Path=(local:CurrentUser.IsSupervisor), Mode=OneWay}"/>
                     <MenuItem Header="IsAccountsReceivable" IsChecked="{Binding Path=(local:CurrentUser.IsAccountsReceivable), Mode=OneWay}"/>
                     <MenuItem Header="HasSalesOrderModule" IsChecked="{Binding Path=(local:CurrentUser.HasSalesOrderModule), Mode=OneWay}"/>
+                    <MenuItem Header="IsQuality" IsChecked="{Binding Path=(local:CurrentUser.IsQuality), Mode=OneWay}"/>
                     <MenuItem Header="IsAdmin" IsChecked="{Binding Path=(local:CurrentUser.IsAdmin), Mode=OneWay}"/>
                 </MenuItem>
             </Menu>

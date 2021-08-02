@@ -50,6 +50,8 @@ namespace SFW.Model
         public string Submitter { get; set; }
         public string TransactionCrew { get; set; }
         public IDictionary<string, int> Dedication { get; set; }
+        public bool Validated { get; set; }
+        public DateTime ReceivedDate { get; set; }
 
         #endregion
 
@@ -300,6 +302,61 @@ namespace SFW.Model
                                         LotNumber = reader.SafeGetString("LotNbr"),
                                         Onhand = reader.SafeGetInt32("Qty"),
                                         Location = reader.SafeGetString("Location")
+                                    });
+                                }
+                            }
+                        }
+                    }
+                    return _temp;
+                }
+                catch (Exception)
+                {
+                    return new List<Lot>();
+                }
+            }
+            else
+            {
+                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
+            }
+        }
+
+        /// <summary>
+        /// Get a list of diamond numbers for quality validation
+        /// </summary>
+        /// <param name="sqlCon">Sql Connection to use</param>
+        public static List<Lot> GetDiamondList(SqlConnection sqlCon)
+        {
+            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
+            {
+                var _temp = new List<Lot>();
+                try
+                {
+                    using (SqlCommand cmd = new SqlCommand(@"SELECT 
+	                                                            SUBSTRING(lot.[Lot_Number], 0, CHARINDEX('|', lot.[Lot_Number], 0)) as 'LotNbr'
+                                                                ,lot.[Part_Nbr] as 'PartNbr'
+                                                                ,CAST(lot.[Date_Recvd] as date) as 'Received_date'
+                                                                ,ISNULL(lot.[Verified_Qty], 0) as 'Verified'
+                                                            FROM
+	                                                            [dbo].[LOT-INIT] lot
+                                                            LEFT JOIN
+	                                                            [dbo].[LOT-INIT_Lot_Loc_Qtys] lotloc ON lotloc.[ID1] = lot.[Lot_Number]
+                                                            LEFT JOIN
+	                                                            [dbo].[IM-INIT] im ON im.[Part_Number] = lot.[Part_Nbr]
+                                                            WHERE
+	                                                            lotloc.[Oh_Qtys] != 0 AND im.[Inventory_Type] = 'RR'", sqlCon))
+                    {
+                        using (SqlDataReader reader = cmd.ExecuteReader())
+                        {
+                            if (reader.HasRows)
+                            {
+                                while (reader.Read())
+                                {
+                                    _temp.Add(new Lot
+                                    {
+                                        LotNumber = reader.SafeGetString("LotNbr")
+                                        ,Location = reader.SafeGetString("PartNbr")
+                                        ,ReceivedDate = reader.SafeGetDateTime("Received_date")
+                                        ,Validated = reader.SafeGetInt32("Verified") == 1
                                     });
                                 }
                             }
