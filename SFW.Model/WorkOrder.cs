@@ -99,9 +99,8 @@ namespace SFW.Model
                 MachineGroup = dRow.Field<string>("MachineGroup");
                 Bom = Component.GetComponentBomList(SkuNumber, Operation, sqlCon);
                 Picklist = Component.GetComponentPickList(_wo[0], Operation, StartQty - CurrentQty, sqlCon);
-                Notes = GetNotes(_wo[0],sqlCon);
+                Notes = GetNotes(_wo[0], sqlCon);
                 ShopNotes = GetShopNotes(_wo[0], sqlCon);
-                InstructionList = GetInstructions(SkuNumber, siteNbr, docFilePath, sqlCon);
             }
         }
 

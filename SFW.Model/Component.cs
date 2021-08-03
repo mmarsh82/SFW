@@ -117,6 +117,7 @@ namespace SFW.Model
                         int.TryParse(cmd.ExecuteScalar().ToString(), out _count);
                     }
                     operation = _count == 0 ? "10" : operation;
+                    var _routCmd = operation == "10" ? "(a.[Routing_Seq] = @p2 OR a.[Routing_Seq] IS NULL)" : "a.[Routing_Seq] = @p2";
                     using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database};
                                                                 SELECT
 	                                                                SUBSTRING(a.[ID], CHARINDEX('*', a.[ID], 0) + 1, LEN(a.[ID])) as 'Component',
@@ -138,7 +139,7 @@ namespace SFW.Model
                                                                 RIGHT JOIN
 	                                                                [dbo].[IM-INIT] c ON c.[Part_Number] = SUBSTRING(a.[ID], CHARINDEX('*', a.[ID], 0) + 1, LEN(a.[ID]))
                                                                 WHERE
-	                                                                a.[ID] LIKE CONCAT(@p1, '%') AND (a.[Routing_Seq] = @p2 OR a.[Routing_Seq] IS NULL)
+	                                                                a.[ID] LIKE CONCAT(@p1, '%') AND {_routCmd} AND a.[Qty_Reqd] > 0
                                                                 ORDER BY
                                                                     Lot_Trace DESC, Component;", sqlCon))
                     {
