@@ -80,7 +80,7 @@
                     </Button.Content>
                 </Button>
 
-                <Button Command="{Binding DataContext.ListICommand}"
+                <Button Command="{Binding ListICommand}"
                         CommandParameter="Save"
                         Width="30"
                         Height="30"

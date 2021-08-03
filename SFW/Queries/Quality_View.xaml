@@ -4,19 +4,22 @@
              xmlns:cvtr="clr-namespace:SFW.Converters"
              xmlns:cmd="clr-namespace:SFW.Commands"
              xmlns:local="clr-namespace:SFW.Queries">
-    <Grid Background="LightGray">
 
-        <Grid.Resources>
-            <cvtr:ObjectToVisibility x:Key="ObjectToVisConverter" />
-            <cvtr:NegativeIntToBool x:Key="NegIntToBoolConverter" />
-            <cvtr:StringToVisibility x:Key="StringToVisConverter" />
-            <cvtr:CountToVisibility x:Key="CountToVisConverter" />
-            <cvtr:BoolToVisibility x:Key="BoolToVisConverter" />
-            <cvtr:BoolToBorderColor x:Key="BoolToBorderConverter" />
-            <cvtr:MultiValueParameter x:Key="MultiValConverter" />
-            <cmd:M2kLookQuery x:Key="LookQueryCommand" />
-            <cmd:ViewLoad x:Key="ViewLoadCommand" />
-        </Grid.Resources>
+    <UserControl.Resources>
+        <cvtr:ObjectToVisibility x:Key="ObjectToVisConverter" />
+        <cvtr:NegativeIntToBool x:Key="NegIntToBoolConverter" />
+        <cvtr:StringToVisibility x:Key="StringToVisConverter" />
+        <cvtr:CountToVisibility x:Key="CountToVisConverter" />
+        <cvtr:BoolToVisibility x:Key="BoolToVisConverter" />
+        <cvtr:BoolToBorderColor x:Key="BoolToBorderConverter" />
+        <cvtr:MultiValueParameter x:Key="MultiValConverter" />
+        <cvtr:ValueToImage x:Key="ValToImgConverter"/>
+        <cvtr:BoolInverter x:Key="BoolInverter"/>
+        <cmd:M2kLookQuery x:Key="LookQueryCommand" />
+        <cmd:ViewLoad x:Key="ViewLoadCommand" />
+    </UserControl.Resources>
+    
+    <Grid Background="LightGray">
 
         <Grid.RowDefinitions>
             <RowDefinition Height="45" />
@@ -97,8 +100,8 @@
                   AutoGenerateColumns="False"
                   IsReadOnly="True">
             <DataGrid.Columns>
-                <DataGridTextColumn Header="Lot Number"
-                                    Binding="{Binding LotNumber}" />
+                <DataGridTextColumn Header="Diamond Number"
+                                    Binding="{Binding LotNumber}"/>
                 <DataGridTextColumn Header="Part Number"
                                     Binding="{Binding Location}" />
                 <DataGridTextColumn Header="Received Date"
@@ -106,18 +109,13 @@
                 <DataGridTemplateColumn Header="Validated">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
-                            <Button x:Name="Valid"
-                                    Command="{StaticResource LookQueryCommand}"
+                            <Button Command="{Binding DataContext.ValidateICommand, ElementName=QualityDataGrid}"
+                                    CommandParameter="{Binding LotNumber}"
                                     Height="40"
+                                    IsEnabled="{Binding Validated, Converter={StaticResource BoolInverter}}"
                                     Style="{DynamicResource DefaultButton}">
-                                <Button.CommandParameter>
-                                    <MultiBinding Converter="{StaticResource MultiValConverter}">
-                                        <Binding Path="Name" RelativeSource="{RelativeSource Self}"/>
-                                        <Binding Path="Content" RelativeSource="{RelativeSource Self}"/>
-                                    </MultiBinding>
-                                </Button.CommandParameter>
                                 <Button.Content>
-                                    <Image Source="/SFW;component/Icons/Remove.ico"/>
+                                    <Image Source="{Binding Validated, Converter={StaticResource ValToImgConverter}}"/>
                                 </Button.Content>
                             </Button>
                         </DataTemplate>

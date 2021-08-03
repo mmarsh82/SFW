@@ -158,6 +158,85 @@ namespace SFW
         }
 
         /// <summary>
+        /// Update the user config file for the SFW application 
+        /// </summary>
+        /// <param name="ucList">List of stored userconfig objects</param>
+        /// <param name="focus">Set the focus view value</param>
+        public static void UpdateConfigFile(List<UserConfig> ucList, bool focus)
+        {
+            try
+            {
+                var folder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+                Directory.CreateDirectory($"{folder}\\SFW");
+                using (var wStream = new FileStream($"{folder}\\SFW\\SfwConfig.xml", FileMode.Create))
+                {
+                    var wSettings = new XmlWriterSettings { Indent = true, IndentChars = "\t", NewLineOnAttributes = true };
+                    using (var writer = XmlWriter.Create(wStream, wSettings))
+                    {
+                        writer.WriteStartElement("SFW_User_Config");
+
+                        writer.WriteComment("Default View");
+                        writer.WriteComment("Defines how the schedule is going to show work orders");
+                        writer.WriteComment("true will only show approved, false will show all work orders");
+
+                        writer.WriteStartElement("Default_View");
+                        writer.WriteAttributeString("Focus", focus.ToString());
+                        writer.WriteEndElement();
+
+                        writer.WriteComment("Default Work Centers");
+                        writer.WriteComment("Work center name and schedule position seperated by Site number");
+
+                        writer.WriteStartElement("Default_WC");
+
+                        if (ucList != null && ucList.Count(o => o.SiteNumber == 0) > 0)
+                        {
+                            foreach (UserConfig _uc in ucList.Where(o => o.SiteNumber == 0).OrderBy(o => o.Position))
+                            {
+                                writer.WriteStartElement("Site_0");
+                                writer.WriteAttributeString("WC_Nbr", _uc.MachineNumber);
+                                writer.WriteAttributeString("Position", _uc.Position.ToString());
+                                writer.WriteEndElement();
+                            }
+                        }
+                        else
+                        {
+                            writer.WriteStartElement("Site_0");
+                            writer.WriteAttributeString("WC_Nbr", "");
+                            writer.WriteAttributeString("Position", "1");
+                            writer.WriteEndElement();
+                        }
+
+                        if (ucList != null && ucList.Count(o => o.SiteNumber == 1) > 0)
+                        {
+                            foreach (UserConfig _uc in ucList.Where(o => o.SiteNumber == 1).OrderBy(o => o.Position))
+                            {
+                                writer.WriteStartElement("Site_1");
+                                writer.WriteAttributeString("WC_Nbr", _uc.MachineNumber);
+                                writer.WriteAttributeString("Position", _uc.Position.ToString());
+                                writer.WriteEndElement();
+                            }
+                        }
+                        else
+                        {
+                            writer.WriteStartElement("Site_1");
+                            writer.WriteAttributeString("WC_Nbr", "");
+                            writer.WriteAttributeString("Position", "1");
+                            writer.WriteEndElement();
+                        }
+
+                        writer.WriteEndElement();
+
+                        writer.WriteEndElement();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception();
+            }
+        }
+
+        /// <summary>
         /// Get the values for the user config object
         /// </summary>
         /// <returns>Dictionary of user config values</returns>

@@ -30,8 +30,8 @@
     <PublisherName>Michael Marsh</PublisherName>
     <SuiteName>WCCO Belting Inc.</SuiteName>
     <AutorunEnabled>true</AutorunEnabled>
-    <ApplicationRevision>2271</ApplicationRevision>
-    <ApplicationVersion>1.0.323.%2a</ApplicationVersion>
+    <ApplicationRevision>2285</ApplicationRevision>
+    <ApplicationVersion>1.0.325.2285</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <CreateDesktopShortcut>true</CreateDesktopShortcut>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -135,6 +135,7 @@
     <Compile Include="Commands\UnplanScrap.cs" />
     <Compile Include="Commands\ViewQtask.cs" />
     <Compile Include="Commands\WorkInstructions.cs" />
+    <Compile Include="Converters\BoolInverter.cs" />
     <Compile Include="Converters\BoolToBorderColor.cs" />
     <Compile Include="Converters\CrewToVisibility.cs" />
     <Compile Include="Converters\EnumToBool.cs" />
@@ -148,6 +149,7 @@
     <Compile Include="Converters\StringConcat.cs" />
     <Compile Include="Converters\StringToBool.cs" />
     <Compile Include="Converters\ValueToHeight.cs" />
+    <Compile Include="Converters\ValueToImage.cs" />
     <Compile Include="Converters\ValueToMargin.cs" />
     <Compile Include="Converters\WoPriorityToBool.cs" />
     <Compile Include="CurrentUser.cs" />

@@ -1,8 +1,8 @@
 ﻿using SFW.Helpers;
 using SFW.Model;
 using System.Collections.Generic;
-using System.Windows.Input;
 using System.Linq;
+using System.Windows.Input;
 
 namespace SFW.Queries
 {
@@ -51,6 +51,7 @@ namespace SFW.Queries
         public string ViewTypeContent { get { return ViewType ? "Valid" : "Invalid"; } }
 
         private RelayCommand _refresh;
+        private RelayCommand _valid;
 
         #endregion
 
@@ -123,6 +124,44 @@ namespace SFW.Queries
             ViewType = false;
         }
         private bool RefreshCanExecute(object parameter) => true;
+
+        #endregion
+
+        #region Validate ICommand
+
+        /// <summary>
+        /// Validate ICommand Instantiation
+        /// </summary>
+        public ICommand ValidateICommand
+        {
+            get
+            {
+                if (_valid == null)
+                {
+                    _valid = new RelayCommand(ValidateExecute, ValidateCanExecute);
+                }
+                return _valid;
+            }
+        }
+
+        /// <summary>
+        /// Validate ICommand Validation and Execution
+        /// </summary>
+        /// <param name="parameter">User input</param>
+        private void ValidateExecute(object parameter)
+        {
+            var _response = M2kClient.M2kCommand.EditRecord("LOT.MASTER", $"{parameter}|P", 15, "1", App.ErpCon);
+            if (!string.IsNullOrEmpty(_response))
+            {
+                System.Windows.MessageBox.Show(_response, "ERP value edit error");
+            }
+            else
+            {
+                DiamondIList.FirstOrDefault(o => o.LotNumber == parameter.ToString()).Validated = true;
+                OnPropertyChanged(nameof(DiamondIList));
+            }
+        }
+        private bool ValidateCanExecute(object parameter) => true;
 
         #endregion
     }
