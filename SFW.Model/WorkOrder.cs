@@ -101,6 +101,7 @@ namespace SFW.Model
                 Picklist = Component.GetComponentPickList(_wo[0], Operation, StartQty - CurrentQty, sqlCon);
                 Notes = GetNotes(_wo[0], sqlCon);
                 ShopNotes = GetShopNotes(_wo[0], sqlCon);
+                InstructionList = GetInstructions(SkuNumber, siteNbr, docFilePath, sqlCon);
             }
         }
 
@@ -247,6 +248,41 @@ namespace SFW.Model
         }
 
         /// <summary>
+        /// Get work order note's table
+        /// </summary>
+        /// <param name="sqlCon">Sql Connection to use</param>
+        /// <returns>All work order notes in a datatable</returns>
+        public static DataTable GetNotes(SqlConnection sqlCon)
+        {
+            using (var _tempTable = new DataTable())
+            {
+                if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
+                {
+                    try
+                    {
+                        using (SqlDataAdapter adapter = new SqlDataAdapter($"USE {sqlCon.Database}; SELECT [ID], [Wo_Notes] FROM [dbo].[WP-INIT_Wo_Notes] ORDER BY [ID], [ID3];", sqlCon))
+                        {
+                            adapter.Fill(_tempTable);
+                            return _tempTable;
+                        }
+                    }
+                    catch (SqlException sqlEx)
+                    {
+                        throw new Exception(sqlEx.Message);
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new Exception(ex.Message);
+                    }
+                }
+                else
+                {
+                    throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
+                }
+            }
+        }
+
+        /// <summary>
         /// Get a work order's shop floor notes
         /// </summary>
         /// <param name="woNbr">Work Order Number</param>
@@ -287,6 +323,41 @@ namespace SFW.Model
             else
             {
                 throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
+            }
+        }
+
+        /// <summary>
+        /// Get work order shop floor note's table
+        /// </summary>
+        /// <param name="sqlCon">Sql Connection to use</param>
+        /// <returns>All work order shop floor notes in a datatable</returns>
+        public static DataTable GetShopNotes(SqlConnection sqlCon)
+        {
+            using (var _tempTable = new DataTable())
+            {
+                if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
+                {
+                    try
+                    {
+                        using (SqlDataAdapter adapter = new SqlDataAdapter($"USE {sqlCon.Database}; SELECT [ID], [Wo_Sf_Notes] FROM [dbo].[WP-INIT_Wo_Sf_Notes] ORDER BY [ID], [ID3];", sqlCon))
+                        {
+                            adapter.Fill(_tempTable);
+                            return _tempTable;
+                        }
+                    }
+                    catch (SqlException sqlEx)
+                    {
+                        throw new Exception(sqlEx.Message);
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new Exception(ex.Message);
+                    }
+                }
+                else
+                {
+                    throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
+                }
             }
         }
 

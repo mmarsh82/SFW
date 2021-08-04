@@ -406,6 +406,110 @@ namespace SFW.Model
 
             #endregion
         }
+
+        /// <summary>
+        /// Get a table of all BOM's for every SKU on file
+        /// </summary>
+        /// <param name="sqlCon">Sql Connection to use</param>
+        /// <returns>DataTable of bill of materials</returns>
+        public static DataTable GetComponentBomTable(SqlConnection sqlCon)
+        {
+            using (var _tempTable = new DataTable())
+            {
+                if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
+                {
+                    try
+                    {
+                        using (SqlDataAdapter adapter = new SqlDataAdapter($@"USE {sqlCon.Database};
+                                                                                SELECT
+	                                                                                a.[ID]
+	                                                                                ,a.[Routing_Seq]
+	                                                                                ,SUBSTRING(a.[ID], CHARINDEX('*', a.[ID], 0) + 1, LEN(a.[ID])) as 'Component'
+	                                                                                ,a.[Qty_Per_Assy]
+	                                                                                ,b.[Description]
+                                                                                    ,b.[Drawing_Nbrs]
+	                                                                                ,b.[Um]
+                                                                                FROM
+	                                                                                [dbo].[PS-INIT] a
+                                                                                RIGHT JOIN
+	                                                                                [dbo].[IM-INIT] b ON b.[Part_Number] = SUBSTRING(a.[ID], CHARINDEX('*', a.[ID], 0) + 1, LEN(a.[ID]));", sqlCon))
+                        {
+                            adapter.Fill(_tempTable);
+                            return _tempTable;
+                        }
+                    }
+                    catch (SqlException sqlEx)
+                    {
+                        throw new Exception(sqlEx.Message);
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new Exception(ex.Message);
+                    }
+                }
+                else
+                {
+                    throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
+                }
+            }
+        }
+
+        /// <summary>
+        /// Get a table of all pick lists for every SKU on file
+        /// </summary>
+        /// <param name="sqlCon">Sql Connection to use</param>
+        /// <returns>DataTable of pick lists</returns>
+        public static DataTable GetComponentPickTable(SqlConnection sqlCon)
+        {
+            using (var _tempTable = new DataTable())
+            {
+                if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
+                {
+                    try
+                    {
+                        using (SqlDataAdapter adapter = new SqlDataAdapter($@"USE {sqlCon.Database};
+                                                                                SELECT
+	                                                                                a.[ID]
+	                                                                                ,SUBSTRING(a.[ID], CHARINDEX('*', a.[ID], 0) + 1, LEN(a.[ID])) as 'Component'
+	                                                                                ,a.[Qty_Per_Assy] as 'Qty Per'
+	                                                                                ,a.[Qty_Reqd] as 'Req Qty'
+	                                                                                ,b.[Qty_On_Hand] as 'On Hand'
+	                                                                                ,(SELECT SUM(aa.[OH_Qty_By_Loc]) FROM [dbo].[IPL-INIT_Location_Data] aa WHERE aa.[ID1] = b.[Part_Nbr] AND aa.[Loc_Pick_Avail_Flag] = 'Y') as 'Pickable'
+	                                                                                ,b.[Wip_Rec_Loc] as 'Backflush'
+	                                                                                ,c.[Description]
+	                                                                                ,c.[Drawing_Nbrs]
+	                                                                                ,c.[Um]
+	                                                                                ,c.[Inventory_Type]
+	                                                                                ,c.[Lot_Trace]
+	                                                                                ,a.[Routing_Seq]
+                                                                                FROM
+	                                                                                [dbo].[PL-INIT] a
+                                                                                RIGHT JOIN
+	                                                                                [dbo].[IPL-INIT] b ON b.[Part_Nbr] = SUBSTRING(a.[ID], CHARINDEX('*', a.[ID], 0) + 1, LEN(a.[ID]))
+                                                                                RIGHT JOIN
+	                                                                                [dbo].[IM-INIT] c ON c.[Part_Number] = SUBSTRING(a.[ID], CHARINDEX('*', a.[ID], 0) + 1, LEN(a.[ID]))
+                                                                                WHERE
+	                                                                                a.[Qty_Reqd] > 0", sqlCon))
+                        {
+                            adapter.Fill(_tempTable);
+                            return _tempTable;
+                        }
+                    }
+                    catch (SqlException sqlEx)
+                    {
+                        throw new Exception(sqlEx.Message);
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new Exception(ex.Message);
+                    }
+                }
+                else
+                {
+                    throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
+                }
+            }
+        }
     }
 
     /// <summary>

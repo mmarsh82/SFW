@@ -468,7 +468,7 @@ namespace SFW.Model
         /// <summary>
         /// Get a Sku's work instructions
         /// </summary>
-        /// <param name="woNbr">Sku ID Number</param>
+        /// <param name="partNbr">Sku ID Number</param>
         /// <param name="siteNbr">Facility number to run on</param>
         /// <param name="filepath">Path to the file</param>
         /// <param name="sqlCon">Sql Connection to use</param>
@@ -529,7 +529,33 @@ namespace SFW.Model
         }
 
         /// <summary>
-        /// Get a work order's work instructions
+        /// Get a Sku's work instructions
+        /// </summary>
+        /// <param name="woNbr">Sku ID Number</param>
+        /// <param name="siteNbr">Facility number to run on</param>
+        /// <param name="filepath">Path to the file</param>
+        /// <returns>A table of URL strings to open the work instructions</returns>
+        public static DataTable GetInstructions(int siteNbr, string filepath)
+        {
+            if(siteNbr != 0)
+            {
+                using (var _dt = new DataTable())
+                {
+                    _dt.Columns.Add("WorkInst");
+                    var dir = new DirectoryInfo(filepath);
+                    var fileList = dir.GetFiles("WI*");
+                    foreach (var file in fileList)
+                    {
+                        _dt.Rows.Add(file.Name);
+                    }
+                    return _dt;
+                }
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Get a Sku's tool list
         /// </summary>
         /// <param name="woNbr">Sku ID Number</param>
         /// <param name="woSeq">Work order sequence</param>
@@ -570,6 +596,45 @@ namespace SFW.Model
             else
             {
                 throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
+            }
+        }
+
+        /// <summary>
+        /// Get a Table of all tools in the database
+        /// </summary>
+        /// <returns>A datatable of all tool's</returns>
+        public static DataTable GetTools(SqlConnection sqlCon)
+        {
+            using (var _tempTable = new DataTable())
+            {
+                if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
+                {
+                    try
+                    {
+                        using (SqlDataAdapter adapter = new SqlDataAdapter($@"USE {sqlCon.Database};
+                                                                                SELECT
+	                                                                                [ID1]
+	                                                                                ,[Tool_Tape] as 'Tool'
+                                                                                FROM
+	                                                                                [dbo].[RT-INIT_Tool_Tape];", sqlCon))
+                        {
+                            adapter.Fill(_tempTable);
+                            return _tempTable;
+                        }
+                    }
+                    catch (SqlException sqlEx)
+                    {
+                        throw new Exception(sqlEx.Message);
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new Exception(ex.Message);
+                    }
+                }
+                else
+                {
+                    throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
+                }
             }
         }
 

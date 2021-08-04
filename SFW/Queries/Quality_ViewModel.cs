@@ -150,15 +150,16 @@ namespace SFW.Queries
         /// <param name="parameter">User input</param>
         private void ValidateExecute(object parameter)
         {
-            var _response = M2kClient.M2kCommand.EditRecord("LOT.MASTER", $"{parameter}|P", 15, "1", App.ErpCon);
+            var _newVal = DiamondIList.First(o => o.LotNumber == parameter.ToString()).Validated ? "0" : "1";
+            var _response = M2kClient.M2kCommand.EditRecord("LOT.MASTER", $"{parameter}|P", 15, _newVal, App.ErpCon);
             if (!string.IsNullOrEmpty(_response))
             {
                 System.Windows.MessageBox.Show(_response, "ERP value edit error");
             }
             else
             {
-                DiamondIList.FirstOrDefault(o => o.LotNumber == parameter.ToString()).Validated = true;
-                OnPropertyChanged(nameof(DiamondIList));
+                DiamondIList.FirstOrDefault(o => o.LotNumber == parameter.ToString()).Validated = _newVal == "1";
+                FilterView(SearchFilter, 0);
             }
         }
         private bool ValidateCanExecute(object parameter) => true;

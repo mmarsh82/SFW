@@ -721,5 +721,44 @@ namespace SFW.Model
                 throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
             }
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="machOrder"></param>
+        /// <param name="site"></param>
+        /// <param name="siteNbr"></param>
+        /// <param name="docFilePath"></param>
+        /// <param name="sqlCon"></param>
+        /// <returns></returns>
+        public static DataSet ScheduleDataSet(IReadOnlyDictionary<string, int> machOrder, string site, int siteNbr, string docFilePath, SqlConnection sqlCon)
+        {
+            try
+            {
+                using (var _tempDS = new DataSet())
+                {
+                    _tempDS.DataSetName = $"{site}DataSet";
+                    _tempDS.Tables.Add(GetScheduleData(machOrder, sqlCon));
+                    _tempDS.Tables[0].TableName = "Master";
+                    _tempDS.Tables.Add(GetTools(sqlCon));
+                    _tempDS.Tables[1].TableName = "TL";
+                    _tempDS.Tables.Add(Component.GetComponentBomTable(sqlCon));
+                    _tempDS.Tables[2].TableName = "BOM";
+                    _tempDS.Tables.Add(Component.GetComponentPickTable(sqlCon));
+                    _tempDS.Tables[3].TableName = "PL";
+                    _tempDS.Tables.Add(GetNotes(sqlCon));
+                    _tempDS.Tables[4].TableName = "WN";
+                    _tempDS.Tables.Add(GetShopNotes(sqlCon));
+                    _tempDS.Tables[5].TableName = "SN";
+                    _tempDS.Tables.Add(GetInstructions(siteNbr, docFilePath));
+                    _tempDS.Tables[6].TableName = "WI";
+                    return _tempDS;
+                }
+            }
+            catch (Exception)
+            {
+                throw new Exception();
+            }
+        }
     }
 }

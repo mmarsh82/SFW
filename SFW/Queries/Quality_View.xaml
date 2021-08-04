@@ -112,7 +112,6 @@
                             <Button Command="{Binding DataContext.ValidateICommand, ElementName=QualityDataGrid}"
                                     CommandParameter="{Binding LotNumber}"
                                     Height="40"
-                                    IsEnabled="{Binding Validated, Converter={StaticResource BoolInverter}}"
                                     Style="{DynamicResource DefaultButton}">
                                 <Button.Content>
                                     <Image Source="{Binding Validated, Converter={StaticResource ValToImgConverter}}"/>
