@@ -159,13 +159,14 @@ namespace SFW.Model
                                                                 SET
                                                                     [Quantity] = @p1, [Notes] = @p2, [QualityFlg] = @p3
                                                                 WHERE
-                                                                    [ReportID] = @p4 AND [RoundNbr] = @p5", sqlCon))
+                                                                    [ReportID] = @p4 AND [RoundNbr] = @p5 AND [RollNbr] = @p6", sqlCon))
                         {
                             cmd.Parameters.AddWithValue("p1", round.Quantity);
                             cmd.Parameters.AddWithValue("p2", round.Notes);
                             cmd.Parameters.AddWithValue("p3", round.QualityFlag);
                             cmd.Parameters.AddWithValue("p4", reportID);
                             cmd.Parameters.AddWithValue("p5", round.RoundNumber);
+                            cmd.Parameters.AddWithValue("p6", round.RollNumber);
                             cmd.ExecuteNonQuery();
                         }
                     }
