@@ -22,6 +22,12 @@ namespace SFW.Model
         public int? SlatBlankout { get; set; }
 
         /// <summary>
+        /// Whether the blank out is seen on both the head and tail of a belt
+        /// Used in the calcualtion of the roll lengths and cut lengths of each's and piece's
+        /// </summary>
+        public bool DoubleBlankout { get; set; }
+
+        /// <summary>
         /// Length of the rolls that production is creating on this report
         /// </summary>
         public int? RollLength { get; set; }
@@ -30,7 +36,7 @@ namespace SFW.Model
         /// List of shift reports
         /// There is 1 press report per work order but there are many shift reports per press report
         /// </summary>
-        public List<Press_ShiftReport> ShiftReportList { get; set; }
+        public List<PressShiftReport> ShiftReportList { get; set; }
 
         /// <summary>
         /// Work order object for this report object to be created against
@@ -52,7 +58,7 @@ namespace SFW.Model
         public PressReport(WorkOrder wo, SqlConnection sqlCon)
         {
             ShopOrder = wo;
-            ShiftReportList = new List<Press_ShiftReport>();
+            ShiftReportList = new List<PressShiftReport>();
             IsNew = true;
             if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
             {
@@ -71,13 +77,14 @@ namespace SFW.Model
                                     SlatTransfer = reader.SafeGetInt32("SlatTransfer");
                                     RollLength = reader.SafeGetInt32("RollLength");
                                     SlatBlankout = reader.SafeGetInt32("BlankSlats");
+                                    DoubleBlankout = reader.SafeGetInt32("DoubleBlank") == 1;
                                 }
                             }
                         }
                     }
                     if (SlatTransfer != null)
                     {
-                        ShiftReportList = Press_ShiftReport.GetPress_ShiftReportList(wo.OrderNumber, Machine.GetMachineName(sqlCon, wo), sqlCon);
+                        ShiftReportList = PressShiftReport.GetPress_ShiftReportList(wo.OrderNumber, Machine.GetMachineName(sqlCon, wo), sqlCon);
                     }
                 }
                 catch (SqlException sqlEx)
@@ -134,13 +141,14 @@ namespace SFW.Model
                 {
                     using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database};
                                                                 INSERT INTO
-                                                                    [dbo].[PRM-CSTM] ([WorkOrder], [SlatTransfer], [RollLength], [BlankSlats])
-                                                                VALUES (@p1, @p2, @p3, @p4)", sqlCon))
+                                                                    [dbo].[PRM-CSTM] ([WorkOrder], [SlatTransfer], [RollLength], [BlankSlats], [DoubleBlank])
+                                                                VALUES (@p1, @p2, @p3, @p4, @p5)", sqlCon))
                     {
                         cmd.Parameters.AddWithValue("p1", pReport.ShopOrder.OrderNumber);
                         cmd.Parameters.AddWithValue("p2", pReport.SlatTransfer);
                         cmd.Parameters.AddWithValue("p3", pReport.RollLength);
                         cmd.Parameters.AddWithValue("p4", o);
+                        cmd.Parameters.AddWithValue("p5", pReport.DoubleBlankout ? 1 : 0);
                         cmd.ExecuteNonQuery();
                     }
                 }
@@ -168,16 +176,18 @@ namespace SFW.Model
                                                                 UPDATE
                                                                     [dbo].[PRM-CSTM] 
                                                                 SET
-                                                                    [SlatTransfer] = @p1, [RollLength] = @p2, [BlankSlats] = @p3
+                                                                    [SlatTransfer] = @p1, [RollLength] = @p2, [BlankSlats] = @p3, [DoubleBlank] = @p4
                                                                 WHERE
-                                                                    [WorkOrder] = @p4", sqlCon))
+                                                                    [WorkOrder] = @p5", sqlCon))
                     {
                         cmd.Parameters.AddWithValue("p1", pReport.SlatTransfer);
                         cmd.Parameters.AddWithValue("p2", pReport.RollLength);
-                        cmd.Parameters.AddWithValue("p3", pReport.SlatBlankout);
-                        cmd.Parameters.AddWithValue("p4", pReport.ShopOrder.OrderNumber);
+                        cmd.Parameters.AddWithValue("p3", pReport.SlatBlankout ?? 0);
+                        cmd.Parameters.AddWithValue("p4", pReport.DoubleBlankout ? 1 : 0);
+                        cmd.Parameters.AddWithValue("p5", pReport.ShopOrder.OrderNumber);
                         cmd.ExecuteNonQuery();
                     }
+                    PressRound.Update(int.Parse(pReport.ShiftReportList[0].ReportID.ToString()), pReport.ShiftReportList[0].RoundList, sqlCon);
                 }
                 catch (SqlException sqlEx)
                 {

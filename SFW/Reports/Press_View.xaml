@@ -75,7 +75,7 @@
                      Margin="10,0,0,0"
                      TabIndex="0"/>
 
-            <TextBlock Text="{Binding Report.ShopOrder.Uom}"
+            <TextBlock Text="FT"
                        FontSize="20"
                        FontWeight="Bold"
                        Margin="10,0,0,0"
@@ -121,12 +121,21 @@
                      TabIndex="2"
                      Visibility="{Binding IsBlankVis, Converter={StaticResource BoolToVisConverter}}"/>
 
-            <TextBlock Text="Slats"
+            <TextBlock Text="slat(s)"
                        FontSize="20"
                        FontWeight="Bold"
                        Foreground="#FF135185"
                        Margin="10,0,0,0" 
                        Visibility="{Binding IsBlankVis, Converter={StaticResource BoolToVisConverter}}"/>
+
+            <CheckBox Content="Double"
+                      Foreground="#FF135185"
+                      IsChecked="{Binding Report.DoubleBlankout, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                      FontSize="20"
+                      FontWeight="Bold"
+                      Margin="20,0,0,0"
+                      Visibility="{Binding IsBlankVis, Converter={StaticResource BoolToVisConverter}}"
+                      Style="{DynamicResource SliderCheckBox}"/>
 
             <TextBlock Text="Shift:"
                        TextDecorations="Underline"
@@ -164,8 +173,8 @@
         </StackPanel>
 
         <TabControl Grid.Row="3"
-                    ItemsSource="{Binding ShiftCollection}"
-                    SelectedItem="{Binding SelectedShift}"
+                    ItemsSource="{Binding ShiftCollection, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                    SelectedItem="{Binding SelectedShift, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                     Style="{DynamicResource ModernTabControl}"
                     ItemContainerStyle="{DynamicResource ModernTabItem}" />
     </Grid>

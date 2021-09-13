@@ -135,6 +135,18 @@ namespace SFW
             }
         }
 
+        private static bool _bUser;
+        public static bool BasicUser
+        {
+            get
+            { return _bUser; }
+            private set
+            {
+                _bUser = value;
+                StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(BasicUser)));
+            }
+        }
+
         private static bool _isAdmin;
         public static bool IsAdmin
         {
@@ -204,6 +216,18 @@ namespace SFW
             {
                 _hasSOM = value;
                 StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(HasSalesOrderModule)));
+            }
+        }
+
+        private static bool _isEng;
+        public static bool IsEngineer
+        {
+            get
+            { return _isEng; }
+            private set
+            {
+                _isEng = value;
+                StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(IsEngineer)));
             }
         }
 
@@ -283,9 +307,10 @@ namespace SFW
             Site = user.DistinguishedName.Contains("WCCO") ? "WCCO" : "CSI";
             if (_groups.Exists(o => o.ToString().Contains("SFW_Admin")))
             {
-                CanTrain = CanSchedule = IsSupervisor = IsInventoryControl = IsAccountsReceivable = IsAdmin = HasSalesOrderModule = IsQuality = true;
+                CanTrain = CanSchedule = IsSupervisor = IsInventoryControl = IsAccountsReceivable = IsAdmin = HasSalesOrderModule = IsQuality = IsEngineer = true;
+                BasicUser = false;
             }
-            else
+            else if (_groups.Exists(o => o.ToString().Contains("SFW_")))
             {
                 CanSchedule = _groups.Exists(o => o.ToString().Contains("SFW_Sched"));
                 IsSupervisor = _groups.Exists(o => o.ToString().Contains("SFW_Super"));
@@ -294,6 +319,12 @@ namespace SFW
                 HasSalesOrderModule = _groups.Exists(o => o.ToString().Contains("SFW_SalesOrderMod"));
                 CanTrain = _groups.Exists(o => o.ToString().Contains("SFW_Trainer"));
                 IsQuality = _groups.Exists(o => o.ToString().Contains("SFW_QC"));
+                IsEngineer = _groups.Exists(o => o.ToString().Contains("SFW_Eng"));
+                BasicUser = false;
+            }
+            else
+            {
+                BasicUser = true;
             }
             IsLoggedIn = true;
             CanWip = GetSite() == 1;
@@ -327,7 +358,7 @@ namespace SFW
                 {
                     using (UserPrincipal uPrincipal = UserPrincipal.FindByIdentity(pContext, _user))
                     {
-                        if (uPrincipal.GetAuthorizationGroups().ToList().ConvertAll(o => o.Name).Exists(o => o.Contains("SFW_")))
+                        if (!string.IsNullOrEmpty(uPrincipal.EmployeeId))
                         {
                             new CurrentUser(pContext, uPrincipal);
                         }
@@ -354,6 +385,7 @@ namespace SFW
                     if (uPrincipal.GetAuthorizationGroups().ToList().ConvertAll(o => o.Name).Exists(o => o.Contains("SFW_")))
                     {
                         new CurrentUser(pContext, uPrincipal);
+                        MainWindowViewModel.UpdateProperties();
                     }
                 }
             }
@@ -413,6 +445,7 @@ namespace SFW
                             {
                                 new CurrentUser(pContext, uPrincipal);
                                 Controls.WorkSpaceDock.RefreshMainDock();
+                                MainWindowViewModel.UpdateProperties();
                             }
                             _result.Add(_resultKey, _resultVal);
                             return _result;
@@ -498,8 +531,11 @@ namespace SFW
             UserIDNbr = string.Empty;
             IsAccountsReceivable = false;
             HasSalesOrderModule = false;
-            MainWindowViewModel.UpdateProperties();
+            CanTrain = false;
+            BasicUser = true;
+            IsEngineer = false;
             Controls.WorkSpaceDock.RefreshMainDock();
+            MainWindowViewModel.UpdateProperties();
         }
 
         /// <summary>
@@ -514,6 +550,7 @@ namespace SFW
                     using (UserPrincipal uPrincipal = UserPrincipal.FindByIdentity(pContext, DomainUserName))
                     {
                         new CurrentUser(pContext, uPrincipal);
+                        MainWindowViewModel.UpdateProperties();
                     }
                 }
             }

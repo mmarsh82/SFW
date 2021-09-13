@@ -22,17 +22,6 @@ namespace SFW.Commands
             {
                 CurrentUser.LogOff();
             }
-            if (CurrentUser.IsAdmin || CurrentUser.IsSupervisor || CurrentUser.IsInventoryControl)
-            {
-                App.DefualtWorkCenter.Clear();
-                App.IsFocused = false;
-            }
-            else
-            {
-                App.DefualtWorkCenter = UserConfig.GetUserConfigList();
-            }
-            Schedule.ViewModel.UserRefresh = true;
-            RefreshTimer.RefreshTimerTick();
         }
 
         public bool CanExecute(object parameter) => true;

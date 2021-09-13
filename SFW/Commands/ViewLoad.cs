@@ -1,5 +1,4 @@
-﻿using M2kClient;
-using SFW.Controls;
+﻿using SFW.Controls;
 using SFW.Queries;
 using System;
 using System.Collections.Generic;
@@ -17,15 +16,22 @@ namespace SFW.Commands
         public event EventHandler CanExecuteChanged;
 
         /// <summary>
-        /// View Load Execution
+        /// Default Constructor
         /// </summary>
-        /// <param name="parameter">View to Load</param>
-        public void Execute(object parameter)
+        public ViewLoad()
         {
             if (HistoryList == null)
             {
                 HistoryList = new List<int>();
             }
+        }
+
+        /// <summary>
+        /// View Load Execution
+        /// </summary>
+        /// <param name="parameter">View to Load</param>
+        public void Execute(object parameter)
+        {
             try
             {
                 var _wo = new object();
@@ -75,25 +81,6 @@ namespace SFW.Commands
                         {
                             MessageBox.Show("The work load is currently refreshing.");
                         }
-                        break;
-                    //Currently the closed work orders are site agnostic so need to load the viewmodel at the time of the call
-                    case 5:
-                        _viewModel= new Schedule.Closed.ViewModel();
-                        break;
-                    //Each site has its own build out for the database change
-                    case 0:
-                        if (!App.DatabaseChange("CSI_MAIN"))
-                        {
-                            MessageBox.Show("Unable to switch to the alternate site.");
-                        }
-                        App.ErpCon.DatabaseChange(Database.CSI);
-                        break;
-                    case 1:
-                        if (!App.DatabaseChange("WCCO_MAIN"))
-                        {
-                            MessageBox.Show("Unable to switch to the alternate site.");
-                        }
-                        App.ErpCon.DatabaseChange(Database.WCCO);
                         break;
                 }
                 if(_view != -2)

@@ -48,6 +48,7 @@ namespace SFW.Model
         public decimal CreditAllocatedBalance { get; set; }
         public decimal CurrentCreditLimit { get; set; }
         public decimal OrderBalance { get; set; }
+        public bool IsStagged { get; set; }
 
         #endregion
 
@@ -163,6 +164,7 @@ namespace SFW.Model
             CreditAllocatedBalance = dRow.Field<decimal>("AR_ABal");
             CurrentCreditLimit = dRow.Field<decimal>("AR_Credit");
             OrderBalance = dRow.Field<decimal>("AR_OrdBal");
+            IsStagged = dRow.Field<string>("IsStagged") == "T";
         }
 
         /// <summary>
@@ -338,6 +340,7 @@ namespace SFW.Model
 		                                                                            THEN 1
 		                                                                            ELSE 0
 	                                                                            END as 'CanShip'
+                                                                                ,b.[User_Def_1] as 'IsStagged'
                                                                             FROM
 	                                                                            [dbo].[SOH-INIT] a
                                                                             RIGHT JOIN

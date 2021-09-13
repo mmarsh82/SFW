@@ -11,6 +11,7 @@
         <cmd:PartSearch x:Key="PartSearchICommand" />
         <cvtr:SkuMasterPrint x:Key="PartSearchConverter" />
         <cvtr:CountToVisibility x:Key="CountToVisConverter" />
+        <cvtr:BoolToVisibility x:Key="BoolToVisConverter" />
     </UserControl.Resources>
 
     <Grid>
@@ -48,11 +49,20 @@
 
         <!--#region Tab Control for Work order BOM and reports-->
 
-            <TabControl Grid.Row="2"
-                        VerticalAlignment="Top"
+        <Grid Grid.Row="2">
+
+            <Control Background="Transparent"
+                     VerticalAlignment="Center"
+                     HorizontalAlignment="Center"
+                     Margin="0,50,0,0"
+                     Visibility="{Binding IsMultiLoading, Converter={StaticResource BoolToVisConverter}}"
+                     Style="{DynamicResource BusyAnimationStyle}" />
+
+            <TabControl VerticalAlignment="Top"
                         HorizontalAlignment="Center"
                         BorderThickness="0"
-                        Background="WhiteSmoke">
+                        Background="WhiteSmoke"
+                        Visibility="{Binding IsMultiLoading, Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}">
 
                 <!--#region Picklist Tab-->
 
@@ -345,7 +355,9 @@
 
             </TabControl>
 
-            <!--#endregion-->
+        </Grid>
+
+        <!--#endregion-->
 
     </Grid>
 </UserControl>

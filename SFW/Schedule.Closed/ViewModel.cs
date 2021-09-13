@@ -1,7 +1,7 @@
 ﻿using SFW.Controls;
 using SFW.Converters;
 using SFW.Model;
-using System.Collections.Generic;
+using System;
 using System.ComponentModel;
 using System.Data;
 using System.Linq;
@@ -15,7 +15,9 @@ namespace SFW.Schedule.Closed
     {
         #region Properties
 
-        public ICollectionView ClosedScheduleView { get; set; }
+        public DataSet ClosedSchedule { get; set; }
+        public static ICollectionView ClosedScheduleView { get; set; }
+        public static string[] ClosedScheduleViewFilter;
         private DataRowView _selectedWO;
         public DataRowView SelectedWorkOrder
         {
@@ -25,9 +27,9 @@ namespace SFW.Schedule.Closed
                 _selectedWO = value;
                 if (value != null)
                 {
-                    var _wo = new WorkOrder(value.Row, App.SiteNumber, App.GlobalConfig.First(o => $"{o.Site}_MAIN" == App.Site).WI, App.AppSqlCon);
+                    var _wo = new WorkOrder(value.Row, App.AppSqlCon);
                     WorkSpaceDock.ClosedDock.Children.RemoveAt(1);
-                    WorkSpaceDock.ClosedDock.Children.Insert(1, new ShopRoute.View { DataContext = new ShopRoute.ViewModel(_wo) });
+                    WorkSpaceDock.ClosedDock.Children.Insert(1, new ShopRoute.View { DataContext = new ShopRoute.ViewModel(_wo, ClosedSchedule) });
                 }
                 OnPropertyChanged(nameof(SelectedWorkOrder));
             }
@@ -40,36 +42,20 @@ namespace SFW.Schedule.Closed
             set { _isLoading = value; OnPropertyChanged(nameof(IsLoading)); }
         }
 
-        private string _originalFilter;
         private string _sFilter;
         public string SearchFilter
         {
             get { return _sFilter; }
             set
             {
-                if (_sFilter == null || value == null)
-                {
-                    _originalFilter = ((DataView)ClosedScheduleView.SourceCollection).RowFilter;
-                }
-                if (!string.IsNullOrEmpty(value))
-                {
-                    var _sRowFilter = ((DataView)ClosedScheduleView.SourceCollection).Table.SearchRowFilter(value);
-                    ((DataView)ClosedScheduleView.SourceCollection).RowFilter = !string.IsNullOrEmpty(_originalFilter)
-                        ? $"{_originalFilter} AND ({_sRowFilter})"
-                        : _sRowFilter;
-                }
-                else
-                {
-                    ((DataView)ClosedScheduleView.SourceCollection).RowFilter = _originalFilter;
-                }
                 _sFilter = value == "" ? null : value;
+                var _filter = string.IsNullOrEmpty(value) ? "" : ((DataView)ClosedScheduleView.SourceCollection).Table.SearchRowFilter(value);
+                ScheduleFilter(_filter, 0);
                 OnPropertyChanged(nameof(SearchFilter));
-                ClosedScheduleView.Refresh();
             }
         }
 
-        public List<Machine> MachineList { get; set; }
-        public List<string> MachineGroupList { get; set; }
+        public static event EventHandler<PropertyChangedEventArgs> StaticPropertyChanged;
 
         #endregion
 
@@ -78,35 +64,68 @@ namespace SFW.Schedule.Closed
         /// </summary>
         public ViewModel()
         {
-            MachineList = Machine.GetMachineList(App.AppSqlCon, true, false);
-            MachineGroupList = MachineList.Where(o => !string.IsNullOrEmpty(o.MachineGroup)).Select(o => o.MachineGroup).Distinct().ToList();
-            ClosedScheduleView = CollectionViewSource.GetDefaultView(Machine.GetClosedScheduleData(App.AppSqlCon));
-            ClosedScheduleView.GroupDescriptions.Add(new PropertyGroupDescription("MachineNumber", new WorkCenterNameConverter(MachineList)));
-            ClosedScheduleView.Refresh();
-            if (App.DefualtWorkCenter?.Count(o => o.SiteNumber == App.SiteNumber) == 1 && !string.IsNullOrEmpty(App.DefualtWorkCenter.FirstOrDefault(o => o.SiteNumber == App.SiteNumber).MachineNumber))
+            MainWindowViewModel.DisplayAction = true;
+            ClosedScheduleViewFilter = new string[5];
+            IsLoading = true;
+            using (BackgroundWorker bw = new BackgroundWorker())
             {
-                ((DataView)ClosedScheduleView.SourceCollection).RowFilter = $"MachineNumber = '{App.DefualtWorkCenter.FirstOrDefault(o => o.SiteNumber == App.SiteNumber).MachineNumber}'";
+                try
+                {
+                    bw.DoWork += new DoWorkEventHandler(
+                        delegate (object sender, DoWorkEventArgs e)
+                        {
+                            ClosedSchedule = Machine.ScheduleDataSet(UserConfig.GetIROD(), App.Site, App.AppSqlCon, true);
+                            ClosedScheduleView = CollectionViewSource.GetDefaultView(ClosedSchedule.Tables["Master"]);
+                            ClosedScheduleView.GroupDescriptions.Add(new PropertyGroupDescription("MachineNumber", new WorkCenterNameConverter(MainWindowViewModel.MachineList)));
+                            MainWindowViewModel.DisplayAction = IsLoading = false;
+                            ScheduleFilter(UserConfig.BuildMachineFilter(), 1);
+                            ScheduleFilter(UserConfig.BuildPriorityFilter(), 3);
+                            StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(ClosedScheduleView)));
+                        });
+                    bw.RunWorkerAsync();
+                }
+                catch (Exception)
+                {
+
+                }
             }
-            else if (App.DefualtWorkCenter?.Count(o => o.SiteNumber == App.SiteNumber) > 1)
+        }
+
+        /// <summary>
+        /// Filter the schedule view
+        /// Index values
+        /// 0 = Search Filter
+        /// 1 = Work Center Filter
+        /// 2 = Work Center Group Filter
+        /// 3 = Work Order Priority Filter
+        /// </summary>
+        /// <param name="filter">Filter string to use on the default view</param>
+        /// <param name="index">Index of the filter string list you are adding to our changing</param>
+        public static void ScheduleFilter(string filter, int index)
+        {
+            if (ClosedScheduleViewFilter != null)
             {
-                var _filter = string.Empty;
-                foreach (var m in App.DefualtWorkCenter.Where(o => o.SiteNumber == App.SiteNumber))
+                ClosedScheduleViewFilter[index] = filter;
+                var _filterStr = string.Empty;
+                foreach (var s in ClosedScheduleViewFilter.Where(o => !string.IsNullOrEmpty(o)))
                 {
-                    _filter += string.IsNullOrEmpty(_filter) ? $"(MachineNumber = '{m.MachineNumber}'" : $" OR MachineNumber = '{m.MachineNumber}'";
+                    _filterStr += string.IsNullOrEmpty(_filterStr) ? $"({s})" : $" AND ({s})";
                 }
-                _filter += ")";
-                ((DataView)ClosedScheduleView.SourceCollection).RowFilter = _filter;
+                ((DataView)ClosedScheduleView.SourceCollection).RowFilter = _filterStr;
+                ClosedScheduleView.Refresh();
             }
-            else
+        }
+
+        /// <summary>
+        /// Clears the schedule filter string array
+        /// </summary>
+        public static void ClearFilter()
+        {
+            if (ClosedScheduleViewFilter != null)
             {
-                if (MainWindowViewModel.SelectedMachine != null && MainWindowViewModel.SelectedMachine.MachineName != "All")
-                {
-                    ((DataView)ClosedScheduleView.SourceCollection).RowFilter = $"MachineName = '{MainWindowViewModel.SelectedMachine.MachineName}'";
-                }
-                if (MainWindowViewModel.SelectedMachine != null && MainWindowViewModel.SelectedMachineGroup != "All" && MainWindowViewModel.SelectedMachine.MachineName == "All")
-                {
-                    ((DataView)ClosedScheduleView.SourceCollection).RowFilter = $"MachineGroup = '{MainWindowViewModel.SelectedMachineGroup}'";
-                }
+                ClosedScheduleViewFilter = new string[5];
+                ((DataView)ClosedScheduleView.SourceCollection).RowFilter = "";
+                ClosedScheduleView.Refresh();
             }
         }
     }

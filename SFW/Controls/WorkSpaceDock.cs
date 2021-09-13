@@ -1,4 +1,6 @@
-﻿using SFW.Queries;
+﻿using M2kClient;
+using SFW.Queries;
+using System;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -15,7 +17,6 @@ namespace SFW.Controls
         public static DockPanel ClosedDock { get; set; }
         public static DockPanel CountDock { get; set; }
         public static DockPanel SalesDock { get; set; }
-        public static bool ClosedView { get; set; }
 
         #endregion
 
@@ -25,7 +26,6 @@ namespace SFW.Controls
         public WorkSpaceDock()
         {
             RefreshTimer.IsRefreshing = true;
-            ClosedView = false;
             //Create the Control
             MainDock = ((MainWindow)Application.Current.Windows[0]).WorkSpaceDock;
             SchedDock = new DockPanel();
@@ -80,8 +80,9 @@ namespace SFW.Controls
             //Add the Diamond Validation View to [9]
             MainDock.Children.Insert(9, new Quality_View { DataContext = new Quality_ViewModel() });
 
-            SwitchView(App.SiteNumber, null);
+            SwitchView(App.SiteNumber, null, false);
             RefreshTimer.IsRefreshing = false;
+            App.LoadedModule = Enumerations.UsersControls.Schedule;
         }
 
         /// <summary>
@@ -103,14 +104,13 @@ namespace SFW.Controls
                     ((UserControl)o).Visibility = Visibility.Collapsed;
                 }
             }
-            ClosedView = index == 5;
             var _tempDock = new DockPanel();
             switch(index)
             {
                 case 0:
                 case 1:
                     _tempDock = SchedDock;
-                    index = 0;
+                    index = refreshDock ? index : 0;
                     break;
                 case 3:
                     _tempDock = CountDock;
@@ -124,26 +124,22 @@ namespace SFW.Controls
             }
             if (index <= 1 && refreshDock)
             {
-                Schedule.ViewModel.FullRefresh = true;
-                ((Schedule.ViewModel)((Schedule.View)_tempDock.Children[0]).DataContext).RefreshSchedule();
-                MainWindowViewModel.MachineList = ((Schedule.ViewModel)((Schedule.View)_tempDock.Children[0]).DataContext).MachineList;
-                if (MainWindowViewModel.SelectedMachine == null && !App.IsFocused)
+                if (!App.DatabaseChange(index))
                 {
-                    MainWindowViewModel.SelectedMachine = ((Schedule.ViewModel)((Schedule.View)_tempDock.Children[0]).DataContext).MachineList[0];
+                    MessageBox.Show("Unable to switch to the alternate site.");
                 }
-                MainWindowViewModel.MachineGroupList = ((Schedule.ViewModel)((Schedule.View)_tempDock.Children[0]).DataContext).MachineGroupList;
-                if (MainWindowViewModel.SelectedMachineGroup == null && !App.IsFocused)
-                {
-                    MainWindowViewModel.SelectedMachineGroup = ((Schedule.ViewModel)((Schedule.View)_tempDock.Children[0]).DataContext).MachineGroupList[0];
-                }
+                App.ErpCon.DatabaseChange(Enum.TryParse(index.ToString(), out Database _db) ? _db : Database.WCCO);
+                MainWindowViewModel.UpdateProperties();
+                RefreshTimer.RefreshTimerTick();
                 MainDock.Children.RemoveAt(4);
                 MainDock.Children.Insert(4, new Admin.View { DataContext = new Admin.ViewModel() });
                 MainDock.Children[4].Visibility = Visibility.Collapsed;
+                index = 0;
             }
             else if (index == 5)
             {
-                ((Schedule.Closed.View)_tempDock.Children[0]).DataContext = dataContext;
-                if(((ShopRoute.View)_tempDock.Children[1]).DataContext != null)
+                ((Schedule.Closed.View)_tempDock.Children[0]).DataContext = new Schedule.Closed.ViewModel();
+                if (((ShopRoute.View)_tempDock.Children[1]).DataContext != null)
                 {
                     ((ShopRoute.ViewModel)((ShopRoute.View)_tempDock.Children[1]).DataContext).ShopOrder = new Model.WorkOrder();
                 }
@@ -153,6 +149,7 @@ namespace SFW.Controls
                 ((UserControl)MainDock.Children[index]).DataContext = dataContext;
             }
             MainDock.Children[index].Visibility = Visibility.Visible;
+            App.LoadedModule = Enum.TryParse(index.ToString(), out Enumerations.UsersControls eUC) ? eUC : Enumerations.UsersControls.Schedule;
         }
 
         /// <summary>
@@ -190,6 +187,7 @@ namespace SFW.Controls
             {
                 try
                 {
+                    ((UserControl)((DockPanel)MainDock.Children[parentUCIndex]).Children[childUCIndex]).DataContext = null;
                     ((UserControl)((DockPanel)MainDock.Children[parentUCIndex]).Children[childUCIndex]).DataContext = viewModel;
                 }
                 catch

@@ -30,8 +30,8 @@
     <PublisherName>Michael Marsh</PublisherName>
     <SuiteName>WCCO Belting Inc.</SuiteName>
     <AutorunEnabled>true</AutorunEnabled>
-    <ApplicationRevision>2300</ApplicationRevision>
-    <ApplicationVersion>1.0.328.2300</ApplicationVersion>
+    <ApplicationRevision>2352</ApplicationRevision>
+    <ApplicationVersion>1.0.330.2352</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <CreateDesktopShortcut>true</CreateDesktopShortcut>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -136,6 +136,7 @@
     <Compile Include="Commands\ViewQtask.cs" />
     <Compile Include="Commands\WorkInstructions.cs" />
     <Compile Include="Converters\BoolInverter.cs" />
+    <Compile Include="Converters\BoolToBackgroundColor.cs" />
     <Compile Include="Converters\BoolToBorderColor.cs" />
     <Compile Include="Converters\CrewToVisibility.cs" />
     <Compile Include="Converters\EnumToBool.cs" />

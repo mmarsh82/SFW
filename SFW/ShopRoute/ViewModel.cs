@@ -2,6 +2,12 @@
 using SFW.Helpers;
 using SFW.Model;
 using SFW.Reports;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.IO;
+using System.Linq;
 using System.Windows;
 using System.Windows.Input;
 
@@ -66,6 +72,8 @@ namespace SFW.ShopRoute
         public bool CanReport { get { return CurrentUser.IsLoggedIn && MachineGroup == "PRESS"; } }
         public bool CanSeeTrim { get { return MachineGroup == "PRESS"; } }
 
+        public bool IsMultiLoading { get; set; }
+
         private RelayCommand _noteChange;
         private RelayCommand _loadReport;
 
@@ -86,9 +94,61 @@ namespace SFW.ShopRoute
         /// Shop Route Constructor for loading work orders
         /// </summary>
         /// <param name="workOrder">Work Order Object</param>
-        public ViewModel(WorkOrder workOrder)
+        /// <param name="dSet">Schedule DataSet</param>
+        public ViewModel(WorkOrder workOrder, DataSet dSet)
         {
             ShopOrder = workOrder;
+            if (App.SiteNumber == 0)
+            {
+                ShopOrder.InstructionList = Sku.GetInstructions(ShopOrder.SkuNumber, App.SiteNumber, App.GlobalConfig.First(o => $"{o.Site}_MAIN" == App.Site).WI, App.AppSqlCon);
+            }
+            else
+            {
+                ShopOrder.InstructionList = new List<string>();
+                var _tempList = dSet.Tables["WI"].Select($"[ID] = '{ShopOrder.SkuNumber}'").Select(o => o[1].ToString()).ToList();
+                foreach (var wiNbr in _tempList)
+                {
+                    var dir = new DirectoryInfo(App.GlobalConfig.First(o => $"{o.Site}_MAIN" == App.Site).WI);
+                    var fileList = dir.GetFiles($"*{wiNbr}*");
+                    foreach (var file in fileList)
+                    {
+                        ShopOrder.InstructionList.Add(file.Name);
+                    }
+                }
+            }
+            foreach (DataRow _dr in dSet.Tables["WN"].Select($"[ID] = '{ShopOrder.OrderNumber}'"))
+            {
+                ShopOrder.Notes += $"{_dr.Field<string>(1)}\n";
+            }
+            ShopOrderNotes = ShopOrder.Notes = ShopOrder.Notes?.Trim('\n');
+            foreach (DataRow _dr in dSet.Tables["SN"].Select($"[ID] = '{ShopOrder.OrderNumber}'"))
+            {
+                ShopOrder.ShopNotes += $"{_dr.Field<string>(1)}\n";
+            }
+            ShopOrder.ShopNotes = ShopOrder.ShopNotes?.Trim('\n');
+            IsMultiLoading = true;
+            using (BackgroundWorker bw = new BackgroundWorker())
+            {
+                try
+                {
+                    bw.DoWork += new DoWorkEventHandler(
+                        delegate (object sender, DoWorkEventArgs e)
+                        {
+                            ShopOrder.ToolList = dSet.Tables["TL"].Select($"[ID] = '{ShopOrder.SkuNumber}*{ShopOrder.Seq}'").Select(o => o[1].ToString()).ToList();
+                            ShopOrder.Bom = Model.Component.GetComponentBomList(dSet.Tables["BOM"].Select($"[ID] LIKE '{ShopOrder.SkuNumber}-%' AND ([Routing_Seq] = '{ShopOrder.Seq}' OR [Routing_Seq] IS NULL)"));
+                            ShopOrder.Picklist = Model.Component.GetComponentPickList(dSet, dSet.Tables["PL"].Select($"[ID] LIKE '{ShopOrder.OrderNumber}*%'"), ShopOrder.OrderNumber, ShopOrder.StartQty - ShopOrder.CurrentQty);
+                            dSet.Dispose();
+                            IsMultiLoading = false;
+                            OnPropertyChanged(nameof(IsMultiLoading));
+                            OnPropertyChanged(nameof(ShopOrder));
+                        });
+                    bw.RunWorkerAsync();
+                }
+                catch (Exception)
+                {
+                    
+                }
+            }
         }
 
         #region Work Order Note Change ICommand
@@ -145,7 +205,10 @@ namespace SFW.ShopRoute
                 }
                 else
                 {
-                    new Press_View { DataContext = new Press_ViewModel(ShopOrder, _repType) }.Show();
+                    if (!App.IsWindowOpen<Press_View>(new Press_ViewModel()))
+                    {
+                        new Press_View { DataContext = new Press_ViewModel(ShopOrder, _repType) }.Show();
+                    }
                 }
             }
         }

@@ -5,7 +5,6 @@ using System.ComponentModel;
 using System.Data;
 using System.Linq;
 using System.Windows.Data;
-using System.Windows.Input;
 
 namespace SFW.Schedule.SalesOrder
 {
@@ -206,10 +205,6 @@ namespace SFW.Schedule.SalesOrder
                 {
                     RefreshTimer.Add(RefreshSchedule);
                 }
-                if (!string.IsNullOrEmpty(MainWindowViewModel.MachineFilter))
-                {
-                    FilterSchedule(MainWindowViewModel.MachineFilter, 3);
-                }
                 _inLoad = true;
             }
         }
@@ -285,7 +280,7 @@ namespace SFW.Schedule.SalesOrder
         {
             try
             {
-                var _drow = SalesScheduleView.CurrentItem;
+                var _drow = SalesScheduleView?.CurrentItem;
                 SalesScheduleView = CollectionViewSource.GetDefaultView(Model.SalesOrder.GetScheduleData(App.AppSqlCon));
                 SalesScheduleView.GroupDescriptions.Add(new PropertyGroupDescription("FullCustName"));
                 if (_drow != null && ((DataView)SalesScheduleView.SourceCollection).Table.AsEnumerable().Any(r => r.Field<string>("ID") == ((DataRowView)_drow).Row.Field<string>("ID")))

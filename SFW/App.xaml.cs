@@ -61,6 +61,8 @@ namespace SFW
         private readonly ManualResetEvent ResetSplashCreated;
         private readonly Thread SplashThread;
 
+        public static Enumerations.UsersControls LoadedModule { get; set; }
+
         #endregion
 
         public App()
@@ -192,6 +194,50 @@ namespace SFW
                         ErpCon.DatabaseChange(Database.WCCOTRAIN);
                         break;
                 }
+                return true;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// SQLConnection Database change request
+        /// </summary>
+        /// <param name="siteNbr">Site Number to switch</param>
+        /// <returns>bool value for connection status; True = Pass, False = Failure</returns>
+        public static bool DatabaseChange(int siteNbr)
+        {
+            var dbName = string.Empty;
+            try
+            {
+                switch (siteNbr)
+                {
+                    case 0:
+                        SiteNumber = siteNbr;
+                        ErpCon.DatabaseChange(Database.CSI);
+                        dbName = "CSI_MAIN";
+                        break;
+                    case 1:
+                        SiteNumber = siteNbr;
+                        ErpCon.DatabaseChange(Database.WCCO);
+                        dbName = "WCCO_MAIN";
+                        break;
+                    case 2:
+                        SiteNumber = 0;
+                        ErpCon.DatabaseChange(Database.CSITRAIN);
+                        dbName = "CSI_TRAIN";
+                        break;
+                    case 3:
+                        SiteNumber = 1;
+                        ErpCon.DatabaseChange(Database.WCCOTRAIN);
+                        dbName = "WCCO_TRAIN";
+                        break;
+                }
+                AppSqlCon.ChangeDatabase(dbName);
+                Site = dbName;
                 return true;
             }
             catch (Exception ex)
@@ -468,6 +514,28 @@ namespace SFW
                     w.Close();
                 }
             }
+        }
+
+        /// <summary>
+        /// Focuses any window of type T in the application that is currently showing
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="dataContext">Datacontext to pass into the focused window if it is already open</param>
+        public static bool IsWindowOpen<T>(ViewModelBase dataContext = null) where T : Window
+        {
+            foreach (Window w in Current.Windows)
+            {
+                if (w.GetType() == typeof(T))
+                {
+                    w.Focus();
+                    if (dataContext != null)
+                    {
+                        w.DataContext = dataContext;
+                    }
+                    return true;
+                }
+            }
+            return false;
         }
     }
 }

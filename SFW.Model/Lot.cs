@@ -19,7 +19,7 @@ namespace SFW.Model
             get
             { return _loc; }
             set
-            { _loc = value.ToUpper(); OnPropertyChanged(nameof(Location)); }
+            { _loc = string.IsNullOrEmpty(value) ? value : value.ToUpper(); OnPropertyChanged(nameof(Location)); }
         }
         public int TransactionKey { get; set; }
         public DateTime TransactionDate { get; set; }
@@ -109,6 +109,46 @@ namespace SFW.Model
         }
 
         /// <summary>
+        /// Lot Constructor for DataRow array conversion
+        /// </summary>
+        /// <param name="dRows">DataRow array</param>
+        /// <param name="type">Type of lot object list to return</param>
+        public static List<Lot> DataRowToLotList(DataRow[] dRows, string type)
+        {
+            var _tempList = new List<Lot>();
+            foreach (DataRow _row in dRows)
+            {
+                switch (type)
+                {
+                    case "Lot":
+                        _tempList.Add(new Lot
+                        {
+                            LotNumber = _row.Field<string>("LotNumber")
+                            ,Onhand = _row.Field<int>("Qty")
+                            ,Location = _row.Field<string>("Loc")
+                        });
+                        break;
+                    case "Dedicate":
+                        _tempList.Add(new Lot
+                        {
+                            LotNumber = _row.Field<string>("LotNumber")
+                            ,Onhand = _row.Field<int>("Qty")
+                            ,Location = _row.Field<string>("Loc")
+                        });;
+                        break;
+                    case "NonLot":
+                        _tempList.Add(new Lot
+                        {
+                            Onhand = _row.Field<int>("Qty")
+                            ,Location = _row.Field<string>("Loc")
+                        });
+                        break;
+                }
+            }
+            return _tempList;
+        }
+
+        /// <summary>
         /// Get a List of lot numbers associated with a part number
         /// </summary>
         /// <param name="partNbr">Part Number</param>
@@ -158,6 +198,37 @@ namespace SFW.Model
                 catch (Exception)
                 {
                     return new List<Lot>();
+                }
+            }
+            else
+            {
+                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
+            }
+        }
+
+        /// <summary>
+        /// Get a DataTable of all sku objects with onhand values
+        /// </summary>
+        /// <param name="sqlCon">Sql Connection to use</param>
+        /// <returns>DataTable of all onhand values</returns>
+        public static DataTable GetOnHandTable(SqlConnection sqlCon)
+        {
+            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
+            {
+                try
+                {
+                    using (DataTable _dt = new DataTable())
+                    {
+                        using (SqlDataAdapter adapter = new SqlDataAdapter(@"SELECT * FROM SFW_OnHand ORDER BY [LotNumber]", sqlCon))
+                        {
+                            adapter.Fill(_dt);
+                            return _dt;
+                        }
+                    }
+                }
+                catch (Exception)
+                {
+                    return null;
                 }
             }
             else
@@ -270,6 +341,7 @@ namespace SFW.Model
         /// <param name="partNbr">Part Number</param>
         /// <param name="woNbr">Work Order Number</param>
         /// <param name="sqlCon">Sql Connection to use</param>
+        /// <returns>List of dedicated lots by work order and part number</returns>
         public static List<Lot> GetDedicatedLotList(string partNbr, string woNbr, SqlConnection sqlCon)
         {
             if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
@@ -336,6 +408,7 @@ namespace SFW.Model
                                                                 ,lot.[Part_Nbr] as 'PartNbr'
                                                                 ,CAST(lot.[Date_Recvd] as date) as 'Received_date'
                                                                 ,ISNULL(lot.[Verified_Qty], 0) as 'Verified'
+                                                                ,(SELECT COUNT(aa.[ID]) FROM [dbo].[IT-INIT] aa WHERE aa.[Lot_Number] = lot.[Lot_Number] AND aa.[Tran_Code] = '44') as 'Wip'
                                                             FROM
 	                                                            [dbo].[LOT-INIT] lot
                                                             LEFT JOIN
@@ -357,6 +430,7 @@ namespace SFW.Model
                                         ,Location = reader.SafeGetString("PartNbr")
                                         ,ReceivedDate = reader.SafeGetDateTime("Received_date")
                                         ,Validated = reader.SafeGetInt32("Verified") == 1
+                                        ,TransactionCode = reader.SafeGetInt32("Wip") > 0 ? "false" : "true"
                                     });
                                 }
                             }

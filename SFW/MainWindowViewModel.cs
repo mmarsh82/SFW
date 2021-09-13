@@ -4,7 +4,6 @@ using SFW.Model;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data;
 using System.IO;
 using System.Linq;
 
@@ -23,7 +22,6 @@ namespace SFW
             set { _mList = value; StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(MachineList))); }
         }
 
-        public static string MachineFilter;
         private static Machine mach;
         public static Machine SelectedMachine
         {
@@ -41,43 +39,10 @@ namespace SFW
                     {
                         SelectedMachineGroup = value.MachineGroup;
                     }
-                    MachineFilter = value.MachineName == "All" ? "" : $"MachineNumber = '{value.MachineNumber}'";
-                    if (WorkSpaceDock.ClosedView)
-                    {
-                        WorkSpaceDock.ClosedDock.Dispatcher.BeginInvoke(new Action(() =>
-                        {
-                            if (((Schedule.Closed.ViewModel)((Schedule.Closed.View)WorkSpaceDock.ClosedDock.Children[0]).DataContext).ClosedScheduleView != null)
-                            {
-                                if (((DataView)((Schedule.Closed.ViewModel)((Schedule.Closed.View)WorkSpaceDock.ClosedDock.Children[0]).DataContext).ClosedScheduleView.SourceCollection).Table.Select($"MachineNumber = '{value.MachineNumber}'").Length == 0)
-                                {
-                                    ((ShopRoute.ViewModel)((ShopRoute.View)WorkSpaceDock.ClosedDock.Children[1]).DataContext).ShopOrder = new WorkOrder();
-                                }
-                                ((Schedule.Closed.ViewModel)((Schedule.Closed.View)WorkSpaceDock.ClosedDock.Children[0]).DataContext).SearchFilter = null;
-                                ((DataView)((Schedule.Closed.ViewModel)((Schedule.Closed.View)WorkSpaceDock.ClosedDock.Children[0]).DataContext).ClosedScheduleView.SourceCollection).RowFilter = string.IsNullOrEmpty(MachineFilter) 
-                                    ? App.ViewFilter[App.SiteNumber]
-                                    : MachineFilter;
-                                ((Schedule.Closed.ViewModel)((Schedule.Closed.View)WorkSpaceDock.ClosedDock.Children[0]).DataContext).ClosedScheduleView.Refresh();
-                            }
-                        }));
-                    }
-                    else
-                    {
-                        if (((Schedule.ViewModel)((Schedule.View)WorkSpaceDock.SchedDock.Children[0]).DataContext).ScheduleView != null)
-                        {
-                            if (((DataView)((Schedule.ViewModel)((Schedule.View)WorkSpaceDock.SchedDock.Children[0]).DataContext).ScheduleView.SourceCollection).Table.Select($"MachineNumber = '{value.MachineNumber}'").Length == 0)
-                            {
-                                WorkSpaceDock.UpdateChildDock(0, 1, new ShopRoute.View { DataContext = new ShopRoute.ViewModel() });
-                            }
-                            ((Schedule.ViewModel)((Schedule.View)WorkSpaceDock.SchedDock.Children[0]).DataContext).SearchFilter = null;
-                            ((DataView)((Schedule.ViewModel)((Schedule.View)WorkSpaceDock.SchedDock.Children[0]).DataContext).ScheduleView.SourceCollection).RowFilter = string.IsNullOrEmpty(MachineFilter)
-                                ? App.ViewFilter[App.SiteNumber]
-                                : MachineFilter;
-                            ((Schedule.ViewModel)((Schedule.View)WorkSpaceDock.SchedDock.Children[0]).DataContext).ScheduleView.Refresh();
-                        }
-                    }
+                    Schedule.ViewModel.ScheduleFilter(value.MachineName == "All" ? "" : $"MachineNumber = '{value.MachineNumber}'", 1);
+                    Schedule.Closed.ViewModel.ScheduleFilter(value.MachineName == "All" ? "" : $"MachineNumber = '{value.MachineNumber}'", 1);
                     IsChanging = false;
                 }
-                //Schedule.SalesOrder.ViewModel.FilterSchedule(MachineFilter, 3);
                 mach = value;
                 StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(SelectedMachine)));
             }
@@ -99,26 +64,8 @@ namespace SFW
                 if (machGrp != value && !IsChanging)
                 {
                     IsChanging = true;
-                    var _temp = value == "All" ? "" : $"MachineGroup = '{value}'";
-                    if (WorkSpaceDock.ClosedView)
-                    {
-                        WorkSpaceDock.ClosedDock.Dispatcher.BeginInvoke(new Action(() =>
-                        {
-                            if (((Schedule.ViewModel)((Schedule.View)WorkSpaceDock.ClosedDock.Children[0]).DataContext).ScheduleView != null)
-                            {
-                                ((DataView)((Schedule.Closed.ViewModel)((Schedule.Closed.View)WorkSpaceDock.ClosedDock.Children[0]).DataContext).ClosedScheduleView.SourceCollection).RowFilter = _temp;
-                                ((Schedule.Closed.ViewModel)((Schedule.Closed.View)WorkSpaceDock.ClosedDock.Children[0]).DataContext).SearchFilter = null;
-                            }
-                        }));
-                    }
-                    else
-                    {
-                        if (((Schedule.ViewModel)((Schedule.View)WorkSpaceDock.SchedDock.Children[0]).DataContext).ScheduleView != null)
-                        {
-                            ((DataView)((Schedule.ViewModel)((Schedule.View)WorkSpaceDock.SchedDock.Children[0]).DataContext).ScheduleView.SourceCollection).RowFilter = _temp;
-                            ((Schedule.ViewModel)((Schedule.View)WorkSpaceDock.SchedDock.Children[0]).DataContext).SearchFilter = null;
-                        }
-                    }
+                    Schedule.ViewModel.ScheduleFilter(value == "All" ? "" : $"MachineGroup = '{value}'", 2);
+                    Schedule.Closed.ViewModel.ScheduleFilter(value == "All" ? "" : $"MachineGroup = '{value}'", 2);
                     SelectedMachine = MachineList.FirstOrDefault(o => o.MachineName == "All");
                     IsChanging = false;
                 }
@@ -169,6 +116,28 @@ namespace SFW
             }
         }
 
+        private static bool dAct;
+        public static bool DisplayAction
+        {
+            get { return dAct; }
+            set
+            {
+                dAct = value;
+                StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(DisplayAction)));
+            }
+        }
+
+        private static bool canFltr;
+        public static bool CanFilter
+        {
+            get { return canFltr; }
+            set
+            {
+                canFltr = value;
+                StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(CanFilter)));
+            }
+        }
+
         private static bool IsChanging;
         public static event EventHandler<PropertyChangedEventArgs> StaticPropertyChanged;
         public event EventHandler CanExecuteChanged;
@@ -180,6 +149,7 @@ namespace SFW
         /// </summary>
         public MainWindowViewModel()
         {
+            UpdateProperties();
             IsChanging = false;
             CanUpdate = false;
             InTraining = false;
@@ -192,12 +162,28 @@ namespace SFW
         /// </summary>
         public static void UpdateProperties()
         {
+            DisplayAction = false;
+            InTraining = false;
             MachineList = Machine.GetMachineList(App.AppSqlCon, true, false);
             SelectedMachine = MachineList.First();
             MachineGroupList = Machine.GetMachineGroupList(App.AppSqlCon, true);
             SelectedMachineGroup = MachineGroupList.First();
             StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(MachineList)));
             StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(MachineGroupList)));
+            if (CurrentUser.BasicUser)
+            {
+                Schedule.ViewModel.ScheduleFilter(UserConfig.BuildMachineFilter(), 1);
+                Schedule.ViewModel.ScheduleFilter(UserConfig.BuildPriorityFilter(), 3);
+                Schedule.Closed.ViewModel.ScheduleFilter(UserConfig.BuildMachineFilter(), 1);
+                Schedule.Closed.ViewModel.ScheduleFilter(UserConfig.BuildPriorityFilter(), 3);
+                CanFilter = !App.IsFocused;
+            }
+            else
+            {
+                Schedule.ViewModel.ClearFilter();
+                Schedule.Closed.ViewModel.ClearFilter();
+                CanFilter = true;
+            }
         }
 
         /// <summary>

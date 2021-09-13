@@ -1,5 +1,6 @@
 ﻿using SFW.Helpers;
 using SFW.Model;
+using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
@@ -74,6 +75,7 @@ namespace SFW.Admin
                         break;
                     case "Save":
                         UserConfig.UpdateConfigFile(MachineConfig.ToList(), App.IsFocused);
+                        System.Windows.MessageBox.Show("Saved Changes", $"All changes have been saved to the User config file located at;\n{Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)}\\SFW\\SfwConfig.xml");
                         break;
                 }
             }

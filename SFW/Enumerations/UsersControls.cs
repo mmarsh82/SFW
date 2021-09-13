@@ -5,17 +5,24 @@ namespace SFW.Enumerations
     [Flags]
     public enum UsersControls
     {
-        // The flag for CSI Schedule is 0
-        CSISchedule = 0,
-        // The flag for CSI ShopRoute is 1
-        CSIShopRoute = 1,
-        // The flag for WCCO Schedule is 2
-        WCCOSchedule = 2,
-        // The flag for WCCO Schedule is 3
-        WCCOShopRoute = 3,
-        // The flag for Scheduler is 4
-        Scheduler = 4,
-        // The flag for Part Informtion is 5
-        PartInfo = 5
+        // The flag for the work order schedule module
+        Schedule = 0,   
+        // The flag for the part information query
+        PartInformation = 2,
+        // The flag for the cycle count module
+        CycleCount = 3,
+        // The flag for the administration module
+        Admin = 4,
+        // The flag for the closed work order schedule module
+        ClosedSchedule = 5,
+        // The flag for the part detail query
+        PartDetail = 6,
+        // The flag for the part traceability query
+        PartTrace = 7,
+        // The flag for the sales order module
+        SalesOrder = 8,
+        // The flag for the Quality module
+        Quality = 9
+
     }
 }

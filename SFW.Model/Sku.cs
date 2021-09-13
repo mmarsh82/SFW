@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.IO;
+using System.Linq;
 
 //Created by Michael Marsh 4-19-18
 
@@ -247,7 +248,7 @@ namespace SFW.Model
                 try
                 {
                     using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database}; SELECT 
-                                                                a.[Part_Number], a.[Description], a.[Um], a.[Bom_Rev_Date], b.[Qty_On_Hand], a.[Drawing_Nbrs], a.[Inventory_Type]
+                                                                a.[Part_Number], a.[Description], a.[Um], a.[Bom_Rev_Date], b.[Qty_On_Hand], a.[Drawing_Nbrs], a.[Inventory_Type], a.[Accounting_Status]
                                                             FROM
                                                                 [dbo].[IM-INIT] a
                                                             RIGHT JOIN
@@ -266,6 +267,7 @@ namespace SFW.Model
                                     SkuDescription = reader.SafeGetString("Description");
                                     Uom = reader.SafeGetString("Um");
                                     TotalOnHand = reader.SafeGetInt32("Qty_On_Hand");
+                                    EngStatus = reader.SafeGetString("Accounting_Status");
                                 }
                             }
                         }
@@ -535,23 +537,34 @@ namespace SFW.Model
         /// <param name="siteNbr">Facility number to run on</param>
         /// <param name="filepath">Path to the file</param>
         /// <returns>A table of URL strings to open the work instructions</returns>
-        public static DataTable GetInstructions(int siteNbr, string filepath)
+        public static DataTable GetInstructions(SqlConnection sqlCon)
         {
-            if(siteNbr != 0)
+            using (DataTable _dt = new DataTable())
             {
-                using (var _dt = new DataTable())
+                if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
                 {
-                    _dt.Columns.Add("WorkInst");
-                    var dir = new DirectoryInfo(filepath);
-                    var fileList = dir.GetFiles("WI*");
-                    foreach (var file in fileList)
+                    try
                     {
-                        _dt.Rows.Add(file.Name);
+                        using (SqlDataAdapter adapter = new SqlDataAdapter($@"USE {sqlCon.Database}; SELECT [Part_Number] as 'ID', [Work_Instructions] as 'WI' FROM [dbo].[IM-INIT_Work_Instructions]", sqlCon))
+                        {
+                            adapter.Fill(_dt);
+                        }
+                        return _dt;
                     }
-                    return _dt;
+                    catch (SqlException sqlEx)
+                    {
+                        throw sqlEx;
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new Exception(ex.Message);
+                    }
+                }
+                else
+                {
+                    throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
                 }
             }
-            return null;
         }
 
         /// <summary>
@@ -613,7 +626,7 @@ namespace SFW.Model
                     {
                         using (SqlDataAdapter adapter = new SqlDataAdapter($@"USE {sqlCon.Database};
                                                                                 SELECT
-	                                                                                [ID1]
+	                                                                                [ID1] as 'ID'
 	                                                                                ,[Tool_Tape] as 'Tool'
                                                                                 FROM
 	                                                                                [dbo].[RT-INIT_Tool_Tape];", sqlCon))
@@ -958,31 +971,33 @@ namespace SFW.Model
         /// <summary>
         /// Get a Sku's structure
         /// </summary>
-        /// <param name="searchInput">Search input to find</param>
+        /// <param name="partNbr">Part number</param>
         /// <param name="sqlCon">Sql Connection to use</param>
+        /// <param name="siteCrawl">OPTIONAL: tells the query to crawl all site databases for product structure</param>
         /// <returns>List of found part numbers</returns>
-        public static IDictionary<Sku, int> GetStructure(string partNbr, SqlConnection sqlCon)
+        public static IDictionary<Sku, int> GetStructure(string partNbr, SqlConnection sqlCon, bool siteCrawl = false)
         {
-            var _returnList = new Dictionary<Sku, int>
-            {
-                { new Sku(partNbr, 1, sqlCon), 0 }
-            };
+            var _returnList = new Dictionary<Sku, int>();
             if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
             {
                 try
                 {
                     var _counter = 0;
+                    var _parentCount = 1;
                     var _found = false;
                     var _partList = new List<string>
                     {
                         partNbr
                     };
-                    //Parent part retrieval
+
+                    #region Parent Part Retrieval
+
                     while (!_found)
                     {
                         using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database};
                                                                 SELECT
 	                                                                SUBSTRING(a.[ID], CHARINDEX('*', a.[ID], 0) + 1, LEN(a.[ID])) as 'Part'
+                                                                    ,SUBSTRING(a.[ID],0, CHARINDEX('*', a.[ID], 0)) as 'Parent'
 	                                                                ,(SELECT [Description] FROM [dbo].[IM-INIT] aa WHERE aa.[Part_Number] = SUBSTRING(a.[ID], CHARINDEX('*', a.[ID], 0) + 1, LEN(a.[ID]))) as 'Desc'
 	                                                                ,a.[Bom_Uom] as 'Uom'
 	                                                                ,a.[Qty_Per_Assy] as 'Qpa'
@@ -995,7 +1010,7 @@ namespace SFW.Model
                                                                 WHERE
 	                                                                a.[Qty_Per_Assy] IS NOT NULL", sqlCon))
                         {
-                            foreach (var s in _partList)
+                            foreach (var s in _partList.Distinct())
                             {
                                 if (_partList.IndexOf(s) == 0)
                                 {
@@ -1020,14 +1035,26 @@ namespace SFW.Model
                                         var _tempSku = new Sku
                                         {
                                             SkuNumber = reader.SafeGetString("Part")
-                                            , SkuDescription = reader.SafeGetString("Desc")
-                                            , Uom = reader.SafeGetString("Uom")
-                                            , Operation = reader.SafeGetDouble("Qpa").ToString()
-                                            , EngStatus = reader.SafeGetString("Status")
-                                            , MasterPrint = reader.SafeGetString("Master")
+                                            ,
+                                            EngStatusDesc = reader.SafeGetString("Parent")
+                                            ,
+                                            DiamondNumber = _returnList.Keys.Count(o => o.SkuNumber == reader.SafeGetString("Parent")) > 0
+                                                ? _returnList.Keys.First(o => o.SkuNumber == reader.SafeGetString("Parent")).DiamondNumber
+                                                : _parentCount.ToString()
+                                            ,
+                                            SkuDescription = reader.SafeGetString("Desc")
+                                            ,
+                                            Uom = reader.SafeGetString("Uom")
+                                            ,
+                                            Operation = reader.SafeGetDouble("Qpa").ToString()
+                                            ,
+                                            EngStatus = reader.SafeGetString("Status")
+                                            ,
+                                            MasterPrint = reader.SafeGetString("Master")
                                         };
                                         _returnList.Add(_tempSku, _counter);
                                         _partList.Add(reader.SafeGetString("Part"));
+                                        _parentCount = _returnList.Keys.Count(o => o.DiamondNumber == _parentCount.ToString()) > 0 ? _parentCount + 1 : _parentCount;
                                     }
                                 }
                                 else
@@ -1037,8 +1064,13 @@ namespace SFW.Model
                             }
                         }
                     }
-                    //Child part retrieval
+
+                    #endregion
+
+                    #region Child Part Retrieval
+
                     _counter = 0;
+                    var _childCount = 1;
                     _found = false;
                     _partList = new List<string>
                     {
@@ -1049,6 +1081,8 @@ namespace SFW.Model
                         using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database};
                                                                 SELECT
 	                                                                SUBSTRING(a.[ID], 0, CHARINDEX('*', a.[ID])) as 'Part'
+                                                                    ,SUBSTRING(a.[ID], CHARINDEX('*', a.[ID], 0) + 1, LEN(a.[ID])) as 'Child'
+                                                                    ,(SELECT COUNT(aa.[ID]) FROM [dbo].[PS-INIT] aa WHERE SUBSTRING(aa.[ID], CHARINDEX('*', aa.[ID], 0) + 1, LEN(aa.[ID])) = SUBSTRING(a.[ID], 0, CHARINDEX('*', a.[ID]))) as 'ChildCount'
 	                                                                ,(SELECT [Description] FROM [dbo].[IM-INIT] aa WHERE aa.[Part_Number] = SUBSTRING(a.[ID], 0, CHARINDEX('*', a.[ID]))) as 'Desc'
 	                                                                ,a.[Bom_Uom] as 'Uom'
 	                                                                ,a.[Qty_Per_Assy] as 'Qpa'
@@ -1060,7 +1094,7 @@ namespace SFW.Model
                                                                 WHERE
 	                                                                a.[Qty_Per_Assy] IS NOT NULL", sqlCon))
                         {
-                            foreach (var s in _partList)
+                            foreach (var s in _partList.Distinct())
                             {
                                 if (_partList.IndexOf(s) == 0)
                                 {
@@ -1085,13 +1119,29 @@ namespace SFW.Model
                                         var _tempSku = new Sku
                                         {
                                             SkuNumber = reader.SafeGetString("Part")
-                                            ,SkuDescription = reader.SafeGetString("Desc")
-                                            ,Uom = reader.SafeGetString("Uom")
-                                            ,Operation = reader.SafeGetDouble("Qpa").ToString()
-                                            ,EngStatus = reader.SafeGetString("Status")
+                                            ,
+                                            EngStatusDesc = reader.SafeGetString("Child")
+                                            ,
+                                            DiamondNumber = _returnList.Keys.Count(o => o.SkuNumber == reader.SafeGetString("Child")) > 0
+                                                ? _returnList.Keys.First(o => o.SkuNumber == reader.SafeGetString("Child")).DiamondNumber
+                                                : _parentCount.ToString()
+                                            ,
+                                            Location = _returnList.Keys.Count(o => o.SkuNumber == reader.SafeGetString("Child")) > 0 && reader.SafeGetInt32("ChildCount") == 0
+                                                ? _returnList.Keys.First(o => o.SkuNumber == reader.SafeGetString("Child")).Location
+                                                : _childCount.ToString()
+                                            ,
+                                            SkuDescription = reader.SafeGetString("Desc")
+                                            ,
+                                            Uom = reader.SafeGetString("Uom")
+                                            ,
+                                            Operation = reader.SafeGetDouble("Qpa").ToString()
+                                            ,
+                                            EngStatus = reader.SafeGetString("Status")
                                         };
                                         _returnList.Add(_tempSku, _counter);
                                         _partList.Add(reader.SafeGetString("Part"));
+                                        _parentCount = _returnList.Keys.Count(o => o.DiamondNumber == _parentCount.ToString()) > 0 ? _parentCount + 1 : _parentCount;
+                                        _childCount = _returnList.Keys.Count(o => o.Location == _childCount.ToString()) > 0 ? _childCount + 1 : _childCount;
                                     }
                                 }
                                 else
@@ -1101,6 +1151,100 @@ namespace SFW.Model
                             }
                         }
                     }
+
+                    #endregion
+
+                    //Populating the input part
+                    var _parent = new Sku(partNbr, 1, sqlCon);
+                    _parent.EngStatusDesc = _parent.SkuNumber;
+                    _parent.DiamondNumber = "0";
+                    _returnList.Add(_parent, 0);
+
+                    #region Site Crawl logic for engineer privileges
+
+                    if (siteCrawl)
+                    {
+                        _partList.Clear();
+                        foreach (var _part in _returnList.Where(o => o.Value <= 0))
+                        {
+                            _partList.Add($"{_part.Key.SkuNumber}C");
+                        }
+                        _found = false;
+                        var _first = true;
+                        sqlCon.ChangeDatabase("CSI_MAIN");
+                        while (!_found)
+                        {
+                            using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database};
+                                                                        SELECT
+	                                                                        SUBSTRING(a.[ID], CHARINDEX('*', a.[ID], 0) + 1, LEN(a.[ID])) as 'Part'
+                                                                            ,SUBSTRING(a.[ID],0, CHARINDEX('*', a.[ID], 0)) as 'Parent'
+	                                                                        ,(SELECT [Description] FROM [dbo].[IM-INIT] aa WHERE aa.[Part_Number] = SUBSTRING(a.[ID], CHARINDEX('*', a.[ID], 0) + 1, LEN(a.[ID]))) as 'Desc'
+	                                                                        ,a.[Bom_Uom] as 'Uom'
+	                                                                        ,a.[Qty_Per_Assy] as 'Qpa'
+	                                                                        ,b.[Accounting_Status] as 'Status'
+                                                                            ,b.[Drawing_Nbrs] as 'Master'
+                                                                        FROM
+	                                                                        [dbo].[PS-INIT] a
+                                                                        RIGHT JOIN
+	                                                                        [dbo].[IM-INIT] b ON b.[Part_Number] = SUBSTRING(a.[ID], 0, CHARINDEX('*', a.[ID], 0))
+                                                                        WHERE
+	                                                                        a.[Qty_Per_Assy] IS NOT NULL
+	                                                                        AND (SELECT [Description] FROM [dbo].[IM-INIT] aa WHERE aa.[Part_Number] = SUBSTRING(a.[ID], CHARINDEX('*', a.[ID], 0) + 1, LEN(a.[ID]))) NOT LIKE '%POLY%'", sqlCon))
+                            {
+                                foreach (var s in _partList.Distinct())
+                                {
+                                    if (_partList.IndexOf(s) == 0)
+                                    {
+                                        cmd.CommandText += $" AND (b.[Part_Number] = @p1";
+                                        cmd.Parameters.AddWithValue("p1", s);
+                                    }
+                                    else
+                                    {
+                                        cmd.CommandText += $" OR b.[Part_Number] = @p{_partList.IndexOf(s) + 1}";
+                                        cmd.Parameters.AddWithValue($"p{_partList.IndexOf(s) + 1}", s);
+                                    }
+                                }
+                                cmd.CommandText += ")";
+                                using (SqlDataReader reader = cmd.ExecuteReader())
+                                {
+                                    if (reader.HasRows)
+                                    {
+                                        _partList = new List<string>();
+                                        while (reader.Read())
+                                        {
+                                            var _tempSku = new Sku
+                                            {
+                                                SkuNumber = reader.SafeGetString("Part")
+                                                ,EngStatusDesc = _first
+                                                    ? reader.SafeGetString("Parent").Replace("C", "")
+                                                    : reader.SafeGetString("Parent")
+                                                ,DiamondNumber = _returnList.Keys.Count(o => o.SkuNumber == reader.SafeGetString("Parent") || o.SkuNumber == reader.SafeGetString("Parent").Replace("C", "")) > 0
+                                                    ? _returnList.Keys.First(o => o.SkuNumber == reader.SafeGetString("Parent") || o.SkuNumber == reader.SafeGetString("Parent").Replace("C", "")).DiamondNumber
+                                                    : _parentCount.ToString()
+                                                ,SkuDescription = reader.SafeGetString("Desc")
+                                                ,Uom = reader.SafeGetString("Uom")
+                                                ,Operation = reader.SafeGetDouble("Qpa").ToString()
+                                                ,EngStatus = reader.SafeGetString("Status")
+                                                ,MasterPrint = reader.SafeGetString("Master")
+                                            };
+                                            _counter = _returnList.First(o => o.Key.SkuNumber == _tempSku.EngStatusDesc || o.Key.SkuNumber == _tempSku.EngStatusDesc.Replace("C", "")).Value - 1;
+                                            _returnList.Add(_tempSku, _counter);
+                                            _partList.Add(reader.SafeGetString("Part"));
+                                            _parentCount = _returnList.Keys.Count(o => o.DiamondNumber == _parentCount.ToString()) > 0 ? _parentCount + 1 : _parentCount;
+                                        }
+                                        _first = false;
+                                    }
+                                    else
+                                    {
+                                        _found = true;
+                                    }
+                                }
+                            }
+                        }
+                        sqlCon.ChangeDatabase("WCCO_MAIN");
+                    }
+
+                    #endregion
 
                     return _returnList;
                 }

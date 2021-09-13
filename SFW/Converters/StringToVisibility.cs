@@ -23,11 +23,11 @@ namespace SFW.Converters
                 switch (_val)
                 {
                     case "i":
-                        return string.IsNullOrEmpty(value?.ToString()) ? Visibility.Visible : Visibility.Collapsed;
+                        return string.IsNullOrEmpty(value?.ToString()) && !MainWindowViewModel.DisplayAction ? Visibility.Visible : Visibility.Collapsed;
                     case "Hide":
                         return string.IsNullOrEmpty(value?.ToString()) ? Visibility.Hidden : Visibility.Visible;
                     case "Status":
-                        return value?.ToString() == "O" ? Visibility.Collapsed : Visibility.Visible;
+                        return value?.ToString() == "O" && !CurrentUser.IsEngineer ? Visibility.Collapsed : Visibility.Visible;
                     case "PriTime":
                         return value?.ToString() == "999" ? Visibility.Collapsed : Visibility.Visible;
                     case "N":

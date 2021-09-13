@@ -172,7 +172,7 @@ namespace SFW.Model
                                             ? new List<Lot>()
                                             : Lot.GetDedicatedLotList(reader.SafeGetString("Component"), woNbr, sqlCon),
                                         WipInfo = new BindingList<CompWipInfo>()
-                                    }); ;
+                                    });
                                     _tempList[_tempList.Count - 1].WipInfo.Add
                                         (
                                             new CompWipInfo(!string.IsNullOrEmpty(_tempList[_tempList.Count - 1].BackflushLoc), _tempList[_tempList.Count - 1].CompNumber, _tempList[_tempList.Count - 1].CompUom)
@@ -200,6 +200,49 @@ namespace SFW.Model
             {
                 throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
             }
+        }
+
+        /// <summary>
+        /// Retrieve a list of components for a work order
+        /// </summary>
+        /// <param name="dataRows">Array of DataRow objects to translate to Component object properties</param>
+        /// <param name="woNbr">Work Order Number</param>
+        /// <param name="balQty">Balance quantity left on the work order</param>
+        /// <returns>List of Component objects related to a picklist</returns>
+        public static List<Component> GetComponentPickList(DataSet dataSet, DataRow[] dataRows, string woNbr, int balQty)
+        {
+            var _tempList = new List<Component>();
+            foreach (DataRow _row in dataRows)
+            {
+                _tempList.Add(new Component
+                {
+                    CompNumber = _row.Field<string>("Component")
+                    ,AssemblyQty = _row.Field<double>("Qty Per")
+                    ,RequiredQty = _row.Field<int>("Req Qty")
+                    ,CurrentOnHand = _row.Field<int>("On Hand")
+                    ,CurrentPickable = _row.Field<int>("Pickable")
+                    ,CompDescription = _row.Field<string>("Description")
+                    ,IssuedQty = Convert.ToInt32(Math.Round(_row.Field<double>(2) * balQty, 0, MidpointRounding.AwayFromZero))
+                    ,CompMasterPrint = _row.Field<string>("Drawing_Nbrs")
+                    ,CompUom = _row.Field<string>("Um")
+                    ,InventoryType = _row.Field<string>("Inventory_Type")
+                    ,IsLotTrace = _row.Field<string>("Lot_Trace") == "T"
+                    ,BackflushLoc = _row.Field<string>("Backflush")
+                    ,LotList = Lot.DataRowToLotList(dataSet.Tables["OH"].Select($"[ID] = '{_row.Field<string>("Component")}'"), "Lot")
+                    ,DedicatedLotList = Lot.DataRowToLotList(dataSet.Tables["OH"].Select($"[ID] = '{_row.Field<string>("Component")}' AND [WO] = '{woNbr}'"), "Dedicate")
+                    ,WipInfo = new BindingList<CompWipInfo>()
+                });
+                _tempList[_tempList.Count - 1].WipInfo.Add
+                    (
+                        new CompWipInfo(!string.IsNullOrEmpty(_tempList[_tempList.Count - 1].BackflushLoc), _tempList[_tempList.Count - 1].CompNumber, _tempList[_tempList.Count - 1].CompUom)
+                    );
+                _tempList[_tempList.Count - 1].WipInfo.ListChanged += WipInfo_ListChanged;
+                _tempList[_tempList.Count - 1].NonLotList = _tempList[_tempList.Count - 1].LotList.Count == 0 && !string.IsNullOrEmpty(_row.SafeGetField<string>("ID"))
+                    ? Lot.DataRowToLotList(dataSet.Tables["OH"].Select($"[ID] = '{_row.Field<string>("Component")}'"), "NonLot")
+                    : new List<Lot>();
+            }
+            dataSet.Dispose();
+            return _tempList;
         }
 
         /// <summary>
@@ -277,6 +320,28 @@ namespace SFW.Model
             {
                 throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
             }
+        }
+
+        /// <summary>
+        /// Retrieve a list of components for a Sku
+        /// </summary>
+        /// <param name="dataRows">Array of DataRow objects to translate to Component object properties</param>
+        /// <returns>List of Component objects related to a Bill of material</returns>
+        public static List<Component> GetComponentBomList(DataRow[] dataRows)
+        {
+            var _tempList = new List<Component>();
+            foreach (DataRow _row in dataRows)
+            {
+                _tempList.Add(new Component
+                {
+                    CompNumber = _row.Field<string>(2)
+                    ,AssemblyQty = _row.Field<double>(3)
+                    ,CompDescription = _row.Field<string>(4)
+                    ,CompMasterPrint = _row.Field<string>(5)
+                    ,CompUom = _row.Field<string>(6)
+                });
+            }
+            return _tempList;
         }
 
         /// <summary>
@@ -422,10 +487,10 @@ namespace SFW.Model
                     {
                         using (SqlDataAdapter adapter = new SqlDataAdapter($@"USE {sqlCon.Database};
                                                                                 SELECT
-	                                                                                a.[ID]
+	                                                                                REPLACE(a.[ID], '*', '-') as 'ID'
 	                                                                                ,a.[Routing_Seq]
 	                                                                                ,SUBSTRING(a.[ID], CHARINDEX('*', a.[ID], 0) + 1, LEN(a.[ID])) as 'Component'
-	                                                                                ,a.[Qty_Per_Assy]
+	                                                                                ,CAST(a.[Qty_Per_Assy] as float) as 'Qty_Per_Assy'
 	                                                                                ,b.[Description]
                                                                                     ,b.[Drawing_Nbrs]
 	                                                                                ,b.[Um]
@@ -471,17 +536,17 @@ namespace SFW.Model
                                                                                 SELECT
 	                                                                                a.[ID]
 	                                                                                ,SUBSTRING(a.[ID], CHARINDEX('*', a.[ID], 0) + 1, LEN(a.[ID])) as 'Component'
-	                                                                                ,a.[Qty_Per_Assy] as 'Qty Per'
-	                                                                                ,a.[Qty_Reqd] as 'Req Qty'
-	                                                                                ,b.[Qty_On_Hand] as 'On Hand'
-	                                                                                ,(SELECT SUM(aa.[OH_Qty_By_Loc]) FROM [dbo].[IPL-INIT_Location_Data] aa WHERE aa.[ID1] = b.[Part_Nbr] AND aa.[Loc_Pick_Avail_Flag] = 'Y') as 'Pickable'
+	                                                                                ,CAST(a.[Qty_Per_Assy] as float) as 'Qty Per'
+	                                                                                ,CAST(a.[Qty_Reqd] as int) as 'Req Qty'
+	                                                                                ,CAST(b.[Qty_On_Hand] as int) as 'On Hand'
+	                                                                                ,ISNULL(CAST((SELECT SUM(aa.[OH_Qty_By_Loc]) FROM [dbo].[IPL-INIT_Location_Data] aa WHERE aa.[ID1] = b.[Part_Nbr] AND aa.[Loc_Pick_Avail_Flag] = 'Y') as int), 0) as 'Pickable'
 	                                                                                ,b.[Wip_Rec_Loc] as 'Backflush'
 	                                                                                ,c.[Description]
 	                                                                                ,c.[Drawing_Nbrs]
 	                                                                                ,c.[Um]
 	                                                                                ,c.[Inventory_Type]
 	                                                                                ,c.[Lot_Trace]
-	                                                                                ,a.[Routing_Seq]
+	                                                                                ,ISNULL(a.[Routing_Seq], 10) as 'Routing'
                                                                                 FROM
 	                                                                                [dbo].[PL-INIT] a
                                                                                 RIGHT JOIN

@@ -173,6 +173,24 @@ namespace SFW.Model
                 return dRow.Field<T>(colName);
             }
         }
+
+        /// <summary>
+        /// Safely retrieve any value from a DataRow object
+        /// </summary>
+        /// <typeparam name="T">A generic parameter that specifies the return type</typeparam>
+        /// <param name="dRow">DataRow object</param>
+        /// <param name="colIndex">Index number of the column</param>
+        public static T SafeGetField<T>(this DataRow dRow, int colIndex)
+        {
+            if (dRow[colIndex] == DBNull.Value)
+            {
+                return default;
+            }
+            else
+            {
+                return dRow.Field<T>(colIndex);
+            }
+        }
     }
 
 }

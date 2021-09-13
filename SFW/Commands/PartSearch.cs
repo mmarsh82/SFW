@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Input;
@@ -19,20 +20,34 @@ namespace SFW.Commands
         /// <param name="parameter">SkuNumber or SkuNumber*MasterPrint</param>
         public void Execute(object parameter)
         {
+            var _isdeviated = false;
             try
             {
                 if (parameter.ToString().Contains("*"))
                 {
                     var _temp = parameter.ToString().Split('*');
-                    parameter = !string.IsNullOrEmpty(_temp[1]) && _temp[1] != DependencyProperty.UnsetValue.ToString() ? _temp[1] : _temp[0];
-                    if (!System.IO.File.Exists($"{App.GlobalConfig.First(o => $"{o.Site}_MAIN" == App.Site).PartPrint}{parameter}.pdf") && parameter.ToString() == _temp[1])
+                    if (_temp.Length > 2 && _temp[2] == "Y")
                     {
-                        parameter = _temp[0];
+                        var _file = Directory.GetFiles($"\\\\fs-wcco\\WCCO-Manufacturing\\DEVs\\{_temp[3]}\\");
+                        parameter = _file.Count() > 0 ? _file[0] : string.Empty;
+                        _isdeviated = true;
+                    }
+                    else
+                    {
+                        parameter = !string.IsNullOrEmpty(_temp[1]) && _temp[1] != DependencyProperty.UnsetValue.ToString() ? _temp[1] : _temp[0];
+                        if (!File.Exists($"{App.GlobalConfig.First(o => $"{o.Site}_MAIN" == App.Site).PartPrint}{parameter}.pdf") && parameter.ToString() == _temp[1])
+                        {
+                            parameter = _temp[0];
+                        }
                     }
                 }
-                if (!string.IsNullOrEmpty(parameter?.ToString()))
+                if (!string.IsNullOrEmpty(parameter?.ToString()) && !_isdeviated)
                 {
                     Process.Start($"{App.GlobalConfig.First(o => $"{o.Site}_MAIN" == App.Site).PartPrint}{parameter}.pdf");
+                }
+                else if (!string.IsNullOrEmpty(parameter?.ToString()) && _isdeviated)
+                {
+                    Process.Start($"{parameter}");
                 }
                 else
                 {
@@ -51,9 +66,9 @@ namespace SFW.Commands
                         break;
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-
+                MessageBox.Show($"The directory or file that you are searching for does not exist.\nPlease contact IT for further assistance.\n\n{ex.Message}", "Incorrect Directory Path", MessageBoxButton.OK, MessageBoxImage.Hand);
             }
         }
         public bool CanExecute(object parameter) => true;

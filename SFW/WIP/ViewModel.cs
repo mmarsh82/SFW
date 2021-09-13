@@ -403,7 +403,7 @@ namespace SFW.WIP
                         }
                         else if (WipRecord.IsScrap == Model.Enumerations.Complete.Y)
                         {
-                            _baseValid = _locValid && IsLotValid;
+                            _baseValid = _locValid && IsLotValid && ValidateComponents();
                         }
                     }
 

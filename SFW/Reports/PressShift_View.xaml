@@ -2,12 +2,14 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:cvtr="clr-namespace:SFW.Converters"
+             xmlns:local="clr-namespace:SFW"
              Name="PressShift_UserControl">
 
     <UserControl.Resources>
         <cvtr:StringToVisibility x:Key="StringtoVisConverter" />
         <cvtr:BoolToVisibility x:Key="BoolToVisConverter" />
         <cvtr:CrewToVisibility x:Key="CrewtoVisConverter" />
+        <cvtr:MultiValueParameter x:Key="MultiValConverter"/>
     </UserControl.Resources>
     
     <Grid>
@@ -61,13 +63,447 @@
         
         <!--#region Round Report-->
 
-        <DataGrid x:Name="RoundReport"
-                  Grid.Row="1"
-                  ItemsSource="{Binding PSReport.RoundTable}"
-                  HorizontalAlignment="Left"
-                  AlternatingRowBackground="LightGray"
-                  CanUserAddRows="False"
-                  FontSize="16"/>
+        <ScrollViewer Grid.Row="1"
+                      ScrollViewer.VerticalScrollBarVisibility="Auto">
+
+            <Grid>
+
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="40"/>
+                    <RowDefinition Height="auto"/>
+                </Grid.RowDefinitions>
+
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="75"/>
+                    <ColumnDefinition Width="75"/>
+                    <ColumnDefinition Width="100"/>
+                    <ColumnDefinition Width="{Binding IsEach}"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="75"/>
+                    <ColumnDefinition Width="auto"/>
+                </Grid.ColumnDefinitions>
+
+                <!--#region Header -->
+
+                <TextBlock Grid.Row="0" Grid.Column="0"
+                       Text="Round"
+                       FontWeight="Bold"
+                       FontSize="20"
+                       Foreground="Black"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center"
+                       TextDecorations="Underline"/>
+
+                <TextBlock Grid.Row="0" Grid.Column="1"
+                       Text="Time"
+                       FontWeight="Bold"
+                       FontSize="20"
+                       Foreground="Black"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center"
+                       TextDecorations="Underline"/>
+
+                <TextBlock Grid.Column="2"
+                       Text="Quantity"
+                       FontWeight="Bold"
+                       FontSize="20"
+                       Foreground="Black"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center"
+                       TextDecorations="Underline"/>
+
+                <TextBlock Grid.Column="3"
+                       Text="Pieces"
+                       FontWeight="Bold"
+                       FontSize="20"
+                       Foreground="Black"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center"
+                       TextDecorations="Underline"/>
+
+                <TextBlock Grid.Column="4"
+                       Text="Notes"
+                       FontWeight="Bold"
+                       FontSize="20"
+                       Foreground="Black"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center"
+                       TextDecorations="Underline"/>
+
+                <TextBlock Grid.Column="5"
+                       Text="Roll"
+                       FontWeight="Bold"
+                       FontSize="20"
+                       Foreground="Black"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center"
+                       TextDecorations="Underline"/>
+
+                <TextBlock Grid.Column="6"
+                       Text="Flag"
+                       FontWeight="Bold"
+                       FontSize="20"
+                       Foreground="Black"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center"
+                       TextDecorations="Underline"/>
+
+                <!--#endregion-->
+
+                <!--#region Data-->
+
+                <ItemsControl Grid.Row="1" Grid.Column="0"
+                          Name="RoundNumbers"
+                          ItemsSource="{Binding PSReport.RoundList, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                          Background="Transparent"
+                          HorizontalAlignment="Stretch"
+                          VerticalAlignment="Stretch"
+                          AlternationCount="2"
+                          Foreground="Black"
+                          Focusable="False">
+
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <VirtualizingStackPanel IsItemsHost="True"
+                                                Orientation="Vertical" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+
+                            <Grid x:Name="DTGrid">
+
+                                <TextBlock HorizontalAlignment="Center"
+                                       VerticalAlignment="Center"
+                                       Text="{Binding RoundNumber}"
+                                       FontSize="16"/>
+
+                            </Grid>
+
+                            <DataTemplate.Triggers>
+                                <Trigger Property="ItemsControl.AlternationIndex" Value="0">
+                                    <Setter Property="Background" Value="Transparent" TargetName="DTGrid"/>
+                                </Trigger>
+                                <Trigger Property="ItemsControl.AlternationIndex" Value="1">
+                                    <Setter Property="Background" Value="LightGray" TargetName="DTGrid"/>
+                                </Trigger>
+                            </DataTemplate.Triggers>
+
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+
+                </ItemsControl>
+
+                <ItemsControl Grid.Row="1" Grid.Column="1"
+                          Name="RoundTimes"
+                          ItemsSource="{Binding PSReport.RoundList, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                          Background="Transparent"
+                          HorizontalAlignment="Stretch"
+                          VerticalAlignment="Stretch"
+                          AlternationCount="2"
+                          Foreground="Black"
+                          Focusable="False">
+
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <VirtualizingStackPanel IsItemsHost="True"
+                                                Orientation="Vertical" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+
+                            <Grid x:Name="DTGrid">
+
+                                <TextBlock HorizontalAlignment="Center"
+                                       VerticalAlignment="Center"
+                                       Text="{Binding RoundTime}"
+                                       FontSize="16"/>
+
+                            </Grid>
+
+                            <DataTemplate.Triggers>
+                                <Trigger Property="ItemsControl.AlternationIndex" Value="0">
+                                    <Setter Property="Background" Value="Transparent" TargetName="DTGrid"/>
+                                </Trigger>
+                                <Trigger Property="ItemsControl.AlternationIndex" Value="1">
+                                    <Setter Property="Background" Value="LightGray" TargetName="DTGrid"/>
+                                </Trigger>
+                            </DataTemplate.Triggers>
+
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+
+                </ItemsControl>
+
+                <ItemsControl Grid.Row="1" Grid.Column="2"
+                          Name="RoundQuantities"
+                          ItemsSource="{Binding PSReport.RoundList, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                          Background="Transparent"
+                          HorizontalAlignment="Stretch"
+                          VerticalAlignment="Stretch"
+                          AlternationCount="2"
+                          Foreground="Black"
+                          Focusable="False"
+                          Visibility="{Binding Path=(local:CurrentUser.IsSupervisor), Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}">
+
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <VirtualizingStackPanel IsItemsHost="True"
+                                                Orientation="Vertical" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+
+                            <Grid x:Name="DTGrid">
+
+                                <TextBlock HorizontalAlignment="Center"
+                                       VerticalAlignment="Center"
+                                       Text="{Binding Quantity}"
+                                       FontSize="16"/>
+
+                            </Grid>
+
+                            <DataTemplate.Triggers>
+                                <Trigger Property="ItemsControl.AlternationIndex" Value="0">
+                                    <Setter Property="Background" Value="Transparent" TargetName="DTGrid"/>
+                                </Trigger>
+                                <Trigger Property="ItemsControl.AlternationIndex" Value="1">
+                                    <Setter Property="Background" Value="LightGray" TargetName="DTGrid"/>
+                                </Trigger>
+                            </DataTemplate.Triggers>
+
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+
+                </ItemsControl>
+
+                <ItemsControl Grid.Row="1" Grid.Column="2"
+                          Name="RoundQuantities_Edit"
+                          ItemsSource="{Binding PSReport.RoundList, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                          Background="Transparent"
+                          HorizontalAlignment="Stretch"
+                          VerticalAlignment="Stretch"
+                          AlternationCount="2"
+                          Foreground="Black"
+                          Focusable="False"
+                          Visibility="{Binding Path=(local:CurrentUser.IsSupervisor), Converter={StaticResource BoolToVisConverter}}">
+
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <VirtualizingStackPanel IsItemsHost="True"
+                                                Orientation="Vertical" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+
+                            <TextBox x:Name="DTText"
+                                 HorizontalAlignment="Stretch"
+                                 VerticalAlignment="Center"
+                                 HorizontalContentAlignment="Center"
+                                 MinWidth="100"
+                                 MaxLength="4"
+                                 Text="{Binding Quantity}"
+                                 FontSize="16"
+                                 BorderThickness="0"/>
+
+                            <DataTemplate.Triggers>
+                                <Trigger Property="ItemsControl.AlternationIndex" Value="0">
+                                    <Setter Property="Background" Value="Transparent" TargetName="DTText"/>
+                                </Trigger>
+                                <Trigger Property="ItemsControl.AlternationIndex" Value="1">
+                                    <Setter Property="Background" Value="LightGray" TargetName="DTText"/>
+                                </Trigger>
+                            </DataTemplate.Triggers>
+
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+
+                </ItemsControl>
+
+                <ItemsControl Grid.Row="1" Grid.Column="3"
+                          Name="RoundPieces"
+                          ItemsSource="{Binding PSReport.RoundList, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                          Background="Transparent"
+                          HorizontalAlignment="Stretch"
+                          VerticalAlignment="Stretch"
+                          AlternationCount="2"
+                          Foreground="Black"
+                          Focusable="False">
+
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <VirtualizingStackPanel IsItemsHost="True"
+                                                Orientation="Vertical" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+
+                            <Grid x:Name="DTGrid">
+
+                                <TextBlock HorizontalAlignment="Center"
+                                       VerticalAlignment="Center"
+                                       Text="{Binding Pieces}"
+                                       FontSize="16"/>
+
+                            </Grid>
+
+                            <DataTemplate.Triggers>
+                                <Trigger Property="ItemsControl.AlternationIndex" Value="0">
+                                    <Setter Property="Background" Value="Transparent" TargetName="DTGrid"/>
+                                </Trigger>
+                                <Trigger Property="ItemsControl.AlternationIndex" Value="1">
+                                    <Setter Property="Background" Value="LightGray" TargetName="DTGrid"/>
+                                </Trigger>
+                            </DataTemplate.Triggers>
+
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+
+                </ItemsControl>
+
+                <ItemsControl Grid.Row="1" Grid.Column="4"
+                          Name="RoundNotes"
+                          ItemsSource="{Binding PSReport.RoundList, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                          Background="Transparent"
+                          HorizontalAlignment="Stretch"
+                          VerticalAlignment="Stretch"
+                          AlternationCount="2"
+                          Foreground="Black"
+                          Focusable="False">
+
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <VirtualizingStackPanel IsItemsHost="True"
+                                                Orientation="Vertical" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+
+                            <TextBox x:Name="DTText"
+                                 HorizontalAlignment="Stretch"
+                                 VerticalAlignment="Center"
+                                 HorizontalContentAlignment="Center"
+                                 MinWidth="100"
+                                 Text="{Binding Notes}"
+                                 FontSize="16"
+                                 BorderThickness="0"/>
+
+                            <DataTemplate.Triggers>
+                                <Trigger Property="ItemsControl.AlternationIndex" Value="0">
+                                    <Setter Property="Background" Value="Transparent" TargetName="DTText"/>
+                                </Trigger>
+                                <Trigger Property="ItemsControl.AlternationIndex" Value="1">
+                                    <Setter Property="Background" Value="LightGray" TargetName="DTText"/>
+                                </Trigger>
+                            </DataTemplate.Triggers>
+
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+
+                </ItemsControl>
+
+                <ItemsControl Grid.Row="1" Grid.Column="5"
+                          Name="RoundRolls"
+                          ItemsSource="{Binding PSReport.RoundList, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                          Background="Transparent"
+                          HorizontalAlignment="Stretch"
+                          VerticalAlignment="Stretch"
+                          AlternationCount="2"
+                          Foreground="Black"
+                          Focusable="False">
+
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <VirtualizingStackPanel IsItemsHost="True"
+                                                Orientation="Vertical" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+
+                            <Grid x:Name="DTGrid">
+
+                                <TextBlock HorizontalAlignment="Center"
+                                       VerticalAlignment="Center"
+                                       Text="{Binding RollNumber}"
+                                       FontSize="16"/>
+
+                            </Grid>
+
+                            <DataTemplate.Triggers>
+                                <Trigger Property="ItemsControl.AlternationIndex" Value="0">
+                                    <Setter Property="Background" Value="Transparent" TargetName="DTGrid"/>
+                                </Trigger>
+                                <Trigger Property="ItemsControl.AlternationIndex" Value="1">
+                                    <Setter Property="Background" Value="LightGray" TargetName="DTGrid"/>
+                                </Trigger>
+                            </DataTemplate.Triggers>
+
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+
+                </ItemsControl>
+
+                <ItemsControl Grid.Row="1" Grid.Column="6"
+                          Name="RoundFlags"
+                          ItemsSource="{Binding PSReport.RoundList, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                          Background="Transparent"
+                          HorizontalAlignment="Stretch"
+                          VerticalAlignment="Stretch"
+                          AlternationCount="2"
+                          Foreground="Black"
+                          Focusable="False">
+
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <VirtualizingStackPanel IsItemsHost="True"
+                                                Orientation="Vertical" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+
+                            <TextBox x:Name="DTText"
+                                 HorizontalAlignment="Stretch"
+                                 VerticalAlignment="Center"
+                                 HorizontalContentAlignment="Center"
+                                 MinWidth="100"
+                                 Text="{Binding QualityFlag}"
+                                 FontSize="16"
+                                 BorderThickness="0"/>
+
+                            <DataTemplate.Triggers>
+                                <Trigger Property="ItemsControl.AlternationIndex" Value="0">
+                                    <Setter Property="Background" Value="Transparent" TargetName="DTText"/>
+                                </Trigger>
+                                <Trigger Property="ItemsControl.AlternationIndex" Value="1">
+                                    <Setter Property="Background" Value="LightGray" TargetName="DTText"/>
+                                </Trigger>
+                            </DataTemplate.Triggers>
+
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+
+                </ItemsControl>
+
+                <!--#endregion-->
+
+            </Grid>
+
+        </ScrollViewer>
 
         <!--#endregion-->
 
@@ -92,18 +528,40 @@
                        
         </StackPanel>
 
-        <Button Grid.Row="2"
-                Content="{Binding ReportAction}"
-                Command="{Binding DataContext.ReportActionICommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type TabControl}}}"
-                CommandParameter="{Binding DataContext, ElementName=PressShift_UserControl}"
-                Visibility="{Binding CanEdit, Converter={StaticResource BoolToVisConverter}}"
-                HorizontalAlignment="Center"
-                Width="100"
-                FontWeight="Bold"
-                FontSize="20"
-                Margin="2"
-                Style="{DynamicResource DefaultButton}" />
-        
+        <StackPanel Grid.Row="2"
+                    Orientation="Horizontal"
+                    VerticalAlignment="Center"
+                    HorizontalAlignment="Center"
+                    Height="35">
+
+            <Button Content="{Binding ReportAction}"
+                    Command="{Binding DataContext.ReportActionICommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type TabControl}}}"
+                    CommandParameter="{Binding Content, RelativeSource={RelativeSource Self}}"
+                    Visibility="{Binding CanEdit, Converter={StaticResource BoolToVisConverter}}"
+                    Width="100"
+                    FontSize="18"
+                    Style="{DynamicResource DefaultButton}" />
+
+            <Button Content="Log Round"
+                    Command="{Binding DataContext.ReportActionICommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type TabControl}}}"
+                    CommandParameter="{Binding Content, RelativeSource={RelativeSource Self}}"
+                    Visibility="{Binding CanEdit, Converter={StaticResource BoolToVisConverter}}"
+                    Width="150"
+                    FontSize="18"
+                    Margin="20,0,0,0"
+                    Style="{DynamicResource DefaultButton}" />
+
+            <Button Content="Delete Round"
+                    Command="{Binding DataContext.ReportActionICommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type TabControl}}}"
+                    CommandParameter="{Binding Content, RelativeSource={RelativeSource Self}}"
+                    Visibility="{Binding CanEdit, Converter={StaticResource BoolToVisConverter}}"
+                    Width="150"
+                    FontSize="18"
+                    Margin="20,0,0,0"
+                    Style="{DynamicResource DefaultButton}" />
+
+        </StackPanel>
+
         <!--#endregion-->
 
     </Grid>

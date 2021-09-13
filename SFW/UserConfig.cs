@@ -275,5 +275,45 @@ namespace SFW
             }
             return _dict;
         }
+
+        /// <summary>
+        /// Builds the original filter for the Schedule view based on the application user config file for machine selection
+        /// </summary>
+        /// <returns>DataTable filter string</returns>
+        public static string BuildMachineFilter()
+        {
+            var _filter = string.Empty;
+            if (App.DefualtWorkCenter?.Count(o => o.SiteNumber == App.SiteNumber) == 1 && !string.IsNullOrEmpty(App.DefualtWorkCenter.FirstOrDefault(o => o.SiteNumber == App.SiteNumber).MachineNumber))
+            {
+                _filter = $@"MachineNumber = '{App.DefualtWorkCenter.FirstOrDefault(o => o.SiteNumber == App.SiteNumber).MachineNumber}'";
+            }
+            else if (App.DefualtWorkCenter?.Count(o => o.SiteNumber == App.SiteNumber) > 1)
+            {
+                foreach (var m in App.DefualtWorkCenter.Where(o => o.SiteNumber == App.SiteNumber))
+                {
+                    _filter += string.IsNullOrEmpty(_filter) ? $"(MachineNumber = '{m.MachineNumber}'" : $" OR MachineNumber = '{m.MachineNumber}'";
+                }
+                _filter += ")";
+            }
+            return _filter;
+        }
+
+        /// <summary>
+        /// Builds the original filter for the Schedule view based on the application user config file for work order priority
+        /// </summary>
+        /// <returns>DataTable filter string</returns>
+        public static string BuildPriorityFilter()
+        {
+            var _filter = string.Empty;
+            if (App.IsFocused && string.IsNullOrEmpty(_filter))
+            {
+                _filter = "WO_Priority = 'A' OR WO_Priority = 'B'";
+            }
+            else if (App.IsFocused)
+            {
+                _filter += " AND (WO_Priority = 'A' OR WO_Priority = 'B')";
+            }
+            return _filter;
+        }
     }
 }

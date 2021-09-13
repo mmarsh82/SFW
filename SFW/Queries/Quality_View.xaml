@@ -101,7 +101,19 @@
                   IsReadOnly="True">
             <DataGrid.Columns>
                 <DataGridTextColumn Header="Diamond Number"
-                                    Binding="{Binding LotNumber}"/>
+                                    Binding="{Binding LotNumber}">
+                    <DataGridTextColumn.CellStyle>
+                        <Style TargetType="{x:Type DataGridCell}">
+                            <Setter Property="Foreground"
+                                            Value="Black" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding TransactionCode}" Value="false">
+                                    <Setter Property="Foreground" Value="Crimson" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </DataGridTextColumn.CellStyle>
+                </DataGridTextColumn>
                 <DataGridTextColumn Header="Part Number"
                                     Binding="{Binding Location}" />
                 <DataGridTextColumn Header="Received Date"

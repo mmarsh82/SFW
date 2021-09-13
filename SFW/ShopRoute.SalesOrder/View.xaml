@@ -52,7 +52,7 @@
 
                 <StackPanel Grid.Row="0"
                             Orientation="Horizontal">
-                    
+
                     <Button Content="Ship"
                             FontSize="16"
                             Width="110"

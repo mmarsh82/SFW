@@ -33,6 +33,7 @@ namespace SFW.Model
         public bool IsLate { get { return DueDate < DateTime.Today; } }
         public bool IsStartedLate { get { return SchedStartDate < DateTime.Today && CurrentQty == StartQty; } }
         public List<Component> Picklist { get; set; }
+        public bool IsDeviated { get; set; }
 
         #endregion
 
@@ -47,10 +48,8 @@ namespace SFW.Model
         /// Will create a new WorkOrder Object based on a DataRow from any DataTable Object
         /// </summary>
         /// <param name="dRow">DataRow with the item array values for the work order</param>
-        /// <param name="siteNbr">Work Site number</param>
-        /// <param name="docFilePath">Document File Path</param>
         /// <param name="sqlCon">Sql Connection to use</param>
-        public WorkOrder(DataRow dRow, int siteNbr, string docFilePath, SqlConnection sqlCon)
+        public WorkOrder(DataRow dRow, SqlConnection sqlCon)
         {
             if (dRow != null)
             {
@@ -85,7 +84,7 @@ namespace SFW.Model
                         CustomerNumber = dRow.Field<string>("Cust_Nbr"),
                         CustomerPart = dRow.Field<string>("Cust_Part_Nbr"),
                         LineNumber = Convert.ToInt32(_so[1]),
-                        LineBalQuantity = dRow.SafeGetField<int>("Ln_Bal_Qty"),
+                        LineBalQuantity = dRow.Field<int>("Ln_Bal_Qty"),
                         LoadPattern = dRow.Field<string>("LoadPattern").ToUpper() == "PLASTIC"
                      };
                     SalesOrder.GetInternalComments(sqlCon);
@@ -94,14 +93,9 @@ namespace SFW.Model
                 {
                     SalesOrder = new SalesOrder();
                 }
-                ToolList = GetTools(SkuNumber, Operation, sqlCon);
                 Machine = dRow.Field<string>("MachineName");
                 MachineGroup = dRow.Field<string>("MachineGroup");
-                Bom = Component.GetComponentBomList(SkuNumber, Operation, sqlCon);
-                Picklist = Component.GetComponentPickList(_wo[0], Operation, StartQty - CurrentQty, sqlCon);
-                Notes = GetNotes(_wo[0], sqlCon);
-                ShopNotes = GetShopNotes(_wo[0], sqlCon);
-                InstructionList = GetInstructions(SkuNumber, siteNbr, docFilePath, sqlCon);
+                IsDeviated = dRow.Field<string>("Deviation") == "Y";
             }
         }
 

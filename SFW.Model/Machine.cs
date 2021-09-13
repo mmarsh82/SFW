@@ -136,6 +136,7 @@ namespace SFW.Model
 	                ,CAST((SELECT ad.[Ln_Bal_Qty] FROM [dbo].[SOD-INIT] ad WHERE ad.[ID] = SUBSTRING(wp.So_Reference, 0, LEN(wp.So_Reference) - 1)) AS int) as 'Ln_Bal_Qty'
 	                ,ISNULL(cm.Load_Pattern, '') as 'LoadPattern'
 	                ,(SELECT COUNT(ae.[Qtask_Type]) FROM [dbo].[IM_UDEF-INIT_Quality_Tasks] ae WHERE ae.[Qtask_Initiated_By] IS NOT NULL AND ae.[Qtask_Release_Date] IS NULL AND ae.[ID1] = im.[Part_Number]) as 'QTask'
+                    ,ISNULL(wp.[Fa_Dept], 'N') as 'Deviation'
                 FROM
 	                dbo.[WC-INIT] wc
                 RIGHT OUTER JOIN
@@ -190,6 +191,7 @@ namespace SFW.Model
 	                ,CAST((SELECT ad.[Ln_Bal_Qty] FROM [dbo].[SOD-INIT] ad WHERE (ad.[ID] = SUBSTRING(wp.[So_Reference], 0, LEN(wp.[So_Reference]) - 1))) as int) as 'Ln_Bal_Qty'
 	                ,ISNULL(cm.[Load_Pattern], '') as 'LoadPattern'
 	                ,0 as 'QTask'
+                    ,'N' as 'Deviation'
                 FROM
 	                [dbo].[WC-INIT] wc
                 RIGHT OUTER JOIN
@@ -670,7 +672,7 @@ namespace SFW.Model
                     {
                         cmd.Parameters.AddWithValue("p1", machineNbr);
                         var _len = cmd.ExecuteScalar();
-                        return int.TryParse(_len.ToString(), out int i) ? i : 0;
+                        return int.TryParse(_len.ToString(), out int i) ? i + 1 : 0;
                     }
                 }
                 catch (SqlException sqlEx)
@@ -723,22 +725,23 @@ namespace SFW.Model
         }
 
         /// <summary>
-        /// 
+        /// Get a dataset conataining all information regarding to machine work orders
         /// </summary>
-        /// <param name="machOrder"></param>
+        /// <param name="machOrder">Dictionary containing the order property for the machines, based on the user config</param>
         /// <param name="site"></param>
-        /// <param name="siteNbr"></param>
-        /// <param name="docFilePath"></param>
-        /// <param name="sqlCon"></param>
-        /// <returns></returns>
-        public static DataSet ScheduleDataSet(IReadOnlyDictionary<string, int> machOrder, string site, int siteNbr, string docFilePath, SqlConnection sqlCon)
+        /// <param name="siteNbr">Work Site number</param>
+        /// <param name="docFilePath">Document File Path</param>
+        /// <param name="sqlCon">Sql Connection to use</param>
+        /// <param name="closed">OPTIONAL: designates when to load a closed master view</param>
+        /// <returns>DataSet with the schedule data and all other pertaining data results</returns>
+        public static DataSet ScheduleDataSet(IReadOnlyDictionary<string, int> machOrder, string site, SqlConnection sqlCon, bool closed = false)
         {
             try
             {
                 using (var _tempDS = new DataSet())
                 {
                     _tempDS.DataSetName = $"{site}DataSet";
-                    _tempDS.Tables.Add(GetScheduleData(machOrder, sqlCon));
+                    _tempDS.Tables.Add(!closed ? GetScheduleData(machOrder, sqlCon) : GetClosedScheduleData(sqlCon));
                     _tempDS.Tables[0].TableName = "Master";
                     _tempDS.Tables.Add(GetTools(sqlCon));
                     _tempDS.Tables[1].TableName = "TL";
@@ -750,8 +753,10 @@ namespace SFW.Model
                     _tempDS.Tables[4].TableName = "WN";
                     _tempDS.Tables.Add(GetShopNotes(sqlCon));
                     _tempDS.Tables[5].TableName = "SN";
-                    _tempDS.Tables.Add(GetInstructions(siteNbr, docFilePath));
+                    _tempDS.Tables.Add(site.Contains("WCCO") ? GetInstructions(sqlCon) : new DataTable());
                     _tempDS.Tables[6].TableName = "WI";
+                    _tempDS.Tables.Add(Lot.GetOnHandTable(sqlCon));
+                    _tempDS.Tables[7].TableName = "OH";
                     return _tempDS;
                 }
             }

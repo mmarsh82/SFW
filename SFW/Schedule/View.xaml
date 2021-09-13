@@ -19,6 +19,7 @@
         <cvtr:IntToVisibility x:Key="IntToVisConverter" />
         <cvtr:WoPriorityToBool x:Key="PriToBoolConverter"/>
         <cvtr:StringToVisibility x:Key="StringToVisConverter"/>
+        <cvtr:BoolToBackgroundColor x:Key="BoolToBGConverter"/>
 
         <ContextMenu x:Key="rowMenu">
             <MenuItem Header="Work Order State"
@@ -59,7 +60,7 @@
                       Command="{StaticResource ClearPriICommand}"
                       CommandParameter="{Binding}">
                 <MenuItem.Visibility>
-                    <MultiBinding Converter="{StaticResource BoolToVisConverter}">
+                    <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="pri">
                         <Binding Path="(local:CurrentUser.CanSchedule)"/>
                         <Binding Path="Sched_Priority"/>
                     </MultiBinding>
@@ -75,14 +76,6 @@
             <RowDefinition Height="40" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-
-        <TextBlock Text="Loading..."
-                   FontSize="32"
-                   FontWeight="Bold"
-                   Margin="100,0,100,0"
-                   HorizontalAlignment="Center"
-                   VerticalAlignment="Center"
-                   Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisConverter}}"/>
 
         <StackPanel Grid.Row="0"
                     Orientation="Horizontal">
@@ -105,7 +98,7 @@
 
         <DataGrid x:Name="WorkCenterSchedule"
                   Grid.Row="1"
-                  ItemsSource="{Binding ScheduleView, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"
+                  ItemsSource="{Binding ScheduleView, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                   SelectedItem="{Binding SelectedWorkOrder, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                   HorizontalAlignment="Left"
                   HeadersVisibility="None"
@@ -113,7 +106,6 @@
                   CanUserAddRows="False"
                   IsReadOnly="True"
                   SelectionMode="Single"
-                  IsSynchronizedWithCurrentItem="True"
                   VirtualizingPanel.IsVirtualizingWhenGrouping="True"
                   ScrollViewer.CanContentScroll="True"
                   Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}">
@@ -169,12 +161,15 @@
                                                 Margin="0,0,10,0"
                                                 Height="30"
                                                 IsTabStop="False"
+                                                Background="{Binding Deviation, Converter={StaticResource BoolToBGConverter}, ConverterParameter=Y}"
                                                 Style="{DynamicResource ResourceKey=DefaultButton}">
                                             <Image Source="/SFW;component/Icons/PartSearch.ico"/>
                                             <Button.CommandParameter>
                                                 <MultiBinding Converter="{StaticResource PartSearchConverter}">
                                                     <Binding Path="SkuNumber"/>
                                                     <Binding Path="SkuMasterPrint"/>
+                                                    <Binding Path="Deviation"/>
+                                                    <Binding Path="WO_Number"/>
                                                 </MultiBinding>
                                             </Button.CommandParameter>
                                         </Button>

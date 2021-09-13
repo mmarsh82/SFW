@@ -22,18 +22,27 @@ namespace SFW.Reports
         public string ReportAction { get { return CanCreate ? "Submit" : "Update"; } }
 
         private int? _shift;
-        public int? Shift
+        public string Shift
         {
             get
-            { return _shift; }
+            { return _shift.ToString(); }
             set
-            { _shift = value; OnPropertyChanged(nameof(Shift)); }
+            {
+                _shift = int.TryParse(value, out int i) && i > 0 && i < 4 ? i : (int?)null;
+                OnPropertyChanged(nameof(Shift));
+            }
         }
 
         private RelayCommand _reportAction;
         private RelayCommand _addShift;
 
         #endregion
+
+        /// <summary>
+        /// Default Constructor
+        /// </summary>
+        public Press_ViewModel()
+        { }
 
         /// <summary>
         /// Overridden Constructor
@@ -49,8 +58,8 @@ namespace SFW.Reports
                     break;
                 case PressReportActions.LogProgress:
                     Report = new PressReport(wo, App.AppSqlCon);
-                    Press_ShiftReport.SubmitRound(Report, Report.ShiftReportList[0], App.AppSqlCon);
-                    Report.ShiftReportList[0].RoundTable = Press_ShiftReport.GetRoundTable(Convert.ToInt32(Report.ShiftReportList[0].ReportID), App.AppSqlCon);
+                    PressRound.Submit(Report, Report.ShiftReportList[0], App.AppSqlCon);
+                    Report.ShiftReportList[0].RoundList = PressRound.GetRoundList(Convert.ToInt32(Report.ShiftReportList[0].ReportID), App.AppSqlCon);
                     break;
             }
             ShiftCollection = new ObservableCollection<TabItem>(LoadShiftCollection(Report.ShiftReportList));
@@ -65,7 +74,7 @@ namespace SFW.Reports
         /// </summary>
         /// <param name="psReportList">List of Press Shift Report objects</param>
         /// <returns></returns>
-        public List<TabItem> LoadShiftCollection(List<Press_ShiftReport> psReportList)
+        public List<TabItem> LoadShiftCollection(List<PressShiftReport> psReportList)
         {
             var _tempList = new List<TabItem>();
             foreach (var s in psReportList)
@@ -74,7 +83,7 @@ namespace SFW.Reports
                 {
                     Content = new PressShift_View
                     {
-                        DataContext = new PressShift_ViewModel(s)
+                        DataContext = new PressShift_ViewModel(s, Report.ShopOrder.Uom == "EA" || Report.ShopOrder.Uom == "PC")
                     },
                     Header = $"{s.ReportDate.ToShortDateString()} Shift {s.Shift}"
                 });
@@ -109,13 +118,44 @@ namespace SFW.Reports
                     OnPropertyChanged(nameof(ReportAction));
                     break;
                 case "Update":
-                    //Report.Update(Report, App.AppSqlCon);
+                    PressReport.Update(Report, App.AppSqlCon);
+                    Report.ShiftReportList[0].RoundList.Select(o => { o.HasChanges = false; return o; }).ToList();
+                    break;
+                case "Log Round":
+                    PressRound.Submit(Report, Report.ShiftReportList[0], App.AppSqlCon);
+                    Report.ShiftReportList[0].RoundList = PressRound.GetRoundList(Convert.ToInt32(Report.ShiftReportList[0].ReportID), App.AppSqlCon);
+                    OnPropertyChanged(nameof(Report));
+                    ((PressShift_ViewModel)((PressShift_View)ShiftCollection[0].Content).DataContext).UpdateView(Report.ShiftReportList[0]);
+                    break;
+                case "Delete Round":
+                    PressRound.Delete(int.Parse(Report.ShiftReportList[0].ReportID.ToString()), Report.ShiftReportList[0].RoundList.Last().RoundNumber, App.AppSqlCon);
+                    Report.ShiftReportList[0].RoundList = PressRound.GetRoundList(int.Parse(Report.ShiftReportList[0].ReportID.ToString()), App.AppSqlCon);
+                    ((PressShift_ViewModel)((PressShift_View)ShiftCollection[0].Content).DataContext).UpdateView(Report.ShiftReportList[0]);
+                    OnPropertyChanged(nameof(Report));
+                    break;
+                default:
                     break;
             }
         }
         private bool ReportActionCanExecute(object parameter)
         {
-            return Report.SlatTransfer > 0 && Report.RollLength > 0 && (Report.SlatBlankout > 0 || !IsBlankVis);
+            if (parameter != null)
+            {
+                switch (parameter.ToString())
+                {
+                    case "Submit":
+                        return Report.SlatTransfer > 0 && Report.RollLength > 0 && (Report.SlatBlankout >= 0 || !IsBlankVis) && !string.IsNullOrEmpty(Shift);
+                    case "Update":
+                        return Report.ShiftReportList[0].RoundList.Count(o => o.HasChanges) > 0;
+                    case "Log Round":
+                        return true;
+                    case "Delete Round":
+                        return Report.ShiftReportList[0].RoundList.Count > 0;
+                    default:
+                        return false;
+                }
+            }
+            return false;
         }
 
         #endregion
@@ -136,12 +176,12 @@ namespace SFW.Reports
 
         private void AddShiftExecute(object parameter)
         {
-            if (Report.ShiftReportList.Count(o => o.Shift == Shift && o.ReportDate == DateTime.Today) == 0)
+            if (Report.ShiftReportList.Count(o => o.Shift == int.Parse(Shift) && o.ReportDate == DateTime.Today) == 0)
             {
                 if (int.TryParse(Shift.ToString(), out int i))
                 {
-                    new Press_ShiftReport(Report.ShopOrder, DateTime.Now, i, App.AppSqlCon);
-                    ShiftCollection = new ObservableCollection<TabItem>(LoadShiftCollection(Press_ShiftReport.GetPress_ShiftReportList(Report.ShopOrder.OrderNumber, Report.ShopOrder.Machine, App.AppSqlCon)));
+                    Report.ShiftReportList.Insert(0, new PressShiftReport(Report.ShopOrder, DateTime.Now, i, App.AppSqlCon));
+                    ShiftCollection = new ObservableCollection<TabItem>(LoadShiftCollection(PressShiftReport.GetPress_ShiftReportList(Report.ShopOrder.OrderNumber, Report.ShopOrder.Machine, App.AppSqlCon)));
                     OnPropertyChanged(nameof(ShiftCollection));
                     Shift = null;
                     SelectedShift = ShiftCollection[0];
@@ -154,7 +194,7 @@ namespace SFW.Reports
                 System.Windows.MessageBox.Show($"Report sheet for this shift already exists.\nPlease select {DateTime.Today.ToShortDateString()} Shift {Shift} in the workspace.", "Duplicate Entry", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
             }
         }
-        private bool AddShiftCanExecute(object parameter) => !CanCreate && Shift > 0 && Shift < 4;
+        private bool AddShiftCanExecute(object parameter) => !CanCreate && !string.IsNullOrEmpty(Shift);
 
         #endregion
 

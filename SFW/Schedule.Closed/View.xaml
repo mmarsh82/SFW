@@ -25,14 +25,6 @@
             <RowDefinition Height="40" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-        
-        <TextBlock Text="Loading..."
-                   FontSize="32"
-                   FontWeight="Bold"
-                   Margin="100,0,100,0"
-                   HorizontalAlignment="Center"
-                   VerticalAlignment="Center"
-                   Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisConverter}}"/>
 
         <StackPanel Grid.Row="0"
                     Orientation="Horizontal">

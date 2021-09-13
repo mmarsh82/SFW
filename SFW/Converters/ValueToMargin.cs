@@ -13,7 +13,7 @@ namespace SFW.Converters
             switch (parameter.ToString())
             {
                 case "R":
-                    return new Thickness(_val * 10, 0, 0, 0);
+                    return new Thickness(_val * 15, 0, 0, 0);
                 case "T":
                     return new Thickness(0, _val, 0, 0);
                 case "L":

@@ -5,23 +5,17 @@ using System.Windows.Media;
 
 namespace SFW.Converters
 {
-    public class BoolToBorderColor : IValueConverter
+    public class BoolToBackgroundColor : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            var _brdrClr = Colors.Gray;
-            switch (parameter?.ToString())
-            {
-                case "B":
-                    _brdrClr = Colors.Black;
-                    break;
-                default:
-                    _brdrClr = Colors.Gray;
-                    break;
-            }
             if (bool.TryParse(value.ToString(), out bool b))
             {
-                return b ? new SolidColorBrush(_brdrClr) : new SolidColorBrush(Colors.Crimson);
+                return b ? new SolidColorBrush(Colors.Crimson) : new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FF135185"));
+            }
+            else if (parameter != null && parameter.ToString() == "Y")
+            {
+                return value.ToString() == "Y" ? new SolidColorBrush(Colors.Crimson) : new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FF135185"));
             }
             else
             {

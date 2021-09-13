@@ -9,7 +9,10 @@ namespace SFW.Commands
 
         public void Execute(object parameter)
         {
-
+            if (parameter.ToString().Contains("*"))
+            {
+                
+            }
         }
 
         public bool CanExecute(object parameter)

@@ -61,6 +61,10 @@ namespace SFW.Converters
                 values[0] = false;
             }
             var _param = parameter?.ToString();
+            if (_param == "pri")
+            {
+                return bool.Parse(values[0].ToString()) && int.Parse(values[1].ToString()) > 0 ? Visibility.Visible : Visibility.Collapsed;
+            }
             var _rtnVal = true;
             if (values.Length < 3)
             {

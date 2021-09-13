@@ -20,12 +20,13 @@
         <cvtr:SiteNumberToBool x:Key="SiteToBoolConverter"/>
         <cvtr:BoolToVisibility x:Key="BoolToVisConverter" />
         <cvtr:SiteToVisibility x:Key="SiteToVisConverter"/>
+        <cvtr:BoolInverter x:Key="InvertBoolConverter"/>
     </Window.Resources>
 
     <Window.InputBindings>
         <KeyBinding Gesture="Alt+F4" Command="{StaticResource ExitICommand}"/>
         <KeyBinding Gesture="F1" Command="{StaticResource LogInICommand}" CommandParameter="in"/>
-        <KeyBinding Gesture="Esc" Command="{StaticResource LogInICommand}" CommandParameter="out"/>
+        <KeyBinding Gesture="Esc" Command="{StaticResource LogInICommand}" CommandParameter="out" />
         <KeyBinding Gesture="F5"
                     Command="{StaticResource ViewLoadICommand}"
                     CommandParameter="-2" />
@@ -58,6 +59,24 @@
             <RowDefinition Height="25"/>
         </Grid.RowDefinitions>
 
+        <StackPanel Grid.Row="1"
+                    Orientation="Vertical"
+                    VerticalAlignment="Center"
+                    HorizontalAlignment="Center"
+                    Visibility="{Binding DisplayAction, Converter={StaticResource BoolToVisConverter}}">
+
+            <TextBlock Text="Please Wait"
+                       FontWeight="Bold"
+                       Opacity="80"
+                       FontSize="50"/>
+
+            <Control Grid.Row="1"
+                     Background="Transparent"
+                     Style="{DynamicResource BusyAnimationStyle}" />
+
+
+        </StackPanel>
+        
         <!--#region Main Menu Usercontrol for all commands-->
 
         <Menu x:Name="MainMenu"
@@ -71,11 +90,13 @@
                           Command="{StaticResource LogInICommand}"
                           CommandParameter="in"
                           InputGestureText="F1"
+                          IsEnabled="{Binding Path=(local:CurrentUser.IsLoggedIn), Converter={StaticResource InvertBoolConverter}}"
                           Visibility="{Binding Path=(local:CurrentUser.IsLoggedIn), Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}"/>
                 <MenuItem Header="Log Out"
                           Command="{StaticResource LogInICommand}"
                           CommandParameter="out"
                           InputGestureText="Esc"
+                          IsEnabled="{Binding Path=(local:CurrentUser.IsLoggedIn)}"
                           Visibility="{Binding Path=(local:CurrentUser.IsLoggedIn), Converter={StaticResource BoolToVisConverter}}"/>
                 <MenuItem Header="Exit"
                           Command="{StaticResource ExitICommand}"
@@ -176,7 +197,7 @@
         </Menu>
 
         <StackPanel Orientation="Horizontal"
-                    Visibility="{Binding Path=(local:App.IsFocused), Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}"
+                    Visibility="{Binding Path=CanFilter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource BoolToVisConverter}}"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center"
                     Margin="1">
@@ -218,6 +239,7 @@
                     <MenuItem Header="HasSalesOrderModule" IsChecked="{Binding Path=(local:CurrentUser.HasSalesOrderModule), Mode=OneWay}"/>
                     <MenuItem Header="IsQuality" IsChecked="{Binding Path=(local:CurrentUser.IsQuality), Mode=OneWay}"/>
                     <MenuItem Header="IsAdmin" IsChecked="{Binding Path=(local:CurrentUser.IsAdmin), Mode=OneWay}"/>
+                    <MenuItem Header="IsEngineer" IsChecked="{Binding Path=(local:CurrentUser.IsEngineer), Mode=OneWay}"/>
                 </MenuItem>
             </Menu>
 
