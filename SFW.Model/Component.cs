@@ -538,14 +538,14 @@ namespace SFW.Model
 	                                                                                ,SUBSTRING(a.[ID], CHARINDEX('*', a.[ID], 0) + 1, LEN(a.[ID])) as 'Component'
 	                                                                                ,CAST(a.[Qty_Per_Assy] as float) as 'Qty Per'
 	                                                                                ,CAST(a.[Qty_Reqd] as int) as 'Req Qty'
-	                                                                                ,CAST(b.[Qty_On_Hand] as int) as 'On Hand'
+	                                                                                ,CAST(ISNULL(b.[Qty_On_Hand], 0) as int) as 'On Hand'
 	                                                                                ,ISNULL(CAST((SELECT SUM(aa.[OH_Qty_By_Loc]) FROM [dbo].[IPL-INIT_Location_Data] aa WHERE aa.[ID1] = b.[Part_Nbr] AND aa.[Loc_Pick_Avail_Flag] = 'Y') as int), 0) as 'Pickable'
 	                                                                                ,b.[Wip_Rec_Loc] as 'Backflush'
 	                                                                                ,c.[Description]
 	                                                                                ,c.[Drawing_Nbrs]
 	                                                                                ,c.[Um]
 	                                                                                ,c.[Inventory_Type]
-	                                                                                ,c.[Lot_Trace]
+	                                                                                ,ISNULL(c.[Lot_Trace], 'N') as 'Lot_Trace'
 	                                                                                ,ISNULL(a.[Routing_Seq], 10) as 'Routing'
                                                                                 FROM
 	                                                                                [dbo].[PL-INIT] a

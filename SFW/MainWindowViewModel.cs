@@ -74,10 +74,7 @@ namespace SFW
             }
         }
 
-        public string Version
-        {
-            get { return System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString(); }
-        }
+        public string Version => System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString();
 
         private bool cUpdate;
         public bool CanUpdate
@@ -153,6 +150,7 @@ namespace SFW
             IsChanging = false;
             CanUpdate = false;
             InTraining = false;
+            CanFilter = !App.IsFocused;
             new WorkSpaceDock();
             RefreshTimer.Add(MainUpdate);
         }

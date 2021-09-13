@@ -394,6 +394,7 @@ namespace SFW.Model
 	                                                                            (SELECT [Cust_Part_Nbr] FROM [dbo].[SOD-INIT] WHERE [ID] = SUBSTRING(c.[So_Reference],0,LEN(c.[So_Reference])-1)) as 'Cust_Part_Nbr',
 	                                                                            CAST((SELECT [Ln_Bal_Qty] FROM [dbo].[SOD-INIT] WHERE [ID] = SUBSTRING(c.[So_Reference],0,LEN(c.[So_Reference])-1)) as int) as 'Ln_Bal_Qty',
                                                                                 ISNULL((SELECT [Load_Pattern] FROM [dbo].[CM-INIT] WHERE [Cust_Nbr] = c.[Cust_Nbr]),'') as 'LoadPattern'
+                                                                                ,ISNULL(c.[Fa_Dept], 'N') as 'Deviation'
                                                                             FROM
                                                                                 [dbo].[WC-INIT] a
                                                                             RIGHT JOIN
@@ -741,20 +742,28 @@ namespace SFW.Model
                 using (var _tempDS = new DataSet())
                 {
                     _tempDS.DataSetName = $"{site}DataSet";
+
                     _tempDS.Tables.Add(!closed ? GetScheduleData(machOrder, sqlCon) : GetClosedScheduleData(sqlCon));
                     _tempDS.Tables[0].TableName = "Master";
+
                     _tempDS.Tables.Add(GetTools(sqlCon));
                     _tempDS.Tables[1].TableName = "TL";
+
                     _tempDS.Tables.Add(Component.GetComponentBomTable(sqlCon));
                     _tempDS.Tables[2].TableName = "BOM";
+
                     _tempDS.Tables.Add(Component.GetComponentPickTable(sqlCon));
                     _tempDS.Tables[3].TableName = "PL";
+
                     _tempDS.Tables.Add(GetNotes(sqlCon));
                     _tempDS.Tables[4].TableName = "WN";
+
                     _tempDS.Tables.Add(GetShopNotes(sqlCon));
                     _tempDS.Tables[5].TableName = "SN";
+
                     _tempDS.Tables.Add(site.Contains("WCCO") ? GetInstructions(sqlCon) : new DataTable());
                     _tempDS.Tables[6].TableName = "WI";
+
                     _tempDS.Tables.Add(Lot.GetOnHandTable(sqlCon));
                     _tempDS.Tables[7].TableName = "OH";
                     return _tempDS;
