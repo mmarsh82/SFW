@@ -69,8 +69,9 @@ namespace SFW.ShopRoute
         }
 
         public bool CanCheckHistory { get { return ShopOrder?.StartQty != ShopOrder?.CurrentQty; } }
-        public bool CanReport { get { return CurrentUser.IsLoggedIn && MachineGroup == "PRESS"; } }
+        public bool CanReport { get { return MachineGroup == "PRESS"; } }
         public bool CanSeeTrim { get { return MachineGroup == "PRESS"; } }
+        public bool CanWip { get; set; }
 
         public bool IsMultiLoading { get; set; }
 
@@ -97,6 +98,7 @@ namespace SFW.ShopRoute
         /// <param name="dSet">Schedule DataSet</param>
         public ViewModel(WorkOrder workOrder, DataSet dSet)
         {
+            CanWip = false;
             ShopOrder = workOrder;
             if (App.SiteNumber == 0)
             {
@@ -141,6 +143,8 @@ namespace SFW.ShopRoute
                             IsMultiLoading = false;
                             OnPropertyChanged(nameof(IsMultiLoading));
                             OnPropertyChanged(nameof(ShopOrder));
+                            CanWip = CurrentUser.CanWip;
+                            OnPropertyChanged(nameof(CanWip));
                         });
                     bw.RunWorkerAsync();
                 }
@@ -205,9 +209,12 @@ namespace SFW.ShopRoute
                 }
                 else
                 {
-                    if (!App.IsWindowOpen<Press_View>(new Press_ViewModel()))
+                    if (ShopOrder != null)
                     {
-                        new Press_View { DataContext = new Press_ViewModel(ShopOrder, _repType) }.Show();
+                        if (!App.IsWindowOpen<Press_View>(new Press_ViewModel(ShopOrder, _repType)))
+                        {
+                            new Press_View { DataContext = new Press_ViewModel(ShopOrder, _repType) }.Show();
+                        }
                     }
                 }
             }

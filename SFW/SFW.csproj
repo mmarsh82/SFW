@@ -30,8 +30,8 @@
     <PublisherName>Michael Marsh</PublisherName>
     <SuiteName>WCCO Belting Inc.</SuiteName>
     <AutorunEnabled>true</AutorunEnabled>
-    <ApplicationRevision>2359</ApplicationRevision>
-    <ApplicationVersion>1.0.332.2359</ApplicationVersion>
+    <ApplicationRevision>2376</ApplicationRevision>
+    <ApplicationVersion>1.0.334.2376</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <CreateDesktopShortcut>true</CreateDesktopShortcut>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -167,6 +167,10 @@
     </Compile>
     <Compile Include="Enumerations\PressReportActions.cs" />
     <Compile Include="ISplashScreen.cs" />
+    <Compile Include="Queries\Dedicate_View.xaml.cs">
+      <DependentUpon>Dedicate_View.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Queries\Dedicate_ViewModel.cs" />
     <Compile Include="Queries\PartLabel_View.xaml.cs">
       <DependentUpon>PartLabel_View.xaml</DependentUpon>
     </Compile>
@@ -291,6 +295,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="DynamicSplashScreen.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Queries\Dedicate_View.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

@@ -128,7 +128,7 @@ namespace SFW.Reports
                     ((PressShift_ViewModel)((PressShift_View)ShiftCollection[0].Content).DataContext).UpdateView(Report.ShiftReportList[0]);
                     break;
                 case "Delete Round":
-                    PressRound.Delete(int.Parse(Report.ShiftReportList[0].ReportID.ToString()), Report.ShiftReportList[0].RoundList.Last().RoundNumber, App.AppSqlCon);
+                    PressRound.Delete(int.Parse(Report.ShiftReportList[0].ReportID.ToString()), Report.ShiftReportList[0].RoundList.Last().RoundNumber, Report.ShiftReportList[0].RoundList.Last().RollNumber, App.AppSqlCon);
                     Report.ShiftReportList[0].RoundList = PressRound.GetRoundList(int.Parse(Report.ShiftReportList[0].ReportID.ToString()), App.AppSqlCon);
                     ((PressShift_ViewModel)((PressShift_View)ShiftCollection[0].Content).DataContext).UpdateView(Report.ShiftReportList[0]);
                     OnPropertyChanged(nameof(Report));

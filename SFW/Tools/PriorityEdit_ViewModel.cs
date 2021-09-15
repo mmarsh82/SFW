@@ -90,14 +90,7 @@ namespace SFW.Tools
             {
                 MessageBox.Show(_changeRequest, "ERP Record Error");
             }
-            var _wind = Application.Current.Windows;
-            foreach (var w in _wind)
-            {
-                if (((Window)w).Name == "Pri_Window")
-                {
-                    ((Window)w).Close();
-                }
-            }
+            App.CloseWindow<PriorityEdit_View>();
         }
         private bool PriorityChangeCanExecute(object parameter)
         {

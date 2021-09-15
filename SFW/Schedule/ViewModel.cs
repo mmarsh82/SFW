@@ -4,6 +4,7 @@ using SFW.Converters;
 using SFW.Helpers;
 using SFW.Model;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Linq;
@@ -51,6 +52,7 @@ namespace SFW.Schedule
                 { }
             }
         }
+        private object _oldSelectedWO;
 
         private bool _isLoading;
         public bool IsLoading
@@ -127,6 +129,7 @@ namespace SFW.Schedule
                 {
                     _filterStr += string.IsNullOrEmpty(_filterStr) ? $"({s})" : $" AND ({s})";
                 }
+                var _tempList = new List<DataView>();
                 ((DataView)ScheduleView.SourceCollection).RowFilter = _filterStr;
                 ScheduleView.Refresh();
             }
@@ -167,8 +170,6 @@ namespace SFW.Schedule
             IsLoading = true;
             Schedule = Machine.ScheduleDataSet(UserConfig.GetIROD(), App.Site, App.AppSqlCon);
             ScheduleView = CollectionViewSource.GetDefaultView(Schedule.Tables["Master"]);
-            ScheduleView.SortDescriptions.Add(new SortDescription("MachineOrder", ListSortDirection.Ascending));
-            ScheduleView.GroupDescriptions.Add(new PropertyGroupDescription("MachineNumber", new WorkCenterNameConverter(MainWindowViewModel.MachineList)));
             if (!string.IsNullOrEmpty(filter))
             {
                 ((DataView)ScheduleView.SourceCollection).RowFilter = filter;
@@ -178,7 +179,28 @@ namespace SFW.Schedule
         }
         public void ViewLoaded(IAsyncResult r)
         {
-            IsLoading = false;
+            ScheduleView.SortDescriptions.Add(new SortDescription("MachineOrder", ListSortDirection.Ascending));
+            ScheduleView.GroupDescriptions.Add(new PropertyGroupDescription("MachineNumber", new WorkCenterNameConverter(MainWindowViewModel.MachineList)));
+            if (_oldSelectedWO != null)
+            {
+                if (((DataView)ScheduleView.SourceCollection).Table.AsEnumerable().Any(row => row.Field<string>("WO_Number") == ((DataRowView)_oldSelectedWO).Row.Field<string>("WO_Number")))
+                {
+                    var _index = ScheduleView.IndexOf(_oldSelectedWO, "Wo_Number");
+                    ScheduleView.MoveCurrentToPosition(_index);
+                    SelectedWorkOrder = (DataRowView)_oldSelectedWO;
+                }
+                else
+                {
+                    ScheduleView.MoveCurrentToPosition(-1);
+                    SelectedWorkOrder = null;
+                }
+            }
+            if (!string.IsNullOrEmpty(SearchFilter))
+            {
+                SearchFilter = SearchFilter;
+            }
+            RefreshTimer.IsRefreshing = IsLoading = false;
+            MainWindowViewModel.DisplayAction = false;
             ScheduleView.Refresh();
         }
 
@@ -193,48 +215,11 @@ namespace SFW.Schedule
             {
                 if (!IsLoading)
                 {
-                    var _oldItem = CurrentUser.IsLoggedIn ? ScheduleView.CurrentItem : null;
-                    var _oldFilter = ((DataView)ScheduleView.SourceCollection).RowFilter;
                     RefreshTimer.IsRefreshing = IsLoading = true;
                     MainWindowViewModel.DisplayAction = App.LoadedModule == Enumerations.UsersControls.Schedule;
+                    _oldSelectedWO = ScheduleView.CurrentItem;
                     SelectedWorkOrder = null;
-                    using (BackgroundWorker bw = new BackgroundWorker())
-                    {
-                        try
-                        {
-                            bw.DoWork += new DoWorkEventHandler(
-                                delegate (object sender, DoWorkEventArgs e)
-                                {
-                                    Schedule = Machine.ScheduleDataSet(UserConfig.GetIROD(), App.Site, App.AppSqlCon);
-                                    ScheduleView = CollectionViewSource.GetDefaultView(Schedule.Tables["Master"]);
-                                    ScheduleView.GroupDescriptions.Add(new PropertyGroupDescription("MachineNumber", new WorkCenterNameConverter(MainWindowViewModel.MachineList)));
-                                    RefreshTimer.IsRefreshing = IsLoading = false;
-                                    MainWindowViewModel.DisplayAction = false;
-                                    if (_oldItem != null && ((DataView)ScheduleView.SourceCollection).Table.AsEnumerable().Any(r => r.Field<string>("WO_Number") == ((DataRowView)_oldItem).Row.Field<string>("WO_Number")))
-                                    {
-                                        var _index = ScheduleView.IndexOf(_oldItem, "Wo_Number");
-                                        ScheduleView.MoveCurrentToPosition(_index);
-                                    }
-                                    else
-                                    {
-                                        ScheduleView.MoveCurrentToPosition(-1);
-                                        SelectedWorkOrder = null;
-                                    }
-                                    ((DataView)ScheduleView.SourceCollection).RowFilter = _oldFilter;
-                                    ScheduleView.SortDescriptions.Add(new SortDescription("MachineOrder", ListSortDirection.Ascending));
-                                    StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(ScheduleView)));
-                                    if (!string.IsNullOrEmpty(SearchFilter))
-                                    {
-                                        SearchFilter = SearchFilter;
-                                    }
-                                });
-                            bw.RunWorkerAsync();
-                        }
-                        catch (Exception)
-                        {
-
-                        }
-                    }
+                    LoadAsyncComplete = LoadAsyncDelegate.BeginInvoke(((DataView)ScheduleView.SourceCollection).RowFilter, new AsyncCallback(ViewLoaded), null);
                 }
             }
             catch (Exception ex)

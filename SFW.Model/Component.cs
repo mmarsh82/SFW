@@ -228,7 +228,7 @@ namespace SFW.Model
                     ,InventoryType = _row.Field<string>("Inventory_Type")
                     ,IsLotTrace = _row.Field<string>("Lot_Trace") == "T"
                     ,BackflushLoc = _row.Field<string>("Backflush")
-                    ,LotList = Lot.DataRowToLotList(dataSet.Tables["OH"].Select($"[ID] = '{_row.Field<string>("Component")}'"), "Lot")
+                    ,LotList = Lot.DataRowToLotList(dataSet.Tables["OH"].Select($"[ID] = '{_row.Field<string>("Component")}' AND [WO] = ''"), "Lot")
                     ,DedicatedLotList = Lot.DataRowToLotList(dataSet.Tables["OH"].Select($"[ID] = '{_row.Field<string>("Component")}' AND [WO] = '{woNbr}'"), "Dedicate")
                     ,WipInfo = new BindingList<CompWipInfo>()
                 });

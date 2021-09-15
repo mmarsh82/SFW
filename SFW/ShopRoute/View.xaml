@@ -72,7 +72,7 @@
                     <Button Content="Wip Receipt"
                             FontSize="16"
                             Width="110"
-                            IsEnabled="{Binding CanWip, Source={StaticResource User}}"
+                            IsEnabled="{Binding CanWip}"
                             Command="{StaticResource WipCommand}"
                             CommandParameter="{Binding ShopOrder}"
                             Visibility="{Binding CanWip, Source={StaticResource User}, Converter={StaticResource BoolToVisConverter}}"
@@ -132,6 +132,14 @@
                             Visibility="{Binding CanReport, Converter={StaticResource BoolToVisConverter}}"
                             Command="{Binding ReportICommand}"
                             CommandParameter="2"
+                            Style="{DynamicResource MenuButtonStyle}" />
+
+                    <Button Content="Dedicate"
+                            FontSize="16"
+                            Width="110"
+                            Visibility="{Binding Path=(main:CurrentUser.CanSchedule), Converter={StaticResource BoolToVisConverter}}"
+                            Command=""
+                            CommandParameter=""
                             Style="{DynamicResource MenuButtonStyle}" />
 
                 </StackPanel>

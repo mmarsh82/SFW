@@ -107,6 +107,7 @@
                   IsReadOnly="True"
                   SelectionMode="Single"
                   VirtualizingPanel.IsVirtualizingWhenGrouping="True"
+                  IsSynchronizedWithCurrentItem="True"
                   ScrollViewer.CanContentScroll="True"
                   Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}">
 

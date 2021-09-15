@@ -210,6 +210,7 @@ namespace SFW.WIP
         /// </summary>
         public ViewModel(WorkOrder woObject)
         {
+            RefreshTimer.Stop();
             WipRecord = new WipReceipt(CurrentUser.UserIDNbr, CurrentUser.FirstName, CurrentUser.LastName, woObject, App.AppSqlCon);
             if (ScrapReasonCollection == null)
             {
@@ -222,7 +223,7 @@ namespace SFW.WIP
                 ScrapReasonCollection = new ObservableCollection<string>(_descList);
             }
             _lotList = new List<string>();
-            foreach (var c in WipRecord.WipWorkOrder.Picklist.Where(o => o.IsLotTrace))
+            foreach (var c in WipRecord.WipWorkOrder.Picklist?.Where(o => o.IsLotTrace))
             {
                 c.WipInfo[0].ScrapList.ListChanged += ScrapList_ListChanged;
             }
@@ -747,13 +748,10 @@ namespace SFW.WIP
         {
             if (disposing)
             {
-                if (IsSubmitted)
-                {
-                    new ViewLoad().Execute(-2);
-                }
                 WipRecord = null;
                 _wip = null;
                 _lotList = null;
+                RefreshTimer.Start();
             }
         }
     }

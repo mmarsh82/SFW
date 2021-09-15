@@ -357,8 +357,9 @@ namespace SFW.Model
         /// </summary>
         ///<param name="reportID">Report ID</param>
         ///<param name="roundNbr">Round Number</param>
+        ///<param name="rollNbr">Roll Number</param>
         /// <param name="sqlCon">Sql Connection to use</param>
-        public static void Delete(int reportID, int roundNbr, SqlConnection sqlCon)
+        public static void Delete(int reportID, int roundNbr, int rollNbr, SqlConnection sqlCon)
         {
             if (sqlCon != null || sqlCon.State != ConnectionState.Closed || sqlCon.State != ConnectionState.Broken)
             {
@@ -366,10 +367,11 @@ namespace SFW.Model
                 {
                     //SQL Query to delete the row that matches the report id and round number
                     using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database};
-                                                                DELETE FROM [dbo].[PRM-CSTM_Round] WHERE [ReportID] = @p1 AND [RoundNbr] = @p2", sqlCon))
+                                                                DELETE FROM [dbo].[PRM-CSTM_Round] WHERE [ReportID] = @p1 AND [RoundNbr] = @p2 AND [RollNbr] = @p3", sqlCon))
                     {
                         cmd.Parameters.AddWithValue("p1", reportID);
                         cmd.Parameters.AddWithValue("p2", roundNbr);
+                        cmd.Parameters.AddWithValue("p3", rollNbr);
                         cmd.ExecuteNonQuery();
                     }
                 }

@@ -12,12 +12,12 @@ namespace SFW
 
         public static DispatcherTimer RefreshDispatchTimer { get; private set; }
         public static Action RefreshActionGroup { get; set; }
+        public static TimeSpan RefreshTimeSpan { get; set; }
 
         public static bool isRefresh;
         public static bool IsRefreshing
         {
-            get
-            { return isRefresh; }
+            get => isRefresh;
             set
             {
                 isRefresh = value;
@@ -29,10 +29,9 @@ namespace SFW
         public static string lastRefresh;
         public static string LastRefresh
         {
-            get
-            { return lastRefresh; }
+            get => lastRefresh;
             set
-            { 
+            {
                 lastRefresh = string.IsNullOrEmpty(value) ? DateTime.Now.ToString("MM-dd-yyyy HH:mm tt") : value;
                 StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(LastRefresh)));
             }
@@ -51,6 +50,21 @@ namespace SFW
         /// <summary>
         /// Intialization and start call for the refresh timer
         /// </summary>
+        public static void Start()
+        {
+            if (RefreshTimeSpan != null)
+            {
+                IsRefreshing = false;
+                RefreshDispatchTimer = new DispatcherTimer();
+                RefreshDispatchTimer.Tick += new EventHandler(RefreshTimerTick);
+                RefreshDispatchTimer.Interval = RefreshTimeSpan;
+                RefreshDispatchTimer.Start();
+            }
+        }
+
+        /// <summary>
+        /// Intialization and start call for the refresh timer
+        /// </summary>
         /// <param name="timeSpan">Time increment to use for data refresh</param>
         public static void Start(TimeSpan increment)
         {
@@ -59,6 +73,25 @@ namespace SFW
             RefreshDispatchTimer.Tick += new EventHandler(RefreshTimerTick);
             RefreshDispatchTimer.Interval = increment;
             RefreshDispatchTimer.Start();
+            RefreshTimeSpan = increment;
+        }
+
+        /// <summary>
+        /// Stops the internal dispatch timer object
+        /// </summary>
+        public static void Stop()
+        {
+            IsRefreshing = false;
+            RefreshDispatchTimer.Stop();
+        }
+
+        /// <summary>
+        /// Resets the internal dispatch timer object
+        /// </summary>
+        public static void Reset()
+        {
+            Stop();
+            Start();
         }
 
         /// <summary>

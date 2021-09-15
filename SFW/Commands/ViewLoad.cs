@@ -76,6 +76,7 @@ namespace SFW.Commands
                         if (!RefreshTimer.IsRefreshing)
                         {
                             RefreshTimer.RefreshTimerTick();
+                            RefreshTimer.Reset();
                         }
                         else
                         {
