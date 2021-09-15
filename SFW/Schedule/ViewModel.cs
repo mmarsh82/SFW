@@ -169,17 +169,18 @@ namespace SFW.Schedule
         {
             IsLoading = true;
             Schedule = Machine.ScheduleDataSet(UserConfig.GetIROD(), App.Site, App.AppSqlCon);
-            ScheduleView = CollectionViewSource.GetDefaultView(Schedule.Tables["Master"]);
-            if (!string.IsNullOrEmpty(filter))
-            {
-                ((DataView)ScheduleView.SourceCollection).RowFilter = filter;
-            }
-            ScheduleFilter(UserConfig.BuildMachineFilter(), 1);
-            ScheduleFilter(UserConfig.BuildPriorityFilter(), 3);
         }
+
         public void ViewLoaded(IAsyncResult r)
         {
-            ScheduleView.SortDescriptions.Add(new SortDescription("MachineOrder", ListSortDirection.Ascending));
+            var _oldfilter = string.Empty;
+            if (ScheduleView != null && CurrentUser.IsLoggedIn)
+            {
+                _oldfilter = ((DataView)ScheduleView.SourceCollection).RowFilter;
+            }
+            ScheduleView = CollectionViewSource.GetDefaultView(Schedule.Tables["Master"]);
+            ScheduleFilter(UserConfig.BuildMachineFilter(), 1);
+            ScheduleFilter(UserConfig.BuildPriorityFilter(), 3);
             ScheduleView.GroupDescriptions.Add(new PropertyGroupDescription("MachineNumber", new WorkCenterNameConverter(MainWindowViewModel.MachineList)));
             if (_oldSelectedWO != null)
             {
@@ -195,13 +196,18 @@ namespace SFW.Schedule
                     SelectedWorkOrder = null;
                 }
             }
+            if (!string.IsNullOrEmpty(_oldfilter))
+            {
+                ((DataView)ScheduleView.SourceCollection).RowFilter = _oldfilter;
+            }
             if (!string.IsNullOrEmpty(SearchFilter))
             {
                 SearchFilter = SearchFilter;
             }
             RefreshTimer.IsRefreshing = IsLoading = false;
             MainWindowViewModel.DisplayAction = false;
-            ScheduleView.Refresh();
+            ((DataView)ScheduleView.SourceCollection).Sort = "MachineOrder asc";
+            StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(ScheduleView)));
         }
 
         #endregion

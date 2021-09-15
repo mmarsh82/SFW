@@ -211,9 +211,18 @@ namespace SFW.ShopRoute
                 {
                     if (ShopOrder != null)
                     {
-                        if (!App.IsWindowOpen<Press_View>(new Press_ViewModel(ShopOrder, _repType)))
+                        if (!App.IsWindowOpen<Press_View>(new Press_ViewModel()))
                         {
                             new Press_View { DataContext = new Press_ViewModel(ShopOrder, _repType) }.Show();
+                        }
+                        else
+                        {
+                            var _win = App.GetWindow<Press_View>();
+                            if (_win != null)
+                            {
+                                _win.DataContext = new Press_ViewModel(ShopOrder, _repType);
+                                _win.Focus();
+                            }
                         }
                     }
                 }

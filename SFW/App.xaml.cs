@@ -537,5 +537,22 @@ namespace SFW
             }
             return false;
         }
+
+        /// <summary>
+        /// Get an open window in the application
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public static Window GetWindow<T>()
+        {
+            foreach (Window w in Current.Windows)
+            {
+                if (w.GetType() == typeof(T))
+                {
+                    return w;
+                }
+            }
+            return null;
+        }
     }
 }
