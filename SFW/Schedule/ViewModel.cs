@@ -173,6 +173,8 @@ namespace SFW.Schedule
 
         public void ViewLoaded(IAsyncResult r)
         {
+            RefreshTimer.IsRefreshing = IsLoading = false;
+            MainWindowViewModel.DisplayAction = false;
             var _oldfilter = string.Empty;
             if (ScheduleView != null && CurrentUser.IsLoggedIn)
             {
@@ -204,8 +206,6 @@ namespace SFW.Schedule
             {
                 SearchFilter = SearchFilter;
             }
-            RefreshTimer.IsRefreshing = IsLoading = false;
-            MainWindowViewModel.DisplayAction = false;
             ((DataView)ScheduleView.SourceCollection).Sort = "MachineOrder asc";
             StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(ScheduleView)));
         }

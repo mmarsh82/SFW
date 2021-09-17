@@ -336,7 +336,7 @@ namespace SFW.Model
 	                                                                            ,ISNULL(c.[Ar_Credit_Limit] - (c.[Balance] + c.[Ship_Bal] + c.[Alloc_Bal]), 0.00) as 'AR_Credit'
 	                                                                            ,a.[Order_Bal_Ext_Price] as 'AR_OrdBal'
                                                                                 ,CASE WHEN d.[Wp_Nbr] IS NOT NULL THEN 1 ELSE 0 END as 'IsWOLinked'
-                                                                                ,CASE WHEN CAST(b.[Ln_Bal_Qty] as int) <= (SELECT ab.[Qty_On_Hand] FROM [dbo].[IPL-INIT] ab WHERE ab.[Part_Nbr] = b.[Part_Wo_Gl]) AND CAST(a.[Commit_Ship_Date] as date) >= CAST(GETDATE() as date)
+                                                                                ,CASE WHEN CAST(b.[Ln_Bal_Qty] as int) <= (SELECT ab.[Qty_On_Hand] FROM [dbo].[IPL-INIT] ab WHERE ab.[Part_Nbr] = b.[Part_Wo_Gl]) OR CAST(a.[Commit_Ship_Date] as date) >= CAST(GETDATE() as date)
 		                                                                            THEN 1
 		                                                                            ELSE 0
 	                                                                            END as 'CanShip'
@@ -450,6 +450,11 @@ namespace SFW.Model
 	                                                                ,a.[Ln_Bal_Qty] as 'BalQty'
 	                                                                ,a.[Ln_Del_Qty] as 'BaseQty'
 	                                                                ,a.[Um_Base] as 'Uom'
+                                                                    ,CASE WHEN CAST(ISNULL((SELECT SUM(aa.[Oh_Qty_By_Loc]) FROM [dbo].[IPL-INIT_Location_Data] aa WHERE aa.[ID1] = a.[Part_Wo_Gl] 
+		                                                                AND (RIGHT(aa.[Location],1) <> 'N' OR RIGHT(aa.[Location],1) <> 'S')),0)as int) > CAST(a.[Ln_Bal_Qty] as int)
+		                                                                THEN 0
+		                                                                ELSE 1
+	                                                                END as 'IsBackOrder'
                                                                 FROM [dbo].[SOD-INIT] a
                                                                 WHERE a.[ID] LIKE CONCAT(@p1, '*%')", sqlCon))
                         {
@@ -471,6 +476,7 @@ namespace SFW.Model
                                         ,PartNumber = reader.SafeGetString("PartNbr")
                                         ,LineBaseQuantity = reader.SafeGetInt32("BaseQty")
                                         ,LineNotes = reader.SafeGetString("Uom")
+                                        ,IsStagged = reader.SafeGetInt32("IsBackOrder") == 1
                                     });
                                 }
                             }

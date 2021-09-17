@@ -419,6 +419,12 @@
                                                FontWeight="Bold"
                                                Margin="5,0,0,0" />
 
+                                    <TextBlock Text="Out Of Stock"
+                                               Foreground="Crimson"
+                                               FontWeight="Bold"
+                                               Visibility="{Binding IsStagged, Converter={StaticResource BoolToVisConverter}}"
+                                               Margin="15,0,0,0" />
+
                                 </StackPanel>
                             </StackPanel>
                         </DataTemplate>
