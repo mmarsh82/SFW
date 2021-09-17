@@ -171,7 +171,7 @@ namespace SFW
             if (CurrentUser.BasicUser)
             {
                 Schedule.ViewModel.ScheduleFilter(UserConfig.BuildMachineFilter(), 1);
-                Schedule.ViewModel.ScheduleFilter(UserConfig.BuildMachineFilter(), 3);
+                Schedule.ViewModel.ScheduleFilter(UserConfig.BuildPriorityFilter(), 3);
                 Schedule.Closed.ViewModel.ScheduleFilter(UserConfig.BuildMachineFilter(), 1);
                 Schedule.Closed.ViewModel.ScheduleFilter(UserConfig.BuildPriorityFilter(), 3);
                 CanFilter = !App.IsFocused;

@@ -120,6 +120,7 @@ namespace SFW.Reports
                 case "Update":
                     PressReport.Update(Report, App.AppSqlCon);
                     Report.ShiftReportList[0].RoundList.Select(o => { o.HasChanges = false; return o; }).ToList();
+                    Report.HasChanges = false;
                     break;
                 case "Log Round":
                     PressRound.Submit(Report, Report.ShiftReportList[0], App.AppSqlCon);
@@ -146,7 +147,7 @@ namespace SFW.Reports
                     case "Submit":
                         return Report.SlatTransfer > 0 && Report.RollLength > 0 && (Report.SlatBlankout >= 0 || !IsBlankVis) && !string.IsNullOrEmpty(Shift);
                     case "Update":
-                        return Report.ShiftReportList[0].RoundList.Count(o => o.HasChanges) > 0;
+                        return Report.ShiftReportList[0].RoundList.Count(o => o.HasChanges) > 0 || Report.HasChanges;
                     case "Log Round":
                         return true;
                     case "Delete Round":

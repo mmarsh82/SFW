@@ -13,7 +13,18 @@ namespace SFW.Model
         /// Number of slats transfered per round
         /// Used in the round qty completed calculation along with a direct tie to the roll length for cut points
         /// </summary>
-        public int? SlatTransfer { get; set; }
+        private int? _slatTran;
+        public int? SlatTransfer 
+        {
+            get => _slatTran;
+            set
+            {
+                HasChanges = value != null && _slatTran != null && _slatTran != value;
+                OnPropertyChanged(nameof(HasChanges));
+                _slatTran = value;
+                OnPropertyChanged(nameof(SlatTransfer));
+            }
+        }
 
         /// <summary>
         /// Number of slats blanked out per piece
@@ -30,7 +41,18 @@ namespace SFW.Model
         /// <summary>
         /// Length of the rolls that production is creating on this report
         /// </summary>
-        public int? RollLength { get; set; }
+        private int? _rollLng;
+        public int? RollLength 
+        {
+            get => _rollLng;
+            set
+           {
+                HasChanges = value != null && _rollLng != null && _rollLng != value;
+                OnPropertyChanged(nameof(HasChanges));
+                _rollLng = value;
+                OnPropertyChanged(nameof(RollLength));
+            }
+        }
 
         /// <summary>
         /// List of shift reports
@@ -47,6 +69,11 @@ namespace SFW.Model
         /// Tells the object interface whether or not the report is a new report or an existing report
         /// </summary>
         public bool IsNew { get; set; }
+
+        /// <summary>
+        /// Flag for when the object contains changes that have not been commited
+        /// </summary>
+        public bool HasChanges { get; set; }
 
         #endregion
 

@@ -108,8 +108,15 @@ namespace SFW.Helpers
                             }
                             if (_cellValue == partNbr)
                             {
+                                var _counter = 1;
                                 foreach (var o in r.Descendants<Cell>())
                                 {
+                                    var _colAsInt = Convert.ToChar(o.CellReference.ToString().Substring(0, 1)) % 32;
+                                    while (_counter != _colAsInt)
+                                    {
+                                        _returnList.Add(string.Empty);
+                                        _counter++;
+                                    }
                                     if (o.DataType != null && o.DataType.Value == CellValues.SharedString)
                                     {
                                         _returnList.Add(stringTable.SharedStringTable.ElementAt(int.Parse(o.InnerText)).InnerText);
@@ -118,6 +125,7 @@ namespace SFW.Helpers
                                     {
                                         _returnList.Add(o.InnerText);
                                     }
+                                    _counter++;
                                 }
                                 return _returnList;
                             }

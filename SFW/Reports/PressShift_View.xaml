@@ -153,14 +153,14 @@
                 <!--#region Data-->
 
                 <ItemsControl Grid.Row="1" Grid.Column="0"
-                          Name="RoundNumbers"
-                          ItemsSource="{Binding PSReport.RoundList, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                          Background="Transparent"
-                          HorizontalAlignment="Stretch"
-                          VerticalAlignment="Stretch"
-                          AlternationCount="2"
-                          Foreground="Black"
-                          Focusable="False">
+                              Name="RoundNumbers"
+                              ItemsSource="{Binding PSReport.RoundList, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                              Background="Transparent"
+                              HorizontalAlignment="Stretch"
+                              VerticalAlignment="Stretch"
+                              AlternationCount="2"
+                              Foreground="Black"
+                              Focusable="False">
 
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
@@ -175,9 +175,9 @@
                             <Grid x:Name="DTGrid">
 
                                 <TextBlock HorizontalAlignment="Center"
-                                       VerticalAlignment="Center"
-                                       Text="{Binding RoundNumber}"
-                                       FontSize="16"/>
+                                           VerticalAlignment="Center"
+                                           Text="{Binding RoundNumber}"
+                                           FontSize="16"/>
 
                             </Grid>
 
@@ -196,14 +196,14 @@
                 </ItemsControl>
 
                 <ItemsControl Grid.Row="1" Grid.Column="1"
-                          Name="RoundTimes"
-                          ItemsSource="{Binding PSReport.RoundList, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                          Background="Transparent"
-                          HorizontalAlignment="Stretch"
-                          VerticalAlignment="Stretch"
-                          AlternationCount="2"
-                          Foreground="Black"
-                          Focusable="False">
+                              Name="RoundTimes"
+                              ItemsSource="{Binding PSReport.RoundList, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                              Background="Transparent"
+                              HorizontalAlignment="Stretch"
+                              VerticalAlignment="Stretch"
+                              AlternationCount="2"
+                              Foreground="Black"
+                              Focusable="False">
 
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
@@ -218,9 +218,9 @@
                             <Grid x:Name="DTGrid">
 
                                 <TextBlock HorizontalAlignment="Center"
-                                       VerticalAlignment="Center"
-                                       Text="{Binding RoundTime}"
-                                       FontSize="16"/>
+                                           VerticalAlignment="Center"
+                                           Text="{Binding RoundTime}"
+                                           FontSize="16"/>
 
                             </Grid>
 
@@ -239,15 +239,15 @@
                 </ItemsControl>
 
                 <ItemsControl Grid.Row="1" Grid.Column="2"
-                          Name="RoundQuantities"
-                          ItemsSource="{Binding PSReport.RoundList, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                          Background="Transparent"
-                          HorizontalAlignment="Stretch"
-                          VerticalAlignment="Stretch"
-                          AlternationCount="2"
-                          Foreground="Black"
-                          Focusable="False"
-                          Visibility="{Binding Path=(local:CurrentUser.IsSupervisor), Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}">
+                              Name="RoundQuantities"
+                              ItemsSource="{Binding PSReport.RoundList, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                              Background="Transparent"
+                              HorizontalAlignment="Stretch"
+                              VerticalAlignment="Stretch"
+                              AlternationCount="2"
+                              Foreground="Black"
+                              Focusable="False"
+                              Visibility="{Binding Path=(local:CurrentUser.IsSupervisor), Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}">
 
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
@@ -262,9 +262,9 @@
                             <Grid x:Name="DTGrid">
 
                                 <TextBlock HorizontalAlignment="Center"
-                                       VerticalAlignment="Center"
-                                       Text="{Binding Quantity}"
-                                       FontSize="16"/>
+                                           VerticalAlignment="Center"
+                                           Text="{Binding Quantity}"
+                                           FontSize="16"/>
 
                             </Grid>
 
@@ -283,15 +283,15 @@
                 </ItemsControl>
 
                 <ItemsControl Grid.Row="1" Grid.Column="2"
-                          Name="RoundQuantities_Edit"
-                          ItemsSource="{Binding PSReport.RoundList, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                          Background="Transparent"
-                          HorizontalAlignment="Stretch"
-                          VerticalAlignment="Stretch"
-                          AlternationCount="2"
-                          Foreground="Black"
-                          Focusable="False"
-                          Visibility="{Binding Path=(local:CurrentUser.IsSupervisor), Converter={StaticResource BoolToVisConverter}}">
+                              Name="RoundQuantities_Edit"
+                              ItemsSource="{Binding PSReport.RoundList, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                              Background="Transparent"
+                              HorizontalAlignment="Stretch"
+                              VerticalAlignment="Stretch"
+                              AlternationCount="2"
+                              Foreground="Black"
+                              Focusable="False"
+                              Visibility="{Binding Path=(local:CurrentUser.IsSupervisor), Converter={StaticResource BoolToVisConverter}}">
 
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
@@ -304,14 +304,14 @@
                         <DataTemplate>
 
                             <TextBox x:Name="DTText"
-                                 HorizontalAlignment="Stretch"
-                                 VerticalAlignment="Center"
-                                 HorizontalContentAlignment="Center"
-                                 MinWidth="100"
-                                 MaxLength="4"
-                                 Text="{Binding Quantity}"
-                                 FontSize="16"
-                                 BorderThickness="0"/>
+                                     HorizontalAlignment="Stretch"
+                                     VerticalAlignment="Center"
+                                     HorizontalContentAlignment="Center"
+                                     MinWidth="100"
+                                     MaxLength="4"
+                                     Text="{Binding Quantity, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                     FontSize="16"
+                                     BorderThickness="0"/>
 
                             <DataTemplate.Triggers>
                                 <Trigger Property="ItemsControl.AlternationIndex" Value="0">
@@ -328,14 +328,14 @@
                 </ItemsControl>
 
                 <ItemsControl Grid.Row="1" Grid.Column="3"
-                          Name="RoundPieces"
-                          ItemsSource="{Binding PSReport.RoundList, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                          Background="Transparent"
-                          HorizontalAlignment="Stretch"
-                          VerticalAlignment="Stretch"
-                          AlternationCount="2"
-                          Foreground="Black"
-                          Focusable="False">
+                              Name="RoundPieces"
+                              ItemsSource="{Binding PSReport.RoundList, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                              Background="Transparent"
+                              HorizontalAlignment="Stretch"
+                              VerticalAlignment="Stretch"
+                              AlternationCount="2"
+                              Foreground="Black"
+                              Focusable="False">
 
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
@@ -350,9 +350,9 @@
                             <Grid x:Name="DTGrid">
 
                                 <TextBlock HorizontalAlignment="Center"
-                                       VerticalAlignment="Center"
-                                       Text="{Binding Pieces}"
-                                       FontSize="16"/>
+                                           VerticalAlignment="Center"
+                                           Text="{Binding Pieces}"
+                                           FontSize="16"/>
 
                             </Grid>
 
@@ -371,14 +371,14 @@
                 </ItemsControl>
 
                 <ItemsControl Grid.Row="1" Grid.Column="4"
-                          Name="RoundNotes"
-                          ItemsSource="{Binding PSReport.RoundList, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                          Background="Transparent"
-                          HorizontalAlignment="Stretch"
-                          VerticalAlignment="Stretch"
-                          AlternationCount="2"
-                          Foreground="Black"
-                          Focusable="False">
+                              Name="RoundNotes"
+                              ItemsSource="{Binding PSReport.RoundList, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                              Background="Transparent"
+                              HorizontalAlignment="Stretch"
+                              VerticalAlignment="Stretch"
+                              AlternationCount="2"
+                              Foreground="Black"
+                              Focusable="False">
 
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
@@ -391,13 +391,13 @@
                         <DataTemplate>
 
                             <TextBox x:Name="DTText"
-                                 HorizontalAlignment="Stretch"
-                                 VerticalAlignment="Center"
-                                 HorizontalContentAlignment="Center"
-                                 MinWidth="100"
-                                 Text="{Binding Notes}"
-                                 FontSize="16"
-                                 BorderThickness="0"/>
+                                     HorizontalAlignment="Stretch"
+                                     VerticalAlignment="Center"
+                                     HorizontalContentAlignment="Center"
+                                     MinWidth="100"
+                                     Text="{Binding Notes, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                     FontSize="16"
+                                     BorderThickness="0"/>
 
                             <DataTemplate.Triggers>
                                 <Trigger Property="ItemsControl.AlternationIndex" Value="0">
@@ -414,14 +414,14 @@
                 </ItemsControl>
 
                 <ItemsControl Grid.Row="1" Grid.Column="5"
-                          Name="RoundRolls"
-                          ItemsSource="{Binding PSReport.RoundList, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                          Background="Transparent"
-                          HorizontalAlignment="Stretch"
-                          VerticalAlignment="Stretch"
-                          AlternationCount="2"
-                          Foreground="Black"
-                          Focusable="False">
+                              Name="RoundRolls"
+                              ItemsSource="{Binding PSReport.RoundList, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                              Background="Transparent"
+                              HorizontalAlignment="Stretch"
+                              VerticalAlignment="Stretch"
+                              AlternationCount="2"
+                              Foreground="Black"
+                              Focusable="False">
 
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
@@ -436,9 +436,9 @@
                             <Grid x:Name="DTGrid">
 
                                 <TextBlock HorizontalAlignment="Center"
-                                       VerticalAlignment="Center"
-                                       Text="{Binding RollNumber}"
-                                       FontSize="16"/>
+                                           VerticalAlignment="Center"
+                                           Text="{Binding RollNumber}"
+                                           FontSize="16"/>
 
                             </Grid>
 
@@ -457,14 +457,14 @@
                 </ItemsControl>
 
                 <ItemsControl Grid.Row="1" Grid.Column="6"
-                          Name="RoundFlags"
-                          ItemsSource="{Binding PSReport.RoundList, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                          Background="Transparent"
-                          HorizontalAlignment="Stretch"
-                          VerticalAlignment="Stretch"
-                          AlternationCount="2"
-                          Foreground="Black"
-                          Focusable="False">
+                              Name="RoundFlags"
+                              ItemsSource="{Binding PSReport.RoundList, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                              Background="Transparent"
+                              HorizontalAlignment="Stretch"
+                              VerticalAlignment="Stretch"
+                              AlternationCount="2"
+                              Foreground="Black"
+                              Focusable="False">
 
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
@@ -477,13 +477,13 @@
                         <DataTemplate>
 
                             <TextBox x:Name="DTText"
-                                 HorizontalAlignment="Stretch"
-                                 VerticalAlignment="Center"
-                                 HorizontalContentAlignment="Center"
-                                 MinWidth="100"
-                                 Text="{Binding QualityFlag}"
-                                 FontSize="16"
-                                 BorderThickness="0"/>
+                                     HorizontalAlignment="Stretch"
+                                     VerticalAlignment="Center"
+                                     HorizontalContentAlignment="Center"
+                                     MinWidth="100"
+                                     Text="{Binding QualityFlag, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                     FontSize="16"
+                                     BorderThickness="0"/>
 
                             <DataTemplate.Triggers>
                                 <Trigger Property="ItemsControl.AlternationIndex" Value="0">

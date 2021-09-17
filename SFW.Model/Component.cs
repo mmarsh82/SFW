@@ -237,7 +237,7 @@ namespace SFW.Model
                         new CompWipInfo(!string.IsNullOrEmpty(_tempList[_tempList.Count - 1].BackflushLoc), _tempList[_tempList.Count - 1].CompNumber, _tempList[_tempList.Count - 1].CompUom)
                     );
                 _tempList[_tempList.Count - 1].WipInfo.ListChanged += WipInfo_ListChanged;
-                _tempList[_tempList.Count - 1].NonLotList = _tempList[_tempList.Count - 1].LotList.Count == 0 && !string.IsNullOrEmpty(_row.SafeGetField<string>("ID"))
+                _tempList[_tempList.Count - 1].NonLotList = _tempList[_tempList.Count - 1].LotList.Count == 0 && !string.IsNullOrEmpty(_row.SafeGetField<string>("ID")) && _row.Field<string>("Lot_Trace") != "T"
                     ? Lot.DataRowToLotList(dataSet.Tables["OH"].Select($"[ID] = '{_row.Field<string>("Component")}'"), "NonLot")
                     : new List<Lot>();
             }
