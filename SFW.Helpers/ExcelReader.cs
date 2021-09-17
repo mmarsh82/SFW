@@ -127,6 +127,10 @@ namespace SFW.Helpers
                                     }
                                     _counter++;
                                 }
+                                while (_returnList.Count < 13)
+                                {
+                                    _returnList.Add(string.Empty);
+                                }
                                 return _returnList;
                             }
                             break;
