@@ -138,7 +138,7 @@ namespace SFW.ShopRoute
                         {
                             ShopOrder.ToolList = dSet.Tables["TL"].Select($"[ID] = '{ShopOrder.SkuNumber}*{ShopOrder.Seq}'").Select(o => o[1].ToString()).ToList();
                             ShopOrder.Bom = Model.Component.GetComponentBomList(dSet.Tables["BOM"].Select($"[ID] LIKE '{ShopOrder.SkuNumber}-%' AND ([Routing_Seq] = '{ShopOrder.Seq}' OR [Routing_Seq] IS NULL)"));
-                            ShopOrder.Picklist = Model.Component.GetComponentPickList(dSet, dSet.Tables["PL"].Select($"[ID] LIKE '{ShopOrder.OrderNumber}*%'"), ShopOrder.OrderNumber, ShopOrder.StartQty - ShopOrder.CurrentQty);
+                            ShopOrder.Picklist = Model.Component.GetComponentPickList(dSet, dSet.Tables["PL"].Select($"[ID] LIKE '{ShopOrder.OrderNumber}*%' AND [Routing] = '{ShopOrder.Seq}'"), ShopOrder.OrderNumber, ShopOrder.StartQty - ShopOrder.CurrentQty);
                             dSet.Dispose();
                             IsMultiLoading = false;
                             OnPropertyChanged(nameof(IsMultiLoading));

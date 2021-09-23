@@ -100,6 +100,7 @@ namespace SFW.Model
                 @"SELECT
 	                DISTINCT(wpo.[ID]) as 'WO_Number'
 	                ,SUBSTRING(wpo.[ID], CHARINDEX('*', wpo.[ID], 0) + 1, LEN(wpo.[ID])) as 'Operation'
+                    ,(SELECT rt.[Remarks] FROM [dbo].[RT-INIT_Remarks] rt WHERE rt.[ID] = CONCAT(im.[Part_Number], '*', SUBSTRING(wpo.[ID], CHARINDEX('*', wpo.[ID], 0) + 1, LEN(wpo.[ID]))) AND rt.[ID2] = 1) as 'Op_Desc'
 	                ,wc.[Wc_Nbr] as 'MachineNumber'
 	                ,wc.[Name] as 'MachineName'
 	                ,wc.[D_esc] as 'MachineDesc'
@@ -151,10 +152,11 @@ namespace SFW.Model
 	                dbo.[CM-INIT] cm ON cm.[Cust_Nbr] = CASE WHEN CHARINDEX('*', wp.[Cust_Nbr], 0) > 0 THEN SUBSTRING(wp.[Cust_Nbr], 0, CHARINDEX('*', wp.[Cust_Nbr], 0)) ELSE wp.[Cust_Nbr] END
                 WHERE
 	                wc.D_esc <> 'DO NOT USE'" :
-                    //CSI Query
+                 //CSI Query
                  @"SELECT
 	                DISTINCT(wpo.[ID]) as 'WO_Number'
                     ,SUBSTRING(wpo.[ID], CHARINDEX('*', wpo.[ID], 0) + 1, LEN(wpo.[ID])) as 'Operation'
+                    ,(SELECT rt.[Remarks] FROM [dbo].[RT-INIT_Remarks] rt WHERE rt.[ID] = CONCAT(im.[Part_Number], '*', SUBSTRING(wpo.[ID], CHARINDEX('*', wpo.[ID], 0) + 1, LEN(wpo.[ID]))) AND rt.[ID2] = 1) as 'Op_Desc'
 	                ,wc.[Wc_Nbr] as 'MachineNumber'
 	                ,wc.[Name] as 'MachineName'
 	                ,wc.[D_esc] as 'MachineDesc'
