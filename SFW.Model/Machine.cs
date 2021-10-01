@@ -356,59 +356,60 @@ namespace SFW.Model
                     {
                         using (SqlDataAdapter adapter = new SqlDataAdapter($@"USE [{sqlCon.Database}];
                                                                             SELECT
-	                                                                            DISTINCT(b.[ID]) as 'WO_Number',
-                                                                                SUBSTRING(b.[ID], CHARINDEX('*',b.[ID],0) + 1,LEN(b.[ID])) as 'Operation',
-                                                                                a.[Wc_Nbr] as 'MachineNumber',
-	                                                                            a.[Name] as 'MachineName',
-	                                                                            a.[D_esc] as 'MachineDesc',
-	                                                                            a.[Work_Ctr_Group] as 'MachineGroup',
-                                                                                ISNULL(b.[Qty_Avail], b.[Qty_Req] - ISNULL(b.[Qty_Compl], 0)) as 'WO_CurrentQty',
-	                                                                            ISNULL(b.[Date_Start], '1999-01-01') as 'WO_SchedStartDate',
-                                                                                ISNULL(b.[Date_Act_Start], '1999-01-01') as 'WO_ActStartDate',
-	                                                                            ISNULL(b.[Due_Date], b.[Date_Start]) as 'WO_DueDate',
-                                                                                CAST(ROUND(b.[Mach_Load_Hrs_Rem], 1) AS FLOAT) as 'RunTime',
-	                                                                            ISNULL(CASE WHEN
+	                                                                            DISTINCT(wpo.[ID]) as 'WO_Number'
+                                                                                ,SUBSTRING(wpo.[ID], CHARINDEX('*',wpo.[ID],0) + 1,LEN(wpo.[ID])) as 'Operation'
+                                                                                ,(SELECT rt.[Remarks] FROM [dbo].[RT-INIT_Remarks] rt WHERE rt.[ID] = CONCAT(im.[Part_Number], '*', SUBSTRING(wpo.[ID], CHARINDEX('*', wpo.[ID], 0) + 1, LEN(wpo.[ID]))) AND rt.[ID2] = 1) as 'Op_Desc'
+                                                                                ,wc.[Wc_Nbr] as 'MachineNumber'
+	                                                                            ,wc.[Name] as 'MachineName'
+	                                                                            ,wc.[D_esc] as 'MachineDesc'
+	                                                                            ,wc.[Work_Ctr_Group] as 'MachineGroup'
+                                                                                ,ISNULL(wpo.[Qty_Avail], wpo.[Qty_Req] - ISNULL(wpo.[Qty_Compl], 0)) as 'WO_CurrentQty'
+	                                                                            ,ISNULL(wpo.[Date_Start], '1999-01-01') as 'WO_SchedStartDate'
+                                                                                ,ISNULL(wpo.[Date_Act_Start], '1999-01-01') as 'WO_ActStartDate'
+	                                                                            ,ISNULL(wpo.[Due_Date], wpo.[Date_Start]) as 'WO_DueDate'
+                                                                                ,CAST(ROUND(wpo.[Mach_Load_Hrs_Rem], 1) AS FLOAT) as 'RunTime'
+	                                                                            ,ISNULL(CASE WHEN
                                                                                         (SELECT
                                                                                             [Ord_Type]
                                                                                         FROM
                                                                                             [dbo].[SOH-INIT]
                                                                                         WHERE
-                                                                                            [So_Nbr] = SUBSTRING(c.[So_Reference],0,CHARINDEX('*',c.[So_Reference],0))) = 'DAI'
+                                                                                            [So_Nbr] = SUBSTRING(wp.[So_Reference],0,CHARINDEX('*',wp.[So_Reference],0))) = 'DAI'
                                                                                     THEN 'A'
-                                                                                    WHEN c.[Wo_Type] = 'R'
+                                                                                    WHEN wp.[Wo_Type] = 'R'
                                                                                     THEN 'B'
-                                                                                    ELSE c.[Mgt_Priority_Code] END, 'D') as 'WO_Priority',
-	                                                                            c.[Wo_Type] as 'WO_Type',
-	                                                                            c.[Qty_To_Start] as 'WO_StartQty',
-	                                                                            c.[So_Reference] as 'WO_SalesRef',
-                                                                                c.[Cust_Nbr],
-                                                                                d.[Part_Number]as 'SkuNumber',
-	                                                                            d.[Description] as 'SkuDesc',
-	                                                                            d.[Um] as 'SkuUom', d.[Drawing_Nbrs] as 'SkuMasterPrint',
-	                                                                            ISNULL(d.[Bom_Rev_Date], '1999-01-01') as 'BomRevDate',
-	                                                                            ISNULL(d.[Bom_Rev_Level], '') as 'BomRevLvl',
-                                                                                ISNULL(e.[Qty_On_Hand], 0) as 'SkuOnHand',
-                                                                                CASE WHEN b.[Due_Date] < GETDATE() THEN 1 ELSE 0 END as 'IsLate',
-	                                                                            CASE WHEN b.[Date_Start] < GETDATE() AND c.[Qty_To_Start] = b.[Qty_Avail] THEN 1 ELSE 0 END as 'IsStartLate',
-                                                                                e.[Engineering_Status] as 'EngStatus',
-	                                                                            (SELECT [Description] FROM [dbo].[TM-INIT_Eng_Status] WHERE [ID] = e.[Engineering_Status]) as 'EngStatusDesc',
-                                                                                (SELECT [Name] FROM [dbo].[CM-INIT] WHERE [Cust_Nbr] = c.[Cust_Nbr]) as 'Cust_Name',
-	                                                                            (SELECT [Cust_Part_Nbr] FROM [dbo].[SOD-INIT] WHERE [ID] = SUBSTRING(c.[So_Reference],0,LEN(c.[So_Reference])-1)) as 'Cust_Part_Nbr',
-	                                                                            CAST((SELECT [Ln_Bal_Qty] FROM [dbo].[SOD-INIT] WHERE [ID] = SUBSTRING(c.[So_Reference],0,LEN(c.[So_Reference])-1)) as int) as 'Ln_Bal_Qty',
-                                                                                ISNULL((SELECT [Load_Pattern] FROM [dbo].[CM-INIT] WHERE [Cust_Nbr] = c.[Cust_Nbr]),'') as 'LoadPattern'
-                                                                                ,ISNULL(c.[Fa_Dept], 'N') as 'Deviation'
+                                                                                    ELSE wp.[Mgt_Priority_Code] END, 'D') as 'WO_Priority'
+	                                                                            ,wp.[Wo_Type] as 'WO_Type'
+	                                                                            ,wp.[Qty_To_Start] as 'WO_StartQty'
+	                                                                            ,wp.[So_Reference] as 'WO_SalesRef'
+                                                                                ,wp.[Cust_Nbr]
+                                                                                ,im.[Part_Number]as 'SkuNumber'
+	                                                                            ,im.[Description] as 'SkuDesc'
+	                                                                            ,im.[Um] as 'SkuUom', im.[Drawing_Nbrs] as 'SkuMasterPrint'
+	                                                                            ,ISNULL(im.[Bom_Rev_Date], '1999-01-01') as 'BomRevDate'
+	                                                                            ,ISNULL(im.[Bom_Rev_Level], '') as 'BomRevLvl'
+                                                                                ,ISNULL(ipl.[Qty_On_Hand], 0) as 'SkuOnHand'
+                                                                                ,CASE WHEN wpo.[Due_Date] < GETDATE() THEN 1 ELSE 0 END as 'IsLate'
+	                                                                            ,CASE WHEN wpo.[Date_Start] < GETDATE() AND wp.[Qty_To_Start] = wpo.[Qty_Avail] THEN 1 ELSE 0 END as 'IsStartLate'
+                                                                                ,ipl.[Engineering_Status] as 'EngStatus'
+	                                                                            ,(SELECT [Description] FROM [dbo].[TM-INIT_Eng_Status] WHERE [ID] = ipl.[Engineering_Status]) as 'EngStatusDesc'
+                                                                                ,(SELECT [Name] FROM [dbo].[CM-INIT] WHERE [Cust_Nbr] = wp.[Cust_Nbr]) as 'Cust_Name'
+	                                                                            ,(SELECT [Cust_Part_Nbr] FROM [dbo].[SOD-INIT] WHERE [ID] = SUBSTRING(wp.[So_Reference],0,LEN(wp.[So_Reference])-1)) as 'Cust_Part_Nbr'
+	                                                                            ,CAST((SELECT [Ln_Bal_Qty] FROM [dbo].[SOD-INIT] WHERE [ID] = SUBSTRING(wp.[So_Reference],0,LEN(wp.[So_Reference])-1)) as int) as 'Ln_Bal_Qty'
+                                                                                ,ISNULL((SELECT [Load_Pattern] FROM [dbo].[CM-INIT] WHERE [Cust_Nbr] = wp.[Cust_Nbr]),'') as 'LoadPattern'
+                                                                                ,ISNULL(wp.[Fa_Dept], 'N') as 'Deviation'
                                                                             FROM
-                                                                                [dbo].[WC-INIT] a
+                                                                                [dbo].[WC-INIT] wc
                                                                             RIGHT JOIN
-                                                                                [dbo].[WPO-INIT] b ON b.[Work_Center] = a.[Wc_Nbr]
+                                                                                [dbo].[WPO-INIT] wpo ON wpo.[Work_Center] = wc.[Wc_Nbr]
                                                                             RIGHT JOIN
-                                                                                [dbo].[WP-INIT] c ON b.[ID] LIKE CONCAT(c.[Wp_Nbr], '%')
+                                                                                [dbo].[WP-INIT] wp ON wpo.[ID] LIKE CONCAT(wp.[Wp_Nbr], '%')
                                                                             RIGHT JOIN
-                                                                                [dbo].[IM-INIT] d ON d.[Part_Number] = c.[Part_Wo_Desc]
+                                                                                [dbo].[IM-INIT] im ON im.[Part_Number] = wp.[Part_Wo_Desc]
                                                                             RIGHT JOIN
-                                                                                [dbo].[IPL-INIT] e ON e.[Part_Nbr] = d.[Part_Number]
+                                                                                [dbo].[IPL-INIT] ipl ON ipl.[Part_Nbr] = im.[Part_Number]
                                                                             WHERE
-                                                                                a.[D_esc] <> 'DO NOT USE' AND c.[Status_Flag] = 'C' AND b.[Alt_Seq_Status] IS NULL
+                                                                                wc.[D_esc] <> 'DO NOT USE' AND wp.[Status_Flag] = 'C' AND wpo.[Alt_Seq_Status] IS NULL
                                                                             ORDER BY
                                                                                 MachineNumber, WO_Priority, WO_SchedStartDate, WO_Number ASC;", sqlCon))
                         {

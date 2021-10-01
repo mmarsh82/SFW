@@ -230,6 +230,7 @@ namespace SFW.Model
         public int? RollQty { get; set; }
 
         public bool IsLoading { get; set; }
+        public static string[] ErpCon { get; set; }
 
         #endregion
 
@@ -241,8 +242,12 @@ namespace SFW.Model
         /// <param name="subLName">Currently logged in user Last Name</param>
         /// <param name="workOrder">Work order object to process</param>
         /// <param name="sqlCon">Sql Connection to use</param>
-        public WipReceipt(string userId, string subFName, string subLName, WorkOrder workOrder, SqlConnection sqlCon)
+        public WipReceipt(string userId, string subFName, string subLName, WorkOrder workOrder, string[] erpCon, SqlConnection sqlCon)
         {
+            if (ErpCon == null)
+            {
+                ErpCon = erpCon;
+            }
             Submitter = $"{subFName} {subLName}";
             var _crewID = userId;
             ModelBase.ModelSqlCon = sqlCon;

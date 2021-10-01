@@ -79,6 +79,14 @@ namespace SFW.Schedule.Closed
                             ClosedScheduleView.GroupDescriptions.Add(new PropertyGroupDescription("MachineNumber", new WorkCenterNameConverter(MainWindowViewModel.MachineList)));
                             MainWindowViewModel.DisplayAction = IsLoading = false;
                             ScheduleFilter(UserConfig.BuildMachineFilter(), 1);
+                            if (MainWindowViewModel.SelectedMachine != MainWindowViewModel.MachineList.FirstOrDefault())
+                            {
+                                ScheduleFilter($"MachineNumber = '{MainWindowViewModel.SelectedMachine.MachineNumber}'", 1);
+                            }
+                            else if (MainWindowViewModel.SelectedMachineGroup != MainWindowViewModel.MachineGroupList.FirstOrDefault())
+                            {
+                                ScheduleFilter($"MachineGroup = '{MainWindowViewModel.SelectedMachineGroup}'", 2);
+                            }
                             ScheduleFilter(UserConfig.BuildPriorityFilter(), 3);
                             StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(ClosedScheduleView)));
                         });

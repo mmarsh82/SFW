@@ -211,7 +211,8 @@ namespace SFW.WIP
         public ViewModel(WorkOrder woObject)
         {
             RefreshTimer.Stop();
-            WipRecord = new WipReceipt(CurrentUser.UserIDNbr, CurrentUser.FirstName, CurrentUser.LastName, woObject, App.AppSqlCon);
+            var erpCon = new string[5] { App.ErpCon.HostName, App.ErpCon.UserName, App.ErpCon.Password, App.ErpCon.UniAccount, App.ErpCon.UniService };
+            WipRecord = new WipReceipt(CurrentUser.UserIDNbr, CurrentUser.FirstName, CurrentUser.LastName, woObject, erpCon, App.AppSqlCon);
             if (ScrapReasonCollection == null)
             {
                 var _tempList = Enum.GetValues(typeof(M2kClient.AdjustCode)).Cast<M2kClient.AdjustCode>().Where(o => o != M2kClient.AdjustCode.CC && o != M2kClient.AdjustCode.REC);

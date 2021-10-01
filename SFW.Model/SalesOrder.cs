@@ -451,7 +451,7 @@ namespace SFW.Model
 	                                                                ,a.[Ln_Del_Qty] as 'BaseQty'
 	                                                                ,a.[Um_Base] as 'Uom'
                                                                     ,CASE WHEN CAST(ISNULL((SELECT SUM(aa.[Oh_Qty_By_Loc]) FROM [dbo].[IPL-INIT_Location_Data] aa WHERE aa.[ID1] = a.[Part_Wo_Gl] 
-		                                                                AND (RIGHT(aa.[Location],1) <> 'N' OR RIGHT(aa.[Location],1) <> 'S')),0)as int) > CAST(a.[Ln_Bal_Qty] as int)
+		                                                                AND aa.[Loc_Pick_Avail_Flag] = 'Y'), 0) as int) >= CAST(a.[Ln_Bal_Qty] as int)
 		                                                                THEN 0
 		                                                                ELSE 1
 	                                                                END as 'IsBackOrder'

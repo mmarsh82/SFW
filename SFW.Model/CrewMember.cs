@@ -9,7 +9,7 @@ using System.Linq;
 
 namespace SFW.Model
 {
-    public class CrewMember : INotifyPropertyChanged
+    public class CrewMember : ModelBase
     {
         #region Properties
 
@@ -56,7 +56,7 @@ namespace SFW.Model
                 {
                     System.Threading.Tasks.Task.Run(() =>
                     {
-                        var time = GetLastClockTime(IdNumber, Shift, ModelBase.ModelSqlCon);
+                        var time = GetLastClockTime(IdNumber, Shift, ModelSqlCon);
                         if (string.IsNullOrEmpty(time) || time == "00:00")
                         {
                             switch (Shift)
@@ -96,26 +96,6 @@ namespace SFW.Model
         }
 
         public char ClockTran { get; set; }
-
-        #endregion
-
-        #region INotifyPropertyChanged Implementation
-
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        /// <summary>
-        /// Reflects changes from the ViewModel properties to the View
-        /// </summary>
-        /// <param name="propertyName">Property Name</param>
-        protected virtual void OnPropertyChanged(string propertyName)
-        {
-            var handler = PropertyChanged;
-            if (handler != null)
-            {
-                var e = new PropertyChangedEventArgs(propertyName);
-                handler(this, e);
-            }
-        }
 
         #endregion
 
@@ -407,6 +387,8 @@ namespace SFW.Model
         /// Retreives the last labor clocked in time for the current user
         /// </summary>
         /// <param name="idNbr">User ID number</param>
+        /// <param name="shift">User shift</param>
+        /// <param name="erpCon">String array of erp connection details</param>
         /// <param name="sqlCon">Sql Connection to use</param>
         /// <returns>Time as a string</returns>
         public static string GetLastClockTime(string idNbr, int shift, SqlConnection sqlCon)
@@ -455,7 +437,7 @@ namespace SFW.Model
                 {
                     id2++;
                 }
-                using (UniSession uSession = UniObjects.OpenSession("172.16.0.10", "omniquery", "omniquery", "E:/roi/WCCO.MAIN", "udcs"))
+                using (UniSession uSession = UniObjects.OpenSession(WipReceipt.ErpCon[0], WipReceipt.ErpCon[1], WipReceipt.ErpCon[2], WipReceipt.ErpCon[3], WipReceipt.ErpCon[4]))
                 {
                     try
                     {
