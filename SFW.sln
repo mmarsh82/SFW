@@ -13,7 +13,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SFW.Helpers", "SFW.Helpers\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QT9Client", "QT9Client\QT9Client.csproj", "{5F05CB68-F5DC-46D2-AC43-CAF704CC0895}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UKGClient", "UKGClient\UKGClient.csproj", "{6155720A-3B94-4E42-B644-2174BB79DBA5}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SFW.DataAccess", "SFW.DataAccess\SFW.DataAccess.csproj", "{51126620-B117-445B-A121-69D62D653A49}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -41,10 +41,10 @@ Global
 		{5F05CB68-F5DC-46D2-AC43-CAF704CC0895}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5F05CB68-F5DC-46D2-AC43-CAF704CC0895}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5F05CB68-F5DC-46D2-AC43-CAF704CC0895}.Release|Any CPU.Build.0 = Release|Any CPU
-		{6155720A-3B94-4E42-B644-2174BB79DBA5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{6155720A-3B94-4E42-B644-2174BB79DBA5}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{6155720A-3B94-4E42-B644-2174BB79DBA5}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{6155720A-3B94-4E42-B644-2174BB79DBA5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{51126620-B117-445B-A121-69D62D653A49}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{51126620-B117-445B-A121-69D62D653A49}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{51126620-B117-445B-A121-69D62D653A49}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{51126620-B117-445B-A121-69D62D653A49}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

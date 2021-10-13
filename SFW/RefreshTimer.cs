@@ -13,6 +13,8 @@ namespace SFW
         public static DispatcherTimer RefreshDispatchTimer { get; private set; }
         public static Action RefreshActionGroup { get; set; }
         public static TimeSpan RefreshTimeSpan { get; set; }
+        public static bool Status => RefreshDispatchTimer.IsEnabled;
+            
 
         public static bool isRefresh;
         public static bool IsRefreshing
@@ -59,6 +61,7 @@ namespace SFW
                 RefreshDispatchTimer.Tick += new EventHandler(RefreshTimerTick);
                 RefreshDispatchTimer.Interval = RefreshTimeSpan;
                 RefreshDispatchTimer.Start();
+                StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(Status)));
             }
         }
 
@@ -74,6 +77,7 @@ namespace SFW
             RefreshDispatchTimer.Interval = increment;
             RefreshDispatchTimer.Start();
             RefreshTimeSpan = increment;
+            StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(Status)));
         }
 
         /// <summary>
@@ -83,6 +87,7 @@ namespace SFW
         {
             IsRefreshing = false;
             RefreshDispatchTimer.Stop();
+            StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(Status)));
         }
 
         /// <summary>

@@ -1,6 +1,7 @@
 ﻿using M2kClient;
 using SFW.Queries;
 using System;
+using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -17,6 +18,10 @@ namespace SFW.Controls
         public static DockPanel ClosedDock { get; set; }
         public static DockPanel CountDock { get; set; }
         public static DockPanel SalesDock { get; set; }
+        public static int Module => (int)App.LoadedModule;
+
+        public static event EventHandler<PropertyChangedEventArgs> StaticPropertyChanged;
+        public event EventHandler CanExecuteChanged;
 
         #endregion
 
@@ -150,6 +155,7 @@ namespace SFW.Controls
             }
             MainDock.Children[index].Visibility = Visibility.Visible;
             App.LoadedModule = Enum.TryParse(index.ToString(), out Enumerations.UsersControls eUC) ? eUC : Enumerations.UsersControls.Schedule;
+            StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(Module)));
         }
 
         /// <summary>

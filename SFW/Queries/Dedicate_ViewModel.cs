@@ -8,5 +8,6 @@ namespace SFW.Queries
 {
     public class Dedicate_ViewModel : ViewModelBase
     {
+
     }
 }

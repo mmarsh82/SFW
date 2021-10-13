@@ -34,6 +34,19 @@ namespace SFW.Commands
         {
             try
             {
+                if (int.TryParse(parameter.ToString(), out int z))
+                {
+                    switch (z)
+                    {
+                        case -3:
+                            RefreshTimer.Stop();
+                            return;
+                        case -4:
+                            RefreshTimer.Start();
+                            parameter = -2;
+                            break;
+                    }
+                }
                 var _wo = new object();
                 if (parameter.GetType() == typeof(Model.WorkOrder) || parameter.ToString().Length > 3)
                 {

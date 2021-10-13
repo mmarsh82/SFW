@@ -4,6 +4,7 @@
     xmlns:cmd="clr-namespace:SFW.Commands"
     xmlns:cvtr="clr-namespace:SFW.Converters"
     xmlns:local="clr-namespace:SFW"
+    xmlns:ctrl="clr-namespace:SFW.Controls"
     x:Class="SFW.MainWindow"
     x:Name="Source_Window"
     Title="Shop Floor Workbench" MinWidth="1000" MinHeight="400" WindowState="Maximized" WindowStartupLocation="CenterScreen" Closing="SourceWindow_Closing">
@@ -21,6 +22,7 @@
         <cvtr:BoolToVisibility x:Key="BoolToVisConverter" />
         <cvtr:SiteToVisibility x:Key="SiteToVisConverter"/>
         <cvtr:BoolInverter x:Key="InvertBoolConverter"/>
+        <cvtr:IntToVisibility x:Key="IntToVisConverter"/>
     </Window.Resources>
 
     <Window.InputBindings>
@@ -164,13 +166,26 @@
                           CommandParameter="9"/>
 
             </MenuItem>
-            <MenuItem Header="Help">
+            <MenuItem Header="Help"
+                      Visibility="{Binding Path=(ctrl:WorkSpaceDock.Module), Converter={StaticResource IntToVisConverter}, ConverterParameter=0}">
                 <MenuItem Header="Color Legend">
                     <MenuItem Header="Critical Work Order" Background="#FFF3321F" Focusable="False" IsHitTestVisible="False"/>
                     <MenuItem Header="Repair Work Order" Background="SteelBlue" Focusable="False" IsHitTestVisible="False"/>
                     <MenuItem Header="Released Work Order" Background="#FF29D129" Focusable="False" IsHitTestVisible="False"/>
                     <MenuItem Header="Verified Work Order" Background="LightSlateGray" Focusable="False" IsHitTestVisible="False"/>
                     <MenuItem Header="Pending Work Order" Background="WhiteSmoke" Focusable="False" IsHitTestVisible="False"/>
+                    <Separator/>
+                </MenuItem>
+            </MenuItem>
+
+            <MenuItem Header="Help"
+                      Visibility="{Binding Path=(ctrl:WorkSpaceDock.Module), Converter={StaticResource IntToVisConverter}, ConverterParameter=8}">
+                <MenuItem Header="Color Legend">
+                    <MenuItem Header="Shippable Daily" Background="#FFF3321F" Focusable="False" IsHitTestVisible="False"/>
+                    <MenuItem Header="On-Hold Daily" Background="DarkOrchid" Focusable="False" IsHitTestVisible="False"/>
+                    <MenuItem Header="Early Order" Background="SteelBlue" Focusable="False" IsHitTestVisible="False"/>
+                    <MenuItem Header="Standard Order" Background="#FF29D129" Focusable="False" IsHitTestVisible="False"/>
+                    <MenuItem Header="Forecast Order" Background="WhiteSmoke" Focusable="False" IsHitTestVisible="False"/>
                     <Separator/>
                 </MenuItem>
             </MenuItem>
@@ -244,16 +259,30 @@
             </Menu>
 
             <TextBlock Text="{Binding Path=(local:RefreshTimer.LastRefresh), StringFormat='Last Refresh: {0}'}"
-                       Margin="20,0,20,0"
+                       Margin="20,0,10,0"
                        VerticalAlignment="Center"
                        FontSize="12"
                        Foreground="CornflowerBlue"/>
 
-            <TextBlock Text="{Binding CurrentSite, StringFormat='Connected To: {0}'}"
-                       Margin="0,0,20,0"
-                       FontSize="14"
-                       FontWeight="Bold"
-                       Foreground="Crimson"/>
+            <Button Margin="1,1,20,1"
+                    Command="{StaticResource ViewLoadICommand}"
+                    CommandParameter="-3"
+                    Background="Transparent"
+                    BorderThickness="0"
+                    Visibility="{Binding Path=(local:RefreshTimer.Status), Converter={StaticResource BoolToVisConverter}}"
+                    Style="{DynamicResource ResourceKey=DefaultButton}">
+                <Image Source="/SFW;component/Icons/Pause.ico"/>
+            </Button>
+
+            <Button Margin="1,1,20,1"
+                    Command="{StaticResource ViewLoadICommand}"
+                    CommandParameter="-4"
+                    Background="Transparent"
+                    BorderThickness="0"
+                    Visibility="{Binding Path=(local:RefreshTimer.Status), Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}"
+                    Style="{DynamicResource ResourceKey=DefaultButton}">
+                <Image Source="/SFW;component/Icons/Refresh.ico"/>
+            </Button>
         </StackPanel>
 
         <!--#endregion-->

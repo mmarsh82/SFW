@@ -61,7 +61,16 @@ namespace SFW
         private readonly ManualResetEvent ResetSplashCreated;
         private readonly Thread SplashThread;
 
-        public static Enumerations.UsersControls LoadedModule { get; set; }
+        public static Enumerations.UsersControls _loadMod;
+        public static Enumerations.UsersControls LoadedModule 
+        {
+            get { return _loadMod; }
+            set
+            {
+                _loadMod = value;
+                StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(LoadedModule)));
+            }
+        }
 
         #endregion
 
