@@ -95,8 +95,7 @@ namespace SFW
                         return ((T)field.GetValue(null)).ToString();
                 }
             }
-            throw new ArgumentException("Not found.", "description");
-            // or return default(T);
+            return string.Empty;
         }
 
         /// <summary>

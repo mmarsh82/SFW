@@ -48,8 +48,7 @@ namespace SFW.Model
         /// Will create a new WorkOrder Object based on a DataRow from any DataTable Object
         /// </summary>
         /// <param name="dRow">DataRow with the item array values for the work order</param>
-        /// <param name="sqlCon">Sql Connection to use</param>
-        public WorkOrder(DataRow dRow, SqlConnection sqlCon)
+        public WorkOrder(DataRow dRow)
         {
             if (dRow != null)
             {
@@ -87,7 +86,6 @@ namespace SFW.Model
                         LineBalQuantity = dRow.Field<int>("Ln_Bal_Qty"),
                         LoadPattern = dRow.Field<string>("LoadPattern").ToUpper() == "PLASTIC"
                      };
-                    SalesOrder.GetInternalComments(sqlCon);
                 }
                 else
                 {

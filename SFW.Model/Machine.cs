@@ -265,7 +265,7 @@ namespace SFW.Model
                     try
                     {
                         using (SqlDataAdapter adapter = new SqlDataAdapter(@"SELECT
-	                                                                            DISTINCT(b.[ID]) as 'WO_Number', 
+	                                                                            DISTINCT(b.[ID]) as 'WO_Number',
                                                                                 a.[Wc_Nbr] as 'MachineNumber',
 	                                                                            a.[Name] as 'MachineName',
 	                                                                            a.[D_esc] as 'MachineDesc',
@@ -769,6 +769,9 @@ namespace SFW.Model
 
                     _tempDS.Tables.Add(Lot.GetOnHandTable(sqlCon));
                     _tempDS.Tables[7].TableName = "OH";
+
+                    _tempDS.Tables.Add(SalesOrder.GetInternalCommentsTable(sqlCon));
+                    _tempDS.Tables[8].TableName = "SOIC";
                     return _tempDS;
                 }
             }

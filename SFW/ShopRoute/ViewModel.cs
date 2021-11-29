@@ -128,6 +128,11 @@ namespace SFW.ShopRoute
                 ShopOrder.ShopNotes += $"{_dr.Field<string>(1)}\n";
             }
             ShopOrder.ShopNotes = ShopOrder.ShopNotes?.Trim('\n');
+            foreach (DataRow _dr in dSet.Tables["SOIC"].Select($"[ID] = '{ShopOrder.SalesOrder}'"))
+            {
+                ShopOrder.SalesOrder.InternalComments += $"{_dr.Field<string>(1)}\n";
+            }
+            ShopOrder.SalesOrder.InternalComments = ShopOrder.SalesOrder.InternalComments?.Trim('\n');
             IsMultiLoading = true;
             using (BackgroundWorker bw = new BackgroundWorker())
             {

@@ -223,29 +223,33 @@ namespace SFW.Model
         /// <returns>Crew member existance in the database</returns>
         public static bool IsCrewIDValid(SqlConnection sqlCon, string idNbr)
         {
-            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
+            if (!string.IsNullOrEmpty(idNbr))
             {
-                try
+                if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
                 {
-                    using (SqlCommand cmd = new SqlCommand($"USE {sqlCon.Database}; SELECT COUNT([Emp_No]) as 'Count' FROM [dbo].[EMPLOYEE_MASTER-INIT] WHERE [Emp_No] = @p1 AND [Pay_Status] = 'A';", sqlCon))
+                    try
                     {
-                        cmd.Parameters.AddWithValue("p1", idNbr);
-                        return int.TryParse(cmd.ExecuteScalar().ToString(), out int i) && i > 0;
+                        using (SqlCommand cmd = new SqlCommand($"USE {sqlCon.Database}; SELECT COUNT([Emp_No]) as 'Count' FROM [dbo].[EMPLOYEE_MASTER-INIT] WHERE [Emp_No] = @p1 AND [Pay_Status] = 'A';", sqlCon))
+                        {
+                            cmd.Parameters.AddWithValue("p1", idNbr);
+                            return int.TryParse(cmd.ExecuteScalar().ToString(), out int i) && i > 0;
+                        }
+                    }
+                    catch (SqlException sqlEx)
+                    {
+                        throw sqlEx;
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new Exception(ex.Message);
                     }
                 }
-                catch (SqlException sqlEx)
+                else
                 {
-                    throw sqlEx;
-                }
-                catch (Exception ex)
-                {
-                    throw new Exception(ex.Message);
+                    throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
                 }
             }
-            else
-            {
-                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
-            }
+            return false;
         }
 
         /// <summary>

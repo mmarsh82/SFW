@@ -212,6 +212,22 @@ namespace SFW.WIP
         {
             RefreshTimer.Stop();
             var erpCon = new string[5] { App.ErpCon.HostName, App.ErpCon.UserName, App.ErpCon.Password, App.ErpCon.UniAccount, App.ErpCon.UniService };
+            var _delList = new List<CompWipInfo>();
+            foreach (var pl in woObject.Picklist)
+            {
+                foreach(var wi in pl.WipInfo.Where(o => o.LotNbr != null))
+                {
+                    _delList.Add(wi);
+                }
+                if (_delList.Count > 0)
+                {
+                    foreach (var delWi in _delList)
+                    {
+                        pl.WipInfo.Remove(delWi);
+                    }
+                    _delList.Clear();
+                }
+            }
             WipRecord = new WipReceipt(CurrentUser.UserIDNbr, CurrentUser.FirstName, CurrentUser.LastName, woObject, erpCon, App.AppSqlCon);
             if (ScrapReasonCollection == null)
             {
@@ -750,6 +766,7 @@ namespace SFW.WIP
             if (disposing)
             {
                 WipRecord = null;
+
                 _wip = null;
                 _lotList = null;
                 RefreshTimer.Start();

@@ -43,9 +43,20 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Class1.cs" />
+    <Compile Include="Extensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Request.cs" />
-    <Compile Include="Services.cs" />
+    <Compile Include="QT9Connection.cs" />
+    <Compile Include="QT9Request.cs" />
+    <Compile Include="QT9Services.cs" />
+    <Compile Include="QT9Method.cs" />
+    <Compile Include="wsAppComp.cs" />
+    <Compile Include="wsAuthenticate.cs" />
+    <Compile Include="wsCustomerFeedback.cs" />
+    <Compile Include="wsCustomers.cs" />
+    <Compile Include="wsDocuments.cs" />
+    <Compile Include="wsFileDownload.cs" />
+    <Compile Include="wsISOActions.cs" />
+    <Compile Include="wsProducts.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -67,6 +67,12 @@ namespace M2kClient.M2kADIArray
         public string Operation { get; set; }
 
         /// <summary>
+        /// Fields 10,11,12
+        /// List of each display information object
+        /// </summary>
+        public List<DisplayInfo> DisplayInfoList { get; set; }
+
+        /// <summary>
         /// Field 14
         /// Parent Receipt Location
         /// To be treated as a 'To' location not a 'From' location
@@ -74,23 +80,17 @@ namespace M2kClient.M2kADIArray
         public string RcptLocation { get; set; }
 
         /// <summary>
-        /// Fields 10,11,12
-        /// List of each display information object
+        /// Field 15
+        /// Parent lot number
+        /// When none exists one will be assigned to the transaction
         /// </summary>
-        public List<DisplayInfo> DisplayInfoList { get; set; }
+        public string Lot { get; set; }
 
         /// <summary>
         /// Fields 24,25,26,27,70,71
         /// List of all child component objects and their information
         /// </summary>
         public List<CompInfo> ComponentInfoList { get; set; }
-
-        /// <summary>
-        /// Field 15
-        /// Parent lot number
-        /// When none exists one will be assigned to the transaction
-        /// </summary>
-        public string Lot { get; set; }
 
         /// <summary>
         /// List of Adjust objects for scrapping out any components during the wip process

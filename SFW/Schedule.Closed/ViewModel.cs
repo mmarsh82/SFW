@@ -27,7 +27,7 @@ namespace SFW.Schedule.Closed
                 _selectedWO = value;
                 if (value != null)
                 {
-                    var _wo = new WorkOrder(value.Row, App.AppSqlCon);
+                    var _wo = new WorkOrder(value.Row);
                     WorkSpaceDock.ClosedDock.Children.RemoveAt(1);
                     WorkSpaceDock.ClosedDock.Children.Insert(1, new ShopRoute.View { DataContext = new ShopRoute.ViewModel(_wo, ClosedSchedule) });
                 }

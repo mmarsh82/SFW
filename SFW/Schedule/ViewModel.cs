@@ -36,7 +36,7 @@ namespace SFW.Schedule
                     Controls.WorkSpaceDock.UpdateChildDock(0, 1, new ShopRoute.View { DataContext = new ShopRoute.ViewModel() });
                     if (value != null)
                     {
-                        var _wo = new WorkOrder(value.Row, App.AppSqlCon);
+                        var _wo = new WorkOrder(value.Row);
                         if (App.SiteNumber == 0 && int.TryParse(_wo.EngStatus.TrimEnd(), out int i))
                         {
                             Controls.WorkSpaceDock.UpdateChildDock(0, 1, new ShopRoute.QTask.View { DataContext = new ShopRoute.QTask.ViewModel(_wo, Schedule) });

@@ -221,6 +221,48 @@ namespace SFW.Model
         }
 
         /// <summary>
+        /// Get the sales order internal comments table
+        /// </summary>
+        /// <param name="sqlCon">Sql Connection to use</param>
+        public static DataTable GetInternalCommentsTable(SqlConnection sqlCon)
+        {
+            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
+            {
+                try
+                {
+                    using (DataTable dt = new DataTable())
+                    {
+                        using (SqlDataAdapter adapter = new SqlDataAdapter($@"USE {sqlCon.Database};
+                                                                                SELECT
+	                                                                                [So_Nbr] as 'ID'
+                                                                                    ,CASE WHEN [Internal_Comments] LIKE '%bag%'
+		                                                                                THEN REPLACE([Internal_Comments], '""', ' ')
+                                                                                        ELSE[Internal_Comments]
+                                                                                    END as 'IntComm'
+                                                                                FROM
+                                                                                    [dbo].[SOH-INIT_Internal_Comments]", sqlCon))
+                        {
+                            adapter.Fill(dt);
+                        }
+                        return dt;
+                    }
+                }
+                catch (SqlException sqlEx)
+                {
+                    throw sqlEx;
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception(ex.Message);
+                }
+            }
+            else
+            {
+                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
+            }
+        }
+
+        /// <summary>
         /// Get the sales order special instructions
         /// </summary>
         /// <param name="sqlCon">Sql Connection to use</param>
