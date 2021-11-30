@@ -72,7 +72,10 @@ namespace SFW.WIP
             {
                 if (!string.IsNullOrEmpty(value))
                 {
-                    if (Lot.LotValidation(value, WipRecord.WipWorkOrder.SkuNumber, App.AppSqlCon, WipRecord.WipWorkOrder.OrderNumber))
+                    var _validLot = WipRecord.WipWorkOrder.Operation == "10"
+                        ? Lot.LotValidation(value, WipRecord.WipWorkOrder.SkuNumber, App.AppSqlCon, WipRecord.WipWorkOrder.OrderNumber)
+                        : Lot.LotValidation(value, WipRecord.WipWorkOrder.SkuNumber, App.AppSqlCon);
+                    if (_validLot)
                     {
                         WipRecord.ReceiptLocation = Lot.GetLotLocation(value, App.AppSqlCon);
                         OnPropertyChanged(nameof(WipRecord));
