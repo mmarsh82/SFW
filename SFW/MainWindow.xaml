@@ -92,7 +92,7 @@
                           Command="{StaticResource LogInICommand}"
                           CommandParameter="in"
                           InputGestureText="F1"
-                          IsEnabled="{Binding Path=(local:CurrentUser.IsLoggedIn), Converter={StaticResource InvertBoolConverter}}"
+                          IsEnabled="{Binding Path=(local:App.AppLock), Converter={StaticResource InvertBoolConverter}}"
                           Visibility="{Binding Path=(local:CurrentUser.IsLoggedIn), Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}"/>
                 <MenuItem Header="Log Out"
                           Command="{StaticResource LogInICommand}"

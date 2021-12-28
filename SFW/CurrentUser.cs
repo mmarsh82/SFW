@@ -340,34 +340,37 @@ namespace SFW
         /// </summary>
         public static void LogIn()
         {
-            try
+            if (!App.AppLock)
             {
-                var _user = string.Empty;
-                if (File.Exists($"{Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)}\\SFW\\SSO.txt"))
+                try
                 {
-                    _user = File.ReadAllText($"{Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)}\\SFW\\SSO.txt");
-                    File.Delete($"{Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)}\\SFW\\SSO.txt");
-                }
-                else
-                {
-                    _user = System.Security.Principal.WindowsIdentity.GetCurrent().Name;
-                }
-                _user = _user.Contains("\\") ? _user.Split('\\')[1] : _user;
-                _user = _user.Length <= 20 ? _user : _user.Substring(0, 20);
-                using (PrincipalContext pContext = GetPrincipal(_user))
-                {
-                    using (UserPrincipal uPrincipal = UserPrincipal.FindByIdentity(pContext, _user))
+                    var _user = string.Empty;
+                    if (File.Exists($"{Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)}\\SFW\\SSO.txt"))
                     {
-                        if (!string.IsNullOrEmpty(uPrincipal.EmployeeId))
+                        _user = File.ReadAllText($"{Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)}\\SFW\\SSO.txt");
+                        File.Delete($"{Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)}\\SFW\\SSO.txt");
+                    }
+                    else
+                    {
+                        _user = System.Security.Principal.WindowsIdentity.GetCurrent().Name;
+                    }
+                    _user = _user.Contains("\\") ? _user.Split('\\')[1] : _user;
+                    _user = _user.Length <= 20 ? _user : _user.Substring(0, 20);
+                    using (PrincipalContext pContext = GetPrincipal(_user))
+                    {
+                        using (UserPrincipal uPrincipal = UserPrincipal.FindByIdentity(pContext, _user))
                         {
-                            new CurrentUser(pContext, uPrincipal);
+                            if (!string.IsNullOrEmpty(uPrincipal.EmployeeId))
+                            {
+                                new CurrentUser(pContext, uPrincipal);
+                            }
                         }
                     }
                 }
-            }
-            catch (Exception ex)
-            {
+                catch (Exception ex)
+                {
 
+                }
             }
         }
 

@@ -19,6 +19,12 @@ namespace SFW
     {
         #region Properties
 
+        public static bool _aLock;
+        public static bool AppLock
+        {
+            get { return _aLock; }
+            set { _aLock = value; StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(AppLock))); }
+        }
         public static string _site;
         public static string Site
         {
@@ -86,13 +92,13 @@ namespace SFW
             ResetSplashCreated.WaitOne();
 
             //Initialization of default application properties
+            SiteNumber = CurrentUser.GetSite();
+            Site = $"{CurrentUser.Site}_MAIN";
+            GlobalConfig = LoadGlobalAppConfig();
             if (!CurrentUser.IsLoggedIn)
             {
                 CurrentUser.LogIn();
             }
-            SiteNumber = CurrentUser.GetSite();
-            Site = $"{CurrentUser.Site}_MAIN";
-            GlobalConfig = LoadGlobalAppConfig();
             DefualtWorkCenter = UserConfig.GetUserConfigList();
             ErpCon.DatabaseChange(Enum.TryParse(Site.Replace("_MAIN", ""), out Database _db) ? _db : Database.CSI);
             if (AppSqlCon != null)
@@ -367,6 +373,11 @@ namespace SFW
                             writer.WriteStartElement("GlobalConfig");
                             writer.WriteAttributeString("Version", "1.0");
 
+                            writer.WriteComment("Application parameters");
+                            writer.WriteStartElement("SFWApp");
+                            writer.WriteAttributeString("IsLocked", "");
+                            writer.WriteEndElement();
+
                             writer.WriteComment("ERP connection parameters");
                             writer.WriteStartElement("M2kConnection");
                             writer.WriteAttributeString("Name", "");
@@ -454,6 +465,9 @@ namespace SFW
                                 {
                                     switch (reader.Name)
                                     {
+                                        case "SFWApp":
+                                            AppLock = bool.TryParse(reader.GetAttribute("IsLocked"), out bool b) ? b : true;
+                                            break;
                                         case "M2kConnection":
                                             ErpCon = new M2kConnection(reader.GetAttribute("Name"), reader.GetAttribute("ServiceUser"), reader.GetAttribute("ServicePass"), Database.CSI);
                                             break;

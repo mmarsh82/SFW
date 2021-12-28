@@ -3,6 +3,7 @@
              xmlns:cvtr="clr-namespace:SFW.Converters"
              xmlns:cmd="clr-namespace:SFW.Commands"
              xmlns:local="clr-namespace:SFW.Queries"
+             xmlns:base="clr-namespace:SFW"
              x:Class="SFW.Queries.PartInfo_View">
     <ScrollViewer HorizontalScrollBarVisibility="Auto"
                   VerticalScrollBarVisibility="Disabled">
@@ -18,6 +19,7 @@
                 <cvtr:MultiValueParameter x:Key="MultiValConverter" />
                 <cmd:M2kLookQuery x:Key="LookQueryCommand" />
                 <cmd:ViewLoad x:Key="ViewLoadCommand" />
+                <cvtr:BoolInverter x:Key="InvertBoolConverter"/>
             </Grid.Resources>
 
             <Grid.InputBindings>
@@ -220,6 +222,7 @@
                 <Button Content="Unplanned Move"
                         Width="120"
                         Margin="3"
+                        IsEnabled="{Binding Path=(base:App.AppLock), Converter={StaticResource InvertBoolConverter}}"
                         Command="{Binding MoveICommand}"
                         Style="{DynamicResource DefaultButton}" />
 
