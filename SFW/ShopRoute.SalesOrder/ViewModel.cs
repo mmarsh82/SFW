@@ -96,7 +96,6 @@ namespace SFW.ShopRoute.SalesOrder
             {
                 MessageBox.Show(_changeRequest, "ERP Record Error");
             }
-            new Commands.ViewLoad().Execute(-2);
         }
         private bool ARUpdateCanExecute(object parameter) => true;
 

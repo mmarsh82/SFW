@@ -90,10 +90,10 @@ namespace M2kClient
                             {
                                 using (UniDynArray udArray = uFile.Read(recordID))
                                 {
-                                    var _counter = 1;
-                                    while (attributes.Length >= _counter)
+                                    foreach (var attr in attributes)
                                     {
-                                        udArray.Replace(attributes[_counter - 1], newValues[_counter - 1]);
+                                        var attrIndx = Array.IndexOf(attributes, attr);
+                                        udArray.Replace(attr, newValues[attrIndx]);
                                     }
                                     uFile.Write(recordID, udArray);
                                 }
