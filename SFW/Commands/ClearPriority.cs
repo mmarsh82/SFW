@@ -11,7 +11,7 @@ namespace SFW.Commands
         {
             var _row = ((DataRowView)parameter).Row;
             var _wo = _row.ItemArray[0].ToString().Split('*');
-            var _changeRequest = M2kClient.M2kCommand.EditRecord("WP", _wo[0], 195, "", App.ErpCon);
+            var _changeRequest = M2kClient.M2kCommand.EditRecord("WP", _wo[0], 195, "", M2kClient.UdArrayCommand.Replace, App.ErpCon);
             if (!string.IsNullOrEmpty(_changeRequest))
             {
                 System.Windows.MessageBox.Show(_changeRequest, "ERP Record Error");

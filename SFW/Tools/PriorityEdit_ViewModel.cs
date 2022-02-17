@@ -85,7 +85,7 @@ namespace SFW.Tools
         {
             var _s = Shift.ToString().Length == 1 ? $"0{Shift}" : Shift.ToString();
             var _p = Priority.ToString().Length == 1 ? $"0{Priority}" : Priority.ToString();
-            var _changeRequest = M2kCommand.EditRecord("WP", OrderNumber, 195, $"{_s}:{_p}:00", App.ErpCon);
+            var _changeRequest = M2kCommand.EditRecord("WP", OrderNumber, 195, $"{_s}:{_p}:00", UdArrayCommand.Replace, App.ErpCon);
             if (!string.IsNullOrEmpty(_changeRequest))
             {
                 MessageBox.Show(_changeRequest, "ERP Record Error");

@@ -151,7 +151,7 @@ namespace SFW.Queries
         private void ValidateExecute(object parameter)
         {
             var _newVal = DiamondIList.First(o => o.LotNumber == parameter.ToString()).Validated ? "0" : "1";
-            var _response = M2kClient.M2kCommand.EditRecord("LOT.MASTER", $"{parameter}|P", 15, _newVal, App.ErpCon);
+            var _response = M2kClient.M2kCommand.EditRecord("LOT.MASTER", $"{parameter}|P", 15, _newVal, M2kClient.UdArrayCommand.Replace, App.ErpCon);
             if (!string.IsNullOrEmpty(_response))
             {
                 System.Windows.MessageBox.Show(_response, "ERP value edit error");

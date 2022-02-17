@@ -74,6 +74,20 @@ namespace SFW.Schedule
             }
         }
 
+        private bool _insp;
+        public bool InspectionFilter
+        {
+            get { return _insp; }
+            set
+            {
+                //TODO: change the code to match the new criteria for the filter here before publish
+                var _filter = value ? "[EngStatus] = '0' OR [EngStatus] = '1' OR [EngStatus] = '2'" : "";
+                ScheduleFilter(_filter, 4);
+                _insp = value;
+                OnPropertyChanged(nameof(InspectionFilter));
+            }
+        }
+
         public delegate void LoadDelegate(string s);
         public LoadDelegate LoadAsyncDelegate { get; private set; }
         public LoadDelegate FilterAsyncDelegate { get; private set; }
@@ -116,6 +130,7 @@ namespace SFW.Schedule
         /// 1 = Work Center Filter
         /// 2 = Work Center Group Filter
         /// 3 = Work Order Priority Filter
+        /// 4 = Inspection Filter
         /// </summary>
         /// <param name="filter">Filter string to use on the default view</param>
         /// <param name="index">Index of the filter string list you are adding to our changing</param>
@@ -265,7 +280,7 @@ namespace SFW.Schedule
                 if (!string.IsNullOrEmpty(parameter?.ToString()))
                 {
                     var _woNumber = SelectedWorkOrder?.Row?.SafeGetField<string>("WO_Number").ToString().Split('*')[0];
-                    var _changeRequest = M2kCommand.EditRecord("WP", _woNumber, 40, parameter.ToString(), App.ErpCon);
+                    var _changeRequest = M2kCommand.EditRecord("WP", _woNumber, 40, parameter.ToString(), UdArrayCommand.Replace, App.ErpCon);
                     if (!string.IsNullOrEmpty(_changeRequest))
                     {
                         MessageBox.Show(_changeRequest, "ERP Record Error");

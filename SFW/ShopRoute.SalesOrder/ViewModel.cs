@@ -91,7 +91,7 @@ namespace SFW.ShopRoute.SalesOrder
             ///Credit Approver + Site = M2k Credit_Chk_Acc - Field 19
             var _changeRequest = M2kClient.M2kCommand.EditRecord("SOH", Order.SalesNumber
                 , new int[4] { 20, 18, 17, 19 }
-                , new string[4] { _code.ToString(), DateTime.Now.ToString("MM-dd-yy"), CurrentUser.DomainUserName.ToUpper(), $"{CurrentUser.DomainUserName}:{App.Site.Replace('_', '.')}" }, App.ErpCon);
+                , new string[4] { _code.ToString(), DateTime.Now.ToString("MM-dd-yy"), CurrentUser.DomainUserName.ToUpper(), $"{CurrentUser.DomainUserName}:{App.Site.Replace('_', '.')}" }, M2kClient.UdArrayCommand.Replace, App.ErpCon);
             if (!string.IsNullOrEmpty(_changeRequest))
             {
                 MessageBox.Show(_changeRequest, "ERP Record Error");

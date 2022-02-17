@@ -27,9 +27,10 @@ namespace M2kClient
         /// <param name="recordID">Record ID value to be edited</param>
         /// <param name="attribute">The attribute number that the new value will be associated with, see the warning</param>
         /// <param name="newValue">New value to be written into the record</param>
+        /// <param name="arrayCommand">UniDynArray Command to execute on the record</param>
         /// <param name="connection">UniConnection to use for the edit</param>
         /// <returns>Change request error, if none exists then it will return a null value</returns>
-        public static string EditRecord(string file, string recordID, int attribute, string newValue, M2kConnection connection)
+        public static string EditRecord(string file, string recordID, int attribute, string newValue, UdArrayCommand arrayCommand, M2kConnection connection)
         {
             try
             {
@@ -40,8 +41,19 @@ namespace M2kClient
                         using (UniFile uFile = uSession.CreateUniFile(file))
                         {
                             using (UniDynArray udArray = uFile.Read(recordID))
-                            { 
-                                udArray.Replace(attribute, newValue);
+                            {
+                                switch(arrayCommand)
+                                {
+                                    case UdArrayCommand.Insert:
+                                        udArray.Insert(attribute, newValue);
+                                        break;
+                                    case UdArrayCommand.Replace:
+                                        udArray.Replace(attribute, newValue);
+                                        break;
+                                    case UdArrayCommand.Remove:
+                                        udArray.Remove(attribute);
+                                        break;
+                                }
                                 uFile.Write(recordID, udArray);
                             }
                         }
@@ -74,11 +86,12 @@ namespace M2kClient
         /// <param name="recordID">Record ID value to be edited</param>
         /// <param name="attributes">Array of attribute numbers that the new value will be associated with, see the warning</param>
         /// <param name="newValues">Array of New values to be written into the record</param>
+        /// <param name="arrayCommand">UniDynArray Command to execute on the record</param>
         /// <param name="connection">UniConnection to use for the edit</param>
         /// <returns>Change request error, if none exists then it will return a null value</returns>
-        public static string EditRecord(string file, string recordID, int[] attributes, string[] newValues, M2kConnection connection)
+        public static string EditRecord(string file, string recordID, int[] attributes, string[] newValues, UdArrayCommand arrayCommand, M2kConnection connection)
         {
-            if (attributes.Length == newValues.Length)
+            if (attributes.Length == newValues.Length || arrayCommand == UdArrayCommand.Remove)
             {
                 try
                 {
@@ -93,7 +106,18 @@ namespace M2kClient
                                     foreach (var attr in attributes)
                                     {
                                         var attrIndx = Array.IndexOf(attributes, attr);
-                                        udArray.Replace(attr, newValues[attrIndx]);
+                                        switch (arrayCommand)
+                                        {
+                                            case UdArrayCommand.Insert:
+                                                udArray.Insert(attr, newValues[attrIndx]);
+                                                break;
+                                            case UdArrayCommand.Replace:
+                                                udArray.Replace(attr, newValues[attrIndx]);
+                                                break;
+                                            case UdArrayCommand.Remove:
+                                                udArray.Remove(attr);
+                                                break;
+                                        }
                                     }
                                     uFile.Write(recordID, udArray);
                                 }
@@ -175,44 +199,6 @@ namespace M2kClient
         }
 
         /// <summary>
-        /// Delete records in manage
-        /// !!WARNING!! DO NOT USE this method to modify business logic transactions like wip reciepts
-        /// The intent of this method is to delete single records that are stand alone in the M2k database i.e. N location reason
-        /// </summary>
-        /// <param name="fileName">Name of the file</param>
-        /// <param name="recordID">Record ID</param>
-        /// <param name="attribute">Name of the attribute to modidy</param>
-        public static void RemoveRecord(string file, string recordID, int attribute, M2kConnection connection)
-        {
-            try
-            {
-                using (UniSession uSession = UniObjects.OpenSession(connection.HostName, connection.UserName, connection.Password, connection.UniAccount, connection.UniService))
-                {
-                    try
-                    {
-                        using (UniFile uFile = uSession.CreateUniFile(file))
-                        {
-                            using (UniDynArray udArray = uFile.Read(recordID))
-                            {
-                                udArray.Remove(attribute);
-                                uFile.Write(recordID, udArray);
-                                UniObjects.CloseSession(uSession);
-                            }
-                        }
-                    }
-                    catch (Exception)
-                    {
-                        UniObjects.CloseSession(uSession);
-                    }
-                }
-            }
-            catch (Exception)
-            {
-
-            }
-        }
-
-        /// <summary>
         /// Get the next available lot number in M2k
         /// </summary>
         /// <param name="connection">Your Manage 2000 Connection object</param>
@@ -282,12 +268,12 @@ namespace M2kClient
                 if (!to.EndsWith("N") && !string.IsNullOrEmpty(nonConf))
                 {
                     //Remove note
-                    RemoveRecord("LOT.MASTER", $"{lotNbr}|P", 42, connection);
+                    EditRecord("LOT.MASTER", $"{lotNbr}|P", 42, "", UdArrayCommand.Remove, connection);
                 }
                 else if (to.EndsWith("N"))
                 {
                     //Add note
-                    EditRecord("LOT.MASTER", $"{lotNbr}|P", 42, nonConf, connection);
+                    EditRecord("LOT.MASTER", $"{lotNbr}|P", 42, nonConf, UdArrayCommand.Replace, connection);
                 }
                 _subResult.Add(0, string.Empty);
                 return _subResult;
