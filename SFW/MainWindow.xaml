@@ -269,6 +269,7 @@
                     CommandParameter="-3"
                     Background="Transparent"
                     BorderThickness="0"
+                    ToolTip="Pause the automatic refresh for the schedule."
                     Visibility="{Binding Path=(local:RefreshTimer.Status), Converter={StaticResource BoolToVisConverter}}"
                     Style="{DynamicResource ResourceKey=DefaultButton}">
                 <Image Source="/SFW;component/Icons/Pause.ico"/>
@@ -279,6 +280,7 @@
                     CommandParameter="-4"
                     Background="Transparent"
                     BorderThickness="0"
+                    ToolTip="Refresh the schedule and turn on the automatic schedule refresh as well."
                     Visibility="{Binding Path=(local:RefreshTimer.Status), Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}"
                     Style="{DynamicResource ResourceKey=DefaultButton}">
                 <Image Source="/SFW;component/Icons/Refresh.ico"/>

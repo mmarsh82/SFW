@@ -37,7 +37,7 @@ namespace SFW.Schedule
                     if (value != null)
                     {
                         var _wo = new WorkOrder(value.Row);
-                        if (App.SiteNumber == 0 && int.TryParse(_wo.EngStatus.TrimEnd(), out int i))
+                        if (_wo.Inspection)
                         {
                             Controls.WorkSpaceDock.UpdateChildDock(0, 1, new ShopRoute.QTask.View { DataContext = new ShopRoute.QTask.ViewModel(_wo, Schedule) });
                         }
@@ -80,8 +80,7 @@ namespace SFW.Schedule
             get { return _insp; }
             set
             {
-                //TODO: change the code to match the new criteria for the filter here before publish
-                var _filter = value ? "[EngStatus] = '0' OR [EngStatus] = '1' OR [EngStatus] = '2'" : "";
+                var _filter = value ? "[Inspection] = 'Y'" : "";
                 ScheduleFilter(_filter, 4);
                 _insp = value;
                 OnPropertyChanged(nameof(InspectionFilter));

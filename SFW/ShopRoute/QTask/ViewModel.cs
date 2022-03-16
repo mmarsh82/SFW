@@ -56,14 +56,14 @@ namespace SFW.ShopRoute.QTask
                     }
                 }
             }
-            foreach (DataRow _dr in dSet.Tables["WN"].Select($"[ID] = '{ShopOrder.OrderNumber}'"))
+            foreach (DataRow _dr in dSet.Tables["Notes"].Select($"[NoteID] = '{ShopOrder.OrderNumber}' AND [NoteType] = 'WN'", "[LineID] ASC"))
             {
-                ShopOrder.Notes += $"{_dr.Field<string>(1)}\n";
+                ShopOrder.Notes += $"{_dr.Field<string>("Note")}\n";
             }
             ShopOrder.Notes = ShopOrder.Notes?.Trim('\n');
-            foreach (DataRow _dr in dSet.Tables["SN"].Select($"[ID] = '{ShopOrder.OrderNumber}'"))
+            foreach (DataRow _dr in dSet.Tables["Notes"].Select($"([NoteID] = '{ShopOrder.SkuNumber}' OR [NoteID] = '{ShopOrder.OrderNumber}') AND [NoteType] = 'SN'", "[Priority], [LineID] ASC"))
             {
-                ShopOrder.ShopNotes += $"{_dr.Field<string>(1)}\n";
+                ShopOrder.ShopNotes += $"{_dr.Field<string>("Note")}\n";
             }
             ShopOrder.ShopNotes = ShopOrder.ShopNotes?.Trim('\n');
             IsMultiLoading = true;

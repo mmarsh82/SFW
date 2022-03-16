@@ -24,7 +24,7 @@ namespace SFW.ShopRoute
             set
             {
                 shopOrder = value;
-                shopOrder.ToolList = shopOrder.ToolList ?? new System.Collections.Generic.List<string>();
+                shopOrder.ToolList = shopOrder.ToolList ?? new List<string>();
                 OnPropertyChanged(nameof(ShopOrder));
                 OnPropertyChanged(nameof(FqSalesOrder));
                 ShopOrderNotes = null;
@@ -100,6 +100,7 @@ namespace SFW.ShopRoute
         {
             CanWip = false;
             ShopOrder = workOrder;
+            //Getting the Work order work instructions
             if (App.SiteNumber == 0)
             {
                 ShopOrder.InstructionList = Sku.GetInstructions(ShopOrder.SkuNumber, App.SiteNumber, App.GlobalConfig.First(o => $"{o.Site}_MAIN" == App.Site).WI, App.AppSqlCon);
@@ -118,21 +119,27 @@ namespace SFW.ShopRoute
                     }
                 }
             }
-            foreach (DataRow _dr in dSet.Tables["WN"].Select($"[ID] = '{ShopOrder.OrderNumber}'"))
+
+            //Getting the work order notes and the shop floor notes
+            foreach (DataRow _dr in dSet.Tables["Notes"].Select($"[NoteID] = '{ShopOrder.OrderNumber}' AND [NoteType] = 'WN'", "[LineID] ASC"))
             {
-                ShopOrder.Notes += $"{_dr.Field<string>(1)}\n";
+                ShopOrder.Notes += $"{_dr.Field<string>("Note")}\n";
             }
             ShopOrderNotes = ShopOrder.Notes = ShopOrder.Notes?.Trim('\n');
-            foreach (DataRow _dr in dSet.Tables["SN"].Select($"[ID] = '{ShopOrder.OrderNumber}'"))
+            foreach (DataRow _dr in dSet.Tables["Notes"].Select($"([NoteID] = '{ShopOrder.SkuNumber}' OR [NoteID] = '{ShopOrder.OrderNumber}') AND [NoteType] = 'SN'", "[Priority], [LineID] ASC"))
             {
-                ShopOrder.ShopNotes += $"{_dr.Field<string>(1)}\n";
+                ShopOrder.ShopNotes += $"{_dr.Field<string>("Note")}\n";
             }
             ShopOrder.ShopNotes = ShopOrder.ShopNotes?.Trim('\n');
+
+            //Getting the sales order internal comments
             foreach (DataRow _dr in dSet.Tables["SOIC"].Select($"[ID] = '{ShopOrder.SalesOrder}'"))
             {
                 ShopOrder.SalesOrder.InternalComments += $"{_dr.Field<string>(1)}\n";
             }
             ShopOrder.SalesOrder.InternalComments = ShopOrder.SalesOrder.InternalComments?.Trim('\n');
+
+            //Bill of Material and picklist loading, needs to be done in the background due to the recursive search
             IsMultiLoading = true;
             using (BackgroundWorker bw = new BackgroundWorker())
             {

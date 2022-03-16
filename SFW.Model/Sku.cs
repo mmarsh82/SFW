@@ -32,7 +32,7 @@ namespace SFW.Model
         public string Operation { get; set; }
         public string Machine { get; set; }
         public string MachineGroup { get; set; }
-        public bool QTask { get; set; }
+        public bool Inspection { get; set; }
         public string NonCon { get; set; }
         public List<string> ToolList { get; set; }
 

@@ -212,7 +212,7 @@ namespace SFW.Queries
         {
             IsLoading = false;
             ResultsAsyncDelegate = new ResultsDelegate(ResultsLoading);
-            Filter = PreFilter = wo.OrderNumber;
+            PreFilter = wo.OrderNumber;
             UserInput = wo.SkuNumber;
             SearchICommand.Execute(wo.SkuNumber);
             if (MoveHistory == null)
@@ -294,7 +294,7 @@ namespace SFW.Queries
             OnPropertyChanged(nameof(IthResultsTable));
             ILotResultsList = null;
             OnPropertyChanged(nameof(ILotResultsList));
-            Filter = FilterText = null;
+            Filter = FilterText = string.IsNullOrEmpty(PreFilter) ? null : PreFilter;
             OnPropertyChanged(nameof(FilterText));
             Part = UseLot ? new Sku(UserInput, App.AppSqlCon) : new Sku(UserInput, true, App.AppSqlCon);
             if (UseLot && Part != null)
@@ -305,7 +305,6 @@ namespace SFW.Queries
             }
             OnPropertyChanged(nameof(Part));
             _lot = UseLot ? UserInput : string.Empty;
-            PreFilter = UseLot ? UserInput : string.Empty;
             UserInput = Part.SkuNumber;
             SearchAsyncResult = ResultsAsyncDelegate.BeginInvoke(Part.SkuNumber, new AsyncCallback(ResultsLoaded), null);
         }
@@ -433,7 +432,7 @@ namespace SFW.Queries
             var _tran = new Sku
             {
                 SkuNumber = Part.SkuNumber
-                ,QTask = UseLot
+                ,Inspection = UseLot
                 ,MasterPrint = _lot
                 ,SkuDescription = ToLocation
                 ,TotalOnHand = Convert.ToInt32(QuantityInput)

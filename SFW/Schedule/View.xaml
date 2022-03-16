@@ -20,6 +20,7 @@
         <cvtr:StringToVisibility x:Key="StringToVisConverter"/>
         <cvtr:BoolToBackgroundColor x:Key="BoolToBGConverter"/>
         <cvtr:IntToBool x:Key="IntToBoolConverter"/>
+        <cvtr:DisplayToolTip x:Key="DisplayToolTip"/>
 
         <ContextMenu x:Key="rowMenu">
             <MenuItem Header="Work Order State"
@@ -99,6 +100,7 @@
                       HorizontalAlignment="Right"
                       FontSize="18"
                       Margin="0,0,10,0"
+                      ToolTip="Filter to only work orders with inspections."
                       Style="{DynamicResource SliderCheckBox}">
                 <CheckBox.Content>
                     <TextBlock Text="Inspection:"
@@ -159,6 +161,7 @@
                                                 Height="30"
                                                 IsTabStop="False"
                                                 Background="{Binding Deviation, Converter={StaticResource BoolToBGConverter}, ConverterParameter=Y}"
+                                                ToolTip="{Binding Deviation, Converter={StaticResource DisplayToolTip}, ConverterParameter=WO}"
                                                 Style="{DynamicResource ResourceKey=DefaultButton}">
                                             <Image Source="/SFW;component/Icons/PartSearch.ico"/>
                                             <Button.CommandParameter>
@@ -235,7 +238,7 @@
                         <!--Unclassified Work Orders-->
                         <MultiDataTrigger>
                             <MultiDataTrigger.Conditions>
-                                <Condition Binding="{Binding EngStatus, Converter={StaticResource IntToBoolConverter}}" Value="true"/>
+                                <Condition Binding="{Binding Inspection}" Value="Y"/>
                                 <Condition Binding="{Binding WO_Priority}" Value="D"/>
                             </MultiDataTrigger.Conditions>
                             <Setter Property="Background">
@@ -250,7 +253,7 @@
                         </MultiDataTrigger>
                         <MultiDataTrigger>
                             <MultiDataTrigger.Conditions>
-                                <Condition Binding="{Binding EngStatus, Converter={StaticResource IntToBoolConverter}}" Value="false"/>
+                                <Condition Binding="{Binding Inspection}" Value="N"/>
                                 <Condition Binding="{Binding WO_Priority}" Value="D"/>
                             </MultiDataTrigger.Conditions>
                             <Setter Property="Background">
@@ -265,7 +268,7 @@
                         <!--Hot Work Orders-->
                         <MultiDataTrigger>
                             <MultiDataTrigger.Conditions>
-                                <Condition Binding="{Binding EngStatus, Converter={StaticResource IntToBoolConverter}}" Value="true"/>
+                                <Condition Binding="{Binding Inspection}" Value="Y"/>
                                 <Condition Binding="{Binding WO_Priority}" Value="A"/>
                             </MultiDataTrigger.Conditions>
                             <Setter Property="Background">
@@ -280,7 +283,7 @@
                         </MultiDataTrigger>
                         <MultiDataTrigger>
                             <MultiDataTrigger.Conditions>
-                                <Condition Binding="{Binding EngStatus, Converter={StaticResource IntToBoolConverter}}" Value="false"/>
+                                <Condition Binding="{Binding Inspection}" Value="N"/>
                                 <Condition Binding="{Binding WO_Priority}" Value="A"/>
                             </MultiDataTrigger.Conditions>
                             <Setter Property="Background">
@@ -295,7 +298,7 @@
                         <!--Standard Work Orders-->
                         <MultiDataTrigger>
                             <MultiDataTrigger.Conditions>
-                                <Condition Binding="{Binding EngStatus, Converter={StaticResource IntToBoolConverter}}" Value="true"/>
+                                <Condition Binding="{Binding Inspection}" Value="Y"/>
                                 <Condition Binding="{Binding WO_Priority}" Value="B"/>
                             </MultiDataTrigger.Conditions>
                             <Setter Property="Background">
@@ -310,7 +313,7 @@
                         </MultiDataTrigger>
                         <MultiDataTrigger>
                             <MultiDataTrigger.Conditions>
-                                <Condition Binding="{Binding EngStatus, Converter={StaticResource IntToBoolConverter}}" Value="false"/>
+                                <Condition Binding="{Binding Inspection}" Value="N"/>
                                 <Condition Binding="{Binding WO_Priority}" Value="B"/>
                             </MultiDataTrigger.Conditions>
                             <Setter Property="Background">
@@ -325,7 +328,7 @@
                         <!--Pending Work Orders-->
                         <MultiDataTrigger>
                             <MultiDataTrigger.Conditions>
-                                <Condition Binding="{Binding EngStatus, Converter={StaticResource IntToBoolConverter}}" Value="true"/>
+                                <Condition Binding="{Binding Inspection}" Value="Y"/>
                                 <Condition Binding="{Binding WO_Priority}" Value="C"/>
                             </MultiDataTrigger.Conditions>
                             <Setter Property="Background">
@@ -340,7 +343,7 @@
                         </MultiDataTrigger>
                         <MultiDataTrigger>
                             <MultiDataTrigger.Conditions>
-                                <Condition Binding="{Binding EngStatus, Converter={StaticResource IntToBoolConverter}}" Value="false"/>
+                                <Condition Binding="{Binding Inspection}" Value="N"/>
                                 <Condition Binding="{Binding WO_Priority}" Value="C"/>
                             </MultiDataTrigger.Conditions>
                             <Setter Property="Background">

@@ -136,7 +136,7 @@ namespace SFW.Model
 	                ,(SELECT ac.[Cust_Part_Nbr] FROM [dbo].[SOD-INIT] ac WHERE ac.[ID] = SUBSTRING(wp.So_Reference, 0, LEN(wp.So_Reference) - 1)) as 'Cust_Part_Nbr'
 	                ,CAST((SELECT ad.[Ln_Bal_Qty] FROM [dbo].[SOD-INIT] ad WHERE ad.[ID] = SUBSTRING(wp.So_Reference, 0, LEN(wp.So_Reference) - 1)) AS int) as 'Ln_Bal_Qty'
 	                ,ISNULL(cm.Load_Pattern, '') as 'LoadPattern'
-	                ,(SELECT COUNT(ae.[Qtask_Type]) FROM [dbo].[IM_UDEF-INIT_Quality_Tasks] ae WHERE ae.[Qtask_Initiated_By] IS NOT NULL AND ae.[Qtask_Release_Date] IS NULL AND ae.[ID1] = im.[Part_Number]) as 'QTask'
+	                ,(SELECT ISNULL(rt.[Insp_Req], 'N') FROM [dbo].[RT-INIT] rt WHERE rt.[ID] = CONCAT(im.[Part_Number],'*', SUBSTRING(wpo.[ID], CHARINDEX('*', wpo.[ID], 0)+1, LEN(wpo.[ID])))) as 'Inspection'
                     ,ISNULL(wp.[Fa_Dept], 'N') as 'Deviation'
                 FROM
 	                dbo.[WC-INIT] wc
@@ -192,7 +192,7 @@ namespace SFW.Model
 	                ,(SELECT ac.[Cust_Part_Nbr] FROM [dbo].[SOD-INIT] ac WHERE (ac.[ID] = SUBSTRING(wp.[So_Reference], 0, LEN(wp.[So_Reference]) - 1))) as 'Cust_Part_Nbr'
 	                ,CAST((SELECT ad.[Ln_Bal_Qty] FROM [dbo].[SOD-INIT] ad WHERE (ad.[ID] = SUBSTRING(wp.[So_Reference], 0, LEN(wp.[So_Reference]) - 1))) as int) as 'Ln_Bal_Qty'
 	                ,ISNULL(cm.[Load_Pattern], '') as 'LoadPattern'
-	                ,0 as 'QTask'
+	                ,(SELECT ISNULL(rt.[Insp_Req], 'N') FROM [dbo].[RT-INIT] rt WHERE rt.[ID] = CONCAT(im.[Part_Number],'*', SUBSTRING(wpo.[ID], CHARINDEX('*', wpo.[ID], 0)+1, LEN(wpo.[ID])))) as 'Inspection'
                     ,'N' as 'Deviation'
                 FROM
 	                [dbo].[WC-INIT] wc
@@ -759,19 +759,16 @@ namespace SFW.Model
                     _tempDS.Tables[3].TableName = "PL";
 
                     _tempDS.Tables.Add(GetNotes(sqlCon));
-                    _tempDS.Tables[4].TableName = "WN";
-
-                    _tempDS.Tables.Add(GetShopNotes(sqlCon));
-                    _tempDS.Tables[5].TableName = "SN";
+                    _tempDS.Tables[4].TableName = "Notes";
 
                     _tempDS.Tables.Add(site.Contains("WCCO") ? GetInstructions(sqlCon) : new DataTable());
-                    _tempDS.Tables[6].TableName = "WI";
+                    _tempDS.Tables[5].TableName = "WI";
 
                     _tempDS.Tables.Add(Lot.GetOnHandTable(sqlCon));
-                    _tempDS.Tables[7].TableName = "OH";
+                    _tempDS.Tables[6].TableName = "OH";
 
                     _tempDS.Tables.Add(SalesOrder.GetInternalCommentsTable(sqlCon));
-                    _tempDS.Tables[8].TableName = "SOIC";
+                    _tempDS.Tables[7].TableName = "SOIC";
                     return _tempDS;
                 }
             }

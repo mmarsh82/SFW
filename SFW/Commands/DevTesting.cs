@@ -1,11 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Data.SqlClient;
-using System.Diagnostics;
-using System.IO;
 using System.Windows.Input;
-using M2kClient;
 
 namespace SFW.Commands
 {
@@ -13,7 +7,7 @@ namespace SFW.Commands
     {
         public event EventHandler CanExecuteChanged;
 
-        public class TempObject
+        /*public class TempObject
         {
             //All of the beginning properties are from the excel sheet
             public string PartNumber { get; set; }
@@ -24,7 +18,7 @@ namespace SFW.Commands
             public DateTime EffDate { get; set; }
             //This is an added property so that you dont end up inserting mutiple entries on 1 record
             public int Status { get; set; }
-        }
+        }*/
 
         /// <summary>
         /// Command for testing
@@ -32,26 +26,31 @@ namespace SFW.Commands
         /// <param name="parameter"></param>
         public void Execute(object parameter)
         {
+            /*
             try
             {
                 //First grab the data from a temp table that I copied from the excel sheet to SQL
+                //TODO: remove the hardcoded database before migration
                 var _tempList = new List<TempObject>();
-                using (SqlCommand cmd = new SqlCommand("SELECT * FROM [dbo].[TempTable] WHERE [Status] < 1;", App.AppSqlCon))
+                using (SqlCommand cmd = new SqlCommand($"SELECT * FROM [dbo].[TempTable] WHERE [Status] < 1;", App.AppSqlCon))
                 {
                     using (SqlDataReader reader = cmd.ExecuteReader())
                     {
-                        while (reader.Read())
+                        if (reader.HasRows)
                         {
-                            _tempList.Add(new TempObject
+                            while (reader.Read())
                             {
-                                PartNumber = reader.GetString(0)
-                                ,CatalogPrice = reader.GetDouble(1)
-                                ,CatalogNumber = reader.GetInt32(2)
-                                ,PriceUm = reader.GetString(3)
-                                ,FromQty = reader.GetInt32(4)
-                                ,EffDate = reader.GetDateTime(5)
-                                ,Status = reader.GetInt32(6)
-                            });
+                                _tempList.Add(new TempObject
+                                {
+                                    PartNumber = reader.GetString(0)
+                                    ,CatalogPrice = double.TryParse(reader.GetDecimal(1).ToString(), out double d) ? d : 0.00
+                                    ,CatalogNumber = reader.GetInt32(2)
+                                    ,PriceUm = reader.GetString(3)
+                                    ,FromQty = reader.GetInt32(4)
+                                    ,EffDate = reader.GetDateTime(5)
+                                    ,Status = reader.GetInt32(6)
+                                });
+                            }
                         }
                     }
                 }
@@ -88,12 +87,17 @@ namespace SFW.Commands
                             cmd.ExecuteNonQuery();
                         }
                     }
+                    else
+                    {
+                        System.Windows.MessageBox.Show(_msg, "ERP Error");
+                    }
                 }
             }
             catch (Exception ex)
             {
-                throw ex;
+                System.Windows.MessageBox.Show(ex.Message, "Database Error");
             }
+            */
 
             /*
             var qConTest = new QT9Client.QT9Connection("https://wccobelt.qt9app1.com", "qt9sa", "4WCKxqkFVn26bjaj", "WCCO");

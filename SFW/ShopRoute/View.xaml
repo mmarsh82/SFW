@@ -58,16 +58,11 @@
 
                 <StackPanel Grid.Row="0"
                             Orientation="Horizontal">
-                    <Button Content="Set-up Info"
+                    <Button Content="ITH"
                             FontSize="16"
-                            Command="{StaticResource SetupCommand}"
+                            Visibility="{Binding CanCheckHistory, Converter={StaticResource BoolToVisConverter}}"
+                            Command="{StaticResource ViewLoadCommand}"
                             CommandParameter="{Binding ShopOrder}"
-                            Style="{DynamicResource MenuButtonStyle}" />
-                    <Button Content="Trim Info"
-                            FontSize="16"
-                            Command="{StaticResource TrimSetupICommand}"
-                            CommandParameter="{Binding ShopOrder.SkuNumber}"
-                            Visibility="{Binding CanSeeTrim, Converter={StaticResource BoolToVisConverter}}"
                             Style="{DynamicResource MenuButtonStyle}" />
                     <Button Content="Wip Receipt"
                             FontSize="16"
@@ -78,11 +73,16 @@
                             Visibility="{Binding CanWip, Source={StaticResource User}, Converter={StaticResource BoolToVisConverter}}"
                             Style="{DynamicResource MenuButtonStyle}">
                     </Button>
-                    <Button Content="ITH"
+                    <Button Content="Set-up Info"
                             FontSize="16"
-                            Visibility="{Binding CanCheckHistory, Converter={StaticResource BoolToVisConverter}}"
-                            Command="{StaticResource ViewLoadCommand}"
+                            Command="{StaticResource SetupCommand}"
                             CommandParameter="{Binding ShopOrder}"
+                            Style="{DynamicResource MenuButtonStyle}" />
+                    <Button Content="Trim Info"
+                            FontSize="16"
+                            Command="{StaticResource TrimSetupICommand}"
+                            CommandParameter="{Binding ShopOrder.SkuNumber}"
+                            Visibility="{Binding CanSeeTrim, Converter={StaticResource BoolToVisConverter}}"
                             Style="{DynamicResource MenuButtonStyle}" />
                     <Menu Style="{DynamicResource ModernMenu}"
                           Visibility="{Binding ShopOrder.InstructionList.Count, Converter={StaticResource CountToVisConverter}}">

@@ -119,7 +119,10 @@ namespace M2kClient
                                                 break;
                                         }
                                     }
-                                    uFile.Write(recordID, udArray);
+                                    if (arrayCommand == UdArrayCommand.Replace)
+                                    {
+                                        uFile.Write(recordID, udArray);
+                                    }
                                 }
                             }
                             UniObjects.CloseSession(uSession);
