@@ -398,6 +398,7 @@ namespace SFW.Model
 	                                                                            ,CAST((SELECT [Ln_Bal_Qty] FROM [dbo].[SOD-INIT] WHERE [ID] = SUBSTRING(wp.[So_Reference],0,LEN(wp.[So_Reference])-1)) as int) as 'Ln_Bal_Qty'
                                                                                 ,ISNULL((SELECT [Load_Pattern] FROM [dbo].[CM-INIT] WHERE [Cust_Nbr] = wp.[Cust_Nbr]),'') as 'LoadPattern'
                                                                                 ,ISNULL(wp.[Fa_Dept], 'N') as 'Deviation'
+                                                                                ,(SELECT ISNULL(rt.[Insp_Req], 'N') FROM [dbo].[RT-INIT] rt WHERE rt.[ID] = CONCAT(im.[Part_Number],'*', SUBSTRING(wpo.[ID], CHARINDEX('*', wpo.[ID], 0)+1, LEN(wpo.[ID])))) as 'Inspection'
                                                                             FROM
                                                                                 [dbo].[WC-INIT] wc
                                                                             RIGHT JOIN
