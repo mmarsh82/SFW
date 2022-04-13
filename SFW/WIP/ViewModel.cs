@@ -64,6 +64,8 @@ namespace SFW.WIP
             }
         }
 
+        #region Wip Lot Property
+
         public string WipLot
         {
             get
@@ -72,26 +74,79 @@ namespace SFW.WIP
             {
                 if (!string.IsNullOrEmpty(value))
                 {
-                    var _validLot = WipRecord.WipWorkOrder.Operation == "10"
-                        ? Lot.LotValidation(value, WipRecord.WipWorkOrder.SkuNumber, App.AppSqlCon, WipRecord.WipWorkOrder.OrderNumber)
-                        : Lot.LotValidation(value, WipRecord.WipWorkOrder.SkuNumber, App.AppSqlCon);
-                    if (_validLot)
-                    {
-                        WipRecord.ReceiptLocation = Lot.GetLotLocation(value, App.AppSqlCon);
-                        OnPropertyChanged(nameof(WipRecord));
-                        IsLotValid = true;
-                    }
-                    else
-                    {
-                        WipRecord.ReceiptLocation = string.Empty;
-                        IsLotValid = false;
-                    }
+                    IsLotValid = WipRecord.WipWorkOrder.Operation == "10"
+                        ? Lot.LotValidation(value, WipRecord.WipWorkOrder.SkuNumber, WipRecord.WipWorkOrder.OrderNumber)
+                        : Lot.LotValidation(value, WipRecord.WipWorkOrder.SkuNumber);
+                }
+                else
+                {
+                    IsLotValid = true;
                 }
                 WipRecord.WipLot.LotNumber = value;
+                WipLocation = null;
                 OnPropertyChanged(nameof(WipLot));
                 OnPropertyChanged(nameof(WipRecord));
             }
         }
+        private bool _isLotValid;
+        public bool IsLotValid
+        {
+            get
+            { return _isLotValid; }
+            set
+            { _isLotValid = value; OnPropertyChanged(nameof(IsLotValid)); }
+        }
+
+        #endregion
+
+        #region Wip Location Property
+
+        public string WipLocation
+        {
+            get
+            { return WipRecord.ReceiptLocation; }
+            set
+            {
+                if (!string.IsNullOrEmpty(value) && string.IsNullOrEmpty(WipRecord.WipLot.LotNumber))
+                {
+                    IsLocationValid = Sku.IsValidLocation(value);
+                    IsLocationEditable = true;
+                }
+                else if (!string.IsNullOrEmpty(WipRecord.WipLot.LotNumber) && IsLotValid)
+                {
+                    value = Lot.GetLotLocation(WipRecord.WipLot.LotNumber);
+                    IsLocationValid = true;
+                    IsLocationEditable = false;
+                }
+                else if (!string.IsNullOrEmpty(WipRecord.WipLot.LotNumber) && !IsLotValid)
+                {
+                    IsLocationValid = true;
+                    IsLocationEditable = false;
+                }
+                else
+                {
+                    IsLocationValid = true;
+                    IsLocationEditable = true;
+                }
+                WipRecord.ReceiptLocation = value;
+                OnPropertyChanged(nameof(WipLocation));
+                OnPropertyChanged(nameof(WipRecord));
+            }
+        }
+        private bool _isLocValid;
+        public bool IsLocationValid
+        {
+            get { return _isLocValid; }
+            set { _isLocValid = value; OnPropertyChanged(nameof(IsLocationValid)); }
+        }
+        private bool _isLocEdit;
+        public bool IsLocationEditable
+        {
+            get { return _isLocEdit; }
+            set { _isLocEdit = value; OnPropertyChanged(nameof(IsLocationEditable)); }
+        }
+
+        #endregion
 
         public Model.Enumerations.Complete Scrap
         {
@@ -157,13 +212,6 @@ namespace SFW.WIP
             set { tQty = value; OnPropertyChanged(nameof(TQty)); }
         }
 
-        private bool vLoc;
-        public bool ValidLocation
-        {
-            get { return vLoc; }
-            set { vLoc = value; OnPropertyChanged(nameof(ValidLocation)); }
-        }
-
         public bool IsLotTrace
         {
             get { return WipRecord.IsLotTracable || WipRecord.WipWorkOrder.Picklist.Count(o => o.IsLotTrace) > 0; }
@@ -180,20 +228,6 @@ namespace SFW.WIP
             { return isSubmit; }
             set
             { isSubmit = value; OnPropertyChanged(nameof(IsSubmitted)); }
-        }
-
-        private bool _isLotValid;
-        public bool IsLotValid
-        {
-            get
-            { return _isLotValid; }
-            set
-            { _isLotValid = value; OnPropertyChanged(nameof(IsLotValid)); OnPropertyChanged(nameof(ShowSize)); }
-        }
-        public int ShowSize
-        {
-            get
-            { return IsLotValid ? 1 : 3; }
         }
 
         RelayCommand _wip;
@@ -231,7 +265,7 @@ namespace SFW.WIP
                     _delList.Clear();
                 }
             }
-            WipRecord = new WipReceipt(CurrentUser.UserIDNbr, CurrentUser.FirstName, CurrentUser.LastName, woObject, erpCon, App.AppSqlCon);
+            WipRecord = new WipReceipt(CurrentUser.UserIDNbr, CurrentUser.FirstName, CurrentUser.LastName, woObject, erpCon);
             if (ScrapReasonCollection == null)
             {
                 var _tempList = Enum.GetValues(typeof(M2kClient.AdjustCode)).Cast<M2kClient.AdjustCode>().Where(o => o != M2kClient.AdjustCode.CC && o != M2kClient.AdjustCode.REC);
@@ -248,7 +282,7 @@ namespace SFW.WIP
                 c.WipInfo[0].ScrapList.ListChanged += ScrapList_ListChanged;
             }
             IsSubmitted = false;
-            IsLotValid = true;
+            IsLotValid = IsLocationValid = IsLocationEditable = true;
         }
 
         /// <summary>
@@ -313,13 +347,13 @@ namespace SFW.WIP
                     }
                     if (WipRecord.IsScrap == Model.Enumerations.Complete.Y && _validScrap)
                     {
-                        _validQty = Math.Round(Convert.ToDouble(WipRecord.WipQty + WipRecord.ScrapList.Sum(o => Convert.ToInt32(o.Quantity))) * c.AssemblyQty, 0) == c.WipInfo.Where(o => !string.IsNullOrEmpty(o.LotNbr)).Sum(o => o.LotQty);
+                        _validQty = Math.Round(Convert.ToDecimal(WipRecord.WipQty + WipRecord.ScrapList.Sum(o => Convert.ToInt32(o.Quantity))) * c.AssemblyQty, 0) == c.WipInfo.Where(o => !string.IsNullOrEmpty(o.LotNbr)).Sum(o => o.LotQty);
                     }
                     else
                     {
                         _validQty = Multi
-                            ? Math.Round(Convert.ToDouble(WipRecord.WipQty) * c.AssemblyQty * Convert.ToDouble(WipRecord.RollQty), 0) == c.WipInfo.Where(o => !string.IsNullOrEmpty(o.LotNbr)).Sum(o => o.LotQty)
-                            : Math.Round(Convert.ToDouble(WipRecord.WipQty) * c.AssemblyQty, 0) == c.WipInfo.Where(o => !string.IsNullOrEmpty(o.LotNbr)).Sum(o => o.LotQty);
+                            ? Math.Round(Convert.ToDecimal(WipRecord.WipQty) * c.AssemblyQty * Convert.ToDecimal(WipRecord.RollQty), 0) == c.WipInfo.Where(o => !string.IsNullOrEmpty(o.LotNbr)).Sum(o => o.LotQty)
+                            : Math.Round(Convert.ToDecimal(WipRecord.WipQty) * c.AssemblyQty, 0) == c.WipInfo.Where(o => !string.IsNullOrEmpty(o.LotNbr)).Sum(o => o.LotQty);
                     }
                     if (!_validLoc || !_validQty || !_validScrap)
                     {
@@ -378,8 +412,8 @@ namespace SFW.WIP
 
         private void WipExecute(object parameter)
         {
-            var _preOnHand = !string.IsNullOrEmpty(WipRecord.WipLot.LotNumber) ? Lot.GetLotOnHandQuantity(WipRecord.WipLot.LotNumber, WipRecord.ReceiptLocation, App.AppSqlCon) : 0;
-            var _machID = WipRecord.CrewList?.Count > 0 ? WorkOrder.GetAssignedMachineID(WipRecord.WipWorkOrder.OrderNumber, WipRecord.WipWorkOrder.Seq, App.AppSqlCon) : "";
+            var _preOnHand = !string.IsNullOrEmpty(WipRecord.WipLot.LotNumber) ? Lot.GetLotOnHandQuantity(WipRecord.WipLot.LotNumber, WipRecord.ReceiptLocation) : 0;
+            var _machID = WipRecord.CrewList?.Count > 0 ? Machine.GetMachineNumber(WipRecord.WipWorkOrder.Machine) : "";
             var _wipProc = M2kClient.M2kCommand.ProductionWip(WipRecord, WipRecord.CrewList?.Count > 0, App.ErpCon, WipRecord.IsLotTracable, _machID);
             if (_wipProc != null && _wipProc.First().Key > 0)
             {
@@ -411,7 +445,7 @@ namespace SFW.WIP
                     #region Core Wip Validation
 
                     var _baseValid = false;
-                    var _locValid = !string.IsNullOrEmpty(WipRecord.ReceiptLocation) && WipReceipt.ValidLocation(WipRecord.ReceiptLocation, App.AppSqlCon);
+                    var _locValid = !string.IsNullOrEmpty(WipRecord.ReceiptLocation) && Sku.IsValidLocation(WipRecord.ReceiptLocation);
                     if (WipRecord.WipQty > 0)
                     {
                         _baseValid = _locValid && (string.IsNullOrEmpty(WipRecord.WipLot.LotNumber) || IsLotValid) && ValidateComponents();
@@ -497,7 +531,7 @@ namespace SFW.WIP
                 {
                     foreach (var l in w.WipInfo.Where(o => o.IsValidLot))
                     {
-                        var _temp = Sku.GetDiamondNumber(l.LotNbr, App.AppSqlCon);
+                        var _temp = Lot.GetDiamondNumber(l.LotNbr, App.AppSqlCon);
                         _diamond += _diamond == _temp ? "" : $"/{_temp}";
                     }
                 }
@@ -749,7 +783,7 @@ namespace SFW.WIP
             {
                 foreach (var l in w.WipInfo.Where(o => o.IsValidLot))
                 {
-                    var _temp = Sku.GetDiamondNumber(l.LotNbr, App.AppSqlCon);
+                    var _temp = Lot.GetDiamondNumber(l.LotNbr, App.AppSqlCon);
                     _diamond += _diamond == _temp ? "" : $"/{_temp}";
                 }
             }

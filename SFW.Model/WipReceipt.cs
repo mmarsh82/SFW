@@ -212,7 +212,7 @@ namespace SFW.Model
         /// <summary>
         /// Assembly Quantity for a reclaim transaction
         /// </summary>
-        public double ReclaimAssyQty { get; set; }
+        public decimal ReclaimAssyQty { get; set; }
 
         /// <summary>
         /// Determines if a work order is eligable for the Multi-Wip function
@@ -241,8 +241,7 @@ namespace SFW.Model
         /// <param name="subFName">Currently logged in user First Name</param>
         /// <param name="subLName">Currently logged in user Last Name</param>
         /// <param name="workOrder">Work order object to process</param>
-        /// <param name="sqlCon">Sql Connection to use</param>
-        public WipReceipt(string userId, string subFName, string subLName, WorkOrder workOrder, string[] erpCon, SqlConnection sqlCon)
+        public WipReceipt(string userId, string subFName, string subLName, WorkOrder workOrder, string[] erpCon)
         {
             if (ErpCon == null)
             {
@@ -250,11 +249,10 @@ namespace SFW.Model
             }
             Submitter = $"{subFName} {subLName}";
             var _crewID = userId;
-            ModelBase.ModelSqlCon = sqlCon;
             SeqComplete = Complete.N;
             WipLot = new Lot();
             WipWorkOrder = workOrder;
-            WipWorkOrder.CrewSize = Sku.GetCrewSize(WipWorkOrder.SkuNumber, WipWorkOrder.Seq, sqlCon);
+            WipWorkOrder.CrewSize = Sku.GetCrewSize(WipWorkOrder.SkuNumber);
             HasCrew = true;
             if (HasCrew)
             {
@@ -263,7 +261,7 @@ namespace SFW.Model
                 CrewList.AddNew();
                 CrewList[0].IdNumber = _crewID;
             }
-            IsLotTracable = Sku.IsLotTracable(workOrder.SkuNumber, sqlCon);
+            IsLotTracable = Sku.IsLotTracable(workOrder.SkuNumber);
             IsScrap = Complete.N;
             ScrapList = new BindingList<Scrap>();
             IsReclaim = Complete.N;
@@ -276,7 +274,7 @@ namespace SFW.Model
                 }
                 else if (workOrder.Picklist.Count() == 1)
                 {
-                    var _tempComp = new Component(workOrder.Picklist[0].CompNumber, sqlCon, "RC");
+                    var _tempComp = new Component(workOrder.Picklist[0].CompNumber, "RC");
                     ReclaimParent = _tempComp.CompNumber;
                     ReclaimAssyQty = workOrder.Picklist[0].AssemblyQty * _tempComp.AssemblyQty;
                 }
@@ -293,14 +291,14 @@ namespace SFW.Model
         {
             if (e.ListChangedType == ListChangedType.ItemChanged && e.PropertyDescriptor?.DisplayName == "IdNumber" && !IsLoading)
             {
-                if (CrewMember.IsCrewIDValid(ModelBase.ModelSqlCon, ((BindingList<CrewMember>)sender)[e.NewIndex].IdNumber))
+                if (CrewMember.IsCrewIDValid(((BindingList<CrewMember>)sender)[e.NewIndex].IdNumber))
                 {
                     IsLoading = true;
-                    var _tempCrew = new CrewMember(((BindingList<CrewMember>)sender)[e.NewIndex].IdNumber, ModelBase.ModelSqlCon);
+                    var _tempCrew = new CrewMember(((BindingList<CrewMember>)sender)[e.NewIndex].IdNumber);
                     ((BindingList<CrewMember>)sender)[e.NewIndex].Name = _tempCrew.Name;
                     ((BindingList<CrewMember>)sender)[e.NewIndex].IsDirect = _tempCrew.IsDirect;
                     ((BindingList<CrewMember>)sender)[e.NewIndex].Shift = _tempCrew.Shift;
-                    ((BindingList<CrewMember>)sender)[e.NewIndex].LastClock = string.Empty;
+                    ((BindingList<CrewMember>)sender)[e.NewIndex].LastClock = _tempCrew.LastClock;
                     if (((BindingList<CrewMember>)sender).Count() == ((BindingList<CrewMember>)sender).Count(o => !string.IsNullOrEmpty(o.Name)))
                     {
                         ((BindingList<CrewMember>)sender).AddNew();
@@ -314,35 +312,6 @@ namespace SFW.Model
                     ((BindingList<CrewMember>)sender)[e.NewIndex].Shift = 0;
                     ((BindingList<CrewMember>)sender)[e.NewIndex].LastClock = null;
                 }
-            }
-        }
-
-        /// <summary>
-        /// Check to see if the location entered into any wip field is valid
-        /// </summary>
-        /// <param name="location">Location to check</param>
-        /// <param name="sqlCon">Sql Connection to use</param>
-        /// <returns>Valid location as bool</returns>
-        public static bool ValidLocation(string location, SqlConnection sqlCon)
-        {
-            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
-            {
-                try
-                {
-                    using (SqlCommand cmd = new SqlCommand($"USE {sqlCon.Database}; SELECT COUNT([ID]) FROM [dbo].[LOC_MASTER-INIT] WHERE [ID] = CONCAT('01*', @p1);", sqlCon))
-                    {
-                        cmd.Parameters.AddWithValue("p1", location);
-                        return Convert.ToInt32(cmd.ExecuteScalar()) > 0;
-                    }
-                }
-                catch (Exception)
-                {
-                    return false;
-                }
-            }
-            else
-            {
-                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
             }
         }
     }

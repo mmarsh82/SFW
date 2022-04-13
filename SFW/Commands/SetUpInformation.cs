@@ -1,5 +1,4 @@
-﻿using SFW.Helpers;
-using SFW.Model;
+﻿using SFW.Model;
 using SFW.Reports;
 using System;
 using System.Diagnostics;
@@ -20,69 +19,33 @@ namespace SFW.Commands
         {
             try
             {
-                if (parameter != null && parameter.GetType() == typeof(WorkOrder))
+                if (!string.IsNullOrEmpty(parameter.ToString()))
                 {
-                    var _wo = (WorkOrder)parameter;
-                    switch (App.SiteNumber)
+                    if (parameter.ToString().Contains("|"))
                     {
-                        case 0:
-                            try
-                            {
-                                Process.Start($"{App.GlobalConfig.First(o => $"{o.Site}_MAIN" == App.Site).PressSetup}{_wo.SkuNumber}.pdf");
-                            }
-                            catch (Exception)
-                            {
-                                new ProcessSpec_View { DataContext = new ProcessSpec_ViewModel(_wo) }.ShowDialog();
-                            }
-                            break;
-                        case 1:
-                            var _machGroup = Machine.GetMachineGroup(App.AppSqlCon, _wo);
-                            var _fileName = string.Empty;
-                            var _filePath = string.Empty;
-                            switch (_machGroup)
-                            {
-                                case "PRESS":
-                                case "ENG":
-                                    _fileName = ExcelReader.GetSetupPrintNumber(_wo.SkuNumber, Machine.GetMachineName(App.AppSqlCon, _wo), App.GlobalConfig.First(o => $"{o.Site}_MAIN" == App.Site).PressSetup, "Production");
-                                    if (!string.IsNullOrEmpty(_fileName) && !_fileName.Contains("ERR:"))
-                                    {
-                                        var _fileheader = string.Empty;
-                                        for (int i = 0; i < 8 - _fileName.Length; i++)
-                                        {
-                                            _fileheader += "0";
-                                        }
-                                        _fileName = _fileheader + _fileName;
-                                        _filePath = $"{App.GlobalConfig.First(o => $"{o.Site}_MAIN" == App.Site).PartPrint}{_fileName}.PDF";
-                                    }
-                                    else if (_fileName.Contains("ERR:"))
-                                    {
-                                        System.Windows.MessageBox.Show("The origin file is currently open by an administrator,\nplease contact ME for further assistance.", "File Lock", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Exclamation);
-                                    }
-                                    else
-                                    {
-                                        System.Windows.MessageBox.Show("No setup file exists.", "No File Exists", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Exclamation);
-                                    }
-                                    break;
-                                case "FABE":
-                                    _fileName = ExcelReader.GetSetupPrintNumber(_wo.SkuNumber, Machine.GetMachineName(App.AppSqlCon, _wo), App.GlobalConfig.First(o => $"{o.Site}_MAIN" == App.Site).SyscoSetup, "PRODUCTION");
-                                    _filePath = $"{App.GlobalConfig.First(o => $"{o.Site}_MAIN" == App.Site).PartPrint}{_fileName}.PDF";
-                                    break;
-                            }             
-                            if (!string.IsNullOrEmpty(_filePath))
-                            {
-                                Process.Start(_filePath);
-                            }
-                            break;
+                        var _woNbr = parameter.ToString().Split('|').FirstOrDefault();
+                        var _wo = new WorkOrder(_woNbr);
+                        new ProcessSpec_View { DataContext = new ProcessSpec_ViewModel(_wo) }.ShowDialog();
+                    }
+                    else
+                    {
+                        Process.Start(parameter.ToString());
                     }
                 }
                 else
                 {
-                    //TODO: add in the interface to handle a null parameter, will require a new usercontrol similiar to part search
+                    System.Windows.MessageBox.Show("Unable to access the setup up file.\nPlease contact IT for further assistance."
+                        ,"Empty File Path"
+                        ,System.Windows.MessageBoxButton.OK
+                        ,System.Windows.MessageBoxImage.Exclamation);
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-
+                System.Windows.MessageBox.Show($"Unable to access the setup up file.\nPlease contact IT for further assistance.\n\nDetails:\n{ex.Message}"
+                    ,"Unhandled Exception"
+                    ,System.Windows.MessageBoxButton.OK
+                    ,System.Windows.MessageBoxImage.Exclamation);
             }
         }
         public bool CanExecute(object parameter) => true;

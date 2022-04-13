@@ -35,7 +35,7 @@ namespace SFW.Queries
                         FilterText = value.LotNumber;
                         _lot = value.LotNumber;
                         FromLocation = value.Location;
-                        NonConReason = FromLocation.EndsWith("N") ? Lot.GetNCRNote(value.LotNumber, App.AppSqlCon) : string.Empty;
+                        NonConReason = FromLocation.EndsWith("N") ? Lot.GetNCRNote(value.LotNumber) : string.Empty;
                         QuantityInput = value.Onhand;
                     }
                     OnPropertyChanged(nameof(FilterText));
@@ -134,7 +134,7 @@ namespace SFW.Queries
                 OnPropertyChanged(nameof(IsNCR));
             }
         }
-        public bool IsToValid { get { return string.IsNullOrEmpty(ToLocation) || Sku.IsValidLocation(ToLocation, App.AppSqlCon); } }
+        public bool IsToValid { get { return string.IsNullOrEmpty(ToLocation) || Sku.IsValidLocation(ToLocation); } }
         public int ToLocSize { get { return IsToValid ? 1 : 3; } }
         public bool IsNCR { get { return ToLocation.EndsWith("N") || FromLocation.EndsWith("N"); } }
 
@@ -227,11 +227,11 @@ namespace SFW.Queries
         public void ResultsLoading(string inputVal)
         {
             IsLoading = true;
-            ILotResultsList = Lot.GetOnHandLotList(inputVal, App.AppSqlCon);
+            ILotResultsList = Lot.GetOnHandLotList(inputVal, true);
             NonLotPart = false;
             if (ILotResultsList.Count == 0)
             {
-                ILotResultsList = Lot.GetOnHandNonLotList(inputVal, App.AppSqlCon);
+                ILotResultsList = Lot.GetOnHandLotList(inputVal, false);
                 NonLotPart = true;
             }
             IthResultsTable = Lot.GetLotHistoryTable(inputVal, App.AppSqlCon);
@@ -296,7 +296,7 @@ namespace SFW.Queries
             OnPropertyChanged(nameof(ILotResultsList));
             Filter = FilterText = string.IsNullOrEmpty(PreFilter) ? null : PreFilter;
             OnPropertyChanged(nameof(FilterText));
-            Part = UseLot ? new Sku(UserInput, App.AppSqlCon) : new Sku(UserInput, true, App.AppSqlCon);
+            Part = UseLot ? new Sku(UserInput, 'L') : new Sku(UserInput, 'S', true);
             if (UseLot && Part != null)
             {
                 QuantityInput = Part.TotalOnHand;
@@ -372,7 +372,7 @@ namespace SFW.Queries
 
         private void MPrintExecute(object parameter)
         {
-            var _dmd = UseLot ? Sku.GetDiamondNumber(_lot, App.AppSqlCon): "";
+            var _dmd = UseLot ? Lot.GetDiamondNumber(_lot, App.AppSqlCon): "";
             var _qir = UseLot ? Lot.GetAssociatedQIR(_lot, App.AppSqlCon) : 0;
             TravelCard.Create("", "technology#1",
                 Part.SkuNumber,

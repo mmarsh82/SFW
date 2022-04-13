@@ -12,12 +12,6 @@ namespace SFW.Converters
 {
     public class WorkCenterNameConverter : IValueConverter
     {
-        #region Properties
-
-        public List<Machine> MachineList { get; private set; }
-
-        #endregion
-
         #region IValueConverter Implementation
 
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
@@ -25,7 +19,7 @@ namespace SFW.Converters
             try
             {
                 return value != null && value != DependencyProperty.UnsetValue
-                        ? $"{MachineList.FirstOrDefault(o => o.MachineNumber == value.ToString()).MachineName} ({value})"
+                        ? $"{Machine.GetMachineName(value.ToString())} ({value})"
                         : string.Empty;
             }
             catch
@@ -40,14 +34,5 @@ namespace SFW.Converters
         }
 
         #endregion
-
-        /// <summary>
-        /// Work Center Name Converter Default Constructor
-        /// </summary>
-        /// <param name="machList">List of machine objects</param>
-        public WorkCenterNameConverter(List<Machine> machList)
-        {
-            MachineList = machList;
-        }
     }
 }

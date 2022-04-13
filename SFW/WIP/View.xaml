@@ -14,6 +14,7 @@
         <cvtr:CrewToVisibility x:Key="CrewtoVisConverter" />
         <cvtr:NegativeIntToBool x:Key="NegIntToBoolConverter" />
         <cvtr:BoolToBorderColor x:Key="BoolToBorderConverter" />
+        <cvtr:BoolToInt x:Key="BoolToIntConverter"/>
     </Window.Resources>
 
     <ScrollViewer VerticalScrollBarVisibility="Auto">
@@ -224,15 +225,15 @@
             <!--#region Wip Lot/Location Inputs-->
 
             <StackPanel Grid.Row="3"
-                    HorizontalAlignment="Left"
-                    Orientation="Horizontal">
+                        HorizontalAlignment="Left"
+                        Orientation="Horizontal">
                 <TextBlock Text="Lot Number:"
-                       Visibility="{Binding WipRecord.IsLotTracable, Converter={StaticResource BooltoVisConverter}}"
-                       FontSize="18"
-                       FontWeight="Bold"
-                       TextDecorations="Underline"
-                       VerticalAlignment="Center"
-                       Margin="10,0,0,0" />
+                           Visibility="{Binding WipRecord.IsLotTracable, Converter={StaticResource BooltoVisConverter}}"
+                           FontSize="18"
+                           FontWeight="Bold"
+                           TextDecorations="Underline"
+                           VerticalAlignment="Center"
+                           Margin="10,0,0,0" />
                 <TextBox Text="{Binding WipLot, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                          Visibility="{Binding WipRecord.IsLotTracable, Converter={StaticResource BooltoVisConverter}}"
                          FontSize="18"
@@ -243,25 +244,28 @@
                          MaxLength="9"
                          TabIndex="3"
                          CharacterCasing="Upper"
-                         BorderThickness="{Binding ShowSize}"
+                         BorderThickness="{Binding IsLotValid, Converter={StaticResource BoolToIntConverter}}"
                          BorderBrush="{Binding IsLotValid, Converter={StaticResource BoolToBorderConverter}}"
                          Style="{DynamicResource OptionalTextBox}" />
                 <TextBlock Text="Receipt Location:"
-                       FontSize="18"
-                       FontWeight="Bold"
-                       TextDecorations="Underline"
-                       VerticalAlignment="Center"
-                       Margin="20,0,0,0" />
-                <TextBox Text="{Binding WipRecord.ReceiptLocation, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                     FontSize="18"
-                     FontWeight="Bold"
-                     Background="LightGray"
-                     Margin="5"
-                     Width="120"
-                     MaxLength="8"
-                     TabIndex="4"
-                     CharacterCasing="Upper"
-                     Style="{DynamicResource RequiredTextBox}" />
+                           FontSize="18"
+                           FontWeight="Bold"
+                           TextDecorations="Underline"
+                           VerticalAlignment="Center"
+                           Margin="20,0,0,0" />
+                <TextBox Text="{Binding WipLocation, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                         IsEnabled="{Binding IsLocationEditable, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                         FontSize="18"
+                         FontWeight="Bold"
+                         Background="LightGray"
+                         Margin="5"
+                         Width="120"
+                         MaxLength="8"
+                         TabIndex="4"
+                         BorderThickness="{Binding IsLocationValid, Converter={StaticResource BoolToIntConverter}}"
+                         BorderBrush="{Binding IsLocationValid, Converter={StaticResource BoolToBorderConverter}}"
+                         CharacterCasing="Upper"
+                         Style="{DynamicResource RequiredTextBox}" />
 
             </StackPanel>
 

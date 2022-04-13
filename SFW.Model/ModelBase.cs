@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Data.SqlClient;
@@ -12,6 +13,7 @@ namespace SFW.Model
         #region Properties
 
         public static SqlConnection ModelSqlCon { get; set; }
+        public static DataSet MasterDataSet { get; set; }
 
         #endregion
 
@@ -57,8 +59,72 @@ namespace SFW.Model
         /// Model Base Constructor
         /// </summary>
         public ModelBase()
+        { }
+
+        /// <summary>
+        /// Builds the Application Master Dataset that all part of the application relies on for DataAccess
+        /// </summary>
+        /// <param name="machOrder"></param>
+        /// <param name="site"></param>
+        /// <param name="sqlCon"></param>
+        public static void BuildMasterDataSet(IReadOnlyDictionary<string, int> machOrder, string site, SqlConnection sqlCon)
         {
-            
+            ModelSqlCon = sqlCon;
+            try
+            {
+                using (var _tempDS = new DataSet())
+                {
+                    _tempDS.DataSetName = $"{site}DataSet";
+
+                    _tempDS.Tables.Add(Machine.GetScheduleData(machOrder, ModelSqlCon));
+                    _tempDS.Tables[_tempDS.Tables.Count - 1].TableName = "Master";
+
+                    _tempDS.Tables.Add(Machine.GetClosedScheduleData(ModelSqlCon));
+                    _tempDS.Tables[_tempDS.Tables.Count - 1].TableName = "ClosedMaster";
+
+                    _tempDS.Tables.Add(SalesOrder.GetScheduleData(ModelSqlCon));
+                    _tempDS.Tables[_tempDS.Tables.Count - 1].TableName = "SalesMaster";
+
+                    _tempDS.Tables.Add(Sku.GetTools(ModelSqlCon));
+                    _tempDS.Tables[_tempDS.Tables.Count - 1].TableName = "TL";
+
+                    _tempDS.Tables.Add(Component.GetComponentBomTable(ModelSqlCon));
+                    _tempDS.Tables[_tempDS.Tables.Count - 1].TableName = "BOM";
+
+                    _tempDS.Tables.Add(Component.GetComponentPickTable(ModelSqlCon));
+                    _tempDS.Tables[_tempDS.Tables.Count - 1].TableName = "PL";
+
+                    _tempDS.Tables.Add(WorkOrder.GetNotesTable(ModelSqlCon));
+                    _tempDS.Tables[_tempDS.Tables.Count - 1].TableName = "WoNotes";
+
+                    _tempDS.Tables.Add(site.Contains("WCCO") ? Sku.GetInstructions(ModelSqlCon) : new DataTable());
+                    _tempDS.Tables[_tempDS.Tables.Count - 1].TableName = "WI";
+
+                    _tempDS.Tables.Add(Lot.GetLotTable(ModelSqlCon));
+                    _tempDS.Tables[_tempDS.Tables.Count - 1].TableName = "LOT";
+
+                    _tempDS.Tables.Add(SalesOrder.GetNotesTable(ModelSqlCon));
+                    _tempDS.Tables[_tempDS.Tables.Count - 1].TableName = "SoNotes";
+
+                    _tempDS.Tables.Add(Machine.GetMachineTable(ModelSqlCon));
+                    _tempDS.Tables[_tempDS.Tables.Count - 1].TableName = "WC";
+
+                    _tempDS.Tables.Add(Sku.GetSkuTable(ModelSqlCon));
+                    _tempDS.Tables[_tempDS.Tables.Count - 1].TableName = "SKU";
+
+                    _tempDS.Tables.Add(Sku.GetLocationTable(ModelSqlCon));
+                    _tempDS.Tables[_tempDS.Tables.Count - 1].TableName = "LOC";
+
+                    _tempDS.Tables.Add(CrewMember.GetCrewTable(ModelSqlCon));
+                    _tempDS.Tables[_tempDS.Tables.Count - 1].TableName = "CREW";
+
+                    MasterDataSet = _tempDS;
+                }
+            }
+            catch (Exception)
+            {
+                throw new Exception();
+            }
         }
 
         /// <summary>

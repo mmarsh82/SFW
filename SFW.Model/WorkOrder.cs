@@ -45,6 +45,63 @@ namespace SFW.Model
 
         /// <summary>
         /// Work Order Object constructor
+        /// Will create a new WorkOrder Object based on a Work Order Number
+        /// </summary>
+        /// <param name="woNumber">Work Order Number</param>
+        public WorkOrder(string woNumber)
+        {
+            var _rows = MasterDataSet.Tables["Master"].Select($"[WO_Number] = '{woNumber}'");
+            if (_rows.Length > 0)
+            {
+                var _row = _rows.FirstOrDefault();
+                var _wo = _row.Field<string>("WO_Number").Split('*');
+                OrderNumber = _wo[0];
+                Seq = _wo[1];
+                Operation = _row.Field<string>("Operation");
+                OpDesc = _row.Field<string>("Op_Desc");
+                Priority = _row.Field<string>("WO_Priority");
+                TaskType = _row.Field<string>("WO_Type");
+                StartQty = _row.Field<int>("WO_StartQty");
+                CurrentQty = Convert.ToInt32(_row.Field<decimal>("WO_CurrentQty"));
+                SchedStartDate = _row.Field<DateTime>("WO_SchedStartDate");
+                ActStartDate = _row.Field<DateTime>("WO_ActStartDate") != Convert.ToDateTime("1999-01-01") ? _row.Field<DateTime>("WO_ActStartDate") : DateTime.MinValue;
+                DueDate = _row.Field<DateTime>("WO_DueDate");
+                SkuNumber = _row.Field<string>("SkuNumber");
+                SkuDescription = _row.Field<string>("SkuDesc");
+                Uom = _row.Field<string>("SkuUom");
+                MasterPrint = _row.Field<string>("SkuMasterPrint");
+                TotalOnHand = _row.Field<int>("SkuOnHand");
+                BomRevDate = _row.Field<DateTime>("BomRevDate") != Convert.ToDateTime("1999-01-01") ? _row.Field<DateTime>("BomRevDate") : DateTime.MinValue;
+                BomRevLevel = _row.Field<string>("BomRevLvl");
+                EngStatus = _row.Field<string>("EngStatus");
+                EngStatusDesc = _row.Field<string>("EngStatusDesc");
+                if (!string.IsNullOrEmpty(_row.Field<string>("WO_SalesRef")))
+                {
+                    var _so = _row.Field<string>("WO_SalesRef").Split('*');
+                    SalesOrder = new SalesOrder
+                    {
+                        SalesNumber = _so[0],
+                        CustomerName = _row.Field<string>("Cust_Name"),
+                        CustomerNumber = _row.Field<string>("Cust_Nbr"),
+                        CustomerPart = _row.Field<string>("Cust_Part_Nbr"),
+                        LineNumber = Convert.ToInt32(_so[1]),
+                        LineBalQuantity = _row.Field<int>("Ln_Bal_Qty"),
+                        LoadPattern = _row.Field<string>("LoadPattern").ToUpper() == "PLASTIC"
+                    };
+                }
+                else
+                {
+                    SalesOrder = new SalesOrder();
+                }
+                Machine = _row.Field<string>("MachineName");
+                MachineGroup = _row.Field<string>("MachineGroup");
+                IsDeviated = _row.Field<string>("Deviation") == "Y";
+                Inspection = _row.Field<string>("Inspection") == "Y";
+            }
+        }
+
+        /// <summary>
+        /// Work Order Object constructor
         /// Will create a new WorkOrder Object based on a DataRow from any DataTable Object
         /// </summary>
         /// <param name="dRow">DataRow with the item array values for the work order</param>
@@ -98,198 +155,14 @@ namespace SFW.Model
             }
         }
 
-        /// <summary>
-        /// Retrieve a list of Work orders based on a work center
-        /// </summary>
-        /// <param name="workCntNbr">Work Center Number or ID</param>
-        /// <param name="sqlCon">Sql Connection to use</param>
-        /// <returns>List of WorkOrder objects</returns>
-        public static List<WorkOrder> GetWorkOrderList(string workCntNbr, SqlConnection sqlCon)
-        {
-            var _tempList = new List<WorkOrder>();
-            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
-            {
-                try
-                {
-                    using (SqlCommand cmd = new SqlCommand(@"SELECT 
-                                                                SUBSTRING(a.[ID], 0, CHARINDEX('*',a.[ID],0)) as 'WoNumber',
-	                                                            SUBSTRING(a.[ID], CHARINDEX('*',a.[ID],0) + 1, LEN(a.[ID])) as 'Seq',
-	                                                            a.[Qty_Avail] as 'CurrentQty', ISNULL(a.[Qty_Scrap], 0) as 'Scrap', a.[Date_Start] as 'SchedStartDate', a.[Date_Act_Start] as 'ActStartDate', a.[Due_Date] as 'DueDate',
-	                                                            b.[Part_Wo_Desc] as 'WoDesc', ISNULL(b.[Mgt_Priority_Code], 'D') as 'Priority', b.[Qty_To_Start] as 'StartQty', b.[So_Reference] as 'SalesOrder'
-                                                            FROM
-                                                                [dbo].[WPO-INIT] a
-                                                            RIGHT JOIN
-                                                                [dbo].[WP-INIT] b on a.[ID] LIKE CONCAT(b.[Wp_Nbr], '%')
-                                                            WHERE
-                                                                (b.[Status_Flag] = 'R' or b.[Status_Flag] = 'A') AND a.[Seq_Complete_Flag] IS NULL AND a.[Work_Center] = @p1
-                                                            ORDER BY
-                                                                StartDate, WoNumber ASC;", sqlCon))
-                    {
-                        cmd.Parameters.AddWithValue("p1", workCntNbr);
-                        using (SqlDataReader reader = cmd.ExecuteReader())
-                        {
-                            if (reader.HasRows)
-                            {
-                                while (reader.Read())
-                                {
-                                    _tempList.Add(new WorkOrder
-                                    {
-                                        OrderNumber = reader.SafeGetString("WoNumber"),
-                                        Seq = reader.SafeGetString("Seq"),
-                                        Priority = reader.SafeGetString("Priority"),
-                                        StartQty = reader.SafeGetInt32("StartQty"),
-                                        CurrentQty = reader.SafeGetInt32("CurrentQty"),
-                                        ScrapQty = reader.SafeGetInt32("Scrap"),
-                                        SchedStartDate = reader.SafeGetDateTime("SchedStartDate"),
-                                        DueDate = reader.SafeGetDateTime("DueDate"),
-                                        SalesOrder = new SalesOrder(reader.SafeGetString("SalesOrder"), sqlCon)
-                                    });
-                                }
-                            }
-                        }
-                    }
-                    foreach(var o in _tempList)
-                    {
-                        using (SqlCommand nCmd = new SqlCommand("SELECT * FROM [dbo].[WP-INIT_Wo_Notes] WHERE [ID] = @p1;", sqlCon))
-                        {
-                            nCmd.Parameters.AddWithValue("p1", o.OrderNumber);
-                            using (SqlDataReader reader = nCmd.ExecuteReader())
-                            {
-                                if (reader.HasRows)
-                                {
-                                    while (reader.Read())
-                                    {
-                                        o.Notes += reader.SafeGetString("");
-                                    }
-                                }
-                            }
-                        }
-                        using (SqlCommand sCmd = new SqlCommand("SELECT [Wo_Sf_Notes] FROM [dbo].[WP-INIT_Wo_Sf_Notes] WHERE [ID] = @p1;", sqlCon))
-                        {
-                            sCmd.Parameters.AddWithValue("p1", o.OrderNumber);
-                            using (SqlDataReader reader = sCmd.ExecuteReader())
-                            {
-                                if (reader.HasRows)
-                                {
-                                    while (reader.Read())
-                                    {
-                                        o.ShopNotes += reader.SafeGetString("");
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    return _tempList.OrderBy(o => o.Priority).ToList();
-                }
-                catch (SqlException sqlEx)
-                {
-                    throw sqlEx;
-                }
-                catch (Exception ex)
-                {
-                    throw new Exception(ex.Message);
-                }
-            }
-            else
-            {
-                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
-            }
-        }
-
-        /// <summary>
-        /// Get a work order's notes
-        /// </summary>
-        /// <param name="woNbr">Work Order Number</param>
-        /// <param name="sqlCon">Sql Connection to use</param>
-        /// <returns>A concatonation of notes into a string</returns>
-        public static string GetNotes(string woNbr, SqlConnection sqlCon)
-        {
-            var _notes = string.Empty;
-            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
-            {
-                try
-                {
-                    using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database}; SELECT [Wo_Notes] FROM [dbo].[WP-INIT_Wo_Notes] WHERE [ID] = @p1;", sqlCon))
-                    {
-                        cmd.Parameters.AddWithValue("p1", woNbr);
-                        using (SqlDataReader reader = cmd.ExecuteReader())
-                        {
-                            if (reader.HasRows)
-                            {
-                                while (reader.Read())
-                                {
-                                    _notes += $"{reader.SafeGetString("Wo_Notes")}\n";
-                                }
-                            }
-                        }
-                    }
-                    return _notes;
-                }
-                catch (SqlException sqlEx)
-                {
-                    throw sqlEx;
-                }
-                catch (Exception ex)
-                {
-                    throw new Exception(ex.Message);
-                }
-            }
-            else
-            {
-                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
-            }
-        }
-
-        /// <summary>
-        /// Get a work order's shop floor notes
-        /// </summary>
-        /// <param name="woNbr">Work Order Number</param>
-        /// <param name="sqlCon">Sql Connection to use</param>
-        /// <returns>A concatonation of shop floor notes into a string</returns>
-        public static string GetShopNotes(string woNbr, SqlConnection sqlCon)
-        {
-            var _notes = string.Empty;
-            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
-            {
-                try
-                {
-                    using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database}; SELECT [Wo_Sf_Notes] FROM [dbo].[WP-INIT_Wo_Sf_Notes] WHERE [ID] = @p1;", sqlCon))
-                    {
-                        cmd.Parameters.AddWithValue("p1", woNbr);
-                        using (SqlDataReader reader = cmd.ExecuteReader())
-                        {
-                            if (reader.HasRows)
-                            {
-                                while (reader.Read())
-                                {
-                                    _notes += $"{reader.SafeGetString("Wo_Sf_Notes")}\n";
-                                }
-                            }
-                        }
-                    }
-                    return _notes;
-                }
-                catch (SqlException sqlEx)
-                {
-                    throw sqlEx;
-                }
-                catch (Exception ex)
-                {
-                    throw new Exception(ex.Message);
-                }
-            }
-            else
-            {
-                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
-            }
-        }
+        #region Data Access
 
         /// <summary>
         /// Get work order note's table
         /// </summary>
         /// <param name="sqlCon">Sql Connection to use</param>
         /// <returns>All work order notes in a datatable</returns>
-        public static DataTable GetNotes(SqlConnection sqlCon)
+        public static DataTable GetNotesTable(SqlConnection sqlCon)
         {
             using (var _tempTable = new DataTable())
             {
@@ -319,82 +192,46 @@ namespace SFW.Model
             }
         }
 
-        /// <summary>
-        /// Get the machine ID that is assigned to a specific work order and sequence
-        /// </summary>
-        /// <param name="woNbr">Work order number</param>
-        /// <param name="seq">Work order sequence</param>
-        /// <param name="sqlCon">Sql Connection to use</param>
-        /// <returns>Machine ID as string</returns>
-        public static string GetAssignedMachineID(string woNbr, string seq, SqlConnection sqlCon)
-        {
-            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
-            {
-                try
-                {
-                    using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database}; SELECT [Work_Center] FROM [dbo].[WPO-INIT] WHERE [ID] = CONCAT(@p1, '*', @p2);", sqlCon))
-                    {
-                        cmd.Parameters.AddWithValue("p1", woNbr);
-                        cmd.Parameters.AddWithValue("p2", seq);
-                        return cmd.ExecuteScalar().ToString();
-                    }
-                }
-                catch (SqlException sqlEx)
-                {
-                    throw sqlEx;
-                }
-                catch (Exception ex)
-                {
-                    throw new Exception(ex.Message);
-                }
-            }
-            else
-            {
-                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
-            }
-        }
+        #endregion
 
         /// <summary>
-        /// Get the machine name that is assigned to a specific work order and sequence
+        /// Get a work order's notes
         /// </summary>
-        /// <param name="woNbr">Work order number</param>
-        /// <param name="seq">Work order sequence</param>
-        /// <param name="sqlCon">Sql Connection to use</param>
-        /// <returns>Machine name as string</returns>
-        public static string GetAssignedMachineName(string woNbr, string seq, SqlConnection sqlCon)
+        /// <param name="type">Type of notes to return</param>
+        /// <param name="includePriority">Add priority in the sorting</param>
+        /// <param name="lookupValue">Value to use in searching for notes</param>
+        /// <returns>A concatonation of notes into a string</returns>
+        public static string GetNotes(string type, bool includePriority, params string[] lookupValue)
         {
-            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
+            var _notes = string.Empty;
+            var _sort = includePriority 
+                ? "[Priority], [LineID] ASC" 
+                : "[LineID] ASC";
+
+            var _select = string.Empty;
+            if (lookupValue.Length == 1)
             {
-                try
-                {
-                    using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database};
-                                                                SELECT 
-	                                                                b.[Name]
-                                                                FROM
-	                                                                [dbo].[WPO-INIT] a
-                                                                RIGHT JOIN
-	                                                                [dbo].[WC-INIT] b ON b.[Wc_Nbr] = a.[Work_Center]
-                                                                WHERE
-	                                                                a.[ID] = CONCAT(@p1, '*', @p2);", sqlCon))
-                    {
-                        cmd.Parameters.AddWithValue("p1", woNbr);
-                        cmd.Parameters.AddWithValue("p2", seq);
-                        return cmd.ExecuteScalar().ToString();
-                    }
-                }
-                catch (SqlException sqlEx)
-                {
-                    throw sqlEx;
-                }
-                catch (Exception ex)
-                {
-                    throw new Exception(ex.Message);
-                }
+                _select = $"[NoteID] = '{lookupValue[0]}' AND [NoteType] = '{type}'";
             }
-            else
+            else if (lookupValue.Length > 1)
             {
-                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
+                _select = "(";
+                foreach (var _lv in lookupValue)
+                {
+                    _select += _select.Length > 1 ? " OR " : "";
+                    _select += $"[NoteID] = '{_lv}'";
+                }
+                _select += $") AND [NoteType] = '{type}'";
             }
+            if (string.IsNullOrEmpty(_select))
+            {
+                return _notes;
+            }
+            foreach (DataRow _dr in MasterDataSet.Tables["WoNotes"].Select(_select, _sort))
+            {
+                _notes += $"{_dr.Field<string>("Note")}\n";
+            }
+            return _notes?.Trim('\n');
         }
     }
 }

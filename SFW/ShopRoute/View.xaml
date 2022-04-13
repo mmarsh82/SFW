@@ -76,7 +76,8 @@
                     <Button Content="Set-up Info"
                             FontSize="16"
                             Command="{StaticResource SetupCommand}"
-                            CommandParameter="{Binding ShopOrder}"
+                            CommandParameter="{Binding SetupFile}"
+                            Visibility="{Binding HasSetupFile, Converter={StaticResource BoolToVisConverter}}"
                             Style="{DynamicResource MenuButtonStyle}" />
                     <Button Content="Trim Info"
                             FontSize="16"

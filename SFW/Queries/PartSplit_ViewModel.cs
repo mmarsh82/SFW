@@ -19,7 +19,7 @@ namespace SFW.Queries
             set
             {
                 value = value.ToUpper();
-                var _valid = Lot.IsValid(value, App.AppSqlCon);
+                var _valid = Lot.IsValid(value);
                 if (ValidLot && !_valid)
                 {
                     SplitLotList.Clear();
@@ -32,8 +32,8 @@ namespace SFW.Queries
                 {
                     if (value.Count() >= 4)
                     {
-                        _startingQty = LotQuantity = Lot.GetLotOnHandQuantity(value, App.AppSqlCon);
-                        LotLocation = Lot.GetLotLocation(value, App.AppSqlCon);
+                        _startingQty = LotQuantity = Lot.GetLotOnHandQuantity(value);
+                        LotLocation = Lot.GetLotLocation(value);
                     }
                 }
                 ValidLot = _valid;
@@ -94,7 +94,7 @@ namespace SFW.Queries
                     var _alphaCount = 65;
                     while (_tempCount != 0)
                     {
-                        while (Lot.IsValid($"{_lot}{Convert.ToChar(_alphaCount)}", App.AppSqlCon))
+                        while (Lot.IsValid($"{_lot}{Convert.ToChar(_alphaCount)}"))
                         {
                             _alphaCount++;
                         }
@@ -209,7 +209,7 @@ namespace SFW.Queries
         private void SplitExecute(object parameter)
         {
             ActionNote = "Building...";
-            var _part = Lot.GetSkuNumber(LotNumber, App.AppSqlCon);
+            var _part = Lot.GetSkuNumber(LotNumber);
             var _scrap = int.TryParse(LotScrap, out int lotInt) ? Convert.ToInt32(LotScrap) : 0;
             var _onHandDelta = _startingQty - LotQuantity;
             M2kClient.M2kCommand.InventoryAdjustment(CurrentUser.DisplayName, $"Split into {RollQuantity} rolls", _part, M2kClient.AdjustCode.CC, 'S', _onHandDelta, LotLocation, App.ErpCon, LotNumber);
@@ -222,7 +222,7 @@ namespace SFW.Queries
             {
                 M2kClient.M2kCommand.InventoryAdjustment(CurrentUser.DisplayName, $"Scrap Split", _part, M2kClient.AdjustCode.CC, 'A', _scrap, "SCRAP", App.ErpCon, $"{LotNumber}Z");
                 var _counter = 0;
-                while (!Lot.IsValid($"{LotNumber}Z", App.AppSqlCon) || _counter >= 2000)
+                while (!Lot.IsValid($"{LotNumber}Z") || _counter >= 2000)
                 {
                     _counter++;
                 }

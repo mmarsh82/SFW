@@ -15,32 +15,34 @@ namespace SFW
     {
         #region Properties
 
-        private static List<Machine> _mList;
-        public static List<Machine> MachineList
+        private static List<string> _mList;
+        public static List<string> MachineList
         {
             get { return _mList; }
             set { _mList = value; StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(MachineList))); }
         }
 
-        private static Machine mach;
-        public static Machine SelectedMachine
+        private static string mach;
+        public static string SelectedMachine
         {
             get { return mach; }
             set
             {
                 if (value == null)
                 {
-                    value = MachineList?.FirstOrDefault(o => o.MachineName == "All");
+                    value = MachineList[0];
                 }
                 if (mach != value && !IsChanging)
                 {
                     IsChanging = true;
-                    if (value.MachineGroup != SelectedMachineGroup)
+                    var _mGroup = Machine.GetMachineGroup(value, 'M');
+                    if (_mGroup != SelectedMachineGroup)
                     {
-                        SelectedMachineGroup = value.MachineGroup;
+                        SelectedMachineGroup = _mGroup;
                     }
-                    Schedule.ViewModel.ScheduleFilter(value.MachineName == "All" ? "" : $"MachineNumber = '{value.MachineNumber}'", 1);
-                    Schedule.Closed.ViewModel.ScheduleFilter(value.MachineName == "All" ? "" : $"MachineNumber = '{value.MachineNumber}'", 1);
+                    var _mNbr = Machine.GetMachineNumber(value);
+                    Schedule.ViewModel.ScheduleFilter(value == "All" ? "" : $"MachineNumber = '{_mNbr}'", 1);
+                    Schedule.Closed.ViewModel.ScheduleFilter(value == "All" ? "" : $"MachineNumber = '{_mNbr}'", 1);
                     IsChanging = false;
                 }
                 mach = value;
@@ -64,9 +66,9 @@ namespace SFW
                 if (machGrp != value && !IsChanging)
                 {
                     IsChanging = true;
-                    Schedule.ViewModel.ScheduleFilter(value == "All" ? "" : $"MachineGroup = '{value}'", 2);
-                    Schedule.Closed.ViewModel.ScheduleFilter(value == "All" ? "" : $"MachineGroup = '{value}'", 2);
-                    SelectedMachine = MachineList.FirstOrDefault(o => o.MachineName == "All");
+                    Schedule.ViewModel.ScheduleFilter(value == "All" ? "" : $"[MachineGroup] = '{value}'", 2);
+                    Schedule.Closed.ViewModel.ScheduleFilter(value == "All" ? "" : $"[MachineGroup] = '{value}'", 2);
+                    SelectedMachine = MachineList.FirstOrDefault(o => o == "All");
                     IsChanging = false;
                 }
                 machGrp = value;
@@ -162,9 +164,9 @@ namespace SFW
         {
             DisplayAction = false;
             InTraining = false;
-            MachineList = Machine.GetMachineList(App.AppSqlCon, true, false);
+            MachineList = Machine.GetMachineList();
             SelectedMachine = MachineList.First();
-            MachineGroupList = Machine.GetMachineGroupList(App.AppSqlCon, true);
+            MachineGroupList = Machine.GetMachineGroupList(true);
             SelectedMachineGroup = MachineGroupList.First();
             StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(MachineList)));
             StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(MachineGroupList)));

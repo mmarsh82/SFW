@@ -44,500 +44,14 @@ namespace SFW.Model
         public Sku()
         { }
 
+        #region Data Access
+
         /// <summary>
-        /// Sku Constructor
-        /// Load a Skew object based on a part number
+        /// Load a datatable with all the sku information
         /// </summary>
-        /// <param name="partNbr">Part number to load</param>
-        /// <param name="partLoad">Tell the constructor to load a part for tracking</param>
         /// <param name="sqlCon">Sql Connection to use</param>
-        public Sku(string partNbr, bool partLoad, SqlConnection sqlCon)
-        {
-            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
-            {
-                try
-                {
-                    if (partLoad)
-                    {
-                        var _valid = false;
-                        using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database};
-                                                           SELECT a.[Part_Number] FROM [dbo].[IM-INIT] a WHERE a.[Part_Number] = @p1;", sqlCon))
-                        {
-                            cmd.Parameters.AddWithValue("p1", partNbr);
-                            _valid = !string.IsNullOrEmpty(cmd.ExecuteScalar()?.ToString());
-                        }
-                        if (_valid)
-                        {
-                            using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database};
-                                                                SELECT 
-	                                                                a.[Description]
-	                                                                ,a.[Um]
-                                                                FROM
-                                                                    [dbo].[IM-INIT] a
-                                                                WHERE
-                                                                    a.[Part_Number] = @p1;", sqlCon))
-                            {
-                                cmd.Parameters.AddWithValue("p1", partNbr);
-                                using (SqlDataReader reader = cmd.ExecuteReader())
-                                {
-                                    if (reader.HasRows)
-                                    {
-                                        while (reader.Read())
-                                        {
-                                            SkuNumber = partNbr;
-                                            SkuDescription = reader.SafeGetString("Description");
-                                            Uom = reader.SafeGetString("Um");
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    else
-                    {
-                        using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database}; SELECT 
-                                                                a.[Part_Number], a.[Description], a.[Um], a.[Bom_Rev_Date], b.[Qty_On_Hand], a.[Drawing_Nbrs], a.[Inventory_Type], c.[Crew_Size]
-                                                            FROM
-                                                                [dbo].[IM-INIT] a
-                                                            RIGHT JOIN
-                                                                [dbo].[IPL-INIT] b ON b.[Part_Nbr] = a.[Part_Number]
-                                                            RIGHT JOIN
-	                                                            [dbo].[RT-INIT] c ON SUBSTRING(c.[ID],0,CHARINDEX('*',c.[ID],0)) = b.[Part_Nbr]
-                                                            WHERE
-                                                                a.[Part_Number] = @p1;", sqlCon))
-                        {
-                            cmd.Parameters.AddWithValue("p1", partNbr);
-                            using (SqlDataReader reader = cmd.ExecuteReader())
-                            {
-                                if (reader.HasRows)
-                                {
-                                    while (reader.Read())
-                                    {
-                                        SkuNumber = partNbr;
-                                        SkuDescription = reader.SafeGetString("Description");
-                                        Uom = reader.SafeGetString("Um");
-                                        BomRevDate = reader.SafeGetDateTime("Bom_Rev_Date");
-                                        TotalOnHand = reader.SafeGetInt32("Qty_On_Hand");
-                                        MasterPrint = reader.SafeGetString("Drawing_Nbrs");
-                                        InventoryType = reader.SafeGetString("Inventory_Type");
-                                        CrewSize = reader.SafeGetInt32("Crew_Size");
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                catch (SqlException sqlEx)
-                {
-                    throw sqlEx;
-                }
-                catch (Exception ex)
-                {
-                    throw new Exception(ex.Message);
-                }
-            }
-            else
-            {
-                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
-            }
-        }
-
-        /// <summary>
-        /// Sku Constructor
-        /// Load a Skew object based on a lot number
-        /// </summary>
-        /// <param name="lotNbr">Part number to load</param>
-        /// <param name="sqlCon">Sql Connection to use</param>
-        public Sku(string lotNbr, SqlConnection sqlCon)
-        {
-            var _valid = false;
-            var _selectCmd = sqlCon.Database == "CSI_MAIN"
-                ? @"SELECT 
-                        a.[Part_Nbr]
-                        ,b.[Description]
-	                    ,b.[Um]
-                        ,'' as 'Notes'
-	                    ,c.[Oh_Qtys] as 'Qty'
-	                    ,c.[Locations] as 'Loc'
-                    FROM
-                        [dbo].[LOT-INIT] a
-                    LEFT JOIN
-                        [dbo].[IM-INIT] b ON b.[Part_Number] = a.[Part_Nbr]
-                    LEFT JOIN
-	                    [dbo].[LOT-INIT_Lot_Loc_Qtys] c ON c.[ID1] = a.[Lot_Number]
-                    WHERE
-                        a.[Lot_Number] = CONCAT(@p1,'|P');"
-
-                : @"SELECT 
-	                    a.[Part_Nbr]
-	                    ,c.[Description]
-	                    ,c.[Um]
-	                    ,b.[Notes]
-	                    ,d.[Oh_Qtys] as 'Qty'
-	                    ,d.[Locations] as 'Loc'
-                    FROM 
-	                    [dbo].[LOT-INIT] a
-                    LEFT JOIN
-	                    [dbo].[LOT-SA] b ON b.[Lot_Number] = a.[Lot_Number]
-                    LEFT JOIN 
-	                    [dbo].[IM-INIT] c ON c.[Part_Number] = a.[Part_Nbr]
-                    LEFT JOIN
-	                    [dbo].[LOT-INIT_Lot_Loc_Qtys] d ON d.[ID1] = a.[Lot_Number]
-                    WHERE 
-	                    a.[Lot_Number] = CONCAT(@p1,'|P');";
-            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
-            {
-                try
-                {
-                    using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database};
-                                                           SELECT [Part_Nbr] FROM [dbo].[LOT-INIT] WHERE [Lot_Number] LIKE CONCAT(@p1,'|P');", sqlCon))
-                    {
-                        cmd.Parameters.AddWithValue("p1", lotNbr);
-                        _valid = !string.IsNullOrEmpty(cmd.ExecuteScalar()?.ToString());
-                    }
-                    if (_valid)
-                    {
-                        using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database}; {_selectCmd}", sqlCon))
-                        {
-                            cmd.Parameters.AddWithValue("p1", lotNbr);
-                            using (SqlDataReader reader = cmd.ExecuteReader())
-                            {
-                                if (reader.HasRows)
-                                {
-                                    while (reader.Read())
-                                    {
-                                        SkuNumber = reader.SafeGetString("Part_Nbr");
-                                        SkuDescription = reader.SafeGetString("Description");
-                                        Uom = reader.SafeGetString("Um");
-                                        NonCon = reader.SafeGetString("Notes").Replace("/", "");
-                                        TotalOnHand = reader.SafeGetInt32("Qty");
-                                        Location = reader.SafeGetString("Loc");
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                catch (SqlException sqlEx)
-                {
-                    throw sqlEx;
-                }
-                catch (Exception ex)
-                {
-                    throw new Exception(ex.Message);
-                }
-            }
-            else
-            {
-                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
-            }
-        }
-
-        /// <summary>
-        /// Sku Constructor
-        /// Load a Skew object based on a part number when using part structure
-        /// </summary>
-        /// <param name="partNbr">Part number to load</param>
-        /// <param name="partStructure">Enter value of 1</param>
-        /// <param name="sqlCon">Sql Connection to use</param>
-        public Sku(string partNbr, int partStructure, SqlConnection sqlCon)
-        {
-            var optional = partStructure;
-            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
-            {
-                try
-                {
-                    using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database}; SELECT 
-                                                                a.[Part_Number], a.[Description], a.[Um], a.[Bom_Rev_Date], b.[Qty_On_Hand], a.[Drawing_Nbrs], a.[Inventory_Type], a.[Accounting_Status]
-                                                            FROM
-                                                                [dbo].[IM-INIT] a
-                                                            RIGHT JOIN
-                                                                [dbo].[IPL-INIT] b ON b.[Part_Nbr] = a.[Part_Number]
-                                                            WHERE
-                                                                a.[Part_Number] = @p1;", sqlCon))
-                    {
-                        cmd.Parameters.AddWithValue("p1", partNbr);
-                        using (SqlDataReader reader = cmd.ExecuteReader())
-                        {
-                            if (reader.HasRows)
-                            {
-                                while (reader.Read())
-                                {
-                                    SkuNumber = reader.SafeGetString("Part_Number");
-                                    SkuDescription = reader.SafeGetString("Description");
-                                    Uom = reader.SafeGetString("Um");
-                                    TotalOnHand = reader.SafeGetInt32("Qty_On_Hand");
-                                    EngStatus = reader.SafeGetString("Accounting_Status");
-                                }
-                            }
-                        }
-                    }
-                }
-                catch (SqlException sqlEx)
-                {
-                    throw sqlEx;
-                }
-                catch (Exception ex)
-                {
-                    throw new Exception(ex.Message);
-                }
-            }
-            else
-            {
-                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
-            }
-        }
-
-        /// <summary>
-        /// Get the Sku's crew size
-        /// </summary>
-        /// <param name="partNbr">Part number to search</param>
-        /// <param name="seq">Part sequence to search</param>
-        /// <param name="sqlCon">Sql Connection to use</param>
-        /// <returns>crew size as int</returns>
-        public static int GetCrewSize(string partNbr, string seq, SqlConnection sqlCon)
-        {
-            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
-            {
-                try
-                {
-                    using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database}; SELECT [Crew_Size] FROM [dbo].[RT-INIT] WHERE [ID] = CONCAT(@p1,'*',@p2);", sqlCon))
-                    {
-                        cmd.Parameters.AddWithValue("p1", partNbr);
-                        cmd.Parameters.AddWithValue("p2", seq);
-                        return int.TryParse(cmd.ExecuteScalar()?.ToString(), out int result) ? result : 0;
-                    }
-                }
-                catch (SqlException sqlEx)
-                {
-                    throw sqlEx;
-                }
-                catch (Exception ex)
-                {
-                    throw new Exception(ex.Message);
-                }
-            }
-            else
-            {
-                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
-            }
-        }
-
-        /// <summary>
-        /// Get the Sku's Diamond number using a parent lot number
-        /// </summary>
-        /// <param name="lotNbr">Lot Number used as a search reference</param>
-        /// <param name="sqlCon">Sql Connection to use</param>
-        /// <returns>Diamond number as string</returns>
-        public static string GetDiamondNumber(string lotNbr, SqlConnection sqlCon)
-        {
-            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
-            {
-                var _found = false;
-                var _lot = $"a.[Parent_Lot] = '{lotNbr}|P'";
-                var _dmdNbr = string.Empty;
-                while (!_found)
-                {
-                    _lot += ";";
-                    using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database};
-                                                            SELECT
-                                                                SUBSTRING(a.[Component_Lot],0,LEN(a.[Component_Lot]) - 1) as 'Comp_Lot', b.[Inventory_Type] as 'Type'
-                                                            FROM
-	                                                            [dbo].[Lot Structure] a
-                                                            RIGHT OUTER JOIN
-	                                                            [dbo].[IM-INIT] b ON b.[Part_Number] = a.[Comp_Pn]
-                                                            WHERE
-	                                                            {_lot}", sqlCon))
-                    {
-                        _lot = string.Empty;
-                        using (SqlDataReader reader = cmd.ExecuteReader())
-                        {
-                            if (reader.HasRows)
-                            {
-                                while (reader.Read())
-                                {
-                                    if (reader.SafeGetString("Type") == "RR")
-                                    {
-                                        _dmdNbr = reader.SafeGetString("Comp_Lot");
-                                        _found = true;
-                                    }
-                                    else if (string.IsNullOrEmpty(_lot) && reader.SafeGetString("Type") != "HM")
-                                    {
-                                        _lot += $"a.[Parent_Lot] = '{reader.SafeGetString("Comp_Lot")}|P'";
-                                    }
-                                    else if (reader.SafeGetString("Type") != "HM")
-                                    {
-                                        _lot += $" OR a.[Parent_Lot] = '{reader.SafeGetString("Comp_Lot")}|P'";
-                                    }
-                                }
-                            }
-                            else
-                            {
-                                return !string.IsNullOrEmpty(_dmdNbr) ? _dmdNbr : lotNbr;
-                            }
-                        }
-                        if (string.IsNullOrEmpty(_lot))
-                        {
-                            using (SqlDataReader reader = cmd.ExecuteReader())
-                            {
-                                while (reader.Read())
-                                {
-                                    _lot = $"a.[Parent_Lot] = '{reader.SafeGetString("Comp_Lot")}|P'";
-                                }
-                            }
-                        }
-                    }
-                }
-                return _dmdNbr;
-            }
-            else
-            {
-                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
-            }
-        }
-
-        /// <summary>
-        /// Get the Sku's Diamond number by crawling the parent part numbers BOM
-        /// </summary>
-        /// <param name="compList">List of components for a Sku</param>
-        /// <param name="sqlCon">Sql Connection to use</param>
-        /// <returns>Diamond number as string</returns>
-        public static string GetDiamondNumber(List<Component> compList, SqlConnection sqlCon)
-        {
-            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
-            {
-                var _dmdNbr = string.Empty;
-                foreach (var c in compList)
-                {
-                    if (c.IsLotTrace && c.InventoryType != "HM")
-                    {
-                        foreach (var w in c.WipInfo)
-                        {
-                            if (!string.IsNullOrEmpty(w.LotNbr))
-                            {
-                                var _found = false;
-                                var _lot = $"a.[Parent_Lot] = '{w.LotNbr}|P'";
-                                while (!_found)
-                                {
-                                    using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database};
-                                                            SELECT
-                                                                SUBSTRING(a.[Component_Lot],0,LEN(a.[Component_Lot]) - 1) as 'Comp_Lot', b.[Inventory_Type] as 'Type'
-                                                            FROM
-	                                                            [dbo].[Lot Structure] a
-                                                            RIGHT OUTER JOIN
-	                                                            [dbo].[IM-INIT] b ON b.[Part_Number] = a.[Comp_Pn]
-                                                            WHERE
-	                                                            {_lot};", sqlCon))
-                                    {
-                                        _lot = string.Empty;
-                                        using (SqlDataReader reader = cmd.ExecuteReader())
-                                        {
-                                            if (reader.HasRows)
-                                            {
-                                                while (reader.Read())
-                                                {
-                                                    if (reader.SafeGetString("Type") == "RR")
-                                                    {
-                                                        _dmdNbr = reader.SafeGetString("Comp_Lot");
-                                                        _found = true;
-                                                    }
-                                                    else
-                                                    {
-                                                        _lot += $"a.[Parent_Lot] = '{reader.SafeGetString("Comp_Lot")}|P'";
-                                                    }
-                                                }
-                                            }
-                                            else
-                                            {
-                                                _dmdNbr = w.LotNbr;
-                                                _found = true;
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                return _dmdNbr;
-            }
-            else
-            {
-                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
-            }
-        }
-
-        /// <summary>
-        /// Get a Sku's work instructions
-        /// </summary>
-        /// <param name="partNbr">Sku ID Number</param>
-        /// <param name="siteNbr">Facility number to run on</param>
-        /// <param name="filepath">Path to the file</param>
-        /// <param name="sqlCon">Sql Connection to use</param>
-        /// <returns>A list of URL strings to open the work instructions</returns>
-        public static List<string> GetInstructions(string partNbr, int siteNbr, string filepath, SqlConnection sqlCon)
-        {
-            //TODO: this code will need to be reformated once CSI has moved to the same process model as WCCO
-            var _inst = new List<string>();
-            if (siteNbr == 0)
-            {
-                if(File.Exists($"{filepath}{partNbr}.pdf"))
-                {
-                    _inst.Add(partNbr);
-                }
-                return _inst;
-            }
-            else
-            {
-                if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
-                {
-                    try
-                    {
-                        using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database}; SELECT [Work_Instructions] as 'WI' FROM [dbo].[IM-INIT_Work_Instructions] WHERE [Part_Number] = @p1;", sqlCon))
-                        {
-                            cmd.Parameters.AddWithValue("p1", partNbr);
-                            using (SqlDataReader reader = cmd.ExecuteReader())
-                            {
-                                if (reader.HasRows)
-                                {
-                                    while (reader.Read())
-                                    {
-                                        var dir = new DirectoryInfo(filepath);
-                                        var fileList = dir.GetFiles($"*{reader.SafeGetInt32("WI")}*");
-                                        foreach (var file in fileList)
-                                        {
-                                            _inst.Add(file.Name);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        return _inst;
-                    }
-                    catch (SqlException sqlEx)
-                    {
-                        throw sqlEx;
-                    }
-                    catch (Exception ex)
-                    {
-                        throw new Exception(ex.Message);
-                    }
-                }
-                else
-                {
-                    throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
-                }
-            }
-        }
-
-        /// <summary>
-        /// Get a Sku's work instructions
-        /// </summary>
-        /// <param name="woNbr">Sku ID Number</param>
-        /// <param name="siteNbr">Facility number to run on</param>
-        /// <param name="filepath">Path to the file</param>
-        /// <returns>A table of URL strings to open the work instructions</returns>
-        public static DataTable GetInstructions(SqlConnection sqlCon)
+        /// <returns>A table of Sku information</returns>
+        public static DataTable GetSkuTable (SqlConnection sqlCon)
         {
             using (DataTable _dt = new DataTable())
             {
@@ -545,7 +59,28 @@ namespace SFW.Model
                 {
                     try
                     {
-                        using (SqlDataAdapter adapter = new SqlDataAdapter($@"USE {sqlCon.Database}; SELECT [Part_Number] as 'ID', [Work_Instructions] as 'WI' FROM [dbo].[IM-INIT_Work_Instructions]", sqlCon))
+                        using (SqlDataAdapter adapter = new SqlDataAdapter($@"USE {sqlCon.Database};
+                                                                                SELECT
+	                                                                                im.[Part_Number] as 'SkuID'
+	                                                                                ,im.[Description]
+	                                                                                ,im.[Um] as 'Uom'
+	                                                                                ,im.[Lot_Trace] as 'LotTraceable'
+	                                                                                ,im.[Drawing_Nbrs] as 'MasterSkuID'
+	                                                                                ,rt.[Wc_Nbr] as 'WorkCenterID'
+	                                                                                ,CAST(im.[Bom_Rev_Date] as date) as 'BomRevDate'
+	                                                                                ,im.[Accounting_Status] as 'Status'
+	                                                                                ,im.[Inventory_Type] as 'Type'
+	                                                                                ,CAST(ISNULL(rt.[Crew_Size], 1) as int) as 'Crew'
+	                                                                                ,CAST(ipl.[Qty_On_Hand] as int) as 'OnHand'
+	                                                                                ,ipl.[Wip_Rec_Loc] as 'WipLocation'
+                                                                                FROM
+	                                                                                [dbo].[IM-INIT] im
+                                                                                LEFT JOIN
+	                                                                                [dbo].[RT-INIT] rt ON rt.[ID] = CONCAT(im.[Part_Number], '*10')
+                                                                                LEFT JOIN
+	                                                                                [dbo].[IPL-INIT] ipl on ipl.[Part_Nbr] = im.[Part_Number]
+                                                                                WHERE
+	                                                                                im.[Accounting_Status] IS NOT NULL", sqlCon))
                         {
                             adapter.Fill(_dt);
                         }
@@ -568,53 +103,44 @@ namespace SFW.Model
         }
 
         /// <summary>
-        /// Get a Sku's tool list
+        /// Get a Table of all work instructions in the database
         /// </summary>
-        /// <param name="woNbr">Sku ID Number</param>
-        /// <param name="woSeq">Work order sequence</param>
         /// <param name="sqlCon">Sql Connection to use</param>
-        /// <returns>A list of tool's associated with the Sku</returns>
-        public static List<string> GetTools(string partNbr, string woSeq, SqlConnection sqlCon)
+        /// <returns>A table of URL strings to open the work instructions</returns>
+        public static DataTable GetInstructions(SqlConnection sqlCon)
         {
-            var _tempList = new List<string>();
-            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
+            using (DataTable _dt = new DataTable())
             {
-                try
+                if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
                 {
-                    using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database}; SELECT [Tool_Tape] as 'Tool' FROM [dbo].[RT-INIT_Tool_Tape] WHERE [ID1] = @p1;", sqlCon))
+                    try
                     {
-                        cmd.Parameters.AddWithValue("p1", $"{partNbr}*{woSeq}");
-                        using (SqlDataReader reader = cmd.ExecuteReader())
+                        using (SqlDataAdapter adapter = new SqlDataAdapter($@"USE {sqlCon.Database}; SELECT [Part_Number] as 'SkuID', [Work_Instructions] as 'WI' FROM [dbo].[IM-INIT_Work_Instructions]", sqlCon))
                         {
-                            if (reader.HasRows)
-                            {
-                                while (reader.Read())
-                                {
-                                    _tempList.Add(reader.SafeGetString("Tool"));
-                                }
-                            }
+                            adapter.Fill(_dt);
                         }
+                        return _dt;
                     }
-                    return _tempList;
+                    catch (SqlException sqlEx)
+                    {
+                        throw sqlEx;
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new Exception(ex.Message);
+                    }
                 }
-                catch (SqlException sqlEx)
+                else
                 {
-                    return null;
+                    throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
                 }
-                catch (Exception ex)
-                {
-                    throw new Exception(ex.Message);
-                }
-            }
-            else
-            {
-                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
             }
         }
 
         /// <summary>
         /// Get a Table of all tools in the database
         /// </summary>
+        /// <param name="sqlCon">Sql Connection to use</param>
         /// <returns>A datatable of all tool's</returns>
         public static DataTable GetTools(SqlConnection sqlCon)
         {
@@ -652,319 +178,37 @@ namespace SFW.Model
         }
 
         /// <summary>
-        /// Check to see if a Sku number is lot tracable
+        /// Load a datatable with all the location information
         /// </summary>
-        /// <param name="partNbr">Sku Number</param>
         /// <param name="sqlCon">Sql Connection to use</param>
-        /// <returns>lot tracability as bool</returns>
-        public static bool IsLotTracable(string partNbr, SqlConnection sqlCon)
+        /// <returns>A table of location information</returns>
+        public static DataTable GetLocationTable(SqlConnection sqlCon)
         {
-            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
+            using (DataTable _dt = new DataTable())
             {
-                try
+                if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
                 {
-                    using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database}; SELECT [Lot_Trace] FROM [dbo].[IM-INIT] WHERE [Part_Number] = @p1;", sqlCon))
+                    try
                     {
-                        cmd.Parameters.AddWithValue("p1", partNbr);
-                        return cmd.ExecuteScalar()?.ToString() == "T";
-                    }
-                }
-                catch (SqlException sqlEx)
-                {
-                    throw sqlEx;
-                }
-                catch (Exception ex)
-                {
-                    throw new Exception(ex.Message);
-                }
-            }
-            else
-            {
-                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
-            }
-        }
-
-        /// <summary>
-        /// Validates that the location entered is a valid M2k location
-        /// </summary>
-        /// <param name="location">location to validate</param>
-        /// <param name="sqlCon">Sql Connection to use</param>
-        /// <returns>valid location as bool</returns>
-        public static bool IsValidLocation(string location, SqlConnection sqlCon)
-        {
-            location = location ?? string.Empty;
-            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
-            {
-                try
-                {
-                    using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database}; SELECT COUNT([ID]) FROM [dbo].[LOC_MASTER-INIT] WHERE [ID] = CONCAT('01*', @p1);", sqlCon))
-                    {
-                        cmd.Parameters.AddWithValue("p1", location);
-                        return int.TryParse(cmd.ExecuteScalar()?.ToString(), out int i) && i > 0;
-                    }
-                }
-                catch (SqlException sqlEx)
-                {
-                    throw sqlEx;
-                }
-                catch (Exception ex)
-                {
-                    throw new Exception(ex.Message);
-                }
-            }
-            else
-            {
-                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
-            }
-        }
-
-        /// <summary>
-        /// Validates Sku
-        /// </summary>
-        /// <param name="partNbr">Sku Number</param>
-        /// <param name="sqlCon">Sql Connection to use</param>
-        /// <param name="location">Optional: Verify that the sku is located in a specific location</param>
-        /// <param name="woNbr">Optional: Verify that the sku was ran on a specific work order</param>
-        /// <param name="qty">Optional: Verify that the sku has a minimum quantity on hand</param>
-        /// <returns>valid Sku as bool</returns>
-        public static bool IsValid(string partNbr, SqlConnection sqlCon, string location = "", string woNbr = "", int qty = 0)
-        {
-            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
-            {
-                try
-                {
-                    using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database};
-                                                                DECLARE @validPart as tinyint;
-                                                                SET @validPart = CASE WHEN (SELECT SUM([Oh_Qty_By_Loc]) FROM [dbo].[IPL-INIT_Location_Data] WHERE [ID1] = @p1 AND [Location] = @p2) > CAST(@p3 as int) THEN 1 ELSE 0 END;
-                                                                DECLARE @validWo as tinyint;
-                                                                SET @validWo = (SELECT COUNT([Wp_Nbr]) FROM [dbo].[WP-INIT] WHERE [Wp_Nbr] = @p4 AND [Part_Wo_Desc] = @p1);
-                                                                SELECT TOP(1) @validPart + @validWo as 'Valid' FROM [dbo].[IM-INIT];", sqlCon))
-                    {
-                        cmd.Parameters.AddWithValue("p1", partNbr);
-                        cmd.Parameters.AddWithValue("p2", location);
-                        cmd.Parameters.AddWithValue("p3", qty);
-                        cmd.Parameters.AddWithValue("p4", woNbr);
-                        return int.TryParse(cmd.ExecuteScalar()?.ToString(), out int i) && i > 0;
-                    }
-                }
-                catch (SqlException sqlEx)
-                {
-                    return false;
-                }
-                catch (Exception ex)
-                {
-                    throw new Exception(ex.Message);
-                }
-            }
-            else
-            {
-                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
-            }
-        }
-
-        /// <summary>
-        /// Get the default or backflush location for any part number
-        /// </summary>
-        /// <param name="partNbr">Sku Number</param>
-        /// <param name="sqlCon">Sql Connection to use</param>
-        /// <returns>backflush or default location as string</returns>
-        public static string GetBackFlushLoc(string partNbr, SqlConnection sqlCon)
-        {
-            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
-            {
-                try
-                {
-                    using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database}; SELECT [Wip_Rec_Loc] FROM [dbo].[IPL-INIT] WHERE [Part_Nbr] = @p1;", sqlCon))
-                    {
-                        cmd.Parameters.AddWithValue("p1", partNbr);
-                        return cmd.ExecuteScalar()?.ToString();
-                    }
-                }
-                catch (SqlException sqlEx)
-                {
-                    throw sqlEx;
-                }
-                catch (Exception ex)
-                {
-                    throw new Exception(ex.Message);
-                }
-            }
-            else
-            {
-                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
-            }
-        }
-
-        /// <summary>
-        /// Get a Sku's current on hand value for a specific lot number
-        /// </summary>
-        /// <param name="partNbr">Part number</param>
-        /// <param name="sqlCon">Sql Connection to use</param>
-        /// <returns>on hand value as int</returns>
-        public static int GetOnhandQuantity(string partNbr, SqlConnection sqlCon)
-        {
-            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
-            {
-                try
-                {
-                    using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database}; SELECT [Qty_On_Hand] FROM [dbo].[IPL-INIT] WHERE [Part_Nbr] = @p1;", sqlCon))
-                    {
-                        cmd.Parameters.AddWithValue("p1", partNbr);
-                        return int.TryParse(cmd.ExecuteScalar().ToString(), out int i) ? i : 0;
-                    }
-                }
-                catch (SqlException sqlEx)
-                {
-                    throw sqlEx;
-                }
-                catch (Exception ex)
-                {
-                    throw new Exception(ex.Message);
-                }
-            }
-            else
-            {
-                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
-            }
-        }
-
-        /// <summary>
-        /// Check to see if a Sku exists in the database
-        /// </summary>
-        /// <param name="partNbr">Part Number to check</param>
-        /// <param name="sqlCon">Sql Connection to use</param>
-        /// <returns>Pass/Fail as boolean</returns>
-        public static bool Exists(string partNbr, SqlConnection sqlCon)
-        {
-            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
-            {
-                try
-                {
-                    using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database};
-                                                                SELECT
-	                                                                COUNT([Part_Number])
-                                                                FROM
-	                                                                [dbo].[IM-INIT]
-                                                                WHERE
-	                                                                [Part_Number] = @p1;", sqlCon))
-                    {
-                        cmd.Parameters.AddWithValue("p1", partNbr);
-                        return int.TryParse(cmd.ExecuteScalar()?.ToString(), out int i) && i > 0;
-                    }
-                }
-                catch (SqlException sqlEx)
-                {
-                    return false;
-                }
-                catch (Exception ex)
-                {
-                    throw new Exception(ex.Message);
-                }
-            }
-            else
-            {
-                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
-            }
-        }
-
-        /// <summary>
-        /// Check to see if a Sku exists in the database
-        /// </summary>
-        /// <param name="partNbr">Part Number to check</param>
-        /// <param name="sqlCon">Sql Connection to use</param>
-        /// <returns>Pass/Fail as boolean</returns>
-        public static string GetMasterNumber(string partNbr, SqlConnection sqlCon)
-        {
-            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
-            {
-                try
-                {
-                    using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database};
-                                                                SELECT
-	                                                                [Drawing_Nbrs]
-                                                                FROM
-	                                                                [dbo].[IM-INIT]
-                                                                WHERE
-	                                                                [Part_Number] = @p1;", sqlCon))
-                    {
-                        cmd.Parameters.AddWithValue("p1", partNbr);
-                        var _master = cmd.ExecuteScalar();
-                        return string.IsNullOrEmpty(_master.ToString()) ? partNbr : _master.ToString();
-                    }
-                }
-                catch (SqlException sqlEx)
-                {
-                    return null;
-                }
-                catch (Exception ex)
-                {
-                    throw new Exception(ex.Message);
-                }
-            }
-            else
-            {
-                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
-            }
-        }
-
-        /// <summary>
-        /// Search for a part number of a description of a part in the database
-        /// </summary>
-        /// <param name="searchInput">Search input to find</param>
-        /// <param name="sqlCon">Sql Connection to use</param>
-        /// <returns>List of found part numbers</returns>
-        public static IDictionary<Sku, bool> Search(string searchInput, SqlConnection sqlCon)
-        {
-            var _returnList = new Dictionary<Sku, bool>();
-            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
-            {
-                try
-                {
-                    using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database};
-                                                                SELECT
-	                                                                [Part_Number]
-                                                                    ,[Description]
-                                                                    ,[Accounting_Status]
-                                                                    ,[Drawing_Nbrs]
-                                                                FROM
-	                                                                [dbo].[IM-INIT]
-                                                                WHERE
-	                                                                [Part_Number] LIKE CONCAT(CONCAT('%', @p1), '%') OR [Description] LIKE CONCAT(CONCAT('%', @p1), '%');", sqlCon))
-                    {
-                        cmd.Parameters.AddWithValue("p1", searchInput);
-                        using (SqlDataReader reader = cmd.ExecuteReader())
+                        using (SqlDataAdapter adapter = new SqlDataAdapter($@"USE {sqlCon.Database}; SELECT locM.[Location] ,locM.[D_esc] as 'Description' FROM [dbo].[LOC_MASTER-INIT] locM", sqlCon))
                         {
-                            if (reader.HasRows)
-                            {
-                                while (reader.Read())
-                                {
-                                    var _status = reader.SafeGetString("Accounting_Status") == "A" ? true : false;
-                                    var _tSku = new Sku
-                                    {
-                                        SkuNumber = reader.SafeGetString("Part_Number")
-                                        ,SkuDescription = reader.SafeGetString("Description")
-                                        ,MasterPrint = reader.SafeGetString("Drawing_Nbrs")
-                                        ,EngStatus = reader.SafeGetString("Accounting_Status")
-                                    };
-                                    _returnList.Add(_tSku, _status);
-                                }
-                            }
+                            adapter.Fill(_dt);
                         }
-                        return _returnList;
+                        return _dt;
+                    }
+                    catch (SqlException sqlEx)
+                    {
+                        throw sqlEx;
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new Exception(ex.Message);
                     }
                 }
-                catch (SqlException sqlEx)
+                else
                 {
-                    return null;
+                    throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
                 }
-                catch (Exception ex)
-                {
-                    throw new Exception(ex.Message);
-                }
-            }
-            else
-            {
-                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
             }
         }
 
@@ -1155,7 +399,7 @@ namespace SFW.Model
                     #endregion
 
                     //Populating the input part
-                    var _parent = new Sku(partNbr, 1, sqlCon);
+                    var _parent = new Sku(partNbr, 'C');
                     _parent.EngStatusDesc = _parent.SkuNumber;
                     _parent.DiamondNumber = "0";
                     _returnList.Add(_parent, 0);
@@ -1261,6 +505,240 @@ namespace SFW.Model
             {
                 throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
             }
+        }
+
+        #endregion
+
+        /// <summary>
+        /// Sku Constructor
+        /// Load a Skew object based on a part number
+        /// </summary>
+        /// <param name="searchValue">Value to search when loading the Sku object</param>
+        /// <param name="type">Type of object to load S = Standard Sku, L = Lot based Sku, C = Custom Sku object</param>
+        /// <param name="partLoad">Optional: Tell the constructor to load a part for tracking</param>
+        public Sku(string searchValue, char type, bool partLoad = false)
+        {
+            try
+            {
+                switch (type)
+                {
+                    //Standard Sku Load
+                    case 'S':
+                        var _row = MasterDataSet.Tables["SKU"].Select($"[SkuID] = '{searchValue}' AND [Status] = 'A'");
+                        if (partLoad)
+                        {
+                            if (_row.Length > 0)
+                            {
+                                SkuNumber = searchValue;
+                                SkuDescription = _row.FirstOrDefault().Field<string>("Description");
+                                Uom = _row.FirstOrDefault().Field<string>("Uom");
+                            }
+                        }
+                        else
+                        {
+                            SkuNumber = searchValue;
+                            SkuDescription = _row.FirstOrDefault().Field<string>("Description");
+                            Uom = _row.FirstOrDefault().Field<string>("Uom");
+                            BomRevDate = _row.FirstOrDefault().Field<DateTime>("BomRevDate");
+                            TotalOnHand = _row.FirstOrDefault().Field<int>("OnHand");
+                            MasterPrint = _row.FirstOrDefault().Field<string>("MasterSkuID");
+                            InventoryType = _row.FirstOrDefault().Field<string>("Type");
+                            CrewSize = _row.FirstOrDefault().Field<int>("Crew");
+                        }
+                        break;
+                    //Lot based Sku Loading
+                    case 'L':
+                        _row = MasterDataSet.Tables["LOT"].Select($"[LotID] = '{searchValue}' AND [WorkOrderID] = ''");
+                        if (_row.Length > 0)
+                        {
+                            SkuNumber = _row.FirstOrDefault().Field<string>("SkuID");
+                            SkuDescription = _row.FirstOrDefault().Field<string>("Description");
+                            Uom = _row.FirstOrDefault().Field<string>("Uom");
+                            NonCon = _row.FirstOrDefault().Field<string>("Notes").Replace("/", "");
+                            TotalOnHand = _row.FirstOrDefault().Field<int>("OnHand");
+                            Location = _row.FirstOrDefault().Field<string>("Location");
+                        }
+                        break;
+                    //Custom Sku Loading
+                    case 'C':
+                        _row = MasterDataSet.Tables["SKU"].Select($"[SkuID] = '{searchValue}' AND [Status] = 'A'");
+                        if (_row.Length > 0)
+                        {
+                            SkuNumber = searchValue;
+                            SkuDescription = _row.FirstOrDefault().Field<string>("Description");
+                            Uom = _row.FirstOrDefault().Field<string>("Uom");
+                            TotalOnHand = _row.FirstOrDefault().Field<int>("OnHand");
+                            EngStatus = _row.FirstOrDefault().Field<string>("Status");
+                        }
+                        break;
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// Get the Sku's crew size
+        /// </summary>
+        /// <param name="partNbr">Part number to search</param>
+        /// <returns>crew size as int</returns>
+        public static int GetCrewSize(string partNbr)
+        {
+            return MasterDataSet.Tables["SKU"].Select($"[SkuID] = '{partNbr}' AND [Status] = 'A'").FirstOrDefault().Field<int>("Crew");
+        }
+
+        /// <summary>
+        /// Get the default or backflush location for any part number
+        /// </summary>
+        /// <param name="partNbr">Sku Number</param>
+        /// <returns>backflush or default location as string</returns>
+        public static string GetBackFlushLoc(string partNbr)
+        {
+            return MasterDataSet.Tables["SKU"].Select($"[SkuID] = '{partNbr}' AND [Status] = 'A'").FirstOrDefault().Field<string>("WipLocation");
+        }
+
+        /// <summary>
+        /// Check to see if a Sku number is lot tracable
+        /// </summary>
+        /// <param name="partNbr">Sku Number</param>
+        /// <returns>lot tracability as bool</returns>
+        public static bool IsLotTracable(string partNbr)
+        {
+            return MasterDataSet.Tables["SKU"].Select($"[SkuID] = '{partNbr}' AND [Status] = 'A'").FirstOrDefault().Field<string>("LotTraceable") == "T";
+        }
+
+        /// <summary>
+        /// Validates that the location entered is a valid M2k location
+        /// </summary>
+        /// <param name="location">location to validate</param>
+        /// <returns>valid location as bool</returns>
+        public static bool IsValidLocation(string location)
+        {
+            return MasterDataSet.Tables["LOC"].Select($"[Location] = '{location}'").Length > 0;
+        }
+
+        /// <summary>
+        /// Validates Sku is in a location
+        /// </summary>
+        /// <param name="partNbr">Sku ID</param>
+        /// <param name="location">Location ID</param>
+        /// <returns>valid Sku as bool</returns>
+        public static bool IsSkuInLocation(string partNbr, string location)
+        {
+            return MasterDataSet.Tables["LOT"].Select($"[SkuID] = '{partNbr}' AND [Location] = '{location}'").Length > 0;
+        }
+
+        /// <summary>
+        /// Validates Sku has a minimum quantity in a location
+        /// </summary>
+        /// <param name="partNbr">Sku ID</param>
+        /// <param name="location">Location ID</param>
+        /// <param name="qty">Minimum quantity to validate</param>
+        /// <returns>valid Sku as bool</returns>
+        public static bool IsValidSkuQuantity(string partNbr, string location, int qty)
+        {
+            var _rows = MasterDataSet.Tables["LOT"].Select($"[SkuID] = '{partNbr}' AND [Location] = '{location}'");
+            return _rows.Length > 0 && _rows.Sum(o => o.Field<int>("OnHand")) > qty;
+        }
+
+        /// <summary>
+        /// Get a Sku's current on hand value for a specific lot number
+        /// </summary>
+        /// <param name="partNbr">Part number</param>
+        /// <returns>on hand value as int</returns>
+        public static int GetOnhandQuantity(string partNbr)
+        {
+            return MasterDataSet.Tables["SKU"].Select($"[SkuID] = '{partNbr}' AND [Status] = 'A'").FirstOrDefault().Field<int>("OnHand");
+        }
+
+        /// <summary>
+        /// Check to see if a Sku exists in the database
+        /// </summary>
+        /// <param name="partNbr">Part Number to check</param>
+        /// <returns>Pass/Fail as boolean</returns>
+        public static bool Exists(string partNbr)
+        {
+            return MasterDataSet.Tables["SKU"].Select($"[SkuID] = '{partNbr}' AND [Status] = 'A'").Length > 0;
+        }
+
+        /// <summary>
+        /// Check to see if a Sku exists in the database
+        /// </summary>
+        /// <param name="partNbr">Part Number to check</param>
+        /// <returns>Pass/Fail as boolean</returns>
+        public static string GetMasterNumber(string partNbr)
+        {
+            return MasterDataSet.Tables["SKU"].Select($"[SkuID] = '{partNbr}' AND [Status] = 'A'").FirstOrDefault().Field<string>("MasterSkuID");
+        }
+
+        /// <summary>
+        /// Get a Sku's work instructions
+        /// </summary>
+        /// <param name="partNbr">Sku ID Number</param>
+        /// <param name="siteNbr">Facility number to run on</param>
+        /// <param name="filepath">Path to the file</param>
+        /// <returns>A list of URL strings to open the work instructions</returns>
+        public static List<string> GetInstructions(string partNbr, int siteNbr, string filepath)
+        {
+            //TODO: this code will need to be reformated once CSI has moved to the same process model as WCCO
+            var _inst = new List<string>();
+            if (siteNbr == 0)
+            {
+                if (File.Exists($"{filepath}{partNbr}.pdf"))
+                {
+                    _inst.Add(partNbr);
+                }
+            }
+            else
+            {
+                var _rows = MasterDataSet.Tables["WI"].Select($"[SkuID] = {partNbr}");
+                foreach (var _row in _rows)
+                {
+                    var dir = new DirectoryInfo(filepath);
+                    var fileList = dir.GetFiles($"*{_row.Field<int>("WI")}*");
+                    foreach (var file in fileList)
+                    {
+                        _inst.Add(file.Name);
+                    }
+                }
+            }
+            return _inst;
+        }
+
+        /// <summary>
+        /// Get a Sku's tool list
+        /// </summary>
+        /// <param name="partNbr">Sku ID Number</param>
+        /// <param name="woSeq">Work order sequence</param>
+        /// <returns>A list of tool's associated with the Sku</returns>
+        public static List<string> GetTools(string partNbr, string woSeq)
+        {
+            return MasterDataSet.Tables["TL"].Select($"[ID] = '{partNbr}*{woSeq}'").Select(o => o[1].ToString()).ToList();
+        }
+
+        /// <summary>
+        /// Search for a part number of a description of a part in the database
+        /// </summary>
+        /// <param name="searchInput">Search input to find</param>
+        /// <param name="sqlCon">Sql Connection to use</param>
+        /// <returns>List of found part numbers</returns>
+        public static IDictionary<Sku, bool> Search(string searchInput)
+        {
+            var _returnList = new Dictionary<Sku, bool>();
+            var _rows = MasterDataSet.Tables["SKU"].Select($"[SkuID] LIKE '%{searchInput}%' OR [Description] LIKE '%{searchInput}%'");
+            foreach (var _row in _rows)
+            {
+                _returnList.Add(new Sku
+                {
+                    SkuNumber = _row.Field<string>("SkuID")
+                    ,SkuDescription = _row.Field<string>("Description")
+                    ,MasterPrint = _row.Field<string>("MasterSkuID")
+                    ,EngStatus = _row.Field<string>("Status")
+                }, _row.Field<string>("Status") == "A");
+            }
+            return _returnList;
         }
     }
 }

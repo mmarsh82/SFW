@@ -217,7 +217,6 @@
                     VerticalAlignment="Center"
                     Margin="1">
             <ComboBox ItemsSource="{Binding MachineList}"
-                      DisplayMemberPath="MachineName"
                       SelectedItem="{Binding SelectedMachine, NotifyOnSourceUpdated=True, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
                       Width="150"
                       FontSize="14"

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
+using System.Linq;
 
 //Created by Michael Marsh 4-19-18
 
@@ -28,64 +29,7 @@ namespace SFW.Model
         public Machine()
         { }
 
-        /// <summary>
-        /// Get a list of work centers
-        /// </summary>
-        /// <param name="sqlCon">Sql Connection to use</param>
-        /// <param name="incAll">Include all at the top of the list</param>
-        /// <param name="incNone">Include None at the top of the list</param>
-        /// <returns>generic list of worcenter objects</returns>
-        public static List<Machine> GetMachineList(SqlConnection sqlCon, bool incAll, bool incNone)
-        {
-            var _tempList = new List<Machine>();
-            if (incAll)
-            {
-                _tempList.Add(new Machine { MachineNumber = "0", MachineName = "All", IsLoaded = true, MachineGroup = "All" });
-            }
-            if (incNone)
-            {
-                _tempList.Add(new Machine { MachineNumber = "0", MachineName = "None", IsLoaded = false, MachineGroup = "None" });
-            }
-            while (sqlCon.State == ConnectionState.Connecting) { }
-            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
-            {
-                try
-                {
-                    using (SqlCommand cmd = new SqlCommand($"USE {sqlCon.Database}; SELECT [Wc_Nbr], [Name], [D_esc], [Work_Ctr_Group] FROM [dbo].[WC-INIT] WHERE [D_esc] <> 'DO NOT USE' AND [Name] IS NOT NULL", sqlCon))
-                    {
-                        using (SqlDataReader reader = cmd.ExecuteReader())
-                        {
-                            if (reader.HasRows)
-                            {
-                                while (reader.Read())
-                                {
-                                    _tempList.Add(new Machine
-                                    {
-                                        MachineNumber = reader.SafeGetString("Wc_Nbr"),
-                                        MachineName = reader.SafeGetString("Name"),
-                                        MachineDescription = reader.SafeGetString("D_esc"),
-                                        MachineGroup = reader.SafeGetString("Work_Ctr_Group")
-                                    });
-                                }
-                            }
-                        }
-                    }
-                    return _tempList;
-                }
-                catch (SqlException sqlEx)
-                {
-                    throw sqlEx;
-                }
-                catch (Exception ex)
-                {
-                    throw new Exception(ex.Message);
-                }
-            }
-            else
-            {
-                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
-            }
-        }
+        #region Data Access
 
         /// <summary>
         /// Retrieve a DataTable with all the data relevent to a schedule
@@ -218,7 +162,7 @@ namespace SFW.Model
                         using (SqlDataAdapter adapter = new SqlDataAdapter($"USE {sqlCon.Database}; {_conString} ORDER BY MachineNumber, WO_Priority, PriTime, Sched_Priority, WO_SchedStartDate, WO_Number ASC", sqlCon))
                         {
                             adapter.Fill(_tempTable);
-                            if(machOrder != null && machOrder.Count > 0)
+                            if (machOrder != null && machOrder.Count > 0)
                             {
                                 var _cnt = 0;
                                 foreach (DataRow dr in _tempTable.Rows)
@@ -250,104 +194,12 @@ namespace SFW.Model
         }
 
         /// <summary>
-        /// Retrieve a DataTable with all the data relevent to a schedule for a single machine
-        /// </summary>
-        /// <param name="sqlCon">Sql Connection to use</param>
-        /// <param name="machineNumber">Machine Number to load</param>
-        /// <returns>DataTable with the schedule data results</returns>
-        public static DataTable GetScheduleData(SqlConnection sqlCon, string machineNumber)
-        {
-            //TODO: See the note from the previous method
-            using (var _tempTable = new DataTable())
-            {
-                if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
-                {
-                    try
-                    {
-                        using (SqlDataAdapter adapter = new SqlDataAdapter(@"SELECT
-	                                                                            DISTINCT(b.[ID]) as 'WO_Number',
-                                                                                a.[Wc_Nbr] as 'MachineNumber',
-	                                                                            a.[Name] as 'MachineName',
-	                                                                            a.[D_esc] as 'MachineDesc',
-	                                                                            a.[Work_Ctr_Group] as 'MachineGroup',
-                                                                                ISNULL(b.[Qty_Avail], b.[Qty_Req] - ISNULL(b.[Qty_Compl], 0)) as 'WO_CurrentQty',
-	                                                                            ISNULL(b.[Date_Start], '1999-01-01') as 'WO_SchedStartDate',
-                                                                                ISNULL(b.[Date_Act_Start], '1999-01-01') as 'WO_ActStartDate',
-	                                                                            ISNULL(b.[Due_Date], b.[Date_Start]) as 'WO_DueDate',
-                                                                                CAST(ROUND(b.[Mach_Load_Hrs_Rem], 1) AS FLOAT) as 'RunTime',
-	                                                                            ISNULL(CASE WHEN
-                                                                                        (SELECT
-                                                                                            [Ord_Type]
-                                                                                        FROM
-                                                                                            [dbo].[SOH-INIT]
-                                                                                        WHERE
-                                                                                            [So_Nbr] = SUBSTRING(c.[So_Reference],0,CHARINDEX('*',c.[So_Reference],0))) = 'DAI'
-                                                                                    THEN 'A'
-                                                                                    WHEN c.[Wo_Type] = 'R'
-                                                                                    THEN 'B'
-                                                                                    ELSE c.[Mgt_Priority_Code] END, 'D') as 'WO_Priority',
-	                                                                            ISNULL(c.[Wo_Type], 'S') as 'WO_Type',
-	                                                                            c.[Qty_To_Start] as 'WO_StartQty',
-	                                                                            c.[So_Reference] as 'WO_SalesRef',
-	                                                                            c.[Cust_Nbr],
-                                                                                CASE WHEN c.[Time_Wanted] IS NOT NULL THEN CONVERT(VARCHAR(5), CAST(c.[Time_Wanted] as TIME),108) ELSE '9' END as 'PriTime',
-                                                                                d.[Part_Number]as 'SkuNumber',
-	                                                                            d.[Description] as 'SkuDesc',
-	                                                                            d.[Um] as 'SkuUom', d.[Drawing_Nbrs] as 'SkuMasterPrint',
-	                                                                            ISNULL(d.[Bom_Rev_Date], '1999-01-01') as 'BomRevDate',
-	                                                                            ISNULL(d.[Bom_Rev_Level], '') as 'BomRevLvl',
-                                                                                ISNULL(e.[Qty_On_Hand], 0) as 'SkuOnHand',
-                                                                                CASE WHEN b.[Due_Date] < GETDATE() THEN 1 ELSE 0 END as 'IsLate',
-	                                                                            CASE WHEN b.[Date_Start] < GETDATE() AND c.[Qty_To_Start] = b.[Qty_Avail] THEN 1 ELSE 0 END as 'IsStartLate',
-                                                                                e.[Engineering_Status] as 'EngStatus',
-	                                                                            (SELECT [Description] FROM [dbo].[TM-INIT_Eng_Status] WHERE [ID] = e.[Engineering_Status]) as 'EngStatusDesc',
-	                                                                            (SELECT [Name] FROM [dbo].[CM-INIT] WHERE [Cust_Nbr] = c.[Cust_Nbr]) as 'Cust_Name',
-	                                                                            (SELECT [Cust_Part_Nbr] FROM [dbo].[SOD-INIT] WHERE [ID] = SUBSTRING(c.[So_Reference],0,LEN(c.[So_Reference])-1)) as 'Cust_Part_Nbr',
-	                                                                            CAST((SELECT [Ln_Bal_Qty] FROM [dbo].[SOD-INIT] WHERE [ID] = SUBSTRING(c.[So_Reference],0,LEN(c.[So_Reference])-1)) as int) as 'Ln_Bal_Qty'
-                                                                            FROM
-                                                                                [dbo].[WC-INIT] a
-                                                                            RIGHT JOIN
-                                                                                [dbo].[WPO-INIT] b ON b.[Work_Center] = a.[Wc_Nbr]
-                                                                            RIGHT JOIN
-                                                                                [dbo].[WP-INIT] c ON b.[ID] LIKE CONCAT(c.[Wp_Nbr], '%')
-                                                                            RIGHT JOIN
-                                                                                [dbo].[IM-INIT] d ON d.[Part_Number] = c.[Part_Wo_Desc]
-                                                                            RIGHT JOIN
-                                                                                [dbo].[IPL-INIT] e ON e.[Part_Nbr] = d.[Part_Number]
-                                                                            WHERE
-                                                                                a.[D_esc] <> 'DO NOT USE' AND (c.[Status_Flag] = 'R' OR c.[Status_Flag] = 'A') AND (b.[Seq_Complete_Flag] IS NULL OR b.[Seq_Complete_Flag] = 'N') AND b.[Alt_Seq_Status] IS NULL AND (b.[Qty_Avail] > 0 OR b.[Qty_Avail] IS NULL) AND a.[Wc_Nbr] = @p1
-                                                                            ORDER BY
-                                                                                MachineNumber, WO_Priority, WO_SchedStartDate, WO_Number ASC;", sqlCon))
-                        {
-                            adapter.SelectCommand.Parameters.AddWithValue("p1", machineNumber);
-                            adapter.Fill(_tempTable);
-                            return _tempTable;
-                        }
-                    }
-                    catch (SqlException sqlEx)
-                    {
-                        throw sqlEx;
-                    }
-                    catch (Exception ex)
-                    {
-                        throw new Exception(ex.Message);
-                    }
-                }
-                else
-                {
-                    throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
-                }
-            }
-        }
-
-        /// <summary>
         /// Retrieve a DataTable with all the data relevent to a closed schedule
         /// </summary>
         /// /// <param name="sqlCon">Sql Connection to use</param>
         /// <returns>DataTable with the schedule data results</returns>
         public static DataTable GetClosedScheduleData(SqlConnection sqlCon)
         {
-            //TODO: Needs to be rewritten to include a list rather than a datatable so that in the future async loading can be done
             using (var _tempTable = new DataTable())
             {
                 if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
@@ -435,215 +287,53 @@ namespace SFW.Model
         }
 
         /// <summary>
-        /// Retrieve a List of strings of each of the groups assigned to the machines
+        /// Get a table containing all of the Machines
         /// </summary>
-        /// <param name="sqlCon">Sql Connection to use</param>
-        /// <param name="incAll">Include all in the top of the list</param>
-        /// <returns>List of work center groups as strings</returns>
-        public static List<string> GetMachineGroupList(SqlConnection sqlCon, bool incAll)
+        /// <param name="sqlCon"></param>
+        /// <returns></returns>
+        public static DataTable GetMachineTable(SqlConnection sqlCon)
         {
-            var _tempList = new List<string>();
-            if (incAll)
-            {
-                _tempList.Add("All");
-            }
-            _tempList.Add("Custom");
-            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
-            {
-                try
-                {
-                    using (SqlCommand cmd = new SqlCommand($"USE {sqlCon.Database}; SELECT DISTINCT([Work_Ctr_Group]) as 'MachineGroup' FROM [dbo].[WC-INIT] WHERE [Name] <> 'DO NOT USE' AND [Work_Ctr_Group] IS NOT NULL;", sqlCon))
-                    {
-                        using (SqlDataReader reader = cmd.ExecuteReader())
-                        {
-                            if (reader.HasRows)
-                            {
-                                while (reader.Read())
-                                {
-                                    _tempList.Add(reader.SafeGetString("MachineGroup"));
-                                }
-                            }
-                        }
-                    }
-                    return _tempList;
-                }
-                catch (SqlException sqlEx)
-                {
-                    throw sqlEx;
-                }
-                catch (Exception ex)
-                {
-                    throw new Exception(ex.Message);
-                }
-            }
-            else
-            {
-                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
-            }
-        }
-
-        /// <summary>
-        /// Get a machines display name
-        /// </summary>
-        /// <param name="sqlCon">Sql Connection to use</param>
-        /// <param name="workOrder">Work order object</param>
-        /// <returns>Machine Name as string</returns>
-        public static string GetMachineName(SqlConnection sqlCon, WorkOrder workOrder)
-        {
-            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
-            {
-                try
-                {
-                    using (SqlCommand cmd = new SqlCommand($"USE {sqlCon.Database}; SELECT [Name] FROM [dbo].[WC-INIT] WHERE [Wc_Nbr] = (SELECT [Work_Center] FROM [dbo].[WPO-INIT] WHERE [ID] = CONCAT(@p1,'*',@p2));", sqlCon))
-                    {
-                        cmd.Parameters.AddWithValue("p1", workOrder.OrderNumber);
-                        cmd.Parameters.AddWithValue("p2", workOrder.Seq);
-                        return cmd.ExecuteScalar().ToString();
-                    }
-                }
-                catch (SqlException sqlEx)
-                {
-                    throw sqlEx;
-                }
-                catch (Exception ex)
-                {
-                    throw new Exception(ex.Message);
-                }
-            }
-            else
-            {
-                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
-            }
-        }
-
-        /// <summary>
-        /// Get a machines display name
-        /// </summary>
-        /// <param name="sqlCon">Sql Connection to use</param>
-        /// <param name="partNbr">Part number</param>
-        /// <returns>Machine Name as string</returns>
-        public static string GetMachineName(SqlConnection sqlCon, string partNbr)
-        {
-            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
-            {
-                try
-                {
-                    using (SqlCommand cmd = new SqlCommand($"USE {sqlCon.Database}; SELECT [Name] FROM [dbo].[WC-INIT] WHERE [Wc_Nbr] = (SELECT [Wc_Nbr] FROM [dbo].[RT-INIT] WHERE [ID] LIKE CONCAT(@p1,'*%') AND [Prev_Seq] IS NULL);", sqlCon))
-                    {
-                        cmd.Parameters.AddWithValue("p1", partNbr);
-                        return cmd.ExecuteScalar()?.ToString();
-                    }
-                }
-                catch (SqlException sqlEx)
-                {
-                    throw sqlEx;
-                }
-                catch (Exception ex)
-                {
-                    throw new Exception(ex.Message);
-                }
-            }
-            else
-            {
-                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
-            }
-        }
-
-        /// <summary>
-        /// Get the machine group that a specific machine is a part of
-        /// </summary>
-        /// <param name="sqlCon">Sql Connection to use</param>
-        /// <param name="machineNbr">Machine number to get the group of</param>
-        /// <returns>machine group</returns>
-        public static string GetMachineGroup(SqlConnection sqlCon, string machineNbr)
-        {
-            if(machineNbr == "0")
-            {
-                return "All";
-            }
-            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
-            {
-                try
-                {
-                    using (SqlCommand cmd = new SqlCommand($"USE {sqlCon.Database}; SELECT [Work_Ctr_Group] FROM [dbo].[WC-INIT] WHERE [Wc_Nbr] = @p1;", sqlCon))
-                    {
-                        cmd.Parameters.AddWithValue("p1", machineNbr);
-                        return cmd.ExecuteScalar().ToString();
-                    } 
-                }
-                catch (SqlException sqlEx)
-                {
-                    throw sqlEx;
-                }
-                catch (Exception ex)
-                {
-                    throw new Exception(ex.Message);
-                }
-            }
-            else
-            {
-                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
-            }
-        }
-
-        /// <summary>
-        /// Get the machine group that a specific machine from a work order is contained in
-        /// </summary>
-        /// <param name="sqlCon">Sql Connection to use</param>
-        /// <param name="workOrder">Work order object</param>
-        /// <returns>Machine group as string</returns>
-        public static string GetMachineGroup(SqlConnection sqlCon, WorkOrder workOrder)
-        {
-            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
-            {
-                try
-                {
-                    using (SqlCommand cmd = new SqlCommand($"USE {sqlCon.Database}; SELECT [Work_Ctr_Group] FROM [dbo].[WC-INIT] WHERE [Wc_Nbr] = (SELECT [Work_Center] FROM [dbo].[WPO-INIT] WHERE [ID] = CONCAT(@p1, '*', @p2));", sqlCon))
-                    {
-                        cmd.Parameters.AddWithValue("p1", workOrder.OrderNumber);
-                        cmd.Parameters.AddWithValue("p2", workOrder.Seq);
-                        return cmd.ExecuteScalar()?.ToString();
-                    }
-                }
-                catch (SqlException sqlEx)
-                {
-                    throw sqlEx;
-                }
-                catch (Exception ex)
-                {
-                    throw new Exception(ex.Message);
-                }
-            }
-            else
-            {
-                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
-            }
-        }
-
-        /// <summary>
-        /// Get the machine group that a specific machine is a part of
-        /// </summary>
-        /// <param name="sqlCon">Sql Connection to use</param>
-        /// <param name="woNbr">Work Order number</param>
-        /// <param name="seq">work order sequence</param>
-        /// <returns>Machine group as string</returns>
-        public static string GetMachineGroup(SqlConnection sqlCon, string woNbr, string seq)
-        {
-            if (!string.IsNullOrEmpty(woNbr) || !string.IsNullOrEmpty(seq))
+            using (var _tempTable = new DataTable())
             {
                 if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
                 {
+                    var _selectCmd = string.Empty;
+                    if (sqlCon.Database.Contains("WCCO"))
+                    {
+                        _selectCmd = @"SELECT
+	                                        [Wc_Nbr] as 'WorkCenterID'
+	                                        ,[Name] as 'Name'
+	                                        ,[D_esc] as 'Description'
+	                                        ,[Work_Ctr_Group] as 'Group'
+	                                        ,CAST(ISNULL([Press_Length], 0) as int) as 'Length'
+                                        FROM
+	                                        [dbo].[WC-INIT]
+                                        WHERE
+	                                        [D_esc] <> 'DO NOT USE' AND [Name] IS NOT NULL";
+                    }
+                    else
+                    {
+                        _selectCmd = @"SELECT
+	                                        [Wc_Nbr] as 'WorkCenterID'
+	                                        ,[Name] as 'Name'
+	                                        ,[D_esc] as 'Description'
+	                                        ,[Work_Ctr_Group] as 'Group'
+                                        FROM
+	                                        [dbo].[WC-INIT]
+                                        WHERE
+	                                        [D_esc] <> 'DO NOT USE' AND [Name] IS NOT NULL";
+                    }
                     try
                     {
-                        using (SqlCommand cmd = new SqlCommand($"USE {sqlCon.Database}; SELECT [Work_Ctr_Group] FROM [dbo].[WC-INIT] WHERE [Wc_Nbr] = (SELECT [Work_Center] FROM [dbo].[WPO-INIT] WHERE [ID] = @p1);", sqlCon))
+                        using (SqlDataAdapter adapter = new SqlDataAdapter($"USE [{sqlCon.Database}]; {_selectCmd}", sqlCon))
                         {
-                            cmd.Parameters.AddWithValue("p1", $"{woNbr}*{seq}");
-                            return cmd.ExecuteScalar()?.ToString();
+                            adapter.Fill(_tempTable);
+                            return _tempTable;
                         }
                     }
                     catch (SqlException sqlEx)
                     {
-                        throw sqlEx;
+                        throw new Exception(sqlEx.Message);
                     }
                     catch (Exception ex)
                     {
@@ -655,128 +345,173 @@ namespace SFW.Model
                     throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
                 }
             }
+        }
+
+        #endregion
+
+        /// <summary>
+        /// Get a list of work centers
+        /// </summary>
+        /// <param name="incAll">Include all at the top of the list</param>
+        /// <param name="incNone">Include None at the top of the list</param>
+        /// <returns>generic list of worcenter objects</returns>
+        public static List<Machine> GetMachineList(bool incAll, bool incNone)
+        {
+            var _tempList = new List<Machine>();
+            if (incAll)
+            {
+                _tempList.Add(new Machine { MachineNumber = "0", MachineName = "All", IsLoaded = true, MachineGroup = "All" });
+            }
+            if (incNone)
+            {
+                _tempList.Add(new Machine { MachineNumber = "0", MachineName = "None", IsLoaded = false, MachineGroup = "None" });
+            }
+            foreach (DataRow _row in MasterDataSet.Tables["WC"].Rows)
+            {
+                _tempList.Add(new Machine
+                {
+                    MachineNumber = _row.Field<string>("WorkCenterID")
+                    ,MachineName = _row.Field<string>("Name")
+                    ,MachineDescription = _row.Field<string>("Description")
+                    ,MachineGroup = _row.Field<string>("Group")
+                });
+            }
+            return _tempList;
+        }
+
+        /// <summary>
+        /// Get a list of work centers names
+        /// </summary>
+        /// <returns>generic list of workcenter objects</returns>
+        public static List<string> GetMachineList()
+        {
+            var _tempList = new List<string>();
+            _tempList.Add("All");
+            foreach (DataRow _row in MasterDataSet.Tables["WC"].Rows)
+            {
+                _tempList.Add(_row.Field<string>("Name"));
+            }
+            return _tempList;
+        }
+
+        /// <summary>
+        /// Retrieve a List of strings of each of the groups assigned to the machines
+        /// </summary>
+        /// <param name="incAll">Include all in the top of the list</param>
+        /// <returns>List of work center groups as strings</returns>
+        public static List<string> GetMachineGroupList(bool incAll)
+        {
+            var _tempList = new List<string>();
+            if (incAll)
+            {
+                _tempList.Add("All");
+            }
+            _tempList.Add("Custom");
+            foreach (DataRow _row in MasterDataSet.Tables["WC"].DefaultView.ToTable(true, "Group").Rows)
+            {
+                _tempList.Add(_row.Field<string>("Group"));
+            }
+            return _tempList;
+        }
+
+        /// <summary>
+        /// Get a machines display name
+        /// </summary>
+        /// <param name="searchValue">Value to use in the search</param>
+        /// <returns>Machine Name as string</returns>
+        public static string GetMachineName(string searchValue)
+        {
+            var _rVal = string.Empty;
+            if (searchValue == "0")
+            {
+                _rVal = "All";
+            }
             else
             {
-                return string.Empty;
+                if (!Exists(searchValue))
+                {
+                    var _sRows = MasterDataSet.Tables["SKU"].Select($"[SkuID] = '{searchValue}' AND [Status] = 'A'");
+                    if (_sRows.Length > 0)
+                    {
+                        searchValue = _sRows.FirstOrDefault().Field<string>("WorkCenterID");
+                    }
+                }
+                var _rows = MasterDataSet.Tables["WC"].Select($"[WorkCenterID] = '{searchValue}'");
+                if (_rows.Length > 0)
+                {
+                    _rVal = _rows.FirstOrDefault().Field<string>("Name");
+                }
             }
+            return _rVal;
+        }
+
+        /// <summary>
+        /// Checks to see if a machine exists
+        /// </summary>
+        /// <param name="searchValue">Value to use in the search</param>
+        /// <returns>Verification as a bool</returns>
+        public static new bool Exists(string searchValue)
+        {
+            return int.TryParse(searchValue, out int i)
+                ? MasterDataSet.Tables["WC"].Select($"[WorkCenterID] = '{i}'").Length > 0
+                : MasterDataSet.Tables["WC"].Select($"[Name] = '{searchValue}'").Length > 0;
+        }
+
+        /// <summary>
+        /// Get the machine group that a specific machine is a part of
+        /// </summary>
+        /// <param name="searchValue">Search value when looking for the machine group</param>
+        /// <param name="type">Type of search. M = Machine Name, N = Machine Number</param>
+        /// <returns>machine group</returns>
+        public static string GetMachineGroup(string searchValue, char type)
+        {
+            switch(type)
+            {
+                case 'M':
+                    return searchValue == "All" || string.IsNullOrEmpty(searchValue)
+                        ? searchValue
+                        : MasterDataSet.Tables["WC"].Select($"[Name] = '{searchValue}'")[0].Field<string>("Group");
+                case 'N':
+                    return searchValue == "All" || string.IsNullOrEmpty(searchValue)
+                        ? searchValue
+                        : MasterDataSet.Tables["WC"].Select($"[WorkCenterID] = '{searchValue}'")[0].Field<string>("Group");
+                default:
+                    return null;
+            }
+        }
+
+        /// <summary>
+        /// Get the machine number from a machine name
+        /// </summary>
+        /// <param name="machineName">Machine name to get the group of</param>
+        /// <returns>machine number</returns>
+        public static string GetMachineNumber(string machineName)
+        {
+            return machineName == "All"
+                ? machineName
+                : MasterDataSet.Tables["WC"].Select($"[Name] = '{machineName}'")[0].Field<string>("WorkCenterID");
         }
 
         /// <summary>
         /// Get the length of a press
         /// </summary>
-        /// <param name="sqlCon">Sql Connection to use</param>
         /// <param name="machineNbr">Press ID number</param>
         /// <returns>Press length as int</returns>
-        public static int GetPress_Length(SqlConnection sqlCon, int machineNbr)
+        public static int GetPress_Length(int machineNbr)
         {
-            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
-            {
-                try
-                {
-                    using (SqlCommand cmd = new SqlCommand($"USE {sqlCon.Database}; SELECT [Press_Length] FROM [dbo].[WC-INIT] WHERE [Wc_Nbr] = @p1", sqlCon))
-                    {
-                        cmd.Parameters.AddWithValue("p1", machineNbr);
-                        var _len = cmd.ExecuteScalar();
-                        return int.TryParse(_len.ToString(), out int i) ? i + 1 : 0;
-                    }
-                }
-                catch (SqlException sqlEx)
-                {
-                    throw sqlEx;
-                }
-                catch (Exception ex)
-                {
-                    throw new Exception(ex.Message);
-                }
-            }
-            else
-            {
-                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
-            }
+            var _tempRow = MasterDataSet.Tables["WC"].Select($"[WorkCenterID] = '{machineNbr}'");
+            return _tempRow.Length > 1 || _tempRow[0].Field<int>("Length") == 0 ? 0 : _tempRow[0].Field<int>("Length") + 1;
         }
 
         /// <summary>
         /// Get the length of a press
         /// </summary>
-        /// <param name="sqlCon">Sql Connection to use</param>
         /// <param name="machineName">Name of the press</param>
         /// <returns>Press length as int</returns>
-        public static int GetPress_Length(SqlConnection sqlCon, string machineName)
+        public static int GetPress_Length(string machineName)
         {
-            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
-            {
-                try
-                {
-                    using (SqlCommand cmd = new SqlCommand($"USE {sqlCon.Database}; SELECT [Press_Length] FROM [dbo].[WC-INIT] WHERE [Name] = @p1", sqlCon))
-                    {
-                        cmd.Parameters.AddWithValue("p1", machineName);
-                        var _len = cmd.ExecuteScalar();
-                        return int.TryParse(_len.ToString(), out int i) ? i : 0;
-                    }
-                }
-                catch (SqlException sqlEx)
-                {
-                    throw sqlEx;
-                }
-                catch (Exception ex)
-                {
-                    throw new Exception(ex.Message);
-                }
-            }
-            else
-            {
-                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
-            }
-        }
-
-        /// <summary>
-        /// Get a dataset conataining all information regarding to machine work orders
-        /// </summary>
-        /// <param name="machOrder">Dictionary containing the order property for the machines, based on the user config</param>
-        /// <param name="site"></param>
-        /// <param name="siteNbr">Work Site number</param>
-        /// <param name="docFilePath">Document File Path</param>
-        /// <param name="sqlCon">Sql Connection to use</param>
-        /// <param name="closed">OPTIONAL: designates when to load a closed master view</param>
-        /// <returns>DataSet with the schedule data and all other pertaining data results</returns>
-        public static DataSet ScheduleDataSet(IReadOnlyDictionary<string, int> machOrder, string site, SqlConnection sqlCon, bool closed = false)
-        {
-            try
-            {
-                using (var _tempDS = new DataSet())
-                {
-                    _tempDS.DataSetName = $"{site}DataSet";
-
-                    _tempDS.Tables.Add(!closed ? GetScheduleData(machOrder, sqlCon) : GetClosedScheduleData(sqlCon));
-                    _tempDS.Tables[0].TableName = "Master";
-
-                    _tempDS.Tables.Add(GetTools(sqlCon));
-                    _tempDS.Tables[1].TableName = "TL";
-
-                    _tempDS.Tables.Add(Component.GetComponentBomTable(sqlCon));
-                    _tempDS.Tables[2].TableName = "BOM";
-
-                    _tempDS.Tables.Add(Component.GetComponentPickTable(sqlCon));
-                    _tempDS.Tables[3].TableName = "PL";
-
-                    _tempDS.Tables.Add(GetNotes(sqlCon));
-                    _tempDS.Tables[4].TableName = "Notes";
-
-                    _tempDS.Tables.Add(site.Contains("WCCO") ? GetInstructions(sqlCon) : new DataTable());
-                    _tempDS.Tables[5].TableName = "WI";
-
-                    _tempDS.Tables.Add(Lot.GetOnHandTable(sqlCon));
-                    _tempDS.Tables[6].TableName = "OH";
-
-                    _tempDS.Tables.Add(SalesOrder.GetInternalCommentsTable(sqlCon));
-                    _tempDS.Tables[7].TableName = "SOIC";
-                    return _tempDS;
-                }
-            }
-            catch (Exception)
-            {
-                throw new Exception();
-            }
+            var _tempRow = MasterDataSet.Tables["WC"].Select($"[Name] = '{machineName}'");
+            return _tempRow.Length > 1 || _tempRow[0].Field<int>("Length") == 0 ? 0 : _tempRow[0].Field<int>("Length") + 1;
         }
     }
 }

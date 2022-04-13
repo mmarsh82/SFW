@@ -15,7 +15,6 @@ namespace SFW.Schedule.Closed
     {
         #region Properties
 
-        public DataSet ClosedSchedule { get; set; }
         public static ICollectionView ClosedScheduleView { get; set; }
         public static string[] ClosedScheduleViewFilter;
         private DataRowView _selectedWO;
@@ -29,7 +28,7 @@ namespace SFW.Schedule.Closed
                 {
                     var _wo = new WorkOrder(value.Row);
                     WorkSpaceDock.ClosedDock.Children.RemoveAt(1);
-                    WorkSpaceDock.ClosedDock.Children.Insert(1, new ShopRoute.View { DataContext = new ShopRoute.ViewModel(_wo, ClosedSchedule) });
+                    WorkSpaceDock.ClosedDock.Children.Insert(1, new ShopRoute.View { DataContext = new ShopRoute.ViewModel(_wo) });
                 }
                 OnPropertyChanged(nameof(SelectedWorkOrder));
             }
@@ -64,39 +63,22 @@ namespace SFW.Schedule.Closed
         /// </summary>
         public ViewModel()
         {
-            MainWindowViewModel.DisplayAction = true;
+            MainWindowViewModel.DisplayAction = IsLoading = true;
             ClosedScheduleViewFilter = new string[5];
-            IsLoading = true;
-            using (BackgroundWorker bw = new BackgroundWorker())
+            ClosedScheduleView = CollectionViewSource.GetDefaultView(ModelBase.MasterDataSet.Tables["ClosedMaster"]);
+            ClosedScheduleView.GroupDescriptions.Add(new PropertyGroupDescription("MachineNumber", new WorkCenterNameConverter()));
+            MainWindowViewModel.DisplayAction = IsLoading = false;
+            ScheduleFilter(UserConfig.BuildMachineFilter(), 1);
+            if (MainWindowViewModel.SelectedMachine != MainWindowViewModel.MachineList.FirstOrDefault())
             {
-                try
-                {
-                    bw.DoWork += new DoWorkEventHandler(
-                        delegate (object sender, DoWorkEventArgs e)
-                        {
-                            ClosedSchedule = Machine.ScheduleDataSet(UserConfig.GetIROD(), App.Site, App.AppSqlCon, true);
-                            ClosedScheduleView = CollectionViewSource.GetDefaultView(ClosedSchedule.Tables["Master"]);
-                            ClosedScheduleView.GroupDescriptions.Add(new PropertyGroupDescription("MachineNumber", new WorkCenterNameConverter(MainWindowViewModel.MachineList)));
-                            MainWindowViewModel.DisplayAction = IsLoading = false;
-                            ScheduleFilter(UserConfig.BuildMachineFilter(), 1);
-                            if (MainWindowViewModel.SelectedMachine != MainWindowViewModel.MachineList.FirstOrDefault())
-                            {
-                                ScheduleFilter($"MachineNumber = '{MainWindowViewModel.SelectedMachine.MachineNumber}'", 1);
-                            }
-                            else if (MainWindowViewModel.SelectedMachineGroup != MainWindowViewModel.MachineGroupList.FirstOrDefault())
-                            {
-                                ScheduleFilter($"MachineGroup = '{MainWindowViewModel.SelectedMachineGroup}'", 2);
-                            }
-                            ScheduleFilter(UserConfig.BuildPriorityFilter(), 3);
-                            StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(ClosedScheduleView)));
-                        });
-                    bw.RunWorkerAsync();
-                }
-                catch (Exception)
-                {
-
-                }
+                ScheduleFilter($"MachineNumber = '{Machine.GetMachineNumber(MainWindowViewModel.SelectedMachine)}'", 1);
             }
+            else if (MainWindowViewModel.SelectedMachineGroup != MainWindowViewModel.MachineGroupList.FirstOrDefault())
+            {
+                ScheduleFilter($"MachineGroup = '{MainWindowViewModel.SelectedMachineGroup}'", 2);
+            }
+            ScheduleFilter(UserConfig.BuildPriorityFilter(), 3);
+            StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(ClosedScheduleView)));
         }
 
         /// <summary>
@@ -133,7 +115,6 @@ namespace SFW.Schedule.Closed
             {
                 ClosedScheduleViewFilter = new string[5];
                 ((DataView)ClosedScheduleView.SourceCollection).RowFilter = "";
-                ClosedScheduleView.Refresh();
             }
         }
     }

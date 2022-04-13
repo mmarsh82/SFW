@@ -18,7 +18,7 @@ namespace SFW.Queries
             {
                 if (!string.IsNullOrEmpty(value))
                 {
-                    validLot = Lot.IsValid(value, App.AppSqlCon);
+                    validLot = Lot.IsValid(value);
                     if (validLot)
                     {
                         //TODO: add in the sku and work order pull
@@ -62,7 +62,7 @@ namespace SFW.Queries
             {
                 if(!string.IsNullOrEmpty(value))
                 {
-                    validPart = Sku.IsValid(value, App.AppSqlCon, Location, WoNbr, Convert.ToInt32(scrapQty));
+                    validPart = Sku.IsValidSkuQuantity(value, Location, Convert.ToInt32(scrapQty));
                 }
                 else
                 {

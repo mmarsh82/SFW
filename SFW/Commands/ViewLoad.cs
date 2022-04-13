@@ -48,6 +48,7 @@ namespace SFW.Commands
                     }
                 }
                 var _wo = new object();
+                _wo = null;
                 if (parameter.GetType() == typeof(Model.WorkOrder) || parameter.ToString().Length > 3)
                 {
                     _wo = parameter;

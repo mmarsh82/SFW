@@ -116,6 +116,7 @@ namespace SFW
                 { 0, "" }
                 ,{ 1, "" }
             };
+            Model.ModelBase.BuildMasterDataSet(UserConfig.GetIROD(), Site, AppSqlCon);
         }
 
         /// <summary>
@@ -436,6 +437,7 @@ namespace SFW
                             writer.WriteAttributeString("PressSetup", "");
                             writer.WriteAttributeString("SyscoSetup", "");
                             writer.WriteAttributeString("TrimSetup", "");
+                            writer.WriteAttributeString("ExtruderSetup", "");
                             writer.WriteAttributeString("WI", "");
                             writer.WriteEndElement();
 
@@ -498,6 +500,7 @@ namespace SFW
                                                 ,PressSetup = reader.GetAttribute("PressSetup")
                                                 ,SyscoSetup = reader.GetAttribute("SyscoSetup")
                                                 ,TrimSetup = reader.GetAttribute("TrimSetup")
+                                                ,ExtSetup = reader.GetAttribute("ExtruderSetup")
                                                 ,WI = reader.GetAttribute("WI")
                                             });
                                             break;

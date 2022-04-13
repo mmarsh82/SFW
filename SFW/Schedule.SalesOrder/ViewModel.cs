@@ -1,4 +1,5 @@
 ﻿using SFW.Helpers;
+using SFW.Model;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -24,8 +25,8 @@ namespace SFW.Schedule.SalesOrder
                 _selectedSO = value;
                 if(value != null)
                 {
-                    var _sku = new Model.Sku(value.Row.Field<string>("PartNbr"), true, App.AppSqlCon);
-                    var _soObj = new Model.SalesOrder(value.Row, App.AppSqlCon);
+                    var _sku = new Model.Sku(value.Row.Field<string>("PartNbr"), 'S', true);
+                    var _soObj = new Model.SalesOrder(value.Row);
                     Controls.WorkSpaceDock.UpdateChildDock(8, 1, new ShopRoute.SalesOrder.ViewModel(_soObj, _sku));
                 }
                 else
@@ -184,7 +185,7 @@ namespace SFW.Schedule.SalesOrder
                 SalesTableFilter = new string[10];
                 if (OrderTypeList == null)
                 {
-                    OrderTypeList = Model.SalesOrder.GetOrderTypeList(App.AppSqlCon);
+                    OrderTypeList = Model.SalesOrder.GetOrderTypeList();
                     OrderTypeList.Insert(0, "All");
                 }
                 if (CreditStatusList == null)
@@ -255,7 +256,7 @@ namespace SFW.Schedule.SalesOrder
 
         public void ViewLoading(string filter)
         {
-            SalesScheduleView = CollectionViewSource.GetDefaultView(Model.SalesOrder.GetScheduleData(App.AppSqlCon));
+            SalesScheduleView = CollectionViewSource.GetDefaultView(ModelBase.MasterDataSet.Tables["SalesMaster"]);
             SalesScheduleView.GroupDescriptions.Add(new PropertyGroupDescription("FullCustName"));
             if (!string.IsNullOrEmpty(filter))
             {
@@ -281,7 +282,7 @@ namespace SFW.Schedule.SalesOrder
             try
             {
                 var _drow = SalesScheduleView?.CurrentItem;
-                SalesScheduleView = CollectionViewSource.GetDefaultView(Model.SalesOrder.GetScheduleData(App.AppSqlCon));
+                SalesScheduleView = CollectionViewSource.GetDefaultView(ModelBase.MasterDataSet.Tables["SalesMaster"]);
                 SalesScheduleView.GroupDescriptions.Add(new PropertyGroupDescription("FullCustName"));
                 if (_drow != null && ((DataView)SalesScheduleView.SourceCollection).Table.AsEnumerable().Any(r => r.Field<string>("ID") == ((DataRowView)_drow).Row.Field<string>("ID")))
                 {

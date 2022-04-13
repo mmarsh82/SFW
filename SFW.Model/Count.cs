@@ -41,6 +41,8 @@ namespace SFW.Model
             }
         }
 
+        #region Data Access
+
         /// <summary>
         /// Retrieve a DataTable with all the data relevent to a schedule
         /// </summary>
@@ -97,5 +99,7 @@ namespace SFW.Model
                 }
             }
         }
+
+        #endregion
     }
 }

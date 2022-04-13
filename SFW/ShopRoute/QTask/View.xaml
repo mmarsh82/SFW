@@ -42,31 +42,32 @@
             <StackPanel Grid.Row="0"
                             Orientation="Horizontal">
                 <Button Content="Set-up Info"
-                            FontSize="16"
-                            Command="{StaticResource SetupCommand}"
-                            CommandParameter="{Binding ShopOrder}"
-                            Style="{DynamicResource MenuButtonStyle}" />
+                        FontSize="16"
+                        Command="{StaticResource SetupCommand}"
+                        CommandParameter="{Binding SetupFile}"
+                        Visibility="{Binding HasSetupFile, Converter={StaticResource BoolToVisConverter}}"
+                        Style="{DynamicResource MenuButtonStyle}" />
                 <Button Content="Trim Info"
-                            FontSize="16"
-                            Command="{StaticResource TrimSetupICommand}"
-                            CommandParameter="{Binding ShopOrder.SkuNumber}"
-                            Visibility="{Binding CanSeeTrim, Converter={StaticResource BoolToVisConverter}}"
-                            Style="{DynamicResource MenuButtonStyle}" />
+                        FontSize="16"
+                        Command="{StaticResource TrimSetupICommand}"
+                        CommandParameter="{Binding ShopOrder.SkuNumber}"
+                        Visibility="{Binding CanSeeTrim, Converter={StaticResource BoolToVisConverter}}"
+                        Style="{DynamicResource MenuButtonStyle}" />
 
                 <Menu Style="{DynamicResource ModernMenu}"
                           Visibility="{Binding ShopOrder.InstructionList.Count, Converter={StaticResource CountToVisConverter}}">
                     <MenuItem Header="Work&#10;Instructions"
-                                  ItemsSource="{Binding ShopOrder.InstructionList}"
-                                  FontSize="14"
-                                  Width="110"
-                                  Height="39"
-                                  Style="{DynamicResource ModernMenuItem}">
+                              ItemsSource="{Binding ShopOrder.InstructionList}"
+                              FontSize="14"
+                              Width="110"
+                              Height="39"
+                              Style="{DynamicResource ModernMenuItem}">
                         <MenuItem.ItemContainerStyle>
                             <Style TargetType="MenuItem">
                                 <Setter Property="Command"
-                                            Value="{StaticResource WorkInstICommand}" />
+                                        Value="{StaticResource WorkInstICommand}" />
                                 <Setter Property="CommandParameter"
-                                            Value="{Binding}" />
+                                        Value="{Binding}" />
                             </Style>
                         </MenuItem.ItemContainerStyle>
                     </MenuItem>
@@ -74,17 +75,17 @@
                 <Menu Style="{DynamicResource ModernMenu}"
                   Visibility="{Binding ShopOrder.ToolList.Count, Converter={StaticResource CountToVisConverter}}">
                     <MenuItem Header="Tools and Dies"
-                                  ItemsSource="{Binding ShopOrder.ToolList}"
-                                  FontSize="14"
-                                  Width="110"
-                                  Height="39"
-                                  Style="{DynamicResource ModernMenuItem}">
+                              ItemsSource="{Binding ShopOrder.ToolList}"
+                              FontSize="14"
+                              Width="110"
+                              Height="39"
+                              Style="{DynamicResource ModernMenuItem}">
                         <MenuItem.ItemContainerStyle>
                             <Style TargetType="MenuItem">
                                 <Setter Property="Command"
-                                            Value="{StaticResource PartSearchICommand}" />
+                                        Value="{StaticResource PartSearchICommand}" />
                                 <Setter Property="CommandParameter"
-                                            Value="{Binding}" />
+                                        Value="{Binding}" />
                             </Style>
                         </MenuItem.ItemContainerStyle>
                     </MenuItem>
@@ -133,72 +134,74 @@
                 <StackPanel Grid.Column="0" Orientation="Vertical" MaxWidth="550">
 
                     <TextBox Text="Work Order Notes"
-                                 FontSize="18"
-                                 FontWeight="Bold"
-                                 Foreground="WhiteSmoke"
-                                 Background="#FF135185"
-                                 BorderBrush="Black"
-                                 HorizontalContentAlignment="Center"
-                                 VerticalContentAlignment="Center"
-                                 Height="35"
-                                 Margin="0,10,10,0"
-                                 Style="{DynamicResource DisabledTextBox}"/>
+                             FontSize="18"
+                             FontWeight="Bold"
+                             Foreground="WhiteSmoke"
+                             Background="#FF135185"
+                             BorderBrush="Black"
+                             HorizontalContentAlignment="Center"
+                             VerticalContentAlignment="Center"
+                             Height="35"
+                             Margin="0,10,10,0"
+                             Style="{DynamicResource DisabledTextBox}"/>
 
                     <TextBox Text="{Binding ShopOrderNotes}"
-                         FontSize="18"
-                         BorderBrush="Black"
-                         Visibility="{Binding Path=(main:CurrentUser.CanSchedule), Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}"
-                         Focusable="False"
-                         Height="130"
-                         Margin="0,0,10,0"
-                         TextWrapping="WrapWithOverflow"
-                         MaxLines="5"
-                         Style="{DynamicResource DisabledTextBox}"/>
+                             FontSize="18"
+                             BorderBrush="Black"
+                             Background="White"
+                             Visibility="{Binding Path=(main:CurrentUser.CanSchedule), Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}"
+                             Focusable="False"
+                             Height="130"
+                             Margin="0,0,10,0"
+                             TextWrapping="WrapWithOverflow"
+                             MaxLines="5"
+                             Style="{DynamicResource DisabledTextBox}"/>
 
                     <TextBox x:Name="WO_Notes"
-                         Text="{Binding ShopOrderNotes, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay, FallbackValue={x:Null}}"
-                         FontSize="18"
-                         BorderBrush="Black"
-                         Visibility="{Binding Path=(main:CurrentUser.CanSchedule), Converter={StaticResource BoolToVisConverter}}"
-                         Height="130"
-                         Margin="0,0,10,0"
-                         TextWrapping="WrapWithOverflow"
-                         MaxLines="5"
-                         AcceptsReturn="True"/>
+                             Text="{Binding ShopOrderNotes, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay, FallbackValue={x:Null}}"
+                             FontSize="18"
+                             BorderBrush="Black"
+                             Background="White"
+                             Visibility="{Binding Path=(main:CurrentUser.CanSchedule), Converter={StaticResource BoolToVisConverter}}"
+                             Height="130"
+                             Margin="0,0,10,0"
+                             TextWrapping="WrapWithOverflow"
+                             MaxLines="5"
+                             AcceptsReturn="True"/>
 
                     <Button Content="Save"
-                        Command="{Binding WONoteChgICommand}"
-                        HorizontalAlignment="Center"
-                        Width="90"
-                        Height="25"
-                        Visibility="{Binding IsFocused, Converter={StaticResource BoolToVisConverter}, ElementName=WO_Notes}"
-                        Style="{DynamicResource DefaultButton}"/>
+                            Command="{Binding WONoteChgICommand}"
+                            HorizontalAlignment="Center"
+                            Width="90"
+                            Height="25"
+                            Visibility="{Binding IsFocused, Converter={StaticResource BoolToVisConverter}, ElementName=WO_Notes}"
+                            Style="{DynamicResource DefaultButton}"/>
 
                 </StackPanel>
 
                 <StackPanel Grid.Column="1" Orientation="Vertical" MaxWidth="550">
 
                     <TextBox Text="Shop Floor Notes"
-                         FontSize="18"
-                         FontWeight="Bold"
-                         Foreground="WhiteSmoke"
-                         Background="#FF135185"
-                         BorderBrush="Black"
-                         HorizontalContentAlignment="Center"
-                         VerticalContentAlignment="Center"
-                         Height="35"
-                         Margin="10,10,0,0"
-                         Focusable="False"
-                         Style="{DynamicResource DisabledTextBox}"/>
+                             FontSize="18"
+                             FontWeight="Bold"
+                             Foreground="WhiteSmoke"
+                             Background="#FF135185"
+                             BorderBrush="Black"
+                             HorizontalContentAlignment="Center"
+                             VerticalContentAlignment="Center"
+                             Height="35"
+                             Margin="10,10,0,0"
+                             Focusable="False"
+                             Style="{DynamicResource DisabledTextBox}"/>
 
                     <TextBox Text="{Binding ShopOrder.ShopNotes}"
-                         FontSize="18"
-                         BorderBrush="Black"
-                         Background="White"
-                         Height="130"
-                         Margin="10,0,0,0"
-                         TextWrapping="WrapWithOverflow"
-                         Style="{DynamicResource DisabledTextBox}"/>
+                             FontSize="18"
+                             BorderBrush="Black"
+                             Background="White"
+                             Height="130"
+                             Margin="10,0,0,0"
+                             TextWrapping="WrapWithOverflow"
+                             Style="{DynamicResource DisabledTextBox}"/>
 
                 </StackPanel>
 
@@ -211,18 +214,18 @@
             <Grid Grid.Row="3">
 
                 <Control Background="Transparent"
-                     VerticalAlignment="Center"
-                     HorizontalAlignment="Center"
-                     Margin="0,50,0,0"
-                     Visibility="{Binding IsMultiLoading, Converter={StaticResource BoolToVisConverter}}"
-                     Style="{DynamicResource BusyAnimationStyle}" />
+                         VerticalAlignment="Center"
+                         HorizontalAlignment="Center"
+                         Margin="0,50,0,0"
+                         Visibility="{Binding IsMultiLoading, Converter={StaticResource BoolToVisConverter}}"
+                         Style="{DynamicResource BusyAnimationStyle}" />
 
                 <TabControl VerticalAlignment="Top"
-                        HorizontalAlignment="Left"
-                        BorderThickness="0"
-                        Margin="10,0,0,0"
-                        Background="WhiteSmoke"
-                        Visibility="{Binding IsMultiLoading, Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}">
+                            HorizontalAlignment="Left"
+                            BorderThickness="0"
+                            Margin="10,0,0,0"
+                            Background="WhiteSmoke"
+                            Visibility="{Binding IsMultiLoading, Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}">
 
                     <!--#region Picklist Tab-->
 

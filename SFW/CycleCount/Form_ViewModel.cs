@@ -35,7 +35,7 @@ namespace SFW.CycleCount
             }
         }
 
-        public bool IsLocValid { get { return !string.IsNullOrEmpty(CountLocation) && Sku.IsValidLocation(CountTran.CountLoc, App.AppSqlCon); } }
+        public bool IsLocValid { get { return !string.IsNullOrEmpty(CountLocation) && Sku.IsValidLocation(CountTran.CountLoc); } }
         public int LocSize { get { return IsLocValid ? 1 : 3; } }
 
         public List<Lot> ILotResultsList { get; set; }
@@ -72,10 +72,10 @@ namespace SFW.CycleCount
 
         public void ResultsLoading(string inputVal)
         {
-            ILotResultsList = Lot.GetOnHandLotList(inputVal, App.AppSqlCon);
+            ILotResultsList = Lot.GetOnHandLotList(inputVal, true);
             if (ILotResultsList.Count == 0)
             {
-                ILotResultsList = Lot.GetOnHandNonLotList(inputVal, App.AppSqlCon);
+                ILotResultsList = Lot.GetOnHandLotList(inputVal, false);
             }
         }
         public void ResultsLoaded(IAsyncResult r)

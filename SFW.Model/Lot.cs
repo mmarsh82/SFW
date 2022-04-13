@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
+using System.Linq;
 
 //Created by Michael Marsh 4-25-18
 
@@ -67,151 +68,23 @@ namespace SFW.Model
         /// Lot Constructor for dedication population
         /// </summary>
         /// <param name="lotNbr">Lot Number</param>
-        public Lot(string lotNbr, SqlConnection sqlCon)
+        public Lot(string lotNbr)
         {
-            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
+            var _rows = MasterDataSet.Tables["LOT"].Select($"[LotID] = '{lotNbr}' AND [WorkOrderID] != ''");
+            foreach (var _row in _rows)
             {
-                if (Dedication == null)
-                {
-                    Dedication = new Dictionary<string, int>();
-                }
-                try
-                {
-                    using (SqlCommand cmd = new SqlCommand(@"SELECT
-	                                                        [Dedicated_Wo] as 'WorkOrder', [Ded_Wo_Qty] as 'Qty'
-                                                        FROM
-	                                                        [dbo].[LOT-INIT_Dedicated_Wo_Data]
-                                                        WHERE
-	                                                        [ID1] = @p1;", sqlCon))
-                    {
-                        cmd.Parameters.AddWithValue("p1", lotNbr);
-                        using (SqlDataReader reader = cmd.ExecuteReader())
-                        {
-                            if (reader.HasRows)
-                            {
-                                while (reader.Read())
-                                {
-                                    Dedication.Add(reader.SafeGetString("WorkOrder"), reader.SafeGetInt32("Qty"));
-                                }
-                            }
-                        }
-                    }
-                }
-                catch (Exception)
-                {
-                    Dedication = null;
-                }
-            }
-            else
-            {
-                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
+                Dedication.Add(_row.Field<string>("WorkOrderID"), _row.Field<int>("OnHand"));
             }
         }
 
-        /// <summary>
-        /// Lot Constructor for DataRow array conversion
-        /// </summary>
-        /// <param name="dRows">DataRow array</param>
-        /// <param name="type">Type of lot object list to return</param>
-        public static List<Lot> DataRowToLotList(DataRow[] dRows, string type)
-        {
-            var _tempList = new List<Lot>();
-            foreach (DataRow _row in dRows)
-            {
-                switch (type)
-                {
-                    case "Lot":
-                        _tempList.Add(new Lot
-                        {
-                            LotNumber = _row.Field<string>("LotNumber")
-                            ,Onhand = _row.Field<int>("Qty")
-                            ,Location = _row.Field<string>("Loc")
-                        });
-                        break;
-                    case "Dedicate":
-                        _tempList.Add(new Lot
-                        {
-                            LotNumber = _row.Field<string>("LotNumber")
-                            ,Onhand = _row.Field<int>("Qty")
-                            ,Location = _row.Field<string>("Loc")
-                        });;
-                        break;
-                    case "NonLot":
-                        _tempList.Add(new Lot
-                        {
-                            Onhand = _row.Field<int>("Qty")
-                            ,Location = _row.Field<string>("Loc")
-                        });
-                        break;
-                }
-            }
-            return _tempList;
-        }
-
-        /// <summary>
-        /// Get a List of lot numbers associated with a part number
-        /// </summary>
-        /// <param name="partNbr">Part Number</param>
-        /// <param name="sqlCon">Sql Connection to use</param>
-        /// <returns>List of lots associated with the part number</returns>
-        public static List<Lot> GetOnHandLotList(string partNbr, SqlConnection sqlCon)
-        {
-            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
-            {
-                try
-                {
-                    var _tempList = new List<Lot>();
-                    if (!string.IsNullOrEmpty(partNbr))
-                    {
-                        using (SqlCommand cmd = new SqlCommand(@"SELECT
-                                                                    SUBSTRING(a.[Lot_Number], 0, CHARINDEX('|',a.[Lot_Number],0)) as 'LotNumber',
-                                                                    b.[Oh_Qtys], b.[Loc]
-                                                                FROM
-                                                                    [dbo].[LOT-INIT] a
-                                                                RIGHT JOIN
-                                                                    [dbo].[LOT-INIT_Lot_Loc_Qtys] b ON b.[ID1] = a.[Lot_Number]
-                                                                WHERE
-                                                                    a.[Part_Nbr] = @p1 AND b.[Oh_Qtys] != 0
-                                                                ORDER BY
-	                                                                [LotNumber] ASC;", sqlCon))
-                            {
-                            cmd.Parameters.AddWithValue("p1", partNbr);
-                            using (SqlDataReader reader = cmd.ExecuteReader())
-                            {
-                                if (reader.HasRows)
-                                {
-                                    while (reader.Read())
-                                    {
-                                        _tempList.Add(new Lot
-                                        {
-                                            LotNumber = reader.SafeGetString("LotNumber"),
-                                            Onhand = reader.SafeGetInt32("Oh_Qtys"),
-                                            Location = reader.SafeGetString("Loc")
-                                        });
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    return _tempList;
-                }
-                catch (Exception)
-                {
-                    return new List<Lot>();
-                }
-            }
-            else
-            {
-                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
-            }
-        }
+        #region Data Access
 
         /// <summary>
         /// Get a DataTable of all sku objects with onhand values
         /// </summary>
         /// <param name="sqlCon">Sql Connection to use</param>
         /// <returns>DataTable of all onhand values</returns>
-        public static DataTable GetOnHandTable(SqlConnection sqlCon)
+        public static DataTable GetLotTable(SqlConnection sqlCon)
         {
             if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
             {
@@ -219,7 +92,7 @@ namespace SFW.Model
                 {
                     using (DataTable _dt = new DataTable())
                     {
-                        using (SqlDataAdapter adapter = new SqlDataAdapter(@"SELECT * FROM SFW_OnHand ORDER BY [LotNumber]", sqlCon))
+                        using (SqlDataAdapter adapter = new SqlDataAdapter($@"USE {sqlCon.Database}; SELECT * FROM [dbo].[SFW_Lot] ORDER BY [LotID]", sqlCon))
                         {
                             adapter.Fill(_dt);
                             return _dt;
@@ -229,59 +102,6 @@ namespace SFW.Model
                 catch (Exception)
                 {
                     return null;
-                }
-            }
-            else
-            {
-                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
-            }
-        }
-
-        /// <summary>
-        /// Get a List of lot numbers associated with a part number
-        /// </summary>
-        /// <param name="partNbr">Part Number</param>
-        /// <param name="sqlCon">Sql Connection to use</param>
-        /// <returns>List of lots associated with the part number</returns>
-        public static List<Lot> GetOnHandNonLotList(string partNbr, SqlConnection sqlCon)
-        {
-            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
-            {
-                try
-                {
-                    var _tempList = new List<Lot>();
-                    if (!string.IsNullOrEmpty(partNbr))
-                    {
-                        using (SqlCommand cmd = new SqlCommand(@"SELECT 
-                                                                [Oh_Qty_By_Loc] AS 'Oh_Qtys',
-	                                                            [Location] AS 'Loc'
-                                                            FROM
-                                                                [dbo].[IPL-INIT_Location_Data]
-                                                            WHERE
-                                                                [ID1] = @p1 AND [Oh_Qty_By_Loc] != 0;", sqlCon))
-                        {
-                            cmd.Parameters.AddWithValue("p1", partNbr);
-                            using (SqlDataReader reader = cmd.ExecuteReader())
-                            {
-                                if (reader.HasRows)
-                                {
-                                    while (reader.Read())
-                                    {
-                                        _tempList.Add(new Lot
-                                        {
-                                            Onhand = reader.SafeGetInt32("Oh_Qtys"),
-                                            Location = reader.SafeGetString("Loc")
-                                        });
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    return _tempList;
-                }
-                catch (Exception)
-                {
-                    return new List<Lot>();
                 }
             }
             else
@@ -336,55 +156,105 @@ namespace SFW.Model
         }
 
         /// <summary>
-        /// Get a list of lots for work order dedication
+        /// Get any QIR's associated with a given lot number
         /// </summary>
-        /// <param name="partNbr">Part Number</param>
-        /// <param name="woNbr">Work Order Number</param>
+        /// <param name="lotNbr">Lot Number</param>
         /// <param name="sqlCon">Sql Connection to use</param>
-        /// <returns>List of dedicated lots by work order and part number</returns>
-        public static List<Lot> GetDedicatedLotList(string partNbr, string woNbr, SqlConnection sqlCon)
+        /// <returns>QIR Number as int</returns>
+        public static int GetAssociatedQIR(string lotNbr, SqlConnection sqlCon)
         {
             if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
             {
-                var _temp = new List<Lot>();
+                var _db = sqlCon.Database;
                 try
                 {
-                    using (SqlCommand cmd = new SqlCommand(@"SELECT
-	                                                        SUBSTRING(a.[ID1], 0, LEN(a.[ID1]) - 1) as 'LotNbr', a.[Ded_Wo_Qty] as 'Qty',
-	                                                        b.[Loc] as 'Location'
-                                                        FROM
-	                                                        [dbo].[LOT-INIT_Dedicated_Wo_Data] a
-                                                        LEFT OUTER JOIN
-	                                                        [dbo].[LOT-INIT_Lot_Loc_Qtys] b ON b.[ID1] = a.[ID1]
-                                                        LEFT OUTER JOIN
-	                                                        [dbo].[LOT-INIT] c ON c.[Lot_Number] = a.[ID1]
-                                                        WHERE
-	                                                        a.[Dedicated_Wo] = @p1 AND c.[Part_Nbr] = @p2;", sqlCon))
+                    var _qirNbr = 0;
+                    using (SqlCommand cmd = new SqlCommand(@"USE OMNI; SELECT [QIRNumber] FROM [qir_metrics_view] WHERE LotNumber=@p1;", sqlCon))
                     {
-                        cmd.Parameters.AddWithValue("p1", woNbr);
-                        cmd.Parameters.AddWithValue("p2", partNbr);
+                        cmd.Parameters.AddWithValue("p1", lotNbr);
+                        _qirNbr = Convert.ToInt32(cmd.ExecuteScalar());
+                    }
+                    sqlCon.ChangeDatabase(_db);
+                    return _qirNbr;
+                }
+                catch (Exception)
+                {
+                    sqlCon.ChangeDatabase(_db);
+                    return 0;
+                }
+            }
+            else
+            {
+                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
+            }
+        }
+
+        /// <summary>
+        /// Get the Sku's Diamond number using a parent lot number
+        /// </summary>
+        /// <param name="lotNbr">Lot Number used as a search reference</param>
+        /// <param name="sqlCon">Sql Connection to use</param>
+        /// <returns>Diamond number as string</returns>
+        public static string GetDiamondNumber(string lotNbr, SqlConnection sqlCon)
+        {
+            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
+            {
+                var _found = false;
+                var _lot = $"a.[Parent_Lot] = '{lotNbr}|P'";
+                var _dmdNbr = string.Empty;
+                while (!_found)
+                {
+                    _lot += ";";
+                    using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database};
+                                                            SELECT
+                                                                SUBSTRING(a.[Component_Lot],0,LEN(a.[Component_Lot]) - 1) as 'Comp_Lot', b.[Inventory_Type] as 'Type'
+                                                            FROM
+	                                                            [dbo].[Lot Structure] a
+                                                            RIGHT OUTER JOIN
+	                                                            [dbo].[IM-INIT] b ON b.[Part_Number] = a.[Comp_Pn]
+                                                            WHERE
+	                                                            {_lot}", sqlCon))
+                    {
+                        _lot = string.Empty;
                         using (SqlDataReader reader = cmd.ExecuteReader())
                         {
                             if (reader.HasRows)
                             {
                                 while (reader.Read())
                                 {
-                                    _temp.Add(new Lot
+                                    if (reader.SafeGetString("Type") == "RR")
                                     {
-                                        LotNumber = reader.SafeGetString("LotNbr"),
-                                        Onhand = reader.SafeGetInt32("Qty"),
-                                        Location = reader.SafeGetString("Location")
-                                    });
+                                        _dmdNbr = reader.SafeGetString("Comp_Lot");
+                                        _found = true;
+                                    }
+                                    else if (string.IsNullOrEmpty(_lot) && reader.SafeGetString("Type") != "HM")
+                                    {
+                                        _lot += $"a.[Parent_Lot] = '{reader.SafeGetString("Comp_Lot")}|P'";
+                                    }
+                                    else if (reader.SafeGetString("Type") != "HM")
+                                    {
+                                        _lot += $" OR a.[Parent_Lot] = '{reader.SafeGetString("Comp_Lot")}|P'";
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                return !string.IsNullOrEmpty(_dmdNbr) ? _dmdNbr : lotNbr;
+                            }
+                        }
+                        if (string.IsNullOrEmpty(_lot))
+                        {
+                            using (SqlDataReader reader = cmd.ExecuteReader())
+                            {
+                                while (reader.Read())
+                                {
+                                    _lot = $"a.[Parent_Lot] = '{reader.SafeGetString("Comp_Lot")}|P'";
                                 }
                             }
                         }
                     }
-                    return _temp;
                 }
-                catch (Exception)
-                {
-                    return new List<Lot>();
-                }
+                return _dmdNbr;
             }
             else
             {
@@ -449,186 +319,56 @@ namespace SFW.Model
             }
         }
 
+        #endregion
+
         /// <summary>
         /// Validate whether a lot number exists and is attached to the correct part number
         /// </summary>
         /// <param name="lotNbr">Lot Number</param>
         /// <param name="partNbr">Part Number</param>
-        /// <param name="sqlCon">Sql Connection to use</param>
         /// <param name="woNbr">Optional: Work Order Number</param>
         /// <returns>Validation response</returns>
-        public static bool LotValidation(string lotNbr, string partNbr, SqlConnection sqlCon, string woNbr = null)
+        public static bool LotValidation(string lotNbr, string partNbr, string woNbr = null)
         {
-            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
-            {
-                try
-                {
-                    var _cmdString = string.IsNullOrEmpty(woNbr)
-                        ? "SELECT COUNT([Lot_Number]) FROM [dbo].[LOT-INIT] WHERE [Part_Nbr] = @p1 AND [Lot_Number] = CONCAT(@p2, '|P');"
-                        : @"SELECT COUNT([Lot_Number])
-                            FROM [dbo].[LOT-INIT]
-                            WHERE [Part_Nbr] = @p1 AND [Lot_Number] = CONCAT(@p2, '|P')
-                                AND (SELECT COUNT([ID]) FROM[dbo].[WP-INIT_Lot_Entered] WHERE[Lot_Entered] = CONCAT(@p2, '|P') AND[Wp_Nbr] != @p3) = 0;";
-                    using (SqlCommand cmd = new SqlCommand($"USE {sqlCon.Database}; {_cmdString}", sqlCon))
-                    {
-                        cmd.Parameters.AddWithValue("p1", partNbr);
-                        cmd.Parameters.AddWithValue("p2", lotNbr);
-                        if (!string.IsNullOrEmpty(woNbr))
-                        {
-                            cmd.Parameters.AddWithValue("p3", woNbr);
-                        }
-                        return Convert.ToInt32(cmd.ExecuteScalar()) > 0;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    return false;
-                }
-            }
-            else
-            {
-                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
-            }
+            return string.IsNullOrEmpty(woNbr)
+                ? MasterDataSet.Tables["LOT"].Select($"[LotID] = '{lotNbr}' AND [SkuID] = '{partNbr}'").Length > 0
+                : MasterDataSet.Tables["LOT"].Select($"[LotID] = '{lotNbr}' AND [SkuID] = '{partNbr}' AND [WorkOrderID] = '{woNbr}'").Length > 0;
         }
 
         /// <summary>
         /// Validate lot number existance
         /// </summary>
         /// <param name="lotNbr">Lot Number</param>
-        /// <param name="sqlCon">Sql Connection to use</param>
         /// <returns>Validation response</returns>
-        public static bool IsValid(string lotNbr, SqlConnection sqlCon)
+        public static bool IsValid(string lotNbr)
         {
-            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
-            {
-                try
-                {
-                    using (SqlCommand cmd = new SqlCommand($"USE {sqlCon.Database}; SELECT COUNT([Lot_Number]) FROM [dbo].[LOT-INIT] WHERE [Lot_Number] = CONCAT(@p1, '|P') AND [Stores_Oh] > 0;", sqlCon))
-                    {
-                        cmd.Parameters.AddWithValue("p1", lotNbr);
-                        return int.TryParse(cmd.ExecuteScalar()?.ToString(), out int i) && i > 0;
-                    }
-                }
-                catch (Exception)
-                {
-                    return false;
-                }
-            }
-            else
-            {
-                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
-            }
-        }
-
-        /// <summary>
-        /// Get any QIR's associated with a given lot number
-        /// </summary>
-        /// <param name="lotNbr">Lot Number</param>
-        /// <param name="sqlCon">Sql Connection to use</param>
-        /// <returns>QIR Number as int</returns>
-        public static int GetAssociatedQIR(string lotNbr, SqlConnection sqlCon)
-        {
-            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
-            {
-                var _db = sqlCon.Database;
-                try
-                {
-                    var _qirNbr = 0;
-                    using (SqlCommand cmd = new SqlCommand(@"USE OMNI; SELECT [QIRNumber] FROM [qir_metrics_view] WHERE LotNumber=@p1;", sqlCon))
-                    {
-                        cmd.Parameters.AddWithValue("p1", lotNbr);
-                        _qirNbr = Convert.ToInt32(cmd.ExecuteScalar());
-                    }
-                    sqlCon.ChangeDatabase(_db);
-                    return _qirNbr;
-                }
-                catch (Exception)
-                {
-                    sqlCon.ChangeDatabase(_db);
-                    return 0;
-                }
-            }
-            else
-            {
-                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
-            }
+            return MasterDataSet.Tables["LOT"].Select($"[LotID] = '{lotNbr}'").Length > 0;
         }
 
         /// <summary>
         /// Get the residing location for a specific lot number
         /// </summary>
         /// <param name="lotNbr">Lot Number</param>
-        /// <param name="sqlCon">Sql Connection to use</param>
         /// <returns>Location that the lot number is current in as string</returns>
-        public static string GetLotLocation(string lotNbr, SqlConnection sqlCon)
+        public static string GetLotLocation(string lotNbr)
         {
-            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
-            {
-                try
-                {
-                    using (SqlCommand cmd = new SqlCommand($"USE {sqlCon.Database}; SELECT [ID2] as 'Location' FROM [dbo].[LOT-INIT_Lot_Loc_Qtys] WHERE [ID1] = CONCAT(@p1, '|P');", sqlCon))
-                    {
-                        cmd.Parameters.AddWithValue("p1", lotNbr);
-                        using (SqlDataReader reader = cmd.ExecuteReader())
-                        {
-                            var counter = 1;
-                            var _loc = string.Empty;
-                            if (reader.HasRows)
-                            {
-                                while (reader.Read())
-                                {
-                                    if (counter == 1)
-                                    {
-                                        _loc = reader.SafeGetString("Location");
-                                    }
-                                    else
-                                    {
-                                        return string.Empty;
-                                    }
-                                }
-                            }
-                            return _loc;
-                        }
-                    }
-                }
-                catch (Exception)
-                {
-                    return string.Empty;
-                }
-            }
-            else
-            {
-                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
-            }
+            var _rows = MasterDataSet.Tables["LOT"].Select($"[LotID] = '{lotNbr}'");
+            return _rows.Length > 0
+                ? _rows.FirstOrDefault().Field<string>("Location")
+                : null;
         }
 
         /// <summary>
         /// Get the amount of material on hand for a specific lot number
         /// </summary>
         /// <param name="lotNbr">Lot Number</param>
-        /// <param name="sqlCon">Sql Connection to use</param>
         /// <returns>Lot numbers current on hand quantity</returns>
-        public static int GetLotOnHandQuantity(string lotNbr, SqlConnection sqlCon)
+        public static int GetLotOnHandQuantity(string lotNbr)
         {
-            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
-            {
-                try
-                {
-                    using (SqlCommand cmd = new SqlCommand($"USE {sqlCon.Database}; SELECT [Stores_Oh] FROM [dbo].[LOT-INIT] WHERE [Lot_Number] = CONCAT(@p1, '|P');", sqlCon))
-                    {
-                        cmd.Parameters.AddWithValue("p1", lotNbr);
-                        return int.TryParse(cmd.ExecuteScalar().ToString(), out int i) ? i : 0;
-                    }
-                }
-                catch (Exception)
-                {
-                    return 0;
-                }
-            }
-            else
-            {
-                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
-            }
+            var _rows = MasterDataSet.Tables["LOT"].Select($"[LotID] = '{lotNbr}'");
+            return _rows.Length > 0
+                ? _rows.FirstOrDefault().Field<int>("OnHand")
+                : 0;
         }
 
         /// <summary>
@@ -636,88 +376,134 @@ namespace SFW.Model
         /// </summary>
         /// <param name="lotNbr">Lot Number</param>
         /// <param name="location">Location</param>
-        /// <param name="sqlCon">Sql Connection to use</param>
         /// <returns>Lot numbers current on hand quantity</returns>
-        public static int GetLotOnHandQuantity(string lotNbr, string location, SqlConnection sqlCon)
+        public static int GetLotOnHandQuantity(string lotNbr, string location)
         {
-            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
-            {
-                try
-                {
-                    using (SqlCommand cmd = new SqlCommand($"USE {sqlCon.Database}; SELECT [Oh_Qtys] FROM [dbo].[LOT-INIT_Lot_Loc_Qtys] WHERE [ID1] = CONCAT(@p1, '|P') AND [ID2] = @p2;", sqlCon))
-                    {
-                        cmd.Parameters.AddWithValue("p1", lotNbr);
-                        cmd.Parameters.AddWithValue("p2", location);
-                        return int.TryParse(cmd.ExecuteScalar().ToString(), out int i) ? i : 0;
-                    }
-                }
-                catch (Exception)
-                {
-                    return 0;
-                }
-            }
-            else
-            {
-                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
-            }
+            var _rows = MasterDataSet.Tables["LOT"].Select($"[LotID] = '{lotNbr}' AND [Location] = '{location}'");
+            return _rows.Length > 0
+                ? _rows.FirstOrDefault().Field<int>("OnHand")
+                : 0;
         }
 
         /// <summary>
         /// Get the Sku number related to the inputed lot number
         /// </summary>
         /// <param name="lotNbr">Lot Number</param>
-        /// <param name="sqlCon">Sql Connection to use</param>
         /// <returns>Sku Number as a string</returns>
-        public static string GetSkuNumber(string lotNbr, SqlConnection sqlCon)
+        public static string GetSkuNumber(string lotNbr)
         {
-            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
-            {
-                try
-                {
-                    using (SqlCommand cmd = new SqlCommand($"USE {sqlCon.Database}; SELECT [Part_Nbr] FROM [dbo].[LOT-INIT] WHERE [Lot_Number] = @p1", sqlCon))
-                    {
-                        cmd.Parameters.AddWithValue("p1", $"{lotNbr}|P");
-                        return cmd.ExecuteScalar()?.ToString();
-                    }
-                }
-                catch (Exception)
-                {
-                    return null;
-                }
-            }
-            else
-            {
-                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
-            }
+            var _rows = MasterDataSet.Tables["LOT"].Select($"[LotID] = '{lotNbr}'");
+            return _rows.Length > 0
+                ? _rows.FirstOrDefault().Field<string>("SkuID")
+                : null;
         }
 
         /// <summary>
         /// Get the Non-conformance reason related to a selected lot number
         /// </summary>
         /// <param name="lotNbr">Lot Number</param>
-        /// <param name="sqlCon">Sql Connection to use</param>
         /// <returns>Non-conformance reason as a string</returns>
-        public static string GetNCRNote(string lotNbr, SqlConnection sqlCon)
+        public static string GetNCRNote(string lotNbr)
         {
-            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
+            var _rows = MasterDataSet.Tables["LOT"].Select($"[LotID] = '{lotNbr}'");
+            return _rows.Length > 0
+                ? _rows.FirstOrDefault().Field<string>("Notes")
+                : null;
+        }
+
+        /// <summary>
+        /// Lot Constructor for DataRow array conversion
+        /// </summary>
+        /// <param name="dRows">DataRow array</param>
+        /// <param name="type">Type of lot object list to return, Lot = Lot list, Dedicate = Dedicated lot list, NotLot = Nonlot list</param>
+        public static List<Lot> DataRowToLotList(DataRow[] dRows, string type)
+        {
+            var _tempList = new List<Lot>();
+            foreach (DataRow _row in dRows)
             {
-                try
+                switch (type)
                 {
-                    using (SqlCommand cmd = new SqlCommand($"USE {sqlCon.Database}; SELECT [Notes] FROM [dbo].[LOT-SA] WHERE [Lot_Number] = @p1", sqlCon))
+                    case "Lot":
+                        _tempList.Add(new Lot
+                        {
+                            LotNumber = _row.Field<string>("LotID")
+                            ,Onhand = _row.Field<int>("OnHand")
+                            ,Location = _row.Field<string>("Location")
+                        });
+                        break;
+                    case "Dedicate":
+                        _tempList.Add(new Lot
+                        {
+                            LotNumber = _row.Field<string>("LotID")
+                            ,Onhand = _row.Field<int>("OnHand")
+                            ,Location = _row.Field<string>("Location")
+                        });;
+                        break;
+                    case "NonLot":
+                        _tempList.Add(new Lot
+                        {
+                            Onhand = _row.Field<int>("OnHand")
+                            ,Location = _row.Field<string>("Location")
+                        });
+                        break;
+                }
+            }
+            return _tempList;
+        }
+
+        /// <summary>
+        /// Get a List of lot numbers associated with a part number
+        /// </summary>
+        /// <param name="partNbr">Part Number</param>
+        /// <param name="lotTrace">Is Sku lot tracecable</param>
+        /// <returns>List of lots associated with the part number</returns>
+        public static List<Lot> GetOnHandLotList(string partNbr, bool lotTrace)
+        {
+            var _tempList = new List<Lot>();
+            var _rows = MasterDataSet.Tables["LOT"].Select($"[SkuID] = '{partNbr}' AND [Type] <> 'dLot'");
+            foreach (var _row in _rows)
+            {
+                if (lotTrace)
+                {
+                    _tempList.Add(new Lot
                     {
-                        cmd.Parameters.AddWithValue("p1", $"{lotNbr}|P");
-                        return cmd.ExecuteScalar()?.ToString();
-                    }
+                        LotNumber = _row.Field<string>("LotID"),
+                        Onhand = _row.Field<int>("OnHand"),
+                        Location = _row.Field<string>("Location"),
+                    });
                 }
-                catch (Exception)
+                else
                 {
-                    return null;
+                    _tempList.Add(new Lot
+                    {
+                        Onhand = _row.Field<int>("OnHand"),
+                        Location = _row.Field<string>("Location"),
+                    });
                 }
             }
-            else
+            return _tempList;
+        }
+
+        /// <summary>
+        /// Get a list of lots for work order dedication
+        /// </summary>
+        /// <param name="partNbr">Part Number</param>
+        /// <param name="woNbr">Work Order Number</param>
+        /// <returns>List of dedicated lots by work order and part number</returns>
+        public static List<Lot> GetDedicatedLotList(string partNbr, string woNbr)
+        {
+            var _tempList = new List<Lot>();
+            var _rows = MasterDataSet.Tables["LOT"].Select($"[SkuID] = '{partNbr}' AND [WorkOrderID] = '{woNbr}' AND [Type] = 'dLot'");
+            foreach (var _row in _rows)
             {
-                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
+                _tempList.Add(new Lot
+                {
+                    LotNumber = _row.Field<string>("LotID"),
+                    Onhand = _row.Field<int>("OnHand"),
+                    Location = _row.Field<string>("Location"),
+                });
             }
+            return _tempList;
         }
     }
 }

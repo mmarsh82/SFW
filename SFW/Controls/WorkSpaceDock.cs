@@ -134,7 +134,7 @@ namespace SFW.Controls
                     MessageBox.Show("Unable to switch to the alternate site.");
                 }
                 App.ErpCon.DatabaseChange(Enum.TryParse(index.ToString(), out Database _db) ? _db : Database.WCCO);
-                MainWindowViewModel.UpdateProperties();
+                Schedule.ViewModel.SiteChange = true;
                 RefreshTimer.RefreshTimerTick();
                 MainDock.Children.RemoveAt(4);
                 MainDock.Children.Insert(4, new Admin.View { DataContext = new Admin.ViewModel() });

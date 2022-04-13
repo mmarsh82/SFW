@@ -59,76 +59,12 @@ namespace SFW.Model
         { }
 
         /// <summary>
-        /// SalesOrder Constructor
-        /// Load a SalesOrder object based on a sales and line number
-        /// </summary>
-        /// <param name="soNbr">SalesOrder number to load, delimiter for line item is '*' i.e. SalesNumber*LineNumber</param>
-        /// <param name="sqlCon">Sql Connection to use</param>
-        public SalesOrder(string soNbr, SqlConnection sqlCon)
-        {
-            if (!string.IsNullOrEmpty(soNbr))
-            {
-                if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
-                {
-                    if (soNbr.Contains("*"))
-                    {
-                        var soNbrArray = soNbr.Split('*');
-                        soNbr = $"{soNbrArray[0]}*{soNbrArray[1]}";
-                        SalesNumber = soNbrArray[0];
-                        LineNumber = Convert.ToInt32(soNbrArray[1]);
-                    }
-                    try
-                    {
-                        using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database}; SELECT
-	                                                                a.[Cust_Nbr], a.[Cust_Part_Nbr], a.[Ln_Bal_Qty],
-	                                                                b.[Name] as 'Cust_Name'
-                                                                FROM
-	                                                                [dbo].[SOD-INIT] a
-                                                                RIGHT JOIN
-	                                                                [dbo].[CM-INIT] b ON b.[Cust_Nbr] = a.[Cust_Nbr]
-                                                                WHERE
-	                                                                a.[ID] = @p1;", sqlCon))
-                        {
-                            cmd.Parameters.AddWithValue("p1", soNbr);
-                            using (SqlDataReader reader = cmd.ExecuteReader())
-                            {
-                                if (reader.HasRows)
-                                {
-                                    while (reader.Read())
-                                    {
-                                        CustomerNumber = reader.SafeGetString("Cust_Nbr");
-                                        CustomerName = reader.SafeGetString("Cust_Name");
-                                        CustomerPart = reader.SafeGetString("Cust_Part_Nbr");
-                                        LineBalQuantity = reader.SafeGetInt32("Ln_Bal_Qty");
-                                        LineNotes = string.Empty;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    catch (SqlException sqlEx)
-                    {
-                        throw sqlEx;
-                    }
-                    catch (Exception ex)
-                    {
-                        throw new Exception(ex.Message);
-                    }
-                }
-                else
-                {
-                    throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
-                }
-            }
-        }
-
-        /// <summary>
         /// Sales Order Object constructor
         /// Will create a new SalesOrder Object based on a DataRow from any DataTable Object
         /// </summary>
         /// <param name="dRow">DataRow with the item array values for the sales order</param>
         /// <param name="sqlCon">Sql Connection to use</param>
-        public SalesOrder(DataRow dRow, SqlConnection sqlCon)
+        public SalesOrder(DataRow dRow)
         {
             SalesNumber = dRow.Field<string>("SoNbr");
             PartNumber = dRow.Field<string>("PartNbr");
@@ -141,8 +77,8 @@ namespace SFW.Model
             LineBaseQuantity = dRow.Field<int>("BaseQty");
             LineDesc = dRow.Field<string>("Description");
             LoadPattern = dRow.Field<string>("LoadPattern").ToUpper() == "PLASTIC";
-            GetInternalComments(sqlCon);
-            GetSpecialInstructions(sqlCon);
+            InternalComments = GetNotes(SalesNumber, 'C');
+            SpecialInstructions = GetNotes(SalesNumber, 'I');
             IsExpedited = dRow.Field<int>("IsExpedited") > 0;
             ShipName = dRow.Field<string>("ShipName");
             ShipAddress = new string[2];
@@ -167,161 +103,7 @@ namespace SFW.Model
             IsStagged = dRow.Field<string>("IsStagged") == "T";
         }
 
-        /// <summary>
-        /// Get the sales order internal comments
-        /// </summary>
-        /// <param name="sqlCon">Sql Connection to use</param>
-        public void GetInternalComments(SqlConnection sqlCon)
-        {
-            if (!string.IsNullOrEmpty(SalesNumber))
-            {
-                if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
-                {
-                    var _tempSales = SalesNumber.Contains("*") ? SalesNumber.Split('*')[0] : SalesNumber;
-                    try
-                    {
-                        using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database};
-                                                                SELECT
-                                                                    [Internal_Comments] as 'IntComm'
-                                                                FROM
-                                                                    [dbo].[SOH-INIT_Internal_Comments]
-                                                                WHERE
-                                                                    [So_Nbr] = @p1;", sqlCon))
-                        {
-                            cmd.Parameters.AddWithValue("p1", _tempSales);
-                            using (SqlDataReader reader = cmd.ExecuteReader())
-                            {
-                                if (reader.HasRows)
-                                {
-                                    while (reader.Read())
-                                    {
-                                        if (reader.SafeGetString("IntComm").Contains("bag"))
-                                        {
-                                            InternalComments += $" {reader.SafeGetString("IntComm").Replace('"', ' ')}";
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    catch (SqlException sqlEx)
-                    {
-                        throw sqlEx;
-                    }
-                    catch (Exception ex)
-                    {
-                        throw new Exception(ex.Message);
-                    }
-                }
-                else
-                {
-                    throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
-                }
-            }
-        }
-
-        /// <summary>
-        /// Get the sales order internal comments table
-        /// </summary>
-        /// <param name="sqlCon">Sql Connection to use</param>
-        public static DataTable GetInternalCommentsTable(SqlConnection sqlCon)
-        {
-            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
-            {
-                try
-                {
-                    using (DataTable dt = new DataTable())
-                    {
-                        using (SqlDataAdapter adapter = new SqlDataAdapter($@"USE {sqlCon.Database};
-                                                                                SELECT
-	                                                                                [So_Nbr] as 'ID'
-                                                                                    ,CASE WHEN [Internal_Comments] LIKE '%bag%'
-		                                                                                THEN REPLACE([Internal_Comments], '""', ' ')
-                                                                                        ELSE[Internal_Comments]
-                                                                                    END as 'IntComm'
-                                                                                FROM
-                                                                                    [dbo].[SOH-INIT_Internal_Comments]", sqlCon))
-                        {
-                            adapter.Fill(dt);
-                        }
-                        return dt;
-                    }
-                }
-                catch (SqlException sqlEx)
-                {
-                    throw sqlEx;
-                }
-                catch (Exception ex)
-                {
-                    throw new Exception(ex.Message);
-                }
-            }
-            else
-            {
-                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
-            }
-        }
-
-        /// <summary>
-        /// Get the sales order special instructions
-        /// </summary>
-        /// <param name="sqlCon">Sql Connection to use</param>
-        public void GetSpecialInstructions(SqlConnection sqlCon)
-        {
-            SpecialInstructions = null;
-            if (!string.IsNullOrEmpty(SalesNumber))
-            {
-                if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
-                {
-                    var _tempSales = SalesNumber.Contains("*") ? SalesNumber.Split('*')[0] : SalesNumber;
-                    try
-                    {
-                        using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database};
-                                                                SELECT
-                                                                    [Special_Instructions] as 'SpecInst'
-                                                                FROM
-                                                                    [dbo].[SOH-INIT-Special_Instructions]
-                                                                WHERE
-                                                                    [So_Nbr] = @p1;", sqlCon))
-                        {
-                            cmd.Parameters.AddWithValue("p1", _tempSales);
-                            using (SqlDataReader reader = cmd.ExecuteReader())
-                            {
-                                if (reader.HasRows)
-                                {
-                                    var _counter = 0;
-                                    while (reader.Read())
-                                    {
-                                        if (!string.IsNullOrEmpty(reader.SafeGetString("SpecInst")))
-                                        {
-                                            SpecialInstructions += $"{reader.SafeGetString("SpecInst")} ";
-                                            _counter += reader.SafeGetString("SpecInst").Length;
-                                            if (_counter > 65)
-                                            {
-                                                _counter = 0;
-                                                SpecialInstructions += "\n";
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    catch (SqlException sqlEx)
-                    {
-                        throw sqlEx;
-                    }
-                    catch (Exception ex)
-                    {
-                        throw new Exception(ex.Message);
-                    }
-                }
-                else
-                {
-                    throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
-                }
-            }
-        }
+        #region Data Access
 
         /// <summary>
         /// Retrieve a DataTable with all the data relevent to a schedule
@@ -421,33 +203,23 @@ namespace SFW.Model
         }
 
         /// <summary>
-        /// Get a list of the differnt types of sales orders
+        /// Get the sales order internal comments table
         /// </summary>
         /// <param name="sqlCon">Sql Connection to use</param>
-        /// <returns>list of sales order types as IList<string></returns>
-        public static IList<string> GetOrderTypeList(SqlConnection sqlCon)
+        public static DataTable GetNotesTable(SqlConnection sqlCon)
         {
-            var _rtnList = new List<string>();
             if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
             {
                 try
                 {
-                    using (SqlCommand _cmd = new SqlCommand(@"SELECT
-	                                                            DISTINCT(CASE WHEN a.[Ord_Type] = 'FSE' OR a.[Ord_Type] LIKE '%DE' THEN 'EOP' ELSE a.[Ord_Type] END) as 'Type'     
-                                                            FROM
-	                                                            [dbo].[SOH-INIT] a
-                                                            WHERE
-	                                                            a.[Order_Status] IS NULL", sqlCon))
+                    using (DataTable dt = new DataTable())
                     {
-                        using (SqlDataReader reader = _cmd.ExecuteReader())
+                        using (SqlDataAdapter adapter = new SqlDataAdapter($@"USE {sqlCon.Database}; SELECT * FROM [dbo].[SFW_SalesNotes]", sqlCon))
                         {
-                            while (reader.Read())
-                            {
-                                _rtnList.Add(reader.SafeGetString("Type"));
-                            }
+                            adapter.Fill(dt);
                         }
+                        return dt;
                     }
-                    return _rtnList;
                 }
                 catch (SqlException sqlEx)
                 {
@@ -464,16 +236,73 @@ namespace SFW.Model
             }
         }
 
+        #endregion
+
+        /// <summary>
+        /// Get the sales order internal comments
+        /// </summary>
+        /// <param name="soNumber">Sales Order to get the internal comments from</param>
+        /// <param name="type">Type of note I = Special Instructions, C = Internal Comments</param>
+        /// <returns>Internal comments in a string</returns>
+        public static string GetNotes(string soNumber, char type)
+        {
+            var _note = string.Empty;
+            var _rows = MasterDataSet.Tables["SoNotes"].Select($"[SalesID] = '{soNumber}' AND [Type] = '{type}'");
+            if (_rows.Length > 0)
+            {
+                foreach (var _row in _rows)
+                {
+                    _note += $"{_row.Field<string>("Comments")}\n";
+                }
+                return string.IsNullOrEmpty(_note) ? null : _note?.Trim('\n');
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Get a list of the differnt types of sales orders
+        /// </summary>
+        /// <returns>list of sales order types as IList<string></returns>
+        public static IList<string> GetOrderTypeList()
+        {
+            var _rtnList = new List<string>();
+            foreach (DataRow _row in MasterDataSet.Tables["SalesMaster"].DefaultView.ToTable(true, "Type").Rows)
+            {
+                _rtnList.Add(_row.Field<string>("Type"));
+            }
+            return _rtnList;
+        }
+
         /// <summary>
         /// Get a list of all the line items on a sales order
         /// </summary>
         /// <param name="soNbr">Sales order number to search</param>
-        /// <param name="sqlCon">Sql Connection to use</param>
         /// <param name="lineNbr">Optional: Any line number not to include in the list</param>
         /// <returns>list of sales order line items as IList<string></returns>
-        public static IList<SalesOrder> GetLineList(string soNbr, SqlConnection sqlCon, params int[] lineNbr)
+        public static IList<SalesOrder> GetLineList(string soNbr)
         {
-            if (!string.IsNullOrEmpty(soNbr))
+            var _rtnList = new List<SalesOrder>();
+            var _rows = MasterDataSet.Tables["SalesMaster"].Select($"[SoNbr] = '{soNbr}'");
+            if (_rows.Length > 0)
+            {
+                foreach (var _row in _rows)
+                {
+                    _rtnList.Add(new SalesOrder
+                                    {
+                                        LineBalQuantity = _row.Field<int>("BalQty")
+                                        ,LineDesc = _row.Field<string>("Description")
+                                        ,LineNumber = _row.Field<int>("LineNbr")
+                                        ,PartNumber = _row.Field<string>("PartNbr")
+                                        ,LineBaseQuantity = _row.Field<int>("BaseQty")
+                                        ,LineNotes = _row.Field<string>("Uom")
+                                        ,IsStagged = _row.Field<int>("IsBackOrder") == 1
+                                    });
+                }
+            }
+            return (from c in _rtnList
+                   orderby c.LineNumber
+                   select c).ToList();
+            /*if (!string.IsNullOrEmpty(soNbr))
             {
                 var _condString = string.Empty;
                 foreach (int i in lineNbr)
@@ -539,7 +368,7 @@ namespace SFW.Model
                     throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
                 }
             }
-            return null;
+            return null;*/
         }
     }
 }

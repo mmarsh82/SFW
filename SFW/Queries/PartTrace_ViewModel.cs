@@ -122,13 +122,13 @@ namespace SFW.Queries
             if (!string.IsNullOrEmpty(PartNumber))
             {
                 ErrorMsg = string.Empty;
-                if (new Sku(PartNumber, 1, App.AppSqlCon).EngStatus == "O" && !CurrentUser.IsEngineer)
+                if (new Sku(PartNumber, 'C').EngStatus == "O" && !CurrentUser.IsEngineer)
                 {
                     ErrorMsg = "Obsolete parts and can only be viewed by Engineering.";
                 }
                 else
                 {
-                    var _machName = Machine.GetMachineName(App.AppSqlCon, PartNumber);
+                    var _machName = Machine.GetMachineName(PartNumber);
                     if (!string.IsNullOrEmpty(_machName))
                     {
                         var _fileName = ExcelReader.GetSetupPrintNumber(PartNumber, _machName, $"{App.GlobalConfig.First(o => $"{o.Site}_MAIN" == App.Site).PressSetup}", "Production");
@@ -150,7 +150,7 @@ namespace SFW.Queries
                         }
                         else
                         {
-                            _fileName = ExcelReader.GetSetupPrintNumber(PartNumber, Machine.GetMachineName(App.AppSqlCon, PartNumber), $"{App.GlobalConfig.First(o => $"{o.Site}_MAIN" == App.Site).SyscoSetup}", "PRODUCTION");
+                            _fileName = ExcelReader.GetSetupPrintNumber(PartNumber, Machine.GetMachineName(PartNumber), $"{App.GlobalConfig.First(o => $"{o.Site}_MAIN" == App.Site).SyscoSetup}", "PRODUCTION");
                             if (!string.IsNullOrEmpty(_fileName))
                             {
                                 SetupPrint = $"{App.GlobalConfig.First(o => $"{o.Site}_MAIN" == App.Site).PartPrint}{ _fileName}.PDF";
@@ -168,7 +168,7 @@ namespace SFW.Queries
 
                         VerifyText = "No Setup.";
                     }
-                    SkuWIList = Sku.GetInstructions(PartNumber, App.SiteNumber, App.GlobalConfig.First(o => $"{o.Site}_MAIN" == App.Site).WI, App.AppSqlCon);
+                    SkuWIList = Sku.GetInstructions(PartNumber, App.SiteNumber, App.GlobalConfig.First(o => $"{o.Site}_MAIN" == App.Site).WI);
                     if (SkuWIList == null)
                     {
                         VerifyText += " No Work Instructions.";
@@ -248,16 +248,16 @@ namespace SFW.Queries
                 //Check CSI first then move to WCCO
                 if(App.SiteNumber == 0)
                 {
-                    if (Sku.Exists(PartNumber, App.AppSqlCon))
+                    if (Sku.Exists(PartNumber))
                     {
-                        _master = Sku.GetMasterNumber(PartNumber, App.AppSqlCon);
+                        _master = Sku.GetMasterNumber(PartNumber);
                     }
                     else
                     {
                         App.DatabaseChange("WCCO_MAIN");
-                        if (Sku.Exists(PartNumber, App.AppSqlCon))
+                        if (Sku.Exists(PartNumber))
                         {
-                            _master = Sku.GetMasterNumber(PartNumber, App.AppSqlCon);
+                            _master = Sku.GetMasterNumber(PartNumber);
                         }
                         App.DatabaseChange("CSI_MAIN");
                     }
@@ -265,16 +265,16 @@ namespace SFW.Queries
                 //Check WCCO first then move to CSI
                 else
                 {
-                    if (Sku.Exists(PartNumber, App.AppSqlCon))
+                    if (Sku.Exists(PartNumber))
                     {
-                        _master = Sku.GetMasterNumber(PartNumber, App.AppSqlCon);
+                        _master = Sku.GetMasterNumber(PartNumber);
                     }
                     else
                     {
                         App.DatabaseChange("CSI_MAIN");
-                        if(Sku.Exists(PartNumber, App.AppSqlCon))
+                        if(Sku.Exists(PartNumber))
                         {
-                            _master = Sku.GetMasterNumber(PartNumber, App.AppSqlCon);
+                            _master = Sku.GetMasterNumber(PartNumber);
                         }
                         App.DatabaseChange("WCCO_MAIN");
                     }
@@ -290,14 +290,14 @@ namespace SFW.Queries
                 }
                 else
                 {
-                    SkuResultDictionary = Sku.Search(PartNumber.Replace(" ", "%"), App.AppSqlCon);
+                    SkuResultDictionary = Sku.Search(PartNumber.Replace(" ", "%"));
                     OnPropertyChanged(nameof(SkuResultDictionary));
                 }
             }
             else
             {
                 var _sku = (Sku)parameter;
-                new Commands.PartSearch().Execute(Sku.GetMasterNumber(_sku.SkuNumber, App.AppSqlCon));
+                new Commands.PartSearch().Execute(!string.IsNullOrEmpty(_sku.MasterPrint) ? _sku.MasterPrint : _sku.SkuNumber);
             }
         }
 

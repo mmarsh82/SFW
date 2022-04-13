@@ -7,7 +7,7 @@ using System.Linq;
 
 namespace SFW.Model
 {
-    public class Component
+    public class Component : ModelBase
     {
         #region Properties
 
@@ -16,7 +16,7 @@ namespace SFW.Model
         public int CurrentOnHand { get; set; }
         public int CurrentPickable { get; set; }
         public int RequiredQty { get; set; }
-        public double AssemblyQty { get; set; }
+        public decimal AssemblyQty { get; set; }
         public int IssuedQty { get; set; }
         public string CompMasterPrint { get; set; }
         public string CompUom { get; set; }
@@ -43,164 +43,90 @@ namespace SFW.Model
         /// Will return a component object based on a part number
         /// </summary>
         /// <param name="partNbr">Part Number</param>
-        /// <param name="sqlCon">Sql Connection to use</param>
-        /// <param name="invType">Optional: Specific inventory type to single out</param>
-        public Component(string partNbr, SqlConnection sqlCon, string invType = "")
+        /// <param name="invType">Specific inventory type to single out</param>
+        public Component(string partNbr, string invType)
         {
-            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
+            var _rows = MasterDataSet.Tables["BOM"].Select($"[ParentSkuID] = '{partNbr}' AND [Type] = '{invType}'");
+            if (_rows.Length > 0)
             {
-                try
+                CompNumber = _rows.FirstOrDefault().Field<string>("ChildSkuID");
+                AssemblyQty = _rows.FirstOrDefault().Field<decimal>("AssembleQuantity");
+            }
+        }
+
+        #region Data Access
+
+        /// <summary>
+        /// Get a table of all BOM's for every SKU on file
+        /// </summary>
+        /// <param name="sqlCon">Sql Connection to use</param>
+        /// <returns>DataTable of bill of materials</returns>
+        public static DataTable GetComponentBomTable(SqlConnection sqlCon)
+        {
+            using (var _tempTable = new DataTable())
+            {
+                if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
                 {
-                    using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database};
-                                                                SELECT
-	                                                                SUBSTRING(a.[ID], CHARINDEX('*',a.[ID], 0) + 1, LEN(a.[ID])) as 'PartNbr'
-                                                                    ,a.Qty_Per_Assy
-                                                                FROM
-	                                                                [dbo].[PS-INIT] a
-                                                                LEFT OUTER JOIN
-	                                                                [dbo].[IM-INIT] b ON b.[Part_Number] = SUBSTRING(a.[ID], CHARINDEX('*',a.[ID], 0) + 1, LEN(a.[ID]))
-                                                                WHERE
-	                                                                a.[ID] LIKE CONCAT(@p1, '*%') AND b.[Inventory_Type] = @p2;", sqlCon))
+                    try
                     {
-                        cmd.Parameters.AddWithValue("p1", partNbr);
-                        cmd.Parameters.AddWithValue("p2", invType);
-                        using (SqlDataReader reader = cmd.ExecuteReader())
+                        using (SqlDataAdapter adapter = new SqlDataAdapter($@"USE {sqlCon.Database}; SELECT * FROM [dbo].[SFW_BOM]", sqlCon))
                         {
-                            if (reader.HasRows)
-                            {
-                                while (reader.Read())
-                                {
-                                    CompNumber = reader.SafeGetString("PartNbr");
-                                    AssemblyQty = reader.SafeGetDouble("Qty_Per_Assy");
-                                }
-                            }
+                            adapter.Fill(_tempTable);
+                            return _tempTable;
                         }
                     }
+                    catch (SqlException sqlEx)
+                    {
+                        throw new Exception(sqlEx.Message);
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new Exception(ex.Message);
+                    }
                 }
-                catch (SqlException sqlEx)
+                else
                 {
-                    throw sqlEx;
+                    throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
                 }
-                catch (Exception ex)
-                {
-                    throw new Exception(ex.Message);
-                }
-            }
-            else
-            {
-                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
             }
         }
 
         /// <summary>
-        /// Retrieve a list of components for a work order
+        /// Get a table of all pick lists for every SKU on file
         /// </summary>
-        /// <param name="woNbr">Work Order Number</param>
-        /// <param name="operation">Operation number</param>
-        /// <param name="balQty">Balance quantity left on the work order</param>
         /// <param name="sqlCon">Sql Connection to use</param>
-        /// <returns>List of Component objects related to a picklist</returns>
-        public static List<Component> GetComponentPickList(string woNbr, string operation, int balQty, SqlConnection sqlCon)
+        /// <returns>DataTable of pick lists</returns>
+        public static DataTable GetComponentPickTable(SqlConnection sqlCon)
         {
-            var _tempList = new List<Component>();
-            WipInfoUpdating = false;
-            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
+            using (var _tempTable = new DataTable())
             {
-                try
+                if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
                 {
-                    var _count = 0;
-                    using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database};
-                                                                SELECT COUNT(a.[ID]) FROM [dbo].[PL-INIT] a WHERE a.[ID] LIKE CONCAT(@p1, '%') AND (a.[Routing_Seq] = @p2 OR a.[Routing_Seq] IS NULL)", sqlCon))
+                    try
                     {
-                        cmd.Parameters.AddWithValue("p1", woNbr);
-                        cmd.Parameters.AddWithValue("p2", operation);
-                        int.TryParse(cmd.ExecuteScalar().ToString(), out _count);
-                    }
-                    operation = _count == 0 ? "10" : operation;
-                    var _routCmd = operation == "10" ? "(a.[Routing_Seq] = @p2 OR a.[Routing_Seq] IS NULL)" : "a.[Routing_Seq] = @p2";
-                    using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database};
-                                                                SELECT
-	                                                                SUBSTRING(a.[ID], CHARINDEX('*', a.[ID], 0) + 1, LEN(a.[ID])) as 'Component',
-	                                                                a.[Qty_Per_Assy] as 'Qty Per',
-	                                                                a.[Qty_Reqd] as 'Req Qty',
-	                                                                b.[Qty_On_Hand] as 'On Hand',
-	                                                                (SELECT SUM(aa.[OH_Qty_By_Loc]) FROM [dbo].[IPL-INIT_Location_Data] aa WHERE aa.[ID1] = b.[Part_Nbr] AND aa.[Loc_Pick_Avail_Flag] = 'Y') as 'Pickable',
-	                                                                b.[Wip_Rec_Loc] as 'Backflush',
-	                                                                c.[Description],
-	                                                                c.[Drawing_Nbrs],
-	                                                                c.[Um],
-	                                                                c.[Inventory_Type],
-	                                                                c.[Lot_Trace],
-	                                                                a.[Routing_Seq]
-                                                                FROM
-	                                                                [dbo].[PL-INIT] a
-                                                                RIGHT JOIN
-	                                                                [dbo].[IPL-INIT] b ON b.[Part_Nbr] = SUBSTRING(a.[ID], CHARINDEX('*', a.[ID], 0) + 1, LEN(a.[ID]))
-                                                                RIGHT JOIN
-	                                                                [dbo].[IM-INIT] c ON c.[Part_Number] = SUBSTRING(a.[ID], CHARINDEX('*', a.[ID], 0) + 1, LEN(a.[ID]))
-                                                                WHERE
-	                                                                a.[ID] LIKE CONCAT(@p1, '%') AND {_routCmd} AND a.[Qty_Reqd] > 0
-                                                                ORDER BY
-                                                                    Lot_Trace DESC, Component;", sqlCon))
-                    {
-                        cmd.Parameters.AddWithValue("p1", woNbr);
-                        cmd.Parameters.AddWithValue("p2", operation);
-                        using (SqlDataReader reader = cmd.ExecuteReader())
+                        using (SqlDataAdapter adapter = new SqlDataAdapter($@"USE {sqlCon.Database}; SELECT * FROM [dbo].[SFW_PickList]", sqlCon))
                         {
-                            if (reader.HasRows)
-                            {
-                                while (reader.Read())
-                                {
-                                    _tempList.Add(new Component
-                                    {
-                                        CompNumber = reader.SafeGetString("Component"),
-                                        AssemblyQty = reader.SafeGetDouble("Qty Per"),
-                                        RequiredQty = reader.SafeGetInt32("Req Qty"),
-                                        CurrentOnHand = reader.SafeGetInt32("On Hand"),
-                                        CurrentPickable = reader.SafeGetInt32("Pickable"),
-                                        CompDescription = reader.SafeGetString("Description"),
-                                        IssuedQty = Convert.ToInt32(Math.Round(reader.SafeGetDouble("Qty Per") * balQty, 0, MidpointRounding.AwayFromZero)),
-                                        CompMasterPrint = reader.SafeGetString("Drawing_Nbrs"),
-                                        CompUom = reader.SafeGetString("Um"),
-                                        InventoryType = reader.SafeGetString("Inventory_Type"),
-                                        IsLotTrace = reader.SafeGetString("Lot_Trace") == "T",
-                                        BackflushLoc = reader.SafeGetString("Backflush"),
-                                        LotList = reader.IsDBNull(0)
-                                            ? new List<Lot>()
-                                            : Lot.GetOnHandLotList(reader.SafeGetString("Component"), sqlCon),
-                                        DedicatedLotList = reader.IsDBNull(0)
-                                            ? new List<Lot>()
-                                            : Lot.GetDedicatedLotList(reader.SafeGetString("Component"), woNbr, sqlCon),
-                                        WipInfo = new BindingList<CompWipInfo>()
-                                    });
-                                    _tempList[_tempList.Count - 1].WipInfo.Add
-                                        (
-                                            new CompWipInfo(!string.IsNullOrEmpty(_tempList[_tempList.Count - 1].BackflushLoc), _tempList[_tempList.Count - 1].CompNumber, _tempList[_tempList.Count - 1].CompUom)
-                                        );
-                                    _tempList[_tempList.Count - 1].WipInfo.ListChanged += WipInfo_ListChanged;
-                                    _tempList[_tempList.Count - 1].NonLotList = _tempList[_tempList.Count - 1].LotList.Count == 0 && !reader.IsDBNull(0)
-                                        ? Lot.GetOnHandNonLotList(reader.SafeGetString("Component"), sqlCon)
-                                        : new List<Lot>();
-                                }
-                            }
+                            adapter.Fill(_tempTable);
+                            return _tempTable;
                         }
                     }
-                    return _tempList;
+                    catch (SqlException sqlEx)
+                    {
+                        throw new Exception(sqlEx.Message);
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new Exception(ex.Message);
+                    }
                 }
-                catch (SqlException sqlEx)
+                else
                 {
-                    throw sqlEx;
+                    throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
                 }
-                catch (Exception ex)
-                {
-                    throw new Exception(ex.Message);
-                }
-            }
-            else
-            {
-                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
             }
         }
+
+        #endregion
 
         /// <summary>
         /// Retrieve a list of components for a work order
@@ -209,137 +135,77 @@ namespace SFW.Model
         /// <param name="woNbr">Work Order Number</param>
         /// <param name="balQty">Balance quantity left on the work order</param>
         /// <returns>List of Component objects related to a picklist</returns>
-        public static List<Component> GetComponentPickList(DataSet dataSet, DataRow[] dataRows, string woNbr, int balQty)
+        public static List<Component> GetComponentPickList(string woNbr, string woSeq, int balQty)
         {
             var _tempList = new List<Component>();
-            foreach (DataRow _row in dataRows)
+            WipInfoUpdating = false;
+            var _rows = MasterDataSet.Tables["PL"].Select($"[WorkOrderID] LIKE '{woNbr}' AND [Routing] = '{woSeq}'");
+            if (_rows.Length == 0 && woSeq != "10")
             {
-                _tempList.Add(new Component
-                {
-                    CompNumber = _row.Field<string>("Component")
-                    ,AssemblyQty = _row.Field<double>("Qty Per")
-                    ,RequiredQty = _row.Field<int>("Req Qty")
-                    ,CurrentOnHand = _row.Field<int>("On Hand")
-                    ,CurrentPickable = _row.Field<int>("Pickable")
-                    ,CompDescription = _row.Field<string>("Description")
-                    ,IssuedQty = Convert.ToInt32(Math.Round(_row.Field<double>(2) * balQty, 0, MidpointRounding.AwayFromZero))
-                    ,CompMasterPrint = _row.Field<string>("Drawing_Nbrs")
-                    ,CompUom = _row.Field<string>("Um")
-                    ,InventoryType = _row.Field<string>("Inventory_Type")
-                    ,IsLotTrace = _row.Field<string>("Lot_Trace") == "T"
-                    ,BackflushLoc = _row.Field<string>("Backflush")
-                    ,LotList = Lot.DataRowToLotList(dataSet.Tables["OH"].Select($"[ID] = '{_row.Field<string>("Component")}' AND [WO] = ''"), "Lot")
-                    ,DedicatedLotList = Lot.DataRowToLotList(dataSet.Tables["OH"].Select($"[ID] = '{_row.Field<string>("Component")}' AND [WO] = '{woNbr}'"), "Dedicate")
-                    ,WipInfo = new BindingList<CompWipInfo>()
-                });
-                _tempList[_tempList.Count - 1].WipInfo.Add
-                    (
-                        new CompWipInfo(!string.IsNullOrEmpty(_tempList[_tempList.Count - 1].BackflushLoc), _tempList[_tempList.Count - 1].CompNumber, _tempList[_tempList.Count - 1].CompUom)
-                    );
-                _tempList[_tempList.Count - 1].WipInfo.ListChanged += WipInfo_ListChanged;
-                _tempList[_tempList.Count - 1].NonLotList = _tempList[_tempList.Count - 1].LotList.Count == 0 && !string.IsNullOrEmpty(_row.SafeGetField<string>("ID")) && _row.Field<string>("Lot_Trace") != "T"
-                    ? Lot.DataRowToLotList(dataSet.Tables["OH"].Select($"[ID] = '{_row.Field<string>("Component")}'"), "NonLot")
-                    : new List<Lot>();
+                woSeq = "10";
+                _rows = MasterDataSet.Tables["PL"].Select($"[WorkOrderID] LIKE '{woNbr}' AND [Routing] = '{woSeq}'");
             }
-            dataSet.Dispose();
+            if (_rows.Length > 0)
+            {
+                foreach (var _row in _rows)
+                {
+                    var _lotRows = MasterDataSet.Tables["LOT"].Select($"[SkuID] = '{_row.Field<string>("ChildSkuID")}' AND [Type] = 'Lot'");
+                    var _dLotRows = MasterDataSet.Tables["LOT"].Select($"[SkuID] = '{_row.Field<string>("ChildSkuID")}' AND [WorkOrderID] = '{woNbr}' AND [Type] = 'dLot'");
+                    var _nLotRows = MasterDataSet.Tables["LOT"].Select($"[SkuID] = '{_row.Field<string>("ChildSkuID")}' AND [Type] = 'nLot'");
+                    _tempList.Add(new Component
+                    {
+                        CompNumber = _row.Field<string>("ChildSkuID")
+                        ,AssemblyQty = _row.Field<decimal>("AssemblyQuantity")
+                        ,RequiredQty = _row.Field<int>("RequiredQuantity")
+                        ,CurrentOnHand = _row.Field<int>("Onhand")
+                        ,CurrentPickable = _row.Field<int>("Pickable")
+                        ,CompDescription = _row.Field<string>("Description")
+                        ,IssuedQty = Convert.ToInt32(Math.Round(_row.Field<decimal>("AssemblyQuantity") * balQty, 0, MidpointRounding.AwayFromZero))
+                        ,CompMasterPrint = _row.Field<string>("MasterSkuID")
+                        ,CompUom = _row.Field<string>("Uom")
+                        ,InventoryType = _row.Field<string>("Type")
+                        ,IsLotTrace = _row.Field<string>("LotTrace") == "T"
+                        ,BackflushLoc = _row.Field<string>("Backflush")
+                        ,WipInfo = new BindingList<CompWipInfo>() { new CompWipInfo(!string.IsNullOrEmpty(_row.Field<string>("Backflush")), _row.Field<string>("ChildSkuID"), _row.Field<string>("Uom")) }
+                        ,LotList = _lotRows.Length > 0 ? Lot.DataRowToLotList(_lotRows, "Lot") : new List<Lot>()
+                        ,DedicatedLotList = _dLotRows.Length > 0 ? Lot.DataRowToLotList(_dLotRows, "Dedicate") : new List<Lot>()
+                        ,NonLotList = _nLotRows.Length > 0 ? Lot.DataRowToLotList(_nLotRows, "NonLot") : new List<Lot>()
+                    });
+                    _tempList[_tempList.Count - 1].WipInfo.ListChanged += WipInfo_ListChanged;
+                }
+            }
             return _tempList;
         }
 
         /// <summary>
         /// Retrieve a list of components for a Sku
         /// </summary>
-        /// <param name="skuNbr">Part Number</param>
-        /// <param name="operation">Operation Number</param>
-        /// <param name="sqlCon">Sql Connection to use</param>
+        /// <param name="partNbr">Sku ID Number</param>
+        /// <param name="woSeq">Work order sequence</param>
         /// <returns>List of Component objects related to a Bill of material</returns>
-        public static List<Component> GetComponentBomList(string skuNbr, string operation, SqlConnection sqlCon)
+        public static List<Component> GetComponentBomList(string partNbr, string woSeq)
         {
             var _tempList = new List<Component>();
             WipInfoUpdating = false;
-            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
+            var _rows = MasterDataSet.Tables["BOM"].Select($"[ParentSkuID] = '{partNbr}' AND [Routing] = '{woSeq}'");
+            if (_rows.Length == 0 && woSeq != "10")
             {
-                try
-                {
-                    var _count = 0;
-                    using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database};
-                                                                SELECT COUNT(a.[ID]) FROM [dbo].[PS-INIT] a WHERE a.[ID] LIKE CONCAT(@p1, '*%') AND (a.[Routing_Seq] = @p2 OR a.[Routing_Seq] IS NULL)", sqlCon))
-                    {
-                        cmd.Parameters.AddWithValue("p1", skuNbr);
-                        cmd.Parameters.AddWithValue("p2", operation);
-                        int.TryParse(cmd.ExecuteScalar().ToString(), out _count);
-                    }
-                    operation = _count == 0 ? "10" : operation;
-                    using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database};
-                                                                SELECT
-	                                                                SUBSTRING(a.[ID], CHARINDEX('*', a.[ID], 0) + 1, LEN(a.[ID])) as 'Component'
-	                                                                ,a.[Qty_Per_Assy]
-	                                                                ,b.[Description]
-                                                                    ,b.[Drawing_Nbrs]
-	                                                                ,b.[Um]
-                                                                FROM
-	                                                                [dbo].[PS-INIT] a
-                                                                RIGHT JOIN
-	                                                                [dbo].[IM-INIT] b ON b.[Part_Number] = SUBSTRING(a.[ID], CHARINDEX('*', a.[ID], 0) + 1, LEN(a.[ID]))
-                                                                WHERE
-	                                                                a.[ID] LIKE CONCAT(@p1, '*%') AND (a.[Routing_Seq] = @p2 OR a.[Routing_Seq] IS NULL)
-                                                                ORDER BY
-                                                                    Lot_Trace, Component;", sqlCon))
-                    {
-                        cmd.Parameters.AddWithValue("p1", skuNbr);
-                        cmd.Parameters.AddWithValue("p2", operation);
-                        using (SqlDataReader reader = cmd.ExecuteReader())
-                        {
-                            if (reader.HasRows)
-                            {
-                                while (reader.Read())
-                                {
-                                    _tempList.Add(new Component
-                                    {
-                                        CompNumber = reader.SafeGetString("Component"),
-                                        AssemblyQty = reader.SafeGetDouble("Qty_Per_Assy"),
-                                        CompDescription = reader.SafeGetString("Description"),
-                                        CompMasterPrint = reader.SafeGetString("Drawing_Nbrs"),
-                                        CompUom = reader.SafeGetString("Um")
-                                    });
-                                }
-                            }
-                        }
-                    }
-                    return _tempList;
-                }
-                catch (SqlException sqlEx)
-                {
-                    throw sqlEx;
-                }
-                catch (Exception ex)
-                {
-                    throw new Exception(ex.Message);
-                }
+                woSeq = "10";
+                _rows = MasterDataSet.Tables["BOM"].Select($"[ParentSkuID] = '{partNbr}' AND [Routing] = '{woSeq}'");
             }
-            else
+            if (_rows.Length > 0)
             {
-                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
-            }
-        }
-
-        /// <summary>
-        /// Retrieve a list of components for a Sku
-        /// </summary>
-        /// <param name="dataRows">Array of DataRow objects to translate to Component object properties</param>
-        /// <returns>List of Component objects related to a Bill of material</returns>
-        public static List<Component> GetComponentBomList(DataRow[] dataRows)
-        {
-            var _tempList = new List<Component>();
-            foreach (DataRow _row in dataRows)
-            {
-                _tempList.Add(new Component
+                foreach (var _row in _rows)
                 {
-                    CompNumber = _row.Field<string>(2)
-                    ,AssemblyQty = _row.Field<double>(3)
-                    ,CompDescription = _row.Field<string>(4)
-                    ,CompMasterPrint = _row.Field<string>(5)
-                    ,CompUom = _row.Field<string>(6)
-                });
+                    _tempList.Add(new Component
+                    {
+                        CompNumber = _row.Field<string>("ChildSkuID")
+                        ,AssemblyQty = _row.Field<decimal>("AssemblyQuantity")
+                        ,CompDescription = _row.Field<string>("Description")
+                        ,CompMasterPrint = _row.Field<string>("MasterSkuID")
+                        ,CompUom = _row.Field<string>("Uom")
+                    });
+                }
             }
             return _tempList;
         }
@@ -358,14 +224,14 @@ namespace SFW.Model
             if (e.ListChangedType == ListChangedType.ItemChanged && e.PropertyDescriptor.DisplayName == "LotNbr")
             {
                 FromOtherChange = true;
-                if(Lot.LotValidation(_tempItem.LotNbr, _tempItem.PartNbr, ModelBase.ModelSqlCon))
+                if(Lot.LotValidation(_tempItem.LotNbr, _tempItem.PartNbr))
                 {
                     ((BindingList<CompWipInfo>)sender)[e.NewIndex].IsValidLot = true;
                     ((BindingList<CompWipInfo>)sender)[e.NewIndex].RcptLoc = _tempItem.IsBackFlush
-                        ? Sku.GetBackFlushLoc(_tempItem.PartNbr, ModelBase.ModelSqlCon)
-                        : Lot.GetLotLocation(_tempItem.LotNbr, ModelBase.ModelSqlCon);
+                        ? Sku.GetBackFlushLoc(_tempItem.PartNbr)
+                        : Lot.GetLotLocation(_tempItem.LotNbr);
                     ((BindingList<CompWipInfo>)sender)[e.NewIndex].LotQty = 0;
-                    ((BindingList<CompWipInfo>)sender)[e.NewIndex].OnHandQty = Lot.GetLotOnHandQuantity(_tempItem.LotNbr, ModelBase.ModelSqlCon);
+                    ((BindingList<CompWipInfo>)sender)[e.NewIndex].OnHandQty = Lot.GetLotOnHandQuantity(_tempItem.LotNbr);
                     ((BindingList<CompWipInfo>)sender)[e.NewIndex].OnHandCalc = 0;
                     if (((BindingList<CompWipInfo>)sender).Count() == ((BindingList<CompWipInfo>)sender).Count(o => o.IsValidLot))
                     {
@@ -471,110 +337,6 @@ namespace SFW.Model
 
             #endregion
         }
-
-        /// <summary>
-        /// Get a table of all BOM's for every SKU on file
-        /// </summary>
-        /// <param name="sqlCon">Sql Connection to use</param>
-        /// <returns>DataTable of bill of materials</returns>
-        public static DataTable GetComponentBomTable(SqlConnection sqlCon)
-        {
-            using (var _tempTable = new DataTable())
-            {
-                if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
-                {
-                    try
-                    {
-                        using (SqlDataAdapter adapter = new SqlDataAdapter($@"USE {sqlCon.Database};
-                                                                                SELECT
-	                                                                                REPLACE(a.[ID], '*', '-') as 'ID'
-	                                                                                ,a.[Routing_Seq]
-	                                                                                ,SUBSTRING(a.[ID], CHARINDEX('*', a.[ID], 0) + 1, LEN(a.[ID])) as 'Component'
-	                                                                                ,CAST(a.[Qty_Per_Assy] as float) as 'Qty_Per_Assy'
-	                                                                                ,b.[Description]
-                                                                                    ,b.[Drawing_Nbrs]
-	                                                                                ,b.[Um]
-                                                                                FROM
-	                                                                                [dbo].[PS-INIT] a
-                                                                                RIGHT JOIN
-	                                                                                [dbo].[IM-INIT] b ON b.[Part_Number] = SUBSTRING(a.[ID], CHARINDEX('*', a.[ID], 0) + 1, LEN(a.[ID]));", sqlCon))
-                        {
-                            adapter.Fill(_tempTable);
-                            return _tempTable;
-                        }
-                    }
-                    catch (SqlException sqlEx)
-                    {
-                        throw new Exception(sqlEx.Message);
-                    }
-                    catch (Exception ex)
-                    {
-                        throw new Exception(ex.Message);
-                    }
-                }
-                else
-                {
-                    throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
-                }
-            }
-        }
-
-        /// <summary>
-        /// Get a table of all pick lists for every SKU on file
-        /// </summary>
-        /// <param name="sqlCon">Sql Connection to use</param>
-        /// <returns>DataTable of pick lists</returns>
-        public static DataTable GetComponentPickTable(SqlConnection sqlCon)
-        {
-            using (var _tempTable = new DataTable())
-            {
-                if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
-                {
-                    try
-                    {
-                        using (SqlDataAdapter adapter = new SqlDataAdapter($@"USE {sqlCon.Database};
-                                                                                SELECT
-	                                                                                a.[ID]
-	                                                                                ,SUBSTRING(a.[ID], CHARINDEX('*', a.[ID], 0) + 1, LEN(a.[ID])) as 'Component'
-	                                                                                ,CAST(a.[Qty_Per_Assy] as float) as 'Qty Per'
-	                                                                                ,CAST(a.[Qty_Reqd] as int) as 'Req Qty'
-	                                                                                ,CAST(ISNULL(b.[Qty_On_Hand], 0) as int) as 'On Hand'
-	                                                                                ,ISNULL(CAST((SELECT SUM(aa.[OH_Qty_By_Loc]) FROM [dbo].[IPL-INIT_Location_Data] aa WHERE aa.[ID1] = b.[Part_Nbr] AND aa.[Loc_Pick_Avail_Flag] = 'Y') as int), 0) as 'Pickable'
-	                                                                                ,b.[Wip_Rec_Loc] as 'Backflush'
-	                                                                                ,c.[Description]
-	                                                                                ,c.[Drawing_Nbrs]
-	                                                                                ,c.[Um]
-	                                                                                ,c.[Inventory_Type]
-	                                                                                ,ISNULL(c.[Lot_Trace], 'N') as 'Lot_Trace'
-	                                                                                ,ISNULL(a.[Routing_Seq], 10) as 'Routing'
-                                                                                FROM
-	                                                                                [dbo].[PL-INIT] a
-                                                                                RIGHT JOIN
-	                                                                                [dbo].[IPL-INIT] b ON b.[Part_Nbr] = SUBSTRING(a.[ID], CHARINDEX('*', a.[ID], 0) + 1, LEN(a.[ID]))
-                                                                                RIGHT JOIN
-	                                                                                [dbo].[IM-INIT] c ON c.[Part_Number] = SUBSTRING(a.[ID], CHARINDEX('*', a.[ID], 0) + 1, LEN(a.[ID]))
-                                                                                WHERE
-	                                                                                a.[Qty_Reqd] > 0", sqlCon))
-                        {
-                            adapter.Fill(_tempTable);
-                            return _tempTable;
-                        }
-                    }
-                    catch (SqlException sqlEx)
-                    {
-                        throw new Exception(sqlEx.Message);
-                    }
-                    catch (Exception ex)
-                    {
-                        throw new Exception(ex.Message);
-                    }
-                }
-                else
-                {
-                    throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
-                }
-            }
-        }
     }
 
     /// <summary>
@@ -587,7 +349,7 @@ namespace SFW.Model
         /// </summary>
         /// <param name="comp">Component object</param>
         /// <param name="wipQty">Main Part Wip Quantity</param>
-        public static void UpdateWipInfo(this Component comp, double wipQty)
+        public static void UpdateWipInfo(this Component comp, decimal wipQty)
         {
             foreach (var c in comp.WipInfo)
             {

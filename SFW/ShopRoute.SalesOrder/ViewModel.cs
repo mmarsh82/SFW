@@ -18,7 +18,7 @@ namespace SFW.ShopRoute.SalesOrder
                 _order = value;
                 if (!string.IsNullOrEmpty(value.SalesNumber))
                 {
-                    Order.LineList = Model.SalesOrder.GetLineList(value.SalesNumber, App.AppSqlCon, Order.LineNumber);
+                    Order.LineList = Model.SalesOrder.GetLineList(value.SalesNumber);
                 }
                 OnPropertyChanged(nameof(Order));
                 OnPropertyChanged(nameof(CanAccept));

@@ -20,7 +20,6 @@ namespace SFW.Schedule
     {
         #region Properties
 
-        public DataSet Schedule { get; set; }
         public static string[] ScheduleViewFilter;
         public static ICollectionView ScheduleView { get; set; }
 
@@ -39,11 +38,11 @@ namespace SFW.Schedule
                         var _wo = new WorkOrder(value.Row);
                         if (_wo.Inspection)
                         {
-                            Controls.WorkSpaceDock.UpdateChildDock(0, 1, new ShopRoute.QTask.View { DataContext = new ShopRoute.QTask.ViewModel(_wo, Schedule) });
+                            Controls.WorkSpaceDock.UpdateChildDock(0, 1, new ShopRoute.QTask.View { DataContext = new ShopRoute.QTask.ViewModel(_wo) });
                         }
                         else
                         {
-                            Controls.WorkSpaceDock.UpdateChildDock(0, 1, new ShopRoute.View { DataContext = new ShopRoute.ViewModel(_wo, Schedule) });
+                            Controls.WorkSpaceDock.UpdateChildDock(0, 1, new ShopRoute.View { DataContext = new ShopRoute.ViewModel(_wo) });
                         }
                     }
                     OnPropertyChanged(nameof(SelectedWorkOrder));
@@ -87,6 +86,9 @@ namespace SFW.Schedule
             }
         }
 
+        private bool Refresh { get; set; }
+        public static bool SiteChange { get; set; }
+
         public delegate void LoadDelegate(string s);
         public LoadDelegate LoadAsyncDelegate { get; private set; }
         public LoadDelegate FilterAsyncDelegate { get; private set; }
@@ -104,6 +106,7 @@ namespace SFW.Schedule
         /// </summary>
         public ViewModel()
         {
+            Refresh = SiteChange = false;
             LoadAsyncDelegate = new LoadDelegate(ViewLoading);
             FilterAsyncDelegate = new LoadDelegate(FilterView);
             LoadAsyncComplete = LoadAsyncDelegate.BeginInvoke(App.ViewFilter[App.SiteNumber], new AsyncCallback(ViewLoaded), null);
@@ -135,7 +138,7 @@ namespace SFW.Schedule
         /// <param name="index">Index of the filter string list you are adding to our changing</param>
         public static void ScheduleFilter(string filter, int index)
         {
-            if (ScheduleViewFilter != null)
+            if (ScheduleViewFilter != null && !SiteChange)
             {
                 ScheduleViewFilter[index] = filter;
                 var _filterStr = string.Empty;
@@ -144,8 +147,15 @@ namespace SFW.Schedule
                     _filterStr += string.IsNullOrEmpty(_filterStr) ? $"({s})" : $" AND ({s})";
                 }
                 var _tempList = new List<DataView>();
-                ((DataView)ScheduleView.SourceCollection).RowFilter = _filterStr;
-                ScheduleView.Refresh();
+                if (ScheduleView != null)
+                {
+                    ((DataView)ScheduleView.SourceCollection).RowFilter = _filterStr;
+                    ScheduleView.Refresh();
+                }
+            }
+            else
+            {
+                ScheduleViewFilter = new string[5];
             }
         }
 
@@ -154,7 +164,7 @@ namespace SFW.Schedule
         /// </summary>
         public static void ClearFilter()
         {
-            if (ScheduleViewFilter != null)
+            if (ScheduleViewFilter != null && !SiteChange)
             {
                 ScheduleViewFilter = new string[5];
                 ((DataView)ScheduleView.SourceCollection).RowFilter = "";
@@ -182,22 +192,30 @@ namespace SFW.Schedule
         public void ViewLoading(string filter)
         {
             IsLoading = true;
-            Schedule = Machine.ScheduleDataSet(UserConfig.GetIROD(), App.Site, App.AppSqlCon);
+            if (Refresh)
+            {
+                ModelBase.BuildMasterDataSet(UserConfig.GetIROD(), App.Site, App.AppSqlCon);
+            }
+            if (SiteChange)
+            {
+                MainWindowViewModel.UpdateProperties();
+                SiteChange = false;
+            }
         }
 
         public void ViewLoaded(IAsyncResult r)
         {
-            RefreshTimer.IsRefreshing = IsLoading = false;
+            RefreshTimer.IsRefreshing = IsLoading = Refresh = false;
             MainWindowViewModel.DisplayAction = false;
             var _oldfilter = string.Empty;
             if (ScheduleView != null && CurrentUser.IsLoggedIn)
             {
                 _oldfilter = ((DataView)ScheduleView.SourceCollection).RowFilter;
             }
-            ScheduleView = CollectionViewSource.GetDefaultView(Schedule.Tables["Master"]);
+            ScheduleView = CollectionViewSource.GetDefaultView(ModelBase.MasterDataSet.Tables["Master"]);
             ScheduleFilter(UserConfig.BuildMachineFilter(), 1);
             ScheduleFilter(UserConfig.BuildPriorityFilter(), 3);
-            ScheduleView.GroupDescriptions.Add(new PropertyGroupDescription("MachineNumber", new WorkCenterNameConverter(MainWindowViewModel.MachineList)));
+            ScheduleView.GroupDescriptions.Add(new PropertyGroupDescription("MachineNumber", new WorkCenterNameConverter()));
             if (_oldSelectedWO != null)
             {
                 if (((DataView)ScheduleView.SourceCollection).Table.AsEnumerable().Any(row => row.Field<string>("WO_Number") == ((DataRowView)_oldSelectedWO).Row.Field<string>("WO_Number")))
@@ -235,7 +253,7 @@ namespace SFW.Schedule
             {
                 if (!IsLoading)
                 {
-                    RefreshTimer.IsRefreshing = IsLoading = true;
+                    RefreshTimer.IsRefreshing = IsLoading = Refresh = true;
                     MainWindowViewModel.DisplayAction = App.LoadedModule == Enumerations.UsersControls.Schedule;
                     _oldSelectedWO = ScheduleView.CurrentItem;
                     SelectedWorkOrder = null;

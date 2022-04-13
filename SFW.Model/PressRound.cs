@@ -200,7 +200,7 @@ namespace SFW.Model
                 {
                     //Variable initialization
                     var _time = DateTime.Now.ToString("HH:mm:ss");
-                    var _slats = Machine.GetPress_Length(sqlCon, psReport.MachineName) - int.Parse(pReport.SlatTransfer.ToString()) + 1;
+                    var _slats = Machine.GetPress_Length(psReport.MachineName) - int.Parse(pReport.SlatTransfer.ToString()) + 1;
                     var _blankOut = pReport.DoubleBlankout ? int.Parse(pReport.SlatBlankout.ToString()) * 2 + 1 : int.Parse(pReport.SlatBlankout.ToString());
                     var _rollLen = int.Parse(pReport.RollLength.ToString());
                     var _rollNbr = 1;
