@@ -50,7 +50,7 @@ namespace SFW.Model
             if (_rows.Length > 0)
             {
                 CompNumber = _rows.FirstOrDefault().Field<string>("ChildSkuID");
-                AssemblyQty = _rows.FirstOrDefault().Field<decimal>("AssembleQuantity");
+                AssemblyQty = _rows.FirstOrDefault().Field<decimal>("AssemblyQuantity");
             }
         }
 

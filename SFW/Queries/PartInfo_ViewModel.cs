@@ -227,6 +227,7 @@ namespace SFW.Queries
         public void ResultsLoading(string inputVal)
         {
             IsLoading = true;
+            ModelBase.MasterDataSet.RefreshTable(Tables.LOT);
             ILotResultsList = Lot.GetOnHandLotList(inputVal, true);
             NonLotPart = false;
             if (ILotResultsList.Count == 0)
@@ -252,6 +253,10 @@ namespace SFW.Queries
             }
             PartNbrText = UserInput;
             UserInput = null;
+            if (UseLot)
+            {
+                SelectedILotRow = ILotResultsList.FirstOrDefault(o => o.LotNumber == _lot);
+            }
             OnPropertyChanged(nameof(PartNbrText));
             OnPropertyChanged(nameof(ILotResultsList));
             OnPropertyChanged(nameof(IthResultsTable));
@@ -300,7 +305,7 @@ namespace SFW.Queries
             if (UseLot && Part != null)
             {
                 QuantityInput = Part.TotalOnHand;
-                FromLocation = Part.Location;
+                FromLocation = string.IsNullOrEmpty(Part.Location) ? string.Empty : Part.Location;
                 ToLocation = string.Empty;
             }
             OnPropertyChanged(nameof(Part));

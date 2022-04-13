@@ -548,13 +548,16 @@ namespace SFW.Model
                         break;
                     //Lot based Sku Loading
                     case 'L':
-                        _row = MasterDataSet.Tables["LOT"].Select($"[LotID] = '{searchValue}' AND [WorkOrderID] = ''");
+                        _row = MasterDataSet.Tables["LOT"].Select($"[LotID] = '{searchValue}'");
                         if (_row.Length > 0)
                         {
                             SkuNumber = _row.FirstOrDefault().Field<string>("SkuID");
                             SkuDescription = _row.FirstOrDefault().Field<string>("Description");
                             Uom = _row.FirstOrDefault().Field<string>("Uom");
-                            NonCon = _row.FirstOrDefault().Field<string>("Notes").Replace("/", "");
+                            if (!string.IsNullOrEmpty(_row.FirstOrDefault().Field<string>("Notes")))
+                            {
+                                NonCon = _row.FirstOrDefault().Field<string>("Notes").Replace("/", "");
+                            }
                             TotalOnHand = _row.FirstOrDefault().Field<int>("OnHand");
                             Location = _row.FirstOrDefault().Field<string>("Location");
                         }

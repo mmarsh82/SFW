@@ -95,7 +95,7 @@ namespace SFW.Model
                     FROM            [dbo].[LOT-INIT] lot LEFT JOIN
                                              [dbo].[LOT-SA] sLot ON sLot.[Lot_Number] = lot.[Lot_Number] LEFT JOIN
                                              [dbo].[IM-INIT] im ON im.[Part_Number] = lot.[Part_Nbr] LEFT JOIN
-                                             [dbo].[LOT-INIT_Lot_Loc_Qtys] lLot ON lLot.[ID1] = lot.[Lot_Number] RIGHT JOIN
+                                             [dbo].[LOT-INIT_Lot_Loc_Qtys] lLot ON lLot.[ID1] = lot.[Lot_Number] LEFT JOIN
                                              [dbo].[WP-INIT_Lot_Entered] eLot ON eLot.[Lot_Entered] = lot.[Lot_Number]
                     WHERE        lLot.[Oh_Qtys] != 0
                     UNION

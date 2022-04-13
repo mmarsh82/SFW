@@ -100,28 +100,25 @@ namespace SFW
                 ResetSplashCreated.WaitOne();
 
                 //Initialization of default application properties
-                SplashMessage = "Setting Up Site";
+                SplashMessage = "Customizing your experience.";
                 SiteNumber = CurrentUser.GetSite();
                 Site = $"{CurrentUser.Site}_MAIN";
-                SplashMessage = "Loading Config";
                 GlobalConfig = LoadGlobalAppConfig();
-                SplashMessage = "Setting Up User";
                 if (!CurrentUser.IsLoggedIn)
                 {
                     CurrentUser.LogIn();
                 }
-                SplashMessage = "Building default work center list";
                 DefualtWorkCenter = UserConfig.GetUserConfigList();
-                SplashMessage = "Connecting to ERP";
+                SplashMessage = "Setting up the link to your ERP.";
                 ErpCon.DatabaseChange(Enum.TryParse(Site.Replace("_MAIN", ""), out Database _db) ? _db : Database.CSI);
-                SplashMessage = "Connecting to SQL";
+                SplashMessage = "Connecting to your data.";
                 if (AppSqlCon != null)
                 {
                     AppSqlCon.Open();
                     while (AppSqlCon.State != System.Data.ConnectionState.Open) { }
                     AppSqlCon.StateChange += SqlCon_StateChange;
                 }
-                SplashMessage = "Setting up error handling";
+                SplashMessage = "Making sure your errors are handled.";
                 Current.Exit += App_Exit;
                 AppDomain.CurrentDomain.UnhandledException += App_ExceptionCrash;
                 Current.DispatcherUnhandledException += App_DispatherCrash;
@@ -131,14 +128,13 @@ namespace SFW
                     { 0, "" }
                     ,{ 1, "" }
                 };
-                SplashMessage = "Loading data and building schedule";
+                SplashMessage = "Getting your schedule ready.  This may take a few moments.";
                 var _load = Model.ModelBase.BuildMasterDataSet(UserConfig.GetIROD(), Site, AppSqlCon);
                 if (_load.ContainsKey(true))
                 {
                     var _msg = _load.TryGetValue(true, out string s) ? s : string.Empty;
                     MessageBox.Show(s, "Unhandled Exception", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
-                SplashMessage = string.Empty;
             }
             catch(Exception ex)
             {

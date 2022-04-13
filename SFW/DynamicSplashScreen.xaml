@@ -34,7 +34,7 @@
                    Text="{Binding Path=(local:App.SplashMessage)}"
                    HorizontalAlignment="Center"
                    VerticalAlignment="Bottom"
-                   FontSize="40"
+                   FontSize="22"
                    Foreground="Crimson" />
     </Grid>
 </Window>

@@ -131,6 +131,17 @@ namespace SFW.Model
             }
         }
 
+        public static void RefreshTable(Tables table)
+        {
+            switch (table)
+            {
+                case Tables.LOT:
+                    MasterDataSet.Tables[Tables.LOT.ToString()].Clear();
+                    MasterDataSet.Tables[Tables.LOT.ToString()].Merge(Lot.GetLotTable(ModelSqlCon));
+                    break;
+            }
+        }
+
         /// <summary>
         /// Database row counter
         /// </summary>
@@ -157,6 +168,19 @@ namespace SFW.Model
 
     public static class Extensions
     {
+        public static void RefreshTable(this DataSet dataSet, Tables table)
+        {
+            var _dt = new DataTable();
+            switch (table)
+            {
+                case Tables.LOT:
+                    _dt = Lot.GetLotTable(ModelBase.ModelSqlCon);
+                    break;
+            }
+            dataSet.Tables[table.ToString()].Clear();
+            dataSet.Tables[table.ToString()].Merge(_dt);
+        }
+
         /// <summary>
         /// Safely retrieve the string values from a SqlDataReader object based on column
         /// </summary>
@@ -263,4 +287,21 @@ namespace SFW.Model
         }
     }
 
+    public enum Tables
+    {
+        Master = 0,
+        ClosedMaster = 1,
+        SalesMaster = 2,
+        TL = 3,
+        BOM = 4,
+        PL = 5,
+        WoNotes = 6,
+        WI = 7,
+        LOT = 8,
+        SoNotes = 9,
+        WC = 10,
+        SKU = 11,
+        LOC = 12,
+        CREW = 13
+    }
 }

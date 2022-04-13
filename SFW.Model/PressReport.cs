@@ -111,7 +111,7 @@ namespace SFW.Model
                     }
                     if (SlatTransfer != null)
                     {
-                        ShiftReportList = PressShiftReport.GetPress_ShiftReportList(wo.OrderNumber, Machine.GetMachineName(wo.Machine), sqlCon);
+                        ShiftReportList = PressShiftReport.GetPress_ShiftReportList(wo.OrderNumber, wo.Machine, sqlCon);
                     }
                 }
                 catch (SqlException sqlEx)
