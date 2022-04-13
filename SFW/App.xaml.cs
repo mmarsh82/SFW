@@ -145,6 +145,7 @@ namespace SFW
                 MessageBox.Show(ex.Message, "Unhandled Exception", MessageBoxButton.OK, MessageBoxImage.Error);
                 SplashMessage = string.Empty;
             }
+            MainWindowViewModel.Initialization = true;
         }
 
         /// <summary>

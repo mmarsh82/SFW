@@ -115,6 +115,7 @@ namespace SFW.Schedule.Closed
             {
                 ClosedScheduleViewFilter = new string[5];
                 ((DataView)ClosedScheduleView.SourceCollection).RowFilter = "";
+                ClosedScheduleView.Refresh();
             }
         }
     }

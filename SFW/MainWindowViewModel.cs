@@ -138,6 +138,7 @@ namespace SFW
             }
         }
 
+        public static bool Initialization;
         private static bool IsChanging;
         public static event EventHandler<PropertyChangedEventArgs> StaticPropertyChanged;
         public event EventHandler CanExecuteChanged;
@@ -151,17 +152,19 @@ namespace SFW
         {
             try
             {
-                new WorkSpaceDock();
                 UpdateProperties();
                 IsChanging = false;
                 CanUpdate = false;
                 InTraining = false;
                 CanFilter = !App.IsFocused;
+                new WorkSpaceDock();
                 RefreshTimer.Add(MainUpdate);
+                Initialization = false;
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"Main Window\n{ex.Message}", "Unhandled Exception", MessageBoxButton.OK, MessageBoxImage.Error);
+                Initialization = false;
             }
         }
 
@@ -190,9 +193,12 @@ namespace SFW
                 }
                 else
                 {
-                    Schedule.ViewModel.ClearFilter();
-                    Schedule.Closed.ViewModel.ClearFilter();
-                    CanFilter = true;
+                    if (!Initialization)
+                    {
+                        Schedule.ViewModel.ClearFilter();
+                        Schedule.Closed.ViewModel.ClearFilter();
+                        CanFilter = true;
+                    }
                 }
             }
             catch (Exception ex)

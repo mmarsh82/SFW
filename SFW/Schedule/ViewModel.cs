@@ -175,6 +175,7 @@ namespace SFW.Schedule
             {
                 ScheduleViewFilter = new string[5];
                 ((DataView)ScheduleView.SourceCollection).RowFilter = "";
+                ScheduleView.Refresh();
             }
         }
 
