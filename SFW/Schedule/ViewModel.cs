@@ -120,9 +120,16 @@ namespace SFW.Schedule
         /// <param name="machineNumber">Machine Number to load into the schedule</param>
         public ViewModel(string machineNumber)
         {
-            LoadAsyncDelegate = new LoadDelegate(ViewLoading);
-            FilterAsyncDelegate = new LoadDelegate(FilterView);
-            LoadAsyncComplete = LoadAsyncDelegate.BeginInvoke(machineNumber, new AsyncCallback(ViewLoaded), null);
+            try
+            {
+                LoadAsyncDelegate = new LoadDelegate(ViewLoading);
+                FilterAsyncDelegate = new LoadDelegate(FilterView);
+                LoadAsyncComplete = LoadAsyncDelegate.BeginInvoke(machineNumber, new AsyncCallback(ViewLoaded), null);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Schedule\n{ex.Message}", "Unhandled Exception", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
         /// <summary>
@@ -168,7 +175,6 @@ namespace SFW.Schedule
             {
                 ScheduleViewFilter = new string[5];
                 ((DataView)ScheduleView.SourceCollection).RowFilter = "";
-                ScheduleView.Refresh();
             }
         }
 
@@ -191,55 +197,69 @@ namespace SFW.Schedule
 
         public void ViewLoading(string filter)
         {
-            IsLoading = true;
-            if (Refresh)
+            try
             {
-                ModelBase.BuildMasterDataSet(UserConfig.GetIROD(), App.Site, App.AppSqlCon);
+                IsLoading = true;
+                if (Refresh)
+                {
+                    ModelBase.BuildMasterDataSet(UserConfig.GetIROD(), App.Site, App.AppSqlCon);
+                }
+                if (SiteChange)
+                {
+                    MainWindowViewModel.UpdateProperties();
+                    SiteChange = false;
+                }
             }
-            if (SiteChange)
+            catch(Exception ex)
             {
-                MainWindowViewModel.UpdateProperties();
-                SiteChange = false;
+                MessageBox.Show(ex.Message, "Unhandled Exception", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
         public void ViewLoaded(IAsyncResult r)
         {
-            RefreshTimer.IsRefreshing = IsLoading = Refresh = false;
-            MainWindowViewModel.DisplayAction = false;
-            var _oldfilter = string.Empty;
-            if (ScheduleView != null && CurrentUser.IsLoggedIn)
+            try
             {
-                _oldfilter = ((DataView)ScheduleView.SourceCollection).RowFilter;
-            }
-            ScheduleView = CollectionViewSource.GetDefaultView(ModelBase.MasterDataSet.Tables["Master"]);
-            ScheduleFilter(UserConfig.BuildMachineFilter(), 1);
-            ScheduleFilter(UserConfig.BuildPriorityFilter(), 3);
-            ScheduleView.GroupDescriptions.Add(new PropertyGroupDescription("MachineNumber", new WorkCenterNameConverter()));
-            if (_oldSelectedWO != null)
-            {
-                if (((DataView)ScheduleView.SourceCollection).Table.AsEnumerable().Any(row => row.Field<string>("WO_Number") == ((DataRowView)_oldSelectedWO).Row.Field<string>("WO_Number")))
+                RefreshTimer.IsRefreshing = IsLoading = Refresh = false;
+                MainWindowViewModel.DisplayAction = false;
+                var _oldfilter = string.Empty;
+                if (ScheduleView != null && CurrentUser.IsLoggedIn)
                 {
-                    var _index = ScheduleView.IndexOf(_oldSelectedWO, "Wo_Number");
-                    ScheduleView.MoveCurrentToPosition(_index);
-                    SelectedWorkOrder = (DataRowView)_oldSelectedWO;
+                    _oldfilter = ((DataView)ScheduleView.SourceCollection).RowFilter;
                 }
-                else
+                ScheduleView = CollectionViewSource.GetDefaultView(ModelBase.MasterDataSet.Tables["Master"]);
+                ScheduleFilter(UserConfig.BuildMachineFilter(), 1);
+                ScheduleFilter(UserConfig.BuildPriorityFilter(), 3);
+                ScheduleView.GroupDescriptions.Add(new PropertyGroupDescription("MachineNumber", new WorkCenterNameConverter()));
+                if (_oldSelectedWO != null)
                 {
-                    ScheduleView.MoveCurrentToPosition(-1);
-                    SelectedWorkOrder = null;
+                    if (((DataView)ScheduleView.SourceCollection).Table.AsEnumerable().Any(row => row.Field<string>("WO_Number") == ((DataRowView)_oldSelectedWO).Row.Field<string>("WO_Number")))
+                    {
+                        var _index = ScheduleView.IndexOf(_oldSelectedWO, "Wo_Number");
+                        ScheduleView.MoveCurrentToPosition(_index);
+                        SelectedWorkOrder = (DataRowView)_oldSelectedWO;
+                    }
+                    else
+                    {
+                        ScheduleView.MoveCurrentToPosition(-1);
+                        SelectedWorkOrder = null;
+                    }
                 }
-            }
-            if (!string.IsNullOrEmpty(_oldfilter))
-            {
-                ((DataView)ScheduleView.SourceCollection).RowFilter = _oldfilter;
-            }
-            if (!string.IsNullOrEmpty(SearchFilter))
-            {
-                SearchFilter = SearchFilter;
-            }
+                if (!string.IsNullOrEmpty(_oldfilter))
+                {
+                    ((DataView)ScheduleView.SourceCollection).RowFilter = _oldfilter;
+                }
+                if (!string.IsNullOrEmpty(SearchFilter))
+                {
+                    SearchFilter = SearchFilter;
+                }
             ((DataView)ScheduleView.SourceCollection).Sort = "MachineOrder asc";
-            StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(ScheduleView)));
+                StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(ScheduleView)));
+            }
+            catch(Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Unhandled Exception", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
         #endregion
@@ -262,7 +282,7 @@ namespace SFW.Schedule
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message);
+                MessageBox.Show(ex.Message, "Unhandled Exception", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 

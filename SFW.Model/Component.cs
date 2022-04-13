@@ -69,7 +69,10 @@ namespace SFW.Model
                 {
                     try
                     {
-                        using (SqlDataAdapter adapter = new SqlDataAdapter($@"USE {sqlCon.Database}; SELECT * FROM [dbo].[SFW_BOM]", sqlCon))
+                        using (SqlDataAdapter adapter = new SqlDataAdapter($@"USE {sqlCon.Database}; SELECT        SUBSTRING(ps.ID, 0, CHARINDEX('*', ps.ID, 0)) AS ParentSkuID, im.Part_Number AS ChildSkuID, ISNULL(ps.Routing_Seq, '10') AS Routing, CAST(ps.Qty_Per_Assy AS numeric(12, 3)) AS AssemblyQuantity, im.Description, 
+                         im.Drawing_Nbrs AS MasterSkuID, im.Um AS Uom, im.Inventory_Type AS Type
+FROM            dbo.[PS-INIT] AS ps LEFT OUTER JOIN
+                         dbo.[IM-INIT] AS im ON im.Part_Number = SUBSTRING(ps.ID, CHARINDEX('*', ps.ID, 0) + 1, LEN(ps.ID))", sqlCon))
                         {
                             adapter.Fill(_tempTable);
                             return _tempTable;
@@ -104,7 +107,26 @@ namespace SFW.Model
                 {
                     try
                     {
-                        using (SqlDataAdapter adapter = new SqlDataAdapter($@"USE {sqlCon.Database}; SELECT * FROM [dbo].[SFW_PickList]", sqlCon))
+                        using (SqlDataAdapter adapter = new SqlDataAdapter($@"USE {sqlCon.Database}; SELECT        SUBSTRING(pl.ID, 0, CHARINDEX('*', pl.ID, 0)) AS WorkOrderID, im.Part_Number AS ChildSkuID, CAST(pl.Qty_Per_Assy AS numeric(12, 3)) AS AssemblyQuantity, CAST(pl.Qty_Reqd AS int) AS RequiredQuantity, 
+                         CAST(ISNULL
+                             ((SELECT        Qty_On_Hand
+                                 FROM            dbo.[IPL-INIT] AS ipl
+                                 WHERE        (Part_Nbr = im.Part_Number)), 0) AS int) AS OnHand, ISNULL
+                             ((SELECT        Wip_Rec_Loc
+                                 FROM            dbo.[IPL-INIT] AS ipl
+                                 WHERE        (Part_Nbr = im.Part_Number)), '') AS BackFlush, ISNULL(CAST
+                             ((SELECT        SUM(Oh_Qty_By_Loc) AS Expr1
+                                 FROM            dbo.[IPL-INIT_Location_Data] AS aa
+                                 WHERE        (ID1 = im.Part_Number) AND (Loc_Pick_Avail_Flag = 'Y')) AS int), 0) AS Pickable, im.Description, im.Drawing_Nbrs AS MasterSkuID, im.Um AS Uom, im.Inventory_Type AS Type, ISNULL(im.Lot_Trace, 'N') 
+                         AS LotTrace, ISNULL(pl.Routing_Seq, 10) AS Routing
+FROM            dbo.[PL-INIT] AS pl RIGHT OUTER JOIN
+                         dbo.[IM-INIT] AS im ON im.Part_Number = SUBSTRING(pl.ID, CHARINDEX('*', pl.ID, 0) + 1, LEN(pl.ID))
+WHERE        (pl.Qty_Reqd > 0) AND
+                             ((SELECT        COUNT(Wp_Nbr) AS Expr1
+                                 FROM            dbo.[WP-INIT] AS wp
+                                 WHERE        (Wp_Nbr = SUBSTRING(pl.ID, 0, CHARINDEX('*', pl.ID, 0))) AND (Status_Flag = 'R' OR
+                                                          Status_Flag = 'A' OR
+                                                          Status_Flag = 'C')) > 0)", sqlCon))
                         {
                             adapter.Fill(_tempTable);
                             return _tempTable;

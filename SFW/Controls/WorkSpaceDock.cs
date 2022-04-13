@@ -30,64 +30,71 @@ namespace SFW.Controls
         /// </summary>
         public WorkSpaceDock()
         {
-            RefreshTimer.IsRefreshing = true;
-            //Create the Control
-            MainDock = ((MainWindow)Application.Current.Windows[0]).WorkSpaceDock;
-            SchedDock = new DockPanel();
-            ClosedDock = new DockPanel();
-            CountDock = new DockPanel();
-            SalesDock = new DockPanel();
-
-            //Add the Site Schedule View to [0]
-            SchedDock.Children.Insert(0, new Schedule.View());
-            SchedDock.Children.Insert(1, new ShopRoute.View { DataContext = new ShopRoute.ViewModel() });
-            MainDock.Children.Insert(0, SchedDock);
-            while (!Schedule.ViewModel.LoadAsyncComplete.IsCompleted) { }
-
-            //Add a spacer to [1]
-            MainDock.Children.Insert(1, new UserControl());
-
-            //Add the Part Info View to [2]
-            MainDock.Children.Insert(2, new PartInfo_View());
-
-            //Add the Cycle Count View to [3]
-            CountDock.Children.Insert(0, new CycleCount.Sched_View());
-            CountDock.Children.Insert(1, new CycleCount.Form_View { DataContext = new CycleCount.Form_ViewModel() });
-            MainDock.Children.Insert(3, CountDock);
-            if (CycleCount.Sched_ViewModel.LoadAsyncComplete != null)
+            try
             {
-                while (!CycleCount.Sched_ViewModel.LoadAsyncComplete.IsCompleted) { }
+                RefreshTimer.IsRefreshing = true;
+                //Create the Control
+                MainDock = ((MainWindow)Application.Current.Windows[0]).WorkSpaceDock;
+                SchedDock = new DockPanel();
+                ClosedDock = new DockPanel();
+                CountDock = new DockPanel();
+                SalesDock = new DockPanel();
+
+                //Add the Site Schedule View to [0]
+                SchedDock.Children.Insert(0, new Schedule.View());
+                SchedDock.Children.Insert(1, new ShopRoute.View { DataContext = new ShopRoute.ViewModel() });
+                MainDock.Children.Insert(0, SchedDock);
+                while (!Schedule.ViewModel.LoadAsyncComplete.IsCompleted) { }
+
+                //Add a spacer to [1]
+                MainDock.Children.Insert(1, new UserControl());
+
+                //Add the Part Info View to [2]
+                MainDock.Children.Insert(2, new PartInfo_View());
+
+                //Add the Cycle Count View to [3]
+                CountDock.Children.Insert(0, new CycleCount.Sched_View());
+                CountDock.Children.Insert(1, new CycleCount.Form_View { DataContext = new CycleCount.Form_ViewModel() });
+                MainDock.Children.Insert(3, CountDock);
+                if (CycleCount.Sched_ViewModel.LoadAsyncComplete != null)
+                {
+                    while (!CycleCount.Sched_ViewModel.LoadAsyncComplete.IsCompleted) { }
+                }
+
+                //Add the Admin View to [4]
+                MainDock.Children.Insert(4, new Admin.View { DataContext = new Admin.ViewModel() });
+
+                //Add the Closed Schedule View to [5]
+                ClosedDock.Children.Insert(0, new Schedule.Closed.View());
+                ClosedDock.Children.Insert(1, new ShopRoute.View { DataContext = new ShopRoute.ViewModel() });
+                MainDock.Children.Insert(5, ClosedDock);
+
+                //Add the Part Detail View to [6]
+                MainDock.Children.Insert(6, new UserControl());
+
+                //Add the Part Trace View to [7]
+                MainDock.Children.Insert(7, new PartTrace_View());
+
+                //Add the Sales Order Schedule View to [8]
+                SalesDock.Children.Insert(0, new Schedule.SalesOrder.View());
+                SalesDock.Children.Insert(1, new ShopRoute.SalesOrder.View { DataContext = new ShopRoute.SalesOrder.ViewModel() });
+                MainDock.Children.Insert(8, SalesDock);
+                if (Schedule.SalesOrder.ViewModel.LoadAsyncComplete != null)
+                {
+                    while (!Schedule.SalesOrder.ViewModel.LoadAsyncComplete.IsCompleted) { }
+                }
+
+                //Add the Diamond Validation View to [9]
+                MainDock.Children.Insert(9, new Quality_View { DataContext = new Quality_ViewModel() });
+
+                SwitchView(App.SiteNumber, null, false);
+                RefreshTimer.IsRefreshing = false;
+                App.LoadedModule = Enumerations.UsersControls.Schedule;
             }
-
-            //Add the Admin View to [4]
-            MainDock.Children.Insert(4, new Admin.View { DataContext = new Admin.ViewModel() });
-
-            //Add the Closed Schedule View to [5]
-            ClosedDock.Children.Insert(0, new Schedule.Closed.View());
-            ClosedDock.Children.Insert(1, new ShopRoute.View { DataContext = new ShopRoute.ViewModel() });
-            MainDock.Children.Insert(5, ClosedDock);
-
-            //Add the Part Detail View to [6]
-            MainDock.Children.Insert(6, new UserControl());
-
-            //Add the Part Trace View to [7]
-            MainDock.Children.Insert(7, new PartTrace_View());
-
-            //Add the Sales Order Schedule View to [8]
-            SalesDock.Children.Insert(0, new Schedule.SalesOrder.View());
-            SalesDock.Children.Insert(1, new ShopRoute.SalesOrder.View { DataContext = new ShopRoute.SalesOrder.ViewModel() });
-            MainDock.Children.Insert(8, SalesDock);
-            if (Schedule.SalesOrder.ViewModel.LoadAsyncComplete != null)
+            catch (Exception ex)
             {
-                while (!Schedule.SalesOrder.ViewModel.LoadAsyncComplete.IsCompleted) { }
+                MessageBox.Show($"Workspacedock\n{ex.Message}", "Unhandled Exception", MessageBoxButton.OK, MessageBoxImage.Error);
             }
-
-            //Add the Diamond Validation View to [9]
-            MainDock.Children.Insert(9, new Quality_View { DataContext = new Quality_ViewModel() });
-
-            SwitchView(App.SiteNumber, null, false);
-            RefreshTimer.IsRefreshing = false;
-            App.LoadedModule = Enumerations.UsersControls.Schedule;
         }
 
         /// <summary>

@@ -210,11 +210,27 @@ namespace SFW.Model
         {
             if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
             {
+                var _conString = sqlCon.Database.Contains("WCCO") ?
+                //WCCO Query
+                @"SELECT        sohSI.[So_Nbr] AS 'SalesID', sohSI.[Special_Instructions] AS 'Comments', 'I' AS 'Type'
+                    FROM            [dbo].[SOH-INIT-Special_Instructions] sohSI RIGHT JOIN
+                                             [dbo].[SOH-INIT] soh ON soh.[So_Nbr] = sohSI.[So_Nbr] AND soh.[Order_Status] IS NULL
+                    WHERE        sohSI.[Special_Instructions] IS NOT NULL
+                    UNION
+                    SELECT        sohIC.[So_Nbr] AS 'SalesID', REPLACE(sohIC.[Internal_Comments], '""', ' ') AS 'Comments', 'C' AS 'Type'
+                    FROM            [dbo].[SOH-INIT_Internal_Comments] sohIC RIGHT JOIN
+                                             [dbo].[SOH-INIT] soh ON soh.[So_Nbr] = sohIC.[So_Nbr] AND soh.[Order_Status] IS NULL
+                    WHERE        sohIC.[Internal_Comments] LIKE '%bag%'" :
+                 //CSI Query
+                 @"SELECT        sohIC.So_Nbr AS SalesID, REPLACE(sohIC.Internal_Comments, '""', ' ') AS Comments, 'C' AS Type
+                    FROM            dbo.[SOH-INIT_Internal_Comments] AS sohIC RIGHT OUTER JOIN
+                                             dbo.[SOH-INIT] AS soh ON soh.So_Nbr = sohIC.So_Nbr AND soh.Order_Status IS NULL
+                    WHERE        (sohIC.Internal_Comments LIKE '%bag%')";
                 try
                 {
                     using (DataTable dt = new DataTable())
                     {
-                        using (SqlDataAdapter adapter = new SqlDataAdapter($@"USE {sqlCon.Database}; SELECT * FROM [dbo].[SFW_SalesNotes]", sqlCon))
+                        using (SqlDataAdapter adapter = new SqlDataAdapter($@"USE {sqlCon.Database}; {_conString}", sqlCon))
                         {
                             adapter.Fill(dt);
                         }

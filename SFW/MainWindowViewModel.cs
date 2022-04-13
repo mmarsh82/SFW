@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using System.Windows;
 
 //Created by Michael Marsh 4-19-18
 
@@ -148,13 +149,20 @@ namespace SFW
         /// </summary>
         public MainWindowViewModel()
         {
-            UpdateProperties();
-            IsChanging = false;
-            CanUpdate = false;
-            InTraining = false;
-            CanFilter = !App.IsFocused;
-            new WorkSpaceDock();
-            RefreshTimer.Add(MainUpdate);
+            try
+            {
+                new WorkSpaceDock();
+                UpdateProperties();
+                IsChanging = false;
+                CanUpdate = false;
+                InTraining = false;
+                CanFilter = !App.IsFocused;
+                RefreshTimer.Add(MainUpdate);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Main Window\n{ex.Message}", "Unhandled Exception", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
         /// <summary>
@@ -162,27 +170,34 @@ namespace SFW
         /// </summary>
         public static void UpdateProperties()
         {
-            DisplayAction = false;
-            InTraining = false;
-            MachineList = Machine.GetMachineList();
-            SelectedMachine = MachineList.First();
-            MachineGroupList = Machine.GetMachineGroupList(true);
-            SelectedMachineGroup = MachineGroupList.First();
-            StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(MachineList)));
-            StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(MachineGroupList)));
-            if (CurrentUser.BasicUser)
+            try
             {
-                Schedule.ViewModel.ScheduleFilter(UserConfig.BuildMachineFilter(), 1);
-                Schedule.ViewModel.ScheduleFilter(UserConfig.BuildPriorityFilter(), 3);
-                Schedule.Closed.ViewModel.ScheduleFilter(UserConfig.BuildMachineFilter(), 1);
-                Schedule.Closed.ViewModel.ScheduleFilter(UserConfig.BuildPriorityFilter(), 3);
-                CanFilter = !App.IsFocused;
+                DisplayAction = false;
+                InTraining = false;
+                MachineList = Machine.GetMachineList();
+                SelectedMachine = MachineList.First();
+                MachineGroupList = Machine.GetMachineGroupList(true);
+                SelectedMachineGroup = MachineGroupList.First();
+                StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(MachineList)));
+                StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(MachineGroupList)));
+                if (CurrentUser.BasicUser)
+                {
+                    Schedule.ViewModel.ScheduleFilter(UserConfig.BuildMachineFilter(), 1);
+                    Schedule.ViewModel.ScheduleFilter(UserConfig.BuildPriorityFilter(), 3);
+                    Schedule.Closed.ViewModel.ScheduleFilter(UserConfig.BuildMachineFilter(), 1);
+                    Schedule.Closed.ViewModel.ScheduleFilter(UserConfig.BuildPriorityFilter(), 3);
+                    CanFilter = !App.IsFocused;
+                }
+                else
+                {
+                    Schedule.ViewModel.ClearFilter();
+                    Schedule.Closed.ViewModel.ClearFilter();
+                    CanFilter = true;
+                }
             }
-            else
+            catch (Exception ex)
             {
-                Schedule.ViewModel.ClearFilter();
-                Schedule.Closed.ViewModel.ClearFilter();
-                CanFilter = true;
+                MessageBox.Show($"UpdateProperties\n{ex.Message}\n{ex.StackTrace}", "Unhandled Exception", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 

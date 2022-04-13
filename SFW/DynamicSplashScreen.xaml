@@ -11,6 +11,7 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
             <RowDefinition Height="40"/>
+            <RowDefinition Height="10"/>
         </Grid.RowDefinitions>
         <Image Grid.Row="0"
                x:Name="CompanyLogoImage"
@@ -30,9 +31,10 @@
         </Image>
         <TextBlock Grid.Row="1"
                    x:Name="UpdateMessage"
-                   Text=""
+                   Text="{Binding Path=(local:App.SplashMessage)}"
                    HorizontalAlignment="Center"
                    VerticalAlignment="Bottom"
-                   FontSize="40" />
+                   FontSize="40"
+                   Foreground="Crimson" />
     </Grid>
 </Window>

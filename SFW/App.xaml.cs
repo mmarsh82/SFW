@@ -49,6 +49,12 @@ namespace SFW
             get { return _filter; }
             set { _filter = value; StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(ViewFilter))); }
         }
+        public static string _msg;
+        public static string SplashMessage
+        {
+            get { return _msg; }
+            set { _msg = value; StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(SplashMessage))); }
+        }
 
         //Hardcoded application location will need to be changed based on actual file path
         public static string AppFilePath { get { return "\\\\fs-wcco\\WCCO-SFW\\ShopFloorWorkbench\\"; } }
@@ -82,41 +88,63 @@ namespace SFW
 
         public App()
         {
-            //Setting up the splash screen
-            ResetSplashCreated = new ManualResetEvent(false);
-            SplashThread = new Thread(ShowSplash);
-            SplashThread.SetApartmentState(ApartmentState.STA);
-            SplashThread.IsBackground = true;
-            SplashThread.Name = "Splash Screen";
-            SplashThread.Start();
-            ResetSplashCreated.WaitOne();
+            try
+            {
+                //Setting up the splash screen
+                ResetSplashCreated = new ManualResetEvent(false);
+                SplashThread = new Thread(ShowSplash);
+                SplashThread.SetApartmentState(ApartmentState.STA);
+                SplashThread.IsBackground = true;
+                SplashThread.Name = "Splash Screen";
+                SplashThread.Start();
+                ResetSplashCreated.WaitOne();
 
-            //Initialization of default application properties
-            SiteNumber = CurrentUser.GetSite();
-            Site = $"{CurrentUser.Site}_MAIN";
-            GlobalConfig = LoadGlobalAppConfig();
-            if (!CurrentUser.IsLoggedIn)
-            {
-                CurrentUser.LogIn();
+                //Initialization of default application properties
+                SplashMessage = "Setting Up Site";
+                SiteNumber = CurrentUser.GetSite();
+                Site = $"{CurrentUser.Site}_MAIN";
+                SplashMessage = "Loading Config";
+                GlobalConfig = LoadGlobalAppConfig();
+                SplashMessage = "Setting Up User";
+                if (!CurrentUser.IsLoggedIn)
+                {
+                    CurrentUser.LogIn();
+                }
+                SplashMessage = "Building default work center list";
+                DefualtWorkCenter = UserConfig.GetUserConfigList();
+                SplashMessage = "Connecting to ERP";
+                ErpCon.DatabaseChange(Enum.TryParse(Site.Replace("_MAIN", ""), out Database _db) ? _db : Database.CSI);
+                SplashMessage = "Connecting to SQL";
+                if (AppSqlCon != null)
+                {
+                    AppSqlCon.Open();
+                    while (AppSqlCon.State != System.Data.ConnectionState.Open) { }
+                    AppSqlCon.StateChange += SqlCon_StateChange;
+                }
+                SplashMessage = "Setting up error handling";
+                Current.Exit += App_Exit;
+                AppDomain.CurrentDomain.UnhandledException += App_ExceptionCrash;
+                Current.DispatcherUnhandledException += App_DispatherCrash;
+                SystemEvents.PowerModeChanged += OnPowerChange;
+                ViewFilter = new Dictionary<int, string>
+                {
+                    { 0, "" }
+                    ,{ 1, "" }
+                };
+                SplashMessage = "Loading data and building schedule";
+                var _load = Model.ModelBase.BuildMasterDataSet(UserConfig.GetIROD(), Site, AppSqlCon);
+                if (_load.ContainsKey(true))
+                {
+                    var _msg = _load.TryGetValue(true, out string s) ? s : string.Empty;
+                    MessageBox.Show(s, "Unhandled Exception", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+                SplashMessage = string.Empty;
             }
-            DefualtWorkCenter = UserConfig.GetUserConfigList();
-            ErpCon.DatabaseChange(Enum.TryParse(Site.Replace("_MAIN", ""), out Database _db) ? _db : Database.CSI);
-            if (AppSqlCon != null)
+            catch(Exception ex)
             {
-                AppSqlCon.Open();
-                while (AppSqlCon.State != System.Data.ConnectionState.Open) { }
-                AppSqlCon.StateChange += SqlCon_StateChange;
+                MessageBox.Show(ex.Message, "Unhandled Exception", MessageBoxButton.OK, MessageBoxImage.Error);
+                SplashMessage = string.Empty;
             }
-            Current.Exit += App_Exit;
-            AppDomain.CurrentDomain.UnhandledException += App_ExceptionCrash;
-            Current.DispatcherUnhandledException += App_DispatherCrash;
-            SystemEvents.PowerModeChanged += OnPowerChange;
-            ViewFilter = new Dictionary<int, string>
-            {
-                { 0, "" }
-                ,{ 1, "" }
-            };
-            Model.ModelBase.BuildMasterDataSet(UserConfig.GetIROD(), Site, AppSqlCon);
         }
 
         /// <summary>

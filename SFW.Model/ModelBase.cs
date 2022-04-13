@@ -67,9 +67,10 @@ namespace SFW.Model
         /// <param name="machOrder"></param>
         /// <param name="site"></param>
         /// <param name="sqlCon"></param>
-        public static void BuildMasterDataSet(IReadOnlyDictionary<string, int> machOrder, string site, SqlConnection sqlCon)
+        public static IReadOnlyDictionary<bool, string> BuildMasterDataSet(IReadOnlyDictionary<string, int> machOrder, string site, SqlConnection sqlCon)
         {
             ModelSqlCon = sqlCon;
+            var _rtnDict = new Dictionary<bool, string>();
             try
             {
                 using (var _tempDS = new DataSet())
@@ -82,7 +83,7 @@ namespace SFW.Model
                     _tempDS.Tables.Add(Machine.GetClosedScheduleData(ModelSqlCon));
                     _tempDS.Tables[_tempDS.Tables.Count - 1].TableName = "ClosedMaster";
 
-                    _tempDS.Tables.Add(SalesOrder.GetScheduleData(ModelSqlCon));
+                    _tempDS.Tables.Add(site.Contains("WCCO") ? SalesOrder.GetScheduleData(ModelSqlCon) : new DataTable());
                     _tempDS.Tables[_tempDS.Tables.Count - 1].TableName = "SalesMaster";
 
                     _tempDS.Tables.Add(Sku.GetTools(ModelSqlCon));
@@ -120,10 +121,13 @@ namespace SFW.Model
 
                     MasterDataSet = _tempDS;
                 }
+                _rtnDict.Add(false, string.Empty);
+                return _rtnDict;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                throw new Exception();
+                _rtnDict.Add(true, ex.Message);
+                return _rtnDict;
             }
         }
 

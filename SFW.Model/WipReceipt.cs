@@ -1,9 +1,7 @@
 ﻿using SFW.Model.Enumerations;
-using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
-using System.Data.SqlClient;
 using System.Linq;
 
 //Created by Michael Marsh 10-23-18
