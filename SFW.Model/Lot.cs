@@ -88,53 +88,11 @@ namespace SFW.Model
         {
             if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
             {
-                var _conString = sqlCon.Database.Contains("WCCO") ?
-                //WCCO Query
-                @"SELECT        im.[Part_Number] AS 'SkuID', SUBSTRING(lot.Lot_Number, 0, CHARINDEX('|', lot.Lot_Number, 0)) AS 'LotID', im.[Description], im.[Um] AS 'Uom', sLot.[Notes], CAST(lLot.[Oh_Qtys] AS int) AS 'OnHand', 
-                         lLot.[Locations] AS 'Location', eLot.[Wp_Nbr] AS 'WorkOrderID', 'Lot' AS 'Type'
-                    FROM            [dbo].[LOT-INIT] lot LEFT JOIN
-                                             [dbo].[LOT-SA] sLot ON sLot.[Lot_Number] = lot.[Lot_Number] LEFT JOIN
-                                             [dbo].[IM-INIT] im ON im.[Part_Number] = lot.[Part_Nbr] LEFT JOIN
-                                             [dbo].[LOT-INIT_Lot_Loc_Qtys] lLot ON lLot.[ID1] = lot.[Lot_Number] LEFT JOIN
-                                             [dbo].[WP-INIT_Lot_Entered] eLot ON eLot.[Lot_Entered] = lot.[Lot_Number]
-                    WHERE        lLot.[Oh_Qtys] != 0
-                    UNION
-                    SELECT        im.[Part_Number] AS 'SkuID', '' AS 'LotID', im.[Description], im.[Um] AS 'Uom', '' AS 'Notes', CAST(ipl.[Oh_Qty_By_Loc] AS int) AS 'OnHand', ipl.[Location] AS 'Location', '' AS 'WorkOrderID', 'nLot' AS 'Type'
-                    FROM            [dbo].[IM-INIT] im LEFT JOIN
-                                             [dbo].[IPL-INIT_Location_Data] ipl ON ipl.[ID1] = im.[Part_Number]
-                    WHERE        ipl.[Oh_Qty_By_Loc] != 0 AND im.[Lot_Trace] != 'T'
-                    UNION
-                    SELECT        lot.[Part_Nbr] AS 'SkuID', SUBSTRING(dLot.[ID1], 0, LEN(dLot.[ID1]) - 1) AS 'LotID', '' AS 'Description', '' AS 'Uom', '' AS 'Notes', CAST(dLot.[Ded_Wo_Qty] AS int) AS 'OnHand', qLot.[Loc] AS 'Location', 
-                                             dLot.[Dedicated_Wo] AS 'WorkOrderID', 'dLot' AS 'Type'
-                    FROM            [dbo].[LOT-INIT_Dedicated_Wo_Data] dLot LEFT OUTER JOIN
-                                             [dbo].[LOT-INIT] lot ON lot.[Lot_Number] = dLot.[ID1] LEFT OUTER JOIN
-                                             [dbo].[LOT-INIT_Lot_Loc_Qtys] qLot ON qLot.[ID1] = lot.[Lot_Number]
-                    WHERE        qLot.[Loc] IS NOT NULL" :
-                 //CSI Query
-                 @"SELECT        im.[Part_Number] AS 'SkuID', SUBSTRING(lot.Lot_Number, 0, CHARINDEX('|', lot.Lot_Number, 0)) AS 'LotID', im.[Description], im.[Um] AS 'Uom', '' AS 'Notes', CAST(lLot.[Oh_Qtys] AS int) AS 'OnHand', 
-                         lLot.[Locations] AS 'Location', eLot.[Wp_Nbr] AS 'WorkOrderID', 'Lot' AS 'Type'
-                    FROM            [dbo].[LOT-INIT] lot LEFT JOIN
-                                             [dbo].[IM-INIT] im ON im.[Part_Number] = lot.[Part_Nbr] LEFT JOIN
-                                             [dbo].[LOT-INIT_Lot_Loc_Qtys] lLot ON lLot.[ID1] = lot.[Lot_Number] RIGHT JOIN
-                                             [dbo].[WP-INIT_Lot_Entered] eLot ON eLot.[Lot_Entered] = lot.[Lot_Number]
-                    WHERE        lLot.[Oh_Qtys] != 0
-                    UNION
-                    SELECT        im.[Part_Number] AS 'SkuID', '' AS 'LotID', im.[Description], im.[Um] AS 'Uom', '' AS 'Notes', CAST(ipl.[Oh_Qty_By_Loc] AS int) AS 'OnHand', ipl.[Location] AS 'Location', '' AS 'WorkOrderID', 'nLot' AS 'Type'
-                    FROM            [dbo].[IM-INIT] im LEFT JOIN
-                                             [dbo].[IPL-INIT_Location_Data] ipl ON ipl.[ID1] = im.[Part_Number]
-                    WHERE        ipl.[Oh_Qty_By_Loc] != 0 AND im.[Lot_Trace] != 'T'
-                    UNION
-                    SELECT        lot.[Part_Nbr] AS 'SkuID', SUBSTRING(dLot.[ID1], 0, LEN(dLot.[ID1]) - 1) AS 'LotID', '' AS 'Description', '' AS 'Uom', '' AS 'Notes', CAST(dLot.[Ded_Wo_Qty] AS int) AS 'OnHand', qLot.[Loc] AS 'Location', 
-                                             dLot.[Dedicated_Wo] AS 'WorkOrderID', 'dLot' AS 'Type'
-                    FROM            [dbo].[LOT-INIT_Dedicated_Wo_Data] dLot LEFT OUTER JOIN
-                                             [dbo].[LOT-INIT] lot ON lot.[Lot_Number] = dLot.[ID1] LEFT OUTER JOIN
-                                             [dbo].[LOT-INIT_Lot_Loc_Qtys] qLot ON qLot.[ID1] = lot.[Lot_Number]
-                    WHERE        qLot.[Loc] IS NOT NULL";
                 try
                 {
                     using (DataTable _dt = new DataTable())
                     {
-                        using (SqlDataAdapter adapter = new SqlDataAdapter($@"USE {sqlCon.Database}; {_conString}", sqlCon))
+                        using (SqlDataAdapter adapter = new SqlDataAdapter($@"USE {sqlCon.Database}; SELECT * FROM [dbo].[SFW_Lot]", sqlCon))
                         {
                             adapter.Fill(_dt);
                             return _dt;

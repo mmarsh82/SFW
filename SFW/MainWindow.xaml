@@ -291,7 +291,8 @@
         <!--#region WorkSpace Grid-->
 
         <Grid x:Name="WorkSpaceDock"
-              Grid.Row="1"/>
+              Grid.Row="1"
+              Visibility="{Binding DisplayAction, Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}"/>
 
         <!--#endregion-->
 

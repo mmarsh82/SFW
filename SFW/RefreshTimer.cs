@@ -114,6 +114,7 @@ namespace SFW
             }
             if (!IsRefreshing && _count == 1)
             {
+                MainWindowViewModel.DisplayAction = true;
                 RefreshActionGroup?.Invoke();
             }
         }
@@ -135,6 +136,7 @@ namespace SFW
             }
             if (!IsRefreshing)
             {
+                MainWindowViewModel.DisplayAction = true;
                 RefreshActionGroup?.Invoke();
             }
         }

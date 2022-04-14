@@ -63,22 +63,26 @@ namespace SFW.Schedule.Closed
         /// </summary>
         public ViewModel()
         {
-            MainWindowViewModel.DisplayAction = IsLoading = true;
-            ClosedScheduleViewFilter = new string[5];
-            ClosedScheduleView = CollectionViewSource.GetDefaultView(ModelBase.MasterDataSet.Tables["ClosedMaster"]);
-            ClosedScheduleView.GroupDescriptions.Add(new PropertyGroupDescription("MachineNumber", new WorkCenterNameConverter()));
-            MainWindowViewModel.DisplayAction = IsLoading = false;
-            ScheduleFilter(UserConfig.BuildMachineFilter(), 1);
-            if (MainWindowViewModel.SelectedMachine != MainWindowViewModel.MachineList.FirstOrDefault())
+            if (ClosedScheduleViewFilter == null)
             {
-                ScheduleFilter($"MachineNumber = '{Machine.GetMachineNumber(MainWindowViewModel.SelectedMachine)}'", 1);
+                ClosedScheduleViewFilter = new string[5];
             }
-            else if (MainWindowViewModel.SelectedMachineGroup != MainWindowViewModel.MachineGroupList.FirstOrDefault())
+            if (ClosedScheduleView == null)
             {
-                ScheduleFilter($"MachineGroup = '{MainWindowViewModel.SelectedMachineGroup}'", 2);
+                ClosedScheduleView = CollectionViewSource.GetDefaultView(ModelBase.MasterDataSet.Tables["ClosedMaster"]);
+                ClosedScheduleView.GroupDescriptions.Add(new PropertyGroupDescription("MachineNumber", new WorkCenterNameConverter()));
+                ScheduleFilter(UserConfig.BuildMachineFilter(), 1);
+                if (MainWindowViewModel.SelectedMachine != MainWindowViewModel.MachineList.FirstOrDefault())
+                {
+                    ScheduleFilter($"MachineNumber = '{Machine.GetMachineNumber(MainWindowViewModel.SelectedMachine)}'", 1);
+                }
+                else if (MainWindowViewModel.SelectedMachineGroup != MainWindowViewModel.MachineGroupList.FirstOrDefault())
+                {
+                    ScheduleFilter($"MachineGroup = '{MainWindowViewModel.SelectedMachineGroup}'", 2);
+                }
+                ScheduleFilter(UserConfig.BuildPriorityFilter(), 3);
+                StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(ClosedScheduleView)));
             }
-            ScheduleFilter(UserConfig.BuildPriorityFilter(), 3);
-            StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(ClosedScheduleView)));
         }
 
         /// <summary>
