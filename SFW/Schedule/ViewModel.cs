@@ -254,7 +254,6 @@ namespace SFW.Schedule
                 {
                     SearchFilter = SearchFilter;
                 }
-            ((DataView)ScheduleView.SourceCollection).Sort = "MachineOrder asc";
                 StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(ScheduleView)));
             }
             catch(Exception ex)

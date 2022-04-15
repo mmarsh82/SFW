@@ -696,7 +696,7 @@ namespace SFW.Model
             }
             else
             {
-                var _rows = MasterDataSet.Tables["WI"].Select($"[SkuID] = {partNbr}");
+                var _rows = MasterDataSet.Tables["WI"].Select($"[SkuID] = '{partNbr}'");
                 foreach (var _row in _rows)
                 {
                     var dir = new DirectoryInfo(filepath);

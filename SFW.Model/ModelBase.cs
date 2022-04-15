@@ -131,17 +131,6 @@ namespace SFW.Model
             }
         }
 
-        public static void RefreshTable(Tables table)
-        {
-            switch (table)
-            {
-                case Tables.LOT:
-                    MasterDataSet.Tables[Tables.LOT.ToString()].Clear();
-                    MasterDataSet.Tables[Tables.LOT.ToString()].Merge(Lot.GetLotTable(ModelSqlCon));
-                    break;
-            }
-        }
-
         /// <summary>
         /// Database row counter
         /// </summary>
@@ -168,6 +157,11 @@ namespace SFW.Model
 
     public static class Extensions
     {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="dataSet"></param>
+        /// <param name="table"></param>
         public static void RefreshTable(this DataSet dataSet, Tables table)
         {
             var _dt = new DataTable();
@@ -179,6 +173,55 @@ namespace SFW.Model
             }
             dataSet.Tables[table.ToString()].Clear();
             dataSet.Tables[table.ToString()].Merge(_dt);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="dataSet"></param>
+        /// <param name="machOrder"></param>
+        public static void Refresh(this DataSet dataSet, IReadOnlyDictionary<string, int> machOrder)
+        {
+            foreach (DataTable _table in dataSet.Tables)
+            {
+                Enum.TryParse(_table.TableName, out Tables _tName);
+                var _dt = new DataTable();
+                switch (_tName)
+                {
+                    case Tables.BOM:
+                        _dt = Component.GetComponentBomTable(ModelBase.ModelSqlCon);
+                        break;
+                    case Tables.ClosedMaster:
+                        _dt = Machine.GetClosedScheduleData(ModelBase.ModelSqlCon);
+                        break;
+                    case Tables.CREW:
+                        _dt = CrewMember.GetCrewTable(ModelBase.ModelSqlCon);
+                        break;
+                    case Tables.LOC:
+                        _dt = Sku.GetLocationTable(ModelBase.ModelSqlCon);
+                        break;
+                    case Tables.LOT:
+                        _dt = Lot.GetLotTable(ModelBase.ModelSqlCon);
+                        break;
+                    case Tables.Master:
+                        _dt = Machine.GetScheduleData(machOrder, ModelBase.ModelSqlCon);
+                        break;
+                    case Tables.PL:
+                        _dt = Component.GetComponentPickTable(ModelBase.ModelSqlCon);
+                        break;
+                    case Tables.SalesMaster:
+                        _dt = ModelBase.ModelSqlCon.Database.Contains("WCCO") ? SalesOrder.GetScheduleData(ModelBase.ModelSqlCon) : new DataTable();
+                        break;
+                    case Tables.SKU:
+                        _dt = Sku.GetSkuTable(ModelBase.ModelSqlCon);
+                        break;
+                    case Tables.SoNotes:
+                        _dt = SalesOrder.GetNotesTable(ModelBase.ModelSqlCon);
+                        break;
+                }
+                dataSet.Tables[_table.TableName].Clear();
+                dataSet.Tables[_table.TableName].Merge(_dt);
+            }
         }
 
         /// <summary>

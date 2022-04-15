@@ -39,9 +39,23 @@ namespace SFW.Model
         /// <returns>DataTable with the schedule data results</returns>
         public static DataTable GetScheduleData(IReadOnlyDictionary<string, int> machOrder, SqlConnection sqlCon)
         {
+            var _mOrder = string.Empty;
+            if (machOrder?.Count > 0)
+            {
+                _mOrder = "CASE";
+                foreach (var _mach in machOrder)
+                {
+                    _mOrder += $" WHEN wc.[Wc_Nbr] = '{_mach.Key}' THEN {_mach.Value}";
+                }
+                _mOrder += " ELSE 0 END";
+            }
+            else
+            {
+                _mOrder = "0";
+            }
             var _conString = sqlCon.Database.Contains("WCCO") ?
                 //WCCO Query
-                @"SELECT
+                $@"SELECT
 	                DISTINCT(wpo.[ID]) as 'WO_Number'
 	                ,SUBSTRING(wpo.[ID], CHARINDEX('*', wpo.[ID], 0) + 1, LEN(wpo.[ID])) as 'Operation'
                     ,(SELECT rt.[Remarks] FROM [dbo].[RT-INIT_Remarks] rt WHERE rt.[ID] = CONCAT(im.[Part_Number], '*', SUBSTRING(wpo.[ID], CHARINDEX('*', wpo.[ID], 0) + 1, LEN(wpo.[ID]))) AND rt.[ID2] = 1) as 'Op_Desc'
@@ -49,7 +63,7 @@ namespace SFW.Model
 	                ,wc.[Name] as 'MachineName'
 	                ,wc.[D_esc] as 'MachineDesc'
 	                ,wc.[Work_Ctr_Group] as 'MachineGroup'
-	                ,0 as 'MachineOrder'
+	                ,{_mOrder} as 'MachineOrder'
 	                ,ISNULL(wpo.[Qty_Avail], wpo.[Qty_Req] - ISNULL(wpo.[Qty_Compl], 0)) as 'WO_CurrentQty'
 	                ,ISNULL(wpo.[Date_Start], '1999-01-01') as 'WO_SchedStartDate'
 	                ,ISNULL(wpo.[Date_Act_Start], '1999-01-01') as 'WO_ActStartDate'
@@ -95,9 +109,9 @@ namespace SFW.Model
                 LEFT OUTER JOIN
 	                dbo.[CM-INIT] cm ON cm.[Cust_Nbr] = CASE WHEN CHARINDEX('*', wp.[Cust_Nbr], 0) > 0 THEN SUBSTRING(wp.[Cust_Nbr], 0, CHARINDEX('*', wp.[Cust_Nbr], 0)) ELSE wp.[Cust_Nbr] END
                 WHERE
-	                wc.D_esc <> 'DO NOT USE'" :
+	                wc.[D_esc] <> 'DO NOT USE'" :
                  //CSI Query
-                 @"SELECT
+                 $@"SELECT
 	                DISTINCT(wpo.[ID]) as 'WO_Number'
                     ,SUBSTRING(wpo.[ID], CHARINDEX('*', wpo.[ID], 0) + 1, LEN(wpo.[ID])) as 'Operation'
                     ,(SELECT rt.[Remarks] FROM [dbo].[RT-INIT_Remarks] rt WHERE rt.[ID] = CONCAT(im.[Part_Number], '*', SUBSTRING(wpo.[ID], CHARINDEX('*', wpo.[ID], 0) + 1, LEN(wpo.[ID]))) AND rt.[ID2] = 1) as 'Op_Desc'
@@ -105,7 +119,7 @@ namespace SFW.Model
 	                ,wc.[Name] as 'MachineName'
 	                ,wc.[D_esc] as 'MachineDesc'
 	                ,wc.[Work_Ctr_Group] as 'MachineGroup'
-	                ,0 as 'MachineOrder'
+	                ,{_mOrder} as 'MachineOrder'
 	                ,ISNULL(wpo.[Qty_Avail], wpo.[Qty_Req] - ISNULL(wpo.[Qty_Compl], 0)) as 'WO_CurrentQty'
 	                ,ISNULL(wpo.[Date_Start], '1999-01-01') as 'WO_SchedStartDate'
 	                ,ISNULL(wpo.[Date_Act_Start], '1999-01-01') as 'WO_ActStartDate'
@@ -159,21 +173,9 @@ namespace SFW.Model
                 {
                     try
                     {
-                        using (SqlDataAdapter adapter = new SqlDataAdapter($"USE {sqlCon.Database}; {_conString} ORDER BY MachineNumber, WO_Priority, PriTime, Sched_Priority, WO_SchedStartDate, WO_Number ASC", sqlCon))
+                        using (SqlDataAdapter adapter = new SqlDataAdapter($"USE {sqlCon.Database}; {_conString} ORDER BY MachineOrder, MachineNumber, WO_Priority, PriTime, Sched_Priority, WO_SchedStartDate, WO_Number ASC", sqlCon))
                         {
                             adapter.Fill(_tempTable);
-                            if (machOrder != null && machOrder.Count > 0)
-                            {
-                                var _cnt = 0;
-                                foreach (DataRow dr in _tempTable.Rows)
-                                {
-                                    if (machOrder.ContainsKey(dr.ItemArray[2].ToString()))
-                                    {
-                                        _tempTable.Rows[_cnt].SetField("MachineOrder", machOrder.TryGetValue(dr.ItemArray[2].ToString(), out int i) ? i : 0);
-                                    }
-                                    _cnt++;
-                                }
-                            }
                             return _tempTable;
                         }
                     }
