@@ -69,7 +69,7 @@ namespace SFW.Model
             { return _lastClock; }
             set
             {
-                if (IsDirect)
+                if (IsDirect && !_clockLoaded)
                 {
                     System.Threading.Tasks.Task.Run(() =>
                     {
@@ -87,6 +87,7 @@ namespace SFW.Model
                             _time = string.Empty;
                         }
                         _lastClock = value = _time;
+                        _clockLoaded = true;
                         OnPropertyChanged(nameof(LastClock));
                     });
                 }
@@ -94,6 +95,7 @@ namespace SFW.Model
                 OnPropertyChanged(nameof(LastClock));
             }
         }
+        private bool _clockLoaded;
 
         public char ClockTran { get; set; }
 
