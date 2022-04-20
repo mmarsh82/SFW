@@ -71,7 +71,7 @@ namespace SFW.Model
 	                                                                                ,im.[Accounting_Status] as 'Status'
 	                                                                                ,im.[Inventory_Type] as 'Type'
 	                                                                                ,CAST(ISNULL(rt.[Crew_Size], 1) as int) as 'Crew'
-	                                                                                ,CAST(ipl.[Qty_On_Hand] as int) as 'OnHand'
+	                                                                                ,CAST(ISNULL(ipl.[Qty_On_Hand], 0) as int) as 'OnHand'
 	                                                                                ,ipl.[Wip_Rec_Loc] as 'WipLocation'
                                                                                 FROM
 	                                                                                [dbo].[IM-INIT] im

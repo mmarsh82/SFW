@@ -1,0 +1,448 @@
+﻿<Window x:Class="SFW.Tools.PriorityList_View"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:SFW.Tools"
+        xmlns:cvtr="clr-namespace:SFW.Converters"
+        x:Name="PriChg_Window"
+        Title="Organize Work Order Priority" Height="600" Width="1200" WindowStyle="ToolWindow" WindowStartupLocation="CenterScreen">
+    <Grid>
+
+        <Grid.Resources>
+            <cvtr:BoolToVisibility x:Key="BooltoVisConverter" />
+            <cvtr:BoolToBorderColor x:Key="BoolToBorderConverter" />
+            <cvtr:BoolToInt x:Key="BoolToIntConverter" />
+        </Grid.Resources>
+        
+        <Grid.RowDefinitions>
+            <RowDefinition Height="50"/>
+            <RowDefinition Height="30"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="10"/>
+            <RowDefinition Height="50"/>
+            <RowDefinition Height="10"/>
+        </Grid.RowDefinitions>
+
+        <!--#region Grid Row 0-->
+
+        <Grid Grid.Row="0">
+
+            <StackPanel Orientation="Horizontal"
+                        HorizontalAlignment="Left">
+
+                <TextBlock Text="Search:"
+                           FontSize="18"
+                           Margin="10,0,5,0"
+                           TextDecorations="Underline"
+                           FontWeight="Bold"
+                           VerticalAlignment="Center"/>
+
+                <TextBox Text="{Binding SearchInput, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                         VerticalAlignment="Center"
+                         Margin="3"
+                         FontSize="18"
+                         TabIndex="0"
+                         Background="LightGray"
+                         Width="150"/>
+
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal"
+                        HorizontalAlignment="Center">
+
+                <TextBlock Text="Select Machine:"
+                       FontSize="18"
+                       FontWeight="Bold"
+                       TextDecorations="Underline"
+                       VerticalAlignment="Center"
+                       Margin="10,0,5,0"/>
+
+                <ComboBox ItemsSource="{Binding MachineList}"
+                      SelectedItem="{Binding SelectedMachine, NotifyOnSourceUpdated=True, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                      Width="150"
+                      Margin="3"
+                      VerticalAlignment="Center"
+                      FontSize="14"
+                      FontWeight="Bold"/>
+
+            </StackPanel>
+
+            <Button Content="Organize"
+                    Width="100"
+                    FontSize="18"
+                    Margin="10,0,130,0"
+                    VerticalAlignment="Center"
+                    HorizontalAlignment="Right"
+                    Command="{Binding MainICommand}"
+                    CommandParameter="O"
+                    Visibility="{Binding PriorityList.Count, Converter={StaticResource BooltoVisConverter}}"
+                    Style="{DynamicResource DefaultButton}"/>
+
+        </Grid>
+        
+        <!--#endregion-->
+        
+        <!--#region Grid Row 1-->
+
+        <Rectangle Grid.Row="1"
+                   Fill="#FF135185"
+                   HorizontalAlignment="Stretch"
+                   VerticalAlignment="Stretch"
+                   Visibility="{Binding PriorityList.Count, Converter={StaticResource BooltoVisConverter}}" />
+
+        <TextBlock Grid.Row="1"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center"
+                   Text="Work Order Priority List"
+                   FontWeight="Bold"
+                   FontSize="20"
+                   Foreground="WhiteSmoke" 
+                   Visibility="{Binding PriorityList.Count, Converter={StaticResource BooltoVisConverter}}"/>
+
+        <!--#endregion-->
+        
+        <!--#region Grid Row 2-->
+
+        <ScrollViewer Grid.Row="2"
+                      VerticalScrollBarVisibility="Auto">
+
+            <ItemsControl Name="WorkOrders"
+                          ItemsSource="{Binding Path=PriorityList}"
+                          FontSize="18"
+                          Cursor="Hand"
+                          Foreground="Black"
+                          Focusable="False"
+                          Visibility="{Binding PriorityList.Count, Converter={StaticResource BooltoVisConverter}}">
+
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <VirtualizingStackPanel IsItemsHost="True"
+                                                Orientation="Vertical" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+
+                        <StackPanel Orientation="Vertical">
+                            <Grid>
+
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="110"/>
+                                    <ColumnDefinition Width="100"/>
+                                    <ColumnDefinition Width="130"/>
+                                    <ColumnDefinition Width="100"/>
+                                    <ColumnDefinition Width="400"/>
+                                    <ColumnDefinition Width="60"/>
+                                    <ColumnDefinition Width="30"/>
+                                    <ColumnDefinition Width="80"/>
+                                    <ColumnDefinition Width="50"/>
+                                    <ColumnDefinition Width="50"/>
+                                </Grid.ColumnDefinitions>
+
+                                <TextBlock Grid.Column="0"
+                                           Text="Work Order:"
+                                           TextDecorations="Underline"
+                                           FontWeight="Bold"
+                                           Margin="10,0,0,0"
+                                           VerticalAlignment="Center"/>
+
+                                <TextBlock Grid.Column="1"
+                                           Text="{Binding WorkOrder, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                           Margin="3,0,0,0"
+                                           VerticalAlignment="Center"/>
+
+                                <TextBlock Grid.Column="2"
+                                           Text="Part Number:"
+                                           TextDecorations="Underline"
+                                           FontWeight="Bold"
+                                           Margin="10,0,0,0"
+                                           VerticalAlignment="Center"/>
+
+                                <TextBlock Grid.Column="3"
+                                           Text="{Binding SkuNumber}"
+                                           VerticalAlignment="Center"
+                                           Margin="3,0,0,0"/>
+
+                                <TextBlock Grid.Column="4"
+                                           Text="{Binding SkuDescription}"
+                                           VerticalAlignment="Center"
+                                           Margin="3,0,0,0"/>
+
+                                <TextBlock Grid.Column="5"
+                                           Text="Shift:"
+                                           TextDecorations="Underline"
+                                           FontWeight="Bold"
+                                           Margin="10,0,0,0"
+                                           VerticalAlignment="Center"/>
+
+                                <TextBlock Grid.Column="6"
+                                           Text="{Binding CrewSize}"
+                                           VerticalAlignment="Center"
+                                           Margin="3,0,0,0"/>
+
+                                <TextBlock Grid.Column="7"
+                                           Text="Priority:"
+                                           TextDecorations="Underline"
+                                           FontWeight="Bold"
+                                           Margin="10,0,0,0"
+                                           VerticalAlignment="Center"/>
+
+                                <TextBox Grid.Column="8"
+                                         Text="{Binding Priority, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                         VerticalAlignment="Center"
+                                         Margin="3"
+                                         FontSize="18"
+                                         Background="LightGray"
+                                         MaxLength="3"
+                                         IsTabStop="False"
+                                         Style="{DynamicResource RequiredTextBox}"/>
+
+                                <Button Grid.Column="9"
+                                        Command="{Binding DataContext.MainICommand, ElementName=PriChg_Window}"
+                                        CommandParameter="{Binding WorkOrder}"
+                                        HorizontalAlignment="Right"
+                                        Width="20"
+                                        Height="20"
+                                        Margin="10,0,10,0"
+                                        Style="{DynamicResource DefaultButton}">
+                                    <Button.Content>
+                                        <Image Source="/SFW;component/Icons/Delete.ico" />
+                                    </Button.Content>
+                                </Button>
+
+                                <Grid.Style>
+                                    <Style TargetType="Grid">
+                                        <Setter Property="Background" Value="Transparent"/>
+                                        <Style.Triggers>
+                                            <!--Unclassified Work Orders-->
+                                            <MultiDataTrigger>
+                                                <MultiDataTrigger.Conditions>
+                                                    <Condition Binding="{Binding EngStatus}" Value="Y"/>
+                                                    <Condition Binding="{Binding TaskType}" Value="D"/>
+                                                </MultiDataTrigger.Conditions>
+                                                <Setter Property="Background">
+                                                    <Setter.Value>
+                                                        <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                                                            <GradientStop Color="Purple" Offset="0"/>
+                                                            <GradientStop Color="White" Offset=".25"/>
+                                                            <GradientStop Color="GhostWhite" Offset="1"/>
+                                                        </LinearGradientBrush>
+                                                    </Setter.Value>
+                                                </Setter>
+                                            </MultiDataTrigger>
+                                            <MultiDataTrigger>
+                                                <MultiDataTrigger.Conditions>
+                                                    <Condition Binding="{Binding EngStatus}" Value="N"/>
+                                                    <Condition Binding="{Binding TaskType}" Value="D"/>
+                                                </MultiDataTrigger.Conditions>
+                                                <Setter Property="Background">
+                                                    <Setter.Value>
+                                                        <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                                                            <GradientStop Color="White" Offset="0"/>
+                                                            <GradientStop Color="GhostWhite" Offset="1"/>
+                                                        </LinearGradientBrush>
+                                                    </Setter.Value>
+                                                </Setter>
+                                            </MultiDataTrigger>
+                                            <!--Hot Work Orders-->
+                                            <MultiDataTrigger>
+                                                <MultiDataTrigger.Conditions>
+                                                    <Condition Binding="{Binding EngStatus}" Value="Y"/>
+                                                    <Condition Binding="{Binding TaskType}" Value="A"/>
+                                                </MultiDataTrigger.Conditions>
+                                                <Setter Property="Background">
+                                                    <Setter.Value>
+                                                        <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                                                            <GradientStop Color="Purple" Offset="0"/>
+                                                            <GradientStop Color="White" Offset=".25"/>
+                                                            <GradientStop Color="#FFF3321F" Offset="1"/>
+                                                        </LinearGradientBrush>
+                                                    </Setter.Value>
+                                                </Setter>
+                                            </MultiDataTrigger>
+                                            <MultiDataTrigger>
+                                                <MultiDataTrigger.Conditions>
+                                                    <Condition Binding="{Binding EngStatus}" Value="N"/>
+                                                    <Condition Binding="{Binding TaskType}" Value="A"/>
+                                                </MultiDataTrigger.Conditions>
+                                                <Setter Property="Background">
+                                                    <Setter.Value>
+                                                        <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                                                            <GradientStop Color="White" Offset="0"/>
+                                                            <GradientStop Color="#FFF3321F" Offset="1"/>
+                                                        </LinearGradientBrush>
+                                                    </Setter.Value>
+                                                </Setter>
+                                            </MultiDataTrigger>
+                                            <!--Standard Work Orders-->
+                                            <MultiDataTrigger>
+                                                <MultiDataTrigger.Conditions>
+                                                    <Condition Binding="{Binding EngStatus}" Value="Y"/>
+                                                    <Condition Binding="{Binding TaskType}" Value="B"/>
+                                                </MultiDataTrigger.Conditions>
+                                                <Setter Property="Background">
+                                                    <Setter.Value>
+                                                        <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                                                            <GradientStop Color="Purple" Offset="0"/>
+                                                            <GradientStop Color="White" Offset=".25"/>
+                                                            <GradientStop Color="#FF29D129" Offset="1"/>
+                                                        </LinearGradientBrush>
+                                                    </Setter.Value>
+                                                </Setter>
+                                            </MultiDataTrigger>
+                                            <MultiDataTrigger>
+                                                <MultiDataTrigger.Conditions>
+                                                    <Condition Binding="{Binding EngStatus}" Value="N"/>
+                                                    <Condition Binding="{Binding TaskType}" Value="B"/>
+                                                </MultiDataTrigger.Conditions>
+                                                <Setter Property="Background">
+                                                    <Setter.Value>
+                                                        <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                                                            <GradientStop Color="White" Offset="0"/>
+                                                            <GradientStop Color="#FF29D129" Offset="1"/>
+                                                        </LinearGradientBrush>
+                                                    </Setter.Value>
+                                                </Setter>
+                                            </MultiDataTrigger>
+                                            <!--Pending Work Orders-->
+                                            <MultiDataTrigger>
+                                                <MultiDataTrigger.Conditions>
+                                                    <Condition Binding="{Binding EngStatus}" Value="Y"/>
+                                                    <Condition Binding="{Binding TaskType}" Value="C"/>
+                                                </MultiDataTrigger.Conditions>
+                                                <Setter Property="Background">
+                                                    <Setter.Value>
+                                                        <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                                                            <GradientStop Color="Purple" Offset="0"/>
+                                                            <GradientStop Color="White" Offset=".25"/>
+                                                            <GradientStop Color="LightSlateGray" Offset="1"/>
+                                                        </LinearGradientBrush>
+                                                    </Setter.Value>
+                                                </Setter>
+                                            </MultiDataTrigger>
+                                            <MultiDataTrigger>
+                                                <MultiDataTrigger.Conditions>
+                                                    <Condition Binding="{Binding EngStatus}" Value="N"/>
+                                                    <Condition Binding="{Binding TaskType}" Value="C"/>
+                                                </MultiDataTrigger.Conditions>
+                                                <Setter Property="Background">
+                                                    <Setter.Value>
+                                                        <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                                                            <GradientStop Color="White" Offset="0"/>
+                                                            <GradientStop Color="LightSlateGray" Offset="1"/>
+                                                        </LinearGradientBrush>
+                                                    </Setter.Value>
+                                                </Setter>
+                                            </MultiDataTrigger>
+
+                                            <DataTrigger Binding="{Binding TaskType}" Value="W">
+                                                <Setter Property="Control.Background">
+                                                    <Setter.Value>
+                                                        <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                                                            <GradientStop Color="White" Offset="0"/>
+                                                            <GradientStop Color="Orange" Offset="1"/>
+                                                        </LinearGradientBrush>
+                                                    </Setter.Value>
+                                                </Setter>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding Status}" Value="R">
+                                                <Setter Property="Background">
+                                                    <Setter.Value>
+                                                        <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                                                            <GradientStop Color="White" Offset="0"/>
+                                                            <GradientStop Color="CornflowerBlue" Offset="1"/>
+                                                        </LinearGradientBrush>
+                                                    </Setter.Value>
+                                                </Setter>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Grid.Style>
+                            </Grid>
+                        </StackPanel>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+
+            </ItemsControl>
+
+        </ScrollViewer>
+
+        <!--#endregion-->
+
+        <!--#region Grid Row 3-->
+
+        <Rectangle Grid.Row="3"
+                   Fill="#FF135185"
+                   HorizontalAlignment="Stretch"
+                   VerticalAlignment="Stretch"
+                   Visibility="{Binding PriorityList.Count, Converter={StaticResource BooltoVisConverter}}" />
+
+        <!--#endregion-->
+
+        <!--#region Grid Row 4-->
+
+        <StackPanel Grid.Row="4"
+                    Orientation="Horizontal"
+                    Visibility="{Binding PriorityList.Count, Converter={StaticResource BooltoVisConverter}}">
+
+            <TextBlock Text="Work Order:"
+                       FontSize="18"
+                       Margin="10,0,0,0"
+                       TextDecorations="Underline"
+                       FontWeight="Bold"
+                       VerticalAlignment="Center"/>
+
+            <TextBox Text="{Binding WorkOrderInput, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                     VerticalAlignment="Center"
+                     TabIndex="1"
+                     Margin="3"
+                     FontSize="18"
+                     Background="LightGray"
+                     Width="100"
+                     BorderThickness="{Binding IsWorkOrderValid, Converter={StaticResource BoolToIntConverter}}"
+                     BorderBrush="{Binding IsWorkOrderValid, Converter={StaticResource BoolToBorderConverter}}"
+                     Style="{DynamicResource RequiredTextBox}"/>
+
+            <TextBlock Text="Priority:"
+                       FontSize="18"
+                       Margin="10,0,0,0"
+                       TextDecorations="Underline"
+                       FontWeight="Bold"
+                       VerticalAlignment="Center"/>
+
+            <TextBox Text="{Binding PriorityInput, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                     IsEnabled="{Binding CanEditPriority}"
+                     VerticalAlignment="Center"
+                     TabIndex="2"
+                     Margin="3"
+                     FontSize="18"
+                     Background="LightGray"
+                     Width="50"
+                     Style="{DynamicResource RequiredTextBox}"/>
+
+            <Button Content="Insert"
+                    Width="100"
+                    FontSize="18"
+                    Margin="10,0,0,0"
+                    VerticalAlignment="Center"
+                    Command="{Binding MainICommand}"
+                    CommandParameter="I"
+                    Style="{DynamicResource DefaultButton}"/>
+
+        </StackPanel>
+
+        <Button Grid.Row="4"
+                Content="Save"
+                Width="100"
+                FontSize="18"
+                Margin="0,0,10,0"
+                VerticalAlignment="Center"
+                HorizontalAlignment="Right"
+                Command="{Binding MainICommand}"
+                CommandParameter="S"
+                Style="{DynamicResource DefaultButton}"/>
+
+        <!--#endregion-->
+
+    </Grid>
+</Window>

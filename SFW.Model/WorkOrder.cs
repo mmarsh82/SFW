@@ -15,6 +15,7 @@ namespace SFW.Model
     {
         #region Properties
 
+        public string OrderID { get; set; }
         public string OrderNumber { get; set; }
         public string Seq { get; set; }
         public string OpDesc { get; set; }
@@ -232,6 +233,63 @@ namespace SFW.Model
                 _notes += $"{_dr.Field<string>("Note")}\n";
             }
             return _notes?.Trim('\n');
+        }
+
+        /// <summary>
+        /// Checks to see if the work order is valid
+        /// </summary>
+        /// <param name="woNumber">Work Order number to check</param>
+        /// <param name="machName">Optional: Machine Name</param>
+        /// <param name="pri">Optional: Priority</param>
+        /// <returns>Validation as bool; true = valid, false = invalid</returns>
+        public static bool Exists(string woNumber, string machName = null, int pri = 0)
+        {
+            if (string.IsNullOrEmpty(machName) && pri == 0)
+            {
+                return MasterDataSet.Tables["Master"].Select($"[WO_Number] LIKE '{woNumber}*%'").Length > 0;
+            }
+            else if (string.IsNullOrEmpty(machName) && pri != 0)
+            {
+                return MasterDataSet.Tables["Master"].Select($"[WO_Number] LIKE '{woNumber}*%' AND [Sched_Priority] = {pri}").Length > 0;
+            }
+            else if (!string.IsNullOrEmpty(machName) && pri == 0)
+            {
+                return MasterDataSet.Tables["Master"].Select($"[WO_Number] LIKE '{woNumber}*%' AND [MachineName] = '{machName}'").Length > 0;
+            }
+            else
+            {
+                //TODO: figure out why it is returning everything
+                return MasterDataSet.Tables["Master"].Select($"[WO_Number] LIKE '{woNumber}*%' AND [MachineName] = '{machName}' AND [Sched_Priority] = {pri}").Length > 0;
+            }
+        }
+
+        /// <summary>
+        /// Get the work order priority list
+        /// </summary>
+        /// <param name="machineName">Machine name</param>
+        /// <returns>Work order priority as a list of work order objects</returns>
+        public static List<WorkOrder> GetWorkOrderPriList(string machineName)
+        {
+            var _tempList = new List<WorkOrder>();
+            var _rows = MasterDataSet.Tables["Master"].Select($"[MachineName] = '{machineName}' AND [Sched_Priority] <> 999");
+            if (_rows.Length > 0)
+            {
+                foreach (var _row in _rows)
+                {
+                    _tempList.Add(new WorkOrder
+                    {
+                        WorkOrder = _row.Field<string>("WO_Number")
+                        ,EngStatus = _row.Field<string>("Inspection")
+                        ,TaskType = _row.Field<string>("WO_Priority")
+                        ,Priority = _row.Field<int>("Sched_Priority").ToString()
+                        ,CrewSize = _row.Field<int>("PriTime")
+                        ,SkuNumber = _row.Field<string>("SkuNumber")
+                        ,SkuDescription = _row.Field<string>("SkuDesc")
+                        ,Status = _row.Field<string>("WO_Type")
+                    });
+                }
+            }
+            return _tempList;
         }
     }
 }

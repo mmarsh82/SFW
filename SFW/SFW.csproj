@@ -30,8 +30,8 @@
     <PublisherName>Michael Marsh</PublisherName>
     <SuiteName>WCCO Belting Inc.</SuiteName>
     <AutorunEnabled>true</AutorunEnabled>
-    <ApplicationRevision>2615</ApplicationRevision>
-    <ApplicationVersion>1.0.380.2615</ApplicationVersion>
+    <ApplicationRevision>2642</ApplicationRevision>
+    <ApplicationVersion>1.0.382.2642</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <CreateDesktopShortcut>true</CreateDesktopShortcut>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -226,6 +226,10 @@
       <DependentUpon>PriorityEdit_View.xaml</DependentUpon>
     </Compile>
     <Compile Include="Tools\PriorityEdit_ViewModel.cs" />
+    <Compile Include="Tools\PriorityList_View.xaml.cs">
+      <DependentUpon>PriorityList_View.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Tools\PriorityList_ViewModel.cs" />
     <Compile Include="UserConfig.cs" />
     <Compile Include="UserLogIn\View.xaml.cs">
       <DependentUpon>View.xaml</DependentUpon>
@@ -417,6 +421,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Tools\PriorityEdit_View.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Tools\PriorityList_View.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

@@ -177,7 +177,7 @@ namespace SFW
             {
                 DisplayAction = false;
                 InTraining = false;
-                MachineList = Machine.GetMachineList();
+                MachineList = Machine.GetMachineList(true);
                 SelectedMachine = MachineList.First();
                 MachineGroupList = Machine.GetMachineGroupList(true);
                 SelectedMachineGroup = MachineGroupList.First();

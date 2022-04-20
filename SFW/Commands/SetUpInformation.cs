@@ -19,7 +19,7 @@ namespace SFW.Commands
         {
             try
             {
-                if (!string.IsNullOrEmpty(parameter.ToString()))
+                if (!string.IsNullOrEmpty(parameter.ToString()) && !parameter.ToString().Contains("ERR:"))
                 {
                     if (parameter.ToString().Contains("|"))
                     {
@@ -34,8 +34,8 @@ namespace SFW.Commands
                 }
                 else
                 {
-                    System.Windows.MessageBox.Show("Unable to access the setup up file.\nPlease contact IT for further assistance."
-                        ,"Empty File Path"
+                    System.Windows.MessageBox.Show("Setup file is currently open.\nPlease contact ME for further assistance."
+                        ,"Setup File Open"
                         ,System.Windows.MessageBoxButton.OK
                         ,System.Windows.MessageBoxImage.Exclamation);
                 }

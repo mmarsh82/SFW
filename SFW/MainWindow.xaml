@@ -164,6 +164,11 @@
                           Visibility="{Binding Path=(local:CurrentUser.IsQuality), Converter={StaticResource BoolToVisConverter}}"
                           Command="{StaticResource ViewLoadICommand}"
                           CommandParameter="9"/>
+                <MenuItem Header="Priority Management"
+                          Visibility="{Binding Path=(local:CurrentUser.CanSchedule), Converter={StaticResource BoolToVisConverter}}"
+                          Command="{StaticResource ShowWindowICommand}"
+                          CommandParameter="SFW.Tools.PriorityList_View"/>
+                
 
             </MenuItem>
             <MenuItem Header="Help"
@@ -174,6 +179,7 @@
                     <MenuItem Header="Released Work Order" Background="#FF29D129" Focusable="False" IsHitTestVisible="False"/>
                     <MenuItem Header="Verified Work Order" Background="LightSlateGray" Focusable="False" IsHitTestVisible="False"/>
                     <MenuItem Header="Pending Work Order" Background="WhiteSmoke" Focusable="False" IsHitTestVisible="False"/>
+                    <MenuItem Header="Work Order with Inspection" Background="DarkOrchid" Focusable="False" IsHitTestVisible="False"/>
                     <Separator/>
                 </MenuItem>
             </MenuItem>

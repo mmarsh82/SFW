@@ -385,10 +385,13 @@ namespace SFW.Model
         /// Get a list of work centers names
         /// </summary>
         /// <returns>generic list of workcenter objects</returns>
-        public static List<string> GetMachineList()
+        public static List<string> GetMachineList(bool incAll)
         {
             var _tempList = new List<string>();
-            _tempList.Add("All");
+            if (incAll)
+            {
+                _tempList.Add("All");
+            }
             foreach (DataRow _row in MasterDataSet.Tables["WC"].Rows)
             {
                 _tempList.Add(_row.Field<string>("Name"));

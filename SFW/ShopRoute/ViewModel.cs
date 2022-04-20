@@ -186,7 +186,7 @@ namespace SFW.ShopRoute
                                 }
                                 else
                                 {
-                                    _filePath = string.Empty;
+                                    _filePath = _fileName;
                                 }
                                 break;
                             case "FABE":

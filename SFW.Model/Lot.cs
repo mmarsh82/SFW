@@ -365,7 +365,7 @@ namespace SFW.Model
         /// <returns>Lot numbers current on hand quantity</returns>
         public static int GetLotOnHandQuantity(string lotNbr)
         {
-            var _rows = MasterDataSet.Tables["LOT"].Select($"[LotID] = '{lotNbr}'");
+            var _rows = MasterDataSet.Tables["LOT"].Select($"[LotID] = '{lotNbr}' AND [OnHand] <> 0");
             return _rows.Length > 0
                 ? _rows.FirstOrDefault().Field<int>("OnHand")
                 : 0;
@@ -379,7 +379,7 @@ namespace SFW.Model
         /// <returns>Lot numbers current on hand quantity</returns>
         public static int GetLotOnHandQuantity(string lotNbr, string location)
         {
-            var _rows = MasterDataSet.Tables["LOT"].Select($"[LotID] = '{lotNbr}' AND [Location] = '{location}'");
+            var _rows = MasterDataSet.Tables["LOT"].Select($"[LotID] = '{lotNbr}' AND [Location] = '{location}' AND [OnHand] <> 0");
             return _rows.Length > 0
                 ? _rows.FirstOrDefault().Field<int>("OnHand")
                 : 0;
@@ -460,7 +460,7 @@ namespace SFW.Model
         public static List<Lot> GetOnHandLotList(string partNbr, bool lotTrace)
         {
             var _tempList = new List<Lot>();
-            var _rows = MasterDataSet.Tables["LOT"].Select($"[SkuID] = '{partNbr}' AND [Type] <> 'dLot'");
+            var _rows = MasterDataSet.Tables["LOT"].Select($"[SkuID] = '{partNbr}' AND [Type] <> 'dLot' AND [OnHand] <> 0");
             foreach (var _row in _rows)
             {
                 if (lotTrace)
@@ -493,7 +493,7 @@ namespace SFW.Model
         public static List<Lot> GetDedicatedLotList(string partNbr, string woNbr)
         {
             var _tempList = new List<Lot>();
-            var _rows = MasterDataSet.Tables["LOT"].Select($"[SkuID] = '{partNbr}' AND [WorkOrderID] = '{woNbr}' AND [Type] = 'dLot'");
+            var _rows = MasterDataSet.Tables["LOT"].Select($"[SkuID] = '{partNbr}' AND [WorkOrderID] = '{woNbr}' AND [Type] = 'dLot' AND [OnHand] <> 0");
             foreach (var _row in _rows)
             {
                 _tempList.Add(new Lot

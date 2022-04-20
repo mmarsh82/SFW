@@ -139,7 +139,7 @@ namespace SFW.ShopRoute.QTask
                                 }
                                 else
                                 {
-                                    _filePath = string.Empty;
+                                    _filePath = _fileName;
                                 }
                                 break;
                             case "FABE":
