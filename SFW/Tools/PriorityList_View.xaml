@@ -3,6 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:local="clr-namespace:SFW.Tools"
         xmlns:cvtr="clr-namespace:SFW.Converters"
+        
         x:Name="PriChg_Window"
         Title="Organize Work Order Priority" Height="600" Width="1200" WindowStyle="ToolWindow" WindowStartupLocation="CenterScreen">
     <Grid>
@@ -22,6 +23,24 @@
             <RowDefinition Height="10"/>
         </Grid.RowDefinitions>
 
+        <StackPanel Grid.RowSpan="5"
+                    Orientation="Vertical"
+                    VerticalAlignment="Center"
+                    HorizontalAlignment="Center"
+                    Visibility="{Binding DisplayAction, Converter={StaticResource BooltoVisConverter}}">
+
+            <Control Grid.Row="1"
+                     Background="Transparent"
+                     Style="{DynamicResource BusyAnimationStyle}" />
+
+            <TextBlock Text="Saving Changes"
+                       FontWeight="Bold"
+                       Opacity="80"
+                       FontSize="50"/>
+
+
+        </StackPanel>
+        
         <!--#region Grid Row 0-->
 
         <Grid Grid.Row="0">
@@ -83,13 +102,16 @@
         
         <!--#region Grid Row 1-->
 
-        <Rectangle Grid.Row="1"
+        <Grid Grid.Row="1"
+              Visibility="{Binding DisplayAction, Converter={StaticResource BooltoVisConverter}, ConverterParameter=i}">
+
+            <Rectangle Grid.Row="1"
                    Fill="#FF135185"
                    HorizontalAlignment="Stretch"
                    VerticalAlignment="Stretch"
                    Visibility="{Binding PriorityList.Count, Converter={StaticResource BooltoVisConverter}}" />
 
-        <TextBlock Grid.Row="1"
+            <TextBlock Grid.Row="1"
                    HorizontalAlignment="Center"
                    VerticalAlignment="Center"
                    Text="Work Order Priority List"
@@ -98,15 +120,18 @@
                    Foreground="WhiteSmoke" 
                    Visibility="{Binding PriorityList.Count, Converter={StaticResource BooltoVisConverter}}"/>
 
+        </Grid>
+
         <!--#endregion-->
         
         <!--#region Grid Row 2-->
 
         <ScrollViewer Grid.Row="2"
-                      VerticalScrollBarVisibility="Auto">
+                      VerticalScrollBarVisibility="Auto"
+                      Visibility="{Binding DisplayAction, Converter={StaticResource BooltoVisConverter}, ConverterParameter=i}">
 
             <ItemsControl Name="WorkOrders"
-                          ItemsSource="{Binding Path=PriorityList}"
+                          ItemsSource="{Binding Path=PriorityList, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                           FontSize="18"
                           Cursor="Hand"
                           Foreground="Black"
@@ -147,7 +172,7 @@
                                            VerticalAlignment="Center"/>
 
                                 <TextBlock Grid.Column="1"
-                                           Text="{Binding WorkOrder, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                           Text="{Binding OrderNumber}"
                                            Margin="3,0,0,0"
                                            VerticalAlignment="Center"/>
 
@@ -176,7 +201,7 @@
                                            VerticalAlignment="Center"/>
 
                                 <TextBlock Grid.Column="6"
-                                           Text="{Binding CrewSize}"
+                                           Text="{Binding Shift}"
                                            VerticalAlignment="Center"
                                            Margin="3,0,0,0"/>
 
@@ -199,7 +224,7 @@
 
                                 <Button Grid.Column="9"
                                         Command="{Binding DataContext.MainICommand, ElementName=PriChg_Window}"
-                                        CommandParameter="{Binding WorkOrder}"
+                                        CommandParameter="{Binding OrderNumber}"
                                         HorizontalAlignment="Right"
                                         Width="20"
                                         Height="20"
@@ -217,8 +242,8 @@
                                             <!--Unclassified Work Orders-->
                                             <MultiDataTrigger>
                                                 <MultiDataTrigger.Conditions>
-                                                    <Condition Binding="{Binding EngStatus}" Value="Y"/>
-                                                    <Condition Binding="{Binding TaskType}" Value="D"/>
+                                                    <Condition Binding="{Binding Inspection}" Value="true"/>
+                                                    <Condition Binding="{Binding State}" Value="D"/>
                                                 </MultiDataTrigger.Conditions>
                                                 <Setter Property="Background">
                                                     <Setter.Value>
@@ -232,8 +257,8 @@
                                             </MultiDataTrigger>
                                             <MultiDataTrigger>
                                                 <MultiDataTrigger.Conditions>
-                                                    <Condition Binding="{Binding EngStatus}" Value="N"/>
-                                                    <Condition Binding="{Binding TaskType}" Value="D"/>
+                                                    <Condition Binding="{Binding Inspection}" Value="false"/>
+                                                    <Condition Binding="{Binding State}" Value="D"/>
                                                 </MultiDataTrigger.Conditions>
                                                 <Setter Property="Background">
                                                     <Setter.Value>
@@ -247,8 +272,8 @@
                                             <!--Hot Work Orders-->
                                             <MultiDataTrigger>
                                                 <MultiDataTrigger.Conditions>
-                                                    <Condition Binding="{Binding EngStatus}" Value="Y"/>
-                                                    <Condition Binding="{Binding TaskType}" Value="A"/>
+                                                    <Condition Binding="{Binding Inspection}" Value="true"/>
+                                                    <Condition Binding="{Binding State}" Value="A"/>
                                                 </MultiDataTrigger.Conditions>
                                                 <Setter Property="Background">
                                                     <Setter.Value>
@@ -262,8 +287,8 @@
                                             </MultiDataTrigger>
                                             <MultiDataTrigger>
                                                 <MultiDataTrigger.Conditions>
-                                                    <Condition Binding="{Binding EngStatus}" Value="N"/>
-                                                    <Condition Binding="{Binding TaskType}" Value="A"/>
+                                                    <Condition Binding="{Binding Inspection}" Value="false"/>
+                                                    <Condition Binding="{Binding State}" Value="A"/>
                                                 </MultiDataTrigger.Conditions>
                                                 <Setter Property="Background">
                                                     <Setter.Value>
@@ -277,8 +302,8 @@
                                             <!--Standard Work Orders-->
                                             <MultiDataTrigger>
                                                 <MultiDataTrigger.Conditions>
-                                                    <Condition Binding="{Binding EngStatus}" Value="Y"/>
-                                                    <Condition Binding="{Binding TaskType}" Value="B"/>
+                                                    <Condition Binding="{Binding Inspection}" Value="true"/>
+                                                    <Condition Binding="{Binding State}" Value="B"/>
                                                 </MultiDataTrigger.Conditions>
                                                 <Setter Property="Background">
                                                     <Setter.Value>
@@ -292,8 +317,8 @@
                                             </MultiDataTrigger>
                                             <MultiDataTrigger>
                                                 <MultiDataTrigger.Conditions>
-                                                    <Condition Binding="{Binding EngStatus}" Value="N"/>
-                                                    <Condition Binding="{Binding TaskType}" Value="B"/>
+                                                    <Condition Binding="{Binding Inspection}" Value="false"/>
+                                                    <Condition Binding="{Binding State}" Value="B"/>
                                                 </MultiDataTrigger.Conditions>
                                                 <Setter Property="Background">
                                                     <Setter.Value>
@@ -307,8 +332,8 @@
                                             <!--Pending Work Orders-->
                                             <MultiDataTrigger>
                                                 <MultiDataTrigger.Conditions>
-                                                    <Condition Binding="{Binding EngStatus}" Value="Y"/>
-                                                    <Condition Binding="{Binding TaskType}" Value="C"/>
+                                                    <Condition Binding="{Binding Inspection}" Value="true"/>
+                                                    <Condition Binding="{Binding State}" Value="C"/>
                                                 </MultiDataTrigger.Conditions>
                                                 <Setter Property="Background">
                                                     <Setter.Value>
@@ -322,8 +347,8 @@
                                             </MultiDataTrigger>
                                             <MultiDataTrigger>
                                                 <MultiDataTrigger.Conditions>
-                                                    <Condition Binding="{Binding EngStatus}" Value="N"/>
-                                                    <Condition Binding="{Binding TaskType}" Value="C"/>
+                                                    <Condition Binding="{Binding Inspection}" Value="false"/>
+                                                    <Condition Binding="{Binding State}" Value="C"/>
                                                 </MultiDataTrigger.Conditions>
                                                 <Setter Property="Background">
                                                     <Setter.Value>
@@ -335,7 +360,7 @@
                                                 </Setter>
                                             </MultiDataTrigger>
 
-                                            <DataTrigger Binding="{Binding TaskType}" Value="W">
+                                            <DataTrigger Binding="{Binding State}" Value="W">
                                                 <Setter Property="Control.Background">
                                                     <Setter.Value>
                                                         <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
@@ -345,7 +370,7 @@
                                                     </Setter.Value>
                                                 </Setter>
                                             </DataTrigger>
-                                            <DataTrigger Binding="{Binding Status}" Value="R">
+                                            <DataTrigger Binding="{Binding TaskType}" Value="R">
                                                 <Setter Property="Background">
                                                     <Setter.Value>
                                                         <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
@@ -371,76 +396,84 @@
 
         <!--#region Grid Row 3-->
 
-        <Rectangle Grid.Row="3"
-                   Fill="#FF135185"
-                   HorizontalAlignment="Stretch"
-                   VerticalAlignment="Stretch"
-                   Visibility="{Binding PriorityList.Count, Converter={StaticResource BooltoVisConverter}}" />
+        <Grid Grid.Row="3"
+              Visibility="{Binding DisplayAction, Converter={StaticResource BooltoVisConverter}, ConverterParameter=i}">
+
+            <Rectangle Grid.Row="3"
+                       Fill="#FF135185"
+                       HorizontalAlignment="Stretch"
+                       VerticalAlignment="Stretch"
+                       Visibility="{Binding PriorityList.Count, Converter={StaticResource BooltoVisConverter}}" />
+
+        </Grid>
 
         <!--#endregion-->
 
         <!--#region Grid Row 4-->
 
-        <StackPanel Grid.Row="4"
-                    Orientation="Horizontal"
-                    Visibility="{Binding PriorityList.Count, Converter={StaticResource BooltoVisConverter}}">
+        <Grid Grid.Row="4"
+              Visibility="{Binding DisplayAction, Converter={StaticResource BooltoVisConverter}, ConverterParameter=i}">
 
-            <TextBlock Text="Work Order:"
-                       FontSize="18"
-                       Margin="10,0,0,0"
-                       TextDecorations="Underline"
-                       FontWeight="Bold"
-                       VerticalAlignment="Center"/>
+            <StackPanel Orientation="Horizontal"
+                        Visibility="{Binding PriorityList.Count, Converter={StaticResource BooltoVisConverter}}">
 
-            <TextBox Text="{Binding WorkOrderInput, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                     VerticalAlignment="Center"
-                     TabIndex="1"
-                     Margin="3"
-                     FontSize="18"
-                     Background="LightGray"
-                     Width="100"
-                     BorderThickness="{Binding IsWorkOrderValid, Converter={StaticResource BoolToIntConverter}}"
-                     BorderBrush="{Binding IsWorkOrderValid, Converter={StaticResource BoolToBorderConverter}}"
-                     Style="{DynamicResource RequiredTextBox}"/>
+                <TextBlock Text="Work Order:"
+                           FontSize="18"
+                           Margin="10,0,0,0"
+                           TextDecorations="Underline"
+                           FontWeight="Bold"
+                           VerticalAlignment="Center"/>
 
-            <TextBlock Text="Priority:"
-                       FontSize="18"
-                       Margin="10,0,0,0"
-                       TextDecorations="Underline"
-                       FontWeight="Bold"
-                       VerticalAlignment="Center"/>
+                <TextBox Text="{Binding WorkOrderInput, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                         VerticalAlignment="Center"
+                         TabIndex="1"
+                         Margin="3"
+                         FontSize="18"
+                         Background="LightGray"
+                         Width="100"
+                         BorderThickness="{Binding IsWorkOrderValid, Converter={StaticResource BoolToIntConverter}}"
+                         BorderBrush="{Binding IsWorkOrderValid, Converter={StaticResource BoolToBorderConverter}}"
+                         Style="{DynamicResource RequiredTextBox}"/>
 
-            <TextBox Text="{Binding PriorityInput, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                     IsEnabled="{Binding CanEditPriority}"
-                     VerticalAlignment="Center"
-                     TabIndex="2"
-                     Margin="3"
-                     FontSize="18"
-                     Background="LightGray"
-                     Width="50"
-                     Style="{DynamicResource RequiredTextBox}"/>
+                <TextBlock Text="Priority:"
+                           FontSize="18"
+                           Margin="10,0,0,0"
+                           TextDecorations="Underline"
+                           FontWeight="Bold"
+                           VerticalAlignment="Center"/>
 
-            <Button Content="Insert"
+                <TextBox Text="{Binding PriorityInput, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                         IsEnabled="{Binding CanEditPriority}"
+                         VerticalAlignment="Center"
+                         TabIndex="2"
+                         Margin="3"
+                         FontSize="18"
+                         Background="LightGray"
+                         Width="50"
+                         Style="{DynamicResource RequiredTextBox}"/>
+
+                <Button Content="Insert"
+                        Width="100"
+                        FontSize="18"
+                        Margin="10,0,0,0"
+                        VerticalAlignment="Center"
+                        Command="{Binding MainICommand}"
+                        CommandParameter="I"
+                        Style="{DynamicResource DefaultButton}"/>
+
+            </StackPanel>
+
+            <Button Content="Save"
                     Width="100"
                     FontSize="18"
-                    Margin="10,0,0,0"
+                    Margin="0,0,10,0"
                     VerticalAlignment="Center"
+                    HorizontalAlignment="Right"
                     Command="{Binding MainICommand}"
-                    CommandParameter="I"
+                    CommandParameter="S"
                     Style="{DynamicResource DefaultButton}"/>
 
-        </StackPanel>
-
-        <Button Grid.Row="4"
-                Content="Save"
-                Width="100"
-                FontSize="18"
-                Margin="0,0,10,0"
-                VerticalAlignment="Center"
-                HorizontalAlignment="Right"
-                Command="{Binding MainICommand}"
-                CommandParameter="S"
-                Style="{DynamicResource DefaultButton}"/>
+        </Grid>
 
         <!--#endregion-->
 

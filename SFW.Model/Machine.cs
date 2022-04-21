@@ -56,7 +56,8 @@ namespace SFW.Model
             var _conString = sqlCon.Database.Contains("WCCO") ?
                 //WCCO Query
                 $@"SELECT
-	                DISTINCT(wpo.[ID]) as 'WO_Number'
+	                DISTINCT(wpo.[ID]) as 'WorkOrderID'
+	                ,SUBSTRING(wpo.[ID], 0, CHARINDEX('*', wpo.[ID], 0)) as 'WorkOrder'
 	                ,SUBSTRING(wpo.[ID], CHARINDEX('*', wpo.[ID], 0) + 1, LEN(wpo.[ID])) as 'Operation'
                     ,(SELECT rt.[Remarks] FROM [dbo].[RT-INIT_Remarks] rt WHERE rt.[ID] = CONCAT(im.[Part_Number], '*', SUBSTRING(wpo.[ID], CHARINDEX('*', wpo.[ID], 0) + 1, LEN(wpo.[ID]))) AND rt.[ID2] = 1) as 'Op_Desc'
 	                ,wc.[Wc_Nbr] as 'MachineNumber'
@@ -112,7 +113,8 @@ namespace SFW.Model
 	                wc.[D_esc] <> 'DO NOT USE'" :
                  //CSI Query
                  $@"SELECT
-	                DISTINCT(wpo.[ID]) as 'WO_Number'
+	                DISTINCT(wpo.[ID]) as 'WorkOrderID'
+	                ,SUBSTRING(wpo.[ID], 0, CHARINDEX('*', wpo.[ID], 0)) as 'WorkOrder'
                     ,SUBSTRING(wpo.[ID], CHARINDEX('*', wpo.[ID], 0) + 1, LEN(wpo.[ID])) as 'Operation'
                     ,(SELECT rt.[Remarks] FROM [dbo].[RT-INIT_Remarks] rt WHERE rt.[ID] = CONCAT(im.[Part_Number], '*', SUBSTRING(wpo.[ID], CHARINDEX('*', wpo.[ID], 0) + 1, LEN(wpo.[ID]))) AND rt.[ID2] = 1) as 'Op_Desc'
 	                ,wc.[Wc_Nbr] as 'MachineNumber'
@@ -173,7 +175,7 @@ namespace SFW.Model
                 {
                     try
                     {
-                        using (SqlDataAdapter adapter = new SqlDataAdapter($"USE {sqlCon.Database}; {_conString} ORDER BY MachineOrder, MachineNumber, WO_Priority, PriTime, Sched_Priority, WO_SchedStartDate, WO_Number ASC", sqlCon))
+                        using (SqlDataAdapter adapter = new SqlDataAdapter($"USE {sqlCon.Database}; {_conString} ORDER BY MachineOrder, MachineNumber, WO_Priority, PriTime, Sched_Priority, WO_SchedStartDate, WorkOrderID ASC", sqlCon))
                         {
                             adapter.Fill(_tempTable);
                             return _tempTable;

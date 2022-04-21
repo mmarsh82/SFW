@@ -149,9 +149,9 @@ namespace SFW.Model
             {
                 foreach (var _row in _rows)
                 {
-                    var _lotRows = MasterDataSet.Tables["LOT"].Select($"[SkuID] = '{_row.Field<string>("ChildSkuID")}' AND [Type] = 'Lot'");
-                    var _dLotRows = MasterDataSet.Tables["LOT"].Select($"[SkuID] = '{_row.Field<string>("ChildSkuID")}' AND [WorkOrderID] = '{woNbr}' AND [Type] = 'dLot'");
-                    var _nLotRows = MasterDataSet.Tables["LOT"].Select($"[SkuID] = '{_row.Field<string>("ChildSkuID")}' AND [Type] = 'nLot'");
+                    var _lotRows = MasterDataSet.Tables["LOT"].Select($"[SkuID] = '{_row.Field<string>("ChildSkuID")}' AND [Type] = 'Lot' AND [OnHand] <> 0");
+                    var _dLotRows = MasterDataSet.Tables["LOT"].Select($"[SkuID] = '{_row.Field<string>("ChildSkuID")}' AND [WorkOrderID] = '{woNbr}' AND [Type] = 'dLot' AND [OnHand] <> 0");
+                    var _nLotRows = MasterDataSet.Tables["LOT"].Select($"[SkuID] = '{_row.Field<string>("ChildSkuID")}' AND [Type] = 'nLot' AND [OnHand] <> 0");
                     _tempList.Add(new Component
                     {
                         CompNumber = _row.Field<string>("ChildSkuID")

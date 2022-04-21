@@ -234,9 +234,9 @@ namespace SFW.Schedule
                 ScheduleView.GroupDescriptions.Add(new PropertyGroupDescription("MachineNumber", new WorkCenterNameConverter()));
                 if (_oldSelectedWO != null)
                 {
-                    if (((DataView)ScheduleView.SourceCollection).Table.AsEnumerable().Any(row => row.Field<string>("WO_Number") == ((DataRowView)_oldSelectedWO).Row.Field<string>("WO_Number")))
+                    if (((DataView)ScheduleView.SourceCollection).Table.AsEnumerable().Any(row => row.Field<string>("WorkOrderID") == ((DataRowView)_oldSelectedWO).Row.Field<string>("WorkOrderID")))
                     {
-                        var _index = ScheduleView.IndexOf(_oldSelectedWO, "Wo_Number");
+                        var _index = ScheduleView.IndexOf(_oldSelectedWO, "WorkOrderID");
                         ScheduleView.MoveCurrentToPosition(_index);
                         SelectedWorkOrder = (DataRowView)_oldSelectedWO;
                     }
@@ -316,7 +316,7 @@ namespace SFW.Schedule
                 }
                 if (!string.IsNullOrEmpty(parameter?.ToString()))
                 {
-                    var _woNumber = SelectedWorkOrder?.Row?.SafeGetField<string>("WO_Number").ToString().Split('*')[0];
+                    var _woNumber = SelectedWorkOrder?.Row?.SafeGetField<string>("WorkOrder");
                     var _changeRequest = M2kCommand.EditRecord("WP", _woNumber, 40, parameter.ToString(), UdArrayCommand.Replace, App.ErpCon);
                     if (!string.IsNullOrEmpty(_changeRequest))
                     {
@@ -360,7 +360,7 @@ namespace SFW.Schedule
         {
             var _shift = ((DataRowView)parameter).Row.SafeGetField<int>("PriTime").ToString() == "9" ? 0 : Convert.ToInt32(((DataRowView)parameter).Row.SafeGetField<int>("PriTime"));
             var _pri = ((DataRowView)parameter).Row.SafeGetField<int>("Sched_Priority").ToString() == "9" ? 0 : Convert.ToInt32(((DataRowView)parameter).Row.SafeGetField<int>("Sched_Priority"));
-            var _woNumber = ((DataRowView)parameter).Row.SafeGetField<string>("WO_Number").ToString().Split('*')[0];
+            var _woNumber = ((DataRowView)parameter).Row.SafeGetField<string>("WorkOrder");
             using (var _editPri = new Tools.PriorityEdit_ViewModel(_woNumber, _shift, _pri))
             {
                 new Tools.PriorityEdit_View { DataContext = _editPri }.ShowDialog();

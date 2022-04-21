@@ -131,7 +131,7 @@
                             <StackPanel Orientation="Vertical" MinWidth="780">
                                 <Grid>
                                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Left">
-                                        <TextBlock Text="{Binding WO_Number, Converter={StaticResource WorkOrderConverter}}" FontSize="24" FontWeight="Bold"/>
+                                        <TextBlock Text="{Binding WorkOrder}" FontSize="24" FontWeight="Bold"/>
                                         <Image Source="/SFW;component/Icons/Late.ico"
                                                Visibility="{Binding IsLate, Converter={StaticResource BoolToVisConverter}}"
                                                ToolTip="Work Order is currently past the due date!"
@@ -169,7 +169,7 @@
                                                     <Binding Path="SkuNumber"/>
                                                     <Binding Path="SkuMasterPrint"/>
                                                     <Binding Path="Deviation"/>
-                                                    <Binding Path="WO_Number"/>
+                                                    <Binding Path="WorkOrderID"/>
                                                 </MultiBinding>
                                             </Button.CommandParameter>
                                         </Button>

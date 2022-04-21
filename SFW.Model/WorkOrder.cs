@@ -19,7 +19,7 @@ namespace SFW.Model
         public string OrderNumber { get; set; }
         public string Seq { get; set; }
         public string OpDesc { get; set; }
-        public string Priority { get; set; }
+        public string State { get; set; }
         public string Status { get; set; }
         public string TaskType { get; set; }
         public int StartQty { get; set; }
@@ -35,6 +35,8 @@ namespace SFW.Model
         public bool IsStartedLate { get { return SchedStartDate < DateTime.Today && CurrentQty == StartQty; } }
         public List<Component> Picklist { get; set; }
         public bool IsDeviated { get; set; }
+        public int Shift { get; set; }
+        public int Priority { get; set; }
 
         #endregion
 
@@ -55,12 +57,12 @@ namespace SFW.Model
             if (_rows.Length > 0)
             {
                 var _row = _rows.FirstOrDefault();
-                var _wo = _row.Field<string>("WO_Number").Split('*');
-                OrderNumber = _wo[0];
-                Seq = _wo[1];
+                OrderID = _row.Field<string>("WorkOrderID");
+                OrderNumber = _row.Field<string>("WorkOrder");
+                Seq = _row.Field<string>("Operation");
                 Operation = _row.Field<string>("Operation");
                 OpDesc = _row.Field<string>("Op_Desc");
-                Priority = _row.Field<string>("WO_Priority");
+                State = _row.Field<string>("WO_Priority");
                 TaskType = _row.Field<string>("WO_Type");
                 StartQty = _row.Field<int>("WO_StartQty");
                 CurrentQty = Convert.ToInt32(_row.Field<decimal>("WO_CurrentQty"));
@@ -98,6 +100,8 @@ namespace SFW.Model
                 MachineGroup = _row.Field<string>("MachineGroup");
                 IsDeviated = _row.Field<string>("Deviation") == "Y";
                 Inspection = _row.Field<string>("Inspection") == "Y";
+                Priority = _row.Field<int>("Sched_Priority");
+                Shift = _row.Field<int>("PriTime");
             }
         }
 
@@ -110,12 +114,12 @@ namespace SFW.Model
         {
             if (dRow != null)
             {
-                var _wo = dRow.Field<string>("WO_Number").Split('*');
-                OrderNumber = _wo[0];
-                Seq = _wo[1];
+                OrderID = dRow.Field<string>("WorkOrderID");
+                OrderNumber = dRow.Field<string>("WorkOrder");
+                Seq = dRow.Field<string>("Operation");
                 Operation = dRow.Field<string>("Operation");
                 OpDesc = dRow.Field<string>("Op_Desc");
-                Priority = dRow.Field<string>("WO_Priority");
+                State = dRow.Field<string>("WO_Priority");
                 TaskType = dRow.Field<string>("WO_Type");
                 StartQty = dRow.Field<int>("WO_StartQty");
                 CurrentQty = Convert.ToInt32(dRow.Field<decimal>("WO_CurrentQty"));
@@ -153,6 +157,8 @@ namespace SFW.Model
                 MachineGroup = dRow.Field<string>("MachineGroup");
                 IsDeviated = dRow.Field<string>("Deviation") == "Y";
                 Inspection = dRow.Field<string>("Inspection") == "Y";
+                Priority = dRow.Field<int>("Sched_Priority");
+                Shift = dRow.Field<int>("PriTime");
             }
         }
 
@@ -246,20 +252,19 @@ namespace SFW.Model
         {
             if (string.IsNullOrEmpty(machName) && pri == 0)
             {
-                return MasterDataSet.Tables["Master"].Select($"[WO_Number] LIKE '{woNumber}*%'").Length > 0;
+                return MasterDataSet.Tables["Master"].Select($"[WorkOrder] = '{woNumber}'").Length > 0;
             }
             else if (string.IsNullOrEmpty(machName) && pri != 0)
             {
-                return MasterDataSet.Tables["Master"].Select($"[WO_Number] LIKE '{woNumber}*%' AND [Sched_Priority] = {pri}").Length > 0;
+                return MasterDataSet.Tables["Master"].Select($"[WorkOrder] = '{woNumber}' AND [Sched_Priority] = {pri}").Length > 0;
             }
             else if (!string.IsNullOrEmpty(machName) && pri == 0)
             {
-                return MasterDataSet.Tables["Master"].Select($"[WO_Number] LIKE '{woNumber}*%' AND [MachineName] = '{machName}'").Length > 0;
+                return MasterDataSet.Tables["Master"].Select($"[WorkOrder] = '{woNumber}' AND [MachineName] = '{machName}'").Length > 0;
             }
             else
             {
-                //TODO: figure out why it is returning everything
-                return MasterDataSet.Tables["Master"].Select($"[WO_Number] LIKE '{woNumber}*%' AND [MachineName] = '{machName}' AND [Sched_Priority] = {pri}").Length > 0;
+                return MasterDataSet.Tables["Master"].Select($"[WorkOrder] = '{woNumber}' AND [MachineName] = '{machName}' AND [Sched_Priority] = {pri}").Length > 0;
             }
         }
 
@@ -276,17 +281,7 @@ namespace SFW.Model
             {
                 foreach (var _row in _rows)
                 {
-                    _tempList.Add(new WorkOrder
-                    {
-                        WorkOrder = _row.Field<string>("WO_Number")
-                        ,EngStatus = _row.Field<string>("Inspection")
-                        ,TaskType = _row.Field<string>("WO_Priority")
-                        ,Priority = _row.Field<int>("Sched_Priority").ToString()
-                        ,CrewSize = _row.Field<int>("PriTime")
-                        ,SkuNumber = _row.Field<string>("SkuNumber")
-                        ,SkuDescription = _row.Field<string>("SkuDesc")
-                        ,Status = _row.Field<string>("WO_Type")
-                    });
+                    _tempList.Add(new WorkOrder(_row));
                 }
             }
             return _tempList;

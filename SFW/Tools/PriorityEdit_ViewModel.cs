@@ -1,5 +1,7 @@
 ﻿using M2kClient;
 using SFW.Helpers;
+using System.Data;
+using System.Linq;
 using System.Windows;
 using System.Windows.Input;
 
@@ -83,18 +85,33 @@ namespace SFW.Tools
 
         private void PriorityChangeExecute(object parameter)
         {
-            var _s = Shift.ToString().Length == 1 ? $"0{Shift}" : Shift.ToString();
+            var _s = string.Empty;
+            if (!string.IsNullOrEmpty(Shift))
+            {
+                _s = Shift.ToString().Length == 1 ? $"0{Shift}" : Shift.ToString();
+            }
+            else
+            {
+                _s = "00";
+            }
             var _p = Priority.ToString().Length == 1 ? $"0{Priority}" : Priority.ToString();
             var _changeRequest = M2kCommand.EditRecord("WP", OrderNumber, 195, $"{_s}:{_p}:00", UdArrayCommand.Replace, App.ErpCon);
             if (!string.IsNullOrEmpty(_changeRequest))
             {
                 MessageBox.Show(_changeRequest, "ERP Record Error");
             }
+            else
+            {
+                var _row = Model.ModelBase.MasterDataSet.Tables["Master"].Select($"[WorkOrder] = '{OrderNumber}'");
+                var _index = Model.ModelBase.MasterDataSet.Tables["Master"].Rows.IndexOf(_row.FirstOrDefault());
+                Model.ModelBase.MasterDataSet.Tables["Master"].Rows[_index].SetField("PriTime", _s);
+                Model.ModelBase.MasterDataSet.Tables["Master"].Rows[_index].SetField("Sched_Priority", _p);
+            }
             App.CloseWindow<PriorityEdit_View>();
         }
         private bool PriorityChangeCanExecute(object parameter)
         {
-            return _pri > 0 && _pri < 60 && _shift > 0 && _shift <= 23;
+            return (_pri > 0 && _pri < 60) || (_shift > 0 && _shift <= 23 && _pri > 0 && _pri < 60);
         }
 
         #endregion

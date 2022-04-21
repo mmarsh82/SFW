@@ -481,6 +481,7 @@ namespace SFW.Model
                     });
                 }
             }
+            _tempList = _tempList.OrderBy(o => o.LotNumber).ToList();
             return _tempList;
         }
 
