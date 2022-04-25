@@ -34,7 +34,7 @@ namespace SFW.Model
         public string MachineGroup { get; set; }
         public bool Inspection { get; set; }
         public string NonCon { get; set; }
-        public List<string> ToolList { get; set; }
+        public List<Tool> ToolList { get; set; }
 
         #endregion
 
@@ -124,46 +124,6 @@ namespace SFW.Model
                     catch (SqlException sqlEx)
                     {
                         throw sqlEx;
-                    }
-                    catch (Exception ex)
-                    {
-                        throw new Exception(ex.Message);
-                    }
-                }
-                else
-                {
-                    throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
-                }
-            }
-        }
-
-        /// <summary>
-        /// Get a Table of all tools in the database
-        /// </summary>
-        /// <param name="sqlCon">Sql Connection to use</param>
-        /// <returns>A datatable of all tool's</returns>
-        public static DataTable GetTools(SqlConnection sqlCon)
-        {
-            using (var _tempTable = new DataTable())
-            {
-                if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
-                {
-                    try
-                    {
-                        using (SqlDataAdapter adapter = new SqlDataAdapter($@"USE {sqlCon.Database};
-                                                                                SELECT
-	                                                                                [ID1] as 'ID'
-	                                                                                ,[Tool_Tape] as 'Tool'
-                                                                                FROM
-	                                                                                [dbo].[RT-INIT_Tool_Tape];", sqlCon))
-                        {
-                            adapter.Fill(_tempTable);
-                            return _tempTable;
-                        }
-                    }
-                    catch (SqlException sqlEx)
-                    {
-                        throw new Exception(sqlEx.Message);
                     }
                     catch (Exception ex)
                     {
@@ -708,17 +668,6 @@ namespace SFW.Model
                 }
             }
             return _inst;
-        }
-
-        /// <summary>
-        /// Get a Sku's tool list
-        /// </summary>
-        /// <param name="partNbr">Sku ID Number</param>
-        /// <param name="woSeq">Work order sequence</param>
-        /// <returns>A list of tool's associated with the Sku</returns>
-        public static List<string> GetTools(string partNbr, string woSeq)
-        {
-            return MasterDataSet.Tables["TL"].Select($"[ID] = '{partNbr}*{woSeq}'").Select(o => o[1].ToString()).ToList();
         }
 
         /// <summary>

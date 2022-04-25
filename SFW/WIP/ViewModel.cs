@@ -808,7 +808,7 @@ namespace SFW.WIP
                 _wip = null;
                 _lotList = null;
                 RefreshTimer.Start();
-                if (!RefreshTimer.IsRefreshing)
+                if (!RefreshTimer.IsRefreshing && IsSubmitted)
                 {
                     RefreshTimer.RefreshTimerTick();
                     RefreshTimer.Reset();

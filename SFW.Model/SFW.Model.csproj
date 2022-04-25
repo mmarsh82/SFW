@@ -64,6 +64,7 @@
     <Compile Include="SalesOrder.cs" />
     <Compile Include="Sku.cs" />
     <Compile Include="Machine.cs" />
+    <Compile Include="Tool.cs" />
     <Compile Include="UdefSku.cs" />
     <Compile Include="UdefSkuPass.cs" />
     <Compile Include="WipReceipt.cs" />

@@ -128,10 +128,6 @@
                               IsChecked="{Binding Path=(local:App.SiteNumber), Converter={StaticResource SiteToBoolConverter}, ConverterParameter=WCCO}"
                               InputGestureText="Alt+2"/>
                 </MenuItem>
-                <MenuItem Header="Closed Work Orders"
-                          Command="{StaticResource ViewLoadICommand}"
-                          CommandParameter="5"
-                          InputGestureText="Shift+Ctrl+C"/>
                 <MenuItem Header="Sales Orders"
                           Command="{StaticResource ViewLoadICommand}"
                           CommandParameter="8"

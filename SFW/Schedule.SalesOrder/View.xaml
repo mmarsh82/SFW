@@ -12,7 +12,6 @@
         <cmd:ViewLoad x:Key="ViewLoadCommand" />
         <cmd:PartSearch x:Key="PartSearchCommand"/>
         <cvtr:BoolToVisibility x:Key="BoolToVisConverter"/>
-        <cvtr:WorkOrderNumber x:Key="WorkOrderConverter"/>
         <cvtr:SkuMasterPrint x:Key="PartSearchConverter"/>
         <cvtr:DateToVisibility x:Key="DateToVisConverter"/>
         <cvtr:Multi_EqualIntToVisibility x:Key="IntEqualConverter"/>

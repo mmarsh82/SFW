@@ -30,8 +30,8 @@
     <PublisherName>Michael Marsh</PublisherName>
     <SuiteName>WCCO Belting Inc.</SuiteName>
     <AutorunEnabled>true</AutorunEnabled>
-    <ApplicationRevision>2670</ApplicationRevision>
-    <ApplicationVersion>1.0.384.2670</ApplicationVersion>
+    <ApplicationRevision>2716</ApplicationRevision>
+    <ApplicationVersion>1.0.387.2716</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <CreateDesktopShortcut>true</CreateDesktopShortcut>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -201,10 +201,6 @@
       <DependentUpon>PressShift_View.xaml</DependentUpon>
     </Compile>
     <Compile Include="Reports\PressShift_ViewModel.cs" />
-    <Compile Include="Schedule.Closed\View.xaml.cs">
-      <DependentUpon>View.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Schedule.Closed\ViewModel.cs" />
     <Compile Include="Schedule.SalesOrder\View.xaml.cs">
       <DependentUpon>View.xaml</DependentUpon>
     </Compile>
@@ -251,7 +247,6 @@
     <Compile Include="Converters\SkuMasterPrint.cs" />
     <Compile Include="Converters\StringToVisibility.cs" />
     <Compile Include="Converters\WorkCenterName.cs" />
-    <Compile Include="Converters\WorkOrderNumber.cs" />
     <Compile Include="Enumerations\UsersControls.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="MainWindowViewModel.cs" />
@@ -343,10 +338,6 @@
     <Page Include="Reports\ProcessSpec_View.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Schedule.Closed\View.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
     </Page>
     <Page Include="Schedule.SalesOrder\View.xaml">
       <SubType>Designer</SubType>

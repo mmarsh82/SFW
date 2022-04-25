@@ -1,4 +1,5 @@
-﻿using SFW.Helpers;
+﻿using SFW.Converters;
+using SFW.Helpers;
 using SFW.Model;
 using System;
 using System.Collections.Generic;
@@ -6,6 +7,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Windows.Data;
 using System.Windows.Input;
 
 namespace SFW.Queries
@@ -24,12 +26,15 @@ namespace SFW.Queries
                 _partNbr = value.ToUpper();
                 OnPropertyChanged(nameof(PartNumber));
                 SetupPrint = ErrorMsg = VerifyText = string.Empty;
-                SkuResultDictionary = null;
+                SkuResultDictionary = new Dictionary<Sku, bool>();
                 OnPropertyChanged(nameof(SkuResultDictionary));
-                SkuWIList = null;
+                SkuWIList = new List<string>();
                 OnPropertyChanged(nameof(SkuWIList));
-                SkuPartStructure = null;
+                SkuPartStructure = new Dictionary<Sku, int>();
                 OnPropertyChanged(nameof(SkuPartStructure));
+                SkuToolList = null;
+                OnPropertyChanged(nameof(SkuToolList));
+                OnPropertyChanged(nameof(EmptyToolList));
             }
         }
 
@@ -84,6 +89,8 @@ namespace SFW.Queries
         public IDictionary<Sku, bool> SkuResultDictionary { get; set; }
         public List<string> SkuWIList { get; set; }
         public IDictionary<Sku, int> SkuPartStructure { get; set; }
+        public ICollectionView SkuToolList { get; set; }
+        public bool EmptyToolList { get { return SkuToolList != null && !SkuToolList.IsEmpty; } }
 
         RelayCommand _print;
         RelayCommand _setup;
@@ -99,6 +106,7 @@ namespace SFW.Queries
         {
             VerifyText = string.Empty;
             SkuResultDictionary = new Dictionary<Sku, bool>();
+            SkuPartStructure = new Dictionary<Sku, int>();
             SkuWIList = new List<string>();
             IsLoading = false;
         }
@@ -121,6 +129,7 @@ namespace SFW.Queries
         {
             if (!string.IsNullOrEmpty(PartNumber))
             {
+                //Get a products set up print
                 ErrorMsg = string.Empty;
                 if (new Sku(PartNumber, 'C').EngStatus == "O" && !CurrentUser.IsEngineer)
                 {
@@ -131,49 +140,76 @@ namespace SFW.Queries
                     var _machName = Machine.GetMachineName(PartNumber);
                     if (!string.IsNullOrEmpty(_machName))
                     {
-                        var _fileName = ExcelReader.GetSetupPrintNumber(PartNumber, _machName, $"{App.GlobalConfig.First(o => $"{o.Site}_MAIN" == App.Site).PressSetup}", "Production");
-                        if (_fileName.Contains("ERR:"))
+                        switch (App.SiteNumber)
                         {
-                            ErrorMsg = "Setup file is open, contact Engineering.";
-                            VerifyText = "Accepted with errors";
-                        }
-                        else if (!string.IsNullOrEmpty(_fileName))
-                        {
-                            var _fileheader = string.Empty;
-                            for (int i = 0; i < 8 - _fileName.Length; i++)
-                            {
-                                _fileheader += "0";
-                            }
-                            _fileName = _fileheader + _fileName;
-                            SetupPrint = $"{App.GlobalConfig.First(o => $"{o.Site}_MAIN" == App.Site).PartPrint}{_fileName}.PDF";
-                            VerifyText = "Accepted";
-                        }
-                        else
-                        {
-                            _fileName = ExcelReader.GetSetupPrintNumber(PartNumber, Machine.GetMachineName(PartNumber), $"{App.GlobalConfig.First(o => $"{o.Site}_MAIN" == App.Site).SyscoSetup}", "PRODUCTION");
-                            if (!string.IsNullOrEmpty(_fileName))
-                            {
-                                SetupPrint = $"{App.GlobalConfig.First(o => $"{o.Site}_MAIN" == App.Site).PartPrint}{ _fileName}.PDF";
-                                VerifyText = "Accepted";
-                            }
-                            else
-                            {
-                                ErrorMsg = "No Setup exists.";
-                                VerifyText = "Accepted with errors";
-                            }
+                            case 0:
+                                try
+                                {
+                                    SetupPrint = $"{App.GlobalConfig.First(o => $"{o.Site}_MAIN" == App.Site).PressSetup}{PartNumber}.pdf";
+                                    VerifyText = "Accepted";
+                                    break;
+                                }
+                                catch (Exception)
+                                {
+                                    ErrorMsg = "No Setup exists.";
+                                    VerifyText = "Accepted with errors";
+                                    break;
+                                }
+                            case 1:
+                                var _fileName = string.Empty;
+                                var _machGrp = Machine.GetMachineGroup(_machName, 'M');
+                                switch (_machGrp)
+                                {
+                                    case "PRESS":
+                                    case "ENG":
+                                        _fileName = ExcelReader.GetSetupPrintNumber(PartNumber, _machName, App.GlobalConfig.First(o => $"{o.Site}_MAIN" == App.Site).PressSetup, "Production");
+                                        if (!string.IsNullOrEmpty(_fileName) && !_fileName.Contains("ERR:"))
+                                        {
+                                            var _fileheader = string.Empty;
+                                            for (int i = 0; i < 8 - _fileName.Length; i++)
+                                            {
+                                                _fileheader += "0";
+                                            }
+                                            _fileName = _fileheader + _fileName;
+                                            SetupPrint = $"{App.GlobalConfig.First(o => $"{o.Site}_MAIN" == App.Site).PartPrint}{_fileName}.PDF";
+                                            VerifyText = "Accepted";
+                                        }
+                                        else
+                                        {
+                                            ErrorMsg = "No Setup exists.";
+                                            VerifyText = "Accepted with errors";
+                                        }
+                                        break;
+                                    case "FABE":
+                                        _fileName = ExcelReader.GetSetupPrintNumber(PartNumber, _machName, App.GlobalConfig.First(o => $"{o.Site}_MAIN" == App.Site).SyscoSetup, "PRODUCTION");
+                                        SetupPrint = $"{App.GlobalConfig.First(o => $"{o.Site}_MAIN" == App.Site).PartPrint}{_fileName}.PDF";
+                                        VerifyText = "Accepted";
+                                        break;
+                                    case "EXT":
+                                        _fileName = ExcelReader.GetSetupPrintNumber(PartNumber, _machName, App.GlobalConfig.First(o => $"{o.Site}_MAIN" == App.Site).ExtSetup, "PRODUCTION");
+                                        SetupPrint = $"{App.GlobalConfig.First(o => $"{o.Site}_MAIN" == App.Site).PartPrint}{_fileName}.PDF";
+                                        VerifyText = "Accepted";
+                                        break;
+                                    default:
+                                        SetupPrint = string.Empty;
+                                        VerifyText = "Accepted";
+                                        break;
+                                }
+                                break;
                         }
                     }
-                    else
-                    {
 
-                        VerifyText = "No Setup.";
-                    }
+                    //Get the sku work instruction list
                     SkuWIList = Sku.GetInstructions(PartNumber, App.SiteNumber, App.GlobalConfig.First(o => $"{o.Site}_MAIN" == App.Site).WI);
-                    if (SkuWIList == null)
-                    {
-                        VerifyText += " No Work Instructions.";
-                    }
                     OnPropertyChanged(nameof(SkuWIList));
+
+                    //Get a sku tooling list
+                    SkuToolList = CollectionViewSource.GetDefaultView(Tool.GetToolList(PartNumber));
+                    SkuToolList.GroupDescriptions.Add(new PropertyGroupDescription("MachineID", new WorkCenterNameConverter()));
+                    OnPropertyChanged(nameof(SkuToolList));
+                    OnPropertyChanged(nameof(EmptyToolList));
+
+                    //Background task to get the part structure list
                     IsLoading = true;
                     using (BackgroundWorker bw = new BackgroundWorker())
                     {
@@ -184,11 +220,14 @@ namespace SFW.Queries
                                 {
                                     SkuPartStructure = new Dictionary<Sku, int>();
                                     var _groupedDict = Sku.GetStructure(PartNumber, App.AppSqlCon, CurrentUser.IsEngineer).OrderBy(o => o.Value).GroupBy(o => o.Key.DiamondNumber);
-                                    foreach (var _group in _groupedDict)
+                                    if (_groupedDict.Count(o => o.FirstOrDefault().Key.SkuNumber != null) > 0)
                                     {
-                                        foreach (var _item in _group)
+                                        foreach (var _group in _groupedDict)
                                         {
-                                            SkuPartStructure.Add(_item);
+                                            foreach (var _item in _group)
+                                            {
+                                                SkuPartStructure.Add(_item);
+                                            }
                                         }
                                     }
                                     if (SkuPartStructure.Values.Count(o => o >= 2) > 0)

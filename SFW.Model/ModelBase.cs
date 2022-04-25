@@ -80,13 +80,10 @@ namespace SFW.Model
                     _tempDS.Tables.Add(Machine.GetScheduleData(machOrder, ModelSqlCon));
                     _tempDS.Tables[_tempDS.Tables.Count - 1].TableName = "Master";
 
-                    _tempDS.Tables.Add(Machine.GetClosedScheduleData(ModelSqlCon));
-                    _tempDS.Tables[_tempDS.Tables.Count - 1].TableName = "ClosedMaster";
-
                     _tempDS.Tables.Add(site.Contains("WCCO") ? SalesOrder.GetScheduleData(ModelSqlCon) : new DataTable());
                     _tempDS.Tables[_tempDS.Tables.Count - 1].TableName = "SalesMaster";
 
-                    _tempDS.Tables.Add(Sku.GetTools(ModelSqlCon));
+                    _tempDS.Tables.Add(Tool.GetTools(ModelSqlCon));
                     _tempDS.Tables[_tempDS.Tables.Count - 1].TableName = "TL";
 
                     _tempDS.Tables.Add(Component.GetComponentBomTable(ModelSqlCon));
@@ -190,9 +187,6 @@ namespace SFW.Model
                 {
                     case Tables.BOM:
                         _dt = Component.GetComponentBomTable(ModelBase.ModelSqlCon);
-                        break;
-                    case Tables.ClosedMaster:
-                        _dt = Machine.GetClosedScheduleData(ModelBase.ModelSqlCon);
                         break;
                     case Tables.CREW:
                         _dt = CrewMember.GetCrewTable(ModelBase.ModelSqlCon);
@@ -333,18 +327,17 @@ namespace SFW.Model
     public enum Tables
     {
         Master = 0,
-        ClosedMaster = 1,
-        SalesMaster = 2,
-        TL = 3,
-        BOM = 4,
-        PL = 5,
-        WoNotes = 6,
-        WI = 7,
-        LOT = 8,
-        SoNotes = 9,
-        WC = 10,
-        SKU = 11,
-        LOC = 12,
-        CREW = 13
+        SalesMaster = 1,
+        TL = 2,
+        BOM = 3,
+        PL = 4,
+        WoNotes = 5,
+        WI = 6,
+        LOT = 7,
+        SoNotes = 8,
+        WC = 9,
+        SKU = 10,
+        LOC = 11,
+        CREW = 12
     }
 }

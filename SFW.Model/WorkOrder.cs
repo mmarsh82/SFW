@@ -73,11 +73,8 @@ namespace SFW.Model
                 SkuDescription = _row.Field<string>("SkuDesc");
                 Uom = _row.Field<string>("SkuUom");
                 MasterPrint = _row.Field<string>("SkuMasterPrint");
-                TotalOnHand = _row.Field<int>("SkuOnHand");
                 BomRevDate = _row.Field<DateTime>("BomRevDate") != Convert.ToDateTime("1999-01-01") ? _row.Field<DateTime>("BomRevDate") : DateTime.MinValue;
                 BomRevLevel = _row.Field<string>("BomRevLvl");
-                EngStatus = _row.Field<string>("EngStatus");
-                EngStatusDesc = _row.Field<string>("EngStatusDesc");
                 if (!string.IsNullOrEmpty(_row.Field<string>("WO_SalesRef")))
                 {
                     var _so = _row.Field<string>("WO_SalesRef").Split('*');
@@ -130,11 +127,8 @@ namespace SFW.Model
                 SkuDescription = dRow.Field<string>("SkuDesc");
                 Uom = dRow.Field<string>("SkuUom");
                 MasterPrint = dRow.Field<string>("SkuMasterPrint");
-                TotalOnHand = dRow.Field<int>("SkuOnHand");
                 BomRevDate = dRow.Field<DateTime>("BomRevDate") != Convert.ToDateTime("1999-01-01") ? dRow.Field<DateTime>("BomRevDate") : DateTime.MinValue;
                 BomRevLevel = dRow.Field<string>("BomRevLvl");
-                EngStatus = dRow.Field<string>("EngStatus");
-                EngStatusDesc = dRow.Field<string>("EngStatusDesc");
                 if (!string.IsNullOrEmpty(dRow.Field<string>("WO_SalesRef")))
                 {
                     var _so = dRow.Field<string>("WO_SalesRef").Split('*');
@@ -276,7 +270,7 @@ namespace SFW.Model
         public static List<WorkOrder> GetWorkOrderPriList(string machineName)
         {
             var _tempList = new List<WorkOrder>();
-            var _rows = MasterDataSet.Tables["Master"].Select($"[MachineName] = '{machineName}' AND [Sched_Priority] <> 999");
+            var _rows = MasterDataSet.Tables["Master"].Select($"[MachineName] = '{machineName}' AND [Sched_Priority] <> 999 AND [Status] <> 'C'");
             if (_rows.Length > 0)
             {
                 foreach (var _row in _rows)

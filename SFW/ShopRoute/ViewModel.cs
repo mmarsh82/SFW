@@ -22,7 +22,7 @@ namespace SFW.ShopRoute
             set
             {
                 shopOrder = value;
-                shopOrder.ToolList = shopOrder.ToolList ?? new List<string>();
+                shopOrder.ToolList = shopOrder.ToolList ?? new List<Tool>();
                 OnPropertyChanged(nameof(ShopOrder));
                 OnPropertyChanged(nameof(FqSalesOrder));
                 ShopOrderNotes = null;
@@ -127,7 +127,7 @@ namespace SFW.ShopRoute
                             SetupFile = GetSetupFile();
 
                             //Bill of Material and picklist loading, needs to be done in the background due to the recursive search
-                            ShopOrder.ToolList = Sku.GetTools(ShopOrder.SkuNumber, ShopOrder.Seq);
+                            ShopOrder.ToolList = Tool.GetToolList(ShopOrder.SkuNumber, ShopOrder.Seq);
                             ShopOrder.Bom = Model.Component.GetComponentBomList(ShopOrder.SkuNumber, ShopOrder.Seq);
                             ShopOrder.Picklist = Model.Component.GetComponentPickList(ShopOrder.OrderNumber, ShopOrder.Seq, ShopOrder.StartQty - ShopOrder.CurrentQty);
                             IsMultiLoading = false;

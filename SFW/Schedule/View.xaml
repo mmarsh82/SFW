@@ -11,7 +11,6 @@
         <cmd:PartSearch x:Key="PartSearchCommand"/>
         <cmd:ClearPriority x:Key="ClearPriICommand"/>
         <cvtr:BoolToVisibility x:Key="BoolToVisConverter"/>
-        <cvtr:WorkOrderNumber x:Key="WorkOrderConverter"/>
         <cvtr:SkuMasterPrint x:Key="PartSearchConverter"/>
         <cvtr:DateToVisibility x:Key="DateToVisConverter"/>
         <cvtr:Multi_EqualIntToVisibility x:Key="IntEqualConverter"/>
@@ -78,37 +77,67 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <DockPanel Grid.Row="0">
+        <Grid Grid.Row="0">
+
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
             
-            <TextBlock Text="Search:"
-                       FontSize="18"
-                       FontWeight="Bold"
-                       TextDecorations="Underline"
-                       Margin="10,0,0,0"
-                       VerticalAlignment="Center" />
+            <StackPanel Grid.Column="0"
+                        Orientation="Horizontal"
+                        HorizontalAlignment="Left">
 
-            <TextBox x:Name="SearchTextBox"
-                     Text="{Binding SearchFilter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                     Width="200"
-                     FontSize="18"
-                     Margin="5"
-                     Background="LightGray"
-                     Style="{DynamicResource OptionalTextBox}" />
+                <TextBlock Text="Search:"
+                           FontSize="18"
+                           FontWeight="Bold"
+                           TextDecorations="Underline"
+                           Margin="10,0,0,0"
+                           VerticalAlignment="Center" />
 
-            <CheckBox IsChecked="{Binding InspectionFilter}"
-                      VerticalAlignment="Center"
-                      HorizontalAlignment="Right"
-                      FontSize="18"
-                      Margin="0,0,10,0"
-                      ToolTip="Filter to only work orders with inspections."
-                      Style="{DynamicResource SliderCheckBox}">
-                <CheckBox.Content>
-                    <TextBlock Text="Inspection:"
+                <TextBox x:Name="SearchTextBox"
+                         Text="{Binding SearchFilter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                         Width="200"
+                         FontSize="18"
+                         Margin="5"
+                         Background="LightGray"
+                         Style="{DynamicResource OptionalTextBox}" />
+
+            </StackPanel>
+
+            <StackPanel Grid.Column="1"
+                        Orientation="Horizontal"
+                        HorizontalAlignment="Right">
+
+                <CheckBox IsChecked="{Binding ClosedFilter}"
+                          VerticalAlignment="Center"
+                          HorizontalAlignment="Right"
+                          FontSize="18"
+                          Margin="0,0,10,0"
+                          ToolTip="Filter to closed work orders."
+                          Style="{DynamicResource SliderCheckBox}">
+                    <CheckBox.Content>
+                        <TextBlock Text="Closed:"
+                                   TextDecorations="Underline"/>
+                    </CheckBox.Content>
+                </CheckBox>
+
+                <CheckBox IsChecked="{Binding InspectionFilter}"
+                          VerticalAlignment="Center"
+                          HorizontalAlignment="Right"
+                          FontSize="18"
+                          Margin="0,0,10,0"
+                          ToolTip="Filter to only work orders with inspections."
+                          Style="{DynamicResource SliderCheckBox}">
+                    <CheckBox.Content>
+                        <TextBlock Text="Inspection:"
                                TextDecorations="Underline"/>
-                </CheckBox.Content>
-            </CheckBox>
-            
-        </DockPanel>
+                    </CheckBox.Content>
+                </CheckBox>
+
+            </StackPanel>
+
+        </Grid>
 
         <DataGrid x:Name="WorkCenterSchedule"
                   Grid.Row="1"

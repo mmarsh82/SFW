@@ -17,7 +17,7 @@ namespace SFW.Commands
                 if (parameter.GetType() == typeof(DataRowView))
                 {
                     _row = ((DataRowView)parameter).Row;
-                    _wo = _row.ItemArray[0].ToString().Split('*')[0];
+                    _wo = _row.Field<string>("WorkOrder");
                 }
                 else
                 {

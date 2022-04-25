@@ -43,7 +43,6 @@ namespace SFW
                     }
                     var _mNbr = Machine.GetMachineNumber(value);
                     Schedule.ViewModel.ScheduleFilter(value == "All" ? "" : $"MachineNumber = '{_mNbr}'", 1);
-                    Schedule.Closed.ViewModel.ScheduleFilter(value == "All" ? "" : $"MachineNumber = '{_mNbr}'", 1);
                     IsChanging = false;
                 }
                 mach = value;
@@ -68,7 +67,6 @@ namespace SFW
                 {
                     IsChanging = true;
                     Schedule.ViewModel.ScheduleFilter(value == "All" ? "" : $"[MachineGroup] = '{value}'", 2);
-                    Schedule.Closed.ViewModel.ScheduleFilter(value == "All" ? "" : $"[MachineGroup] = '{value}'", 2);
                     SelectedMachine = MachineList.FirstOrDefault(o => o == "All");
                     IsChanging = false;
                 }
@@ -187,8 +185,6 @@ namespace SFW
                 {
                     Schedule.ViewModel.ScheduleFilter(UserConfig.BuildMachineFilter(), 1);
                     Schedule.ViewModel.ScheduleFilter(UserConfig.BuildPriorityFilter(), 3);
-                    Schedule.Closed.ViewModel.ScheduleFilter(UserConfig.BuildMachineFilter(), 1);
-                    Schedule.Closed.ViewModel.ScheduleFilter(UserConfig.BuildPriorityFilter(), 3);
                     CanFilter = !App.IsFocused;
                 }
                 else
@@ -196,7 +192,6 @@ namespace SFW
                     if (!Initialization)
                     {
                         Schedule.ViewModel.ClearFilter();
-                        Schedule.Closed.ViewModel.ClearFilter();
                         CanFilter = true;
                     }
                 }

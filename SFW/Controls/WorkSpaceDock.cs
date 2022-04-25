@@ -64,10 +64,8 @@ namespace SFW.Controls
                 //Add the Admin View to [4]
                 MainDock.Children.Insert(4, new Admin.View { DataContext = new Admin.ViewModel() });
 
-                //Add the Closed Schedule View to [5]
-                ClosedDock.Children.Insert(0, new Schedule.Closed.View());
-                ClosedDock.Children.Insert(1, new ShopRoute.View { DataContext = new ShopRoute.ViewModel() });
-                MainDock.Children.Insert(5, ClosedDock);
+                //Empty View [5]
+                MainDock.Children.Insert(5, new UserControl());
 
                 //Add the Part Detail View to [6]
                 MainDock.Children.Insert(6, new UserControl());
@@ -147,14 +145,6 @@ namespace SFW.Controls
                 MainDock.Children.Insert(4, new Admin.View { DataContext = new Admin.ViewModel() });
                 MainDock.Children[4].Visibility = Visibility.Collapsed;
                 index = 0;
-            }
-            else if (index == 5)
-            {
-                ((Schedule.Closed.View)_tempDock.Children[0]).DataContext = new Schedule.Closed.ViewModel();
-                if (((ShopRoute.View)_tempDock.Children[1]).DataContext != null)
-                {
-                    ((ShopRoute.ViewModel)((ShopRoute.View)_tempDock.Children[1]).DataContext).ShopOrder = new Model.WorkOrder();
-                }
             }
             else if (dataContext != null)
             {

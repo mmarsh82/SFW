@@ -86,6 +86,19 @@ namespace SFW.Schedule
             }
         }
 
+        private bool _close;
+        public bool ClosedFilter
+        {
+            get { return _close; }
+            set
+            {
+                var _filter = value ? "[Status] = 'C'" : "[Status] <> 'C'";
+                ScheduleFilter(_filter, 5);
+                _close = value;
+                OnPropertyChanged(nameof(ClosedFilter));
+            }
+        }
+
         private bool Refresh { get; set; }
         public static bool SiteChange { get; set; }
 
@@ -111,7 +124,8 @@ namespace SFW.Schedule
             FilterAsyncDelegate = new LoadDelegate(FilterView);
             LoadAsyncComplete = LoadAsyncDelegate.BeginInvoke(App.ViewFilter[App.SiteNumber], new AsyncCallback(ViewLoaded), null);
             RefreshTimer.Add(RefreshSchedule);
-            ScheduleViewFilter = new string[5];
+            ScheduleViewFilter = new string[6];
+            ClosedFilter = false;
         }
 
         /// <summary>
@@ -140,6 +154,7 @@ namespace SFW.Schedule
         /// 2 = Work Center Group Filter
         /// 3 = Work Order Priority Filter
         /// 4 = Inspection Filter
+        /// 5 = Closed Filter
         /// </summary>
         /// <param name="filter">Filter string to use on the default view</param>
         /// <param name="index">Index of the filter string list you are adding to our changing</param>
@@ -162,7 +177,7 @@ namespace SFW.Schedule
             }
             else
             {
-                ScheduleViewFilter = new string[5];
+                ScheduleViewFilter = new string[6];
             }
         }
 
@@ -173,8 +188,9 @@ namespace SFW.Schedule
         {
             if (ScheduleViewFilter != null && !SiteChange)
             {
-                ScheduleViewFilter = new string[5];
+                ScheduleViewFilter = new string[6];
                 ((DataView)ScheduleView.SourceCollection).RowFilter = "";
+                ScheduleFilter("[Status] <> 'C'", 5);
                 ScheduleView.Refresh();
             }
         }
