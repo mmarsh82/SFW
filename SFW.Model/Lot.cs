@@ -133,7 +133,7 @@ namespace SFW.Model
                                                                                 FROM
                                                                                     [dbo].[LotHistory]
                                                                                 WHERE
-                                                                                    [PartNbr] = @p1 AND (CAST([TranDateTime] as DATE) > DATEADD(YEAR, -3, GETDATE()))
+                                                                                    [PartNbr] = @p1 AND (CAST([TranDateTime] as DATE) > DATEADD(YEAR, -2, GETDATE()))
                                                                                 ORDER BY
                                                                                     [TranDateTime] DESC;", sqlCon))
                             {
@@ -457,7 +457,7 @@ namespace SFW.Model
         /// <param name="partNbr">Part Number</param>
         /// <param name="lotTrace">Is Sku lot tracecable</param>
         /// <returns>List of lots associated with the part number</returns>
-        public static List<Lot> GetOnHandLotList(string partNbr, bool lotTrace)
+        public static IList<Lot> GetOnHandLotList(string partNbr, bool lotTrace)
         {
             var _tempList = new List<Lot>();
             var _rows = MasterDataSet.Tables["LOT"].Select($"[SkuID] = '{partNbr}' AND [Type] <> 'dLot' AND [OnHand] <> 0");
@@ -491,7 +491,7 @@ namespace SFW.Model
         /// <param name="partNbr">Part Number</param>
         /// <param name="woNbr">Work Order Number</param>
         /// <returns>List of dedicated lots by work order and part number</returns>
-        public static List<Lot> GetDedicatedLotList(string partNbr, string woNbr)
+        public static IList<Lot> GetDedicatedLotList(string partNbr, string woNbr)
         {
             var _tempList = new List<Lot>();
             var _rows = MasterDataSet.Tables["LOT"].Select($"[SkuID] = '{partNbr}' AND [WorkOrderID] = '{woNbr}' AND [Type] = 'dLot' AND [OnHand] <> 0");

@@ -1,0 +1,488 @@
+﻿<UserControl x:Class="SFW.Schedule.PurchaseOrder.View"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
+             xmlns:bhvr="clr-namespace:SFW.Behaviors"
+             xmlns:cmd="clr-namespace:SFW.Commands"
+             xmlns:local="clr-namespace:SFW.Schedule.SalesOrder"
+             xmlns:app="clr-namespace:SFW"
+             xmlns:cvtr="clr-namespace:SFW.Converters">
+    
+    <UserControl.Resources>
+        <cmd:ViewLoad x:Key="ViewLoadCommand" />
+        <cmd:PartSearch x:Key="PartSearchCommand"/>
+        <cvtr:BoolToVisibility x:Key="BoolToVisConverter"/>
+        <cvtr:SkuMasterPrint x:Key="PartSearchConverter"/>
+        <cvtr:DateToVisibility x:Key="DateToVisConverter"/>
+        <cvtr:Multi_EqualIntToVisibility x:Key="IntEqualConverter"/>
+        <cvtr:IntToVisibility x:Key="IntToVisConverter" />
+        <cvtr:WoPriorityToBool x:Key="PriToBoolConverter" />
+        <cvtr:StringToVisibility x:Key="StringToVisConverter" />
+        <cvtr:ValueToHeight x:Key="ValueToHeightConverter"/>
+        <cvtr:MultiValueParameter x:Key="MultiValParamConverter"/>
+
+        <ContextMenu x:Key="rowMenu">
+            <MenuItem Header="Mark as Pick"
+                      FontSize="16"
+                      Command="{Binding DataContext.SchedActionICommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type DataGrid}}}">
+                <MenuItem.Visibility>
+                    <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="Imto">
+                        <Binding Path="(app:CurrentUser.CanSchedule)"/>
+                        <Binding Path="MTO"/>
+                        <Binding Path="IsWOLinked"/>
+                    </MultiBinding>
+                </MenuItem.Visibility>
+                <MenuItem.CommandParameter>
+                    <MultiBinding Converter="{StaticResource MultiValParamConverter}">
+                        <Binding Path="SoNbr"/>
+                        <Binding Path="LineNbr"/>
+                        <Binding Path="MTO"/>
+                    </MultiBinding>
+                </MenuItem.CommandParameter>
+            </MenuItem>
+            <MenuItem Header="Clear Pick"
+                      FontSize="16"
+                      Command="{Binding DataContext.SchedActionICommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type DataGrid}}}">
+                <MenuItem.Visibility>
+                    <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="mto">
+                        <Binding Path="(app:CurrentUser.CanSchedule)"/>
+                        <Binding Path="MTO"/>
+                        <Binding Path="IsWOLinked"/>
+                    </MultiBinding>
+                </MenuItem.Visibility>
+                <MenuItem.CommandParameter>
+                    <MultiBinding Converter="{StaticResource MultiValParamConverter}">
+                        <Binding Path="SoNbr"/>
+                        <Binding Path="LineNbr"/>
+                        <Binding Path="MTO"/>
+                    </MultiBinding>
+                </MenuItem.CommandParameter>
+            </MenuItem>
+            
+            <MenuItem Header="Link Work Order"
+                      FontSize="16"
+                      Command="{Binding DataContext.SchedActionICommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type DataGrid}}}"
+                      CommandParameter="{Binding}">
+                <MenuItem.Visibility>
+                    <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="Iwo">
+                        <Binding Path="(app:CurrentUser.CanSchedule)"/>
+                        <Binding Path="MTO"/>
+                        <Binding Path="IsWOLinked"/>
+                    </MultiBinding>
+                </MenuItem.Visibility>
+            </MenuItem>
+            <MenuItem Header="Clear Work Order"
+                      FontSize="16"
+                      Command="{Binding DataContext.SchedActionICommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type DataGrid}}}"
+                      CommandParameter="{Binding}">
+                <MenuItem.Visibility>
+                    <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="wo">
+                        <Binding Path="(app:CurrentUser.CanSchedule)"/>
+                        <Binding Path="MTO"/>
+                        <Binding Path="IsWOLinked"/>
+                    </MultiBinding>
+                </MenuItem.Visibility>
+            </MenuItem>
+        </ContextMenu>
+
+    </UserControl.Resources>
+
+    <Grid>
+
+        <Grid.RowDefinitions>
+            <RowDefinition x:Name="Row0" Height="40" />
+            <RowDefinition x:Name="Row1" Height="40" />
+            <RowDefinition x:Name="Row2" Height="*" />
+        </Grid.RowDefinitions>
+
+        <!--#region Grid.Row 0 Schedule Header -->
+
+        <StackPanel Grid.Row="0"
+                    Orientation="Horizontal">
+
+            <Button Grid.Row="0" Grid.Column="0"
+                Background="Transparent"
+                BorderThickness="0"
+                Command="{StaticResource ViewLoadCommand}"
+                CommandParameter="-1"
+                HorizontalAlignment="Left">
+                <Button.Content>
+                    <StackPanel Orientation="Horizontal">
+                        <Image Source="/SFW;component/Icons/BackArrow.ico" />
+                        <TextBlock Text="Back"
+                               VerticalAlignment="Center"
+                               FontSize="16"
+                               FontWeight="Bold"
+                               Foreground="Crimson" />
+                    </StackPanel>
+                </Button.Content>
+            </Button>
+
+            <TextBlock Text="Search:"
+                       FontSize="18"
+                       FontWeight="Bold"
+                       TextDecorations="Underline"
+                       Margin="10,0,0,0"
+                       VerticalAlignment="Center" />
+            <TextBox x:Name="SearchTextBox"
+                     Text="{Binding SearchFilter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, FallbackValue={x:Null}}"
+                     Width="150"
+                     FontSize="18"
+                     Margin="5"
+                     Background="LightGray"
+                     Style="{DynamicResource OptionalTextBox}" />
+
+            <CheckBox IsChecked="{Binding ScheduleType}"
+                      VerticalAlignment="Center"
+                      FontSize="18"
+                      Margin="10,0,0,0"
+                      Visibility="{Binding Path=(app:CurrentUser.IsAccountsReceivable), Converter={StaticResource BoolToVisConverter}}"
+                      Style="{DynamicResource SliderCheckBox}">
+                <CheckBox.Content>
+                    <TextBlock Text="{Binding ScheduleTypeContent}"
+                               TextDecorations="Underline"/>
+                </CheckBox.Content>
+            </CheckBox>
+
+            <TextBlock Text="Credit Status:"
+                       FontSize="18"
+                       FontWeight="Bold"
+                       TextDecorations="Underline"
+                       Margin="10,0,0,0"
+                       Visibility="{Binding Path=(app:CurrentUser.IsAccountsReceivable), Converter={StaticResource BoolToVisConverter}}"
+                       VerticalAlignment="Center" />
+            <ComboBox ItemsSource="{Binding CreditStatusList}"
+                      SelectedItem="{Binding SelectedCredStatus, NotifyOnSourceUpdated=True, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                      Width="60"
+                      FontSize="14"
+                      Margin="5"
+                      FontWeight="Bold"
+                      Visibility="{Binding Path=(app:CurrentUser.IsAccountsReceivable), Converter={StaticResource BoolToVisConverter}}"/>
+
+        </StackPanel>
+        
+        <!--#endregion-->
+
+        <!--#region Grid.Row 1 Schedule Filter Header -->
+
+        <StackPanel Grid.Row="1"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="center">
+
+            <TextBlock Text="Type:"
+                       FontSize="18"
+                       FontWeight="Bold"
+                       TextDecorations="Underline"
+                       Margin="10,0,0,0"
+                       VerticalAlignment="Center" />
+            <ComboBox ItemsSource="{Binding OrderTypeList}"
+                      SelectedItem="{Binding SelectedType, NotifyOnSourceUpdated=True, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                      Width="60"
+                      FontSize="14"
+                      Margin="5"
+                      FontWeight="Bold"/>
+            
+            <CheckBox IsChecked="{Binding PickSelected}"
+                      VerticalAlignment="Center"
+                      FontSize="18"
+                      Margin="10,0,0,0"
+                      Style="{DynamicResource SliderCheckBox}">
+                <CheckBox.Content>
+                    <TextBlock Text="{Binding PickContent}"
+                               TextDecorations="Underline"/>
+                </CheckBox.Content>
+            </CheckBox>
+
+            <CheckBox IsChecked="{Binding IsSchedule}"
+                      VerticalAlignment="Center"
+                      FontSize="18"
+                      Margin="10,0,0,0"
+                      Visibility="{Binding Path=(app:CurrentUser.CanSchedule), Converter={StaticResource BoolToVisConverter}}"
+                      Style="{DynamicResource SliderCheckBox}">
+                <CheckBox.Content>
+                    <TextBlock Text="{Binding IsScheduleContent}"
+                               TextDecorations="Underline"/>
+                </CheckBox.Content>
+            </CheckBox>
+
+        </StackPanel>
+
+        <!--#endregion-->
+
+        <!--#region Grid.Row 2 Sales Schedule Data-->
+
+        <DataGrid x:Name="SalesSchedule"
+                  Grid.Row="2"
+                  ItemsSource="{Binding SalesScheduleView, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                  SelectedItem="{Binding SelectedSalesOrder, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                  HorizontalAlignment="Left"
+                  HeadersVisibility="None"
+                  AutoGenerateColumns="False"
+                  CanUserAddRows="False"
+                  IsReadOnly="True"
+                  SelectionMode="Single"
+                  EnableRowVirtualization="True"
+                  IsSynchronizedWithCurrentItem="True"
+                  VirtualizingStackPanel.VirtualizationMode ="Recycling"
+                  VirtualizingStackPanel.IsVirtualizing="True"
+                  VirtualizingPanel.IsVirtualizingWhenGrouping="True">
+
+            <DataGrid.Columns>
+                <DataGridTemplateColumn>
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Vertical" MinWidth="690">
+                                <Grid>
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Left">
+                                        <TextBlock Text="{Binding ID}" FontSize="24" FontWeight="Bold" Margin="10,0,0,0"
+                                                   Visibility="{Binding DataContext.ScheduleType, Converter={StaticResource BoolToVisConverter}, ElementName=SalesSchedule}"/>
+                                        <TextBlock Text="{Binding SoNbr}" FontSize="24" FontWeight="Bold" Margin="10,0,0,0"
+                                                   Visibility="{Binding DataContext.ScheduleType, Converter={StaticResource BoolToVisConverter}, ConverterParameter=i, ElementName=SalesSchedule}"/>
+                                        <Image Source="/SFW;component/Icons/Warning.ico"
+                                               Visibility="{Binding IsExpedited, Converter={StaticResource BoolToVisConverter}}"
+                                               ToolTip="Sales order has been expedited."
+                                               Margin="10,0,0,0" Height="25" Width="25"/>
+                                        <Image Source="/SFW;component/Icons/Late.ico"
+                                               Visibility="{Binding IsBackOrder, Converter={StaticResource BoolToVisConverter}}"
+                                               ToolTip="Sales order contains product that is currently on back order."
+                                               Margin="10,0,0,0" Height="25" Width="25"/>
+                                        <Image Source="/SFW;component/Icons/Pending.ico"
+                                               Visibility="{Binding CredStatus, Converter={StaticResource StringToVisConverter}, ConverterParameter=W*}"
+                                               ToolTip="Sales order credit is waiting for approval."
+                                               Margin="10,0,0,0" Height="25" Width="25"/>
+                                        <Image Source="/SFW;component/Icons/Pause.ico"
+                                               Visibility="{Binding CredStatus, Converter={StaticResource StringToVisConverter}, ConverterParameter=H*}"
+                                               ToolTip="Sales order credit is on hold."
+                                               Margin="10,0,0,0" Height="25" Width="25"/>
+                                    </StackPanel>
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                        <TextBlock Text="{Binding PartNbr}" VerticalAlignment="Center"/>
+                                        <TextBlock Text="{Binding Description}" Margin="10,0,10,0" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Grid>
+                                <Grid>
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                        <TextBlock Text="Requested:" Margin="5,0,0,0" TextDecorations="Underline"/>
+                                        <TextBlock Text="{Binding ReqDate, StringFormat=d}" Margin="5,0,0,0"/>
+                                        <TextBlock Text="Ship:" TextDecorations="Underline" Margin="20,0,0,0"/>
+                                        <TextBlock Text="{Binding ShipDate, StringFormat=d}" Margin="5,0,0,0"/>
+                                    </StackPanel>
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                        <TextBlock Text="Need" Margin="0,0,5,0">
+                                            <TextBlock.Visibility>
+                                                <MultiBinding Converter="{StaticResource IntEqualConverter}">
+                                                    <Binding Path="BaseQty"/>
+                                                    <Binding Path="BalQty"/>
+                                                </MultiBinding>
+                                            </TextBlock.Visibility>
+                                        </TextBlock>
+                                        <TextBlock Text="{Binding BalQty, StringFormat=n0}">
+                                            <TextBlock.Visibility>
+                                                <MultiBinding Converter="{StaticResource IntEqualConverter}">
+                                                    <Binding Path="BaseQty"/>
+                                                    <Binding Path="BalQty"/>
+                                                </MultiBinding>
+                                            </TextBlock.Visibility>
+                                        </TextBlock>
+                                        <TextBlock Text="{Binding Uom}" Margin="5,0,0,0">
+                                            <TextBlock.Visibility>
+                                                <MultiBinding Converter="{StaticResource IntEqualConverter}">
+                                                    <Binding Path="BaseQty"/>
+                                                    <Binding Path="BalQty"/>
+                                                </MultiBinding>
+                                            </TextBlock.Visibility>
+                                        </TextBlock>
+                                        <TextBlock Text="of">
+                                            <TextBlock.Visibility>
+                                                <MultiBinding Converter="{StaticResource IntEqualConverter}">
+                                                    <Binding Path="BaseQty"/>
+                                                    <Binding Path="BalQty"/>
+                                                </MultiBinding>
+                                            </TextBlock.Visibility>
+                                        </TextBlock>
+                                        <TextBlock Text="{Binding BaseQty, StringFormat=n0}" Margin="5,0,0,0"/>
+                                        <TextBlock Text="{Binding Uom}" Margin="5,0,5,0"/>
+                                    </StackPanel>
+                                </Grid>
+                            </StackPanel>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+            </DataGrid.Columns>
+
+            <DataGrid.RowStyle>
+                <Style TargetType="{x:Type DataGridRow}">
+                    <Setter Property="FontWeight" Value="Bold"/>
+                    <Setter Property="FontSize"
+                            Value="18" />
+                    <Setter Property="ContextMenu" Value="{StaticResource rowMenu}"/>
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding Type}" Value="FCO">
+                            <Setter Property="Background">
+                                <Setter.Value>
+                                    <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                                        <GradientStop Color="White" Offset="0"/>
+                                        <GradientStop Color="GhostWhite" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </Setter.Value>
+                            </Setter>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding Type}" Value="DAI">
+                            <Setter Property="Background">
+                                <Setter.Value>
+                                    <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                                        <GradientStop Color="White" Offset="0"/>
+                                        <GradientStop Color="#FFF3321F" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </Setter.Value>
+                            </Setter>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding Type}" Value="STD">
+                            <Setter Property="Background">
+                                <Setter.Value>
+                                    <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                                        <GradientStop Color="White" Offset="0"/>
+                                        <GradientStop Color="#FF29D129" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </Setter.Value>
+                            </Setter>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding Type}" Value="EDI">
+                            <Setter Property="Background">
+                                <Setter.Value>
+                                    <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                                        <GradientStop Color="White" Offset="0"/>
+                                        <GradientStop Color="LightSlateGray" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </Setter.Value>
+                            </Setter>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding Type}" Value="EOP">
+                            <Setter Property="Background">
+                                <Setter.Value>
+                                    <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                                        <GradientStop Color="White" Offset="0"/>
+                                        <GradientStop Color="CornflowerBlue" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </Setter.Value>
+                            </Setter>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding Type}" Value="DA2">
+                            <Setter Property="Background">
+                                <Setter.Value>
+                                    <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                                        <GradientStop Color="White" Offset="0"/>
+                                        <GradientStop Color="Orange" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </Setter.Value>
+                            </Setter>
+                        </DataTrigger>
+                        <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                                <Condition Binding="{Binding CanShip}" Value="0"/>
+                                <Condition Binding="{Binding Type}" Value="DAI"/>
+                            </MultiDataTrigger.Conditions>
+                            <Setter Property="Background">
+                                <Setter.Value>
+                                    <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                                        <GradientStop Color="White" Offset="0"/>
+                                        <GradientStop Color="DarkOrchid" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </Setter.Value>
+                            </Setter>
+                        </MultiDataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </DataGrid.RowStyle>
+
+            <DataGrid.CellStyle>
+                <Style TargetType="{x:Type DataGridCell}">
+                    <Style.Resources>
+                        <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightBrushKey}" Color="Transparent"/>
+                    </Style.Resources>
+                    <Style.Triggers>
+                        <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                                <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsSelected}" Value="True"/>
+                                <Condition Binding="{Binding Type}" Value="DAI"/>
+                            </MultiDataTrigger.Conditions>
+                            <Setter Property="Background" Value="LightCoral"/>
+                            <Setter Property="Foreground" Value="Black"/>
+                        </MultiDataTrigger>
+                        <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                                <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsSelected}" Value="True"/>
+                                <Condition Binding="{Binding Type}" Value="STD"/>
+                            </MultiDataTrigger.Conditions>
+                            <Setter Property="Background" Value="DarkSeaGreen"/>
+                            <Setter Property="Foreground" Value="Black"/>
+                        </MultiDataTrigger>
+                        <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                                <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsSelected}" Value="True"/>
+                                <Condition Binding="{Binding Type}" Value="EDI"/>
+                            </MultiDataTrigger.Conditions>
+                            <Setter Property="Background" Value="Gray"/>
+                            <Setter Property="Foreground" Value="Black"/>
+                        </MultiDataTrigger>
+                        <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                                <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsSelected}" Value="True"/>
+                                <Condition Binding="{Binding Type}" Value="FCO"/>
+                            </MultiDataTrigger.Conditions>
+                            <Setter Property="Background" Value="Beige"/>
+                            <Setter Property="Foreground" Value="Black"/>
+                        </MultiDataTrigger>
+                        <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                                <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsSelected}" Value="True"/>
+                                <Condition Binding="{Binding Type}" Value="EOP"/>
+                            </MultiDataTrigger.Conditions>
+                            <Setter Property="Background" Value="LightBlue"/>
+                            <Setter Property="Foreground" Value="Black"/>
+                        </MultiDataTrigger>
+                        <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                                <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsSelected}" Value="True"/>
+                                <Condition Binding="{Binding CanShip}" Value="0"/>
+                                <Condition Binding="{Binding Type}" Value="DAI"/>
+                            </MultiDataTrigger.Conditions>
+                            <Setter Property="Background" Value="Orchid"/>
+                            <Setter Property="Foreground" Value="Black"/>
+                        </MultiDataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </DataGrid.CellStyle>
+
+            <DataGrid.GroupStyle>
+                <GroupStyle>
+                    <GroupStyle.ContainerStyle>
+                        <Style TargetType="{x:Type GroupItem}">
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="{x:Type GroupItem}">
+                                        <Expander BorderBrush="Black" IsExpanded="True" Background="#FF135185" Foreground="Black" BorderThickness="1">
+                                            <i:Interaction.Behaviors>
+                                                <bhvr:ExpanderState GroupName="{Binding Name}"/>
+                                            </i:Interaction.Behaviors>
+                                            <Expander.Header>
+                                                <Grid Width="650">
+                                                    <TextBlock x:Name="ExpanderName" HorizontalAlignment="Left" FontWeight="Bold" Foreground="WhiteSmoke" FontSize="24" Text="{Binding Name, StringFormat=d}"/>
+                                                </Grid>
+                                            </Expander.Header>
+                                            <ItemsPresenter/>
+                                        </Expander>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </GroupStyle.ContainerStyle>
+                </GroupStyle>
+            </DataGrid.GroupStyle>
+
+        </DataGrid>
+
+        <!--#endregion-->
+
+    </Grid>
+</UserControl>

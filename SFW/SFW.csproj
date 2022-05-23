@@ -201,10 +201,18 @@
       <DependentUpon>PressShift_View.xaml</DependentUpon>
     </Compile>
     <Compile Include="Reports\PressShift_ViewModel.cs" />
+    <Compile Include="Schedule.PurchaseOrder\View.xaml.cs">
+      <DependentUpon>View.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Schedule.PurchaseOrder\ViewModel.cs" />
     <Compile Include="Schedule.SalesOrder\View.xaml.cs">
       <DependentUpon>View.xaml</DependentUpon>
     </Compile>
     <Compile Include="Schedule.SalesOrder\ViewModel.cs" />
+    <Compile Include="ShopRoute.PurchaseOrder\View.xaml.cs">
+      <DependentUpon>View.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="ShopRoute.PurchaseOrder\ViewModel.cs" />
     <Compile Include="ShopRoute.SalesOrder\View.xaml.cs">
       <DependentUpon>View.xaml</DependentUpon>
     </Compile>
@@ -339,6 +347,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Schedule.PurchaseOrder\View.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="Schedule.SalesOrder\View.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -350,6 +362,10 @@
     <Page Include="Schedule\View.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="ShopRoute.PurchaseOrder\View.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
     </Page>
     <Page Include="ShopRoute.SalesOrder\View.xaml">
       <SubType>Designer</SubType>
@@ -380,6 +396,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Styles\CheckBox.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Styles\DataGrid.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

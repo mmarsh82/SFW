@@ -230,7 +230,7 @@ namespace SFW
                     }
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 throw new Exception();
             }

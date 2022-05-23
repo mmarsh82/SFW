@@ -1,6 +1,7 @@
 ﻿using M2kClient;
 using SFW.Helpers;
 using SFW.Model;
+using SFW.Reports;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -8,13 +9,33 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Input;
 
-namespace SFW.ShopRoute.QTask
+namespace SFW.ShopRoute.PurchaseOrder
 {
     public class ViewModel : ViewModelBase
     {
         #region Properties
 
-        public WorkOrder ShopOrder { get; set; }
+        private WorkOrder shopOrder;
+        public WorkOrder ShopOrder
+        {
+            get { return shopOrder; }
+            set
+            {
+                shopOrder = value;
+                shopOrder.ToolList = shopOrder.ToolList ?? new List<Tool>();
+                OnPropertyChanged(nameof(ShopOrder));
+                OnPropertyChanged(nameof(FqSalesOrder));
+                ShopOrderNotes = null;
+                MachineGroup = string.Empty;
+                OnPropertyChanged(nameof(CanCheckHistory));
+            }
+        }
+
+        public string FqSalesOrder
+        {
+            get { return $"{ShopOrder?.SalesOrder?.SalesNumber}*{ShopOrder?.SalesOrder?.LineNumber}"; }
+        }
+
         public int CurrentSite { get { return App.SiteNumber; } }
 
         private string _shopNotes;
@@ -29,6 +50,15 @@ namespace SFW.ShopRoute.QTask
             }
         }
 
+        private string machGroup;
+        public string MachineGroup
+        {
+            get
+            { return machGroup; }
+            set
+            { machGroup = string.IsNullOrEmpty(value) ? Machine.GetMachineGroup(ShopOrder.Machine, 'M') : value; OnPropertyChanged(nameof(MachineGroup)); }
+        }
+
         private string _sFile;
         public string SetupFile
         {
@@ -36,6 +66,18 @@ namespace SFW.ShopRoute.QTask
             set { _sFile = value; OnPropertyChanged(nameof(SetupFile)); OnPropertyChanged(nameof(HasSetupFile)); }
         }
         public bool HasSetupFile { get { return !string.IsNullOrEmpty(SetupFile); } }
+
+        private bool loading;
+        public bool IsLoading
+        {
+            get { return loading; }
+            set { loading = value; OnPropertyChanged(nameof(IsLoading)); }
+        }
+
+        public bool CanCheckHistory { get { return ShopOrder?.StartQty != ShopOrder?.CurrentQty; } }
+        public bool CanReport { get { return MachineGroup == "PRESS"; } }
+        public bool CanSeeTrim { get { return MachineGroup == "PRESS"; } }
+        public bool CanWip { get; set; }
 
         public bool IsMultiLoading { get; set; }
 
@@ -74,7 +116,7 @@ namespace SFW.ShopRoute.QTask
                 if (value != null)
                 {
                     ILotResultsList = Lot.GetOnHandLotList(value.CompNumber, true);
-                    OnPropertyChanged(nameof(ILotResultsList));
+                    OnPropertyChanged(nameof(ILotResultsList));    
                     NoLotResults = ILotResultsList.Count == 0 && (App.SiteNumber == 0 && CurrentUser.CanSchedule);
                     IDedicateLotResultsList = Lot.GetDedicatedLotList(value.CompNumber, ShopOrder.OrderNumber);
                     OnPropertyChanged(nameof(IDedicateLotResultsList));
@@ -88,11 +130,12 @@ namespace SFW.ShopRoute.QTask
         }
 
         private RelayCommand _noteChange;
+        private RelayCommand _loadReport;
 
         #endregion
 
         /// <summary>
-        /// Default Constructor
+        /// Shop Route Default Constructor
         /// </summary>
         public ViewModel()
         {
@@ -103,11 +146,12 @@ namespace SFW.ShopRoute.QTask
         }
 
         /// <summary>
-        /// Overridden Constructor
+        /// Shop Route Constructor for loading work orders
         /// </summary>
-        /// <param name="workOrder">Work order object to load into the view</param>
+        /// <param name="workOrder">Work Order Object</param>
         public ViewModel(WorkOrder workOrder)
         {
+            CanWip = false;
             ShopOrder = workOrder;
             IsMultiLoading = true;
             NoLotResults = NoDedicateResults = true;
@@ -139,12 +183,14 @@ namespace SFW.ShopRoute.QTask
                             IsMultiLoading = false;
                             OnPropertyChanged(nameof(IsMultiLoading));
                             OnPropertyChanged(nameof(ShopOrder));
+                            CanWip = CurrentUser.CanWip;
+                            OnPropertyChanged(nameof(CanWip));
                         });
                     bw.RunWorkerAsync();
                 }
                 catch (Exception)
                 {
-
+                    
                 }
             }
         }
@@ -194,7 +240,7 @@ namespace SFW.ShopRoute.QTask
                                 }
                                 break;
                             case "FABE":
-                                _fileName = ExcelReader.GetSetupPrintNumber(ShopOrder.SkuNumber, ShopOrder.Machine, App.GlobalConfig.First(o => $"{o.Site}_MAIN" == App.Site).SyscoSetup, "PRODUCTION");
+                                 _fileName = ExcelReader.GetSetupPrintNumber(ShopOrder.SkuNumber, ShopOrder.Machine, App.GlobalConfig.First(o => $"{o.Site}_MAIN" == App.Site).SyscoSetup, "PRODUCTION");
                                 _filePath = $"{App.GlobalConfig.First(o => $"{o.Site}_MAIN" == App.Site).PartPrint}{_fileName}.PDF";
                                 break;
                             case "EXT":
@@ -238,6 +284,55 @@ namespace SFW.ShopRoute.QTask
             }
         }
         private bool NoteChgCanExecute(object parameter) => true;
+
+        #endregion
+
+        #region Press Report ICommand
+
+        public ICommand ReportICommand
+        {
+            get
+            {
+                if (_loadReport == null)
+                {
+                    _loadReport = new RelayCommand(ReportExecute, ReportCanExecute);
+                }
+                return _loadReport;
+            }
+        }
+
+        private void ReportExecute(object parameter)
+        {
+            if (int.TryParse(parameter.ToString(), out int i))
+            {
+                var _repType = (Enumerations.PressReportActions)i;
+                var _rep = new PressReport(shopOrder, App.AppSqlCon);
+                if (_repType == Enumerations.PressReportActions.LogProgress && (_rep.IsNew || _rep.ShiftReportList.Count == 0))
+                {
+                    MessageBox.Show("There is currently no report created for this work order.\nPlease click on the report sheet button and submit a new report.", "No Report Sheet", MessageBoxButton.OK, MessageBoxImage.Exclamation);
+                }
+                else
+                {
+                    if (ShopOrder != null)
+                    {
+                        if (!App.IsWindowOpen<Press_View>(new Press_ViewModel()))
+                        {
+                            new Press_View { DataContext = new Press_ViewModel(ShopOrder, _repType) }.Show();
+                        }
+                        else
+                        {
+                            var _win = App.GetWindow<Press_View>();
+                            if (_win != null)
+                            {
+                                _win.DataContext = new Press_ViewModel(ShopOrder, _repType);
+                                _win.Focus();
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        private bool ReportCanExecute(object parameter) => true;
 
         #endregion
     }

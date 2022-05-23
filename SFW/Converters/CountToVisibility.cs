@@ -15,15 +15,23 @@ namespace SFW.Converters
         {
             if (value != null && parameter != null)
             {
-                return System.Convert.ToInt32(value) > 1 ? Visibility.Visible : Visibility.Collapsed;
+                if (int.TryParse(value.ToString(), out int i))
+                {
+                    return i >= 1 ? Visibility.Visible : Visibility.Collapsed;
+                }
+                return Visibility.Collapsed;
             }
             else if (value != null)
             {
-                return System.Convert.ToInt32(value) > 0 ? Visibility.Visible : Visibility.Collapsed;
+                if (int.TryParse(value.ToString(), out int i))
+                {
+                    return i >= 1 ? Visibility.Visible : Visibility.Collapsed;
+                }
+                return Visibility.Collapsed;
             }
             else
             {
-                return Visibility.Hidden;
+                return Visibility.Collapsed;
             }
         }
 

@@ -20,9 +20,6 @@ namespace SFW.Model
         public int IssuedQty { get; set; }
         public string CompMasterPrint { get; set; }
         public string CompUom { get; set; }
-        public List<Lot> LotList { get; set; }
-        public List<Lot> NonLotList { get; set; }
-        public List<Lot> DedicatedLotList { get; set; }
         public string InventoryType { get; set; }
         public BindingList<CompWipInfo> WipInfo { get; set; }
         public bool IsLotTrace { get; set; }
@@ -167,9 +164,6 @@ namespace SFW.Model
                         ,IsLotTrace = _row.Field<string>("LotTrace") == "T"
                         ,BackflushLoc = _row.Field<string>("Backflush")
                         ,WipInfo = new BindingList<CompWipInfo>() { new CompWipInfo(!string.IsNullOrEmpty(_row.Field<string>("Backflush")), _row.Field<string>("ChildSkuID"), _row.Field<string>("Uom")) }
-                        ,LotList = _lotRows.Length > 0 ? Lot.DataRowToLotList(_lotRows, "Lot") : new List<Lot>()
-                        ,DedicatedLotList = _dLotRows.Length > 0 ? Lot.DataRowToLotList(_dLotRows, "Dedicate") : new List<Lot>()
-                        ,NonLotList = _nLotRows.Length > 0 ? Lot.DataRowToLotList(_nLotRows, "NonLot") : new List<Lot>()
                     });
                     _tempList[_tempList.Count - 1].WipInfo.ListChanged += WipInfo_ListChanged;
                 }

@@ -20,6 +20,10 @@ namespace SFW.Converters
                 {
                     return _val.Replace("*", "") == value.ToString() ? Visibility.Visible : Visibility.Collapsed;
                 }
+                if (string.IsNullOrEmpty(_val))
+                {
+                    return string.IsNullOrEmpty(value.ToString()) ? Visibility.Collapsed : Visibility.Visible;
+                }
                 switch (_val)
                 {
                     case "i":

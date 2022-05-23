@@ -35,12 +35,9 @@
     <!--#endregion-->
 
     <!--#region Required TextBox Style-->
-    
+
     <Style x:Key="RequiredTextBox"
            TargetType="{x:Type TextBox}">
-        <Style.Resources>
-            <cvtr:RequiredWidthCutoff x:Key="RequiredWidthCutoffConverter" />
-        </Style.Resources>
         <Setter Property="Cursor"
                 Value="IBeam" />
         <Setter Property="Validation.ErrorTemplate">
@@ -73,6 +70,9 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="TextBox">
+                    <ControlTemplate.Resources>
+                        <cvtr:RequiredWidthCutoff x:Key="RequiredWidthCutoffConverter" />
+                    </ControlTemplate.Resources>
                     <Border BorderThickness="{TemplateBinding BorderThickness}"
                             BorderBrush="{TemplateBinding BorderBrush}"
                             Background="{TemplateBinding Background}"
@@ -121,7 +121,7 @@
                         </Trigger>
                         <MultiDataTrigger>
                             <MultiDataTrigger.Conditions>
-                                <Condition Binding="{Binding Text.Count, RelativeSource={RelativeSource Self}}"
+                                <Condition Binding="{Binding Text.Length, RelativeSource={RelativeSource Self}}"
                                            Value="0" />
                                 <Condition Binding="{Binding Width, RelativeSource={RelativeSource Self}, Converter={StaticResource RequiredWidthCutoffConverter}}"
                                            Value="true" />
@@ -135,7 +135,7 @@
                         </MultiDataTrigger>
                         <MultiDataTrigger>
                             <MultiDataTrigger.Conditions>
-                                <Condition Binding="{Binding Text.Count, RelativeSource={RelativeSource Self}}"
+                                <Condition Binding="{Binding Text.Length, RelativeSource={RelativeSource Self}}"
                                            Value="0" />
                                 <Condition Binding="{Binding Width, RelativeSource={RelativeSource Self}, Converter={StaticResource RequiredWidthCutoffConverter}}"
                                            Value="false" />
@@ -183,9 +183,6 @@
 
     <Style x:Key="OptionalTextBox"
            TargetType="{x:Type TextBox}">
-        <Style.Resources>
-            <cvtr:RequiredWidthCutoff x:Key="RequiredWidthCutoffConverter" />
-        </Style.Resources>
         <Setter Property="Cursor"
                 Value="IBeam" />
         <Setter Property="Validation.ErrorTemplate">
@@ -217,7 +214,10 @@
         </Setter>
         <Setter Property="Template">
             <Setter.Value>
-                <ControlTemplate TargetType="TextBox">
+                <ControlTemplate TargetType="{x:Type TextBox}">
+                    <ControlTemplate.Resources>
+                        <cvtr:RequiredWidthCutoff x:Key="RequiredWidthCutoffConverter" />
+                    </ControlTemplate.Resources>
                     <Border BorderThickness="{TemplateBinding BorderThickness}"
                             BorderBrush="{TemplateBinding BorderBrush}"
                             Background="{TemplateBinding Background}"
@@ -266,7 +266,7 @@
                         </Trigger>
                         <MultiDataTrigger>
                             <MultiDataTrigger.Conditions>
-                                <Condition Binding="{Binding Text.Count, RelativeSource={RelativeSource Self}}"
+                                <Condition Binding="{Binding Text.Length, RelativeSource={RelativeSource Self}}"
                                            Value="0" />
                                 <Condition Binding="{Binding Width, RelativeSource={RelativeSource Self}, Converter={StaticResource RequiredWidthCutoffConverter}}"
                                            Value="true" />
@@ -280,7 +280,7 @@
                         </MultiDataTrigger>
                         <MultiDataTrigger>
                             <MultiDataTrigger.Conditions>
-                                <Condition Binding="{Binding Text.Count, RelativeSource={RelativeSource Self}}"
+                                <Condition Binding="{Binding Text.Length, RelativeSource={RelativeSource Self}}"
                                            Value="0" />
                                 <Condition Binding="{Binding Width, RelativeSource={RelativeSource Self}, Converter={StaticResource RequiredWidthCutoffConverter}}"
                                            Value="false" />
@@ -370,20 +370,17 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="TextBox">
+                    <ControlTemplate.Resources>
+                        <cvtr:RequiredWidthCutoff x:Key="RequiredWidthCutoffConverter" />
+                    </ControlTemplate.Resources>
                     <Border BorderThickness="{TemplateBinding BorderThickness}"
                             BorderBrush="{TemplateBinding BorderBrush}"
                             Background="{TemplateBinding Background}"
                             SnapsToDevicePixels="true">
-                        <Grid Width="{TemplateBinding Width}"
-                              Height="{TemplateBinding Height}">
+                                <Grid Width="{TemplateBinding Width}"
+                                      Height="{TemplateBinding Height}">
 
-                            <Label Visibility="{Binding IsFocused, Converter={StaticResource BoolToVisConverter}, ElementName=Problem, Mode=OneWay}"
-                                   Content="{Binding Text, ConverterParameter={x:Reference Problem}, Converter={StaticResource CharCounterConverter}, ElementName=Problem}"
-                                   ContentStringFormat="Characters Left: {0}"
-                                   Foreground="Black"
-                                   FontWeight="Bold"/>
-
-                            <StackPanel HorizontalAlignment="Stretch"
+                                    <StackPanel HorizontalAlignment="Stretch"
                                         Width="{TemplateBinding Width}"
                                         Height="{TemplateBinding Height}"
                                         Margin="0,0,10,0"
@@ -424,7 +421,7 @@
                         </Trigger>
                         <MultiDataTrigger>
                             <MultiDataTrigger.Conditions>
-                                <Condition Binding="{Binding Text.Count, RelativeSource={RelativeSource Self}}"
+                                <Condition Binding="{Binding Text.Length, RelativeSource={RelativeSource Self}}"
                                            Value="0" />
                                 <Condition Binding="{Binding Width, RelativeSource={RelativeSource Self}, Converter={StaticResource RequiredWidthCutoffConverter}}"
                                            Value="true" />
@@ -438,7 +435,7 @@
                         </MultiDataTrigger>
                         <MultiDataTrigger>
                             <MultiDataTrigger.Conditions>
-                                <Condition Binding="{Binding Text.Count, RelativeSource={RelativeSource Self}}"
+                                <Condition Binding="{Binding Text.Length, RelativeSource={RelativeSource Self}}"
                                            Value="0" />
                                 <Condition Binding="{Binding Width, RelativeSource={RelativeSource Self}, Converter={StaticResource RequiredWidthCutoffConverter}}"
                                            Value="false" />

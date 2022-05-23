@@ -81,6 +81,54 @@ namespace SFW.ShopRoute
 
         public bool IsMultiLoading { get; set; }
 
+        public IList<Lot> ILotResultsList { get; set; }
+
+        private bool _noLot;
+        public bool NoLotResults
+        {
+            get => _noLot;
+            set { _noLot = value; OnPropertyChanged(nameof(NoLotResults)); }
+        }
+
+        public IList<Lot> IDedicateLotResultsList { get; set; }
+
+        private bool _noDed;
+        public bool NoDedicateResults
+        {
+            get => _noDed;
+            set { _noDed = value; OnPropertyChanged(nameof(NoDedicateResults)); }
+        }
+
+        private string _lotText;
+        public string LotListText
+        {
+            get => _lotText;
+            set { _lotText = value; OnPropertyChanged(nameof(LotListText)); }
+        }
+
+        private Model.Component _selItem;
+        public Model.Component SelectedILotItem
+        {
+            get
+            { return _selItem; }
+            set
+            {
+                if (value != null)
+                {
+                    ILotResultsList = Lot.GetOnHandLotList(value.CompNumber, true);
+                    OnPropertyChanged(nameof(ILotResultsList));    
+                    NoLotResults = ILotResultsList.Count == 0 || (ILotResultsList.Count == 0 && App.SiteNumber == 0 && CurrentUser.CanSchedule);
+                    IDedicateLotResultsList = Lot.GetDedicatedLotList(value.CompNumber, ShopOrder.OrderNumber);
+                    OnPropertyChanged(nameof(IDedicateLotResultsList));
+                    NoDedicateResults = IDedicateLotResultsList.Count == 0;
+                    LotListText = NoDedicateResults && NoLotResults ? "No Onhand Material" : "";
+                }
+                _selItem = value;
+                OnPropertyChanged(nameof(SelectedILotItem));
+                OnPropertyChanged(nameof(LotListText));
+            }
+        }
+
         private RelayCommand _noteChange;
         private RelayCommand _loadReport;
 
@@ -106,6 +154,8 @@ namespace SFW.ShopRoute
             CanWip = false;
             ShopOrder = workOrder;
             IsMultiLoading = true;
+            NoLotResults = NoDedicateResults = true;
+            LotListText = "Select a Part";
             using (BackgroundWorker bw = new BackgroundWorker())
             {
                 try

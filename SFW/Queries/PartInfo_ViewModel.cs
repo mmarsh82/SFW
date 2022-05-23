@@ -18,7 +18,7 @@ namespace SFW.Queries
         public Sku Part { get; set; }
         public ObservableCollection<Sku> MoveHistory { get; set; }
 
-        public List<Lot> ILotResultsList { get; set; }
+        public IList<Lot> ILotResultsList { get; set; }
         private Lot selectedILotRow;
         public Lot SelectedILotRow
         {
@@ -227,7 +227,6 @@ namespace SFW.Queries
         public void ResultsLoading(string inputVal)
         {
             IsLoading = true;
-            ModelBase.MasterDataSet.RefreshTable(Tables.LOT);
             ILotResultsList = Lot.GetOnHandLotList(inputVal, true);
             NonLotPart = false;
             if (ILotResultsList.Count == 0)
@@ -291,6 +290,7 @@ namespace SFW.Queries
             if (parameter != null && parameter.ToString() == "r")
             {
                 UserInput = UseLot ? _lot : Part.SkuNumber;
+                ModelBase.MasterDataSet.RefreshTable(Tables.LOT);
             }
             NoLotResults = false;
             NoHistoryResults = false;
@@ -426,6 +426,7 @@ namespace SFW.Queries
         /// <param name="parameter"></param>
         private void MoveExecute(object parameter)
         {
+            //TODO: add in logic to add the values to each of the tables here
             if (UseLot)
             {
                 M2kClient.M2kCommand.InventoryMove(CurrentUser.DisplayName, Part.SkuNumber, _lot, Part.Uom, FromLocation, ToLocation, Convert.ToInt32(QuantityInput), MoveReference, App.ErpCon, NonConReason);

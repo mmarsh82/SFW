@@ -70,7 +70,7 @@ namespace QT9Client
                 string pageContent = new StreamReader(wex.Response.GetResponseStream()).ReadToEnd().ToString();
                 return pageContent;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return null;
             }

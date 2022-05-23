@@ -61,6 +61,7 @@
     <Compile Include="PressRound.cs" />
     <Compile Include="PressShiftReport.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="PurchaseOrder.cs" />
     <Compile Include="SalesOrder.cs" />
     <Compile Include="Sku.cs" />
     <Compile Include="Machine.cs" />

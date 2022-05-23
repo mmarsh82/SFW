@@ -2,6 +2,20 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:local="clr-namespace:SFW.Styles">
 
+    <LinearGradientBrush x:Key="BackgroundBrush" StartPoint="0.5,0" EndPoint="0.5,1">
+        <GradientStop Color="#FF6B8E95" Offset="0"/>
+        <GradientStop Color="#FF14A7C1" Offset="1"/>
+        <GradientStop Color="#FF1E424E" Offset="0.509"/>
+        <GradientStop Color="#FF1D4855" Offset="0.542"/>
+        <GradientStop Color="#FF193A44" Offset="0.526"/>
+    </LinearGradientBrush>
+
+    <LinearGradientBrush x:Key="BorderBrush" StartPoint="0.5,0" EndPoint="0.5,1">
+        <GradientStop Color="#FF1D1D1D" Offset="0.614"/>
+        <GradientStop Color="#FF007F96" Offset="0.853"/>
+        <GradientStop Color="#FF0AEAFA" Offset="1"/>
+    </LinearGradientBrush>
+
     <Style x:Key="DefaultButton" TargetType="{x:Type Button}">
         <Setter Property="FontWeight" Value="Bold"/>
         <Setter Property="Foreground" Value="WhiteSmoke"/>
@@ -74,7 +88,7 @@
         <Setter Property="FontWeight"
                 Value="Bold" />
         <Setter Property="Foreground"
-                Value="Black" />
+                Value="White" />
         <Setter Property="Cursor"
                 Value="Hand" />
         <Setter Property="Content"
@@ -88,26 +102,13 @@
         <Setter Property="BorderThickness"
                 Value="1,0,1,0" />
         <Setter Property="BorderBrush"
-                Value="Black" />
+                Value="{StaticResource BorderBrush}" />
         <Setter Property="Width"
                 Value="100" />
-        <Setter Property="Background">
-            <Setter.Value>
-                <LinearGradientBrush StartPoint="0.5,0"
-                                     EndPoint="0.5,1">
-                    <GradientStop Offset="0.2"
-                                  Color="LightGray" />
-                    <GradientStop Offset="0.4"
-                                  Color="Gray" />
-                    <GradientStop Offset="0.6"
-                                  Color="CornflowerBlue" />
-                    <GradientStop Offset="0.8"
-                                  Color="RoyalBlue" />
-                    <GradientStop Offset="1"
-                                  Color="Blue" />
-                </LinearGradientBrush>
-            </Setter.Value>
-        </Setter>
+        <Setter Property="Background"
+                Value="{StaticResource BackgroundBrush}"/>
+        <Setter Property="Opacity"
+                Value=".8"/>
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
@@ -122,46 +123,16 @@
                         <Trigger Property="IsMouseOver"
                                  Value="True">
                             <Setter Property="Foreground"
-                                    Value="Black" />
-                            <Setter Property="Background">
-                                <Setter.Value>
-                                    <LinearGradientBrush StartPoint="0.5,0"
-                                                         EndPoint="0.5,1">
-                                        <GradientStop Offset="0.2"
-                                                      Color="White" />
-                                        <GradientStop Offset="0.4"
-                                                      Color="LightBlue" />
-                                        <GradientStop Offset="0.6"
-                                                      Color="CornflowerBlue" />
-                                        <GradientStop Offset="0.8"
-                                                      Color="RoyalBlue" />
-                                        <GradientStop Offset="1"
-                                                      Color="Blue" />
-                                    </LinearGradientBrush>
-                                </Setter.Value>
-                            </Setter>
+                                    Value="GhostWhite" />
+                            <Setter Property="Opacity"
+                                    Value="1"/>
                         </Trigger>
                         <Trigger Property="IsPressed"
                                  Value="True">
                             <Setter Property="Foreground"
                                     Value="Crimson" />
-                            <Setter Property="Background">
-                                <Setter.Value>
-                                    <LinearGradientBrush StartPoint="0.5,0"
-                                                         EndPoint="0.5,1">
-                                        <GradientStop Offset="0.2"
-                                                      Color="Blue" />
-                                        <GradientStop Offset="0.4"
-                                                      Color="RoyalBlue" />
-                                        <GradientStop Offset="0.6"
-                                                      Color="CornflowerBlue" />
-                                        <GradientStop Offset="0.8"
-                                                      Color="LightBlue" />
-                                        <GradientStop Offset="1"
-                                                      Color="White" />
-                                    </LinearGradientBrush>
-                                </Setter.Value>
-                            </Setter>
+                            <Setter Property="Background"
+                                    Value="{StaticResource BorderBrush}"/>
                         </Trigger>
                         <Trigger Property="IsEnabled"
                                  Value="False">

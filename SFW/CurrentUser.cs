@@ -367,7 +367,7 @@ namespace SFW
                         }
                     }
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
 
                 }

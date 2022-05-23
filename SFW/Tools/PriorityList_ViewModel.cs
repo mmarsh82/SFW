@@ -6,9 +6,8 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Data;
 using System.Windows.Input;
 
 namespace SFW.Tools
@@ -17,17 +16,8 @@ namespace SFW.Tools
     {
         #region Properties
 
-        private IList<WorkOrder> _priList;
-        public IList<WorkOrder> PriorityList
-        {
-            get
-            { return _priList; }
-            set
-            {
-                _priList = value;
-                OnPropertyChanged(nameof(PriorityList));
-            }
-        }
+        public ICollectionView PriorityView { get; set; }
+        public bool ViewIsEmpty { get { return PriorityView != null && !PriorityView.IsEmpty; } }
 
         public IList<string> MachineList { get; set; }
 
@@ -39,7 +29,7 @@ namespace SFW.Tools
             set
             {
                 _selMach = value;
-                PriorityList = WorkOrder.GetWorkOrderPriList(value);
+
                 OnPropertyChanged(nameof(SelectedMachine));
             }
         }
@@ -86,12 +76,24 @@ namespace SFW.Tools
         private string _srch;
         public string SearchInput
         {
-            get
-            { return _srch; }
+            get { return _srch; }
             set
             {
-                _srch = value;
+                _srch = value == "" ? null : value;
+                var _filter = string.IsNullOrEmpty(value) ? "" : ((DataView)PriorityView.SourceCollection).Table.SearchRowFilter(value);
+                ViewFilter(_filter, 0);
                 OnPropertyChanged(nameof(SearchInput));
+            }
+        }
+
+        private string[] _priViewFltr;
+        public string[] PriorityViewFilter
+        {
+            get { return _priViewFltr; }
+            set
+            {
+                _priViewFltr = value;
+                OnPropertyChanged(nameof(PriorityViewFilter));
             }
         }
 
@@ -116,33 +118,42 @@ namespace SFW.Tools
         /// </summary>
         public PriorityList_ViewModel()
         {
-            PriorityList = new List<WorkOrder>();
+            PriorityView = CollectionViewSource.GetDefaultView(ModelBase.MasterDataSet.Tables["Master"]);
             MachineList = Machine.GetMachineList(false);
             IsWorkOrderValid = true;
             DisplayAction = false;
+            PriorityViewFilter = new string[3];
         }
 
         /// <summary>
-        /// Checks for changes in the priority list
+        /// Filter the schedule view
+        /// Index values
+        /// 0 = Search Filter
+        /// 1 = Work Center Filter
+        /// 2 = Priority Filter
         /// </summary>
-        /// <returns></returns>
-        public bool CheckChanges()
+        /// <param name="filter">Filter string to use on the default view</param>
+        /// <param name="index">Index of the filter string list you are adding to our changing</param>
+        public void ViewFilter(string filter, int index)
         {
-            if(!string.IsNullOrEmpty(SelectedMachine))
+            if (PriorityViewFilter != null)
             {
-                var _tempList = WorkOrder.GetWorkOrderPriList(SelectedMachine);
-                var _counter = 0;
-                foreach (var pri in _tempList)
+                PriorityViewFilter[index] = filter;
+                var _filterStr = string.Empty;
+                foreach (var s in PriorityViewFilter.Where(o => !string.IsNullOrEmpty(o)))
                 {
-                    if (pri.Priority != PriorityList[_counter].Priority)
-                    {
-                        return true;
-                    }
-                    _counter++;
+                    _filterStr += string.IsNullOrEmpty(_filterStr) ? $"({s})" : $" AND ({s})";
                 }
-                return false; ;
+                if (PriorityView != null)
+                {
+                    ((DataView)PriorityView.SourceCollection).RowFilter = _filterStr;
+                    PriorityView.Refresh();
+                }
             }
-            return false;
+            else
+            {
+                PriorityViewFilter = new string[3];
+            }
         }
 
         #region Main ICommand
@@ -168,6 +179,7 @@ namespace SFW.Tools
                 var _changeRequest = string.Empty;
                 switch (parameter.ToString())
                 {
+                    //Save Command
                     case "S":
                         DisplayAction = true;
                         using (BackgroundWorker bw = new BackgroundWorker())
@@ -177,22 +189,21 @@ namespace SFW.Tools
                                 bw.DoWork += new DoWorkEventHandler(
                                     delegate (object sender, DoWorkEventArgs e)
                                     {
-                                        foreach (var _wo in PriorityList)
+                                        foreach (var _wo in (List<WorkOrder>)PriorityView.SourceCollection)
                                         {
                                             _p = _wo.Priority.ToString().Length == 1 ? $"0{_wo.Priority}" : _wo.Priority.ToString();
                                             _s = _wo.Shift.ToString().Length == 1 ? $"0{_wo.Shift}" : _wo.Shift.ToString();
-                                            _changeRequest = M2kCommand.EditRecord("WP", WorkOrderInput, 195, $"{_s}:{_p}:00", UdArrayCommand.Replace, App.ErpCon);
+                                            _changeRequest = M2kCommand.EditRecord("WP", _wo.OrderNumber, 195, $"{_s}:{_p}:00", UdArrayCommand.Replace, App.ErpCon);
                                             if (!string.IsNullOrEmpty(_changeRequest))
                                             {
                                                 MessageBox.Show(_changeRequest, "ERP Record Error");
                                             }
                                             else
                                             {
-                                                var _row = ModelBase.MasterDataSet.Tables["Master"].Select($"[WorkOrder] = '{WorkOrderInput}'");
+                                                var _row = ModelBase.MasterDataSet.Tables["Master"].Select($"[WorkOrderID] = '{_wo.OrderID}'");
                                                 var _index = ModelBase.MasterDataSet.Tables["Master"].Rows.IndexOf(_row.FirstOrDefault());
                                                 ModelBase.MasterDataSet.Tables["Master"].Rows[_index].SetField("PriTime", _s == "00" ? "999" : _s);
                                                 ModelBase.MasterDataSet.Tables["Master"].Rows[_index].SetField("Sched_Priority", _p);
-                                                CheckChanges();
                                             }
                                         }
                                         DisplayAction = false;
@@ -206,6 +217,7 @@ namespace SFW.Tools
                             }
                         }
                         break;
+                    //Insert Command
                     case "I":
                         _p = PriorityInput.Length == 1 ? $"0{PriorityInput}" : PriorityInput.ToString();
                         _s = "00";
@@ -218,12 +230,13 @@ namespace SFW.Tools
                         {
                             var _row = ModelBase.MasterDataSet.Tables["Master"].Select($"[WorkOrder] = '{WorkOrderInput}'");
                             var _index = ModelBase.MasterDataSet.Tables["Master"].Rows.IndexOf(_row.FirstOrDefault());
-                            ModelBase.MasterDataSet.Tables["Master"].Rows[_index].SetField("PriTime", _s == "00" ? "999" : _s);
+                            ModelBase.MasterDataSet.Tables["Master"].Rows[_index].SetField("PriTime", "999");
                             ModelBase.MasterDataSet.Tables["Master"].Rows[_index].SetField("Sched_Priority", _p);
                         }
                         break;
+                    //Organize Command
                     case "O":
-                        /*DisplayAction = true;
+                        DisplayAction = true;
                         using (BackgroundWorker bw = new BackgroundWorker())
                         {
                             try
@@ -231,22 +244,23 @@ namespace SFW.Tools
                                 bw.DoWork += new DoWorkEventHandler(
                                     delegate (object sender, DoWorkEventArgs e)
                                     {
-                                        foreach (var _wo in PriorityList)
+                                        var _counter = 1;
+                                        foreach (var _wo in (List<WorkOrder>)PriorityView.SourceCollection)
                                         {
-                                            _p = _wo.Priority.ToString().Length == 1 ? $"0{_wo.Priority}" : _wo.Priority.ToString();
+                                            _p = _counter.ToString().Length == 1 ? $"0{_counter}" : _counter.ToString();
                                             _s = _wo.Shift.ToString().Length == 1 ? $"0{_wo.Shift}" : _wo.Shift.ToString();
-                                            _changeRequest = M2kCommand.EditRecord("WP", WorkOrderInput, 195, $"{_s}:{_p}:00", UdArrayCommand.Replace, App.ErpCon);
+                                            _changeRequest = M2kCommand.EditRecord("WP", _wo.OrderNumber, 195, $"{_s}:{_p}:00", UdArrayCommand.Replace, App.ErpCon);
                                             if (!string.IsNullOrEmpty(_changeRequest))
                                             {
                                                 MessageBox.Show(_changeRequest, "ERP Record Error");
                                             }
                                             else
                                             {
-                                                var _row = ModelBase.MasterDataSet.Tables["Master"].Select($"[WorkOrder] = '{WorkOrderInput}'");
+                                                var _row = ModelBase.MasterDataSet.Tables["Master"].Select($"[WorkOrderID] = '{_wo.OrderID}'");
                                                 var _index = ModelBase.MasterDataSet.Tables["Master"].Rows.IndexOf(_row.FirstOrDefault());
                                                 ModelBase.MasterDataSet.Tables["Master"].Rows[_index].SetField("PriTime", _s == "00" ? "999" : _s);
                                                 ModelBase.MasterDataSet.Tables["Master"].Rows[_index].SetField("Sched_Priority", _p);
-                                                CheckChanges();
+                                                _counter++;
                                             }
                                         }
                                         DisplayAction = false;
@@ -258,7 +272,7 @@ namespace SFW.Tools
                             {
                                 MessageBox.Show(ex.Message);
                             }
-                        }*/
+                        }
                         break;
                     default:
                         break;
@@ -267,9 +281,9 @@ namespace SFW.Tools
             else
             {
                 new Commands.ClearPriority().Execute(parameter);
-                PriorityList.Remove(PriorityList.FirstOrDefault(o => o.OrderNumber == parameter.ToString()));
-                List<WorkOrder> _tempList = PriorityList.ToList();
-                PriorityList = _tempList;
+                ((List<WorkOrder>)PriorityView.SourceCollection).Remove(((List<WorkOrder>)PriorityView.SourceCollection).FirstOrDefault(o => o.OrderNumber == parameter.ToString()));
+                List<WorkOrder> _tempList = ((List<WorkOrder>)PriorityView.SourceCollection).ToList();
+                PriorityView = CollectionViewSource.GetDefaultView(_tempList);
             }
         }
         private bool MainCanExecute(object parameter)
@@ -279,7 +293,7 @@ namespace SFW.Tools
                 switch (parameter.ToString())
                 {
                     case "S":
-                        return CheckChanges();
+                        return true;
                     case "I":
                         return IsWorkOrderValid && !string.IsNullOrEmpty(PriorityInput);
                     default:

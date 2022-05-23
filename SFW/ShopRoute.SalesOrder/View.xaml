@@ -39,7 +39,7 @@
                     <RowDefinition x:Name="Row2" Height="30" />
                     <RowDefinition x:Name="Row3" Height="40"/>
                     <RowDefinition x:Name="Row4" Height="{Binding Order.CustomerPart, Converter={StaticResource ValueToHeightConverter}, ConverterParameter=L40}"/>
-                    <RowDefinition x:Name="Row5" Height="{Binding Part.SkuNumber, Converter={StaticResource ValueToHeightConverter}, ConverterParameter=L40}"/>
+                    <RowDefinition x:Name="Row5" Height="{Binding Part.SkuNumber, Converter={StaticResource ValueToHeightConverter}, ConverterParameter=L30}"/>
                     <RowDefinition x:Name="Row6" Height="60"/>
                     <RowDefinition x:Name="Row7" Height="{Binding Order.InternalComments, Converter={StaticResource ValueToHeightConverter}, ConverterParameter=L30}"/>
                     <RowDefinition x:Name="Row8" Height="{Binding Order.SpecialInstructions, Converter={StaticResource ValueToHeightConverter}, ConverterParameter=L30}"/>
@@ -173,8 +173,10 @@
 
                 <StackPanel Grid.Row="5" Orientation="Horizontal">
 
-                    <Button Margin="0,5,10,5"
-                            Width="50"
+                    <Button Margin="0,0,5,0"
+                            Width="30"
+                            Background="Transparent"
+                            BorderThickness="0"
                             Command="{StaticResource ViewLoadCommand}"
                             CommandParameter="{Binding Part.SkuNumber}"
                             Style="{DynamicResource DefaultButton}">
@@ -457,239 +459,26 @@
                             </Grid.ColumnDefinitions>
 
                             <Grid.RowDefinitions>
+                                <RowDefinition Height="45"/>
                                 <RowDefinition Height="30"/>
                                 <RowDefinition Height="30"/>
                                 <RowDefinition Height="30"/>
                                 <RowDefinition Height="30"/>
                                 <RowDefinition Height="30"/>
-                                <RowDefinition Height="50"/>
                             </Grid.RowDefinitions>
-
-                            <!--#region Grid.Column 0 and 1 Credit Information -->
-
-                            <TextBlock Grid.Column="0" Grid.Row="0"
-                                       Text="Limit:"
-                                       FontSize="18"
-                                       TextDecorations="Underline"
-                                       FontWeight="Bold"
-                                       Foreground="#FF135185"/>
-
-                            <Border Grid.Column="1" Grid.Row="0"
-                                    Background="LightGray"
-                                    BorderBrush="Black"
-                                    BorderThickness="2">
-
-                                <TextBlock FontSize="18"
-                                           Text="{Binding DataContext.Order.CreditLimit, StringFormat=c, ElementName=SalesTabControl}"
-                                           FontWeight="Bold"
-                                           Foreground="Black"
-                                           Margin="5,0,0,0" />
-
-                            </Border>
-
-                            <TextBlock Grid.Column="0" Grid.Row="1"
-                                       Text="AR Balance:"
-                                       FontSize="18"
-                                       TextDecorations="Underline"
-                                       FontWeight="Bold"
-                                       Foreground="#FF135185"/>
-
-                            <Border Grid.Column="1" Grid.Row="1"
-                                    Background="LightGray"
-                                    BorderBrush="Black"
-                                    BorderThickness="2">
-
-                                <TextBlock FontSize="18"
-                                           Text="{Binding DataContext.Order.CreditBalance, StringFormat=c, ElementName=SalesTabControl}"
-                                           FontWeight="Bold"
-                                           Foreground="Black"
-                                           Margin="5,0,0,0" />
-
-                            </Border>
-
-                            <TextBlock Grid.Column="0" Grid.Row="2"
-                                       Text="Shipped Balance:"
-                                       FontSize="18"
-                                       TextDecorations="Underline"
-                                       FontWeight="Bold"
-                                       Foreground="#FF135185"/>
-
-                            <Border Grid.Column="1" Grid.Row="2"
-                                    Background="LightGray"
-                                    BorderBrush="Black"
-                                    BorderThickness="2">
-
-                                <TextBlock FontSize="18"
-                                           Text="{Binding DataContext.Order.CreditShippedBalance, StringFormat=c, ElementName=SalesTabControl}"
-                                           FontWeight="Bold"
-                                           Foreground="Black"
-                                           Margin="5,0,0,0" />
-
-                            </Border>
-
-                            <TextBlock Grid.Column="0" Grid.Row="2"
-                                       Text="Shipped Balance:"
-                                       FontSize="18"
-                                       TextDecorations="Underline"
-                                       FontWeight="Bold"
-                                       Foreground="#FF135185"/>
-
-                            <Border Grid.Column="1" Grid.Row="2"
-                                    Background="LightGray"
-                                    BorderBrush="Black"
-                                    BorderThickness="2">
-
-                                <TextBlock FontSize="18"
-                                           Text="{Binding DataContext.Order.CreditShippedBalance, StringFormat=c, ElementName=SalesTabControl}"
-                                           FontWeight="Bold"
-                                           Foreground="Black"
-                                           Margin="5,0,0,0" />
-
-                            </Border>
-
-                            <TextBlock Grid.Column="0" Grid.Row="3"
-                                       Text="Allocated Balance:"
-                                       FontSize="18"
-                                       TextDecorations="Underline"
-                                       FontWeight="Bold"
-                                       Foreground="#FF135185"/>
-
-                            <Border Grid.Column="1" Grid.Row="3"
-                                    Background="LightGray"
-                                    BorderBrush="Black"
-                                    BorderThickness="2">
-
-                                <TextBlock FontSize="18"
-                                           Text="{Binding DataContext.Order.CreditAllocatedBalance, StringFormat=c, ElementName=SalesTabControl}"
-                                           FontWeight="Bold"
-                                           Foreground="Black"
-                                           Margin="5,0,0,0" />
-
-                            </Border>
-
-                            <TextBlock Grid.Column="0" Grid.Row="4"
-                                       Text="Available Credit:"
-                                       FontSize="18"
-                                       TextDecorations="Underline"
-                                       FontWeight="Bold"
-                                       Foreground="#FF135185"/>
-
-                            <Border Grid.Column="1" Grid.Row="4"
-                                    Background="LightGray"
-                                    BorderBrush="Black"
-                                    BorderThickness="2">
-
-                                <TextBlock FontSize="18"
-                                           Text="{Binding DataContext.Order.CurrentCreditLimit, StringFormat=c, ElementName=SalesTabControl}"
-                                           FontWeight="Bold"
-                                           Foreground="Black"
-                                           Margin="5,0,0,0" />
-
-                            </Border>
-
-                            <!--#endregion-->
-
-                            <!--#region Grid.Column 2 Spacer -->
-                            <!--#endregion-->
-
-                            <!--#region Grid.Column 3 and 4 Credit Status -->
-
-                            <TextBlock Grid.Column="3" Grid.Row="0"
-                                       Text="Credit Status:"
-                                       FontSize="18"
-                                       TextDecorations="Underline"
-                                       FontWeight="Bold"
-                                       Foreground="#FF135185"/>
-
-                            <Border Grid.Column="4" Grid.Row="0"
-                                    Background="LightGray"
-                                    BorderBrush="Black"
-                                    BorderThickness="2">
-
-                                <TextBlock FontSize="18"
-                                           Text="{Binding DataContext.Order.CreditStatus, StringFormat=c, ElementName=SalesTabControl}"
-                                           FontWeight="Bold"
-                                           Foreground="Black"
-                                           Margin="5,0,0,0" />
-
-                            </Border>
-
-                            <TextBlock Grid.Column="3" Grid.Row="1"
-                                       Text="Checked By:"
-                                       FontSize="18"
-                                       TextDecorations="Underline"
-                                       FontWeight="Bold"
-                                       Foreground="#FF135185"/>
-
-                            <Border Grid.Column="4" Grid.Row="1"
-                                    Background="LightGray"
-                                    BorderBrush="Black"
-                                    BorderThickness="2">
-
-                                <TextBlock FontSize="18"
-                                           Text="{Binding DataContext.Order.CreditApprover, StringFormat=c, ElementName=SalesTabControl}"
-                                           FontWeight="Bold"
-                                           Foreground="Black"
-                                           Margin="5,0,0,0" />
-
-                            </Border>
-
-                            <TextBlock Grid.Column="3" Grid.Row="2"
-                                       Text="Checked Date:"
-                                       FontSize="18"
-                                       TextDecorations="Underline"
-                                       FontWeight="Bold"
-                                       Foreground="#FF135185"/>
-
-                            <Border Grid.Column="4" Grid.Row="2"
-                                    Background="LightGray"
-                                    BorderBrush="Black"
-                                    BorderThickness="2">
-
-                                <TextBlock FontSize="18"
-                                           Text="{Binding DataContext.Order.CreditDate, StringFormat=d, ElementName=SalesTabControl}"
-                                           FontWeight="Bold"
-                                           Foreground="Black"
-                                           Margin="5,0,0,0"
-                                           Visibility="{Binding DataContext.Order.CreditDate, ElementName=SalesTabControl, Converter={StaticResource DateToVisConverter}, ConverterParameter=N}"/>
-
-                            </Border>
-
-                            <TextBlock Grid.Column="3" Grid.Row="3"
-                                       Text="Order Balance:"
-                                       FontSize="18"
-                                       TextDecorations="Underline"
-                                       FontWeight="Bold"
-                                       Foreground="#FF135185"/>
-
-                            <Border Grid.Column="4" Grid.Row="3"
-                                    Background="LightGray"
-                                    BorderBrush="Black"
-                                    BorderThickness="2">
-
-                                <TextBlock FontSize="18"
-                                           Text="{Binding DataContext.Order.OrderBalance, StringFormat=c, ElementName=SalesTabControl}"
-                                           FontWeight="Bold"
-                                           Foreground="Black"
-                                           Margin="5,0,0,0" />
-
-                            </Border>
-
-                            <!--#endregion-->
 
                             <!--#region Grid.Column Full Span Grid.Row 5 Button Array -->
 
-                            <StackPanel Grid.ColumnSpan="5" Grid.Row="5"
-                                        Orientation="Horizontal"
-                                        HorizontalAlignment="Center">
+                            <StackPanel Grid.ColumnSpan="5" Grid.Row="0"
+                                        Orientation="Horizontal">
 
                                 <Button x:Name="AR"
                                         Content="AR Inquiry"
-                                        Margin="5"
+                                        Margin="0,0,0,5"
                                         Width="120"
-                                        FontSize="18"
+                                        FontSize="16"
                                         Command="{StaticResource ShowQuery}"
-                                        Style="{DynamicResource DefaultButton}">
+                                        Style="{DynamicResource MenuButtonStyle}">
                                     <Button.CommandParameter>
                                         <MultiBinding Converter="{StaticResource MultiValConverter}">
                                             <Binding Path="Name" RelativeSource="{RelativeSource Self}"/>
@@ -699,33 +488,179 @@
                                 </Button>
 
                                 <Button Content="Approve"
-                                        Margin="5"
                                         Width="120"
-                                        FontSize="18"
+                                        Margin="0,0,0,5"
+                                        FontSize="16"
                                         Command="{Binding ARUpdateICommand}"
                                         CommandParameter="{Binding Content, RelativeSource={RelativeSource Self}}"
                                         Visibility="{Binding CanAccept, Converter={StaticResource BoolToVisConverter}}"
-                                        Style="{DynamicResource DefaultButton}"/>
+                                        Style="{DynamicResource MenuButtonStyle}"/>
 
                                 <Button Content="Hold"
-                                        Margin="5"
                                         Width="120"
-                                        FontSize="18"
+                                        Margin="0,0,0,5"
+                                        FontSize="16"
                                         Command="{Binding ARUpdateICommand}"
                                         CommandParameter="{Binding Content, RelativeSource={RelativeSource Self}}"
                                         Visibility="{Binding CanHold, Converter={StaticResource BoolToVisConverter}}"
-                                        Style="{DynamicResource DefaultButton}"/>
+                                        Style="{DynamicResource MenuButtonStyle}"/>
 
                                 <Button Content="Wait"
-                                        Margin="5"
+                                        Margin="0,0,0,5"
                                         Width="120"
-                                        FontSize="18"
+                                        FontSize="16"
                                         Command="{Binding ARUpdateICommand}"
                                         CommandParameter="{Binding Content, RelativeSource={RelativeSource Self}}"
                                         Visibility="{Binding CanPending, Converter={StaticResource BoolToVisConverter}}"
-                                        Style="{DynamicResource DefaultButton}"/>
+                                        Style="{DynamicResource MenuButtonStyle}"/>
 
                             </StackPanel>
+
+                            <!--#endregion-->
+
+                            <!--#region Grid.Column 0 and 1 Credit Information -->
+
+                            <TextBlock Grid.Column="0" Grid.Row="1"
+                                       Text="Limit:"
+                                       FontSize="18"
+                                       TextDecorations="Underline"
+                                       FontWeight="Bold"
+                                       Foreground="#FF135185"/>
+
+                            <TextBox Grid.Column="1" Grid.Row="1"
+                                     BorderBrush="Black"
+                                     BorderThickness="0,0,0,2"
+                                     VerticalContentAlignment="Center"
+                                     FontSize="18"
+                                     Text="{Binding DataContext.Order.CreditLimit, StringFormat=c, ElementName=SalesTabControl}"
+                                     IsHitTestVisible="False"/>
+
+                            <TextBlock Grid.Column="0" Grid.Row="2"
+                                       Text="AR Balance:"
+                                       FontSize="18"
+                                       TextDecorations="Underline"
+                                       FontWeight="Bold"
+                                       Foreground="#FF135185"/>
+
+                            <TextBox Grid.Column="1" Grid.Row="2"
+                                     BorderBrush="Black"
+                                     BorderThickness="0,0,0,2"
+                                     VerticalContentAlignment="Center"
+                                     FontSize="18"
+                                     Text="{Binding DataContext.Order.CreditBalance, StringFormat=c, ElementName=SalesTabControl}"
+                                     IsHitTestVisible="False"/>
+
+                            <TextBlock Grid.Column="0" Grid.Row="3"
+                                       Text="Shipped Balance:"
+                                       FontSize="18"
+                                       TextDecorations="Underline"
+                                       FontWeight="Bold"
+                                       Foreground="#FF135185"/>
+
+                            <TextBox Grid.Column="1" Grid.Row="3"
+                                     BorderBrush="Black"
+                                     BorderThickness="0,0,0,2"
+                                     VerticalContentAlignment="Center"
+                                     FontSize="18"
+                                     Text="{Binding DataContext.Order.CreditShippedBalance, StringFormat=c, ElementName=SalesTabControl}"
+                                     IsHitTestVisible="False"/>
+
+                            <TextBlock Grid.Column="0" Grid.Row="4"
+                                       Text="Allocated Balance:"
+                                       FontSize="18"
+                                       TextDecorations="Underline"
+                                       FontWeight="Bold"
+                                       Foreground="#FF135185"/>
+
+                            <TextBox Grid.Column="1" Grid.Row="4"
+                                     BorderBrush="Black"
+                                     BorderThickness="0,0,0,2"
+                                     VerticalContentAlignment="Center"
+                                     FontSize="18"
+                                     Text="{Binding DataContext.Order.CreditAllocatedBalance, StringFormat=c, ElementName=SalesTabControl}"
+                                     IsHitTestVisible="False"/>
+
+                            <TextBlock Grid.Column="0" Grid.Row="5"
+                                       Text="Available Credit:"
+                                       FontSize="18"
+                                       TextDecorations="Underline"
+                                       FontWeight="Bold"
+                                       Foreground="#FF135185"/>
+
+                            <TextBox Grid.Column="1" Grid.Row="5"
+                                     BorderThickness="0"
+                                     VerticalContentAlignment="Center"
+                                     FontSize="18"
+                                     Text="{Binding DataContext.Order.CurrentCreditLimit, StringFormat=c, ElementName=SalesTabControl}"
+                                     IsHitTestVisible="False"/>
+
+                            <!--#endregion-->
+
+                            <!--#region Grid.Column 2 Spacer -->
+                            <!--#endregion-->
+
+                            <!--#region Grid.Column 3 and 4 Credit Status -->
+
+                            <TextBlock Grid.Column="3" Grid.Row="1"
+                                       Text="Credit Status:"
+                                       FontSize="18"
+                                       TextDecorations="Underline"
+                                       FontWeight="Bold"
+                                       Foreground="#FF135185"/>
+
+                            <TextBox Grid.Column="4" Grid.Row="1"
+                                     BorderBrush="Black"
+                                     BorderThickness="0"
+                                     VerticalContentAlignment="Center"
+                                     FontSize="18"
+                                     Text="{Binding DataContext.Order.CreditStatus, StringFormat=c, ElementName=SalesTabControl}"
+                                     IsHitTestVisible="False"/>
+
+                            <TextBlock Grid.Column="3" Grid.Row="2"
+                                       Text="Checked By:"
+                                       FontSize="18"
+                                       TextDecorations="Underline"
+                                       FontWeight="Bold"
+                                       Foreground="#FF135185"/>
+
+                            <TextBox Grid.Column="4" Grid.Row="2"
+                                     BorderBrush="Black"
+                                     BorderThickness="0,2,0,2"
+                                     VerticalContentAlignment="Center"
+                                     FontSize="18"
+                                     Text="{Binding DataContext.Order.CreditApprover, StringFormat=c, ElementName=SalesTabControl}"
+                                     Visibility="{Binding DataContext.Order.CreditApprover, ElementName=SalesTabControl, Converter={StaticResource StringToVisConverter}}"
+                                     IsHitTestVisible="False"/>
+
+                            <TextBlock Grid.Column="3" Grid.Row="3"
+                                       Text="Checked Date:"
+                                       FontSize="18"
+                                       TextDecorations="Underline"
+                                       FontWeight="Bold"
+                                       Foreground="#FF135185"/>
+
+                            <TextBox Grid.Column="4" Grid.Row="3"
+                                     BorderBrush="Black"
+                                     BorderThickness="0,0,0,2"
+                                     VerticalContentAlignment="Center"
+                                     FontSize="18"
+                                     Text="{Binding DataContext.Order.CreditDate, StringFormat=d, ElementName=SalesTabControl}"
+                                     Visibility="{Binding DataContext.Order.CreditDate, ElementName=SalesTabControl, Converter={StaticResource DateToVisConverter}, ConverterParameter=N}"
+                                     IsHitTestVisible="False"/>
+
+                            <TextBlock Grid.Column="3" Grid.Row="4"
+                                       Text="Order Balance:"
+                                       FontSize="18"
+                                       TextDecorations="Underline"
+                                       FontWeight="Bold"
+                                       Foreground="#FF135185"/>
+
+                            <TextBox Grid.Column="4" Grid.Row="4"
+                                     BorderThickness="0"
+                                     VerticalContentAlignment="Center"
+                                     FontSize="18"
+                                     Text="{Binding DataContext.Order.OrderBalance, StringFormat=c, ElementName=SalesTabControl}"
+                                     IsHitTestVisible="False"/>
 
                             <!--#endregion-->
 

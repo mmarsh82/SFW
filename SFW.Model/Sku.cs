@@ -452,7 +452,7 @@ namespace SFW.Model
 
                     return _returnList;
                 }
-                catch (SqlException sqlEx)
+                catch (SqlException)
                 {
                     return null;
                 }

@@ -41,7 +41,7 @@
                                 Y="45" />
         </DrawingBrush.Transform>
         <DrawingBrush.Drawing>
-            <GeometryDrawing Brush="{StaticResource GridTile}">
+            <GeometryDrawing>
                 <GeometryDrawing.Geometry>
                     <!-- set the width and height filled with the tile from the origin -->
                     <RectangleGeometry Rect="0,0 130,120" />

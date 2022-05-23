@@ -38,7 +38,7 @@ namespace SFW.CycleCount
         public bool IsLocValid { get { return !string.IsNullOrEmpty(CountLocation) && Sku.IsValidLocation(CountTran.CountLoc); } }
         public int LocSize { get { return IsLocValid ? 1 : 3; } }
 
-        public List<Lot> ILotResultsList { get; set; }
+        public IList<Lot> ILotResultsList { get; set; }
 
         public delegate void ResultsDelegate(string s);
         public ResultsDelegate ResultsAsyncDelegate { get; private set; }

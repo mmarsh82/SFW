@@ -7,7 +7,7 @@ using System.Data;
 using System.Linq;
 using System.Windows.Data;
 
-namespace SFW.Schedule.SalesOrder
+namespace SFW.Schedule.PurchaseOrder
 {
     public class ViewModel : ViewModelBase
     {

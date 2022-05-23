@@ -15,7 +15,7 @@ namespace SFW.Controls
 
         public static Grid MainDock { get; set; }
         public static DockPanel SchedDock { get; set; }
-        public static DockPanel ClosedDock { get; set; }
+        public static DockPanel PurchaseDock { get; set; }
         public static DockPanel CountDock { get; set; }
         public static DockPanel SalesDock { get; set; }
         public static int Module => (int)App.LoadedModule;
@@ -36,7 +36,7 @@ namespace SFW.Controls
                 //Create the Control
                 MainDock = ((MainWindow)Application.Current.Windows[0]).WorkSpaceDock;
                 SchedDock = new DockPanel();
-                ClosedDock = new DockPanel();
+                PurchaseDock = new DockPanel();
                 CountDock = new DockPanel();
                 SalesDock = new DockPanel();
 
@@ -64,8 +64,12 @@ namespace SFW.Controls
                 //Add the Admin View to [4]
                 MainDock.Children.Insert(4, new Admin.View { DataContext = new Admin.ViewModel() });
 
-                //Empty View [5]
+                //Add the Purchase Order Schedule View to [5]
                 MainDock.Children.Insert(5, new UserControl());
+                /*PurchaseDock.Children.Insert(0, new Schedule.PurchaseOrder.View());
+                PurchaseDock.Children.Insert(1, new ShopRoute.PurchaseOrder.View { DataContext = new ShopRoute.PurchaseOrder.ViewModel() });
+                MainDock.Children.Insert(5, PurchaseDock);
+                while (!Schedule.PurchaseOrder.ViewModel.LoadAsyncComplete.IsCompleted) { }*/
 
                 //Add the Part Detail View to [6]
                 MainDock.Children.Insert(6, new UserControl());
@@ -126,7 +130,7 @@ namespace SFW.Controls
                     _tempDock = CountDock;
                     break;
                 case 5:
-                    _tempDock = ClosedDock;
+                    _tempDock = PurchaseDock;
                     break;
                 case 8:
                     _tempDock = SalesDock;
