@@ -124,7 +124,7 @@ namespace M2kClient.M2kADIArray
                 ? wipRecord.ReclaimList.Sum(o => Convert.ToInt32(o.Quantity))
                 : 0;
             CFlag = Enum.TryParse(wipRecord.SeqComplete.ToString().ToUpper(), out CompletionFlag cFlag) ? cFlag : CompletionFlag.N;
-            Operation = wipRecord.WipWorkOrder.Seq;
+            Operation = wipRecord.WipWorkOrder.Routing;
             RcptLocation = wipRecord.ReceiptLocation;
             DisplayInfoList = new List<DisplayInfo>
             {

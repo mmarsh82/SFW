@@ -19,6 +19,7 @@ namespace SFW.Model
         public string OrderNumber { get; set; }
         public string Seq { get; set; }
         public string OpDesc { get; set; }
+        public string Routing { get; set; }
         public string State { get; set; }
         public string Status { get; set; }
         public string TaskType { get; set; }
@@ -62,6 +63,7 @@ namespace SFW.Model
                 Seq = _row.Field<string>("Operation");
                 Operation = _row.Field<string>("Operation");
                 OpDesc = _row.Field<string>("Op_Desc");
+                Routing = _row.Field<string>("Routing");
                 State = _row.Field<string>("WO_Priority");
                 TaskType = _row.Field<string>("WO_Type");
                 StartQty = _row.Field<int>("WO_StartQty");
@@ -116,6 +118,7 @@ namespace SFW.Model
                 Seq = dRow.Field<string>("Operation");
                 Operation = dRow.Field<string>("Operation");
                 OpDesc = dRow.Field<string>("Op_Desc");
+                Routing = dRow.Field<string>("Routing");
                 State = dRow.Field<string>("WO_Priority");
                 TaskType = dRow.Field<string>("WO_Type");
                 StartQty = dRow.Field<int>("WO_StartQty");

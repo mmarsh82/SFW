@@ -62,7 +62,11 @@ namespace SFW.Model
 	                ,{_mOrder} as 'MachineOrder'
 	                ,wpo.[ID] as 'WorkOrderID'
 	                ,SUBSTRING(wpo.[ID], 0, CHARINDEX('*', wpo.[ID], 0)) as 'WorkOrder'
-                    ,SUBSTRING(wpo.[ID], CHARINDEX('*', wpo.[ID], 0) + 1, LEN(wpo.[ID])) as 'Operation'
+                    ,CASE WHEN SUBSTRING(wpo.[ID], CHARINDEX('*', wpo.[ID], 0) + 1, LEN(wpo.[ID])) <> '10' AND wpo.[Next_Seq] IS NULL AND wpo.[Prev_Seq] IS NULL
+						THEN '10'
+						ELSE SUBSTRING(wpo.[ID], CHARINDEX('*', wpo.[ID], 0) + 1, LEN(wpo.[ID]))
+					END as 'Operation'
+					,SUBSTRING(wpo.[ID], CHARINDEX('*', wpo.[ID], 0) + 1, LEN(wpo.[ID])) as 'Routing'
 	                ,ISNULL(wpo.[Qty_Avail], wpo.[Qty_Req] - ISNULL(wpo.[Qty_Compl], 0)) as 'WO_CurrentQty'
 	                ,ISNULL(wpo.[Date_Start], '1999-01-01') as 'WO_SchedStartDate'
 	                ,ISNULL(wpo.[Date_Act_Start], '1999-01-01') as 'WO_ActStartDate'

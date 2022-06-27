@@ -178,6 +178,17 @@
                 <StackPanel Grid.Row="2"
                             Orientation="Horizontal">
 
+                    <TextBlock Text="Routing:"
+                               FontSize="20"
+                               FontWeight="Bold"
+                               TextDecorations="UnderLine"
+                               Foreground="#FF135185" />
+
+                    <TextBlock Text="{Binding ShopOrder.Routing}"
+                               FontSize="20"
+                               FontWeight="Bold"
+                               Margin="10,0,30,0" />
+                    
                     <TextBlock Text="Operation:"
                                FontSize="20"
                                FontWeight="Bold"
