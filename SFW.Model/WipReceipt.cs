@@ -1,7 +1,6 @@
 ﻿using SFW.Model.Enumerations;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data;
 using System.Linq;
 
 //Created by Michael Marsh 10-23-18
@@ -95,6 +94,81 @@ namespace SFW.Model
             { }
         }
 
+        /// <summary>
+        /// Reclaim Sub-Class for the Sku object
+        /// </summary>
+        public class Reclaim : INotifyPropertyChanged
+        {
+            #region Properties
+
+            public int ID { get; set; }
+
+            private int? qty;
+            /// <summary>
+            /// Quantity of reclaim for the wip receipt
+            /// </summary>
+            public string Quantity
+            {
+                get
+                { return qty.ToString(); }
+                set
+                {
+                    if (int.TryParse(value, out int _qty))
+                    {
+                        qty = _qty;
+                    }
+                    else
+                    {
+                        qty = null;
+                    }
+                    OnPropertyChanged(nameof(Quantity));
+                }
+            }
+
+            /// <summary>
+            /// Parent part number for the reclaim transaction
+            /// </summary>
+            public string Parent { get; set; }
+
+            /// <summary>
+            /// Reference information for a reclaim transaction, typically the work order and QIR number
+            /// </summary>
+            public string Reference { get; set; }
+
+            /// <summary>
+            /// Assembly Quantity for a reclaim transaction
+            /// </summary>
+            public decimal ParentAssyQty { get; set; }
+
+            #endregion
+
+            #region INotifyPropertyChanged Implementation
+
+            public event PropertyChangedEventHandler PropertyChanged;
+
+            /// <summary>
+            /// Reflects changes from the ViewModel properties to the View
+            /// </summary>
+            /// <param name="propertyName">Property Name</param>
+            protected virtual void OnPropertyChanged(string propertyName)
+            {
+                var handler = PropertyChanged;
+                if (handler != null)
+                {
+                    var e = new PropertyChangedEventArgs(propertyName);
+                    handler(this, e);
+                }
+            }
+
+            #endregion
+
+            /// <summary>
+            /// Scrap Default constructor
+            /// </summary>
+            public Reclaim()
+            { }
+        }
+
         #region Properties
 
         /// <summary>
@@ -174,6 +248,11 @@ namespace SFW.Model
         /// </summary>
         public BindingList<Scrap> ScrapList { get; set; }
 
+        /// <summary>
+        /// Determines if the Wip is capable of processing reclaim
+        /// </summary>
+        public bool CanReclaim { get; set; }
+
         private Complete isReclaim;
         /// <summary>
         /// Determines if there is relaim for the wip receipt
@@ -184,33 +263,17 @@ namespace SFW.Model
             set
             {
                 isReclaim = value;
-                if (value == Complete.N)
+                if (value == Complete.N && ReclaimList != null)
                 {
-                    ReclaimQty = null;
-                    ReclaimReference = null;
+                    ReclaimList.Clear();
                 }
             }
         }
 
         /// <summary>
-        /// Quantity of reclaim for the wip receipt
+        /// Wip receipt reclaim list to use for the adjust part of the transaction
         /// </summary>
-        public int? ReclaimQty { get; set; }
-
-        /// <summary>
-        /// Parent part number for the reclaim transaction
-        /// </summary>
-        public string ReclaimParent { get; set; }
-
-        /// <summary>
-        /// Reference information for a reclaim transaction, typically the work order and QIR number
-        /// </summary>
-        public string ReclaimReference { get; set; }
-
-        /// <summary>
-        /// Assembly Quantity for a reclaim transaction
-        /// </summary>
-        public decimal ReclaimAssyQty { get; set; }
+        public BindingList<Reclaim> ReclaimList { get; set; }
 
         /// <summary>
         /// Determines if a work order is eligable for the Multi-Wip function
@@ -263,21 +326,9 @@ namespace SFW.Model
             IsScrap = Complete.N;
             ScrapList = new BindingList<Scrap>();
             IsReclaim = Complete.N;
-            if (workOrder.MachineGroup == "EXT")
-            {
-                if (workOrder.Picklist.Count(o => o.InventoryType == "RC") > 0)
-                {
-                    ReclaimParent = workOrder.Picklist.Where(o => o.InventoryType == "RC").FirstOrDefault().CompNumber;
-                    ReclaimAssyQty = workOrder.Picklist.Where(o => o.InventoryType == "RC").FirstOrDefault().AssemblyQty;
-                }
-                else if (workOrder.Picklist.Count() == 1)
-                {
-                    var _tempComp = new Component(workOrder.Picklist[0].CompNumber, "RC");
-                    ReclaimParent = _tempComp.CompNumber;
-                    ReclaimAssyQty = workOrder.Picklist[0].AssemblyQty * _tempComp.AssemblyQty;
-                }
-            }
+            ReclaimList = new BindingList<Reclaim>();
             CanMulti = workOrder.MachineGroup == "SLIT";
+            CanReclaim = workOrder.MachineGroup == "EXT";
         }
 
         /// <summary>

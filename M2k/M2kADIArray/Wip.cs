@@ -120,7 +120,9 @@ namespace M2kClient.M2kADIArray
             QtyReceived = wipRecord.ScrapList.Count(o => int.TryParse(o.Quantity, out int i) && i > 0) > 0
                 ? wipRecord.ScrapList.Sum(o => Convert.ToInt32(o.Quantity)) + Convert.ToInt32(wipRecord.WipQty) 
                 : Convert.ToInt32(wipRecord.WipQty);
-            QtyReceived += wipRecord.ReclaimQty != null && wipRecord.ReclaimQty > 0 ? Convert.ToInt32(wipRecord.ReclaimQty) : 0;
+            QtyReceived += wipRecord.ReclaimList.Count(o => int.TryParse(o.Quantity, out int i) && i > 0) > 0
+                ? wipRecord.ReclaimList.Sum(o => Convert.ToInt32(o.Quantity))
+                : 0;
             CFlag = Enum.TryParse(wipRecord.SeqComplete.ToString().ToUpper(), out CompletionFlag cFlag) ? cFlag : CompletionFlag.N;
             Operation = wipRecord.WipWorkOrder.Seq;
             RcptLocation = wipRecord.ReceiptLocation;

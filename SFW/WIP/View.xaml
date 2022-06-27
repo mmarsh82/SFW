@@ -26,6 +26,7 @@
                 <RowDefinition Height="40" />
                 <RowDefinition Height="40" />
                 <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
                 <RowDefinition Height="35" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="35" />
@@ -111,7 +112,7 @@
                            TextDecorations="Underline"
                            VerticalAlignment="Center"
                            Margin="50,0,0,0" 
-                           Visibility="{Binding WipRecord.ReclaimParent, Converter={StaticResource StringtoVisConverter}}" />
+                           Visibility="{Binding WipRecord.CanReclaim, Converter={StaticResource BooltoVisConverter}}" />
                 <RadioButton GroupName="reclaim"
                              IsChecked="{Binding Reclaim, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource EnumtoBoolConverter}, ConverterParameter=Y}"
                              Content="Yes"
@@ -120,7 +121,7 @@
                              VerticalAlignment="Center"
                              IsTabStop="False"
                              Margin="10,0,0,0"
-                             Visibility="{Binding WipRecord.ReclaimParent, Converter={StaticResource StringtoVisConverter}}"/>
+                             Visibility="{Binding WipRecord.CanReclaim, Converter={StaticResource BooltoVisConverter}}"/>
                 <RadioButton GroupName="reclaim"
                              IsChecked="{Binding Reclaim, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource EnumtoBoolConverter}, ConverterParameter=N}"
                              Content="No"
@@ -129,7 +130,7 @@
                              VerticalAlignment="Center"
                              IsTabStop="False"
                              Margin="10,0,0,0" 
-                             Visibility="{Binding WipRecord.ReclaimParent, Converter={StaticResource StringtoVisConverter}}"/>
+                             Visibility="{Binding WipRecord.CanReclaim, Converter={StaticResource BooltoVisConverter}}"/>
 
                 <CheckBox x:Name="MultiCheck"
                           IsChecked="{Binding Multi, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
@@ -240,8 +241,8 @@
                          FontWeight="Bold"
                          Background="LightGray"
                          Margin="5"
-                         Width="120"
-                         MaxLength="9"
+                         Width="130"
+                         MaxLength="11"
                          TabIndex="3"
                          CharacterCasing="Upper"
                          BorderThickness="{Binding IsLotValid, Converter={StaticResource BoolToIntConverter}}"
@@ -370,14 +371,97 @@
 
             <!--#endregion-->
 
+            <!--#region Reclaim Inputs-->
+
+            <ItemsControl x:Name="ReclaimInput"
+                          Grid.Row="5"
+                          HorizontalAlignment="Left"
+                          ItemsSource="{Binding WipRecord.ReclaimList, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                          Visibility="{Binding WipRecord.IsReclaim, Converter={StaticResource EnumtoVisConverter}}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <VirtualizingStackPanel IsItemsHost="True"
+                                                Orientation="Vertical" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Horizontal">
+
+                            <TextBlock Text="Reclaim Quantity:"
+                                       FontSize="18"
+                                       FontWeight="Bold"
+                                       TextDecorations="Underline"
+                                       VerticalAlignment="Center"
+                                       Margin="10,0,0,0" />
+                            <TextBox Text="{Binding Quantity, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                     FontSize="18"
+                                     FontWeight="Bold"
+                                     Background="LightGray"
+                                     Margin="5"
+                                     Width="75"
+                                     MaxLength="4"
+                                     Style="{DynamicResource RequiredTextBox}" />
+                            <TextBlock Text="{Binding DataContext.WipRecord.WipWorkOrder.Uom, ElementName=Wip_Window}"
+                                       FontSize="18"
+                                       FontWeight="Bold"
+                                       VerticalAlignment="Center"
+                                       Margin="5,0,0,0" />
+                            <TextBlock Text="QIR:"
+                                       FontSize="18"
+                                       FontWeight="Bold"
+                                       TextDecorations="Underline"
+                                       VerticalAlignment="Center"
+                                       Margin="20,0,0,0" />
+                            <TextBox Text="{Binding Reference, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                     FontSize="18"
+                                     FontWeight="Bold"
+                                     Background="LightGray"
+                                     Margin="5"
+                                     Width="100"
+                                     MaxLength="8"
+                                     CharacterCasing="Upper"
+                                     Style="{DynamicResource RequiredTextBox}" />
+
+                            <Button Background="Green"
+                                    Foreground="WhiteSmoke"
+                                    Content="Add"
+                                    Command="{Binding DataContext.AddReclaimICommand, ElementName=Wip_Window}"
+                                    CommandParameter="{Binding}"
+                                    Visibility="{Binding ID, Converter={StaticResource BooltoVisConverter}, ConverterParameter=i}"
+                                    Width="50"
+                                    Height="20"
+                                    Margin="10,0 0 0"
+                                    Style="{DynamicResource DefaultButton}"/>
+
+                            <Button Command="{Binding DataContext.RemoveReclaimICommand, ElementName=Wip_Window}"
+                                    CommandParameter="{Binding}"
+                                    Visibility="{Binding ID, Converter={StaticResource BooltoVisConverter}}"
+                                    Width="20"
+                                    Height="20"
+                                    Margin="10,0 0 0"
+                                    Style="{DynamicResource DefaultButton}">
+                                <Button.Content>
+                                    <Image Source="/SFW;component/Icons/Delete.ico" />
+                                </Button.Content>
+                            </Button>
+
+                        </StackPanel>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <!--#endregion-->
+
             <!--#region Seperator-->
 
-            <Rectangle Grid.Row="5"
+            <Rectangle Grid.Row="6"
                    Fill="#FF135185"
                    HorizontalAlignment="Stretch"
                    VerticalAlignment="Stretch"
                    Visibility="{Binding WipRecord.HasCrew, Converter={StaticResource BooltoVisConverter}}"/>
-            <TextBlock Grid.Row="5"
+            <TextBlock Grid.Row="6"
                    HorizontalAlignment="Center"
                    VerticalAlignment="Center"
                    Text="Crew Members"
@@ -391,7 +475,7 @@
             <!--#region Crew Inputs-->
 
             <ItemsControl Name="CrewMembers"
-                          Grid.Row="6"
+                          Grid.Row="7"
                           ItemsSource="{Binding Path=WipRecord.CrewList}"
                           Margin="10,0,0,0"
                           FontSize="18"
@@ -520,12 +604,12 @@
 
             <!--#region Seperator-->
 
-            <Rectangle Grid.Row="7"
+            <Rectangle Grid.Row="8"
                    Fill="#FF135185"
                    HorizontalAlignment="Stretch"
                    VerticalAlignment="Stretch"
                    Visibility="{Binding IsLotTrace, Converter={StaticResource BooltoVisConverter}}" />
-            <TextBlock Grid.Row="7"
+            <TextBlock Grid.Row="8"
                    HorizontalAlignment="Center"
                    VerticalAlignment="Center"
                    Text="Components"
@@ -539,7 +623,7 @@
             <!--#region Component Inputs-->
 
             <ItemsControl Name="CompParent"
-                          Grid.Row="8"
+                          Grid.Row="9"
                           ItemsSource="{Binding Path=WipRecord.WipWorkOrder.Picklist}"
                           Margin="10,0,0,0"
                           FontSize="18"
@@ -866,7 +950,7 @@
 
             <!--#region Submission Actions-->
 
-            <StackPanel Grid.Row="9"
+            <StackPanel Grid.Row="10"
                         Orientation="Horizontal"
                         HorizontalAlignment="Right">
 
@@ -925,59 +1009,6 @@
                         Visibility="Collapsed"
                         Style="{DynamicResource DefaultButton}" />
 
-            </StackPanel>
-
-            <!--#endregion-->
-
-            <!--#region Reclaim Inputs-->
-
-            <StackPanel Grid.Row="2"
-                        Grid.RowSpan="2"
-                        Orientation="Vertical"
-                        HorizontalAlignment="Right"
-                        Margin="0,0,60,0"
-                        Visibility="{Binding WipRecord.IsReclaim, Converter={StaticResource EnumtoVisConverter}}">
-                <StackPanel Orientation="Horizontal">
-
-                    <TextBlock Text="Reclaim Quantity:"
-                               FontSize="18"
-                               FontWeight="Bold"
-                               TextDecorations="Underline"
-                               VerticalAlignment="Center"/>
-                    <TextBox Text="{Binding WipRecord.ReclaimQty, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                             FontSize="18"
-                             FontWeight="Bold"
-                             Background="LightGray"
-                             Margin="5"
-                             Width="75"
-                             MaxLength="4"
-                             IsTabStop="False"
-                             Style="{DynamicResource RequiredTextBox}" />
-                    <TextBlock Text="{Binding WipRecord.WipWorkOrder.Uom}"
-                               FontSize="18"
-                               FontWeight="Bold"
-                               VerticalAlignment="Center"
-                               Margin="5,0,0,0" />
-
-                </StackPanel>
-                <StackPanel Orientation="Horizontal">
-
-                    <TextBlock Text="QIR Number:"
-                               FontSize="18"
-                               FontWeight="Bold"
-                               TextDecorations="Underline"
-                               VerticalAlignment="Center"/>
-                    <TextBox Text="{Binding WipRecord.ReclaimReference, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                             FontSize="18"
-                             FontWeight="Bold"
-                             Background="LightGray"
-                             Margin="5"
-                             Width="125"
-                             MaxLength="10"
-                             IsTabStop="False"
-                             Style="{DynamicResource RequiredTextBox}" />
-
-                </StackPanel>
             </StackPanel>
 
             <!--#endregion-->

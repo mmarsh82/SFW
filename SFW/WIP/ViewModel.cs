@@ -169,7 +169,26 @@ namespace SFW.WIP
             get
             { return WipRecord.IsReclaim; }
             set
-            { WipRecord.IsReclaim = value; OnPropertyChanged(nameof(Reclaim)); OnPropertyChanged(nameof(WipRecord)); }
+            {
+                WipRecord.IsReclaim = value;
+                OnPropertyChanged(nameof(Reclaim)); OnPropertyChanged(nameof(WipRecord));
+                WipRecord.ReclaimList.Clear();
+                WipRecord.ReclaimList.Add(new WipReceipt.Reclaim { ID = WipRecord.ReclaimList.Count() });
+                if (WipRecord.WipWorkOrder.Picklist.Count(o => o.InventoryType == "RC") > 0)
+                {
+                    WipRecord.ReclaimList.First().Parent = WipRecord.WipWorkOrder.Picklist.Where(o => o.InventoryType == "RC").FirstOrDefault().CompNumber;
+                    WipRecord.ReclaimList.First().ParentAssyQty = WipRecord.WipWorkOrder.Picklist.Where(o => o.InventoryType == "RC").FirstOrDefault().AssemblyQty;
+                }
+                else if (WipRecord.WipWorkOrder.Picklist.Count() == 1)
+                {
+                    var _tempComp = new Model.Component(WipRecord.WipWorkOrder.Picklist[0].CompNumber, "RC");
+                    WipRecord.ReclaimList.First().Parent = _tempComp.CompNumber;
+                    WipRecord.ReclaimList.First().ParentAssyQty = WipRecord.WipWorkOrder.Picklist[0].AssemblyQty * _tempComp.AssemblyQty;
+                }
+                WipRecord.ReclaimList.ListChanged += ReclaimList_ListChanged;
+                WipQuantity = "-1";
+                OnPropertyChanged(nameof(WipRecord));
+            }
         }
 
         public string RollQuantity
@@ -237,8 +256,10 @@ namespace SFW.WIP
         RelayCommand _removeComp;
         RelayCommand _removeScrap;
         RelayCommand _removeCompScrap;
+        RelayCommand _removeReclaim;
         RelayCommand _addScrap;
         RelayCommand _addCompScrap;
+        RelayCommand _addReclaim;
         RelayCommand _printBarLbl;
 
         #endregion
@@ -323,7 +344,7 @@ namespace SFW.WIP
                                     {
                                         if (s.Reason == "Quality Scrap" && !string.IsNullOrEmpty(s.Reference))
                                         {
-                                            _validScrap = true;
+                                            _validScrap = Lot.IsValidQIR(s.Reference, App.AppSqlCon);
                                         }
                                         else if (s.Reason != "Quality Scrap")
                                         {
@@ -394,6 +415,19 @@ namespace SFW.WIP
                         s.ScrapList.ListChanged += ScrapList_ListChanged;
                     }
                 }
+            }
+        }
+
+        /// <summary>
+        /// Happens when an item is added or changed in the Scrap Binding List property
+        /// </summary>
+        /// <param name="sender">BindingList<WipReceipt.Scrap> list passed without changes</param>
+        /// <param name="e">Change info</param>
+        private void ReclaimList_ListChanged(object sender, ListChangedEventArgs e)
+        {
+            if (e.ListChangedType == ListChangedType.ItemChanged && e.PropertyDescriptor.DisplayName == "Quantity")
+            {
+                WipQuantity = "-1";
             }
         }
 
@@ -483,9 +517,25 @@ namespace SFW.WIP
 
                     #endregion
 
+                    #region Reclaim Validation
+
+                    var _reclaimValid = true;
+                    if (WipRecord.IsReclaim == Model.Enumerations.Complete.Y)
+                    {
+                        if (WipRecord.ReclaimList.Count(o => int.TryParse(o.Quantity, out int i) && i > 0) > 0)
+                        {
+                            _reclaimValid = WipRecord.ReclaimList.Count(o => Convert.ToInt32(o.Quantity) > 0) == WipRecord.ReclaimList.Count(o => !string.IsNullOrEmpty(o.Reference));
+                        }
+                        else
+                        {
+                            _reclaimValid = false;
+                        }
+                    }
+
+                    #endregion
+
                     var _laborValid = WipRecord.CrewList.Where(o => DateTime.TryParse(o.LastClock, out var dt) && !string.IsNullOrEmpty(o.Name) && o.IsDirect).ToList().Count() == WipRecord.CrewList.Count(o => !string.IsNullOrEmpty(o.Name) && o.IsDirect);
                     var _multiValid = !WipRecord.IsMulti || (WipRecord.IsMulti && WipRecord.RollQty > 0);
-                    var _reclaimValid = WipRecord.IsReclaim == Model.Enumerations.Complete.N || (WipRecord.IsReclaim == Model.Enumerations.Complete.Y && WipRecord.ReclaimQty > 0 && !string.IsNullOrEmpty(WipRecord.ReclaimReference));
                     return _baseValid && _scrapValid && _reclaimValid && _multiValid && _laborValid;
                 }
                 else
@@ -726,6 +776,67 @@ namespace SFW.WIP
             OnPropertyChanged(nameof(WipRecord));
         }
         private bool AddCompScrapCanExecute(object parameter) => parameter != null && !string.IsNullOrEmpty(parameter.ToString());
+
+        #endregion
+
+        #region Remove Reclaim List Item ICommand
+
+        public ICommand RemoveReclaimICommand
+        {
+            get
+            {
+                if (_removeReclaim == null)
+                {
+                    _removeReclaim = new RelayCommand(RemoveReclaimExecute, RemoveReclaimCanExecute);
+                }
+                return _removeReclaim;
+            }
+        }
+
+        private void RemoveReclaimExecute(object parameter)
+        {
+            var _rec = (WipReceipt.Reclaim)parameter;
+            WipRecord.ReclaimList.Remove(WipRecord.ReclaimList.FirstOrDefault(c => c.ID == _rec.ID));
+            WipQuantity = "-1";
+        }
+        private bool RemoveReclaimCanExecute(object parameter) => parameter != null && !string.IsNullOrEmpty(parameter.ToString());
+
+        #endregion
+
+        #region Add Reclaim List Item ICommand
+
+        public ICommand AddReclaimICommand
+        {
+            get
+            {
+                if (_addReclaim == null)
+                {
+                    _addReclaim = new RelayCommand(AddReclaimExecute, AddReclaimCanExecute);
+                }
+                return _addReclaim;
+            }
+        }
+
+        private void AddReclaimExecute(object parameter)
+        {
+            WipRecord.ReclaimList.Add(new WipReceipt.Reclaim 
+            { 
+                ID = WipRecord.ReclaimList.Count()
+            });
+            if (WipRecord.WipWorkOrder.Picklist.Count(o => o.InventoryType == "RC") > 0)
+            {
+                WipRecord.ReclaimList.Last().Parent = WipRecord.WipWorkOrder.Picklist.Where(o => o.InventoryType == "RC").FirstOrDefault().CompNumber;
+                WipRecord.ReclaimList.Last().ParentAssyQty = WipRecord.WipWorkOrder.Picklist.Where(o => o.InventoryType == "RC").FirstOrDefault().AssemblyQty;
+            }
+            else if (WipRecord.WipWorkOrder.Picklist.Count() == 1)
+            {
+                var _tempComp = new Model.Component(WipRecord.WipWorkOrder.Picklist[0].CompNumber, "RC");
+                WipRecord.ReclaimList.Last().Parent = _tempComp.CompNumber;
+                WipRecord.ReclaimList.Last().ParentAssyQty = WipRecord.WipWorkOrder.Picklist[0].AssemblyQty * _tempComp.AssemblyQty;
+            }
+            OnPropertyChanged(nameof(WipRecord));
+        }
+        private bool AddReclaimCanExecute(object parameter) => parameter != null && !string.IsNullOrEmpty(parameter.ToString());
 
         #endregion
 

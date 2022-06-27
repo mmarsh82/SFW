@@ -137,11 +137,6 @@ namespace SFW.Model
             var _tempList = new List<Component>();
             WipInfoUpdating = false;
             var _rows = MasterDataSet.Tables["PL"].Select($"[WorkOrderID] LIKE '{woNbr}' AND [Routing] = '{woSeq}'");
-            if (_rows.Length == 0 && woSeq != "10")
-            {
-                woSeq = "10";
-                _rows = MasterDataSet.Tables["PL"].Select($"[WorkOrderID] LIKE '{woNbr}' AND [Routing] = '{woSeq}'");
-            }
             if (_rows.Length > 0)
             {
                 foreach (var _row in _rows)

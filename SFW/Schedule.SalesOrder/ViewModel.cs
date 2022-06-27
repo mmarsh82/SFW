@@ -254,16 +254,23 @@ namespace SFW.Schedule.SalesOrder
 
         public void ViewLoading(string filter)
         {
-            SalesScheduleView = CollectionViewSource.GetDefaultView(ModelBase.MasterDataSet.Tables["SalesMaster"]);
-            SalesScheduleView.GroupDescriptions.Add(new PropertyGroupDescription("FullCustName"));
-            if (!string.IsNullOrEmpty(filter))
+            try
             {
-                ((DataView)SalesScheduleView.SourceCollection).RowFilter = filter;
-                OnPropertyChanged(nameof(SalesScheduleView));
+                SalesScheduleView = CollectionViewSource.GetDefaultView(ModelBase.MasterDataSet.Tables["SalesMaster"]);
+                SalesScheduleView.GroupDescriptions.Add(new PropertyGroupDescription("FullCustName"));
+                if (!string.IsNullOrEmpty(filter))
+                {
+                    ((DataView)SalesScheduleView.SourceCollection).RowFilter = filter;
+                    OnPropertyChanged(nameof(SalesScheduleView));
+                }
+                SelectedCredStatus = CreditStatusList[0];
+                IsSchedule = false;
+                ScheduleType = true;
             }
-            SelectedCredStatus = CreditStatusList[0];
-            IsSchedule = false;
-            ScheduleType = true;
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show(ex.Message, "Unhandled Exception", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
+            }
         }
         public void ViewLoaded(IAsyncResult r)
         {

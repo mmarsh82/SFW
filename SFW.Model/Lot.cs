@@ -14,6 +14,7 @@ namespace SFW.Model
 
         public string LotNumber { get; set; }
         public int Onhand { get; set; }
+        public string Uom { get; set; }
         private string _loc;
         public string Location
         {
@@ -319,6 +320,39 @@ namespace SFW.Model
             }
         }
 
+        /// <summary>
+        /// Check to see if an entered QIR number is valid
+        /// </summary>
+        /// <param name="reference">Reference value</param>
+        /// <returns>QIR Validity</returns>
+        public static bool IsValidQIR(string reference, SqlConnection sqlCon)
+        {
+            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
+            {
+                var _db = sqlCon.Database;
+                try
+                {
+                    var _rtnVal = false;
+                    using (SqlCommand cmd = new SqlCommand(@"USE OMNI; SELECT COUNT([QIRNumber]) FROM [qir_metrics_view] WHERE [QIRNumber]=@p1;", sqlCon))
+                    {
+                        cmd.Parameters.AddWithValue("p1", reference);
+                        _rtnVal = Convert.ToInt32(cmd.ExecuteScalar()) > 0;
+                    }
+                    sqlCon.ChangeDatabase(_db);
+                    return _rtnVal;
+                }
+                catch (Exception)
+                {
+                    sqlCon.ChangeDatabase(_db);
+                    return false;
+                }
+            }
+            else
+            {
+                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
+            }
+        }
+
         #endregion
 
         /// <summary>
@@ -470,6 +504,7 @@ namespace SFW.Model
                         LotNumber = _row.Field<string>("LotID"),
                         Onhand = _row.Field<int>("OnHand"),
                         Location = _row.Field<string>("Location"),
+                        Uom = _row.Field<string>("Uom")
                     });
                 }
                 else
@@ -478,6 +513,7 @@ namespace SFW.Model
                     {
                         Onhand = _row.Field<int>("OnHand"),
                         Location = _row.Field<string>("Location"),
+                        Uom = _row.Field<string>("Uom")
                     });
                 }
             }
@@ -502,6 +538,7 @@ namespace SFW.Model
                     LotNumber = _row.Field<string>("LotID"),
                     Onhand = _row.Field<int>("OnHand"),
                     Location = _row.Field<string>("Location"),
+                    Uom = _row.Field<string>("Uom")
                 });
             }
             return _tempList;
