@@ -13,6 +13,7 @@ namespace SFW.Model
         public string SkuID { get; set; }
         public string ToolID { get; set; }
         public string MachineID { get; set; }
+        public string Description { get; set; }
 
         #endregion
 

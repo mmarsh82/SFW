@@ -484,8 +484,8 @@
                                  BorderBrush="Black"
                                  Height="130"
                                  Margin="10,0,0,0"
-                                 IsHitTestVisible="False"
                                  TextWrapping="WrapWithOverflow"
+                                 Focusable="False"
                                  Style="{DynamicResource DisabledTextBox}"/>
 
                     </StackPanel>
@@ -777,19 +777,13 @@
                                               AlternatingRowBackground="LightGray"
                                               AutoGenerateColumns="False"
                                               IsReadOnly="True"
-                                              Focusable="False"
                                               MaxHeight="355"
                                               ColumnHeaderStyle="{DynamicResource ModernColumnHeader}">
                                         <DataGrid.Columns>
                                             <DataGridTextColumn Header=" Lot Number  "
                                                                 Binding="{Binding LotNumber}" />
-                                            <DataGridTextColumn Header=" On Hand ">
-                                                <DataGridTextColumn.Binding>
-                                                    <MultiBinding StringFormat="{}{0}  {1}">
-                                                        <Binding Path="Onhand" />
-                                                        <Binding Path="Uom" />
-                                                    </MultiBinding>
-                                                </DataGridTextColumn.Binding>
+                                            <DataGridTextColumn Header=" On Hand "
+                                                                Binding="{Binding Onhand}">
                                                 <DataGridTextColumn.CellStyle>
                                                     <Style TargetType="{x:Type DataGridCell}">
                                                         <Setter Property="Foreground"
