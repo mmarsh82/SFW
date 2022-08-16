@@ -330,6 +330,10 @@ namespace SFW.Queries
                 else
                 {
                     SkuResultDictionary = Sku.Search(PartNumber.Replace(" ", "%"));
+                    if (SkuResultDictionary == null || SkuResultDictionary.Count() == 0)
+                    {
+                        ErrorMsg = "No results found, check your entry.";
+                    }
                     OnPropertyChanged(nameof(SkuResultDictionary));
                 }
             }

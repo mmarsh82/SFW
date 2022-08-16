@@ -4,6 +4,7 @@ using System.Data;
 using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 //Created by Michael Marsh 4-19-18
 
@@ -678,19 +679,78 @@ namespace SFW.Model
         /// <returns>List of found part numbers</returns>
         public static IDictionary<Sku, bool> Search(string searchInput)
         {
-            var _returnList = new Dictionary<Sku, bool>();
-            var _rows = MasterDataSet.Tables["SKU"].Select($"[SkuID] LIKE '%{searchInput}%' OR [Description] LIKE '%{searchInput}%'");
-            foreach (var _row in _rows)
+            try
             {
-                _returnList.Add(new Sku
+                var _returnList = new Dictionary<Sku, bool>();
+                if (searchInput.Contains("%"))
                 {
-                    SkuNumber = _row.Field<string>("SkuID")
-                    ,SkuDescription = _row.Field<string>("Description")
-                    ,MasterPrint = _row.Field<string>("MasterSkuID")
-                    ,EngStatus = _row.Field<string>("Status")
-                }, _row.Field<string>("Status") == "A");
+                    searchInput = searchInput.Replace("%", ".*");
+                    var _rows = MasterDataSet.Tables["SKU"].AsEnumerable()
+                    .Where(row =>
+                    {
+                        string skuVal = row.Field<string>("SkuID"); return Regex.IsMatch(skuVal, $".*{searchInput}.*");
+                    });
+                    if (_rows.Count() > 0)
+                    {
+                        foreach (var _row in _rows)
+                        {
+                            _returnList.Add(new Sku
+                            {
+                                SkuNumber = _row.Field<string>("SkuID")
+                                ,
+                                SkuDescription = _row.Field<string>("Description")
+                                ,
+                                MasterPrint = _row.Field<string>("MasterSkuID")
+                                ,
+                                EngStatus = _row.Field<string>("Status")
+                            }, _row.Field<string>("Status") == "A");
+                        }
+                    }
+                    _rows = MasterDataSet.Tables["SKU"].AsEnumerable()
+                    .Where(row =>
+                    {
+                        string desVal = row.Field<string>("Description"); return Regex.IsMatch(desVal, $".*{searchInput}.*");
+                    });
+                    if (_rows.Count() > 0)
+                    {
+                        foreach (var _row in _rows)
+                        {
+                            _returnList.Add(new Sku
+                            {
+                                SkuNumber = _row.Field<string>("SkuID")
+                                ,
+                                SkuDescription = _row.Field<string>("Description")
+                                ,
+                                MasterPrint = _row.Field<string>("MasterSkuID")
+                                ,
+                                EngStatus = _row.Field<string>("Status")
+                            }, _row.Field<string>("Status") == "A");
+                        }
+                    }
+                }
+                else
+                {
+                    var _rows = MasterDataSet.Tables["SKU"].Select($"[SkuID] LIKE '%{searchInput}%' OR [Description] LIKE '%{searchInput}%'");
+                    foreach (var _row in _rows)
+                    {
+                        _returnList.Add(new Sku
+                        {
+                            SkuNumber = _row.Field<string>("SkuID")
+                            ,
+                            SkuDescription = _row.Field<string>("Description")
+                            ,
+                            MasterPrint = _row.Field<string>("MasterSkuID")
+                            ,
+                            EngStatus = _row.Field<string>("Status")
+                        }, _row.Field<string>("Status") == "A");
+                    }
+                }
+                return _returnList;
             }
-            return _returnList;
+            catch (Exception e)
+            {
+                return null;
+            }
         }
     }
 }
