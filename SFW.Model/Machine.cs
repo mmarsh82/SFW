@@ -122,6 +122,10 @@ namespace SFW.Model
                         using (SqlDataAdapter adapter = new SqlDataAdapter($"USE {sqlCon.Database}; {_conString}", sqlCon))
                         {
                             adapter.Fill(_tempTable);
+                            /*foreach (DataRow test in _tempTable.Rows)
+                            {
+                                if (test.Field<int>("MachineNumber") == )
+                            }*/
                             return _tempTable;
                         }
                     }

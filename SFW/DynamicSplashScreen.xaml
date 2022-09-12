@@ -20,10 +20,10 @@
                 <Style TargetType="{x:Type Image}">
                     <Style.Triggers>
                         <DataTrigger Binding="{Binding Site}" Value="0">
-                            <Setter Property="Source" Value="Images/csiLogo.png"/>
+                            <Setter Property="Source" Value="/Images/csiLogo.png"/>
                         </DataTrigger>
                         <DataTrigger Binding="{Binding Site}" Value="1">
-                            <Setter Property="Source" Value="Images/wccoLogo.png"/>
+                            <Setter Property="Source" Value="/Images/wccoLogo.png"/>
                         </DataTrigger>
                     </Style.Triggers>
                 </Style>

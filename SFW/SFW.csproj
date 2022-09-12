@@ -30,8 +30,8 @@
     <PublisherName>Michael Marsh</PublisherName>
     <SuiteName>WCCO Belting Inc.</SuiteName>
     <AutorunEnabled>true</AutorunEnabled>
-    <ApplicationRevision>2843</ApplicationRevision>
-    <ApplicationVersion>1.0.392.2843</ApplicationVersion>
+    <ApplicationRevision>2845</ApplicationRevision>
+    <ApplicationVersion>1.0.393.2845</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <CreateDesktopShortcut>true</CreateDesktopShortcut>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -553,19 +553,12 @@
   <ItemGroup>
     <Resource Include="Icons\Admin.ico" />
   </ItemGroup>
-  <ItemGroup />
   <ItemGroup>
     <Resource Include="Icons\First.ico" />
     <Resource Include="Icons\Second.ico" />
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Icons\Third.ico" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Images\csiLogo.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Images\wccoLogo.png" />
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Icons\workbench.ico" />
@@ -581,6 +574,12 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Icons\Pause.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\wccoLogo.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\csiLogo.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
