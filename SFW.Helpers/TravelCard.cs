@@ -1,9 +1,11 @@
 ﻿using iTextSharp.text.pdf;
+using iTextSharp.text.pdf.parser;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing.Printing;
 using System.IO;
+using System.Text;
 using System.Windows.Forms;
 
 //Created 1-22-2019 by Michael Marsh
@@ -230,6 +232,28 @@ namespace SFW.Helpers
                 {
                     continue;
                 }
+            }
+        }
+
+        public static double ExtractPDFText(string filePath)
+        {
+            try
+            {
+                var docParse = string.Empty;
+                var _rtnVal = 0.0;
+                using (PdfReader reader = new PdfReader(filePath))
+                {
+                    ITextExtractionStrategy its = new LocationTextExtractionStrategy();
+                    var s = PdfTextExtractor.GetTextFromPage(reader, 1, its);
+                    docParse += Encoding.UTF8.GetString(Encoding.Convert(Encoding.Default, Encoding.UTF8, Encoding.Default.GetBytes(s)));
+                    var _index = docParse.IndexOf("Lb/Ft:") + "Lb/Ft:".Length;
+                    var _getRtnVal = double.TryParse(docParse.Substring(_index, _index.ToString().Length + 4).Trim(), out _rtnVal);
+                }
+                return _rtnVal;
+            }
+            catch (Exception)
+            {
+                return 0.0;
             }
         }
     }

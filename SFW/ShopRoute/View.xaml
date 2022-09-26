@@ -437,11 +437,11 @@
                                  Text="{Binding ShopOrderNotes, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay, FallbackValue={x:Null}}"
                                  FontSize="18"
                                  BorderBrush="Black"
-                                 IsHitTestVisible="{Binding Path=(main:CurrentUser.CanSchedule)}"
                                  Height="130"
                                  Margin="0,0,10,0"
                                  TextWrapping="WrapWithOverflow"
-                                 MaxLines="5"
+                                 VerticalScrollBarVisibility="Auto"
+                                 Focusable="{Binding CanSchedule, Source={StaticResource User}}"
                                  AcceptsReturn="True"/>
 
                         <Button Content="Save"
