@@ -115,9 +115,18 @@ namespace SFW.WIP
                 }
                 else if (!string.IsNullOrEmpty(WipRecord.WipLot.LotNumber) && IsLotValid)
                 {
-                    value = Lot.GetLotLocation(WipRecord.WipLot.LotNumber);
-                    IsLocationValid = true;
-                    IsLocationEditable = false;
+                    var _loc = Lot.GetLotLocation(WipRecord.WipLot.LotNumber);
+                    if (_loc == null)
+                    {
+                        IsLocationValid = Sku.IsValidLocation(value);
+                        IsLocationEditable = true;
+                    }
+                    else
+                    {
+                        IsLocationValid = true;
+                        IsLocationEditable = false;
+                        value = _loc;
+                    }
                 }
                 else if (!string.IsNullOrEmpty(WipRecord.WipLot.LotNumber) && !IsLotValid)
                 {
