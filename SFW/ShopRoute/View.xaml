@@ -868,6 +868,7 @@
                             <DataGrid x:Name="dgBom"
                                       ItemsSource="{Binding ShopOrder.Bom}"
                                       IsReadOnly="True"
+                                      Focusable="False"
                                       FontSize="18"
                                       FontWeight="Bold"
                                       AlternatingRowBackground="LightGray"

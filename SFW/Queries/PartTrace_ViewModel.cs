@@ -287,16 +287,16 @@ namespace SFW.Queries
                 //Check CSI first then move to WCCO
                 if(App.SiteNumber == 0)
                 {
-                    if (Sku.Exists(PartNumber))
+                    if (Sku.Exists(PartNumber, CurrentUser.IsEngineer))
                     {
-                        _master = Sku.GetMasterNumber(PartNumber);
+                        _master = Sku.GetMasterNumber(PartNumber, CurrentUser.IsEngineer);
                     }
                     else
                     {
                         App.DatabaseChange("WCCO_MAIN");
-                        if (Sku.Exists(PartNumber))
+                        if (Sku.Exists(PartNumber, CurrentUser.IsEngineer))
                         {
-                            _master = Sku.GetMasterNumber(PartNumber);
+                            _master = Sku.GetMasterNumber(PartNumber, CurrentUser.IsEngineer);
                         }
                         App.DatabaseChange("CSI_MAIN");
                     }
@@ -304,16 +304,16 @@ namespace SFW.Queries
                 //Check WCCO first then move to CSI
                 else
                 {
-                    if (Sku.Exists(PartNumber))
+                    if (Sku.Exists(PartNumber, CurrentUser.IsEngineer))
                     {
-                        _master = Sku.GetMasterNumber(PartNumber);
+                        _master = Sku.GetMasterNumber(PartNumber, CurrentUser.IsEngineer);
                     }
                     else
                     {
                         App.DatabaseChange("CSI_MAIN");
-                        if(Sku.Exists(PartNumber))
+                        if(Sku.Exists(PartNumber, CurrentUser.IsEngineer))
                         {
-                            _master = Sku.GetMasterNumber(PartNumber);
+                            _master = Sku.GetMasterNumber(PartNumber, CurrentUser.IsEngineer);
                         }
                         App.DatabaseChange("WCCO_MAIN");
                     }

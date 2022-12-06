@@ -4,6 +4,7 @@ using System.Data;
 using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
+using System.Runtime.Remoting.Messaging;
 using System.Text.RegularExpressions;
 
 //Created by Michael Marsh 4-19-18
@@ -622,9 +623,11 @@ namespace SFW.Model
         /// </summary>
         /// <param name="partNbr">Part Number to check</param>
         /// <returns>Pass/Fail as boolean</returns>
-        public static bool Exists(string partNbr)
+        public static bool Exists(string partNbr, bool returnAll)
         {
-            return MasterDataSet.Tables["SKU"].Select($"[SkuID] = '{partNbr}' AND [Status] = 'A'").Length > 0;
+            return returnAll 
+                ? MasterDataSet.Tables["SKU"].Select($"[SkuID] = '{partNbr}'").Length > 0
+                : MasterDataSet.Tables["SKU"].Select($"[SkuID] = '{partNbr}' AND [Status] = 'A'").Length > 0;
         }
 
         /// <summary>
@@ -632,9 +635,11 @@ namespace SFW.Model
         /// </summary>
         /// <param name="partNbr">Part Number to check</param>
         /// <returns>Pass/Fail as boolean</returns>
-        public static string GetMasterNumber(string partNbr)
+        public static string GetMasterNumber(string partNbr, bool returnAll)
         {
-            return MasterDataSet.Tables["SKU"].Select($"[SkuID] = '{partNbr}' AND [Status] = 'A'").FirstOrDefault().Field<string>("MasterSkuID");
+            return returnAll
+                ? MasterDataSet.Tables["SKU"].Select($"[SkuID] = '{partNbr}'").FirstOrDefault().Field<string>("MasterSkuID")
+                : MasterDataSet.Tables["SKU"].Select($"[SkuID] = '{partNbr}' AND [Status] = 'A'").FirstOrDefault().Field<string>("MasterSkuID");
         }
 
         /// <summary>

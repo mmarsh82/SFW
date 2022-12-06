@@ -28,9 +28,7 @@ namespace SFW.Commands
         /// <param name="parameter"></param>
         public void Execute(object parameter)
         {
-            DataSet ds = new DataSet();
-            ds.ReadXml("C:\\Users\\Michael.Marsh\\Desktop\\test.xml", XmlReadMode.IgnoreSchema);
-            ds.AcceptChanges();
+            var test = new Model.XMLTesting();
         }
         public bool CanExecute(object parameter) => true;
     }

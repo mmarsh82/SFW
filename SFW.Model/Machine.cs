@@ -39,109 +39,41 @@ namespace SFW.Model
         /// <returns>DataTable with the schedule data results</returns>
         public static DataTable GetScheduleData(IReadOnlyDictionary<string, int> machOrder, SqlConnection sqlCon)
         {
-            var _mOrder = string.Empty;
-            if (machOrder?.Count > 0)
+            var _conString = "SELECT * FROM [dbo].[SFW_WorkOrderView] ORDER BY MachineOrder, MachineNumber, WO_Priority, PriTime, Sched_Priority, WO_SchedStartDate, WorkOrderID ASC";
+            var _tempTable = new DataTable();
+            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
             {
-                _mOrder = "CASE";
-                foreach (var _mach in machOrder)
+                try
                 {
-                    _mOrder += $" WHEN wc.[Wc_Nbr] = '{_mach.Key}' THEN {_mach.Value}";
+                    using (SqlDataAdapter adapter = new SqlDataAdapter($"USE {sqlCon.Database}; {_conString}", sqlCon))
+                    {
+                        adapter.Fill(_tempTable);
+                        foreach (var _keyValPair in machOrder)
+                        {
+                            DataRow[] _rows = _tempTable.Select($"MachineNumber={_keyValPair.Key}");
+                            foreach (DataRow _row in _rows)
+                            {
+                                var _index = _tempTable.Rows.IndexOf(_row);
+                                _tempTable.Rows[_index].SetField("MachineOrder", _keyValPair.Value);
+                            }
+                        }
+                        _tempTable.DefaultView.Sort = "MachineOrder ASC";
+                        _tempTable = _tempTable.DefaultView.ToTable();
+                        return _tempTable;
+                    }
                 }
-                _mOrder += " ELSE 0 END";
+                catch (SqlException sqlEx)
+                {
+                    throw new Exception(sqlEx.Message);
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception(ex.Message);
+                }
             }
             else
             {
-                _mOrder = "0";
-            }
-            var _conString =
-                $@"SELECT
-	                wc.[Wc_Nbr] as 'MachineNumber'
-	                ,wc.[Name] as 'MachineName'
-	                ,wc.[D_esc] as 'MachineDesc'
-	                ,wc.[Work_Ctr_Group] as 'MachineGroup'
-	                ,{_mOrder} as 'MachineOrder'
-	                ,wpo.[ID] as 'WorkOrderID'
-	                ,SUBSTRING(wpo.[ID], 0, CHARINDEX('*', wpo.[ID], 0)) as 'WorkOrder'
-                    ,CASE WHEN SUBSTRING(wpo.[ID], CHARINDEX('*', wpo.[ID], 0) + 1, LEN(wpo.[ID])) <> '10' AND wpo.[Next_Seq] IS NULL AND wpo.[Prev_Seq] IS NULL
-						THEN '10'
-						ELSE SUBSTRING(wpo.[ID], CHARINDEX('*', wpo.[ID], 0) + 1, LEN(wpo.[ID]))
-					END as 'Operation'
-					,SUBSTRING(wpo.[ID], CHARINDEX('*', wpo.[ID], 0) + 1, LEN(wpo.[ID])) as 'Routing'
-	                ,ISNULL(wpo.[Qty_Avail], wpo.[Qty_Req] - ISNULL(wpo.[Qty_Compl], 0)) as 'WO_CurrentQty'
-	                ,ISNULL(wpo.[Date_Start], '1999-01-01') as 'WO_SchedStartDate'
-	                ,ISNULL(wpo.[Date_Act_Start], '1999-01-01') as 'WO_ActStartDate'
-	                ,ISNULL(wpo.[Due_Date], wpo.[Date_Start]) as 'WO_DueDate'
-	                ,ISNULL(CAST(ROUND(wpo.[Mach_Load_Hrs_Rem], 1) as float), 0) as 'RunTime'
-	                ,CASE WHEN wpo.[Due_Date] < GETDATE() THEN 1 ELSE 0 END as 'IsLate'
-	                ,CASE WHEN wpo.[Date_Start] < GETDATE() AND wp.[Qty_To_Start] = wpo.[Qty_Avail] THEN 1 ELSE 0 END as 'IsStartLate'
-	                ,ISNULL(wp.[Wo_Type], 'S') as 'WO_Type'
-	                ,wp.[Qty_To_Start] as 'WO_StartQty'
-	                ,SUBSTRING(wp.[So_Reference], 0, LEN(wp.[So_Reference]) -1) as 'WO_SalesRef'
-	                ,CASE WHEN wp.[Time_Wanted] IS NOT NULL THEN DATEPART(HOUR, CAST(wp.[Time_Wanted] as time)) ELSE '999' END as 'PriTime'
-	                ,CASE WHEN wp.[Time_Wanted] IS NOT NULL THEN DATEPART(MINUTE, CAST(wp.[Time_Wanted] as time)) ELSE '999' END as 'Sched_Priority'
-	                ,ISNULL(wp.[Bom_Rev_Date], '1999-01-01') as 'BomRevDate'
-	                ,ISNULL(wp.[Bom_Rev_Level], '') as 'BomRevLvl'
-	                ,wp.[Status_Flag] as 'Status'
-	                ,ISNULL(wp.[Fa_Dept], 'N') as 'Deviation'
-	                ,im.[Part_Number] as 'SkuNumber'
-	                ,im.[Description] as 'SkuDesc'
-	                ,im.[Um] as 'SkuUom'
-	                ,im.[Drawing_Nbrs] as 'SkuMasterPrint'
-	                ,cm.Cust_Nbr	
-	                ,cm.[Name] as 'Cust_Name'
-	                ,ISNULL(cm.Load_Pattern, '') as 'LoadPattern'
-	                ,ISNULL(CASE 
-		                WHEN (SELECT aa.[Ord_Type] FROM [dbo].[SOH-INIT] aa WHERE aa.[So_Nbr] = SUBSTRING(wp.[So_Reference], 0, CHARINDEX('*', wp.[So_Reference], 0))) = 'DAI' THEN 'A'
-		                WHEN wp.[Wo_Type] = 'R' THEN 'B'
-		                ELSE wp.[Mgt_Priority_Code] END, 'D') as 'WO_Priority'
-	                ,(SELECT rt.[Remarks] FROM [dbo].[RT-INIT_Remarks] rt WHERE rt.[ID] = CONCAT(im.[Part_Number], '*', SUBSTRING(wpo.[ID], CHARINDEX('*', wpo.[ID], 0) + 1, LEN(wpo.[ID]))) AND rt.[ID2] = 1) as 'Op_Desc'
-	                ,(SELECT ISNULL(rt.[Insp_Req], 'N') FROM [dbo].[RT-INIT] rt WHERE rt.[ID] = CONCAT(im.[Part_Number],'*', SUBSTRING(wpo.[ID], CHARINDEX('*', wpo.[ID], 0)+1, LEN(wpo.[ID])))) as 'Inspection'
-	                ,(SELECT ac.[Cust_Part_Nbr] FROM [dbo].[SOD-INIT] ac WHERE ac.[ID] = SUBSTRING(wp.So_Reference, 0, LEN(wp.So_Reference) - 1)) as 'Cust_Part_Nbr'
-	                ,CAST(ISNULL((SELECT ad.[Ln_Bal_Qty] FROM [dbo].[SOD-INIT] ad WHERE ad.[ID] = SUBSTRING(wp.So_Reference, 0, LEN(wp.So_Reference) - 1)), 0) AS int) as 'Ln_Bal_Qty'
-                FROM
-	                [dbo].[WC-INIT] wc
-                RIGHT JOIN
-	                [dbo].[WPO-INIT] wpo ON wpo.[Work_Center] = wc.[Wc_Nbr]
-                RIGHT JOIN
-	                [dbo].[WP-INIT] wp ON wp.[Wp_Nbr] = SUBSTRING(wpo.[ID], 0, CHARINDEX('*', wpo.[ID], 0))
-                RIGHT JOIN
-	                [dbo].[IM-INIT] im ON im.[Part_Number] = wp.[Part_Wo_Desc]
-                LEFT JOIN
-	                dbo.[CM-INIT] cm ON cm.[Cust_Nbr] = CASE WHEN CHARINDEX('*', wp.[Cust_Nbr], 0) > 0 THEN SUBSTRING(wp.[Cust_Nbr], 0, CHARINDEX('*', wp.[Cust_Nbr], 0)) ELSE wp.[Cust_Nbr] END
-
-                WHERE
-	                wc.[D_esc] <> 'DO NOT USE' AND wpo.[Alt_Seq_Status] IS NULL AND (wp.[Status_Flag] = 'C' OR wp.[Status_Flag] = 'A' OR wp.[Status_Flag] = 'R')
-                ORDER BY
-	                MachineOrder, MachineNumber, WO_Priority, PriTime, Sched_Priority, WO_SchedStartDate, WorkOrderID ASC";
-            using (var _tempTable = new DataTable())
-            {
-                if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
-                {
-                    try
-                    {
-                        using (SqlDataAdapter adapter = new SqlDataAdapter($"USE {sqlCon.Database}; {_conString}", sqlCon))
-                        {
-                            adapter.Fill(_tempTable);
-                            /*foreach (DataRow test in _tempTable.Rows)
-                            {
-                                if (test.Field<int>("MachineNumber") == )
-                            }*/
-                            return _tempTable;
-                        }
-                    }
-                    catch (SqlException sqlEx)
-                    {
-                        throw new Exception(sqlEx.Message);
-                    }
-                    catch (Exception ex)
-                    {
-                        throw new Exception(ex.Message);
-                    }
-                }
-                else
-                {
-                    throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
-                }
+                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
             }
         }
 

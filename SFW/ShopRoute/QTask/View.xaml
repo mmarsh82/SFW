@@ -466,6 +466,7 @@
                                       IsReadOnly="True"
                                       FontSize="18"
                                       FontWeight="Bold"
+                                  Focusable="False"
                                       AlternatingRowBackground="LightGray"
                                       SelectionMode="Single"
                                       RowDetailsVisibilityMode="Visible"
@@ -475,7 +476,6 @@
                                       VerticalAlignment="Top"
                                       VerticalScrollBarVisibility="Auto"
                                       HorizontalScrollBarVisibility="Hidden"
-                                      IsHitTestVisible="False"
                                       ColumnHeaderStyle="{DynamicResource ModernColumnHeader}">
 
                             <DataGrid.Columns>

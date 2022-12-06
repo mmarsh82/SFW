@@ -130,7 +130,7 @@ namespace M2kClient.M2kADIArray
             {
                 new DisplayInfo{ Code = CodeType.S, Quantity = QtyReceived, Reference = "STOCK" }
             };
-            Lot = wipRecord.WipLot.LotNumber;
+            Lot = wipRecord.WipLot.LotNumber.Trim();
             ComponentInfoList = new List<CompInfo>();
             AdjustmentList = new List<Adjust>();
             foreach(var c in wipRecord.WipWorkOrder.Picklist.Where(o => o.IsLotTrace))
