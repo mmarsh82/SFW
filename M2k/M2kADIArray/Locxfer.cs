@@ -93,8 +93,9 @@ namespace M2kClient.M2kADIArray
         /// <param name="qty"></param>
         /// <param name="lot"></param>
         /// <param name="reference"></param>
+        /// <param name="facCode"></param>
         /// <param name="uom"></param>
-        public Locxfer(string stationId, string partNbr, string from, string to, int qty, string lot, string reference, string uom = null)
+        public Locxfer(string stationId, string partNbr, string from, string to, int qty, string lot, string reference, string facCode, string uom = null)
         {
             StationId = stationId;
             PartNbr = partNbr;
@@ -103,6 +104,7 @@ namespace M2kClient.M2kADIArray
             Qty = qty;
             Lot = lot;
             Reference = reference;
+            FacilityCode = facCode;
             Uom = uom;
         }
 

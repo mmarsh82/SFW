@@ -165,38 +165,7 @@ namespace SFW.Model
                 {
                     try
                     {
-                        using (SqlDataAdapter adapter = new SqlDataAdapter($@"USE {sqlCon.Database};
-                                                                                SELECT
-	                                                                                em.[Emp_No] as 'EmployeeID'
-	                                                                                ,em.[First_Name] as 'FirstName'
-	                                                                                ,em.[Last_Name] as 'LastName'
-	                                                                                ,CONCAT(em.[First_Name], ' ', em.[Last_Name]) as 'DisplayName'
-	                                                                                ,CASE WHEN em.[Dept] = '010' THEN 1 ELSE 0 END as 'IsDirect'
-	                                                                                ,CASE WHEN em.[Shift] > 3
-		                                                                                THEN 4
-		                                                                                ELSE em.[Shift]
-	                                                                                END as 'Shift'
-	                                                                                ,CASE WHEN em.[Shift] = '1'
-		                                                                                THEN '07:00'
-		                                                                                WHEN em.[Shift] = '2'
-		                                                                                THEN '15:00'
-		                                                                                WHEN em.[Shift] = '3'
-		                                                                                THEN '23:00'
-		                                                                                ELSE '08:00'
-	                                                                                END as 'ShiftStart'
-	                                                                                ,CASE WHEN em.[Shift] = '1'
-		                                                                                THEN '15:00'
-		                                                                                WHEN em.[Shift] = '2'
-		                                                                                THEN '23:00'
-		                                                                                WHEN em.[Shift] = '3'
-		                                                                                THEN '07:00'
-		                                                                                ELSE '17:00'
-	                                                                                END as 'ShiftEnd'
-
-                                                                                FROM
-	                                                                                [dbo].[EMPLOYEE_MASTER-INIT] em
-                                                                                WHERE
-	                                                                                [Pay_Status] = 'A'", sqlCon))
+                        using (SqlDataAdapter adapter = new SqlDataAdapter($@"USE {sqlCon.Database}; SELECT * FROM [dbo].[SFW_Staff]", sqlCon))
                         {
                             adapter.Fill(_tempTable);
                             return _tempTable;

@@ -38,6 +38,7 @@ namespace SFW.Model
         public bool IsDeviated { get; set; }
         public int Shift { get; set; }
         public int Priority { get; set; }
+        public int Facility { get; set; }
 
         #endregion
 
@@ -101,6 +102,7 @@ namespace SFW.Model
                 Inspection = _row.Field<string>("Inspection") == "Y";
                 Priority = _row.Field<int>("Sched_Priority");
                 Shift = _row.Field<int>("PriTime");
+                Facility = _row.Field<int>("Site");
             }
         }
 
@@ -156,6 +158,7 @@ namespace SFW.Model
                 Inspection = dRow.Field<string>("Inspection") == "Y";
                 Priority = dRow.Field<int>("Sched_Priority");
                 Shift = dRow.Field<int>("PriTime");
+                Facility = dRow.Field<int>("Site");
             }
         }
 
@@ -182,7 +185,7 @@ namespace SFW.Model
                     }
                     catch (SqlException sqlEx)
                     {
-                        throw new Exception(sqlEx.Message);
+                        return new DataTable();
                     }
                     catch (Exception ex)
                     {

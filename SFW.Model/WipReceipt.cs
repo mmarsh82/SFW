@@ -177,6 +177,11 @@ namespace SFW.Model
         public string Submitter { get; private set; }
 
         /// <summary>
+        /// Logged in user facility code
+        /// </summary>
+        public int Facility { get; set; }
+
+        /// <summary>
         /// Wip receipt record quantity
         /// </summary>
         public int? WipQty { get; set; }
@@ -301,14 +306,17 @@ namespace SFW.Model
         /// <param name="userId">Currently logged in user ID</param>
         /// <param name="subFName">Currently logged in user First Name</param>
         /// <param name="subLName">Currently logged in user Last Name</param>
+        /// <param name="facCode">Currently logged in user facility code</param>
         /// <param name="workOrder">Work order object to process</param>
-        public WipReceipt(string userId, string subFName, string subLName, WorkOrder workOrder, string[] erpCon)
+        /// <param name="erpCon">ERP connection</param>
+        public WipReceipt(string userId, string subFName, string subLName, int facCode, WorkOrder workOrder, string[] erpCon)
         {
             if (ErpCon == null)
             {
                 ErpCon = erpCon;
             }
             Submitter = $"{subFName} {subLName}";
+            Facility = facCode;
             var _crewID = userId;
             SeqComplete = Complete.N;
             WipLot = new Lot();

@@ -296,7 +296,7 @@ namespace SFW.WIP
                     _delList.Clear();
                 }
             }
-            WipRecord = new WipReceipt(CurrentUser.UserIDNbr, CurrentUser.FirstName, CurrentUser.LastName, woObject, erpCon);
+            WipRecord = new WipReceipt(CurrentUser.UserIDNbr, CurrentUser.FirstName, CurrentUser.LastName, CurrentUser.Facility, woObject, erpCon);
             if (ScrapReasonCollection == null)
             {
                 var _tempList = Enum.GetValues(typeof(M2kClient.AdjustCode)).Cast<M2kClient.AdjustCode>().Where(o => o != M2kClient.AdjustCode.CC && o != M2kClient.AdjustCode.REC);

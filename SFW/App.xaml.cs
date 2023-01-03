@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data.SqlClient;
 using System.IO;
+using System.Security;
 using System.Threading;
 using System.Windows;
 using System.Windows.Threading;
@@ -31,11 +32,20 @@ namespace SFW
             get { return _site; }
             set { _site = value; StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(Site))); }
         }
+        public static string Facility
+        {
+            get { return SiteNumber == 1 ? "WCCO" : "CSI"; }
+        }
         public static int _siteNbr;
         public static int SiteNumber
         {
             get { return _siteNbr; }
-            set { _siteNbr = value; StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(SiteNumber))); }
+            set 
+            {
+                _siteNbr = value;
+                StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(SiteNumber)));
+                StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(Facility)));
+            }
         }
         public static bool _focused;
         public static bool IsFocused
@@ -102,15 +112,13 @@ namespace SFW
                 //Initialization of default application properties
                 SplashMessage = "Customizing your experience.";
                 SiteNumber = CurrentUser.GetSite();
-                Site = $"{CurrentUser.Site}_MAIN";
+                Site = "CONTI_MAIN";
                 GlobalConfig = LoadGlobalAppConfig();
                 if (!CurrentUser.IsLoggedIn)
                 {
                     CurrentUser.LogIn();
                 }
                 DefualtWorkCenter = UserConfig.GetUserConfigList();
-                SplashMessage = "Setting up the link to your ERP.";
-                ErpCon.DatabaseChange(Enum.TryParse(Site.Replace("_MAIN", ""), out Database _db) ? _db : Database.CSI);
                 SplashMessage = "Connecting to your data.";
                 if (AppSqlCon != null)
                 {
@@ -496,7 +504,7 @@ namespace SFW
                                             AppLock = bool.TryParse(reader.GetAttribute("IsLocked"), out bool b) ? b : true;
                                             break;
                                         case "M2kConnection":
-                                            ErpCon = new M2kConnection(reader.GetAttribute("Name"), reader.GetAttribute("ServiceUser"), reader.GetAttribute("ServicePass"), Database.CSI);
+                                            ErpCon = new M2kConnection(reader.GetAttribute("Name"), reader.GetAttribute("ServiceUser"), reader.GetAttribute("ServicePass"), Database.CONTI);
                                             break;
                                         case "RefreshRate":
                                             var _hour = int.TryParse(reader.GetAttribute("Hours"), out int h) ? h : 0;
@@ -506,14 +514,15 @@ namespace SFW
                                             RefreshTimer.Start(new TimeSpan(0, _hour, _min, _sec, _mSec));
                                             break;
                                         case "SqlConnection":
-                                            AppSqlCon = new SqlConnection($@"Server={reader.GetAttribute("IP")};
-                                                                            User ID={reader.GetAttribute("ServiceUser")};
-                                                                            Password={reader.GetAttribute("ServicePass")};
-                                                                            DataBase={Site};
-                                                                            Connection Timeout={reader.GetAttribute("TimeOut")};
-                                                                            MultipleActiveResultSets=True;
-                                                                            Max Pool Size=3;
-                                                                            Pooling=False;");
+                                            var pass = new SecureString();
+                                            foreach (var c in reader.GetAttribute("ServicePass"))
+                                            {
+                                                pass.AppendChar(c);
+                                            }
+                                            pass.MakeReadOnly();
+                                            var sqlCred = new SqlCredential(reader.GetAttribute("ServiceUser"), pass);
+                                            AppSqlCon = new SqlConnection($"Server={reader.GetAttribute("IP")};DataBase={Site};Connection Timeout={reader.GetAttribute("TimeOut")};MultipleActiveResultSets=True;Connection Lifetime=3;Max Pool Size=3;Pooling=true;", sqlCred);
+                                            AppSqlCon.StatisticsEnabled = true;
                                             break;
                                         //SiteDocumentation Element is written below
                                         //Make sure any site added in the SiteDocumentation element exists in the main application site list

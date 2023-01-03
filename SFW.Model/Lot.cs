@@ -102,7 +102,7 @@ namespace SFW.Model
                 }
                 catch (Exception)
                 {
-                    return null;
+                    return new DataTable();
                 }
             }
             else

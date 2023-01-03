@@ -86,15 +86,18 @@ namespace SFW.Model
                     }
                     catch (SqlException sqlEx)
                     {
+                        sqlCon.Close();
                         throw new Exception(sqlEx.Message);
                     }
                     catch (Exception ex)
                     {
+                        sqlCon.Close();
                         throw new Exception(ex.Message);
                     }
                 }
                 else
                 {
+                    sqlCon.Close();
                     throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
                 }
             }

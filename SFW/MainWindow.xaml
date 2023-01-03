@@ -117,7 +117,7 @@
                           Visibility="{Binding Path=(local:CurrentUser.CanSchedule), Converter={StaticResource BoolToVisConverter}}">
                     <MenuItem Header="CSI"
                               Command="{StaticResource ViewLoadICommand}"
-                              CommandParameter="0"
+                              CommandParameter="2"
                               IsCheckable="True"
                               IsChecked="{Binding Path=(local:App.SiteNumber), Converter={StaticResource SiteToBoolConverter}, ConverterParameter=CSI}"
                               InputGestureText="Alt+1"/>

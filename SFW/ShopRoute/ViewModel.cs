@@ -164,7 +164,7 @@ namespace SFW.ShopRoute
                         delegate (object sender, DoWorkEventArgs e)
                         {
                             //Getting the Work order work instructions
-                            ShopOrder.InstructionList = Sku.GetInstructions(ShopOrder.SkuNumber, App.SiteNumber, App.GlobalConfig.First(o => $"{o.Site}_MAIN" == App.Site).WI);
+                            ShopOrder.InstructionList = Sku.GetInstructions(ShopOrder.SkuNumber, App.SiteNumber, App.GlobalConfig.First(o => o.Site == App.Facility).WI);
 
                             //Getting the work order notes and the shop floor notes
                             ShopOrderNotes = WorkOrder.GetNotes("WN", false, ShopOrder.OrderNumber);

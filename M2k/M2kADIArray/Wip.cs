@@ -111,11 +111,10 @@ namespace M2kClient.M2kADIArray
         /// Use when you have a lot number for the parent part and there is only a single bucket for all components in the wip receipt
         /// </summary>
         /// <param name="wipRecord">Wip receipt object</param>
-        /// <param name="facCode">Optional: Facility code, default is 01</param>
-        public Wip(WipReceipt wipRecord, string facCode = "01")
+        public Wip(WipReceipt wipRecord)
         {
             StationId = wipRecord.Submitter;
-            FacilityCode = facCode;
+            FacilityCode = wipRecord.Facility.ToString();
             WorkOrderNbr = wipRecord.WipWorkOrder.OrderNumber;
             QtyReceived = wipRecord.ScrapList.Count(o => int.TryParse(o.Quantity, out int i) && i > 0) > 0
                 ? wipRecord.ScrapList.Sum(o => Convert.ToInt32(o.Quantity)) + Convert.ToInt32(wipRecord.WipQty) 
@@ -130,7 +129,7 @@ namespace M2kClient.M2kADIArray
             {
                 new DisplayInfo{ Code = CodeType.S, Quantity = QtyReceived, Reference = "STOCK" }
             };
-            Lot = wipRecord.WipLot.LotNumber.Trim();
+            Lot = wipRecord.WipLot.LotNumber;
             ComponentInfoList = new List<CompInfo>();
             AdjustmentList = new List<Adjust>();
             foreach(var c in wipRecord.WipWorkOrder.Picklist.Where(o => o.IsLotTrace))

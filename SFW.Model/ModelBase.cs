@@ -80,7 +80,7 @@ namespace SFW.Model
                     _tempDS.Tables.Add(Machine.GetScheduleData(machOrder, ModelSqlCon));
                     _tempDS.Tables[_tempDS.Tables.Count - 1].TableName = "Master";
 
-                    _tempDS.Tables.Add(site.Contains("WCCO") ? SalesOrder.GetScheduleData(ModelSqlCon) : new DataTable());
+                    _tempDS.Tables.Add(SalesOrder.GetScheduleData(ModelSqlCon));
                     _tempDS.Tables[_tempDS.Tables.Count - 1].TableName = "SalesMaster";
 
                     _tempDS.Tables.Add(Tool.GetTools(ModelSqlCon));
@@ -95,7 +95,7 @@ namespace SFW.Model
                     _tempDS.Tables.Add(WorkOrder.GetNotesTable(ModelSqlCon));
                     _tempDS.Tables[_tempDS.Tables.Count - 1].TableName = "WoNotes";
 
-                    _tempDS.Tables.Add(site.Contains("WCCO") ? Sku.GetInstructions(ModelSqlCon) : new DataTable());
+                    _tempDS.Tables.Add(Sku.GetInstructions(ModelSqlCon));
                     _tempDS.Tables[_tempDS.Tables.Count - 1].TableName = "WI";
 
                     _tempDS.Tables.Add(Lot.GetLotTable(ModelSqlCon));

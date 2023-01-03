@@ -37,6 +37,7 @@ namespace SFW.Model
         public bool Inspection { get; set; }
         public string NonCon { get; set; }
         public List<Tool> ToolList { get; set; }
+        public int Facility { get; set; }
 
         #endregion
 
@@ -61,28 +62,7 @@ namespace SFW.Model
                 {
                     try
                     {
-                        using (SqlDataAdapter adapter = new SqlDataAdapter($@"USE {sqlCon.Database};
-                                                                                SELECT
-	                                                                                im.[Part_Number] as 'SkuID'
-	                                                                                ,im.[Description]
-	                                                                                ,im.[Um] as 'Uom'
-	                                                                                ,im.[Lot_Trace] as 'LotTraceable'
-	                                                                                ,im.[Drawing_Nbrs] as 'MasterSkuID'
-	                                                                                ,rt.[Wc_Nbr] as 'WorkCenterID'
-	                                                                                ,CAST(im.[Bom_Rev_Date] as date) as 'BomRevDate'
-	                                                                                ,im.[Accounting_Status] as 'Status'
-	                                                                                ,im.[Inventory_Type] as 'Type'
-	                                                                                ,CAST(ISNULL(rt.[Crew_Size], 1) as int) as 'Crew'
-	                                                                                ,CAST(ISNULL(ipl.[Qty_On_Hand], 0) as int) as 'OnHand'
-	                                                                                ,ipl.[Wip_Rec_Loc] as 'WipLocation'
-                                                                                FROM
-	                                                                                [dbo].[IM-INIT] im
-                                                                                LEFT JOIN
-	                                                                                [dbo].[RT-INIT] rt ON rt.[ID] = CONCAT(im.[Part_Number], '*10')
-                                                                                LEFT JOIN
-	                                                                                [dbo].[IPL-INIT] ipl on ipl.[Part_Nbr] = im.[Part_Number]
-                                                                                WHERE
-	                                                                                im.[Accounting_Status] IS NOT NULL", sqlCon))
+                        using (SqlDataAdapter adapter = new SqlDataAdapter($@"USE {sqlCon.Database}; SELECT * FROM [dbo].[SFW_Products]", sqlCon))
                         {
                             adapter.Fill(_dt);
                         }
@@ -90,7 +70,7 @@ namespace SFW.Model
                     }
                     catch (SqlException sqlEx)
                     {
-                        throw sqlEx;
+                        return _dt;
                     }
                     catch (Exception ex)
                     {
@@ -117,7 +97,7 @@ namespace SFW.Model
                 {
                     try
                     {
-                        using (SqlDataAdapter adapter = new SqlDataAdapter($@"USE {sqlCon.Database}; SELECT [Part_Number] as 'SkuID', [Work_Instructions] as 'WI' FROM [dbo].[IM-INIT_Work_Instructions]", sqlCon))
+                        using (SqlDataAdapter adapter = new SqlDataAdapter($@"USE {sqlCon.Database}; SELECT * FROM [dbo].[SFW_WorkInstructions]", sqlCon))
                         {
                             adapter.Fill(_dt);
                         }
@@ -125,7 +105,7 @@ namespace SFW.Model
                     }
                     catch (SqlException sqlEx)
                     {
-                        throw sqlEx;
+                        return _dt;
                     }
                     catch (Exception ex)
                     {
@@ -152,7 +132,7 @@ namespace SFW.Model
                 {
                     try
                     {
-                        using (SqlDataAdapter adapter = new SqlDataAdapter($@"USE {sqlCon.Database}; SELECT locM.[Location] ,locM.[D_esc] as 'Description' FROM [dbo].[LOC_MASTER-INIT] locM", sqlCon))
+                        using (SqlDataAdapter adapter = new SqlDataAdapter($@"USE {sqlCon.Database}; SELECT * FROM [dbo].[SFW_Locations]", sqlCon))
                         {
                             adapter.Fill(_dt);
                         }
@@ -160,7 +140,7 @@ namespace SFW.Model
                     }
                     catch (SqlException sqlEx)
                     {
-                        throw sqlEx;
+                        return _dt;
                     }
                     catch (Exception ex)
                     {
@@ -506,6 +486,7 @@ namespace SFW.Model
                             MasterPrint = _row.FirstOrDefault().Field<string>("MasterSkuID");
                             InventoryType = _row.FirstOrDefault().Field<string>("Type");
                             CrewSize = _row.FirstOrDefault().Field<int>("Crew");
+                            Facility = _row.FirstOrDefault().Field<int>("Site");
                         }
                         break;
                     //Lot based Sku Loading
@@ -522,6 +503,7 @@ namespace SFW.Model
                             }
                             TotalOnHand = _row.FirstOrDefault().Field<int>("OnHand");
                             Location = _row.FirstOrDefault().Field<string>("Location");
+                            Facility = _row.FirstOrDefault().Field<int>("Site");
                         }
                         break;
                     //Custom Sku Loading
@@ -534,6 +516,7 @@ namespace SFW.Model
                             Uom = _row.FirstOrDefault().Field<string>("Uom");
                             TotalOnHand = _row.FirstOrDefault().Field<int>("OnHand");
                             EngStatus = _row.FirstOrDefault().Field<string>("Status");
+                            Facility = _row.FirstOrDefault().Field<int>("Site");
                         }
                         break;
                 }
@@ -653,7 +636,7 @@ namespace SFW.Model
         {
             //TODO: this code will need to be reformated once CSI has moved to the same process model as WCCO
             var _inst = new List<string>();
-            if (siteNbr == 0)
+            if (siteNbr == 2)
             {
                 if (File.Exists($"{filepath}{partNbr}.pdf"))
                 {

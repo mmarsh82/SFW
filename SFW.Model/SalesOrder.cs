@@ -164,7 +164,7 @@ namespace SFW.Model
 		                                                                            THEN 1
 		                                                                            ELSE 0
 	                                                                            END as 'CanShip'
-                                                                                ,b.[User_Def_1] as 'IsStagged'
+                                                                                ,1 as 'Site'
                                                                             FROM
 	                                                                            [dbo].[SOH-INIT] a
                                                                             RIGHT JOIN
@@ -188,7 +188,7 @@ namespace SFW.Model
                     }
                     catch (SqlException sqlEx)
                     {
-                        throw sqlEx;
+                        return _tempTable;
                     }
                     catch (Exception ex)
                     {
@@ -223,7 +223,7 @@ namespace SFW.Model
                 }
                 catch (SqlException sqlEx)
                 {
-                    throw sqlEx;
+                    return new DataTable();
                 }
                 catch (Exception ex)
                 {

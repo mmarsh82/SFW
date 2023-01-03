@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Org.BouncyCastle.Asn1.Cms;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
@@ -24,13 +25,19 @@ namespace SFW.Model
                     //TODO: Need to add in error handling here
                     return;
                 }
-                DataTableList = GetTableNames();
+                DataTableList = _nameList;
             }
             if (SfwDataDependency == null)
             {
-
+                SfwDataDependency = new SqlDependency();
+                SfwDataDependency.OnChange += SfwDataDependency_OnChange;
             }
             BuildXmlDataSet();
+        }
+
+        private void SfwDataDependency_OnChange(object sender, SqlNotificationEventArgs e)
+        {
+            throw new NotImplementedException();
         }
 
         public void BuildXmlDataSet()
@@ -38,6 +45,7 @@ namespace SFW.Model
             SfwDataSet = new DataSet();
             foreach (var _table in DataTableList)
             {
+                SfwDataSet.Tables.Add(GetSfwTables(_table));
 
             }
         }
@@ -55,11 +63,14 @@ namespace SFW.Model
                 {
                     using (SqlCommand command = new SqlCommand($"USE {ModelSqlCon.Database}; SELECT TABLE_NAME FROM INFORMATION_SCHEMA.VIEWS WHERE TABLE_NAME LIKE 'SFW_%'", ModelSqlCon))
                     {
-                        using(SqlDataReader reader = command.ExecuteReader())
+                        using (SqlDataReader reader = command.ExecuteReader())
                         {
                             if (reader.HasRows)
                             {
-                                _rtnList.Add(reader.GetString(0));
+                                while(reader.Read())
+                                {
+                                    _rtnList.Add(reader.GetString(0));
+                                }
                             }
                         }
                     }

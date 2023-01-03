@@ -38,16 +38,7 @@ namespace SFW.Model
                 {
                     try
                     {
-                        using (SqlDataAdapter adapter = new SqlDataAdapter($@"USE {sqlCon.Database};
-                                                                                SELECT
-	                                                                                rttt.[ID1] as 'ID'
-	                                                                                ,SUBSTRING(rttt.[ID1], 0, CHARINDEX('*', rttt.[ID1], 0)) as 'SkuID'
-	                                                                                ,rttt.[Tool_Tape] as 'ToolID'
-	                                                                                ,rt.[Wc_Nbr] as 'MachineID'
-                                                                                FROM
-	                                                                                [dbo].[RT-INIT_Tool_Tape] rttt
-                                                                                LEFT JOIN
-	                                                                                [dbo].[RT-INIT] rt ON rt.[ID] = rttt.[ID1]", sqlCon))
+                        using (SqlDataAdapter adapter = new SqlDataAdapter($"USE {sqlCon.Database}; SELECT * FROM SFW_Tools", sqlCon))
                         {
                             adapter.Fill(_tempTable);
                             return _tempTable;
@@ -55,7 +46,7 @@ namespace SFW.Model
                     }
                     catch (SqlException sqlEx)
                     {
-                        throw new Exception(sqlEx.Message);
+                        return _tempTable;
                     }
                     catch (Exception ex)
                     {

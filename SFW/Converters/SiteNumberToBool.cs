@@ -12,7 +12,7 @@ namespace SFW.Converters
             switch(parameter.ToString())
             {
                 case "CSI":
-                    return System.Convert.ToInt32(value) == 0;
+                    return System.Convert.ToInt32(value) == 2;
                 case "WCCO":
                     return System.Convert.ToInt32(value) == 1;
                 default:

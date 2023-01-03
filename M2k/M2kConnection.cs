@@ -48,6 +48,9 @@
                     case Database.WCCO:
                     case Database.WCCOTRAIN:
                         return "C2K";
+                    case Database.CONTI:
+                    case Database.CONTITRAIN:
+                        return "CNTI";
                     default:
                         return string.Empty;
                 } 
@@ -69,6 +72,10 @@
                         return "E:/roi/CSI.TRAIN";
                     case Database.WCCOTRAIN:
                         return "E:/roi/WCCO.TRAIN";
+                    case Database.CONTI:
+                        return "E:/roi/CONTI.MAIN";
+                    case Database.CONTITRAIN:
+                        return "E:/roi/CONTI.TRAIN";
                     default:
                         return string.Empty;
                 }

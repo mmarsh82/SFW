@@ -267,6 +267,18 @@ namespace SFW
             }
         }
 
+        private static int _fac;
+        public static int Facility
+        {
+            get
+            { return _fac; }
+            set
+            {
+                _fac = value;
+                StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(Facility)));
+            }
+        }
+
         public static event EventHandler<PropertyChangedEventArgs> StaticPropertyChanged;
 
         #endregion
@@ -305,6 +317,7 @@ namespace SFW
             DisplayName = user.DisplayName;
             Email = user.EmailAddress;
             Site = user.DistinguishedName.Contains("WCCO") ? "WCCO" : "CSI";
+            Facility = user.DistinguishedName.Contains("WCCO") ? 1 : 2;
             if (_groups.Exists(o => o.ToString().Contains("SFW_Admin")))
             {
                 CanTrain = CanSchedule = IsSupervisor = IsInventoryControl = IsAccountsReceivable = IsAdmin = HasSalesOrderModule = IsQuality = IsEngineer = true;
@@ -501,7 +514,7 @@ namespace SFW
                     if (uPrincipal.DistinguishedName.Contains("CSI"))
                     {
                         Site = "CSI";
-                        return 0;
+                        return 2;
                     }
                     else if (uPrincipal.DistinguishedName.Contains("WCCO"))
                     {

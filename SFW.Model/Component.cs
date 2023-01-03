@@ -74,7 +74,7 @@ namespace SFW.Model
                     }
                     catch (SqlException sqlEx)
                     {
-                        throw new Exception(sqlEx.Message);
+                        return new DataTable();
                     }
                     catch (Exception ex)
                     {
@@ -109,7 +109,7 @@ namespace SFW.Model
                     }
                     catch (SqlException sqlEx)
                     {
-                        throw new Exception(sqlEx.Message);
+                        return new DataTable();
                     }
                     catch (Exception ex)
                     {
