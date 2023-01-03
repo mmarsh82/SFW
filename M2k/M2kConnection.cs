@@ -35,6 +35,11 @@
         public string SFDCFolder { get; internal set; }
 
         /// <summary>
+        /// Manage 2000 Facility code
+        /// </summary>
+        public int Facility { get; internal set; }
+
+        /// <summary>
         /// Manage 2000 BTI and SFDC server to use as part of the suffix in the transactions
         /// </summary>
         public string AdiServer 
@@ -50,7 +55,7 @@
                         return "C2K";
                     case Database.CONTI:
                     case Database.CONTITRAIN:
-                        return "CNTI";
+                        return Facility == 1 ? "CONTI_W" : "CONTI_A";
                     default:
                         return string.Empty;
                 } 
@@ -91,12 +96,14 @@
         /// <param name="userName">Manage 2000 certified username, best practice would be to use a service account</param>
         /// <param name="password">Password for the Manage 2000 account you plan on using for the UniSession</param>
         /// <param name="database">Manage 2000 database location, this can typically be found on the host server</param>
-        public M2kConnection(string hostName, string userName, string password, Database database)
+        /// <param name="facility">Facility to connect to</param>
+        public M2kConnection(string hostName, string userName, string password, Database database, int facility)
         {
             HostName = hostName;
             UserName = userName;
             Password = password;
             Database = database;
+            Facility = facility;
             BTIFolder = $"{database.GetDescription()}BTI.TRANSACTIONS\\";
             SFDCFolder = $"{database.GetDescription()}SFDC.TRANSACTIONS\\";
         }

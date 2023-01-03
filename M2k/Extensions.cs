@@ -11,8 +11,10 @@ namespace M2kClient
         /// </summary>
         /// <param name="connection">Current M2kConnection Object</param>
         /// <param name="database">New database to use</param>
-        public static void DatabaseChange(this M2kConnection connection, Database database)
+        /// <param name="facCode">M2k Facility to use</param>
+        public static void DatabaseChange(this M2kConnection connection, Database database, int facCode)
         {
+            connection.Facility = facCode;
             connection.Database = database;
             connection.BTIFolder = $"{database.GetDescription()}BTI.TRANSACTIONS\\";
             connection.SFDCFolder = $"{database.GetDescription()}SFDC.TRANSACTIONS\\";

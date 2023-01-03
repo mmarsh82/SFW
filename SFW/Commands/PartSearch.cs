@@ -35,7 +35,7 @@ namespace SFW.Commands
                     else
                     {
                         parameter = !string.IsNullOrEmpty(_temp[1]) && _temp[1] != DependencyProperty.UnsetValue.ToString() ? _temp[1] : _temp[0];
-                        if (!File.Exists($"{App.GlobalConfig.First(o => $"{o.Site}_MAIN" == App.Site).PartPrint}{parameter}.pdf") && parameter.ToString() == _temp[1])
+                        if (!File.Exists($"{App.GlobalConfig.First(o => o.Site == App.Facility).PartPrint}{parameter}.pdf") && parameter.ToString() == _temp[1])
                         {
                             parameter = _temp[0];
                         }
@@ -43,7 +43,7 @@ namespace SFW.Commands
                 }
                 if (!string.IsNullOrEmpty(parameter?.ToString()) && !_isdeviated)
                 {
-                    Process.Start($"{App.GlobalConfig.First(o => $"{o.Site}_MAIN" == App.Site).PartPrint}{parameter}.pdf");
+                    Process.Start($"{App.GlobalConfig.First(o => o.Site == App.Facility).PartPrint}{parameter}.pdf");
                 }
                 else if (!string.IsNullOrEmpty(parameter?.ToString()) && _isdeviated)
                 {

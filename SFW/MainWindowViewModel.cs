@@ -90,25 +90,7 @@ namespace SFW
             get { return iTraining; }
             set
             {
-                if (value)
-                {
-                    if (Enum.TryParse($"{App.ErpCon.Database}TRAIN", out Database db))
-                    {
-                        App.ErpCon.DatabaseChange(db);
-                    }
-                    else
-                    {
-                        System.Windows.MessageBox.Show("There is currently no train account set up for your ERP database.\nPlease contact the IT administrator for further help.", "No Train Database", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
-                        value = false;
-                    }
-                }
-                else if (!value && App.AppSqlCon.Database.Replace('_', '.') != $"{App.ErpCon.Database}.MAIN")
-                {
-                    if (Enum.TryParse(App.AppSqlCon.Database.Replace('_', '.'), out Database db))
-                    {
-                        App.ErpCon.DatabaseChange(db);
-                    }
-                }
+                App.ErpCon.DatabaseChange(Database.CONTITRAIN, App.SiteNumber);
                 iTraining = value;
                 StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(InTraining)));
             }

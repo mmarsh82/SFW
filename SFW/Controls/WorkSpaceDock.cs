@@ -142,7 +142,7 @@ namespace SFW.Controls
                 {
                     MessageBox.Show("Unable to switch to the alternate site.");
                 }
-                App.ErpCon.DatabaseChange(Enum.TryParse(index.ToString(), out Database _db) ? _db : Database.WCCO);
+                App.ErpCon.DatabaseChange(Database.CONTI, App.SiteNumber);
                 Schedule.ViewModel.SiteChange = true;
                 RefreshTimer.RefreshTimerTick();
                 MainDock.Children.RemoveAt(4);

@@ -227,20 +227,12 @@ namespace SFW
                 switch(dbName)
                 {
                     case "CSI_MAIN":
-                        SiteNumber = 0;
-                        ErpCon.DatabaseChange(Database.CSI);
+                        SiteNumber = 2;
+                        ErpCon.DatabaseChange(Database.CONTI, SiteNumber);
                         break;
                     case "WCCO_MAIN":
                         SiteNumber = 1;
-                        ErpCon.DatabaseChange(Database.WCCO);
-                        break;
-                    case "CSI_TRAIN":
-                        SiteNumber = 0;
-                        ErpCon.DatabaseChange(Database.CSITRAIN);
-                        break;
-                    case "WCCO_TRAIN":
-                        SiteNumber = 1;
-                        ErpCon.DatabaseChange(Database.WCCOTRAIN);
+                        ErpCon.DatabaseChange(Database.CONTI, SiteNumber);
                         break;
                 }
                 return true;
@@ -262,29 +254,8 @@ namespace SFW
             var dbName = string.Empty;
             try
             {
-                switch (siteNbr)
-                {
-                    case 0:
-                        SiteNumber = siteNbr;
-                        ErpCon.DatabaseChange(Database.CSI);
-                        dbName = "CSI_MAIN";
-                        break;
-                    case 1:
-                        SiteNumber = siteNbr;
-                        ErpCon.DatabaseChange(Database.WCCO);
-                        dbName = "WCCO_MAIN";
-                        break;
-                    case 2:
-                        SiteNumber = 0;
-                        ErpCon.DatabaseChange(Database.CSITRAIN);
-                        dbName = "CSI_TRAIN";
-                        break;
-                    case 3:
-                        SiteNumber = 1;
-                        ErpCon.DatabaseChange(Database.WCCOTRAIN);
-                        dbName = "WCCO_TRAIN";
-                        break;
-                }
+                SiteNumber = siteNbr;
+                ErpCon.DatabaseChange(Database.CONTI, siteNbr);
                 AppSqlCon.ChangeDatabase(dbName);
                 Site = dbName;
                 return true;
@@ -504,7 +475,7 @@ namespace SFW
                                             AppLock = bool.TryParse(reader.GetAttribute("IsLocked"), out bool b) ? b : true;
                                             break;
                                         case "M2kConnection":
-                                            ErpCon = new M2kConnection(reader.GetAttribute("Name"), reader.GetAttribute("ServiceUser"), reader.GetAttribute("ServicePass"), Database.CONTI);
+                                            ErpCon = new M2kConnection(reader.GetAttribute("Name"), reader.GetAttribute("ServiceUser"), reader.GetAttribute("ServicePass"), Database.CONTI, SiteNumber);
                                             break;
                                         case "RefreshRate":
                                             var _hour = int.TryParse(reader.GetAttribute("Hours"), out int h) ? h : 0;

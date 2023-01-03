@@ -90,13 +90,14 @@ namespace SFW.Model
         /// <summary>
         /// Get a Sku's tool list
         /// </summary>
-        /// <param name="partNbr">Sku ID Number</param>
+        /// <param name="skuNbr">Sku ID Number</param>
         /// <param name="seq">Sku's sequence</param>
+        /// <param name="facility">Current user facility number</param>
         /// <returns>A list of tool's associated with the Sku</returns>
-        public static List<Tool> GetToolList(string skuNbr, string seq)
+        public static List<Tool> GetToolList(string skuNbr, string seq, int facCode)
         {
             var _tempList = new List<Tool>();
-            var _rows = MasterDataSet.Tables["TL"].Select($"[ID] = '{skuNbr}*{seq}'");
+            var _rows = MasterDataSet.Tables["TL"].Select($"[ID] = '{skuNbr}|0{facCode}*{seq}'");
             if (_rows.Length > 0)
             {
                 foreach (var _row in _rows)
