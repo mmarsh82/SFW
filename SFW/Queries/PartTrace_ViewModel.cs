@@ -145,7 +145,7 @@ namespace SFW.Queries
                             case 0:
                                 try
                                 {
-                                    SetupPrint = $"{App.GlobalConfig.First(o => $"{o.Site}_MAIN" == App.Site).PressSetup}{PartNumber}.pdf";
+                                    SetupPrint = $"{App.GlobalConfig.First(o => o.Site == App.Facility).PressSetup}{PartNumber}.pdf";
                                     VerifyText = "Accepted";
                                     break;
                                 }
@@ -162,7 +162,7 @@ namespace SFW.Queries
                                 {
                                     case "PRESS":
                                     case "ENG":
-                                        _fileName = ExcelReader.GetSetupPrintNumber(PartNumber, _machName, App.GlobalConfig.First(o => $"{o.Site}_MAIN" == App.Site).PressSetup, "Production");
+                                        _fileName = ExcelReader.GetSetupPrintNumber(PartNumber, _machName, App.GlobalConfig.First(o => o.Site == App.Facility).PressSetup, "Production");
                                         if (!string.IsNullOrEmpty(_fileName) && !_fileName.Contains("ERR:"))
                                         {
                                             var _fileheader = string.Empty;
@@ -171,7 +171,7 @@ namespace SFW.Queries
                                                 _fileheader += "0";
                                             }
                                             _fileName = _fileheader + _fileName;
-                                            SetupPrint = $"{App.GlobalConfig.First(o => $"{o.Site}_MAIN" == App.Site).PartPrint}{_fileName}.PDF";
+                                            SetupPrint = $"{App.GlobalConfig.First(o => o.Site == App.Facility).PartPrint}{_fileName}.PDF";
                                             VerifyText = "Accepted";
                                         }
                                         else
@@ -181,13 +181,13 @@ namespace SFW.Queries
                                         }
                                         break;
                                     case "FABE":
-                                        _fileName = ExcelReader.GetSetupPrintNumber(PartNumber, _machName, App.GlobalConfig.First(o => $"{o.Site}_MAIN" == App.Site).SyscoSetup, "PRODUCTION");
-                                        SetupPrint = $"{App.GlobalConfig.First(o => $"{o.Site}_MAIN" == App.Site).PartPrint}{_fileName}.PDF";
+                                        _fileName = ExcelReader.GetSetupPrintNumber(PartNumber, _machName, App.GlobalConfig.First(o => o.Site == App.Facility).SyscoSetup, "PRODUCTION");
+                                        SetupPrint = $"{App.GlobalConfig.First(o => o.Site == App.Facility).PartPrint}{_fileName}.PDF";
                                         VerifyText = "Accepted";
                                         break;
                                     case "EXT":
-                                        _fileName = ExcelReader.GetSetupPrintNumber(PartNumber, _machName, App.GlobalConfig.First(o => $"{o.Site}_MAIN" == App.Site).ExtSetup, "PRODUCTION");
-                                        SetupPrint = $"{App.GlobalConfig.First(o => $"{o.Site}_MAIN" == App.Site).PartPrint}{_fileName}.PDF";
+                                        _fileName = ExcelReader.GetSetupPrintNumber(PartNumber, _machName, App.GlobalConfig.First(o => o.Site == App.Facility).ExtSetup, "PRODUCTION");
+                                        SetupPrint = $"{App.GlobalConfig.First(o => o.Site == App.Facility).PartPrint}{_fileName}.PDF";
                                         VerifyText = "Accepted";
                                         break;
                                     default:
@@ -200,7 +200,7 @@ namespace SFW.Queries
                     }
 
                     //Get the sku work instruction list
-                    SkuWIList = Sku.GetInstructions(PartNumber, App.SiteNumber, App.GlobalConfig.First(o => $"{o.Site}_MAIN" == App.Site).WI);
+                    SkuWIList = Sku.GetInstructions(PartNumber, App.SiteNumber, App.GlobalConfig.First(o => o.Site == App.Facility).WI);
                     OnPropertyChanged(nameof(SkuWIList));
 
                     //Get a sku tooling list
@@ -323,9 +323,9 @@ namespace SFW.Queries
                 {
                     new Commands.PartSearch().Execute(_master);
                 }
-                else if (File.Exists($"{App.GlobalConfig.First(o => $"{o.Site}_MAIN" == App.Site).PartPrint}{ PartNumber}.pdf"))
+                else if (File.Exists($"{App.GlobalConfig.First(o => o.Site == App.Facility).PartPrint}{ PartNumber}.pdf"))
                 {
-                    Process.Start($"{App.GlobalConfig.First(o => $"{o.Site}_MAIN" == App.Site).PartPrint}{ PartNumber}.pdf");
+                    Process.Start($"{App.GlobalConfig.First(o => o.Site == App.Facility).PartPrint}{ PartNumber}.pdf");
                 }
                 else
                 {
@@ -391,7 +391,7 @@ namespace SFW.Queries
             {
                 try
                 {
-                    var _file = $"{App.GlobalConfig.First(o => $"{o.Site}_MAIN" == App.Site).WI}{ parameter}";
+                    var _file = $"{App.GlobalConfig.First(o => o.Site == App.Facility).WI}{ parameter}";
                     Process.Start(_file);
                 }
                 catch (Exception)

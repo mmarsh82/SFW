@@ -212,15 +212,15 @@ namespace SFW.Queries
             var _part = Lot.GetSkuNumber(LotNumber);
             var _scrap = int.TryParse(LotScrap, out int lotInt) ? Convert.ToInt32(LotScrap) : 0;
             var _onHandDelta = _startingQty - LotQuantity;
-            M2kClient.M2kCommand.InventoryAdjustment(CurrentUser.DisplayName, $"Split into {RollQuantity} rolls", _part, M2kClient.AdjustCode.CC, 'S', _onHandDelta, LotLocation, App.ErpCon, LotNumber);
+            M2kClient.M2kCommand.InventoryAdjustment(CurrentUser.DisplayName, $"Split into {RollQuantity} rolls", _part, M2kClient.AdjustCode.CC, 'S', _onHandDelta, LotLocation, $"0{App.SiteNumber}", App.ErpCon, LotNumber);
             foreach (var l in SplitLotList.Where(o => int.TryParse(o.TransactionQty, out int i) && i > 0))
             {
-                M2kClient.M2kCommand.InventoryAdjustment(CurrentUser.DisplayName, $"Split from {LotNumber}", _part, M2kClient.AdjustCode.CC, 'A', Convert.ToInt32(l.TransactionQty), l.Location, App.ErpCon, l.LotNumber);
+                M2kClient.M2kCommand.InventoryAdjustment(CurrentUser.DisplayName, $"Split from {LotNumber}", _part, M2kClient.AdjustCode.CC, 'A', Convert.ToInt32(l.TransactionQty), l.Location, $"0{App.SiteNumber}", App.ErpCon, l.LotNumber);
             }
             ActionNote = "Scrapping...";
             if (_scrap > 0)
             {
-                M2kClient.M2kCommand.InventoryAdjustment(CurrentUser.DisplayName, $"Scrap Split", _part, M2kClient.AdjustCode.CC, 'A', _scrap, "SCRAP", App.ErpCon, $"{LotNumber}Z");
+                M2kClient.M2kCommand.InventoryAdjustment(CurrentUser.DisplayName, $"Scrap Split", _part, M2kClient.AdjustCode.CC, 'A', _scrap, "SCRAP", $"0{App.SiteNumber}", App.ErpCon, $"{LotNumber}Z");
                 var _counter = 0;
                 while (!Lot.IsValid($"{LotNumber}Z") || _counter >= 2000)
                 {

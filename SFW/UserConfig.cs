@@ -135,12 +135,12 @@ namespace SFW
 
                         writer.WriteStartElement("Default_WC");
 
-                        writer.WriteStartElement("Site_0");
+                        writer.WriteStartElement("Site_1");
                         writer.WriteAttributeString("WC_Nbr", "");
                         writer.WriteAttributeString("Position", "1");
                         writer.WriteEndElement();
 
-                        writer.WriteStartElement("Site_1");
+                        writer.WriteStartElement("Site_2");
                         writer.WriteAttributeString("WC_Nbr", "");
                         writer.WriteAttributeString("Position", "1");
                         writer.WriteEndElement();
@@ -188,24 +188,6 @@ namespace SFW
 
                         writer.WriteStartElement("Default_WC");
 
-                        if (ucList != null && ucList.Count(o => o.SiteNumber == 0) > 0)
-                        {
-                            foreach (UserConfig _uc in ucList.Where(o => o.SiteNumber == 0).OrderBy(o => o.Position))
-                            {
-                                writer.WriteStartElement("Site_0");
-                                writer.WriteAttributeString("WC_Nbr", _uc.MachineNumber);
-                                writer.WriteAttributeString("Position", _uc.Position.ToString());
-                                writer.WriteEndElement();
-                            }
-                        }
-                        else
-                        {
-                            writer.WriteStartElement("Site_0");
-                            writer.WriteAttributeString("WC_Nbr", "");
-                            writer.WriteAttributeString("Position", "1");
-                            writer.WriteEndElement();
-                        }
-
                         if (ucList != null && ucList.Count(o => o.SiteNumber == 1) > 0)
                         {
                             foreach (UserConfig _uc in ucList.Where(o => o.SiteNumber == 1).OrderBy(o => o.Position))
@@ -219,6 +201,24 @@ namespace SFW
                         else
                         {
                             writer.WriteStartElement("Site_1");
+                            writer.WriteAttributeString("WC_Nbr", "");
+                            writer.WriteAttributeString("Position", "1");
+                            writer.WriteEndElement();
+                        }
+
+                        if (ucList != null && ucList.Count(o => o.SiteNumber == 2) > 0)
+                        {
+                            foreach (UserConfig _uc in ucList.Where(o => o.SiteNumber == 2).OrderBy(o => o.Position))
+                            {
+                                writer.WriteStartElement("Site_2");
+                                writer.WriteAttributeString("WC_Nbr", _uc.MachineNumber);
+                                writer.WriteAttributeString("Position", _uc.Position.ToString());
+                                writer.WriteEndElement();
+                            }
+                        }
+                        else
+                        {
+                            writer.WriteStartElement("Site_2");
                             writer.WriteAttributeString("WC_Nbr", "");
                             writer.WriteAttributeString("Position", "1");
                             writer.WriteEndElement();

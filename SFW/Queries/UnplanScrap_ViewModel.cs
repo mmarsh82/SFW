@@ -137,11 +137,11 @@ namespace SFW.Queries
         {
             if (string.IsNullOrEmpty(LotNbr))
             {
-                M2kClient.M2kCommand.InventoryAdjustment(CurrentUser.DomainUserName, $"{WoNbr}*{QirNbr}", PartNbr, M2kClient.AdjustCode.QSC, 'S', Convert.ToInt32(scrapQty), Location, App.ErpCon);
+                M2kClient.M2kCommand.InventoryAdjustment(CurrentUser.DomainUserName, $"{WoNbr}*{QirNbr}", PartNbr, M2kClient.AdjustCode.QSC, 'S', Convert.ToInt32(scrapQty), Location, $"0{App.SiteNumber}", App.ErpCon);
             }
             else
             {
-                M2kClient.M2kCommand.InventoryAdjustment(CurrentUser.DomainUserName, $"{WoNbr}*{QirNbr}", PartNbr, M2kClient.AdjustCode.QSC, 'S', Convert.ToInt32(scrapQty), Location, App.ErpCon, LotNbr);
+                M2kClient.M2kCommand.InventoryAdjustment(CurrentUser.DomainUserName, $"{WoNbr}*{QirNbr}", PartNbr, M2kClient.AdjustCode.QSC, 'S', Convert.ToInt32(scrapQty), Location, $"0{App.SiteNumber}", App.ErpCon, LotNbr);
             }
         }
         private bool ScrapSubmitCanExecute(object parameter)

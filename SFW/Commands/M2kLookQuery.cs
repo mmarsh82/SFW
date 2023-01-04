@@ -25,16 +25,16 @@ namespace SFW.Commands
                     switch (_parSplit[0])
                     {
                         case "WO":
-                            Process.Start($"http://intranet-wcco-1/{_site}.MAIN/SFC/IssuedMaterialDetail/IssuedMaterialDetail.aspx?WorkOrder={_parSplit[1]}");
+                            Process.Start($"http://intranet-wcco-1/CONTI.MAIN/SFC/IssuedMaterialDetail/IssuedMaterialDetail.aspx?WorkOrder={_parSplit[1]}");
                             break;
                         case "SO":
                             var _startInfo = _parSplit.Length == 2
-                                ? $"http://intranet-wcco-1/{_site}.MAIN/SOP/SoLineDetail/SoLineDetail.aspx?SoNbr={_parSplit[1]}&LineNbr=1"
-                                : $"http://intranet-wcco-1/{_site}.MAIN/SOP/SoLineDetail/SoLineDetail.aspx?SoNbr={_parSplit[1]}&LineNbr={_parSplit[2]}";
+                                ? $"http://intranet-wcco-1/CONTI.MAIN/SOP/SoLineDetail/SoLineDetail.aspx?SoNbr={_parSplit[1]}&LineNbr=1"
+                                : $"http://intranet-wcco-1/CONTI.MAIN/SOP/SoLineDetail/SoLineDetail.aspx?SoNbr={_parSplit[1]}&LineNbr={_parSplit[2]}";
                             Process.Start(_startInfo);
                             break;
                         case "AR":
-                            Process.Start($"http://intranet-wcco-1/WCCO.MAIN/ROIPortals/CustomerPortal/CustomerPortal.aspx?CustNbr={_parSplit[1]}");
+                            Process.Start($"http://intranet-wcco-1/CONTI.MAIN/ROIPortals/CustomerPortal/CustomerPortal.aspx?CustNbr={_parSplit[1]}");
                             break;
                     }
                 }

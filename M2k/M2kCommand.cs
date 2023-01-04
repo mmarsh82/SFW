@@ -254,29 +254,30 @@ namespace M2kClient
         /// <param name="to">Location the material will be moving to</param>
         /// <param name="qty">Amount of material to move</param>
         /// <param name="reference">Move reference as open text</param>
+        /// <param name="facCode">Facility code</param>
         /// <param name="connection">Current M2k Connection to be used for processing the transaction</param>
         /// <param name="nonConf">Optional: Non-conformance reason associated with the part being moved</param>
         /// <returns>Error number and description, when returned error number is 0 the suffix will be in the description</returns>
-        public static IReadOnlyDictionary<int, string> InventoryMove(string stationId, string partNbr, string lotNbr, string uom, string from, string to, int qty, string reference, M2kConnection connection, string nonConf = "")
+        public static IReadOnlyDictionary<int, string> InventoryMove(string stationId, string partNbr, string lotNbr, string uom, string from, string to, int qty, string reference, string facCode, M2kConnection connection, string nonConf = "")
         {
             var _subResult = new Dictionary<int, string>();
             try
             {
                 //Move the product
                 var suffix = DateTime.Now.ToString($"HHmmssffff");
-                var _move = new Locxfer(stationId, partNbr.ToUpper(), from.ToUpper(), to.ToUpper(), qty, lotNbr, reference, uom.ToUpper());
+                var _move = new Locxfer(stationId, partNbr.ToUpper(), from.ToUpper(), to.ToUpper(), qty, lotNbr, reference, facCode, uom.ToUpper());
                 File.WriteAllText($"{connection.BTIFolder}LOCXFER{connection.AdiServer}.DAT{suffix}", _move.ToString());
                 //Check to see if you need to clear or add a non-conformance reason
 
                 if (!to.EndsWith("N") && !string.IsNullOrEmpty(nonConf))
                 {
                     //Remove note
-                    EditRecord("LOT.MASTER", $"{lotNbr}|P", 42, "", UdArrayCommand.Remove, connection);
+                    EditRecord("LOT.MASTER", $"{lotNbr}|P|0{facCode}", 42, "", UdArrayCommand.Remove, connection);
                 }
                 else if (to.EndsWith("N"))
                 {
                     //Add note
-                    EditRecord("LOT.MASTER", $"{lotNbr}|P", 42, nonConf, UdArrayCommand.Replace, connection);
+                    EditRecord("LOT.MASTER", $"{lotNbr}|P|0{facCode}", 42, nonConf, UdArrayCommand.Replace, connection);
                 }
                 _subResult.Add(0, string.Empty);
                 return _subResult;
@@ -325,7 +326,7 @@ namespace M2kClient
                         _subResult.Add(0, string.Empty);
                         return _subResult;
                     }
-                    wipRecord.WipLot.LotNumber = _response.First().Value.Replace("|P", "").Trim();
+                    wipRecord.WipLot.LotNumber = _response.First().Value.Replace($"|P|0{wipRecord.Facility}", "").Trim();
                 }
                 //File creation for the WIP ADI, needs to account for all database scenarios (i.e. one to one, one to many, and many to many)
                 _tWip = new Wip(wipRecord);
@@ -395,8 +396,8 @@ namespace M2kClient
                         _subResult.Add(0, string.Empty);
                         return _subResult;
                     }
-                    wipRecord.WipLot.LotNumber = _response.First().Value.Replace("|P", "");
-                    _lotList.Add(_response.First().Value.Replace("|P", ""));
+                    wipRecord.WipLot.LotNumber = _response.First().Value.Replace($"|P|0{wipRecord.Facility}", "");
+                    _lotList.Add(_response.First().Value.Replace($"|P|0{wipRecord.Facility}", ""));
                     //File creation for the WIP ADI, needs to account for all database scenarios (i.e. one to one, one to many, and many to many)
                     _tWip = new Wip(wipRecord) { QtyReceived = Convert.ToInt32(wipRecord.WipQty), ComponentInfoList = _tComp };
                     if (!string.IsNullOrEmpty(_tWip.StationId))
@@ -425,7 +426,7 @@ namespace M2kClient
                 {
                     foreach (var c in wipRecord.WipWorkOrder.Picklist)
                     {
-                        var _issue = new Issue(wipRecord.Submitter, "010", c.CompNumber, wipRecord.WipWorkOrder.OrderNumber, "II", new List<Transaction>());
+                        var _issue = new Issue(wipRecord.Submitter, wipRecord.Facility.ToString(), c.CompNumber, wipRecord.WipWorkOrder.OrderNumber, "II", new List<Transaction>());
 
                         foreach (var w in c.WipInfo.Where(o => !string.IsNullOrEmpty(o.LotNbr)))
                         {
@@ -457,7 +458,7 @@ namespace M2kClient
                     var _wipQty = wipRecord.IsMulti ? Convert.ToInt32(wipRecord.WipQty * wipRecord.RollQty) : Convert.ToInt32(wipRecord.WipQty);
                     foreach (var c in wipRecord.CrewList.Where(o => !string.IsNullOrEmpty(o.Name) && o.IsDirect))
                     {
-                        var _pl = PostLabor("SFW WIP", c.IdNumber, c.Shift, $"{wipRecord.WipWorkOrder.OrderNumber}*{wipRecord.WipWorkOrder.Seq}", _wipQty, machID, ' ', connection, c.LastClock, _crew);
+                        var _pl = PostLabor("SFW WIP", c.IdNumber, c.Shift, $"{wipRecord.WipWorkOrder.OrderNumber}*{wipRecord.WipWorkOrder.Seq}", _wipQty, machID, ' ', $"0{wipRecord.Facility}", connection, c.LastClock, _crew);
                         if (_pl.Any(o => o.Key == 1))
                         {
                             System.Windows.MessageBox.Show($"Unable to process Labor\nPlease contact IT immediately!\n\n{_pl[1]}", "M2k Labor file error", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
@@ -485,6 +486,7 @@ namespace M2kClient
                     'S',
                     Convert.ToInt32(s.Quantity),
                     wipRecord.ReceiptLocation,
+                    $"0{wipRecord.Facility}",
                     connection,
                     wipRecord.WipLot.LotNumber == "NonLotWip" || wipRecord.WipLot.LotNumber == "Multiple" ? "" : wipRecord.WipLot.LotNumber);
             }
@@ -514,6 +516,7 @@ namespace M2kClient
                         'S',
                         Convert.ToInt32(_reclaim.Quantity),
                         wipRecord.ReceiptLocation,
+                        $"0{wipRecord.Facility}",
                         connection);
                     //Adjustment in
                     InventoryAdjustment(wipRecord.Submitter,
@@ -523,6 +526,7 @@ namespace M2kClient
                         'A',
                         Convert.ToInt32(Math.Round(Convert.ToDecimal(_reclaim.Quantity) * _reclaim.ParentAssyQty, 0, MidpointRounding.AwayFromZero)),
                         "EXT-1",
+                        $"0{wipRecord.Facility}",
                         connection);
                 }
             }
@@ -535,7 +539,7 @@ namespace M2kClient
             {
                 foreach (var info in mat.WipInfo.Where(o => o.RollStatus && o.OnHandCalc > 0))
                 {
-                    InventoryMove(wipRecord.Submitter, info.PartNbr, info.LotNbr, info.Uom, info.RcptLoc, "SCRAP", info.OnHandCalc, "Roll Marked Gone", connection);
+                    InventoryMove(wipRecord.Submitter, info.PartNbr, info.LotNbr, info.Uom, info.RcptLoc, "SCRAP", info.OnHandCalc, "Roll Marked Gone", $"0{wipRecord.Facility}", connection);
                 }
             }
 
@@ -562,12 +566,13 @@ namespace M2kClient
         /// <param name="qtyComp">Quantity completed for this transaction</param>
         /// <param name="machID">Machine ID that will receive the labor posting</param>
         /// <param name="clockTranType">Clock transaction type, when passed will need to be formated as 'I' or 'O', by leaving this parameter blank will cause the method to calculate labor</param>
+        /// <param name="facCode">Facility code</param>
         /// <param name="connection">Current M2k Connection to be used for processing the transaction</param>
         /// <param name="time">Optional: Post time, must be in a 24 hour clock format using only hours and minutes</param>
         /// <param name="crew">Optional: Crew size, only needs to be passed when the crewsize listed in the ERP is smaller or larger that the amount of crew members posting labor to the work order</param>
         /// <param name="tranDate">Optional: Date of transaction</param>
         /// <returns>Error number and error description, when returned as 0 and a empty string the transaction posted with no errors</returns>
-        public static IReadOnlyDictionary<int, string> PostLabor(string stationId, string empID, int shift, string woAndSeq, int qtyComp, string machID, char clockTranType, M2kConnection connection, string time = "", int crew = 0, string tranDate = "")
+        public static IReadOnlyDictionary<int, string> PostLabor(string stationId, string empID, int shift, string woAndSeq, int qtyComp, string machID, char clockTranType, string facCode, M2kConnection connection, string time = "", int crew = 0, string tranDate = "")
         {
             var _subResult = new Dictionary<int, string>();
             try
@@ -611,21 +616,21 @@ namespace M2kClient
                                 tranDate = DateTime.Now.ToString("MM-dd-yyyy");
                             }
                         }
-                        var _inDL = new DirectLabor(stationId, empID, 'I', time, _wSplit[0], _wSplit[1], 0, 0, machID, CompletionFlag.N, crew, tranDate);
+                        var _inDL = new DirectLabor(stationId, empID, 'I', time, _wSplit[0], _wSplit[1], 0, 0, machID, CompletionFlag.N, facCode, crew, tranDate);
 
                         //posting the clock out time for DateTime.Now
 
                         time = DateTime.Now.ToString("HH:mm");
                         var _outDL = crew > 0
-                            ? new DirectLabor(stationId, empID, 'O', time, _wSplit[0], _wSplit[1], qtyComp, 0, machID, CompletionFlag.N, crew)
-                            : new DirectLabor(stationId, empID, 'O', time, _wSplit[0], _wSplit[1], qtyComp, 0, machID, CompletionFlag.N);
+                            ? new DirectLabor(stationId, empID, 'O', time, _wSplit[0], _wSplit[1], qtyComp, 0, machID, CompletionFlag.N, facCode, crew)
+                            : new DirectLabor(stationId, empID, 'O', time, _wSplit[0], _wSplit[1], qtyComp, 0, machID, CompletionFlag.N, facCode);
                         File.WriteAllText($"{connection.SFDCFolder}LB{connection.AdiServer}.DAT{suffix}{empID}", $"{_inDL.ToString()}\n\n{_outDL.ToString()}");
                     }
                     else
                     {
                         var _tempDL = crew > 0
-                            ? new DirectLabor(stationId, empID, clockTranType, time, _wSplit[0], _wSplit[1], qtyComp, 0, machID, CompletionFlag.N, crew)
-                            : new DirectLabor(stationId, empID, clockTranType, time, _wSplit[0], _wSplit[1], qtyComp, 0, machID, CompletionFlag.N);
+                            ? new DirectLabor(stationId, empID, clockTranType, time, _wSplit[0], _wSplit[1], qtyComp, 0, machID, CompletionFlag.N, facCode, crew)
+                            : new DirectLabor(stationId, empID, clockTranType, time, _wSplit[0], _wSplit[1], qtyComp, 0, machID, CompletionFlag.N, facCode);
                         File.WriteAllText($"{connection.SFDCFolder}LB{connection.AdiServer}.DAT{suffix}{empID}", _tempDL.ToString());
                     }
                     _subResult.Add(0, string.Empty);
@@ -649,10 +654,11 @@ namespace M2kClient
         /// <param name="tranOp">Transaction Operation, see adjust object for more information</param>
         /// <param name="tranQty">Transation quantity</param>
         /// <param name="location">Location</param>
+        /// <param name="facCode">Facility Code</param>
         /// <param name="connection">Current M2k Connection to be used for processing the transaction</param>
         /// <param name="lot">Optional: Lot number</param>
         /// <returns>Error number and error description, when returned as 0 and a empty string the transaction posted with no errors</returns>
-        public static IReadOnlyDictionary<int, string> InventoryAdjustment(string stationId, string reference, string partNbr, AdjustCode aCode, char tranOp, int tranQty, string location, M2kConnection connection, string lot = "")
+        public static IReadOnlyDictionary<int, string> InventoryAdjustment(string stationId, string reference, string partNbr, AdjustCode aCode, char tranOp, int tranQty, string location, string facCode, M2kConnection connection, string lot = "")
         {
             var _subResult = new Dictionary<int, string>();
             try
@@ -666,7 +672,7 @@ namespace M2kClient
                 }
                 var _tScrap = new Adjust(
                     stationId,
-                    "01",
+                    facCode,
                     reference,
                     partNbr,
                     aCode,

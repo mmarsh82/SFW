@@ -119,8 +119,8 @@ namespace M2kClient.M2kADIArray
             //Must meet this format in order to work with M2k
 
             return !string.IsNullOrEmpty(Lot)
-                ? $"1~{TranType}~2~{StationId}~3~{TranTime}~4~{TranDate}~5~01~6~{PartNbr}~7~{FromLoc.ToUpper()}~8~{ToLoc.ToUpper()}~9~{Qty}~10~{Lot}|P~19~{Reference}~99~COMPLETE"
-                : $"1~{TranType}~2~{StationId}~3~{TranTime}~4~{TranDate}~5~01~6~{PartNbr}~7~{FromLoc.ToUpper()}~8~{ToLoc.ToUpper()}~9~{Qty}~12~{Uom}~19~{Reference}~99~COMPLETE";
+                ? $"1~{TranType}~2~{StationId}~3~{TranTime}~4~{TranDate}~5~{FacilityCode}~6~{PartNbr}|0{FacilityCode}~7~{FromLoc.ToUpper()}~8~{ToLoc.ToUpper()}~9~{Qty}~10~{Lot}|P|0{FacilityCode}~19~{Reference}~99~COMPLETE"
+                : $"1~{TranType}~2~{StationId}~3~{TranTime}~4~{TranDate}~5~{FacilityCode}~6~{PartNbr}|0{FacilityCode}~7~{FromLoc.ToUpper()}~8~{ToLoc.ToUpper()}~9~{Qty}~12~{Uom}~19~{Reference}~99~COMPLETE";
         }
     }
 }

@@ -188,11 +188,11 @@ namespace M2kClient.M2kADIArray
             }
             if (!string.IsNullOrEmpty(Lot))
             {
-                _rValue += $"\n15~{Lot}|P";
+                _rValue += $"\n15~{Lot}|P|0{FacilityCode}";
             }
             foreach (var c in ComponentInfoList.Where(o => !string.IsNullOrEmpty(o.Lot)))
             {
-                _rValue += $"\n24~{c.Lot}|P~26~{WorkOrderNbr}~25~{c.PartNbr}~27~{c.Quantity}~70~{c.IssueLoc}~71~{c.UserDefined}";
+                _rValue += $"\n24~{c.Lot}|P|0{FacilityCode}~26~{WorkOrderNbr}~25~{c.PartNbr}|0{FacilityCode}~27~{c.Quantity}~70~{c.IssueLoc}~71~{c.UserDefined}";
             }
             _rValue += $"\n99~COMPLETE";
 

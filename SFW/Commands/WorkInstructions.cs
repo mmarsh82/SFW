@@ -19,7 +19,7 @@ namespace SFW.Commands
                     {
                         parameter += ".pdf";
                     }
-                    Process.Start($"{App.GlobalConfig.First(o => $"{o.Site}_MAIN" == App.Site).WI}{parameter}");
+                    Process.Start($"{App.GlobalConfig.First(o => o.Site == App.Facility).WI}{parameter}");
                 }
             }
             catch (System.ComponentModel.Win32Exception)

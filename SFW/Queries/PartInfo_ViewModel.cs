@@ -429,11 +429,11 @@ namespace SFW.Queries
             //TODO: add in logic to add the values to each of the tables here
             if (UseLot)
             {
-                M2kClient.M2kCommand.InventoryMove(CurrentUser.DisplayName, Part.SkuNumber, _lot, Part.Uom, FromLocation, ToLocation, Convert.ToInt32(QuantityInput), MoveReference, App.ErpCon, NonConReason);
+                M2kClient.M2kCommand.InventoryMove(CurrentUser.DisplayName, Part.SkuNumber, _lot, Part.Uom, FromLocation, ToLocation, Convert.ToInt32(QuantityInput), MoveReference, $"0{App.SiteNumber}", App.ErpCon, NonConReason);
             }
             else
             {
-                M2kClient.M2kCommand.InventoryMove(CurrentUser.DisplayName, Part.SkuNumber, "", Part.Uom, FromLocation, ToLocation, Convert.ToInt32(QuantityInput), MoveReference, App.ErpCon, NonConReason);
+                M2kClient.M2kCommand.InventoryMove(CurrentUser.DisplayName, Part.SkuNumber, "", Part.Uom, FromLocation, ToLocation, Convert.ToInt32(QuantityInput), MoveReference, $"0{App.SiteNumber}", App.ErpCon, NonConReason);
             }
             var _tran = new Sku
             {

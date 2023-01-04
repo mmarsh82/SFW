@@ -108,11 +108,11 @@ namespace M2kClient.M2kADIArray
             //Must meet this format in order to work with M2k
 
             var _rValue = !string.IsNullOrEmpty(Operation)
-                ? $"1~{TranType}~2~{StationId}~3~{TranTime}~4~{TranDate}~5~{FacilityCode}~6~{PartNbr}~7~{WorkOrderNbr}~8~{Operation}~10~{Reason}"
-                : $"1~{TranType}~2~{StationId}~3~{TranTime}~4~{TranDate}~5~{FacilityCode}~6~{PartNbr}~7~{WorkOrderNbr}~10~{Reason}";
+                ? $"1~{TranType}~2~{StationId}~3~{TranTime}~4~{TranDate}~5~{FacilityCode}~6~{PartNbr}|0{FacilityCode}~7~{WorkOrderNbr}~8~{Operation}~10~{Reason}"
+                : $"1~{TranType}~2~{StationId}~3~{TranTime}~4~{TranDate}~5~{FacilityCode}~6~{PartNbr}|0{FacilityCode}~7~{WorkOrderNbr}~10~{Reason}";
             foreach (var t in TranList)
             {
-                _rValue += !string.IsNullOrEmpty(t.LotNumber) ? $"\n13~{t.Quantity}~14~{t.Location}~15~{t.LotNumber}|P" : $"\n13~{t.Quantity}~14~{t.Location}";
+                _rValue += !string.IsNullOrEmpty(t.LotNumber) ? $"\n13~{t.Quantity}~14~{t.Location}~15~{t.LotNumber}|P|0{FacilityCode}" : $"\n13~{t.Quantity}~14~{t.Location}";
             }
             _rValue += "~99~COMPLETE";
             return _rValue;

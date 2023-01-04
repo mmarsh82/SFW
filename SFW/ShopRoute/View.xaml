@@ -129,14 +129,14 @@
                     </Menu>
                     <Button Content="Log Round"
                             FontSize="16"
-                            Visibility="{Binding CanReport, Converter={StaticResource BoolToVisConverter}}"
+                            Visibility="Hidden"
                             Command="{Binding ReportICommand}"
                             CommandParameter="3"
                             Style="{DynamicResource MenuButtonStyle}" />
                     <Button Content="Report Sheet"
                             FontSize="16"
                             Width="110"
-                            Visibility="{Binding CanReport, Converter={StaticResource BoolToVisConverter}}"
+                            Visibility="Hidden"
                             Command="{Binding ReportICommand}"
                             CommandParameter="2"
                             Style="{DynamicResource MenuButtonStyle}" />
