@@ -11,7 +11,7 @@ namespace SFW.Commands
 
         public void Execute(object parameter)
         {
-            var _trimList = Helpers.ExcelReader.GetTrimmingSetupInfo(parameter.ToString(), App.GlobalConfig.FirstOrDefault(o => $"{o.Site}_MAIN" == App.Site).TrimSetup, "Trimming");
+            var _trimList = Helpers.ExcelReader.GetTrimmingSetupInfo(parameter.ToString(), App.GlobalConfig.FirstOrDefault(o => o.Site == App.Facility).TrimSetup, "Trimming");
             if (_trimList != null)
             {
                 new PartTrimInfo_View { DataContext = new PartTrimInfo_ViewModel(_trimList) }.ShowDialog();

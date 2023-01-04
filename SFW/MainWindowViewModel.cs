@@ -90,7 +90,8 @@ namespace SFW
             get { return iTraining; }
             set
             {
-                App.ErpCon.DatabaseChange(Database.CONTITRAIN, App.SiteNumber);
+                //TODO: need a training database
+                //App.ErpCon.DatabaseChange(Database.WCCOTRAIN, App.SiteNumber);
                 iTraining = value;
                 StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(InTraining)));
             }

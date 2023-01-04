@@ -54,7 +54,6 @@
                     case Database.WCCOTRAIN:
                         return "C2K";
                     case Database.CONTI:
-                    case Database.CONTITRAIN:
                         return Facility == 1 ? "CONTI_W" : "CONTI_A";
                     default:
                         return string.Empty;
@@ -79,8 +78,6 @@
                         return "E:/roi/WCCO.TRAIN";
                     case Database.CONTI:
                         return "E:/roi/CONTI.MAIN";
-                    case Database.CONTITRAIN:
-                        return "E:/roi/CONTI.TRAIN";
                     default:
                         return string.Empty;
                 }

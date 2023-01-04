@@ -28,7 +28,7 @@ namespace SFW
 
         public DynamicSplashScreen()
         {
-            Site = CurrentUser.GetSite();
+            Site = App.SiteNumber;
             InitializeComponent();
         }
     }

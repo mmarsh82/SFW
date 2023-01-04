@@ -102,7 +102,7 @@ namespace SFW.Queries
                 {
                     _tool = SetupNumber;
                 }
-                Process.Start($"{App.GlobalConfig.First(o => $"{o.Site}_MAIN" == App.Site).PartPrint}{ _tool}.pdf");
+                Process.Start($"{App.GlobalConfig.First(o => o.Site == App.Facility).PartPrint}{ _tool}.pdf");
             }
             catch (Win32Exception)
             {

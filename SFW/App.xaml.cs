@@ -100,6 +100,7 @@ namespace SFW
         {
             try
             {
+                SiteNumber = CurrentUser.GetSite();
                 //Setting up the splash screen
                 ResetSplashCreated = new ManualResetEvent(false);
                 SplashThread = new Thread(ShowSplash);
@@ -111,7 +112,6 @@ namespace SFW
 
                 //Initialization of default application properties
                 SplashMessage = "Customizing your experience.";
-                SiteNumber = CurrentUser.GetSite();
                 Site = "CONTI_MAIN";
                 GlobalConfig = LoadGlobalAppConfig();
                 if (!CurrentUser.IsLoggedIn)
@@ -133,8 +133,8 @@ namespace SFW
                 SystemEvents.PowerModeChanged += OnPowerChange;
                 ViewFilter = new Dictionary<int, string>
                 {
-                    { 0, "" }
-                    ,{ 1, "" }
+                    { 1, "" }
+                    ,{ 2, "" }
                 };
                 SplashMessage = "Getting your schedule ready.  This may take a few moments.";
                 var _load = Model.ModelBase.BuildMasterDataSet(UserConfig.GetIROD(), Site, AppSqlCon);
