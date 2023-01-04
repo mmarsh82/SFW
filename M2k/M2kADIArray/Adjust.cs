@@ -131,8 +131,8 @@ namespace M2kClient.M2kADIArray
             //Transaction Template
             //1~Transaction Type~2~Station Id~3~Transaction Time~4~Transaction Date~5~Facility~6~Reference Number~8~Item Number~9~UOM~10~Reason Code~12~Transaction Operation~13~Transaction Quantity~14~Location~15~Lot Number~99~COMPLETE
             return !string.IsNullOrEmpty(LotNumber)
-                ? $"1~{TranType}~2~{StationId}~3~{TranTime}~4~{TranDate}~5~{FacilityCode}~6~{Reference}~8~{ItemNumber}|0{FacilityCode}~10~{ReasonCode}~12~{TranOperation}~13~{TranQuantity}~14~{Location}~15~{LotNumber}|P|0{FacilityCode}~99~COMPLETE"
-                : $"1~{TranType}~2~{StationId}~3~{TranTime}~4~{TranDate}~5~{FacilityCode}~6~{Reference}~8~{ItemNumber}|0{FacilityCode}~10~{ReasonCode}~12~{TranOperation}~13~{TranQuantity}~14~{Location}~99~COMPLETE";
+                ? $"1~{TranType}~2~{StationId}~3~{TranTime}~4~{TranDate}~5~{FacilityCode}~6~{Reference}~8~{ItemNumber}|{FacilityCode}~10~{ReasonCode}~12~{TranOperation}~13~{TranQuantity}~14~{Location}~15~{LotNumber}|P|{FacilityCode}~99~COMPLETE"
+                : $"1~{TranType}~2~{StationId}~3~{TranTime}~4~{TranDate}~5~{FacilityCode}~6~{Reference}~8~{ItemNumber}|{FacilityCode}~10~{ReasonCode}~12~{TranOperation}~13~{TranQuantity}~14~{Location}~99~COMPLETE";
         }
     }
 }

@@ -179,7 +179,7 @@ namespace SFW.Model
         /// <summary>
         /// Logged in user facility code
         /// </summary>
-        public int Facility { get; set; }
+        public string Facility { get; set; }
 
         /// <summary>
         /// Wip receipt record quantity
@@ -316,7 +316,7 @@ namespace SFW.Model
                 ErpCon = erpCon;
             }
             Submitter = $"{subFName} {subLName}";
-            Facility = facCode;
+            Facility = $"0{facCode}";
             var _crewID = userId;
             SeqComplete = Complete.N;
             WipLot = new Lot();

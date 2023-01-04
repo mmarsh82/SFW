@@ -114,7 +114,7 @@ namespace M2kClient.M2kADIArray
         public Wip(WipReceipt wipRecord)
         {
             StationId = wipRecord.Submitter;
-            FacilityCode = wipRecord.Facility.ToString();
+            FacilityCode = $"0{wipRecord.Facility}";
             WorkOrderNbr = wipRecord.WipWorkOrder.OrderNumber;
             QtyReceived = wipRecord.ScrapList.Count(o => int.TryParse(o.Quantity, out int i) && i > 0) > 0
                 ? wipRecord.ScrapList.Sum(o => Convert.ToInt32(o.Quantity)) + Convert.ToInt32(wipRecord.WipQty) 
