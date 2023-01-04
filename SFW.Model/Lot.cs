@@ -132,7 +132,7 @@ namespace SFW.Model
                                                                                 SELECT 
                                                                                     *
                                                                                 FROM
-                                                                                    [dbo].[LotHistory]
+                                                                                    [dbo].[SFW_LotHistory]
                                                                                 WHERE
                                                                                     [PartNbr] = @p1 AND (CAST([TranDateTime] as DATE) > DATEADD(YEAR, -2, GETDATE()))
                                                                                 ORDER BY
