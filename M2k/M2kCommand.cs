@@ -326,7 +326,7 @@ namespace M2kClient
                         _subResult.Add(0, string.Empty);
                         return _subResult;
                     }
-                    wipRecord.WipLot.LotNumber = _response.First().Value.Replace($"|P|{wipRecord.Facility}", "").Trim();
+                    wipRecord.WipLot.LotNumber = _response.First().Value.Replace($"|P", "").Trim();
                 }
                 //File creation for the WIP ADI, needs to account for all database scenarios (i.e. one to one, one to many, and many to many)
                 _tWip = new Wip(wipRecord);

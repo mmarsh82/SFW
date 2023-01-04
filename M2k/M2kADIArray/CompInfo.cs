@@ -33,11 +33,6 @@
         /// </summary>
         public string IssueLoc { get; set; }
 
-        /// <summary>
-        /// Field 71
-        /// </summary>
-        public char UserDefined { get { return 'Y'; } }
-
         #endregion
     }
 }

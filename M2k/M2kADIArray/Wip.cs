@@ -114,7 +114,7 @@ namespace M2kClient.M2kADIArray
         public Wip(WipReceipt wipRecord)
         {
             StationId = wipRecord.Submitter;
-            FacilityCode = $"0{wipRecord.Facility}";
+            FacilityCode = wipRecord.Facility;
             WorkOrderNbr = wipRecord.WipWorkOrder.OrderNumber;
             QtyReceived = wipRecord.ScrapList.Count(o => int.TryParse(o.Quantity, out int i) && i > 0) > 0
                 ? wipRecord.ScrapList.Sum(o => Convert.ToInt32(o.Quantity)) + Convert.ToInt32(wipRecord.WipQty) 
@@ -188,11 +188,11 @@ namespace M2kClient.M2kADIArray
             }
             if (!string.IsNullOrEmpty(Lot))
             {
-                _rValue += $"\n15~{Lot}|P|0{FacilityCode}";
+                _rValue += $"\n15~{Lot}|P|{FacilityCode}";
             }
             foreach (var c in ComponentInfoList.Where(o => !string.IsNullOrEmpty(o.Lot)))
             {
-                _rValue += $"\n24~{c.Lot}|P|0{FacilityCode}~26~{WorkOrderNbr}~25~{c.PartNbr}|0{FacilityCode}~27~{c.Quantity}~70~{c.IssueLoc}~71~{c.UserDefined}";
+                _rValue += $"\n24~{c.Lot}|P|{FacilityCode}~26~{WorkOrderNbr}~25~{c.PartNbr}|{FacilityCode}~27~{c.Quantity}~70~{c.IssueLoc}";
             }
             _rValue += $"\n99~COMPLETE";
 
