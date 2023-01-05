@@ -75,9 +75,10 @@ namespace SFW.WIP
             {
                 if (!string.IsNullOrEmpty(value))
                 {
-                    IsLotValid = WipRecord.WipWorkOrder.Operation == "10"
+                    IsLotValid = Lot.LotValidation(value, WipRecord.WipWorkOrder.SkuNumber);
+                    /*IsLotValid = WipRecord.WipWorkOrder.Operation == "10"
                         ? Lot.LotValidation(value, WipRecord.WipWorkOrder.SkuNumber, WipRecord.WipWorkOrder.OrderNumber)
-                        : Lot.LotValidation(value, WipRecord.WipWorkOrder.SkuNumber);
+                        : Lot.LotValidation(value, WipRecord.WipWorkOrder.SkuNumber);*/
                 }
                 else
                 {
@@ -591,7 +592,7 @@ namespace SFW.WIP
                 {
                     foreach (var l in w.WipInfo.Where(o => o.IsValidLot))
                     {
-                        var _temp = Lot.GetDiamondNumber(l.LotNbr, App.AppSqlCon);
+                        var _temp = Lot.GetDiamondNumber(l.LotNbr, App.SiteNumber, App.AppSqlCon);
                         _diamond += _diamond == _temp ? "" : $"/{_temp}";
                     }
                 }
@@ -904,7 +905,7 @@ namespace SFW.WIP
             {
                 foreach (var l in w.WipInfo.Where(o => o.IsValidLot))
                 {
-                    var _temp = Lot.GetDiamondNumber(l.LotNbr, App.AppSqlCon);
+                    var _temp = Lot.GetDiamondNumber(l.LotNbr, App.SiteNumber, App.AppSqlCon);
                     _diamond += _diamond == _temp ? "" : $"/{_temp}";
                 }
             }

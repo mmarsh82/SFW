@@ -377,7 +377,7 @@ namespace SFW.Queries
 
         private void MPrintExecute(object parameter)
         {
-            var _dmd = UseLot ? Lot.GetDiamondNumber(_lot, App.AppSqlCon): "";
+            var _dmd = UseLot ? Lot.GetDiamondNumber(_lot, App.SiteNumber, App.AppSqlCon): "";
             var _qir = UseLot ? Lot.GetAssociatedQIR(_lot, App.AppSqlCon) : 0;
             TravelCard.Create("", "technology#1",
                 Part.SkuNumber,

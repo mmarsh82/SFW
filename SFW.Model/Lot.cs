@@ -194,21 +194,22 @@ namespace SFW.Model
         /// Get the Sku's Diamond number using a parent lot number
         /// </summary>
         /// <param name="lotNbr">Lot Number used as a search reference</param>
+        /// <param name="facCode">Facility Code</param>
         /// <param name="sqlCon">Sql Connection to use</param>
         /// <returns>Diamond number as string</returns>
-        public static string GetDiamondNumber(string lotNbr, SqlConnection sqlCon)
+        public static string GetDiamondNumber(string lotNbr, int facCode, SqlConnection sqlCon)
         {
             if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
             {
                 var _found = false;
-                var _lot = $"a.[Parent_Lot] = '{lotNbr}|P'";
+                var _lot = $"a.[Parent_Lot] = '{lotNbr}|P|0{facCode}'";
                 var _dmdNbr = string.Empty;
                 while (!_found)
                 {
                     _lot += ";";
                     using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database};
                                                             SELECT
-                                                                SUBSTRING(a.[Component_Lot],0,LEN(a.[Component_Lot]) - 1) as 'Comp_Lot', b.[Inventory_Type] as 'Type'
+                                                                SUBSTRING(a.[Component_Lot], 0, CHARINDEX('|', a.[Component_Lot], 0)) as 'Comp_Lot', b.[Inventory_Type] as 'Type'
                                                             FROM
 	                                                            [dbo].[Lot Structure] a
                                                             RIGHT OUTER JOIN
@@ -223,18 +224,18 @@ namespace SFW.Model
                             {
                                 while (reader.Read())
                                 {
-                                    if (reader.SafeGetString("Type") == "RR")
+                                    if (reader.SafeGetString("Type") == "PU")
                                     {
                                         _dmdNbr = reader.SafeGetString("Comp_Lot");
                                         _found = true;
                                     }
                                     else if (string.IsNullOrEmpty(_lot) && reader.SafeGetString("Type") != "HM")
                                     {
-                                        _lot += $"a.[Parent_Lot] = '{reader.SafeGetString("Comp_Lot")}|P'";
+                                        _lot += $"a.[Parent_Lot] = '{reader.SafeGetString("Comp_Lot")}|P|0{facCode}'";
                                     }
                                     else if (reader.SafeGetString("Type") != "HM")
                                     {
-                                        _lot += $" OR a.[Parent_Lot] = '{reader.SafeGetString("Comp_Lot")}|P'";
+                                        _lot += $" OR a.[Parent_Lot] = '{reader.SafeGetString("Comp_Lot")}|P|0{facCode}'";
                                     }
                                 }
                             }
