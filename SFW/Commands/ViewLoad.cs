@@ -32,6 +32,7 @@ namespace SFW.Commands
         /// <param name="parameter">View to Load</param>
         public void Execute(object parameter)
         {
+            var _site = App.SiteNumber == 2 ? 0 : App.SiteNumber;
             try
             {
                 if (int.TryParse(parameter.ToString(), out int z))
@@ -55,7 +56,7 @@ namespace SFW.Commands
                     parameter = 2;
                 }
                 var _view = int.TryParse(parameter.ToString(), out int i) ? i : App.SiteNumber;
-                var _addhist = _view == App.SiteNumber ? false : true;
+                var _addhist = _view == _site ? false : true;
                 var _viewModel = new object();
                 _viewModel = null;
                 var refreshView = true;
@@ -63,7 +64,7 @@ namespace SFW.Commands
                 if (_view == -1)
                 {
                     _addhist = false;
-                    _view = App.SiteNumber;
+                    _view = _site;
                     if (HistoryList.Count > 0 && HistoryList.Count - 1 > 0)
                     {
                         HistoryList.RemoveAt(HistoryList.Count - 1);
@@ -71,7 +72,7 @@ namespace SFW.Commands
                     }
                     refreshView = false;
                 }
-                if (_view == App.SiteNumber)
+                if (_view == _site)
                 {
                     _addhist = false;
                     HistoryList.Clear();

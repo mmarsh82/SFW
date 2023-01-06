@@ -85,17 +85,15 @@ namespace SFW.Tools
 
         private void PriorityChangeExecute(object parameter)
         {
-            var _s = string.Empty;
-            if (!string.IsNullOrEmpty(Shift))
+            var _changeRequest = string.Empty;
+            if (!string.IsNullOrEmpty(Priority))
             {
-                _s = Shift.ToString().Length == 1 ? $"0{Shift}" : Shift.ToString();
+                _changeRequest = M2kCommand.EditRecord("WP", OrderNumber, 89, Priority, UdArrayCommand.Replace, App.ErpCon);
             }
-            else
+            if (!string.IsNullOrEmpty(Shift) && string.IsNullOrEmpty(_changeRequest))
             {
-                _s = "00";
+                _changeRequest = M2kCommand.EditRecord("WP", OrderNumber, 90, Shift, UdArrayCommand.Replace, App.ErpCon);
             }
-            var _p = Priority.ToString().Length == 1 ? $"0{Priority}" : Priority.ToString();
-            var _changeRequest = M2kCommand.EditRecord("WP", OrderNumber, 195, $"{_s}:{_p}:00", UdArrayCommand.Replace, App.ErpCon);
             if (!string.IsNullOrEmpty(_changeRequest))
             {
                 MessageBox.Show(_changeRequest, "ERP Record Error");
@@ -104,8 +102,8 @@ namespace SFW.Tools
             {
                 var _row = Model.ModelBase.MasterDataSet.Tables["Master"].Select($"[WorkOrder] = '{OrderNumber}'");
                 var _index = Model.ModelBase.MasterDataSet.Tables["Master"].Rows.IndexOf(_row.FirstOrDefault());
-                Model.ModelBase.MasterDataSet.Tables["Master"].Rows[_index].SetField("PriTime", _s);
-                Model.ModelBase.MasterDataSet.Tables["Master"].Rows[_index].SetField("Sched_Priority", _p);
+                Model.ModelBase.MasterDataSet.Tables["Master"].Rows[_index].SetField("Sched_Shift", Shift);
+                Model.ModelBase.MasterDataSet.Tables["Master"].Rows[_index].SetField("Sched_Priority", Priority);
             }
             App.CloseWindow<PriorityEdit_View>();
         }

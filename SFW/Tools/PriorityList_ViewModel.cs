@@ -1,4 +1,6 @@
-﻿using M2kClient;
+﻿using DocumentFormat.OpenXml.Spreadsheet;
+using DocumentFormat.OpenXml.Wordprocessing;
+using M2kClient;
 using SFW.Helpers;
 using SFW.Model;
 using System;
@@ -174,8 +176,6 @@ namespace SFW.Tools
         {
             if (parameter?.ToString().Length == 1)
             {
-                var _p = string.Empty;
-                var _s = string.Empty;
                 var _changeRequest = string.Empty;
                 switch (parameter.ToString())
                 {
@@ -191,19 +191,25 @@ namespace SFW.Tools
                                     {
                                         foreach (var _wo in (List<WorkOrder>)PriorityView.SourceCollection)
                                         {
-                                            _p = _wo.Priority.ToString().Length == 1 ? $"0{_wo.Priority}" : _wo.Priority.ToString();
-                                            _s = _wo.Shift.ToString().Length == 1 ? $"0{_wo.Shift}" : _wo.Shift.ToString();
-                                            _changeRequest = M2kCommand.EditRecord("WP", _wo.OrderNumber, 195, $"{_s}:{_p}:00", UdArrayCommand.Replace, App.ErpCon);
+                                            if (!string.IsNullOrEmpty(_wo.Priority.ToString()))
+                                            {
+                                                _changeRequest = M2kCommand.EditRecord("WP", _wo.OrderNumber, 89, _wo.Priority.ToString(), UdArrayCommand.Replace, App.ErpCon);
+                                            }
+                                            if (!string.IsNullOrEmpty(_wo.Shift.ToString()) && string.IsNullOrEmpty(_changeRequest))
+                                            {
+                                                _changeRequest = M2kCommand.EditRecord("WP", _wo.OrderNumber, 90, _wo.Shift.ToString(), UdArrayCommand.Replace, App.ErpCon);
+                                            }
                                             if (!string.IsNullOrEmpty(_changeRequest))
                                             {
                                                 MessageBox.Show(_changeRequest, "ERP Record Error");
+                                                return;
                                             }
                                             else
                                             {
-                                                var _row = ModelBase.MasterDataSet.Tables["Master"].Select($"[WorkOrderID] = '{_wo.OrderID}'");
+                                                var _row = ModelBase.MasterDataSet.Tables["Master"].Select($"[WorkOrder] = '{_wo.OrderNumber}'");
                                                 var _index = ModelBase.MasterDataSet.Tables["Master"].Rows.IndexOf(_row.FirstOrDefault());
-                                                ModelBase.MasterDataSet.Tables["Master"].Rows[_index].SetField("PriTime", _s == "00" ? "999" : _s);
-                                                ModelBase.MasterDataSet.Tables["Master"].Rows[_index].SetField("Sched_Priority", _p);
+                                                ModelBase.MasterDataSet.Tables["Master"].Rows[_index].SetField("Sched_Shift", _wo.Shift);
+                                                ModelBase.MasterDataSet.Tables["Master"].Rows[_index].SetField("Sched_Priority", _wo.Priority);
                                             }
                                         }
                                         DisplayAction = false;
@@ -219,19 +225,20 @@ namespace SFW.Tools
                         break;
                     //Insert Command
                     case "I":
-                        _p = PriorityInput.Length == 1 ? $"0{PriorityInput}" : PriorityInput.ToString();
-                        _s = "00";
-                        _changeRequest = M2kCommand.EditRecord("WP", WorkOrderInput, 195, $"{_s}:{_p}:00", UdArrayCommand.Replace, App.ErpCon);
+                        if (!string.IsNullOrEmpty(PriorityInput.ToString()))
+                        {
+                            _changeRequest = M2kCommand.EditRecord("WP", WorkOrderInput, 89, PriorityInput, UdArrayCommand.Replace, App.ErpCon);
+                        }
                         if (!string.IsNullOrEmpty(_changeRequest))
                         {
                             MessageBox.Show(_changeRequest, "ERP Record Error");
+                            return;
                         }
                         else
                         {
                             var _row = ModelBase.MasterDataSet.Tables["Master"].Select($"[WorkOrder] = '{WorkOrderInput}'");
                             var _index = ModelBase.MasterDataSet.Tables["Master"].Rows.IndexOf(_row.FirstOrDefault());
-                            ModelBase.MasterDataSet.Tables["Master"].Rows[_index].SetField("PriTime", "999");
-                            ModelBase.MasterDataSet.Tables["Master"].Rows[_index].SetField("Sched_Priority", _p);
+                            ModelBase.MasterDataSet.Tables["Master"].Rows[_index].SetField("Sched_Priority", PriorityInput);
                         }
                         break;
                     //Organize Command
@@ -247,20 +254,25 @@ namespace SFW.Tools
                                         var _counter = 1;
                                         foreach (var _wo in (List<WorkOrder>)PriorityView.SourceCollection)
                                         {
-                                            _p = _counter.ToString().Length == 1 ? $"0{_counter}" : _counter.ToString();
-                                            _s = _wo.Shift.ToString().Length == 1 ? $"0{_wo.Shift}" : _wo.Shift.ToString();
-                                            _changeRequest = M2kCommand.EditRecord("WP", _wo.OrderNumber, 195, $"{_s}:{_p}:00", UdArrayCommand.Replace, App.ErpCon);
+                                            if (!string.IsNullOrEmpty(_counter.ToString()))
+                                            {
+                                                _changeRequest = M2kCommand.EditRecord("WP", _wo.OrderNumber, 89, _wo.Priority.ToString(), UdArrayCommand.Replace, App.ErpCon);
+                                            }
+                                            if (!string.IsNullOrEmpty(_wo.Shift.ToString()) && string.IsNullOrEmpty(_changeRequest))
+                                            {
+                                                _changeRequest = M2kCommand.EditRecord("WP", _wo.OrderNumber, 90, _wo.Shift.ToString(), UdArrayCommand.Replace, App.ErpCon);
+                                            }
                                             if (!string.IsNullOrEmpty(_changeRequest))
                                             {
                                                 MessageBox.Show(_changeRequest, "ERP Record Error");
+                                                return;
                                             }
                                             else
                                             {
-                                                var _row = ModelBase.MasterDataSet.Tables["Master"].Select($"[WorkOrderID] = '{_wo.OrderID}'");
+                                                var _row = ModelBase.MasterDataSet.Tables["Master"].Select($"[WorkOrder] = '{_wo.OrderNumber}'");
                                                 var _index = ModelBase.MasterDataSet.Tables["Master"].Rows.IndexOf(_row.FirstOrDefault());
-                                                ModelBase.MasterDataSet.Tables["Master"].Rows[_index].SetField("PriTime", _s == "00" ? "999" : _s);
-                                                ModelBase.MasterDataSet.Tables["Master"].Rows[_index].SetField("Sched_Priority", _p);
-                                                _counter++;
+                                                ModelBase.MasterDataSet.Tables["Master"].Rows[_index].SetField("Sched_Shift", _wo.Shift);
+                                                ModelBase.MasterDataSet.Tables["Master"].Rows[_index].SetField("Sched_Priority", _counter.ToString());
                                             }
                                         }
                                         DisplayAction = false;

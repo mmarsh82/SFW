@@ -170,15 +170,15 @@
                                                ToolTip="Work Order has currently went past it's expected start date."
                                                Margin="10,0,0,0" Height="25" Width="25"/>
                                         <Image Source="/SFW;component/Icons/First.ico"
-                                               Visibility="{Binding PriTime, Converter={StaticResource StringToVisConverter}, ConverterParameter=~1}"
+                                               Visibility="{Binding Sched_Shift, Converter={StaticResource StringToVisConverter}, ConverterParameter=~1}"
                                                ToolTip="Work order created for 1st shift."
                                                Margin="10,0,0,0" Height="25" Width="25"/>
                                         <Image Source="/SFW;component/Icons/Second.ico"
-                                               Visibility="{Binding PriTime, Converter={StaticResource StringToVisConverter}, ConverterParameter=~2}"
+                                               Visibility="{Binding Sched_Shift, Converter={StaticResource StringToVisConverter}, ConverterParameter=~2}"
                                                ToolTip="Work order created for 2nd shift."
                                                Margin="10,0,0,0" Height="25" Width="25"/>
                                         <Image Source="/SFW;component/Icons/Third.ico"
-                                               Visibility="{Binding PriTime, Converter={StaticResource StringToVisConverter}, ConverterParameter=~3}"
+                                               Visibility="{Binding Sched_Shift, Converter={StaticResource StringToVisConverter}, ConverterParameter=~3}"
                                                ToolTip="Work order created for 3rd shift."
                                                Margin="10,0,0,0" Height="25" Width="25"/>
                                     </StackPanel>
@@ -212,8 +212,8 @@
                                         <TextBlock Text="{Binding WO_DueDate, StringFormat=d}" Margin="5,0,0,0"/>
                                         <TextBlock Text="Run:" Margin="20,0,0,0" TextDecorations="Underline"/>
                                         <TextBlock Text="{Binding RunTime, StringFormat={}{0} hr}" Margin="5,0,0,0"/>
-                                        <TextBlock Text="Priority:" TextDecorations="Underline" Margin="20,0,0,0" Visibility="{Binding PriTime, Converter={StaticResource StringToVisConverter}, ConverterParameter=PriTime}"/>
-                                        <TextBlock Text="{Binding Sched_Priority}" Margin="5,0,0,0" Visibility="{Binding PriTime, Converter={StaticResource StringToVisConverter}, ConverterParameter=PriTime}"/>
+                                        <TextBlock Text="Priority:" TextDecorations="Underline" Margin="20,0,0,0" Visibility="{Binding Sched_Priority, Converter={StaticResource StringToVisConverter}, ConverterParameter=Sched_Priority}"/>
+                                        <TextBlock Text="{Binding Sched_Priority}" Margin="5,0,0,0" Visibility="{Binding Sched_Priority, Converter={StaticResource StringToVisConverter}, ConverterParameter=Sched_Priority}"/>
                                     </StackPanel>
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
                                         <TextBlock Text="Need" Margin="0,0,5,0">

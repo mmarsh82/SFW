@@ -1,4 +1,5 @@
 ﻿using IBMU2.UODOTNET;
+using iTextSharp.text.pdf;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -62,6 +63,13 @@ namespace SFW.Model
             { _shiftEnd = value; OnPropertyChanged(nameof(Shift)); }
         }
 
+        private string _fac;
+        public string Facility
+        {
+            get { return _fac; }
+            set { _fac = value; OnPropertyChanged(nameof(Facility)); }
+        }
+
         private string _lastClock;
         public string LastClock
         {
@@ -71,25 +79,27 @@ namespace SFW.Model
             {
                 if (IsDirect && !_clockLoaded)
                 {
-                    System.Threading.Tasks.Task.Run(() =>
+                    _clockLoaded = true;
+                    if (!string.IsNullOrEmpty(Facility) && IsCrewIDValid(IdNumber))
                     {
-                        var _time = GetLastClockTime(IdNumber, Shift);
-                        _time = string.IsNullOrEmpty(_time) || _time == "00:00" ? ShiftStart : _time;
-                        if (DateTime.TryParse(_time, out DateTime dt))
-                        {
-                            if (DateTime.Now < dt && Shift != 3)
-                            {
-                                _time = string.Empty;
-                            }
-                        }
-                        else
+                        Facility = GetFacility(IdNumber);
+                    }
+                    var _time = GetLastClockTime(IdNumber, Shift, Facility);
+                    _time = string.IsNullOrEmpty(_time) || _time == "00:00" ? ShiftStart : _time;
+                    if (DateTime.TryParse(_time, out DateTime dt))
+                    {
+                        if (DateTime.Now < dt && Shift != 3)
                         {
                             _time = string.Empty;
                         }
-                        _lastClock = value = _time;
-                        _clockLoaded = true;
-                        OnPropertyChanged(nameof(LastClock));
-                    });
+                    }
+                    else
+                    {
+                        _time = string.Empty;
+                    }
+                    _lastClock = value = _time;
+                    _clockLoaded = false;
+                    OnPropertyChanged(nameof(LastClock));
                 }
                 _lastClock = value;
                 OnPropertyChanged(nameof(LastClock));
@@ -123,6 +133,7 @@ namespace SFW.Model
                 Shift = _rows.FirstOrDefault().Field<int>("Shift");
                 ShiftStart = _rows.FirstOrDefault().Field<string>("ShiftStart");
                 ShiftEnd = _rows.FirstOrDefault().Field<string>("ShiftEnd");
+                Facility = $"0{_rows.FirstOrDefault().Field<int>("Site")}";
                 LastClock = string.Empty;
             }
         }
@@ -146,6 +157,7 @@ namespace SFW.Model
                 Shift = _rows.FirstOrDefault().Field<int>("Shift");
                 ShiftStart = _rows.FirstOrDefault().Field<string>("ShiftStart");
                 ShiftEnd = _rows.FirstOrDefault().Field<string>("ShiftEnd");
+                Facility = $"0{_rows.FirstOrDefault().Field<int>("Site")}";
                 LastClock = string.Empty;
             }
         }
@@ -233,12 +245,24 @@ namespace SFW.Model
         }
 
         /// <summary>
+        /// Get facility code for a user
+        /// </summary>
+        /// <param name="idNbr">User Id number</param>
+        /// <returns>facility code as a string</returns>
+        public static string GetFacility(string idNbr)
+        {
+            var _rows = MasterDataSet.Tables["CREW"].Select($"[EmployeeID] = '{idNbr}'");
+            return _rows.Length > 0 ? $"0{_rows.FirstOrDefault().Field<int>("Site")}" : string.Empty;
+        }
+
+        /// <summary>
         /// Retreives the last labor clocked in time for the current user
         /// </summary>
         /// <param name="idNbr">User ID number</param>
         /// <param name="shift">User shift</param>
+        /// <param name="facCode">Facility code</param>
         /// <returns>Time as a string</returns>
-        public static string GetLastClockTime(string idNbr, int shift)
+        public static string GetLastClockTime(string idNbr, int shift, string facCode)
         {
             try
             {
@@ -254,7 +278,7 @@ namespace SFW.Model
                         var uResponse = string.Empty;
                         using (UniCommand uCmd = uSession.CreateUniCommand())
                         {
-                            uCmd.Command = $"LIST LBR.DETAIL WITH @ID = \"{idNbr}*{id2}\" Latest_Time_Out";
+                            uCmd.Command = $"LIST LBR.DETAIL WITH @ID = \"{idNbr}*{id2}*{facCode}\" Latest_Time_Out";
                             uCmd.Execute();
                             uResponse = uCmd.Response;
                             if (!string.IsNullOrEmpty(uResponse))
@@ -270,7 +294,7 @@ namespace SFW.Model
                                     {
                                         break;
                                     }
-                                    if (s.Replace("\n", "~").Contains($"~{idNbr}*{id2}") || _listAdd)
+                                    if (s.Replace("\n", "~").Contains($"~{idNbr}*{id2}*{facCode}") || _listAdd)
                                     {
                                         _sortList.Add(Convert.ToDateTime(s.Substring(s.Length - 5).Trim()));
                                         _listAdd = true;

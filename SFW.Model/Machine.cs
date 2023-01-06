@@ -68,14 +68,8 @@ namespace SFW.Model
 	,ISNULL(wp.Wo_Type, 'S') AS WO_Type
 	,wp.Qty_To_Start AS WO_StartQty
 	,SUBSTRING(wp.So_Reference, 0, LEN(wp.So_Reference) - 1) AS WO_SalesRef
-	,CASE WHEN wp.[Time_Wanted] IS NOT NULL
-		THEN DATEPART(HOUR, CAST(wp.[Time_Wanted] AS time))
-		ELSE '999'
-	END AS PriTime
-	,CASE WHEN wp.[Time_Wanted] IS NOT NULL
-		THEN DATEPART(MINUTE, CAST(wp.[Time_Wanted] AS time))
-		ELSE '999'
-	END AS Sched_Priority
+	,CAST(ISNULL(wp.[User_Def_10], '999') as int) AS Sched_Shift
+	,CAST(ISNULL(wp.[User_Def_9], '999') as int) AS Sched_Priority
 	,ISNULL(wp.Bom_Rev_Date, '1999-01-01') AS BomRevDate
 	,ISNULL(wp.Bom_Rev_Level, '') AS BomRevLvl
 	,wp.Status_Flag AS Status
@@ -109,7 +103,7 @@ LEFT JOIN
 WHERE
 	(wc.D_esc <> 'DO NOT USE') AND (wpo.Alt_Seq_Status IS NULL) AND (wp.Status_Flag = 'C' OR wp.Status_Flag = 'A' OR wp.Status_Flag = 'R') AND im.[Part_Number] IS NOT NULL
 ORDER BY
-	MachineOrder, MachineNumber, WO_Priority, PriTime, Sched_Priority, WO_SchedStartDate, WorkOrderID ASC";
+	MachineOrder, MachineNumber, WO_Priority, Sched_Shift, Sched_Priority, WO_SchedStartDate, WorkOrderID ASC";
 
             //var _conString = "SELECT * FROM [dbo].[SFW_Schedule] ORDER BY MachineOrder, MachineNumber, WO_Priority, PriTime, Sched_Priority, WO_SchedStartDate, WorkOrderID ASC";
             var _tempTable = new DataTable();
