@@ -377,25 +377,32 @@ namespace SFW.Queries
 
         private void MPrintExecute(object parameter)
         {
-            var _dmd = UseLot ? Lot.GetDiamondNumber(_lot, App.SiteNumber, App.AppSqlCon): "";
-            var _qir = UseLot ? Lot.GetAssociatedQIR(_lot, App.AppSqlCon) : 0;
-            TravelCard.Create("", "technology#1",
-                Part.SkuNumber,
-                _lot,
-                Part.SkuDescription,
-                _dmd,
-                Convert.ToInt32(QuantityInput),
-                Part.Uom,
-                _qir
-                );
-            switch (parameter.ToString())
+            if (App.SiteNumber == 1)
             {
-                case "T":
-                    TravelCard.Display(FormType.Portrait);
-                    break;
-                case "R":
-                    TravelCard.Display(FormType.Landscape);
-                    break;
+                var _dmd = UseLot ? Lot.GetDiamondNumber(_lot, App.SiteNumber, App.AppSqlCon) : "";
+                var _qir = UseLot ? Lot.GetAssociatedQIR(_lot, App.AppSqlCon) : 0;
+                TravelCard.Create("", "technology#1",
+                    Part.SkuNumber,
+                    _lot,
+                    Part.SkuDescription,
+                    _dmd,
+                    Convert.ToInt32(QuantityInput),
+                    Part.Uom,
+                    _qir
+                    );
+                switch (parameter.ToString())
+                {
+                    case "T":
+                        TravelCard.Display(FormType.Portrait);
+                        break;
+                    case "R":
+                        TravelCard.Display(FormType.Landscape);
+                        break;
+
+                }
+            }
+            if (App.SiteNumber == 2)
+            {
 
             }
         }

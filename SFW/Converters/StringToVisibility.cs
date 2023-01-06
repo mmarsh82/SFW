@@ -32,7 +32,8 @@ namespace SFW.Converters
                         return string.IsNullOrEmpty(value?.ToString()) ? Visibility.Hidden : Visibility.Visible;
                     case "Status":
                         return value?.ToString() == "O" && !CurrentUser.IsEngineer ? Visibility.Collapsed : Visibility.Visible;
-                    case "PriTime":
+                    case "Sched_Shift":
+                    case "Sched_Priority":
                         return value?.ToString() == "999" ? Visibility.Collapsed : Visibility.Visible;
                     case "N":
                         return value != null && !string.IsNullOrEmpty(value.ToString()) && value.ToString()[value.ToString().Length - 1] == 'N' ? Visibility.Visible : Visibility.Collapsed;

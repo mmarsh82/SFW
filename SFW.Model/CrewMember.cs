@@ -79,30 +79,36 @@ namespace SFW.Model
             {
                 if (IsDirect && !_clockLoaded)
                 {
-                    _clockLoaded = true;
-                    if (!string.IsNullOrEmpty(Facility) && IsCrewIDValid(IdNumber))
-                    {
-                        Facility = GetFacility(IdNumber);
-                    }
-                    var _time = GetLastClockTime(IdNumber, Shift, Facility);
-                    _time = string.IsNullOrEmpty(_time) || _time == "00:00" ? ShiftStart : _time;
-                    if (DateTime.TryParse(_time, out DateTime dt))
-                    {
-                        if (DateTime.Now < dt && Shift != 3)
+                    System.Threading.Tasks.Task.Run(() =>
+                    { 
+                        _clockLoaded = true;
+                        if (!string.IsNullOrEmpty(Facility) && IsCrewIDValid(IdNumber))
+                        {
+                            Facility = GetFacility(IdNumber);
+                        }
+                        var _time = GetLastClockTime(IdNumber, Shift, Facility);
+                        _time = string.IsNullOrEmpty(_time) || _time == "00:00" ? ShiftStart : _time;
+                        if (DateTime.TryParse(_time, out DateTime dt))
+                        {
+                            if (DateTime.Now < dt && Shift != 3)
+                            {
+                                _time = string.Empty;
+                            }
+                        }
+                        else
                         {
                             _time = string.Empty;
                         }
-                    }
-                    else
-                    {
-                        _time = string.Empty;
-                    }
-                    _lastClock = value = _time;
-                    _clockLoaded = false;
+                        _lastClock = value = _time;
+                        _clockLoaded = false;
+                        OnPropertyChanged(nameof(LastClock));
+                    });
+                }
+                else
+                {
+                    _lastClock = value;
                     OnPropertyChanged(nameof(LastClock));
                 }
-                _lastClock = value;
-                OnPropertyChanged(nameof(LastClock));
             }
         }
         private bool _clockLoaded;
@@ -134,7 +140,6 @@ namespace SFW.Model
                 ShiftStart = _rows.FirstOrDefault().Field<string>("ShiftStart");
                 ShiftEnd = _rows.FirstOrDefault().Field<string>("ShiftEnd");
                 Facility = $"0{_rows.FirstOrDefault().Field<int>("Site")}";
-                LastClock = string.Empty;
             }
         }
 
@@ -285,19 +290,20 @@ namespace SFW.Model
                             {
                                 //All the code below is to clean the UniCommand.Response
                                 //The response returns identical to a M2k TCL response
+                                uResponse = uResponse.Replace("\n", "");
                                 var uResArray = uResponse.Split('\r');
                                 var _sortList = new List<DateTime>();
-                                var _listAdd = false;
                                 foreach (var s in uResArray)
                                 {
-                                    if (s.Replace("\n", "").Contains($"records") || s.Replace("\n", "").Contains($"record"))
+                                    if (s.Contains($"records") || s.Contains($"record"))
                                     {
                                         break;
                                     }
-                                    if (s.Replace("\n", "~").Contains($"~{idNbr}*{id2}*{facCode}") || _listAdd)
+                                    if (s.Contains($"{idNbr}*{id2}*{facCode}") && !s.Contains("@ID"))
                                     {
-                                        _sortList.Add(Convert.ToDateTime(s.Substring(s.Length - 5).Trim()));
-                                        _listAdd = true;
+                                        var _temp = s.Replace($"{idNbr}*{id2}*{facCode}", "").Trim();
+                                        _sortList.Add(Convert.ToDateTime(_temp));
+                                        break;
                                     }
                                 }
                                 if (_sortList.Count == 0)
