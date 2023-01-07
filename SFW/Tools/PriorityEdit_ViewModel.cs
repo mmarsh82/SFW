@@ -102,7 +102,7 @@ namespace SFW.Tools
             {
                 var _row = Model.ModelBase.MasterDataSet.Tables["Master"].Select($"[WorkOrder] = '{OrderNumber}'");
                 var _index = Model.ModelBase.MasterDataSet.Tables["Master"].Rows.IndexOf(_row.FirstOrDefault());
-                Model.ModelBase.MasterDataSet.Tables["Master"].Rows[_index].SetField("Sched_Shift", Shift);
+                Model.ModelBase.MasterDataSet.Tables["Master"].Rows[_index].SetField("Sched_Shift", string.IsNullOrEmpty(Shift) ? 999 : int.Parse(Shift));
                 Model.ModelBase.MasterDataSet.Tables["Master"].Rows[_index].SetField("Sched_Priority", Priority);
             }
             App.CloseWindow<PriorityEdit_View>();

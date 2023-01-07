@@ -101,7 +101,7 @@ namespace SFW.Model
                 IsDeviated = _row.Field<string>("Deviation") == "Y";
                 Inspection = _row.Field<string>("Inspection") == "Y";
                 Priority = _row.Field<int>("Sched_Priority");
-                Shift = _row.Field<int>("PriTime");
+                Shift = _row.Field<int>("Sched_Shift");
                 Facility = _row.Field<int>("Site");
             }
         }

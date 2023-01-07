@@ -326,7 +326,17 @@ namespace M2kClient
                         _subResult.Add(0, string.Empty);
                         return _subResult;
                     }
-                    wipRecord.WipLot.LotNumber = _response.First().Value.Replace($"|P", "").Trim();
+                    var _tLot = string.Empty;
+                    if (_response.FirstOrDefault().Value.Contains("|"))
+                    {
+                        var _resSplit = _response.FirstOrDefault().Value.Split('|');
+                        _tLot = _resSplit.First().Trim();
+                    }
+                    else
+                    {
+                        _tLot = _response.FirstOrDefault().Value.Trim();
+                    }
+                    wipRecord.WipLot.LotNumber = _tLot;
                 }
                 //File creation for the WIP ADI, needs to account for all database scenarios (i.e. one to one, one to many, and many to many)
                 _tWip = new Wip(wipRecord);
@@ -396,8 +406,18 @@ namespace M2kClient
                         _subResult.Add(0, string.Empty);
                         return _subResult;
                     }
-                    wipRecord.WipLot.LotNumber = _response.First().Value.Replace($"|P|{wipRecord.Facility}", "");
-                    _lotList.Add(_response.First().Value.Replace($"|P|{wipRecord.Facility}", ""));
+                    var _tLot = string.Empty;
+                    if (_response.FirstOrDefault().Value.Contains("|"))
+                    {
+                        var _resSplit = _response.FirstOrDefault().Value.Split('|');
+                        _tLot = _resSplit.First().Trim();
+                    }
+                    else
+                    {
+                        _tLot = _response.FirstOrDefault().Value.Trim();
+                    }
+                    wipRecord.WipLot.LotNumber = _tLot;
+                    _lotList.Add(wipRecord.WipLot.LotNumber);
                     //File creation for the WIP ADI, needs to account for all database scenarios (i.e. one to one, one to many, and many to many)
                     _tWip = new Wip(wipRecord) { QtyReceived = Convert.ToInt32(wipRecord.WipQty), ComponentInfoList = _tComp };
                     if (!string.IsNullOrEmpty(_tWip.StationId))

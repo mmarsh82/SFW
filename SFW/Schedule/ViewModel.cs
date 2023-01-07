@@ -325,7 +325,7 @@ namespace SFW.Schedule
                 {
                     var _oldPriInt = _oldPriChar % 32;
                     var _newPriInt = Convert.ToChar(parameter) % 32;
-                    if (_oldPriInt < _newPriInt && (SelectedWorkOrder?.Row?.SafeGetField<int>("PriTime").ToString() != "999" || SelectedWorkOrder?.Row?.SafeGetField<int>("Sched_Priority").ToString() != "999"))
+                    if (_oldPriInt < _newPriInt && (SelectedWorkOrder?.Row?.SafeGetField<int>("Sched_Shift").ToString() != "999" || SelectedWorkOrder?.Row?.SafeGetField<int>("Sched_Priority").ToString() != "999"))
                     {
                         new ClearPriority().Execute(SelectedWorkOrder);
                     }
@@ -374,7 +374,7 @@ namespace SFW.Schedule
 
         private void PriorityChangeExecute(object parameter)
         {
-            var _shift = ((DataRowView)parameter).Row.SafeGetField<int>("PriTime").ToString() == "9" ? 0 : Convert.ToInt32(((DataRowView)parameter).Row.SafeGetField<int>("PriTime"));
+            var _shift = ((DataRowView)parameter).Row.SafeGetField<int>("Sched_Shift").ToString() == "9" ? 0 : Convert.ToInt32(((DataRowView)parameter).Row.SafeGetField<int>("Sched_Shift"));
             var _pri = ((DataRowView)parameter).Row.SafeGetField<int>("Sched_Priority").ToString() == "9" ? 0 : Convert.ToInt32(((DataRowView)parameter).Row.SafeGetField<int>("Sched_Priority"));
             var _woNumber = ((DataRowView)parameter).Row.SafeGetField<string>("WorkOrder");
             using (var _editPri = new Tools.PriorityEdit_ViewModel(_woNumber, _shift, _pri))

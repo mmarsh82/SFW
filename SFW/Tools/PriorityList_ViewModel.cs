@@ -1,6 +1,4 @@
-﻿using DocumentFormat.OpenXml.Spreadsheet;
-using DocumentFormat.OpenXml.Wordprocessing;
-using M2kClient;
+﻿using M2kClient;
 using SFW.Helpers;
 using SFW.Model;
 using System;
