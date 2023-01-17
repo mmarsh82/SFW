@@ -2,6 +2,7 @@
 using SFW.Queries;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Windows;
 using System.Windows.Input;
 
@@ -32,7 +33,6 @@ namespace SFW.Commands
         /// <param name="parameter">View to Load</param>
         public void Execute(object parameter)
         {
-            var _site = App.SiteNumber == 2 ? 0 : App.SiteNumber;
             try
             {
                 if (int.TryParse(parameter.ToString(), out int z))
@@ -56,23 +56,21 @@ namespace SFW.Commands
                     parameter = 2;
                 }
                 var _view = int.TryParse(parameter.ToString(), out int i) ? i : App.SiteNumber;
-                var _addhist = _view == _site ? false : true;
+                var _addhist = _view == App.SiteNumber ? false : true;
                 var _viewModel = new object();
                 _viewModel = null;
-                var refreshView = true;
+                var refreshView = _view == 1 || _view == 2;
                 //Handling the back function
                 if (_view == -1)
                 {
                     _addhist = false;
-                    _view = _site;
                     if (HistoryList.Count > 0 && HistoryList.Count - 1 > 0)
                     {
                         HistoryList.RemoveAt(HistoryList.Count - 1);
-                        _view = HistoryList[HistoryList.Count - 1];
+                        _view = HistoryList.Last();
                     }
-                    refreshView = false;
                 }
-                if (_view == _site)
+                if (_view == App.SiteNumber)
                 {
                     _addhist = false;
                     HistoryList.Clear();
@@ -80,7 +78,7 @@ namespace SFW.Commands
                 switch (_view)
                 {
                     //The part information command calls can either send a work order object, part number or a null variable.  Need to handle each case
-                    case 2:
+                    case 0:
                         if (_wo != null)
                         {
                             _viewModel = _wo.GetType() == typeof(Model.WorkOrder) ? new PartInfo_ViewModel((Model.WorkOrder)_wo) : new PartInfo_ViewModel(_wo.ToString());

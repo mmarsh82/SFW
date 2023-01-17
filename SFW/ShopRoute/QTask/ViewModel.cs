@@ -73,7 +73,7 @@ namespace SFW.ShopRoute.QTask
             {
                 if (value != null)
                 {
-                    ILotResultsList = Lot.GetOnHandLotList(value.CompNumber, true);
+                    ILotResultsList = Lot.GetOnHandLotList(value.CompNumber, true, App.SiteNumber);
                     OnPropertyChanged(nameof(ILotResultsList));
                     NoLotResults = ILotResultsList.Count == 0 && (App.SiteNumber == 0 && CurrentUser.CanSchedule);
                     IDedicateLotResultsList = Lot.GetDedicatedLotList(value.CompNumber, ShopOrder.OrderNumber);
@@ -163,7 +163,7 @@ namespace SFW.ShopRoute.QTask
                     case 0:
                         try
                         {
-                            _filePath = $"{App.GlobalConfig.First(o => $"{o.Site}_MAIN" == App.Site).PressSetup}{ShopOrder.SkuNumber}.pdf";
+                            _filePath = $"{App.GlobalConfig.First(o => o.Site == App.Facility).PressSetup}{ShopOrder.SkuNumber}.pdf";
                             break;
                         }
                         catch (Exception)
@@ -177,7 +177,7 @@ namespace SFW.ShopRoute.QTask
                         {
                             case "PRESS":
                             case "ENG":
-                                _fileName = ExcelReader.GetSetupPrintNumber(ShopOrder.SkuNumber, ShopOrder.Machine, App.GlobalConfig.First(o => $"{o.Site}_MAIN" == App.Site).PressSetup, "Production");
+                                _fileName = ExcelReader.GetSetupPrintNumber(ShopOrder.SkuNumber, ShopOrder.Machine, App.GlobalConfig.First(o => o.Site == App.Facility).PressSetup, "Production");
                                 if (!string.IsNullOrEmpty(_fileName) && !_fileName.Contains("ERR:"))
                                 {
                                     var _fileheader = string.Empty;
@@ -186,7 +186,7 @@ namespace SFW.ShopRoute.QTask
                                         _fileheader += "0";
                                     }
                                     _fileName = _fileheader + _fileName;
-                                    _filePath = $"{App.GlobalConfig.First(o => $"{o.Site}_MAIN" == App.Site).PartPrint}{_fileName}.PDF";
+                                    _filePath = $"{App.GlobalConfig.First(o => o.Site == App.Facility).PartPrint}{_fileName}.PDF";
                                 }
                                 else
                                 {
@@ -194,12 +194,12 @@ namespace SFW.ShopRoute.QTask
                                 }
                                 break;
                             case "FABE":
-                                _fileName = ExcelReader.GetSetupPrintNumber(ShopOrder.SkuNumber, ShopOrder.Machine, App.GlobalConfig.First(o => $"{o.Site}_MAIN" == App.Site).SyscoSetup, "PRODUCTION");
-                                _filePath = $"{App.GlobalConfig.First(o => $"{o.Site}_MAIN" == App.Site).PartPrint}{_fileName}.PDF";
+                                _fileName = ExcelReader.GetSetupPrintNumber(ShopOrder.SkuNumber, ShopOrder.Machine, App.GlobalConfig.First(o => o.Site == App.Facility).SyscoSetup, "PRODUCTION");
+                                _filePath = $"{App.GlobalConfig.First(o => o.Site == App.Facility).PartPrint}{_fileName}.PDF";
                                 break;
                             case "EXT":
-                                _fileName = ExcelReader.GetSetupPrintNumber(ShopOrder.SkuNumber, ShopOrder.Machine, App.GlobalConfig.First(o => $"{o.Site}_MAIN" == App.Site).ExtSetup, "PRODUCTION");
-                                _filePath = $"{App.GlobalConfig.First(o => $"{o.Site}_MAIN" == App.Site).PartPrint}{_fileName}.PDF";
+                                _fileName = ExcelReader.GetSetupPrintNumber(ShopOrder.SkuNumber, ShopOrder.Machine, App.GlobalConfig.First(o => o.Site == App.Facility).ExtSetup, "PRODUCTION");
+                                _filePath = $"{App.GlobalConfig.First(o => o.Site == App.Facility).PartPrint}{_fileName}.PDF";
                                 break;
                         }
                         break;

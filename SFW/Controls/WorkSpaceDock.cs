@@ -1,5 +1,4 @@
-﻿using M2kClient;
-using SFW.Queries;
+﻿using SFW.Queries;
 using System;
 using System.ComponentModel;
 using System.Windows;
@@ -40,17 +39,17 @@ namespace SFW.Controls
                 CountDock = new DockPanel();
                 SalesDock = new DockPanel();
 
-                //Add the Site Schedule View to [0]
+                //Add the Part Info View to [0]
+                MainDock.Children.Insert(0, new PartInfo_View());
+
+                //Add the Site Schedule View to [1]
                 SchedDock.Children.Insert(0, new Schedule.View());
                 SchedDock.Children.Insert(1, new ShopRoute.View { DataContext = new ShopRoute.ViewModel() });
-                MainDock.Children.Insert(0, SchedDock);
+                MainDock.Children.Insert(1, SchedDock);
                 while (!Schedule.ViewModel.LoadAsyncComplete.IsCompleted) { }
 
-                //Add a spacer to [1]
-                MainDock.Children.Insert(1, new UserControl());
-
-                //Add the Part Info View to [2]
-                MainDock.Children.Insert(2, new PartInfo_View());
+                //Add a spacer to [2]
+                MainDock.Children.Insert(2, new UserControl());
 
                 //Add the Cycle Count View to [3]
                 CountDock.Children.Insert(0, new CycleCount.Sched_View());
@@ -89,7 +88,7 @@ namespace SFW.Controls
                 //Add the Diamond Validation View to [9]
                 MainDock.Children.Insert(9, new Quality_View { DataContext = new Quality_ViewModel() });
 
-                SwitchView(0, null, false);
+                SwitchView(App.SiteNumber, null, false);
                 RefreshTimer.IsRefreshing = false;
                 App.LoadedModule = Enumerations.UsersControls.Schedule;
             }
@@ -121,10 +120,10 @@ namespace SFW.Controls
             var _tempDock = new DockPanel();
             switch(index)
             {
-                case 0:
                 case 1:
+                case 2:
                     _tempDock = SchedDock;
-                    index = refreshDock ? index : 0;
+                    index = refreshDock ? index : 1;
                     break;
                 case 3:
                     _tempDock = CountDock;
@@ -136,19 +135,16 @@ namespace SFW.Controls
                     _tempDock = SalesDock;
                     break;
             }
-            if (index <= 1 && refreshDock)
+            if (refreshDock)
             {
-                if (!App.DatabaseChange(index))
-                {
-                    MessageBox.Show("Unable to switch to the alternate site.");
-                }
-                App.ErpCon.DatabaseChange(Database.CONTI, App.SiteNumber);
-                Schedule.ViewModel.SiteChange = true;
+                App.SiteNumber = index;
+                Schedule.ViewModel.ScheduleFilter($"[Site] = {App.SiteNumber}", 6);
                 RefreshTimer.RefreshTimerTick();
                 MainDock.Children.RemoveAt(4);
                 MainDock.Children.Insert(4, new Admin.View { DataContext = new Admin.ViewModel() });
                 MainDock.Children[4].Visibility = Visibility.Collapsed;
-                index = 0;
+                index = 1;
+                refreshDock = false;
             }
             else if (dataContext != null)
             {

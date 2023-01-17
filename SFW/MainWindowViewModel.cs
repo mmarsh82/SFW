@@ -1,5 +1,4 @@
-﻿using M2kClient;
-using SFW.Controls;
+﻿using SFW.Controls;
 using SFW.Model;
 using System;
 using System.Collections.Generic;

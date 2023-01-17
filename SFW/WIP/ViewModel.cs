@@ -111,7 +111,7 @@ namespace SFW.WIP
             {
                 if (!string.IsNullOrEmpty(value) && string.IsNullOrEmpty(WipRecord.WipLot.LotNumber))
                 {
-                    IsLocationValid = Sku.IsValidLocation(value);
+                    IsLocationValid = Sku.IsValidLocation(value, App.SiteNumber);
                     IsLocationEditable = true;
                 }
                 else if (!string.IsNullOrEmpty(WipRecord.WipLot.LotNumber) && IsLotValid)
@@ -119,7 +119,7 @@ namespace SFW.WIP
                     var _loc = Lot.GetLotLocation(WipRecord.WipLot.LotNumber);
                     if (_loc == null)
                     {
-                        IsLocationValid = Sku.IsValidLocation(value);
+                        IsLocationValid = Sku.IsValidLocation(value, App.SiteNumber);
                         IsLocationEditable = true;
                     }
                     else
@@ -490,7 +490,7 @@ namespace SFW.WIP
                     #region Core Wip Validation
 
                     var _baseValid = false;
-                    var _locValid = !string.IsNullOrEmpty(WipRecord.ReceiptLocation) && Sku.IsValidLocation(WipRecord.ReceiptLocation);
+                    var _locValid = !string.IsNullOrEmpty(WipRecord.ReceiptLocation) && Sku.IsValidLocation(WipRecord.ReceiptLocation, App.SiteNumber);
                     if (WipRecord.WipQty > 0)
                     {
                         _baseValid = _locValid && (string.IsNullOrEmpty(WipRecord.WipLot.LotNumber) || IsLotValid) && ValidateComponents();
@@ -587,20 +587,29 @@ namespace SFW.WIP
             var _diamond = string.Empty;
             if (IsLotTrace)
             {
-                //Populating the diamond number based on the Picklist WIP information that was submitted
-                foreach (var w in WipRecord.WipWorkOrder.Picklist.Where(o => o.IsLotTrace && o.InventoryType != "HM" && o.InventoryType != "FR"))
+                if (WipRecord.WipWorkOrder.Picklist.Where(o => o.InventoryType == "PU").Count() > 0)
                 {
-                    foreach (var l in w.WipInfo.Where(o => o.IsValidLot))
-                    {
-                        var _temp = Lot.GetDiamondNumber(l.LotNbr, App.SiteNumber, App.AppSqlCon);
-                        _diamond += _diamond == _temp ? "" : $"/{_temp}";
-                    }
+                    _diamond = WipRecord.WipWorkOrder.Picklist.Where(o => o.InventoryType == "PU").FirstOrDefault().WipInfo.FirstOrDefault().LotNbr;
                 }
-                _diamond = _diamond.Trim('/');
+                else
+                {
+                    //Populating the diamond number based on the Picklist WIP information that was submitted
+                    foreach (var w in WipRecord.WipWorkOrder.Picklist.Where(o => o.IsLotTrace && o.InventoryType != "HM" && o.InventoryType != "FR"))
+                    {
+                        foreach (var l in w.WipInfo.Where(o => o.IsValidLot))
+                        {
+                            var _temp = Lot.GetDiamondNumber(l.LotNbr, App.SiteNumber, App.AppSqlCon);
+                            _diamond += _diamond == _temp ? "" : $"/{_temp}";
+                        }
+                    }
+                    _diamond = _diamond.Trim('/');
+                }
                 //Printing the travel card
                 if (_lotList == null || _lotList.Count == 0)
                 {
-                    TravelCard.Create("", "technology#1",
+                    if (App.SiteNumber == 1)
+                    {
+                        TravelCard.Create("", "technology#1",
                         WipRecord.WipWorkOrder.SkuNumber,
                         _lotNbr,
                         WipRecord.WipWorkOrder.SkuDescription,
@@ -608,6 +617,11 @@ namespace SFW.WIP
                         _wQty,
                         WipRecord.WipWorkOrder.Uom,
                         Lot.GetAssociatedQIR(_lotNbr, App.AppSqlCon));
+                    }
+                    else
+                    {
+
+                    }
                     switch (parameter.ToString())
                     {
                         case "T":
@@ -615,6 +629,9 @@ namespace SFW.WIP
                             break;
                         case "R":
                             TravelCard.PrintPDF(FormType.Landscape);
+                            break;
+                        case "W":
+
                             break;
                     }
                 }
@@ -638,6 +655,9 @@ namespace SFW.WIP
                             case "R":
                                 TravelCard.PrintPDF(FormType.Landscape);
                                 break;
+                            case "W":
+
+                                break;
                         }
                     }
                 }
@@ -659,6 +679,9 @@ namespace SFW.WIP
                         break;
                     case "R":
                         TravelCard.PrintPDF(FormType.Landscape);
+                        break;
+                    case "W":
+
                         break;
                 }
             }

@@ -134,7 +134,7 @@ namespace SFW.Queries
                 OnPropertyChanged(nameof(IsNCR));
             }
         }
-        public bool IsToValid { get { return string.IsNullOrEmpty(ToLocation) || Sku.IsValidLocation(ToLocation); } }
+        public bool IsToValid { get { return string.IsNullOrEmpty(ToLocation) || Sku.IsValidLocation(ToLocation, App.SiteNumber); } }
         public int ToLocSize { get { return IsToValid ? 1 : 3; } }
         public bool IsNCR { get { return ToLocation.EndsWith("N") || FromLocation.EndsWith("N"); } }
 
@@ -227,11 +227,11 @@ namespace SFW.Queries
         public void ResultsLoading(string inputVal)
         {
             IsLoading = true;
-            ILotResultsList = Lot.GetOnHandLotList(inputVal, true);
+            ILotResultsList = Lot.GetOnHandLotList(inputVal, true, App.SiteNumber);
             NonLotPart = false;
             if (ILotResultsList.Count == 0)
             {
-                ILotResultsList = Lot.GetOnHandLotList(inputVal, false);
+                ILotResultsList = Lot.GetOnHandLotList(inputVal, false, App.SiteNumber);
                 NonLotPart = true;
             }
             IthResultsTable = Lot.GetLotHistoryTable(inputVal, App.AppSqlCon);

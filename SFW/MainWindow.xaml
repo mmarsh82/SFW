@@ -36,7 +36,7 @@
         <KeyBinding Gesture="Alt+2" Command="{StaticResource ViewLoadICommand}" CommandParameter="1"/>
         <KeyBinding Gesture="Alt+I"
                     Command="{StaticResource ViewLoadICommand}"
-                    CommandParameter="2"/>
+                    CommandParameter="0"/>
         <KeyBinding Gesture="Alt+R"
                     Command="{StaticResource RollSplitICommand}" />
         <KeyBinding Gesture="Shift+Ctrl+C"
@@ -142,7 +142,7 @@
             <MenuItem Header="Tools">
                 <MenuItem Header="Part Information"
                           Command="{StaticResource ViewLoadICommand}"
-                          CommandParameter="2"
+                          CommandParameter="0"
                           InputGestureText="Alt+I"/>
                 <MenuItem Header="Print Label"
                           Command="{StaticResource ShowWindowICommand}"

@@ -115,7 +115,7 @@ namespace SFW.ShopRoute
             {
                 if (value != null)
                 {
-                    ILotResultsList = Lot.GetOnHandLotList(value.CompNumber, true);
+                    ILotResultsList = Lot.GetOnHandLotList(value.CompNumber, true, App.SiteNumber);
                     OnPropertyChanged(nameof(ILotResultsList));    
                     NoLotResults = ILotResultsList.Count == 0 || (ILotResultsList.Count == 0 && App.SiteNumber == 0 && CurrentUser.CanSchedule);
                     IDedicateLotResultsList = Lot.GetDedicatedLotList(value.CompNumber, ShopOrder.OrderNumber);
@@ -206,7 +206,7 @@ namespace SFW.ShopRoute
             {
                 switch (App.SiteNumber)
                 {
-                    case 0:
+                    case 2:
                         try
                         {
                             _filePath = $"{App.GlobalConfig.First(o => o.Site == App.Facility).PressSetup}{ShopOrder.SkuNumber}.pdf";

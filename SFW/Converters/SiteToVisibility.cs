@@ -13,7 +13,7 @@ namespace SFW.Converters
             {
                 switch (value.ToString())
                 {
-                    case "0":
+                    case "2":
                         return Visibility.Visible;
                     default:
                         return Visibility.Collapsed;

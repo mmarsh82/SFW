@@ -147,6 +147,7 @@ namespace SFW.UserLogIn
                     {
                         Error = v.Value;
                     }
+                    ((PasswordBox[])parameter)[0].Password = null;
                 }
                 else
                 {

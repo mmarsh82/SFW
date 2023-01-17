@@ -30,8 +30,8 @@
     <PublisherName>Michael Marsh</PublisherName>
     <SuiteName>WCCO Belting Inc.</SuiteName>
     <AutorunEnabled>true</AutorunEnabled>
-    <ApplicationRevision>3135</ApplicationRevision>
-    <ApplicationVersion>1.0.424.3135</ApplicationVersion>
+    <ApplicationRevision>3160</ApplicationRevision>
+    <ApplicationVersion>1.0.426.3160</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <CreateDesktopShortcut>true</CreateDesktopShortcut>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -580,6 +580,9 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Images\csiLogo.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\ContiLogo.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

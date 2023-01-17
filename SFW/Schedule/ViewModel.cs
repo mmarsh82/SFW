@@ -38,11 +38,11 @@ namespace SFW.Schedule
                         var _wo = new WorkOrder(value.Row);
                         if (_wo.Inspection)
                         {
-                            Controls.WorkSpaceDock.UpdateChildDock(0, 1, new ShopRoute.QTask.View { DataContext = new ShopRoute.QTask.ViewModel(_wo) });
+                            Controls.WorkSpaceDock.UpdateChildDock(1, 1, new ShopRoute.QTask.View { DataContext = new ShopRoute.QTask.ViewModel(_wo) });
                         }
                         else
                         {
-                            Controls.WorkSpaceDock.UpdateChildDock(0, 1, new ShopRoute.View { DataContext = new ShopRoute.ViewModel(_wo) });
+                            Controls.WorkSpaceDock.UpdateChildDock(1, 1, new ShopRoute.View { DataContext = new ShopRoute.ViewModel(_wo) });
                         }
                     }
                     OnPropertyChanged(nameof(SelectedWorkOrder));
@@ -99,8 +99,20 @@ namespace SFW.Schedule
             }
         }
 
+        private bool _site;
+        public bool SiteFilter
+        {
+            get { return _site; }
+            set
+            {
+                var _filter = $"[Site] = {App.SiteNumber}";
+                ScheduleFilter(_filter, 6);
+                _site = value;
+                OnPropertyChanged(nameof(SiteFilter));
+            }
+        }
+
         private bool Refresh { get; set; }
-        public static bool SiteChange { get; set; }
 
         public delegate void LoadDelegate(string s);
         public LoadDelegate LoadAsyncDelegate { get; private set; }
@@ -119,12 +131,13 @@ namespace SFW.Schedule
         /// </summary>
         public ViewModel()
         {
-            Refresh = SiteChange = false;
+            Refresh = false;
             LoadAsyncDelegate = new LoadDelegate(ViewLoading);
             FilterAsyncDelegate = new LoadDelegate(FilterView);
             LoadAsyncComplete = LoadAsyncDelegate.BeginInvoke(App.ViewFilter[App.SiteNumber], new AsyncCallback(ViewLoaded), null);
             RefreshTimer.Add(RefreshSchedule);
-            ScheduleViewFilter = new string[6];
+            ScheduleViewFilter = new string[7];
+            ScheduleFilter($"[Site] = {App.SiteNumber}", 6);
             ClosedFilter = false;
         }
 
@@ -155,12 +168,13 @@ namespace SFW.Schedule
         /// 3 = Work Order Priority Filter
         /// 4 = Inspection Filter
         /// 5 = Closed Filter
+        /// 6 = Site Filter
         /// </summary>
         /// <param name="filter">Filter string to use on the default view</param>
         /// <param name="index">Index of the filter string list you are adding to our changing</param>
         public static void ScheduleFilter(string filter, int index)
         {
-            if (ScheduleViewFilter != null && !SiteChange)
+            if (ScheduleViewFilter != null)
             {
                 ScheduleViewFilter[index] = filter;
                 var _filterStr = string.Empty;
@@ -186,11 +200,12 @@ namespace SFW.Schedule
         /// </summary>
         public static void ClearFilter()
         {
-            if (ScheduleViewFilter != null && !SiteChange)
+            if (ScheduleViewFilter != null)
             {
-                ScheduleViewFilter = new string[6];
+                ScheduleViewFilter = new string[7];
                 ((DataView)ScheduleView.SourceCollection).RowFilter = "";
                 ScheduleFilter("[Status] <> 'C'", 5);
+                ScheduleFilter($"[Site] = {App.SiteNumber}", 6);
                 ScheduleView.Refresh();
             }
         }
@@ -220,11 +235,6 @@ namespace SFW.Schedule
                 if (Refresh)
                 {
                     ModelBase.BuildMasterDataSet(UserConfig.GetIROD(), App.Site, App.AppSqlCon);
-                }
-                if (SiteChange)
-                {
-                    MainWindowViewModel.UpdateProperties();
-                    SiteChange = false;
                 }
             }
             catch(Exception ex)

@@ -491,11 +491,12 @@ namespace SFW.Model
         /// </summary>
         /// <param name="partNbr">Part Number</param>
         /// <param name="lotTrace">Is Sku lot tracecable</param>
+        /// <param name="facCode">Facility code</param>
         /// <returns>List of lots associated with the part number</returns>
-        public static IList<Lot> GetOnHandLotList(string partNbr, bool lotTrace)
+        public static IList<Lot> GetOnHandLotList(string partNbr, bool lotTrace, int facCode)
         {
             var _tempList = new List<Lot>();
-            var _rows = MasterDataSet.Tables["LOT"].Select($"[SkuID] = '{partNbr}' AND [Type] <> 'dLot' AND [OnHand] <> 0");
+            var _rows = MasterDataSet.Tables["LOT"].Select($"[SkuID] = '{partNbr}' AND [Type] <> 'dLot' AND [OnHand] <> 0 AND [Site] = {facCode}");
             foreach (var _row in _rows)
             {
                 if (lotTrace)

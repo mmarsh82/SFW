@@ -77,10 +77,10 @@ namespace SFW.Model
             { return _lastClock; }
             set
             {
-                if (IsDirect && !_clockLoaded)
+                if (IsDirect && !_clockLoaded && string.IsNullOrEmpty(_lastClock))
                 {
                     System.Threading.Tasks.Task.Run(() =>
-                    { 
+                    {
                         _clockLoaded = true;
                         if (!string.IsNullOrEmpty(Facility) && IsCrewIDValid(IdNumber))
                         {

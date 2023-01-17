@@ -287,7 +287,7 @@ ORDER BY
         /// </summary>
         /// <param name="searchValue">Value to use in the search</param>
         /// <returns>Verification as a bool</returns>
-        public static new bool Exists(string searchValue)
+        public static bool Exists(string searchValue)
         {
             return int.TryParse(searchValue, out int i)
                 ? MasterDataSet.Tables["WC"].Select($"[WorkCenterID] = '{i}'").Length > 0

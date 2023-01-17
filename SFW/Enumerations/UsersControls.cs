@@ -5,10 +5,10 @@ namespace SFW.Enumerations
     [Flags]
     public enum UsersControls
     {
-        // The flag for the work order schedule module
-        Schedule = 0,   
         // The flag for the part information query
-        PartInformation = 2,
+        PartInformation = 0,
+        // The flag for the work order schedule module
+        Schedule = 1,
         // The flag for the cycle count module
         CycleCount = 3,
         // The flag for the administration module

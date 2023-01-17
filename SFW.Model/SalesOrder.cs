@@ -48,7 +48,7 @@ namespace SFW.Model
         public decimal CreditAllocatedBalance { get; set; }
         public decimal CurrentCreditLimit { get; set; }
         public decimal OrderBalance { get; set; }
-        public bool IsStagged { get; set; }
+        public int Facility { get; set; }
 
         #endregion
 
@@ -100,7 +100,7 @@ namespace SFW.Model
             CreditAllocatedBalance = dRow.Field<decimal>("AR_ABal");
             CurrentCreditLimit = dRow.Field<decimal>("AR_Credit");
             OrderBalance = dRow.Field<decimal>("AR_OrdBal");
-            IsStagged = dRow.Field<string>("IsStagged") == "T";
+            Facility = dRow.Field<int>("Site");
         }
 
         #region Data Access
@@ -118,68 +118,9 @@ namespace SFW.Model
                 {
                     try
                     {
-                        using (SqlDataAdapter adapter = new SqlDataAdapter(@"SELECT
-                                                                                b.[ID]
-	                                                                            ,a.[So_Nbr] as 'SoNbr'
-	                                                                            ,CAST(SUBSTRING(b.[ID], CHARINDEX('*', b.[ID], 0) + 1, LEN(b.[ID])) as int) as 'LineNbr'
-	                                                                            ,(SELECT COUNT(ac.[ID]) FROM [dbo].[SOD-INIT] ac WHERE ac.[ID] LIKE CONCAT(a.[So_Nbr], '*%')) as 'LineCount'
-	                                                                            ,b.[Part_Wo_Gl] as 'PartNbr'
-                                                                                ,CAST(b.[Ln_Bal_Qty] as int) as 'BalQty'
-	                                                                            ,CAST(b.[Ln_Del_Qty] as int) as 'BaseQty'
-	                                                                            ,b.[Um_Base] as 'Uom'
-	                                                                            ,ISNULL(b.[D_esc], (SELECT aa.[Description] FROM [dbo].[IM-INIT] aa WHERE aa.[Part_Number] = b.[Part_Wo_Gl])) as 'Description'
-                                                                                ,a.[Cust_Nbr] as 'CustNbr'
-	                                                                            ,(SELECT ab.[Name] FROM [dbo].[CM-INIT] ab WHERE ab.[Cust_Nbr] = a.[Cust_Nbr]) as 'CustName'
-                                                                                ,CONCAT((SELECT ab.[Name] FROM [dbo].[CM-INIT] ab WHERE ab.[Cust_Nbr] = a.[Cust_Nbr]),' (', a.[Cust_Nbr], ')') as 'FullCustName'
-                                                                                ,b.[Cust_Part_Nbr] as 'CustPartNbr'
-	                                                                            ,RTRIM(a.[Credit_Code]) as 'CredStatus'
-                                                                                ,a.[Credit_Chk] as 'CredApprover'
-	                                                                            ,CAST(ISNULL(a.[Credit_Date], '1999-01-01') as date) as 'CredDate'
-	                                                                            ,CASE WHEN a.[Ord_Type] = 'FSE' OR a.[Ord_Type] LIKE '%DE' THEN 'EOP' ELSE a.[Ord_Type] END as 'Type'
-	                                                                            ,CAST(CASE WHEN a.[Jump_Reason] IS NULL THEN 0 ELSE 1 END as int) as 'IsExpedited'
-	                                                                            ,a.[Ship_To_Name] as 'ShipName'
-	                                                                            ,a.[Ship_To_Addr1] as 'ShipAddr1'
-	                                                                            ,a.[Ship_To_Addr2] as 'ShipAddr2'
-	                                                                            ,a.[Ship_To_City] as 'ShipCity'
-	                                                                            ,a.[Ship_To_State] as 'ShipState'
-	                                                                            ,a.[Ship_To_Zip] as 'ShipZip'
-	                                                                            ,ISNULL(a.[Ship_To_Country], 'US') as 'ShipCountry'
-	                                                                            ,CAST(a.[Date_Added] as date) as 'DateAdded'
-	                                                                            ,CAST(a.[Delivery_Date] as date) as 'DelDate'
-	                                                                            ,CAST(a.[Requested_Date] as date) as 'ReqDate'
-	                                                                            ,CAST(a.[Commit_Ship_Date] as date) as 'ShipDate'
-                                                                                ,(SELECT ISNULL(aa.[Load_Pattern], '') FROM [dbo].[CM-INIT] aa WHERE aa.[Cust_Nbr] = a.[Cust_Nbr]) AS 'LoadPattern'
-                                                                                ,CASE WHEN b.[Make_To_Order] = 'Y' THEN 1
-		                                                                            WHEN b.[Make_To_Order] = 'N' OR d.[Wp_Nbr] IS NOT NULL THEN 0
-		                                                                            ELSE -1 END as 'MTO'
-                                                                                ,CASE WHEN CAST(b.[Ln_Del_Qty] as int) - CAST(b.[Ln_Bal_Qty] as int) = 0 THEN 0 ELSE 1 END AS 'IsBackOrder'
-                                                                                ,ISNULL(c.[Ar_Credit_Limit], 0) as 'AR_Limit'
-	                                                                            ,c.[Balance] as 'AR_Bal'
-	                                                                            ,c.[Ship_Bal] as 'AR_SBal'
-	                                                                            ,c.[Alloc_Bal] as 'AR_ABal'
-	                                                                            ,ISNULL(c.[Ar_Credit_Limit] - (c.[Balance] + c.[Ship_Bal] + c.[Alloc_Bal]), 0.00) as 'AR_Credit'
-	                                                                            ,a.[Order_Bal_Ext_Price] as 'AR_OrdBal'
-                                                                                ,CASE WHEN d.[Wp_Nbr] IS NOT NULL THEN 1 ELSE 0 END as 'IsWOLinked'
-                                                                                ,CASE WHEN CAST(b.[Ln_Bal_Qty] as int) <= (SELECT ab.[Qty_On_Hand] FROM [dbo].[IPL-INIT] ab WHERE ab.[Part_Nbr] = b.[Part_Wo_Gl]) OR CAST(a.[Commit_Ship_Date] as date) >= CAST(GETDATE() as date)
-		                                                                            THEN 1
-		                                                                            ELSE 0
-	                                                                            END as 'CanShip'
-                                                                                ,1 as 'Site'
-                                                                            FROM
-	                                                                            [dbo].[SOH-INIT] a
-                                                                            RIGHT JOIN
-	                                                                            [dbo].[SOD-INIT] b ON SUBSTRING(b.[ID], 0, CHARINDEX('*', b.[ID], 0)) = a.[So_Nbr]
-                                                                            RIGHT JOIN
-	                                                                            [dbo].[CM-INIT] c ON c.[Cust_Nbr] = a.[Cust_Nbr]
-                                                                            LEFT JOIN
-	                                                                            [dbo].[WP-INIT] d ON d.[So_Reference] = CONCAT(b.[ID], '*1')
-                                                                            WHERE
-	                                                                            a.[Order_Status] IS NULL AND b.[Comp] = 'O' AND (b.[Part_Wo_Gl] IS NOT NULL OR b.[D_esc] IS NOT NULL) AND a.[So_Nbr] IS NOT NULL AND b.[Part_Wo_Gl] != '1010199'
-                                                                            ORDER BY
-                                                                                a.[Commit_Ship_Date], b.[ID] ASC", sqlCon))
+                        using (SqlDataAdapter adapter = new SqlDataAdapter($"USE {sqlCon.Database}; SELECT * FROM [dbo].[SFW_SalesSchedule] ORDER BY a.[Commit_Ship_Date], b.[ID] ASC", sqlCon))
                         {
                             adapter.Fill(_tempTable);
-                            //TODO: need to get this to a table for return.
                             return _tempTable.AsEnumerable()
                                 .GroupBy(r => r.Field<string>("ID"))
                                 .Select(g => g.First())
@@ -214,7 +155,7 @@ namespace SFW.Model
                 {
                     using (DataTable dt = new DataTable())
                     {
-                        using (SqlDataAdapter adapter = new SqlDataAdapter($@"USE {sqlCon.Database}; SELECT * FROM [dbo].[SFW_SalesNotes]", sqlCon))
+                        using (SqlDataAdapter adapter = new SqlDataAdapter($"USE {sqlCon.Database}; SELECT * FROM [dbo].[SFW_SalesNotes]", sqlCon))
                         {
                             adapter.Fill(dt);
                         }
@@ -295,7 +236,6 @@ namespace SFW.Model
                                         ,PartNumber = _row.Field<string>("PartNbr")
                                         ,LineBaseQuantity = _row.Field<int>("BaseQty")
                                         ,LineNotes = _row.Field<string>("Uom")
-                                        ,IsStagged = _row.Field<int>("IsBackOrder") == 1
                                     });
                 }
             }

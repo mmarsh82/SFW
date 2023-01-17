@@ -561,10 +561,11 @@ namespace SFW.Model
         /// Validates that the location entered is a valid M2k location
         /// </summary>
         /// <param name="location">location to validate</param>
+        /// <param name="facCode">Facility code</param>
         /// <returns>valid location as bool</returns>
-        public static bool IsValidLocation(string location)
+        public static bool IsValidLocation(string location, int facCode)
         {
-            return MasterDataSet.Tables["LOC"].Select($"[Location] = '{location}'").Length > 0;
+            return MasterDataSet.Tables["LOC"].Select($"[Location] = '{location}' AND [Site] = {facCode}").Length > 0;
         }
 
         /// <summary>

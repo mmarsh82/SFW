@@ -115,7 +115,7 @@ namespace SFW.ShopRoute.PurchaseOrder
             {
                 if (value != null)
                 {
-                    ILotResultsList = Lot.GetOnHandLotList(value.CompNumber, true);
+                    ILotResultsList = Lot.GetOnHandLotList(value.CompNumber, true, App.SiteNumber);
                     OnPropertyChanged(nameof(ILotResultsList));    
                     NoLotResults = ILotResultsList.Count == 0 && (App.SiteNumber == 0 && CurrentUser.CanSchedule);
                     IDedicateLotResultsList = Lot.GetDedicatedLotList(value.CompNumber, ShopOrder.OrderNumber);
