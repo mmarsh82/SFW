@@ -118,7 +118,39 @@ namespace SFW.Model
                 {
                     try
                     {
-                        using (SqlDataAdapter adapter = new SqlDataAdapter($"USE {sqlCon.Database}; SELECT * FROM [dbo].[SFW_SalesSchedule] ORDER BY a.[Commit_Ship_Date], b.[ID] ASC", sqlCon))
+                        using (SqlDataAdapter adapter = new SqlDataAdapter($@"USE {sqlCon.Database}; SELECT        b.ID, a.So_Nbr AS SoNbr, CAST(SUBSTRING(b.ID, CHARINDEX('*', b.ID, 0) + 1, LEN(b.ID)) AS int) AS LineNbr,
+                             (SELECT        COUNT(ID) AS Expr1
+                               FROM            dbo.[SOD-INIT] AS ac
+                               WHERE        (ID LIKE {{ fn CONCAT(a.So_Nbr, '*%') }})) AS LineCount, b.Part_Wo_Gl AS PartNbr, CAST(b.Ln_Bal_Qty AS int) AS BalQty, CAST(b.Ln_Del_Qty AS int) AS BaseQty, b.Um_Base AS Uom, ISNULL(b.D_esc,
+                             (SELECT        Description
+                               FROM            dbo.[IM-INIT] AS aa
+                               WHERE        (Part_Number = b.Part_Wo_Gl))) AS Description, a.Cust_Nbr AS CustNbr,
+                             (SELECT        Name
+                               FROM            dbo.[CM-INIT] AS ab
+                               WHERE        (Cust_Nbr = a.Cust_Nbr)) AS CustName, {{ fn CONCAT({{ fn CONCAT({{ fn CONCAT
+                             ((SELECT        Name
+                                 FROM            dbo.[CM-INIT] AS ab
+                                 WHERE        (Cust_Nbr = a.Cust_Nbr)), ' (') }}, a.Cust_Nbr) }}, ')') }} AS FullCustName, b.Cust_Part_Nbr AS CustPartNbr, RTRIM(a.Credit_Code) AS CredStatus, a.Credit_Chk AS CredApprover, CAST(ISNULL(a.Credit_Date, 
+                         '1999-01-01') AS date) AS CredDate, CASE WHEN a.[Ord_Type] = 'FSE' OR
+                         a.[Ord_Type] LIKE '%DE' THEN 'EOP' ELSE a.[Ord_Type] END AS Type, CAST(CASE WHEN a.[Jump_Reason] IS NULL THEN 0 ELSE 1 END AS int) AS IsExpedited, a.Ship_To_Name AS ShipName, a.Ship_To_Addr1 AS ShipAddr1, 
+                         a.Ship_To_Addr2 AS ShipAddr2, a.Ship_To_City AS ShipCity, a.Ship_To_State AS ShipState, a.Ship_To_Zip AS ShipZip, ISNULL(a.Ship_To_Country, 'US') AS ShipCountry, CAST(a.Date_Added AS date) AS DateAdded, 
+                         CAST(a.Delivery_Date AS date) AS DelDate, CAST(a.Requested_Date AS date) AS ReqDate, CAST(a.Commit_Ship_Date AS date) AS ShipDate,
+                             (SELECT        ISNULL(Load_Pattern, '') AS Expr1
+                               FROM            dbo.[CM-INIT] AS aa
+                               WHERE        (Cust_Nbr = a.Cust_Nbr)) AS LoadPattern, CASE WHEN b.[Make_To_Order] = 'Y' THEN 1 WHEN b.[Make_To_Order] = 'N' OR
+                         d .[Wp_Nbr] IS NOT NULL THEN 0 ELSE - 1 END AS MTO, CASE WHEN CAST(b.[Ln_Del_Qty] AS int) - CAST(b.[Ln_Bal_Qty] AS int) = 0 THEN 0 ELSE 1 END AS IsBackOrder, ISNULL(c.Ar_Credit_Limit, 0) AS AR_Limit, 
+                         c.Balance AS AR_Bal, c.Ship_Bal AS AR_SBal, c.Alloc_Bal AS AR_ABal, ISNULL(c.Ar_Credit_Limit - (c.Balance + c.Ship_Bal + c.Alloc_Bal), 0.00) AS AR_Credit, a.Order_Bal_Ext_Price AS AR_OrdBal, 
+                         CASE WHEN d .[Wp_Nbr] IS NOT NULL THEN 1 ELSE 0 END AS IsWOLinked, CASE WHEN CAST(b.[Ln_Bal_Qty] AS int) <=
+                             (SELECT        ab.[Qty_On_Hand]
+                               FROM            [dbo].[IPL-INIT] ab
+                               WHERE        ab.[Part_Nbr] = b.[Part_Wo_Gl]) OR
+                         CAST(a.[Commit_Ship_Date] AS date) >= CAST(GETDATE() AS date) THEN 1 ELSE 0 END AS CanShip, CAST(b.Facility_Code AS int) AS Site
+FROM            dbo.[SOH-INIT] AS a RIGHT OUTER JOIN
+                         dbo.[SOD-INIT] AS b ON SUBSTRING(b.ID, 0, CHARINDEX('*', b.ID, 0)) = a.So_Nbr RIGHT OUTER JOIN
+                         dbo.[CM-INIT] AS c ON c.Cust_Nbr = a.Cust_Nbr LEFT OUTER JOIN
+                         dbo.[WP-INIT] AS d ON d.So_Reference = {{ fn CONCAT(b.ID, '*1') }}
+WHERE        (a.Order_Status IS NULL) AND (b.Comp = 'O') AND (b.Part_Wo_Gl IS NOT NULL) AND (a.So_Nbr IS NOT NULL) AND (b.Part_Wo_Gl <> '1010199') OR
+                         (a.Order_Status IS NULL) AND (b.Comp = 'O') AND (b.Part_Wo_Gl <> '1010199') AND (a.So_Nbr IS NOT NULL) AND (b.D_esc IS NOT NULL) ORDER BY a.[Commit_Ship_Date], b.[ID] ASC", sqlCon))
                         {
                             adapter.Fill(_tempTable);
                             return _tempTable.AsEnumerable()

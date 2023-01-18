@@ -2,6 +2,7 @@
 using SFW.Queries;
 using System;
 using System.Collections.Generic;
+using System.DirectoryServices.AccountManagement;
 using System.Linq;
 using System.Windows;
 using System.Windows.Input;
@@ -53,7 +54,7 @@ namespace SFW.Commands
                 if (parameter.GetType() == typeof(Model.WorkOrder) || parameter.ToString().Length > 3)
                 {
                     _wo = parameter;
-                    parameter = 2;
+                    parameter = 0;
                 }
                 var _view = int.TryParse(parameter.ToString(), out int i) ? i : App.SiteNumber;
                 var _addhist = _view == App.SiteNumber ? false : true;
@@ -64,10 +65,17 @@ namespace SFW.Commands
                 if (_view == -1)
                 {
                     _addhist = false;
-                    if (HistoryList.Count > 0 && HistoryList.Count - 1 > 0)
+                    if (HistoryList.Count > 0)
                     {
                         HistoryList.RemoveAt(HistoryList.Count - 1);
-                        _view = HistoryList.Last();
+                        if (HistoryList.Count == 0)
+                        {
+                            _view = App.SiteNumber;
+                        }
+                        else
+                        {
+                            _view = HistoryList.Last();
+                        }
                     }
                 }
                 if (_view == App.SiteNumber)
