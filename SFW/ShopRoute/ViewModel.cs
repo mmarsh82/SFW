@@ -77,7 +77,6 @@ namespace SFW.ShopRoute
         public bool CanCheckHistory { get { return ShopOrder?.StartQty != ShopOrder?.CurrentQty; } }
         public bool CanReport { get { return MachineGroup == "PRESS"; } }
         public bool CanSeeTrim { get { return MachineGroup == "PRESS"; } }
-        public bool CanWip { get; set; }
 
         public bool IsMultiLoading { get; set; }
 
@@ -151,7 +150,6 @@ namespace SFW.ShopRoute
         /// <param name="workOrder">Work Order Object</param>
         public ViewModel(WorkOrder workOrder)
         {
-            CanWip = false;
             ShopOrder = workOrder;
             IsMultiLoading = true;
             NoLotResults = NoDedicateResults = true;
@@ -183,8 +181,6 @@ namespace SFW.ShopRoute
                             IsMultiLoading = false;
                             OnPropertyChanged(nameof(IsMultiLoading));
                             OnPropertyChanged(nameof(ShopOrder));
-                            CanWip = CurrentUser.CanWip;
-                            OnPropertyChanged(nameof(CanWip));
                         });
                     bw.RunWorkerAsync();
                 }

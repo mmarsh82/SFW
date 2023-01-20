@@ -85,9 +85,6 @@ namespace SFW.Controls
                     while (!Schedule.SalesOrder.ViewModel.LoadAsyncComplete.IsCompleted) { }
                 }
 
-                //Add the Diamond Validation View to [9]
-                MainDock.Children.Insert(9, new Quality_View { DataContext = new Quality_ViewModel() });
-
                 SwitchView(App.SiteNumber, null, false);
                 RefreshTimer.IsRefreshing = false;
                 App.LoadedModule = Enumerations.UsersControls.Schedule;

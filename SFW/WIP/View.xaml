@@ -987,6 +987,24 @@
                          Background="LightGray"
                          Style="{DynamicResource OptionalTextBox}" />
 
+                <TextBlock Text="Weight:"
+                           FontSize="18"
+                           FontWeight="Bold"
+                           TextDecorations="Underline"
+                           VerticalAlignment="Center"
+                           Visibility="{Binding Converter={StaticResource SiteToVisConverter}, ConverterParameter=User}"
+                           Margin="10,0,0,0" />
+
+                <TextBox Text="{Binding Weight, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                         Width="90"
+                         FontSize="18"
+                         Margin="8"
+                         MaxLength="5"
+                         IsTabStop="False"
+                         Background="LightGray"
+                         Visibility="{Binding Converter={StaticResource SiteToVisConverter}, ConverterParameter=User}"
+                         Style="{DynamicResource RequiredTextBox}" />
+
                 <Button Content="Travel Card"
                         Width="120"
                         FontSize="18"

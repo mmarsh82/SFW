@@ -1,5 +1,7 @@
-﻿using SFW.Helpers;
+﻿using SFW.Commands;
+using SFW.Helpers;
 using SFW.Model;
+using SFW.Tools;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -379,7 +381,11 @@ namespace SFW.Queries
         {
             if (App.SiteNumber == 1)
             {
-                var _dmd = UseLot ? Lot.GetDiamondNumber(_lot, App.SiteNumber, App.AppSqlCon) : "";
+                var _dmd = UseLot ? Lot.GetDiamondNumber(_lot) : "";
+                if (_dmd == "error")
+                {
+                    _dmd = DiamondEntry.Show();
+                }
                 var _qir = UseLot ? Lot.GetAssociatedQIR(_lot, App.AppSqlCon) : 0;
                 TravelCard.Create("", "technology#1",
                     Part.SkuNumber,

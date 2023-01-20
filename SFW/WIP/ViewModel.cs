@@ -242,6 +242,13 @@ namespace SFW.WIP
             set { tQty = value; OnPropertyChanged(nameof(TQty)); }
         }
 
+        private int? _weight;
+        public int? Weight
+        {
+            get { return _weight; }
+            set { _weight = value; OnPropertyChanged(nameof(Weight)); }
+        }
+
         public bool IsLotTrace
         {
             get { return WipRecord.IsLotTracable || WipRecord.WipWorkOrder.Picklist.Count(o => o.IsLotTrace) > 0; }
@@ -583,60 +590,57 @@ namespace SFW.WIP
         private void MPrintExecute(object parameter)
         {
             var _wQty = TQty == null || TQty == 0 ? Convert.ToInt32(WipRecord.WipQty) : Convert.ToInt32(TQty);
-            var _lotNbr = WipRecord.IsLotTracable ? WipRecord.WipLot.LotNumber : "";
             var _diamond = string.Empty;
-            if (IsLotTrace)
+            var _qir = 0;
+            //Printing the travel card logic
+            if (_lotList == null || _lotList.Count == 0)
             {
-                if (WipRecord.WipWorkOrder.Picklist.Where(o => o.InventoryType == "PU").Count() > 0)
+                if (App.SiteNumber == 1)
                 {
-                    _diamond = WipRecord.WipWorkOrder.Picklist.Where(o => o.InventoryType == "PU").FirstOrDefault().WipInfo.FirstOrDefault().LotNbr;
-                }
-                else
-                {
-                    //Populating the diamond number based on the Picklist WIP information that was submitted
-                    foreach (var w in WipRecord.WipWorkOrder.Picklist.Where(o => o.IsLotTrace && o.InventoryType != "HM" && o.InventoryType != "FR"))
+                    _diamond = Sku.IsLotTracable(WipRecord.WipWorkOrder.SkuNumber) ? Lot.GetDiamondNumber(WipRecord.WipLot.LotNumber) : "";
+                    if (_diamond == "error")
                     {
-                        foreach (var l in w.WipInfo.Where(o => o.IsValidLot))
-                        {
-                            var _temp = Lot.GetDiamondNumber(l.LotNbr, App.SiteNumber, App.AppSqlCon);
-                            _diamond += _diamond == _temp ? "" : $"/{_temp}";
-                        }
+                        App.GetWindow<View>().Topmost = false;
+                        _diamond = DiamondEntry.Show();
+                        App.GetWindow<View>().Topmost = true;
                     }
-                    _diamond = _diamond.Trim('/');
-                }
-                //Printing the travel card
-                if (_lotList == null || _lotList.Count == 0)
-                {
-                    if (App.SiteNumber == 1)
-                    {
-                        TravelCard.Create("", "technology#1",
+                    _qir = WipRecord.IsLotTracable ? Lot.GetAssociatedQIR(WipRecord.WipLot.LotNumber, App.AppSqlCon) : 0;
+                    TravelCard.Create("", "technology#1",
                         WipRecord.WipWorkOrder.SkuNumber,
-                        _lotNbr,
+                        WipRecord.WipLot.LotNumber,
                         WipRecord.WipWorkOrder.SkuDescription,
                         _diamond,
                         _wQty,
                         WipRecord.WipWorkOrder.Uom,
-                        Lot.GetAssociatedQIR(_lotNbr, App.AppSqlCon));
-                    }
-                    else
-                    {
-
-                    }
+                        _qir
+                        );
                     switch (parameter.ToString())
                     {
                         case "T":
-                            TravelCard.PrintPDF(FormType.Portrait);
+                            TravelCard.Display(FormType.Portrait);
                             break;
                         case "R":
-                            TravelCard.PrintPDF(FormType.Landscape);
+                            TravelCard.Display(FormType.Landscape);
                             break;
-                        case "W":
 
-                            break;
                     }
                 }
                 else
                 {
+
+                }
+            }
+            else
+            {
+                if (App.SiteNumber == 1)
+                {
+                    _diamond = Sku.IsLotTracable(WipRecord.WipWorkOrder.SkuNumber) ? Lot.GetDiamondNumber(_lotList.First()) : "";
+                    if (_diamond == "error")
+                    {
+                        App.GetWindow<View>().Topmost = false;
+                        _diamond = DiamondEntry.Show();
+                        App.GetWindow<View>().Topmost = true;
+                    }
                     foreach (var _lot in _lotList)
                     {
                         TravelCard.Create("", "technology#1",
@@ -661,32 +665,23 @@ namespace SFW.WIP
                         }
                     }
                 }
-            }
-            else
-            {
-                TravelCard.Create("", "technology#1",
-                        WipRecord.WipWorkOrder.SkuNumber,
-                        "",
-                        WipRecord.WipWorkOrder.SkuDescription,
-                        "",
-                        _wQty,
-                        WipRecord.WipWorkOrder.Uom,
-                        0);
-                switch (parameter.ToString())
+                else
                 {
-                    case "T":
-                        TravelCard.PrintPDF(FormType.Portrait);
-                        break;
-                    case "R":
-                        TravelCard.PrintPDF(FormType.Landscape);
-                        break;
-                    case "W":
 
-                        break;
                 }
             }
         }
-        private bool MPrintCanExecute(object parameter) => true;
+        private bool MPrintCanExecute(object parameter)
+        {
+            if (App.SiteNumber == 2)
+            {
+                return Weight != null && Weight > 0;
+            }
+            else
+            {
+                return true;
+            }
+        }
 
         #endregion
 
@@ -928,7 +923,7 @@ namespace SFW.WIP
             {
                 foreach (var l in w.WipInfo.Where(o => o.IsValidLot))
                 {
-                    var _temp = Lot.GetDiamondNumber(l.LotNbr, App.SiteNumber, App.AppSqlCon);
+                    var _temp = Lot.GetDiamondNumber(l.LotNbr);
                     _diamond += _diamond == _temp ? "" : $"/{_temp}";
                 }
             }

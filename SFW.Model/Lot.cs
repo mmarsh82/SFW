@@ -112,6 +112,37 @@ namespace SFW.Model
         }
 
         /// <summary>
+        /// Get a DataTable of all sku objects with onhand values
+        /// </summary>
+        /// <param name="sqlCon">Sql Connection to use</param>
+        /// <returns>DataTable of all onhand values</returns>
+        public static DataTable GetDiamondTable(SqlConnection sqlCon)
+        {
+            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
+            {
+                try
+                {
+                    using (DataTable _dt = new DataTable())
+                    {
+                        using (SqlDataAdapter adapter = new SqlDataAdapter($@"USE {sqlCon.Database}; SELECT * FROM [dbo].[SFW_Diamond]", sqlCon))
+                        {
+                            adapter.Fill(_dt);
+                            return _dt;
+                        }
+                    }
+                }
+                catch (Exception)
+                {
+                    return new DataTable();
+                }
+            }
+            else
+            {
+                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
+            }
+        }
+
+        /// <summary>
         /// Get a DataTable of historical transactions of lots based on part number
         /// </summary>
         /// <param name="partNbr">Part Number</param>
@@ -191,137 +222,6 @@ namespace SFW.Model
         }
 
         /// <summary>
-        /// Get the Sku's Diamond number using a parent lot number
-        /// </summary>
-        /// <param name="lotNbr">Lot Number used as a search reference</param>
-        /// <param name="facCode">Facility Code</param>
-        /// <param name="sqlCon">Sql Connection to use</param>
-        /// <returns>Diamond number as string</returns>
-        public static string GetDiamondNumber(string lotNbr, int facCode, SqlConnection sqlCon)
-        {
-            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
-            {
-                var _found = false;
-                var _lot = $"a.[Parent_Lot] = '{lotNbr}|P|0{facCode}'";
-                var _dmdNbr = string.Empty;
-                while (!_found)
-                {
-                    _lot += ";";
-                    using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database};
-                                                            SELECT
-                                                                SUBSTRING(a.[Component_Lot], 0, CHARINDEX('|', a.[Component_Lot], 0)) as 'Comp_Lot', b.[Inventory_Type] as 'Type'
-                                                            FROM
-	                                                            [dbo].[Lot Structure] a
-                                                            RIGHT OUTER JOIN
-	                                                            [dbo].[IM-INIT] b ON b.[Part_Number] = a.[Comp_Pn]
-                                                            WHERE
-	                                                            {_lot}", sqlCon))
-                    {
-                        _lot = string.Empty;
-                        using (SqlDataReader reader = cmd.ExecuteReader())
-                        {
-                            if (reader.HasRows)
-                            {
-                                while (reader.Read())
-                                {
-                                    if (reader.SafeGetString("Type") == "PU")
-                                    {
-                                        _dmdNbr = reader.SafeGetString("Comp_Lot");
-                                        _found = true;
-                                    }
-                                    else if (string.IsNullOrEmpty(_lot) && reader.SafeGetString("Type") != "HM")
-                                    {
-                                        _lot += $"a.[Parent_Lot] = '{reader.SafeGetString("Comp_Lot")}|P|0{facCode}'";
-                                    }
-                                    else if (reader.SafeGetString("Type") != "HM")
-                                    {
-                                        _lot += $" OR a.[Parent_Lot] = '{reader.SafeGetString("Comp_Lot")}|P|0{facCode}'";
-                                    }
-                                }
-                            }
-                            else
-                            {
-                                return !string.IsNullOrEmpty(_dmdNbr) ? _dmdNbr : lotNbr;
-                            }
-                        }
-                        if (string.IsNullOrEmpty(_lot))
-                        {
-                            using (SqlDataReader reader = cmd.ExecuteReader())
-                            {
-                                while (reader.Read())
-                                {
-                                    _lot = $"a.[Parent_Lot] = '{reader.SafeGetString("Comp_Lot")}|P'";
-                                }
-                            }
-                        }
-                    }
-                }
-                return _dmdNbr;
-            }
-            else
-            {
-                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
-            }
-        }
-
-        /// <summary>
-        /// Get a list of diamond numbers for quality validation
-        /// </summary>
-        /// <param name="sqlCon">Sql Connection to use</param>
-        public static List<Lot> GetDiamondList(SqlConnection sqlCon)
-        {
-            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
-            {
-                var _temp = new List<Lot>();
-                try
-                {
-                    using (SqlCommand cmd = new SqlCommand(@"SELECT 
-	                                                            SUBSTRING(lot.[Lot_Number], 0, CHARINDEX('|', lot.[Lot_Number], 0)) as 'LotNbr'
-                                                                ,lot.[Part_Nbr] as 'PartNbr'
-                                                                ,CAST(lot.[Date_Recvd] as date) as 'Received_date'
-                                                                ,ISNULL(lot.[Verified_Qty], 0) as 'Verified'
-                                                                ,(SELECT COUNT(aa.[ID]) FROM [dbo].[IT-INIT] aa WHERE aa.[Lot_Number] = lot.[Lot_Number] AND aa.[Tran_Code] = '44') as 'Wip'
-                                                            FROM
-	                                                            [dbo].[LOT-INIT] lot
-                                                            LEFT JOIN
-	                                                            [dbo].[LOT-INIT_Lot_Loc_Qtys] lotloc ON lotloc.[ID1] = lot.[Lot_Number]
-                                                            LEFT JOIN
-	                                                            [dbo].[IM-INIT] im ON im.[Part_Number] = lot.[Part_Nbr]
-                                                            WHERE
-	                                                            lotloc.[Oh_Qtys] != 0 AND im.[Inventory_Type] = 'RR'", sqlCon))
-                    {
-                        using (SqlDataReader reader = cmd.ExecuteReader())
-                        {
-                            if (reader.HasRows)
-                            {
-                                while (reader.Read())
-                                {
-                                    _temp.Add(new Lot
-                                    {
-                                        LotNumber = reader.SafeGetString("LotNbr")
-                                        ,Location = reader.SafeGetString("PartNbr")
-                                        ,ReceivedDate = reader.SafeGetDateTime("Received_date")
-                                        ,Validated = reader.SafeGetInt32("Verified") == 1
-                                        ,TransactionCode = reader.SafeGetInt32("Wip") > 0 ? "false" : "true"
-                                    });
-                                }
-                            }
-                        }
-                    }
-                    return _temp;
-                }
-                catch (Exception)
-                {
-                    return new List<Lot>();
-                }
-            }
-            else
-            {
-                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
-            }
-        }
-
-        /// <summary>
         /// Check to see if an entered QIR number is valid
         /// </summary>
         /// <param name="reference">Reference value</param>
@@ -355,6 +255,44 @@ namespace SFW.Model
         }
 
         #endregion
+
+        /// <summary>
+        /// Get the Sku's Diamond number using a parent lot number
+        /// </summary>
+        /// <param name="lotNbr">Lot Number used as a search reference</param>
+        /// <returns>Diamond number as string, or the error that was encountered</returns>
+        public static string GetDiamondNumber(string lotNbr)
+        {
+            var _search = $"[ParentLot] = '{lotNbr}'";
+            var _dList = MasterDataSet.Tables["Diamond"].Select(_search);
+            while (!string.IsNullOrEmpty(_search))
+            {
+                _dList = _dList == null ? MasterDataSet.Tables["Diamond"].Select(_search) : _dList;
+                if (_dList.Length > 0)
+                {
+                    _search = string.Empty;
+                    foreach(var _row in _dList)
+                    {
+                        if (_row.Field<string>("IsDiamond") == "Y")
+                        {
+                            return _row.Field<string>("ChildLot");
+                        }
+                        else
+                        {
+                            _search += string.IsNullOrEmpty(_search)
+                                ? $"[ParentLot] = '{_row.Field<string>("ChildLot")}'"
+                                : $" OR [ParentLot] = '{_row.Field<string>("ChildLot")}'";
+                        }
+                    }
+                    _dList = null;
+                }
+                else
+                {
+                    return "error";
+                }
+            }
+            return "error";
+        }
 
         /// <summary>
         /// Validate whether a lot number exists and is attached to the correct part number

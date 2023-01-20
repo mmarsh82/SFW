@@ -123,6 +123,18 @@ namespace SFW
             }
         }
 
+        private static bool _canLabor;
+        public static bool CanLabor
+        {
+            get
+            { return _canLabor; }
+            private set
+            {
+                _canLabor = value;
+                StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(CanLabor)));
+            }
+        }
+
         private static bool _canTrain;
         public static bool CanTrain
         {
@@ -340,7 +352,8 @@ namespace SFW
                 BasicUser = true;
             }
             IsLoggedIn = true;
-            CanWip = GetSite() == 1;
+            CanWip = true;
+            CanLabor = true; //App.SiteNumber == 2;
             UserIDNbr = user.EmployeeId;
             FirstName = user.GivenName;
             LastName = user.Surname;

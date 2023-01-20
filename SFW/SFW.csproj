@@ -30,8 +30,8 @@
     <PublisherName>Michael Marsh</PublisherName>
     <SuiteName>WCCO Belting Inc.</SuiteName>
     <AutorunEnabled>true</AutorunEnabled>
-    <ApplicationRevision>3162</ApplicationRevision>
-    <ApplicationVersion>1.0.428.3162</ApplicationVersion>
+    <ApplicationRevision>3186</ApplicationRevision>
+    <ApplicationVersion>1.0.430.3186</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <CreateDesktopShortcut>true</CreateDesktopShortcut>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -123,6 +123,8 @@
     <Compile Include="Commands\AppReload.cs" />
     <Compile Include="Commands\ClearPriority.cs" />
     <Compile Include="Commands\DevTesting.cs" />
+    <Compile Include="Commands\DiamondEntry.cs" />
+    <Compile Include="Commands\M2kLabor.cs" />
     <Compile Include="Commands\M2kValueEdit.cs" />
     <Compile Include="Commands\M2kWipReceipt.cs" />
     <Compile Include="Commands\PrintBarLabels.cs" />
@@ -169,6 +171,10 @@
     </Compile>
     <Compile Include="Enumerations\PressReportActions.cs" />
     <Compile Include="ISplashScreen.cs" />
+    <Compile Include="Labor\View.xaml.cs">
+      <DependentUpon>View.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Labor\ViewModel.cs" />
     <Compile Include="Queries\Dedicate_View.xaml.cs">
       <DependentUpon>Dedicate_View.xaml</DependentUpon>
     </Compile>
@@ -189,10 +195,6 @@
       <DependentUpon>PartTrimInfo_View.xaml</DependentUpon>
     </Compile>
     <Compile Include="Queries\PartTrimInfo_ViewModel.cs" />
-    <Compile Include="Queries\Quality_View.xaml.cs">
-      <DependentUpon>Quality_View.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Queries\Quality_ViewModel.cs" />
     <Compile Include="Queries\UnplanScrap_View.xaml.cs">
       <DependentUpon>UnplanScrap_View.xaml</DependentUpon>
     </Compile>
@@ -222,6 +224,10 @@
     </Compile>
     <Compile Include="ShopRoute\QTask\ViewModel.cs" />
     <Compile Include="Styles\Converters\RequiredWidthCutoff.cs" />
+    <Compile Include="Tools\DiamondEntry_View.xaml.cs">
+      <DependentUpon>DiamondEntry_View.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Tools\DiamondEntry_ViewModel.cs" />
     <Compile Include="Tools\ItemLink_View.xaml.cs">
       <DependentUpon>ItemLink_View.xaml</DependentUpon>
     </Compile>
@@ -303,6 +309,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Labor\View.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Queries\Dedicate_View.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -324,10 +334,6 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Queries\PartTrimInfo_View.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Queries\Quality_View.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -424,6 +430,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Styles\TextBox.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Tools\DiamondEntry_View.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

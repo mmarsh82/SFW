@@ -25,6 +25,7 @@
                 <cmd:SetUpInformation x:Key="SetupCommand" />
                 <cmd:TrimmingInformation x:Key="TrimSetupICommand"/>
                 <cmd:M2kWipReceipt x:Key="WipCommand" />
+                <cmd:M2kLabor x:Key="LaborCommand" />
                 <cmd:WorkInstructions x:Key="WorkInstICommand" />
                 <main:CurrentUser x:Key="User" />
             </Grid.Resources>
@@ -68,12 +69,19 @@
                     <Button Content="Wip Receipt"
                             FontSize="16"
                             Width="110"
-                            IsEnabled="{Binding CanWip}"
+                            IsEnabled="{Binding Path=(main:CurrentUser.CanWip)}"
                             Command="{StaticResource WipCommand}"
                             CommandParameter="{Binding ShopOrder}"
-                            Visibility="{Binding CanWip, Source={StaticResource User}, Converter={StaticResource BoolToVisConverter}}"
-                            Style="{DynamicResource MenuButtonStyle}">
-                    </Button>
+                            Visibility="{Binding Path=(main:CurrentUser.CanWip), Converter={StaticResource BoolToVisConverter}}"
+                            Style="{DynamicResource MenuButtonStyle}"/>
+                    <Button Content="Enter Labor"
+                            FontSize="16"
+                            Width="110"
+                            IsEnabled="{Binding Path=(main:CurrentUser.CanLabor)}"
+                            Command="{StaticResource LaborCommand}"
+                            CommandParameter="{Binding ShopOrder}"
+                            Visibility="{Binding Path=(main:CurrentUser.CanLabor), Converter={StaticResource BoolToVisConverter}}"
+                            Style="{DynamicResource MenuButtonStyle}"/>
                     <Button Content="Set-up Info"
                             FontSize="16"
                             Command="{StaticResource SetupCommand}"

@@ -32,7 +32,7 @@
         <KeyBinding Gesture="F5"
                     Command="{StaticResource ViewLoadICommand}"
                     CommandParameter="-2" />
-        <KeyBinding Gesture="Alt+1" Command="{StaticResource ViewLoadICommand}" CommandParameter="0"/>
+        <KeyBinding Gesture="Alt+1" Command="{StaticResource ViewLoadICommand}" CommandParameter="2"/>
         <KeyBinding Gesture="Alt+2" Command="{StaticResource ViewLoadICommand}" CommandParameter="1"/>
         <KeyBinding Gesture="Alt+I"
                     Command="{StaticResource ViewLoadICommand}"
@@ -156,10 +156,6 @@
                           Command="{StaticResource ViewLoadICommand}"
                           CommandParameter="7"
                           InputGestureText="Alt+T"/>
-                <MenuItem Header="Diamond Validation"
-                          Visibility="{Binding Path=(local:CurrentUser.IsQuality), Converter={StaticResource BoolToVisConverter}}"
-                          Command="{StaticResource ViewLoadICommand}"
-                          CommandParameter="9"/>
                 <MenuItem Header="Priority Management"
                           Visibility="{Binding Path=(local:CurrentUser.CanSchedule), Converter={StaticResource BoolToVisConverter}}"
                           Command="{StaticResource ShowWindowICommand}"

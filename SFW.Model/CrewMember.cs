@@ -1,5 +1,4 @@
 ﻿using IBMU2.UODOTNET;
-using iTextSharp.text.pdf;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -81,7 +80,6 @@ namespace SFW.Model
                 {
                     System.Threading.Tasks.Task.Run(() =>
                     {
-                        _clockLoaded = true;
                         if (!string.IsNullOrEmpty(Facility) && IsCrewIDValid(IdNumber))
                         {
                             Facility = GetFacility(IdNumber);
@@ -100,7 +98,7 @@ namespace SFW.Model
                             _time = string.Empty;
                         }
                         _lastClock = value = _time;
-                        _clockLoaded = false;
+                        _clockLoaded = true;
                         OnPropertyChanged(nameof(LastClock));
                     });
                 }

@@ -116,6 +116,9 @@ namespace SFW.Model
                     _tempDS.Tables.Add(CrewMember.GetCrewTable(ModelSqlCon));
                     _tempDS.Tables[_tempDS.Tables.Count - 1].TableName = "CREW";
 
+                    _tempDS.Tables.Add(Lot.GetDiamondTable(ModelSqlCon));
+                    _tempDS.Tables[_tempDS.Tables.Count - 1].TableName = "Diamond";
+
                     MasterDataSet = _tempDS;
                 }
                 _rtnDict.Add(false, string.Empty);
