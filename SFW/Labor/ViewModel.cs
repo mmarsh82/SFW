@@ -16,17 +16,7 @@ namespace SFW.Labor
         public WipReceipt WipRecord { get; set; }
 
         RelayCommand _removeCrew;
-
-        private int _qty;
-        public int Quantity
-        {
-            get { return _qty; }
-            set
-            {
-                _qty = value;
-                OnPropertyChanged(nameof(Quantity));
-            }
-        }
+        RelayCommand _submit;
 
         #endregion
 
@@ -46,6 +36,35 @@ namespace SFW.Labor
             var erpCon = new string[5] { App.ErpCon.HostName, App.ErpCon.UserName, App.ErpCon.Password, App.ErpCon.UniAccount, App.ErpCon.UniService };
             WipRecord = new WipReceipt(CurrentUser.UserIDNbr, CurrentUser.FirstName, CurrentUser.LastName, CurrentUser.Facility, woObject, erpCon);
         }
+
+        #region Submit ICommand
+
+        public ICommand SubmitICommand
+        {
+            get
+            {
+                if (_submit == null)
+                {
+                    _submit = new RelayCommand(SubmitExecute, SubmitCanExecute);
+                }
+                return _submit;
+            }
+        }
+
+        private void SubmitExecute(object parameter)
+        {
+            //foreach (var _crew in WipRecord.CrewList.Where())
+            //M2kClient.M2kCommand.PostLabor()
+        }
+        private bool SubmitCanExecute(object parameter)
+        {
+            return WipRecord.CrewList.Count(o => o.IsDirect) > 0 
+                && WipRecord.CrewList.Count(o => o.IsDirect) == WipRecord.CrewList.Count(o => !string.IsNullOrEmpty(o.LastClock)) 
+                && WipRecord.WipQty != null 
+                && WipRecord.WipQty > 0;
+        }
+
+        #endregion
 
         #region Remove Crew List Item ICommand
 

@@ -70,6 +70,13 @@ namespace SFW.Model
             }
         }
 
+        private string baseLot;
+        public string BaseLot
+        {
+            get { return baseLot; }
+            set { baseLot = value; OnPropertyChanged(nameof(BaseLot)); }
+        }
+
         public BindingList<WipReceipt.Scrap> ScrapList { get; set; }
 
         #endregion

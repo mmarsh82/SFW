@@ -24,15 +24,15 @@
         <!--#region Labor Header-->
 
         <StackPanel Grid.Row="0"
-                        HorizontalAlignment="Center"
-                        Orientation="Horizontal">
+                    HorizontalAlignment="Center"
+                    Orientation="Horizontal">
             <TextBlock Text="Work Order:"
-                           FontSize="24"
-                           FontWeight="Bold"
-                           TextDecorations="Underline"/>
+                       FontSize="24"
+                       FontWeight="Bold"
+                       TextDecorations="Underline"/>
             <TextBlock Text="{Binding WipRecord.WipWorkOrder.OrderNumber}"
-                           FontSize="24"
-                           Margin="10,0,0,0"/>
+                       FontSize="24"
+                       Margin="10,0,0,0"/>
         </StackPanel>
 
         <!--#endregion-->
@@ -195,7 +195,7 @@
                        HorizontalAlignment="Left"
                        VerticalAlignment="Center"
                        Margin="10,0,0,0" />
-            <TextBox Text="{Binding WipLot, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+            <TextBox Text="{Binding WipRecord.WipQty, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                      FontSize="18"
                      FontWeight="Bold"
                      Background="LightGray"

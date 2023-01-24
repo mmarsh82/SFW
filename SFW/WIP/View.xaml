@@ -1028,7 +1028,7 @@
                         Margin="5"
                         Command="{Binding MPrintICommand}"
                         CommandParameter="W"
-                        Visibility="{Binding Path=(main:App.SiteNumber), Converter={StaticResource SiteToVisConverter}, ConverterParameter=2}"
+                        Visibility="{Binding Path=(main:App.SiteNumber), Converter={StaticResource SiteToVisConverter}, ConverterParameter=User}"
                         Style="{DynamicResource DefaultButton}" />
 
             </StackPanel>

@@ -597,8 +597,15 @@ namespace SFW.WIP
             {
                 if (App.SiteNumber == 1)
                 {
-                    _diamond = Sku.IsLotTracable(WipRecord.WipWorkOrder.SkuNumber) ? Lot.GetDiamondNumber(WipRecord.WipLot.LotNumber) : "";
-                    if (_diamond == "error")
+                    foreach (var _rec in WipRecord.WipWorkOrder.Picklist.Where(o => o.IsLotTrace && o.InventoryType != "HM"))
+                    {
+                        if (_rec.WipInfo.Where(o => !string.IsNullOrEmpty(o.BaseLot)).Count() > 0)
+                        {
+                            _diamond = _rec.WipInfo.FirstOrDefault(o => !string.IsNullOrEmpty(o.BaseLot)).BaseLot;
+                            break;
+                        }
+                    }
+                    if (_diamond == string.Empty && WipRecord.IsLotTracable)
                     {
                         App.GetWindow<View>().Topmost = false;
                         _diamond = DiamondEntry.Show();
@@ -607,7 +614,7 @@ namespace SFW.WIP
                     _qir = WipRecord.IsLotTracable ? Lot.GetAssociatedQIR(WipRecord.WipLot.LotNumber, App.AppSqlCon) : 0;
                     TravelCard.Create("", "technology#1",
                         WipRecord.WipWorkOrder.SkuNumber,
-                        WipRecord.WipLot.LotNumber,
+                        WipRecord.IsLotTracable ? WipRecord.WipLot.LotNumber : "",
                         WipRecord.WipWorkOrder.SkuDescription,
                         _diamond,
                         _wQty,
@@ -622,7 +629,6 @@ namespace SFW.WIP
                         case "R":
                             TravelCard.Display(FormType.Landscape);
                             break;
-
                     }
                 }
                 else
@@ -658,9 +664,6 @@ namespace SFW.WIP
                                 break;
                             case "R":
                                 TravelCard.PrintPDF(FormType.Landscape);
-                                break;
-                            case "W":
-
                                 break;
                         }
                     }

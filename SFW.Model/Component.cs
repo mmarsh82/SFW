@@ -230,6 +230,8 @@ namespace SFW.Model
                             ((BindingList<CompWipInfo>)sender)[0].ScrapList.ResetBindings();
                         }
                     }
+                    var _base = Lot.GetDiamondNumber(_tempItem.LotNbr);
+                    ((BindingList<CompWipInfo>)sender)[e.NewIndex].BaseLot = _base != "error" ? _base : string.Empty;
                 }
                 else if (_tempItem.IsValidLot)
                 {
@@ -238,6 +240,7 @@ namespace SFW.Model
                     ((BindingList<CompWipInfo>)sender)[e.NewIndex].LotQty = null;
                     ((BindingList<CompWipInfo>)sender)[e.NewIndex].OnHandQty = 0;
                     ((BindingList<CompWipInfo>)sender)[e.NewIndex].OnHandCalc = 0;
+                    ((BindingList<CompWipInfo>)sender)[e.NewIndex].BaseLot = string.Empty;
                 }
                 FromOtherChange = false;
             }
