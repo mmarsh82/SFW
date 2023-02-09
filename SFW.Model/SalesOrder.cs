@@ -118,39 +118,80 @@ namespace SFW.Model
                 {
                     try
                     {
-                        using (SqlDataAdapter adapter = new SqlDataAdapter($@"USE {sqlCon.Database}; SELECT        b.ID, a.So_Nbr AS SoNbr, CAST(SUBSTRING(b.ID, CHARINDEX('*', b.ID, 0) + 1, LEN(b.ID)) AS int) AS LineNbr,
-                             (SELECT        COUNT(ID) AS Expr1
-                               FROM            dbo.[SOD-INIT] AS ac
-                               WHERE        (ID LIKE {{ fn CONCAT(a.So_Nbr, '*%') }})) AS LineCount, b.Part_Wo_Gl AS PartNbr, CAST(b.Ln_Bal_Qty AS int) AS BalQty, CAST(b.Ln_Del_Qty AS int) AS BaseQty, b.Um_Base AS Uom, ISNULL(b.D_esc,
-                             (SELECT        Description
-                               FROM            dbo.[IM-INIT] AS aa
-                               WHERE        (Part_Number = b.Part_Wo_Gl))) AS Description, a.Cust_Nbr AS CustNbr,
-                             (SELECT        Name
-                               FROM            dbo.[CM-INIT] AS ab
-                               WHERE        (Cust_Nbr = a.Cust_Nbr)) AS CustName, {{ fn CONCAT({{ fn CONCAT({{ fn CONCAT
-                             ((SELECT        Name
-                                 FROM            dbo.[CM-INIT] AS ab
-                                 WHERE        (Cust_Nbr = a.Cust_Nbr)), ' (') }}, a.Cust_Nbr) }}, ')') }} AS FullCustName, b.Cust_Part_Nbr AS CustPartNbr, RTRIM(a.Credit_Code) AS CredStatus, a.Credit_Chk AS CredApprover, CAST(ISNULL(a.Credit_Date, 
-                         '1999-01-01') AS date) AS CredDate, CASE WHEN a.[Ord_Type] = 'FSE' OR
-                         a.[Ord_Type] LIKE '%DE' THEN 'EOP' ELSE a.[Ord_Type] END AS Type, CAST(CASE WHEN a.[Jump_Reason] IS NULL THEN 0 ELSE 1 END AS int) AS IsExpedited, a.Ship_To_Name AS ShipName, a.Ship_To_Addr1 AS ShipAddr1, 
-                         a.Ship_To_Addr2 AS ShipAddr2, a.Ship_To_City AS ShipCity, a.Ship_To_State AS ShipState, a.Ship_To_Zip AS ShipZip, ISNULL(a.Ship_To_Country, 'US') AS ShipCountry, CAST(a.Date_Added AS date) AS DateAdded, 
-                         CAST(a.Delivery_Date AS date) AS DelDate, CAST(a.Requested_Date AS date) AS ReqDate, CAST(a.Commit_Ship_Date AS date) AS ShipDate,
-                             (SELECT        ISNULL(Load_Pattern, '') AS Expr1
-                               FROM            dbo.[CM-INIT] AS aa
-                               WHERE        (Cust_Nbr = a.Cust_Nbr)) AS LoadPattern, CASE WHEN b.[Make_To_Order] = 'Y' THEN 1 WHEN b.[Make_To_Order] = 'N' OR
-                         d .[Wp_Nbr] IS NOT NULL THEN 0 ELSE - 1 END AS MTO, CASE WHEN CAST(b.[Ln_Del_Qty] AS int) - CAST(b.[Ln_Bal_Qty] AS int) = 0 THEN 0 ELSE 1 END AS IsBackOrder, ISNULL(c.Ar_Credit_Limit, 0) AS AR_Limit, 
-                         c.Balance AS AR_Bal, c.Ship_Bal AS AR_SBal, c.Alloc_Bal AS AR_ABal, ISNULL(c.Ar_Credit_Limit - (c.Balance + c.Ship_Bal + c.Alloc_Bal), 0.00) AS AR_Credit, a.Order_Bal_Ext_Price AS AR_OrdBal, 
-                         CASE WHEN d .[Wp_Nbr] IS NOT NULL THEN 1 ELSE 0 END AS IsWOLinked, CASE WHEN CAST(b.[Ln_Bal_Qty] AS int) <=
-                             (SELECT        ab.[Qty_On_Hand]
-                               FROM            [dbo].[IPL-INIT] ab
-                               WHERE        ab.[Part_Nbr] = b.[Part_Wo_Gl]) OR
-                         CAST(a.[Commit_Ship_Date] AS date) >= CAST(GETDATE() AS date) THEN 1 ELSE 0 END AS CanShip, CAST(b.Facility_Code AS int) AS Site
-FROM            dbo.[SOH-INIT] AS a RIGHT OUTER JOIN
-                         dbo.[SOD-INIT] AS b ON SUBSTRING(b.ID, 0, CHARINDEX('*', b.ID, 0)) = a.So_Nbr RIGHT OUTER JOIN
-                         dbo.[CM-INIT] AS c ON c.Cust_Nbr = a.Cust_Nbr LEFT OUTER JOIN
-                         dbo.[WP-INIT] AS d ON d.So_Reference = {{ fn CONCAT(b.ID, '*1') }}
-WHERE        (a.Order_Status IS NULL) AND (b.Comp = 'O') AND (b.Part_Wo_Gl IS NOT NULL) AND (a.So_Nbr IS NOT NULL) AND (b.Part_Wo_Gl <> '1010199') OR
-                         (a.Order_Status IS NULL) AND (b.Comp = 'O') AND (b.Part_Wo_Gl <> '1010199') AND (a.So_Nbr IS NOT NULL) AND (b.D_esc IS NOT NULL) ORDER BY a.[Commit_Ship_Date], b.[ID] ASC", sqlCon))
+                        using (SqlDataAdapter adapter = new SqlDataAdapter($@"USE {sqlCon.Database};
+SELECT
+	sod.[ID]
+	,soh.[So_Nbr] as 'SoNbr'
+	,CAST(SUBSTRING(sod.[ID], CHARINDEX('*', sod.[ID], 0) + 1, LEN(sod.[ID])) as int) as 'LineNbr'
+	,(SELECT COUNT(ID) FROM [dbo].[SOD-INIT] AS ac WHERE (ID LIKE CONCAT(soh.[So_Nbr], '*%'))) as 'LineCount'
+	,sod.[Part_Wo_Gl] as 'PartNbr'
+	,CAST(sod.[Ln_Bal_Qty] as int) as 'BalQty'
+	,CAST(sod.[Ln_Del_Qty] as int) as 'BaseQty'
+	,sod.[Um_Base] as 'Uom'
+	,ISNULL(sod.[D_esc] ,(SELECT im.[Description] FROM [dbo].[IM-INIT] im WHERE (im.[Part_Number] = sod.[Part_Wo_Gl]))) as 'Description'
+	,soh.[Cust_Nbr] as 'CustNbr'
+	,cm.[Name] as 'CustName'
+	,CONCAT(CONCAT(CONCAT((SELECT cm2.[Name] FROM [dbo].[CM-INIT] cm2 WHERE cm2.[Cust_Nbr] = soh.[Cust_Nbr]), ' ('), soh.[Cust_Nbr]), ')') as 'FullCustName'
+	,ISNULL(sod.[Cust_Part_Nbr], '') as 'CustPartNbr'
+	,RTRIM(soh.[Credit_Code]) as 'CredStatus'
+	,ISNULL(soh.[Credit_Chk], '') as 'CredApprover'
+	,CAST(ISNULL(soh.[Credit_Date], '1999-01-01') as date) as 'CredDate'
+	,CASE WHEN soh.[Ord_Type] = 'FSE' OR soh.[Ord_Type] LIKE '%DE'
+		THEN 'EOP'
+		ELSE ISNULL(soh.[Ord_Type], 'STD') END as 'Type'
+	,CAST(CASE WHEN soh.[Jump_Reason] IS NULL
+		THEN 0
+		ELSE 1 END as int) as 'IsExpedited'
+	,soh.[Ship_To_Name] as 'ShipName'
+	,soh.[Ship_To_Addr1] as 'ShipAddr1'
+	,ISNULL(soh.[Ship_To_Addr2], '') as 'ShipAddr2'
+	,soh.[Ship_To_City] as 'ShipCity'
+	,ISNULL(soh.[Ship_To_State], '') as 'ShipState'
+	,soh.[Ship_To_Zip] as 'ShipZip'
+	,ISNULL(soh.[Ship_To_Country], 'US') as 'ShipCountry'
+	,CAST(soh.[Date_Added] as date) as 'DateAdded'
+	,CAST(soh.[Delivery_Date] as date) as 'DelDate'
+	,CAST(ISNULL(soh.[Requested_Date], soh.[Delivery_Date]) as date) as 'ReqDate'
+	,CAST(soh.[Commit_Ship_Date] as date) as 'ShipDate'
+	,ISNULL(cm.[Load_Pattern], '') as 'LoadPattern'
+	,CASE WHEN wp.[Wp_Nbr] IS NOT NULL
+		THEN 0
+		WHEN soh.[Ord_Type] = 'DAI' 
+			AND (SELECT ipl.[Qty_On_Hand] FROM [dbo].[IPL-INIT] ipl WHERE ipl.[Part_Nbr] = sod.[Part_Wo_Gl]) > (SELECT SUM(sod1.[Ln_Bal_Qty]) FROM [dbo].[SOD-INIT] sod1 WHERE sod1.[Part_Wo_Gl] = sod.[Part_Wo_Gl] AND DATEADD(DAY, -30, soh.[Commit_Ship_Date]) <= GETDATE())
+		THEN 0
+		ELSE -1 END as 'MTO'
+	,CASE WHEN CAST(sod.[Ln_Del_Qty] AS int) - CAST(sod.[Ln_Bal_Qty] AS int) = 0
+		THEN 0
+		ELSE 1 END as 'IsBackOrder'
+	,ISNULL(cm.[Ar_Credit_Limit], 0) as 'AR_Limit'
+	,ISNULL(cm.[Balance], 0) as 'AR_Bal'
+	,cm.[Ship_Bal] as 'AR_SBal'
+	,ISNULL(cm.[Alloc_Bal], 0) as 'AR_ABal'
+	,ISNULL(cm.[Ar_Credit_Limit] - (cm.[Balance] + cm.[Ship_Bal] + cm.[Alloc_Bal]), 0.00) as 'AR_Credit'
+	,soh.[Order_Bal_Ext_Price] as 'AR_OrdBal'
+	,CASE WHEN wp.[Wp_Nbr] IS NOT NULL
+		THEN 1
+		ELSE 0 END as 'IsWOLinked'
+	,CASE WHEN CAST(sod.[Ln_Bal_Qty] as int) <= (SELECT ipl.[Qty_On_Hand] FROM [dbo].[IPL-INIT] ipl WHERE ipl.[Part_Nbr] = sod.[Part_Wo_Gl]) OR CAST(soh.[Commit_Ship_Date] as date) >= CAST(GETDATE() as date)
+		THEN 1
+		ELSE 0 END as 'CanShip'
+	,CAST(sod.[Facility_Code] AS int) as 'Site'
+	,CASE WHEN DATEADD(DAY, -30, soh.[Commit_Ship_Date]) <= GETDATE() THEN 'Y' ELSE 'N' END as 'Test'
+FROM
+	dbo.[SOH-INIT] AS soh
+RIGHT JOIN
+	dbo.[SOD-INIT] AS sod ON SUBSTRING(sod.[ID], 0, CHARINDEX('*', sod.[ID], 0)) = soh.[So_Nbr]
+RIGHT JOIN
+	dbo.[CM-INIT] AS cm ON cm.[Cust_Nbr] = soh.[Cust_Nbr]
+LEFT JOIN
+	dbo.[WP-INIT] AS wp ON wp.[So_Reference] = CONCAT(sod.[ID], '*1')
+WHERE
+	(soh.[Order_Status] IS NULL) AND (sod.[Comp] = 'O') AND (sod.[Part_Wo_Gl] IS NOT NULL)
+	AND (soh.[So_Nbr] IS NOT NULL) AND (sod.[Part_Wo_Gl] <> '1010199') 
+	OR (soh.[Order_Status] IS NULL) AND (sod.[Comp] = 'O') AND (sod.[Part_Wo_Gl] <> '1010199')
+	AND (soh.[So_Nbr] IS NOT NULL) AND (sod.[D_esc] IS NOT NULL) AND soh.[Requested_Date] IS NULL
+ORDER BY
+	soh.[Commit_Ship_Date], sod.[ID] ASC", sqlCon))
                         {
                             adapter.Fill(_tempTable);
                             return _tempTable.AsEnumerable()
@@ -241,7 +282,10 @@ WHERE        (a.Order_Status IS NULL) AND (b.Comp = 'O') AND (b.Part_Wo_Gl IS NO
             var _rtnList = new List<string>();
             foreach (DataRow _row in MasterDataSet.Tables["SalesMaster"].DefaultView.ToTable(true, "Type").Rows)
             {
-                _rtnList.Add(_row.Field<string>("Type"));
+                if (!string.IsNullOrEmpty(_row.Field<string>("Type")))
+                {
+                    _rtnList.Add(_row.Field<string>("Type"));
+                }
             }
             return _rtnList;
         }

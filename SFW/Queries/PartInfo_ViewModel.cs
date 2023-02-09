@@ -1,7 +1,6 @@
 ﻿using SFW.Commands;
 using SFW.Helpers;
 using SFW.Model;
-using SFW.Tools;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -303,7 +302,7 @@ namespace SFW.Queries
             OnPropertyChanged(nameof(ILotResultsList));
             Filter = FilterText = string.IsNullOrEmpty(PreFilter) ? null : PreFilter;
             OnPropertyChanged(nameof(FilterText));
-            Part = UseLot ? new Sku(UserInput, 'L') : new Sku(UserInput, 'S', true);
+            Part = UseLot ? new Sku(UserInput, 'L', App.SiteNumber) : new Sku(UserInput, 'S', App.SiteNumber, true);
             if (UseLot && Part != null)
             {
                 QuantityInput = Part.TotalOnHand;
@@ -381,7 +380,7 @@ namespace SFW.Queries
         {
             if (App.SiteNumber == 1)
             {
-                var _dmd = UseLot ? Lot.GetDiamondNumber(_lot) : "";
+                var _dmd = UseLot ? Lot.GetDiamondNumber(_lot, App.SiteNumber) : "";
                 if (_dmd == "error")
                 {
                     _dmd = DiamondEntry.Show();
@@ -409,7 +408,17 @@ namespace SFW.Queries
             }
             if (App.SiteNumber == 2)
             {
-
+                TravelCard.Create("", "",
+                        Part.SkuNumber,
+                        _lot,
+                        Part.SkuDescription,
+                        "",
+                        Convert.ToInt32(QuantityInput),
+                        Part.Uom,
+                        0,
+                        submitter:CurrentUser.DisplayName
+                        );
+                TravelCard.Display(FormType.CoC);
             }
         }
         private bool MPrintCanExecute(object parameter) => QuantityInput > 0;

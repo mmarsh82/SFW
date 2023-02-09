@@ -4,7 +4,7 @@
         xmlns:local="clr-namespace:SFW.Labor"
         xmlns:cvtr="clr-namespace:SFW.Converters"
         x:Name="Labor_Window"
-        Title="Labor Entry" Height="Auto" Width="700" ShowInTaskbar="True" WindowStyle="ToolWindow" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" SizeToContent="Height" Topmost="True">
+        Title="Labor Entry" Height="auto" Width="900" ShowInTaskbar="True" WindowStyle="ToolWindow" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" SizeToContent="Height" Topmost="True">
 
     <Window.Resources>
         <cvtr:BoolToVisibility x:Key="BooltoVisConverter" />
@@ -164,7 +164,37 @@
                                 </TextBox.Visibility>
                             </TextBox>
 
-                            <Button Command="{Binding DataContext.RemoveCrewICommand, ElementName=Wip_Window}"
+                            <TextBlock Text="Out Time:"
+                                           TextDecorations="Underline"
+                                           FontWeight="Bold"
+                                           VerticalAlignment="Center"
+                                           Margin="10,0,0,0">
+                                <TextBlock.Visibility>
+                                    <MultiBinding Converter="{StaticResource CrewtoVisConverter}">
+                                        <Binding Path="IsDirect" />
+                                        <Binding Path="Name" />
+                                    </MultiBinding>
+                                </TextBlock.Visibility>
+                            </TextBlock>
+
+                            <TextBox Text="{Binding OutTime, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                         VerticalAlignment="Center"
+                                         Margin="3"
+                                         FontSize="18"
+                                         Background="LightGray"
+                                         Width="75"
+                                         MaxLength="5"
+                                         IsTabStop="False"
+                                         Style="{DynamicResource RequiredTextBox}">
+                                <TextBox.Visibility>
+                                    <MultiBinding Converter="{StaticResource CrewtoVisConverter}">
+                                        <Binding Path="IsDirect" />
+                                        <Binding Path="Name" />
+                                    </MultiBinding>
+                                </TextBox.Visibility>
+                            </TextBox>
+
+                            <Button Command="{Binding DataContext.RemoveCrewICommand, ElementName=Labor_Window}"
                                         CommandParameter="{Binding IdNumber}"
                                         Visibility="{Binding IdNumber, Converter={StaticResource StringtoVisConverter}}"
                                         Width="20"
@@ -195,7 +225,7 @@
                        HorizontalAlignment="Left"
                        VerticalAlignment="Center"
                        Margin="10,0,0,0" />
-            <TextBox Text="{Binding WipRecord.WipQty, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+            <TextBox Text="{Binding LaborQuantity, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                      FontSize="18"
                      FontWeight="Bold"
                      Background="LightGray"
@@ -205,6 +235,12 @@
                      MaxLength="11"
                      TabIndex="3"
                      Style="{DynamicResource RequiredTextBox}" />
+            <TextBlock Text="{Binding WipRecord.WipWorkOrder.Uom}"
+                       FontSize="18"
+                       FontWeight="Bold"
+                       HorizontalAlignment="Left"
+                       VerticalAlignment="Center"
+                       Margin="0,0,0,0" />
 
             <Button Content="Submit"
                     Width="100"

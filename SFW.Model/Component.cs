@@ -51,6 +51,21 @@ namespace SFW.Model
             }
         }
 
+        /// <summary>
+        /// Overloaded constructor
+        /// Will return a component object based on a lot number
+        /// </summary>
+        /// <param name="lotNbr">Lot Number</param>
+        public Component(string lotNbr)
+        {
+            /*var _rows = MasterDataSet.Tables["BOM"].Select($"[ParentSkuID] = '{partNbr}' AND [Type] = '{invType}'");
+            if (_rows.Length > 0)
+            {
+                CompNumber = _rows.FirstOrDefault().Field<string>("ChildSkuID");
+                AssemblyQty = _rows.FirstOrDefault().Field<decimal>("AssemblyQuantity");
+            }*/
+        }
+
         #region Data Access
 
         /// <summary>
@@ -213,7 +228,7 @@ namespace SFW.Model
             if (e.ListChangedType == ListChangedType.ItemChanged && e.PropertyDescriptor.DisplayName == "LotNbr")
             {
                 FromOtherChange = true;
-                if(Lot.LotValidation(_tempItem.LotNbr, _tempItem.PartNbr))
+                if (Lot.LotValidation(_tempItem.LotNbr, _tempItem.PartNbr))
                 {
                     ((BindingList<CompWipInfo>)sender)[e.NewIndex].IsValidLot = true;
                     ((BindingList<CompWipInfo>)sender)[e.NewIndex].RcptLoc = _tempItem.IsBackFlush
@@ -230,7 +245,7 @@ namespace SFW.Model
                             ((BindingList<CompWipInfo>)sender)[0].ScrapList.ResetBindings();
                         }
                     }
-                    var _base = Lot.GetDiamondNumber(_tempItem.LotNbr);
+                    var _base = Lot.GetDiamondNumber(_tempItem.LotNbr, 1);
                     ((BindingList<CompWipInfo>)sender)[e.NewIndex].BaseLot = _base != "error" ? _base : string.Empty;
                 }
                 else if (_tempItem.IsValidLot)

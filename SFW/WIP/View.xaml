@@ -5,7 +5,7 @@
         xmlns:main="clr-namespace:SFW"
         xmlns:cvtr="clr-namespace:SFW.Converters"
         x:Name="Wip_Window"
-        Title="Production Wip" Height="Auto" Width="900" ShowInTaskbar="True" WindowStyle="ToolWindow" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" SizeToContent="Height" Topmost="True">
+        Title="Production Wip" Height="Auto" Width="950" ShowInTaskbar="True" WindowStyle="ToolWindow" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" SizeToContent="Height" Topmost="True">
 
     <Window.Resources>
         <cvtr:BoolToVisibility x:Key="BooltoVisConverter" />
@@ -28,6 +28,8 @@
                 <RowDefinition Height="40" />
                 <RowDefinition Height="40" />
                 <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="35" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="35" />
                 <RowDefinition Height="Auto" />
@@ -695,9 +697,9 @@
                                                            FontWeight="Bold" />
                                                 <TextBox Text="{Binding LotNbr, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                                          FontSize="16"
-                                                         Width="120"
+                                                         Width="150"
                                                          CharacterCasing="Upper"
-                                                         MaxLength="11"
+                                                         MaxLength="20"
                                                          Margin="3"
                                                          Background="LightGray"
                                                          Style="{DynamicResource RequiredTextBox}" />
@@ -935,7 +937,7 @@
                                             <Rectangle Grid.Row="3"
                                                        Fill="#FF135185"
                                                        HorizontalAlignment="Stretch"
-                                                       VerticalAlignment="Stretch" />
+                                                       VerticalAlignment="Stretch"/>
                                         </Grid>
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
@@ -950,9 +952,174 @@
 
             <!--#endregion-->
 
+            <!--#region Seperator-->
+
+            <Rectangle Grid.Row="10"
+                   Fill="#FF135185"
+                   HorizontalAlignment="Stretch"
+                   VerticalAlignment="Stretch"
+                   Visibility="{Binding Converter={StaticResource SiteToVisConverter}, ConverterParameter=User}" />
+            <TextBlock Grid.Row="10"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center"
+                   Text="Compound"
+                   FontWeight="Bold"
+                   FontSize="20"
+                   Foreground="WhiteSmoke"
+                   Visibility="{Binding Converter={StaticResource SiteToVisConverter}, ConverterParameter=User}" />
+
+            <!--#endregion-->
+
+            <!--#region Compound Inputs-->
+
+            <StackPanel Grid.Row="11"
+                        Orientation="Vertical"
+                        HorizontalAlignment="Center"
+                        Visibility="{Binding Converter={StaticResource SiteToVisConverter}, ConverterParameter=User}">
+
+                <StackPanel Orientation="Horizontal">
+
+                    <TextBlock Text="Part:"
+                               FontSize="18"
+                               FontWeight="Bold"
+                               TextDecorations="Underline"
+                               VerticalAlignment="Center"
+                               Margin="10,0,0,0" />
+
+                    <TextBox Text="{Binding CompoundPart[0], Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                             Width="150"
+                             FontSize="18"
+                             Margin="8"
+                             MaxLength="20"
+                             IsTabStop="False"
+                             Background="LightGray"
+                             Style="{DynamicResource OptionalTextBox}" />
+
+                    <TextBlock Text="Lot:"
+                               FontSize="18"
+                               FontWeight="Bold"
+                               TextDecorations="Underline"
+                               VerticalAlignment="Center"
+                               Margin="10,0,0,0" />
+
+                    <TextBox Text="{Binding CompoundLot[0], Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                             Width="150"
+                             FontSize="18"
+                             Margin="8"
+                             MaxLength="20"
+                             IsTabStop="False"
+                             Background="LightGray"
+                             Style="{DynamicResource OptionalTextBox}" />
+
+                    <TextBlock Text="Part:"
+                               FontSize="18"
+                               FontWeight="Bold"
+                               TextDecorations="Underline"
+                               VerticalAlignment="Center"
+                               Margin="10,0,0,0" />
+
+                    <TextBox Text="{Binding CompoundPart[1], Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                             Width="150"
+                             FontSize="18"
+                             Margin="8"
+                             MaxLength="20"
+                             IsTabStop="False"
+                             Background="LightGray"
+                             Style="{DynamicResource OptionalTextBox}" />
+
+                    <TextBlock Text="Lot:"
+                               FontSize="18"
+                               FontWeight="Bold"
+                               TextDecorations="Underline"
+                               VerticalAlignment="Center"
+                               Margin="10,0,0,0" />
+
+                    <TextBox Text="{Binding CompoundLot[1], Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                             Width="150"
+                             FontSize="18"
+                             Margin="8"
+                             MaxLength="20"
+                             IsTabStop="False"
+                             Background="LightGray"
+                             Style="{DynamicResource OptionalTextBox}" />
+
+                </StackPanel>
+
+                <StackPanel Orientation="Horizontal">
+
+                    <TextBlock Text="Part:"
+                               FontSize="18"
+                               FontWeight="Bold"
+                               TextDecorations="Underline"
+                               VerticalAlignment="Center"
+                               Margin="10,0,0,0" />
+
+                    <TextBox Text="{Binding CompoundPart[2], Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                             Width="150"
+                             FontSize="18"
+                             Margin="8"
+                             MaxLength="20"
+                             IsTabStop="False"
+                             Background="LightGray"
+                             Style="{DynamicResource OptionalTextBox}" />
+
+                    <TextBlock Text="Lot:"
+                               FontSize="18"
+                               FontWeight="Bold"
+                               TextDecorations="Underline"
+                               VerticalAlignment="Center"
+                               Margin="10,0,0,0" />
+
+                    <TextBox Text="{Binding CompoundLot[2], Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                             Width="150"
+                             FontSize="18"
+                             Margin="8"
+                             MaxLength="20"
+                             IsTabStop="False"
+                             Background="LightGray"
+                             Style="{DynamicResource OptionalTextBox}" />
+
+                    <TextBlock Text="Part:"
+                               FontSize="18"
+                               FontWeight="Bold"
+                               TextDecorations="Underline"
+                               VerticalAlignment="Center"
+                               Margin="10,0,0,0" />
+
+                    <TextBox Text="{Binding CompoundPart[3], Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                             Width="150"
+                             FontSize="18"
+                             Margin="8"
+                             MaxLength="20"
+                             IsTabStop="False"
+                             Background="LightGray"
+                             Style="{DynamicResource OptionalTextBox}" />
+
+                    <TextBlock Text="Lot:"
+                               FontSize="18"
+                               FontWeight="Bold"
+                               TextDecorations="Underline"
+                               VerticalAlignment="Center"
+                               Margin="10,0,0,0" />
+
+                    <TextBox Text="{Binding CompoundLot[3], Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                             Width="150"
+                             FontSize="18"
+                             Margin="8"
+                             MaxLength="20"
+                             IsTabStop="False"
+                             Background="LightGray"
+                             Style="{DynamicResource OptionalTextBox}" />
+
+                </StackPanel>
+
+            </StackPanel>
+
+            <!--#endregion-->
+
             <!--#region Submission Actions-->
 
-            <StackPanel Grid.Row="10"
+            <StackPanel Grid.Row="12"
                         Orientation="Horizontal"
                         HorizontalAlignment="Right">
 
@@ -966,7 +1133,7 @@
 
             </StackPanel>
 
-            <StackPanel Grid.Row="10"
+            <StackPanel Grid.Row="12"
                         Orientation="Horizontal"
                         HorizontalAlignment="Left"
                         Visibility="{Binding IsSubmitted, Converter={StaticResource BooltoVisConverter}}">
@@ -1026,7 +1193,7 @@
                         Width="150"
                         FontSize="18"
                         Margin="5"
-                        Command="{Binding MPrintICommand}"
+                        Command="{Binding WipStickerPrintICommand}"
                         CommandParameter="W"
                         Visibility="{Binding Path=(main:App.SiteNumber), Converter={StaticResource SiteToVisConverter}, ConverterParameter=User}"
                         Style="{DynamicResource DefaultButton}" />

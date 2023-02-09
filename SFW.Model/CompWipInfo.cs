@@ -102,7 +102,13 @@ namespace SFW.Model
         #endregion
 
         /// <summary>
-        /// Defualt Constructor
+        /// Default Constructor
+        /// </summary>
+        public CompWipInfo()
+        { }
+
+        /// <summary>
+        /// Overridden Constructor
         /// </summary>
         /// <param name="hasBFLoc">Does the component have a default backflush location</param>
         /// <param name="partNbr">Part Number of the component</param>
@@ -116,6 +122,15 @@ namespace SFW.Model
             ScrapList = new BindingList<WipReceipt.Scrap>();
             IsScrap = Complete.N;
             IsValidLot = false;
+        }
+
+        /// <summary>
+        /// Overridden Constructor
+        /// </summary>
+        /// <param name="lotNbr">Lot Number</param>
+        public CompWipInfo(string lotNbr)
+        {
+            
         }
     }
 }

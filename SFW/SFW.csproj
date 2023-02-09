@@ -30,8 +30,8 @@
     <PublisherName>Michael Marsh</PublisherName>
     <SuiteName>WCCO Belting Inc.</SuiteName>
     <AutorunEnabled>true</AutorunEnabled>
-    <ApplicationRevision>3204</ApplicationRevision>
-    <ApplicationVersion>1.0.432.3204</ApplicationVersion>
+    <ApplicationRevision>3235</ApplicationRevision>
+    <ApplicationVersion>1.0.434.3235</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <CreateDesktopShortcut>true</CreateDesktopShortcut>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -175,10 +175,6 @@
       <DependentUpon>View.xaml</DependentUpon>
     </Compile>
     <Compile Include="Labor\ViewModel.cs" />
-    <Compile Include="Queries\Dedicate_View.xaml.cs">
-      <DependentUpon>Dedicate_View.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Queries\Dedicate_ViewModel.cs" />
     <Compile Include="Queries\PartLabel_View.xaml.cs">
       <DependentUpon>PartLabel_View.xaml</DependentUpon>
     </Compile>
@@ -310,10 +306,6 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Labor\View.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Queries\Dedicate_View.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -590,9 +582,6 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Images\csiLogo.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Images\ContiLogo.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

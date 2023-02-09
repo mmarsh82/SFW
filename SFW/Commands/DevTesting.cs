@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Windows.Input;
 
 namespace SFW.Commands
@@ -26,7 +28,13 @@ namespace SFW.Commands
         /// <param name="parameter"></param>
         public void Execute(object parameter)
         {
-            var test = new Model.XMLTesting();
+            var _files = Directory.GetFiles("\\\\fs-csi\\CSI-Prints\\Part", "*.pdf", SearchOption.TopDirectoryOnly);
+            var _test = new Dictionary<string, double>();
+            foreach (var _file in _files)
+            {
+                _test.Add(Path.GetFileName(_file).Replace(".pdf", ""), Helpers.TravelCard.ExtractPDFText(_file));
+            }
+            var end = 0;
         }
         public bool CanExecute(object parameter) => true;
     }

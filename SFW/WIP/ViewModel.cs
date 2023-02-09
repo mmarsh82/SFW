@@ -267,6 +267,28 @@ namespace SFW.WIP
             { isSubmit = value; OnPropertyChanged(nameof(IsSubmitted)); }
         }
 
+        private string[] _cPart;
+        public string[] CompoundPart 
+        {
+            get { return _cPart; }
+            set
+            {
+                _cPart = value;
+                OnPropertyChanged(nameof(CompoundPart));
+            }
+        }
+
+        private string[] _cLot;
+        public string[] CompoundLot
+        {
+            get { return _cLot; }
+            set
+            {
+                _cLot = value;
+                OnPropertyChanged(nameof(CompoundLot));
+            }
+        }
+
         RelayCommand _wip;
         RelayCommand _mPrint;
         RelayCommand _removeCrew;
@@ -278,6 +300,7 @@ namespace SFW.WIP
         RelayCommand _addCompScrap;
         RelayCommand _addReclaim;
         RelayCommand _printBarLbl;
+        RelayCommand _wPrint;
 
         #endregion
 
@@ -287,6 +310,8 @@ namespace SFW.WIP
         public ViewModel(WorkOrder woObject)
         {
             RefreshTimer.Stop();
+            CompoundPart = new string[4];
+            CompoundLot = new string[4];
             var erpCon = new string[5] { App.ErpCon.HostName, App.ErpCon.UserName, App.ErpCon.Password, App.ErpCon.UniAccount, App.ErpCon.UniService };
             var _delList = new List<CompWipInfo>();
             foreach (var pl in woObject.Picklist)
@@ -425,11 +450,14 @@ namespace SFW.WIP
             }
             if(e.ListChangedType == ListChangedType.Reset)
             {
-                foreach (var c in WipRecord.WipWorkOrder.Picklist.Where(o => o.IsLotTrace))
+                if (WipRecord != null)
                 {
-                    foreach(var s in c.WipInfo.Where(o => o.IsValidLot))
+                    foreach (var c in WipRecord.WipWorkOrder.Picklist.Where(o => o.IsLotTrace))
                     {
-                        s.ScrapList.ListChanged += ScrapList_ListChanged;
+                        foreach (var s in c.WipInfo.Where(o => o.IsValidLot))
+                        {
+                            s.ScrapList.ListChanged += ScrapList_ListChanged;
+                        }
                     }
                 }
             }
@@ -624,23 +652,36 @@ namespace SFW.WIP
                     switch (parameter.ToString())
                     {
                         case "T":
-                            TravelCard.Display(FormType.Portrait);
+                            TravelCard.PrintPDF(FormType.Portrait);
                             break;
                         case "R":
-                            TravelCard.Display(FormType.Landscape);
+                            TravelCard.PrintPDF(FormType.Landscape);
                             break;
                     }
                 }
                 else
                 {
-
+                    TravelCard.Create("", "",
+                        WipRecord.WipWorkOrder.SkuNumber,
+                        WipRecord.IsLotTracable ? WipRecord.WipLot.LotNumber : "",
+                        WipRecord.WipWorkOrder.SkuDescription,
+                        "",
+                        _wQty,
+                        WipRecord.WipWorkOrder.Uom,
+                        0,
+                        int.TryParse(Weight.ToString(), out int i) ? i : 0,
+                        WipRecord.Submitter,
+                        CompoundPart,
+                        CompoundLot
+                        );
+                    TravelCard.Display(FormType.CoC);
                 }
             }
             else
             {
                 if (App.SiteNumber == 1)
                 {
-                    _diamond = Sku.IsLotTracable(WipRecord.WipWorkOrder.SkuNumber) ? Lot.GetDiamondNumber(_lotList.First()) : "";
+                    _diamond = Sku.IsLotTracable(WipRecord.WipWorkOrder.SkuNumber) ? Lot.GetDiamondNumber(_lotList.First(), App.SiteNumber) : "";
                     if (_diamond == "error")
                     {
                         App.GetWindow<View>().Topmost = false;
@@ -670,7 +711,18 @@ namespace SFW.WIP
                 }
                 else
                 {
-
+                    TravelCard.Create("", "",
+                        WipRecord.WipWorkOrder.SkuNumber,
+                        WipRecord.IsLotTracable ? WipRecord.WipLot.LotNumber : "",
+                        WipRecord.WipWorkOrder.SkuDescription,
+                        "",
+                        _wQty,
+                        WipRecord.WipWorkOrder.Uom,
+                        0,
+                        int.TryParse(Weight.ToString(), out int i) ? i : 0,
+                        WipRecord.Submitter
+                        );
+                    TravelCard.Display(FormType.CoC);
                 }
             }
         }
@@ -685,6 +737,52 @@ namespace SFW.WIP
                 return true;
             }
         }
+
+        #endregion
+
+        #region Wip Stickers Print ICommand
+
+        public ICommand WipStickerPrintICommand
+        {
+            get
+            {
+                if (_wPrint == null)
+                {
+                    _wPrint = new RelayCommand(WipStickerPrintExecute, WipStickerPrintCanExecute);
+                }
+                return _wPrint;
+            }
+        }
+
+        private void WipStickerPrintExecute(object parameter)
+        {
+            var _fabricLot = new string[4];
+            foreach (var _comp in WipRecord.WipWorkOrder.Picklist.Where(o => o.IsLotTrace))
+            {
+                var _counter = 0;
+                foreach (var _compLot in _comp.WipInfo.Where(o => !string.IsNullOrEmpty(o.LotNbr)))
+                {
+                    _fabricLot[_counter] = _compLot.LotNbr;
+                    _counter++;
+                }
+            }
+                var _sticker = new WipSticker(
+                WipRecord.WipWorkOrder.SalesOrder.CustomerName
+                ,WipRecord.WipWorkOrder.SalesOrder.CustomerNumber
+                ,WipRecord.WipWorkOrder.SkuNumber
+                ,WipRecord.WipWorkOrder.SkuDescription
+                ,WipRecord.WipWorkOrder.Uom
+                ,WipRecord.WipLot.LotNumber
+                ,_fabricLot
+                ,CompoundLot
+                ,int.Parse(WipRecord.WipQty.ToString())
+                ,int.Parse(Weight.ToString())
+                ,WipRecord.WipWorkOrder.SalesOrder.SalesNumber
+                ,""
+                ,WipRecord.WipWorkOrder.OrderNumber);
+            _sticker.Print(1);
+        }
+        private bool WipStickerPrintCanExecute(object parameter) => Weight != null && Weight > 0;
 
         #endregion
 
@@ -926,7 +1024,7 @@ namespace SFW.WIP
             {
                 foreach (var l in w.WipInfo.Where(o => o.IsValidLot))
                 {
-                    var _temp = Lot.GetDiamondNumber(l.LotNbr);
+                    var _temp = Lot.GetDiamondNumber(l.LotNbr, App.SiteNumber);
                     _diamond += _diamond == _temp ? "" : $"/{_temp}";
                 }
             }

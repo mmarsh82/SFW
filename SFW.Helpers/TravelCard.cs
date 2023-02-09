@@ -15,7 +15,8 @@ namespace SFW.Helpers
     public enum FormType
     {
         Portrait = 0,
-        Landscape = 1
+        Landscape = 1,
+        CoC = 2
     }
     public static class TravelCard
     {
@@ -30,6 +31,10 @@ namespace SFW.Helpers
         public static int Quantity { get; set; }
         public static string Uom { get; set; }
         public static int QirNbr { get; set; }
+        public static int Weight { get; set; }
+        public static string Submitter { get; set; }
+        public static string[] CompPart { get; set; }
+        public static string[] CompLot { get; set; }
 
         #endregion
 
@@ -45,7 +50,8 @@ namespace SFW.Helpers
         /// <param name="qty"></param>
         /// <param name="uom"></param>
         /// <param name="qirNbr"></param>
-        public static void Create(string filePath, string password, string partNbr, string lotNbr, string desc, string dmdNbr, int qty, string uom, int qirNbr)
+        /// <param name="weight"></param>
+        public static void Create(string filePath, string password, string partNbr, string lotNbr, string desc, string dmdNbr, int qty, string uom, int qirNbr, int weight = 0, string submitter = "", string[] cPart = null, string[] clot = null)
         {
             FilePath = filePath;
             Password = password;
@@ -56,6 +62,10 @@ namespace SFW.Helpers
             Quantity = qty;
             Uom = uom;
             QirNbr = qirNbr;
+            Weight = weight;
+            Submitter = submitter;
+            CompPart = cPart;
+            CompLot = clot;
         }
 
         /// <summary>
@@ -75,6 +85,9 @@ namespace SFW.Helpers
                         break;
                     case FormType.Landscape:
                         FilePath = "\\\\fs-wcco\\WCCO-PublishedDocuments\\FORM5127 - Reference Travel Card.pdf";
+                        break;
+                    case FormType.CoC:
+                        FilePath = "\\\\fs-wcco\\WCCO-SFW\\CSI Travel Card.pdf";
                         break;
                 }
                 var _fileName = string.IsNullOrEmpty(LotNbr) ? $"{PartNbr}{DateTime.Now:MMyyHHmm}" : $"{LotNbr.Replace("-","")}{DateTime.Now:MMyyHHmm}";
@@ -130,6 +143,32 @@ namespace SFW.Helpers
                             {
                                 pdfField.SetField("QIR", QirNbr.ToString());
                                 pdfField.SetField("QIRBar", QirNbr.ToString());
+                            }
+                        }
+                        else if (formType == FormType.CoC)
+                        {
+                            var pdfField = stamp.AcroFields;
+                            pdfField.SetField("Date", DateTime.Today.ToString("MM/dd/yyyy"));
+                            pdfField.SetField("Operator", Submitter);
+                            pdfField.SetField("Weight", Weight.ToString());
+                            pdfField.SetField("Part", PartNbr);
+                            pdfField.SetField("Qty", Quantity.ToString());
+                            pdfField.SetField("UoM", Uom);
+                            pdfField.SetField("Description", Desc);
+                            pdfField.SetField("Lot", LotNbr);
+                            if (CompPart != null)
+                            {
+                                pdfField.SetField("RubPart1", CompPart[0]);
+                                pdfField.SetField("RubPart2", CompPart[1]);
+                                pdfField.SetField("RubPart3", CompPart[2]);
+                                pdfField.SetField("RubPart4", CompPart[3]);
+                            }
+                            if (CompLot != null)
+                            {
+                                pdfField.SetField("RubLot1", CompLot[0]);
+                                pdfField.SetField("RubLot2", CompLot[1]);
+                                pdfField.SetField("RubLot3", CompLot[2]);
+                                pdfField.SetField("RubLot4", CompLot[3]);
                             }
                         }
                         stamp.FormFlattening = false;

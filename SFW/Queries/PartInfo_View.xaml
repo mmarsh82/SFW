@@ -20,6 +20,7 @@
                 <cmd:M2kLookQuery x:Key="LookQueryCommand" />
                 <cmd:ViewLoad x:Key="ViewLoadCommand" />
                 <cvtr:BoolInverter x:Key="InvertBoolConverter"/>
+                <cvtr:SiteToVisibility x:Key="SiteToVisConverter" />
             </Grid.Resources>
 
             <Grid.InputBindings>
@@ -177,6 +178,7 @@
                         Margin="3"
                         Command="{Binding MPrintICommand}"
                         CommandParameter="R"
+                        Visibility="{Binding Path=(base:App.SiteNumber), Converter={StaticResource SiteToVisConverter}, ConverterParameter=NotNull}"
                         Style="{DynamicResource DefaultButton}" />
 
                 <TextBlock Text="To:"

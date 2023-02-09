@@ -70,8 +70,8 @@ namespace SFW.Model
 	,SUBSTRING(wp.So_Reference, 0, LEN(wp.So_Reference) - 1) AS WO_SalesRef
 	,CAST(ISNULL(wp.[User_Def_10], '999') as int) AS Sched_Shift
 	,CAST(ISNULL(wp.[User_Def_9], '999') as int) AS Sched_Priority
-	,ISNULL(wp.Bom_Rev_Date, '1999-01-01') AS BomRevDate
-	,ISNULL(wp.Bom_Rev_Level, '') AS BomRevLvl
+	,ISNULL(wp.Bom_Rev_Date, '1999-01-01') AS InternalRev
+	,ISNULL(wp.Bom_Rev_Level, '') AS CustomerRev
 	,wp.Status_Flag AS Status
 	,ISNULL(wp.Fa_Dept, 'N') AS Deviation
 	,SUBSTRING(im.[Part_Number], 0, CHARINDEX('|', im.[Part_Number], 0)) AS SkuNumber

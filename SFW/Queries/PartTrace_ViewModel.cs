@@ -131,7 +131,7 @@ namespace SFW.Queries
             {
                 //Get a products set up print
                 ErrorMsg = string.Empty;
-                if (new Sku(PartNumber, 'C').EngStatus == "O" && !CurrentUser.IsEngineer)
+                if (new Sku(PartNumber, 'C', App.SiteNumber).EngStatus == "O" && !CurrentUser.IsEngineer)
                 {
                     ErrorMsg = "Obsolete parts and can only be viewed by Engineering.";
                 }
@@ -219,27 +219,35 @@ namespace SFW.Queries
                                 delegate (object sender, DoWorkEventArgs e)
                                 {
                                     SkuPartStructure = new Dictionary<Sku, int>();
-                                    var _groupedDict = Sku.GetStructure(PartNumber, App.AppSqlCon, CurrentUser.IsEngineer).OrderBy(o => o.Value).GroupBy(o => o.Key.DiamondNumber);
-                                    if (_groupedDict.Count(o => o.FirstOrDefault().Key.SkuNumber != null) > 0)
+                                    var _structList = Sku.GetStructure(PartNumber, $"{App.SiteNumber}");
+                                    if (_structList == null)
                                     {
-                                        foreach (var _group in _groupedDict)
+                                        ErrorMsg += "Trace list was to large to display.";
+                                    }
+                                    else
+                                    {
+                                        var _groupedDict = Sku.GetStructure(PartNumber, $"{App.SiteNumber}").OrderBy(o => o.Value).GroupBy(o => o.Key.DiamondNumber);
+                                        if (_groupedDict.Count(o => o.FirstOrDefault().Key.SkuNumber != null) > 0)
                                         {
-                                            foreach (var _item in _group)
+                                            foreach (var _group in _groupedDict)
                                             {
-                                                SkuPartStructure.Add(_item);
+                                                foreach (var _item in _group)
+                                                {
+                                                    SkuPartStructure.Add(_item);
+                                                }
                                             }
                                         }
-                                    }
-                                    if (SkuPartStructure.Values.Count(o => o >= 2) > 0)
-                                    {
-                                        _groupedDict = null;
-                                        _groupedDict = SkuPartStructure.GroupBy(o => o.Key.Location);
-                                        SkuPartStructure = new Dictionary<Sku, int>();
-                                        foreach (var _group in _groupedDict)
+                                        if (SkuPartStructure.Values.Count(o => o >= 2) > 0)
                                         {
-                                            foreach (var _item in _group)
+                                            _groupedDict = null;
+                                            _groupedDict = SkuPartStructure.GroupBy(o => o.Key.Location);
+                                            SkuPartStructure = new Dictionary<Sku, int>();
+                                            foreach (var _group in _groupedDict)
                                             {
-                                                SkuPartStructure.Add(_item);
+                                                foreach (var _item in _group)
+                                                {
+                                                    SkuPartStructure.Add(_item);
+                                                }
                                             }
                                         }
                                     }

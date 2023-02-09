@@ -119,6 +119,9 @@ namespace SFW.Model
                     _tempDS.Tables.Add(Lot.GetDiamondTable(ModelSqlCon));
                     _tempDS.Tables[_tempDS.Tables.Count - 1].TableName = "Diamond";
 
+                    _tempDS.Tables.Add(Sku.GetStructureTable(ModelSqlCon));
+                    _tempDS.Tables[_tempDS.Tables.Count - 1].TableName = "PS";
+
                     MasterDataSet = _tempDS;
                 }
                 _rtnDict.Add(false, string.Empty);
@@ -329,6 +332,7 @@ namespace SFW.Model
 
     public enum Tables
     {
+        [Description("Master")]
         Master = 0,
         SalesMaster = 1,
         TL = 2,
@@ -338,7 +342,8 @@ namespace SFW.Model
         WI = 6,
         LOT = 7,
         SoNotes = 8,
-        WC = 9,
+        [Description("WC")]
+        Machine = 9,
         SKU = 10,
         LOC = 11,
         CREW = 12

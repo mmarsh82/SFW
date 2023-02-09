@@ -38,7 +38,7 @@ namespace SFW.Model
         public bool IsDeviated { get; set; }
         public int Shift { get; set; }
         public int Priority { get; set; }
-        public int Facility { get; set; }
+        public new int Facility { get; set; }
 
         #endregion
 
@@ -76,8 +76,8 @@ namespace SFW.Model
                 SkuDescription = _row.Field<string>("SkuDesc");
                 Uom = _row.Field<string>("SkuUom");
                 MasterPrint = _row.Field<string>("SkuMasterPrint");
-                BomRevDate = _row.Field<DateTime>("BomRevDate") != Convert.ToDateTime("1999-01-01") ? _row.Field<DateTime>("BomRevDate") : DateTime.MinValue;
-                BomRevLevel = _row.Field<string>("BomRevLvl");
+                InternalRev = _row.Field<DateTime>("InternalRev") != Convert.ToDateTime("1999-01-01") ? _row.Field<DateTime>("InternalRev").ToString("yyMMdd-1") : string.Empty;
+                CustomerRev = _row.Field<string>("CustomerRev");
                 if (!string.IsNullOrEmpty(_row.Field<string>("WO_SalesRef")))
                 {
                     var _so = _row.Field<string>("WO_SalesRef").Split('*');
@@ -132,8 +132,8 @@ namespace SFW.Model
                 SkuDescription = dRow.Field<string>("SkuDesc");
                 Uom = dRow.Field<string>("SkuUom");
                 MasterPrint = dRow.Field<string>("SkuMasterPrint");
-                BomRevDate = dRow.Field<DateTime>("BomRevDate") != Convert.ToDateTime("1999-01-01") ? dRow.Field<DateTime>("BomRevDate") : DateTime.MinValue;
-                BomRevLevel = dRow.Field<string>("BomRevLvl");
+                InternalRev = dRow.Field<DateTime>("InternalRev") != Convert.ToDateTime("1999-01-01") ? dRow.Field<DateTime>("InternalRev").ToString("yyMMdd-1") : string.Empty;
+                CustomerRev = dRow.Field<string>("CustomerRev");
                 if (!string.IsNullOrEmpty(dRow.Field<string>("WO_SalesRef")))
                 {
                     var _so = dRow.Field<string>("WO_SalesRef").Split('*');

@@ -260,9 +260,15 @@ namespace SFW.Model
         /// Get the Sku's Diamond number using a parent lot number
         /// </summary>
         /// <param name="lotNbr">Lot Number used as a search reference</param>
+        /// <param name="site">Facility code</param>
         /// <returns>Diamond number as string, or the error that was encountered</returns>
-        public static string GetDiamondNumber(string lotNbr)
+        public static string GetDiamondNumber(string lotNbr, int site)
         {
+            var _item = MasterDataSet.Tables["LOT"].Select($"[LotID] = '{lotNbr}'").FirstOrDefault();
+            if (Sku.GetClass(_item.Field<string>("SkuID"), site) == "RR")
+            {
+                return lotNbr;
+            }
             var _search = $"[ParentLot] = '{lotNbr}'";
             var _dList = MasterDataSet.Tables["Diamond"].Select(_search);
             while (!string.IsNullOrEmpty(_search))

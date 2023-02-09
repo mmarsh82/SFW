@@ -111,6 +111,13 @@ namespace SFW.Model
         }
         private bool _clockLoaded;
 
+        private string _outTime;
+        public string OutTime
+        {
+            get { return _outTime; }
+            set { _outTime = value; OnPropertyChanged(nameof(OutTime)); }
+        }
+
         public char ClockTran { get; set; }
 
         #endregion
@@ -138,6 +145,8 @@ namespace SFW.Model
                 ShiftStart = _rows.FirstOrDefault().Field<string>("ShiftStart");
                 ShiftEnd = _rows.FirstOrDefault().Field<string>("ShiftEnd");
                 Facility = $"0{_rows.FirstOrDefault().Field<int>("Site")}";
+                LastClock = string.Empty;
+                OutTime = DateTime.Now.ToString("HH:mm");
             }
         }
 
@@ -162,6 +171,7 @@ namespace SFW.Model
                 ShiftEnd = _rows.FirstOrDefault().Field<string>("ShiftEnd");
                 Facility = $"0{_rows.FirstOrDefault().Field<int>("Site")}";
                 LastClock = string.Empty;
+                OutTime = DateTime.Now.ToString("HH:mm");
             }
         }
 
