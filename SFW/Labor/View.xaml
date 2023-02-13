@@ -235,7 +235,7 @@
                      MaxLength="11"
                      TabIndex="3"
                      Style="{DynamicResource RequiredTextBox}" />
-            <TextBlock Text="{Binding WipRecord.WipWorkOrder.Uom}"
+            <TextBlock Text="FT"
                        FontSize="18"
                        FontWeight="Bold"
                        HorizontalAlignment="Left"

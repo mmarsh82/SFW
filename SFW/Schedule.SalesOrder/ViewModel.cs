@@ -24,7 +24,7 @@ namespace SFW.Schedule.SalesOrder
                 _selectedSO = value;
                 if(value != null)
                 {
-                    var _sku = new Model.Sku(value.Row.Field<string>("PartNbr"), 'S', int.Parse(App.Facility), true);
+                    var _sku = new Model.Sku(value.Row.Field<string>("PartNbr"), 'S', App.SiteNumber, true);
                     var _soObj = new Model.SalesOrder(value.Row);
                     Controls.WorkSpaceDock.UpdateChildDock(8, 1, new ShopRoute.SalesOrder.ViewModel(_soObj, _sku));
                 }

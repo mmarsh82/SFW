@@ -420,7 +420,15 @@ namespace SFW.Model
         /// <returns>Sku item class as string</returns>
         public static string GetClass(string partNbr, int site)
         {
-            return MasterDataSet.Tables["SKU"].Select($"[SkuID] = '{partNbr}' AND [Site] = {site}").FirstOrDefault().Field<string>("Type");
+            var _class = MasterDataSet.Tables["SKU"].Select($"[SkuID] = '{partNbr}' AND [Site] = {site}");
+            if (_class == null || _class.Length == 0)
+            {
+                return string.Empty;
+            }
+            else
+            {
+                return _class.FirstOrDefault().Field<string>("Type");
+            }
         }
 
         /// <summary>

@@ -154,11 +154,11 @@ SELECT
 	,CAST(ISNULL(soh.[Requested_Date], soh.[Delivery_Date]) as date) as 'ReqDate'
 	,CAST(soh.[Commit_Ship_Date] as date) as 'ShipDate'
 	,ISNULL(cm.[Load_Pattern], '') as 'LoadPattern'
-	,CASE WHEN wp.[Wp_Nbr] IS NOT NULL
+	,CASE WHEN (SELECT COUNT(wp1.[Wp_Nbr]) FROM dbo.[WP-INIT] wp1 WHERE wp1.[So_Reference] = CONCAT(sod.[ID], '*1')) > 0
 		THEN 0
 		WHEN soh.[Ord_Type] = 'DAI' 
 			AND (SELECT ipl.[Qty_On_Hand] FROM [dbo].[IPL-INIT] ipl WHERE ipl.[Part_Nbr] = sod.[Part_Wo_Gl]) > (SELECT SUM(sod1.[Ln_Bal_Qty]) FROM [dbo].[SOD-INIT] sod1 WHERE sod1.[Part_Wo_Gl] = sod.[Part_Wo_Gl] AND DATEADD(DAY, -30, soh.[Commit_Ship_Date]) <= GETDATE())
-		THEN 0
+		THEN 1
 		ELSE -1 END as 'MTO'
 	,CASE WHEN CAST(sod.[Ln_Del_Qty] AS int) - CAST(sod.[Ln_Bal_Qty] AS int) = 0
 		THEN 0
@@ -169,27 +169,21 @@ SELECT
 	,ISNULL(cm.[Alloc_Bal], 0) as 'AR_ABal'
 	,ISNULL(cm.[Ar_Credit_Limit] - (cm.[Balance] + cm.[Ship_Bal] + cm.[Alloc_Bal]), 0.00) as 'AR_Credit'
 	,soh.[Order_Bal_Ext_Price] as 'AR_OrdBal'
-	,CASE WHEN wp.[Wp_Nbr] IS NOT NULL
+	,CASE WHEN (SELECT COUNT(wp2.[Wp_Nbr]) FROM dbo.[WP-INIT] wp2 WHERE wp2.[So_Reference] = CONCAT(sod.[ID], '*1')) > 0
 		THEN 1
 		ELSE 0 END as 'IsWOLinked'
 	,CASE WHEN CAST(sod.[Ln_Bal_Qty] as int) <= (SELECT ipl.[Qty_On_Hand] FROM [dbo].[IPL-INIT] ipl WHERE ipl.[Part_Nbr] = sod.[Part_Wo_Gl]) OR CAST(soh.[Commit_Ship_Date] as date) >= CAST(GETDATE() as date)
 		THEN 1
 		ELSE 0 END as 'CanShip'
 	,CAST(sod.[Facility_Code] AS int) as 'Site'
-	,CASE WHEN DATEADD(DAY, -30, soh.[Commit_Ship_Date]) <= GETDATE() THEN 'Y' ELSE 'N' END as 'Test'
 FROM
 	dbo.[SOH-INIT] AS soh
 RIGHT JOIN
 	dbo.[SOD-INIT] AS sod ON SUBSTRING(sod.[ID], 0, CHARINDEX('*', sod.[ID], 0)) = soh.[So_Nbr]
 RIGHT JOIN
 	dbo.[CM-INIT] AS cm ON cm.[Cust_Nbr] = soh.[Cust_Nbr]
-LEFT JOIN
-	dbo.[WP-INIT] AS wp ON wp.[So_Reference] = CONCAT(sod.[ID], '*1')
 WHERE
-	(soh.[Order_Status] IS NULL) AND (sod.[Comp] = 'O') AND (sod.[Part_Wo_Gl] IS NOT NULL)
-	AND (soh.[So_Nbr] IS NOT NULL) AND (sod.[Part_Wo_Gl] <> '1010199') 
-	OR (soh.[Order_Status] IS NULL) AND (sod.[Comp] = 'O') AND (sod.[Part_Wo_Gl] <> '1010199')
-	AND (soh.[So_Nbr] IS NOT NULL) AND (sod.[D_esc] IS NOT NULL) AND soh.[Requested_Date] IS NULL
+	soh.[Order_Status] IS NULL AND sod.[Comp] = 'O' AND sod.[Part_Wo_Gl] IS NOT NULL AND sod.[Part_Wo_Gl] <> '1010199'
 ORDER BY
 	soh.[Commit_Ship_Date], sod.[ID] ASC", sqlCon))
                         {

@@ -10,6 +10,7 @@
     <UserControl.Resources>
         <cmd:PartSearch x:Key="PartSearchCommand"/>
         <cmd:ClearPriority x:Key="ClearPriICommand"/>
+        <cmd:M2kDeviate x:Key="DeviationICommand"/>
         <cvtr:BoolToVisibility x:Key="BoolToVisConverter"/>
         <cvtr:SkuMasterPrint x:Key="PartSearchConverter"/>
         <cvtr:DateToVisibility x:Key="DateToVisConverter"/>
@@ -66,6 +67,11 @@
                     </MultiBinding>
                 </MenuItem.Visibility>
             </MenuItem>
+            <MenuItem Header="Deviate"
+                      FontSize="16"
+                      Visibility="{Binding Path=(local:CurrentUser.CanSchedule), Converter={StaticResource BoolToVisConverter}}"
+                      Command="{StaticResource DeviationICommand}"
+                      CommandParameter="{Binding DataContext.SelectedWorkOrder, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"/>
         </ContextMenu>
         
     </UserControl.Resources>

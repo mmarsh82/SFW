@@ -289,6 +289,12 @@ namespace SFW.WIP
             }
         }
 
+        public bool Compound
+        {
+            get
+            { return  !WipRecord.WipWorkOrder.Picklist.FirstOrDefault(o => o.InventoryType == "RC").IsLotTrace; }
+        }
+
         RelayCommand _wip;
         RelayCommand _mPrint;
         RelayCommand _removeCrew;
@@ -509,6 +515,10 @@ namespace SFW.WIP
                 }
                 IsSubmitted = true;
                 TQty = WipRecord.WipQty + _preOnHand;
+                if (CurrentUser.Facility == 2)
+                {
+                    WipStickerPrintExecute(null);
+                }
                 OnPropertyChanged(nameof(WipRecord));
             }
             else
@@ -661,6 +671,19 @@ namespace SFW.WIP
                 }
                 else
                 {
+                    if (WipRecord.WipWorkOrder.Picklist.FirstOrDefault(o => o.InventoryType == "RC").IsLotTrace)
+                    {
+                        foreach (var _part in WipRecord.WipWorkOrder.Picklist.Where(o => o.InventoryType == "RC" && o.IsLotTrace))
+                        {
+                            var _counter = 0;
+                            foreach (var _wip in _part.WipInfo.Where(o => o.IsValidLot))
+                            {
+                                CompoundPart[_counter] = _wip.PartNbr;
+                                CompoundLot[_counter] = _wip.LotNbr;
+                                _counter++;
+                            }
+                        }
+                    }
                     TravelCard.Create("", "",
                         WipRecord.WipWorkOrder.SkuNumber,
                         WipRecord.IsLotTracable ? WipRecord.WipLot.LotNumber : "",
@@ -766,20 +789,32 @@ namespace SFW.WIP
                     _counter++;
                 }
             }
-                var _sticker = new WipSticker(
+            if (WipRecord.WipWorkOrder.Picklist.FirstOrDefault(o => o.InventoryType == "RC").IsLotTrace)
+            {
+                foreach (var _part in WipRecord.WipWorkOrder.Picklist.Where(o => o.InventoryType == "RC" && o.IsLotTrace))
+                {
+                    var _counter = 0;
+                    foreach (var _wip in _part.WipInfo.Where(o => o.IsValidLot))
+                    {
+                        CompoundLot[_counter] = _wip.LotNbr;
+                        _counter++;
+                    }
+                }
+            }
+            var _sticker = new WipSticker(
                 WipRecord.WipWorkOrder.SalesOrder.CustomerName
-                ,WipRecord.WipWorkOrder.SalesOrder.CustomerNumber
-                ,WipRecord.WipWorkOrder.SkuNumber
-                ,WipRecord.WipWorkOrder.SkuDescription
-                ,WipRecord.WipWorkOrder.Uom
-                ,WipRecord.WipLot.LotNumber
-                ,_fabricLot
-                ,CompoundLot
-                ,int.Parse(WipRecord.WipQty.ToString())
-                ,int.Parse(Weight.ToString())
-                ,WipRecord.WipWorkOrder.SalesOrder.SalesNumber
-                ,""
-                ,WipRecord.WipWorkOrder.OrderNumber);
+                , WipRecord.WipWorkOrder.SalesOrder.CustomerNumber
+                , WipRecord.WipWorkOrder.SkuNumber
+                , WipRecord.WipWorkOrder.SkuDescription
+                , WipRecord.WipWorkOrder.Uom
+                , WipRecord.WipLot.LotNumber
+                , _fabricLot
+                , CompoundLot
+                , int.Parse(WipRecord.WipQty.ToString())
+                , int.Parse(Weight.ToString())
+                , WipRecord.WipWorkOrder.SalesOrder.SalesNumber
+                , "" //TODO: add in customer order
+                , WipRecord.WipWorkOrder.OrderNumber);
             _sticker.Print(1);
         }
         private bool WipStickerPrintCanExecute(object parameter) => Weight != null && Weight > 0;
