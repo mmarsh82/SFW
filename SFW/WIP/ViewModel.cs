@@ -509,7 +509,7 @@ namespace SFW.WIP
                 }
                 IsSubmitted = true;
                 TQty = WipRecord.WipQty + _preOnHand;
-                if (CurrentUser.Facility == 2)
+                if (App.SiteNumber == 2)
                 {
                     WipStickerPrintExecute(null);
                 }

@@ -554,7 +554,7 @@ namespace M2kClient
 
             #region Roll Marked Gone
 
-            foreach (var mat in wipRecord.WipWorkOrder.Picklist.Where(o => o.WipInfo.Count(p => p.RollStatus) > 0))
+            foreach (var mat in wipRecord.WipWorkOrder.Picklist.Where(o => o.IsLotTrace))
             {
                 foreach (var info in mat.WipInfo.Where(o => o.RollStatus && o.OnHandCalc > 0))
                 {
