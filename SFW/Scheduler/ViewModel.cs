@@ -29,7 +29,7 @@ namespace SFW.Scheduler
             }
             if (WorkCenter == null)
             {
-                WorkCenter = Machine.GetMachineList(false, false);
+                WorkCenter = Machine.GetMachineList(false, false, App.SiteNumber);
                 if (WorkCenter.Count > 11)
                 {
                     while (WorkCenter.Count > 11)

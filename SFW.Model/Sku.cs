@@ -348,6 +348,16 @@ namespace SFW.Model
         }
 
         /// <summary>
+        /// Get a part number backflush flag
+        /// </summary>
+        /// <param name="partNbr">Sku Number</param>
+        /// <returns>backflush or default location as string</returns>
+        public static string IsBackFlushLoc(string partNbr)
+        {
+            return MasterDataSet.Tables["SKU"].Select($"[SkuID] = '{partNbr}' AND [Status] = 'A'").FirstOrDefault().Field<string>("WipLocation");
+        }
+
+        /// <summary>
         /// Get the default or backflush location for any part number
         /// </summary>
         /// <param name="partNbr">Sku Number</param>

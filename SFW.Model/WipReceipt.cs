@@ -295,6 +295,11 @@ namespace SFW.Model
         /// </summary>
         public int? RollQty { get; set; }
 
+        /// <summary>
+        /// Product weight
+        /// </summary>
+        public int? Weight { get; set; }
+
         public bool IsLoading { get; set; }
         public static string[] ErpCon { get; set; }
 

@@ -11,7 +11,11 @@ namespace SFW.Converters
         {
             if (parameter.ToString() == "User")
             {
-                return App.SiteNumber == 2 ? Visibility.Visible : Visibility.Collapsed;
+                return App.SiteNumber == 2 && (bool)value ? Visibility.Visible : Visibility.Collapsed;
+            }
+            else if (parameter.ToString() == "Input")
+            {
+                return App.SiteNumber == 2 && !(bool)value ? Visibility.Visible : Visibility.Collapsed;
             }
             else if (string.IsNullOrEmpty(parameter?.ToString()))
             {

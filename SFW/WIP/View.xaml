@@ -1135,14 +1135,14 @@
 
             <StackPanel Grid.Row="12"
                         Orientation="Horizontal"
-                        HorizontalAlignment="Left"
-                        Visibility="{Binding IsSubmitted, Converter={StaticResource BooltoVisConverter}}">
+                        HorizontalAlignment="Left">
 
                 <TextBlock Text="Travel Card Quantity:"
                            FontSize="18"
                            FontWeight="Bold"
                            TextDecorations="Underline"
                            VerticalAlignment="Center"
+                           Visibility="{Binding IsSubmitted, Converter={StaticResource BooltoVisConverter}}"
                            Margin="10,0,0,0" />
 
                 <TextBox Text="{Binding TQty, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
@@ -1152,6 +1152,7 @@
                          MaxLength="5"
                          IsTabStop="False"
                          Background="LightGray"
+                         Visibility="{Binding IsSubmitted, Converter={StaticResource BooltoVisConverter}}"
                          Style="{DynamicResource OptionalTextBox}" />
 
                 <TextBlock Text="Weight:"
@@ -1159,7 +1160,7 @@
                            FontWeight="Bold"
                            TextDecorations="Underline"
                            VerticalAlignment="Center"
-                           Visibility="{Binding Converter={StaticResource SiteToVisConverter}, ConverterParameter=User}"
+                           Visibility="{Binding IsSubmitted, Converter={StaticResource SiteToVisConverter}, ConverterParameter=Input}"
                            Margin="10,0,0,0" />
 
                 <TextBox Text="{Binding Weight, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
@@ -1169,7 +1170,7 @@
                          MaxLength="5"
                          IsTabStop="False"
                          Background="LightGray"
-                         Visibility="{Binding Converter={StaticResource SiteToVisConverter}, ConverterParameter=User}"
+                         Visibility="{Binding IsSubmitted, Converter={StaticResource SiteToVisConverter}, ConverterParameter=Input}"
                          Style="{DynamicResource RequiredTextBox}" />
 
                 <Button Content="Travel Card"
@@ -1178,6 +1179,7 @@
                         Margin="5"
                         Command="{Binding MPrintICommand}"
                         CommandParameter="T"
+                        Visibility="{Binding IsSubmitted, Converter={StaticResource BooltoVisConverter}}"
                         Style="{DynamicResource DefaultButton}" />
 
                 <Button Content="Reference Card"
@@ -1186,7 +1188,7 @@
                         Margin="5"
                         Command="{Binding MPrintICommand}"
                         CommandParameter="R"
-                        Visibility="{Binding Path=(main:App.SiteNumber), Converter={StaticResource SiteToVisConverter}, ConverterParameter=1}"
+                        Visibility="{Binding IsSubmitted, Converter={StaticResource BooltoVisConverter}}"
                         Style="{DynamicResource DefaultButton}" />
 
                 <Button Content="WIP Stickers"
@@ -1195,7 +1197,7 @@
                         Margin="5"
                         Command="{Binding WipStickerPrintICommand}"
                         CommandParameter="W"
-                        Visibility="{Binding Path=(main:App.SiteNumber), Converter={StaticResource SiteToVisConverter}, ConverterParameter=User}"
+                        Visibility="{Binding IsSubmitted, Converter={StaticResource SiteToVisConverter}, ConverterParameter=User}"
                         Style="{DynamicResource DefaultButton}" />
 
             </StackPanel>

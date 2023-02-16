@@ -105,7 +105,15 @@ namespace SFW.Model
         /// Default Constructor
         /// </summary>
         public CompWipInfo()
-        { }
+        {
+            IsValidLot = false;
+            RcptLoc = string.Empty;
+            LotQty = null;
+            OnHandQty = 0;
+            OnHandCalc = 0;
+            BaseLot = string.Empty;
+            ScrapList = new BindingList<WipReceipt.Scrap>();
+        }
 
         /// <summary>
         /// Overridden Constructor
@@ -122,15 +130,6 @@ namespace SFW.Model
             ScrapList = new BindingList<WipReceipt.Scrap>();
             IsScrap = Complete.N;
             IsValidLot = false;
-        }
-
-        /// <summary>
-        /// Overridden Constructor
-        /// </summary>
-        /// <param name="lotNbr">Lot Number</param>
-        public CompWipInfo(string lotNbr)
-        {
-            
         }
     }
 }

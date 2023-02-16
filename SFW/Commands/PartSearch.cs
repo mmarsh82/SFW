@@ -28,8 +28,7 @@ namespace SFW.Commands
                     var _temp = parameter.ToString().Split('*');
                     if (_temp.Length > 2 && _temp[2] == "Y")
                     {
-                        var _file = Directory.GetFiles($"\\\\fs-wcco\\WCCO-Manufacturing\\DEVs\\{_temp[3]}\\");
-                        parameter = _file.Count() > 0 ? _file[0] : string.Empty;
+                        parameter = $"\\\\fs-wcco\\WCCO-Prints\\Deviations\\{_temp[3]}-1.pdf";
                         _isdeviated = true;
                     }
                     else

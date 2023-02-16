@@ -51,21 +51,6 @@ namespace SFW.Model
             }
         }
 
-        /// <summary>
-        /// Overloaded constructor
-        /// Will return a component object based on a lot number
-        /// </summary>
-        /// <param name="lotNbr">Lot Number</param>
-        public Component(string lotNbr)
-        {
-            /*var _rows = MasterDataSet.Tables["BOM"].Select($"[ParentSkuID] = '{partNbr}' AND [Type] = '{invType}'");
-            if (_rows.Length > 0)
-            {
-                CompNumber = _rows.FirstOrDefault().Field<string>("ChildSkuID");
-                AssemblyQty = _rows.FirstOrDefault().Field<decimal>("AssemblyQuantity");
-            }*/
-        }
-
         #region Data Access
 
         /// <summary>
@@ -173,9 +158,14 @@ namespace SFW.Model
                         ,InventoryType = _row.Field<string>("Type")
                         ,IsLotTrace = _row.Field<string>("LotTrace") == "T"
                         ,BackflushLoc = _row.Field<string>("Backflush")
-                        ,WipInfo = new BindingList<CompWipInfo>() { new CompWipInfo(!string.IsNullOrEmpty(_row.Field<string>("Backflush")), _row.Field<string>("ChildSkuID"), _row.Field<string>("Uom")) }
+                        ,WipInfo = _row.Field<string>("LotTrace") == "T" 
+                            ? new BindingList<CompWipInfo>() { new CompWipInfo(!string.IsNullOrEmpty(_row.Field<string>("Backflush")), _row.Field<string>("ChildSkuID"), _row.Field<string>("Uom"))}
+                            : null
                     });
-                    _tempList[_tempList.Count - 1].WipInfo.ListChanged += WipInfo_ListChanged;
+                    if (_tempList.Last().WipInfo != null)
+                    {
+                        _tempList.Last().WipInfo.ListChanged += WipInfo_ListChanged;
+                    }
                 }
             }
             return _tempList;
@@ -225,7 +215,7 @@ namespace SFW.Model
 
             #region Lot Number Changed
 
-            if (e.ListChangedType == ListChangedType.ItemChanged && e.PropertyDescriptor.DisplayName == "LotNbr")
+            if (e.ListChangedType == ListChangedType.ItemChanged && e.PropertyDescriptor?.DisplayName == "LotNbr")
             {
                 FromOtherChange = true;
                 if (Lot.LotValidation(_tempItem.LotNbr, _tempItem.PartNbr))
@@ -264,7 +254,7 @@ namespace SFW.Model
 
             #region Lot Quantity Changed
 
-            if (e.ListChangedType == ListChangedType.ItemChanged && e.PropertyDescriptor.DisplayName == "LotQty" && !WipInfoUpdating)
+            if (e.ListChangedType == ListChangedType.ItemChanged && e.PropertyDescriptor?.DisplayName == "LotQty" && !WipInfoUpdating)
             {
                 WipInfoUpdating = true;
                 ((BindingList<CompWipInfo>)sender)[e.NewIndex].IsQtyLocked = !FromOtherChange;
@@ -313,7 +303,7 @@ namespace SFW.Model
 
             #region On Hand Quantity Calculation Changed
 
-            if (e.ListChangedType == ListChangedType.ItemChanged && e.PropertyDescriptor.DisplayName == "OnHandCalc" && !WipInfoUpdating)
+            if (e.ListChangedType == ListChangedType.ItemChanged && e.PropertyDescriptor?.DisplayName == "OnHandCalc" && !WipInfoUpdating)
             {
                 WipInfoUpdating = true;
                 foreach (var item in ((BindingList<CompWipInfo>)sender).Where(o => o.IsValidLot))
@@ -358,13 +348,16 @@ namespace SFW.Model
         /// <param name="wipQty">Main Part Wip Quantity</param>
         public static void UpdateWipInfo(this Component comp, decimal wipQty)
         {
-            foreach (var c in comp.WipInfo)
+            if (comp.WipInfo != null)
             {
-                c.BaseQty = Convert.ToInt32(Math.Round(comp.AssemblyQty * wipQty, 0));
-            }
-            if (comp.WipInfo.Count(o => o.IsValidLot) > 0)
-            {
-                comp.WipInfo[0].LotNbr = comp.WipInfo[0].LotNbr;
+                foreach (var c in comp.WipInfo)
+                {
+                    c.BaseQty = Convert.ToInt32(Math.Round(comp.AssemblyQty * wipQty, 0));
+                }
+                if (comp.WipInfo.Count(o => o.IsValidLot) > 0)
+                {
+                    comp.WipInfo[0].LotNbr = comp.WipInfo[0].LotNbr;
+                }
             }
         }
     }

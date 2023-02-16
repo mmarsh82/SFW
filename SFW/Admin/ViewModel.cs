@@ -30,7 +30,7 @@ namespace SFW.Admin
         /// </summary>
         public ViewModel()
         {
-            MachineCollection = new ObservableCollection<Machine>(Machine.GetMachineList(false, false));
+            MachineCollection = new ObservableCollection<Machine>(Machine.GetMachineList(false, false, App.SiteNumber));
             MachineCollection.Insert(0, new Machine { MachineName = "" });
             MachineConfig = new BindingList<UserConfig>(App.DefualtWorkCenter.Where(o => o.SiteNumber == App.SiteNumber).ToList());
             MachineConfig.ListChanged += MachineConfig_ListChanged;

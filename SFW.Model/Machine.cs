@@ -186,8 +186,9 @@ ORDER BY
         /// </summary>
         /// <param name="incAll">Include all at the top of the list</param>
         /// <param name="incNone">Include None at the top of the list</param>
+        /// <param name="facCode">Facility Code</param>
         /// <returns>generic list of worcenter objects</returns>
-        public static List<Machine> GetMachineList(bool incAll, bool incNone)
+        public static List<Machine> GetMachineList(bool incAll, bool incNone, int facCode)
         {
             var _tempList = new List<Machine>();
             if (incAll)
@@ -200,13 +201,16 @@ ORDER BY
             }
             foreach (DataRow _row in MasterDataSet.Tables["WC"].Rows)
             {
-                _tempList.Add(new Machine
+                if (_row.Field<int>("Site") == facCode)
+                {
+                    _tempList.Add(new Machine
                 {
                     MachineNumber = _row.Field<string>("WorkCenterID")
                     ,MachineName = _row.Field<string>("Name")
                     ,MachineDescription = _row.Field<string>("Description")
                     ,MachineGroup = _row.Field<string>("Group")
                 });
+                }
             }
             return _tempList;
         }
@@ -214,8 +218,10 @@ ORDER BY
         /// <summary>
         /// Get a list of work centers names
         /// </summary>
+        /// <param name="incAll">Include all in the return list</param>
+        /// <param name="facCode">Facility Code</param>
         /// <returns>generic list of workcenter objects</returns>
-        public static List<string> GetMachineList(bool incAll)
+        public static List<string> GetMachineList(bool incAll, int facCode)
         {
             var _tempList = new List<string>();
             if (incAll)
@@ -224,7 +230,10 @@ ORDER BY
             }
             foreach (DataRow _row in MasterDataSet.Tables["WC"].Rows)
             {
-                _tempList.Add(_row.Field<string>("Name"));
+                if (_row.Field<int>("Site") == facCode)
+                {
+                    _tempList.Add(_row.Field<string>("Name"));
+                }
             }
             _tempList = _tempList.OrderBy(o => o).ToList();
             return _tempList;
@@ -234,8 +243,9 @@ ORDER BY
         /// Retrieve a List of strings of each of the groups assigned to the machines
         /// </summary>
         /// <param name="incAll">Include all in the top of the list</param>
+        /// <param name="facCode">Facility Code</param>
         /// <returns>List of work center groups as strings</returns>
-        public static List<string> GetMachineGroupList(bool incAll)
+        public static List<string> GetMachineGroupList(bool incAll, int facCode)
         {
             var _tempList = new List<string>();
             if (incAll)
@@ -243,9 +253,12 @@ ORDER BY
                 _tempList.Add("All");
             }
             _tempList.Add("Custom");
-            foreach (DataRow _row in MasterDataSet.Tables["WC"].DefaultView.ToTable(true, "Group").Rows)
+            foreach (DataRow _row in MasterDataSet.Tables["WC"].DefaultView.ToTable(true, "Group", "Site").Rows)
             {
-                _tempList.Add(_row.Field<string>("Group"));
+                if (_row.Field<int>("Site") == facCode)
+                {
+                    _tempList.Add(_row.Field<string>("Group"));
+                }
             }
             _tempList = _tempList.OrderBy(o => o).ToList();
             return _tempList;

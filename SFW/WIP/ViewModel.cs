@@ -242,11 +242,10 @@ namespace SFW.WIP
             set { tQty = value; OnPropertyChanged(nameof(TQty)); }
         }
 
-        private int? _weight;
         public int? Weight
         {
-            get { return _weight; }
-            set { _weight = value; OnPropertyChanged(nameof(Weight)); }
+            get { return WipRecord?.Weight; }
+            set { WipRecord.Weight = value; OnPropertyChanged(nameof(Weight)); }
         }
 
         public bool IsLotTrace
@@ -292,7 +291,11 @@ namespace SFW.WIP
         public bool Compound
         {
             get
-            { return  !WipRecord.WipWorkOrder.Picklist.FirstOrDefault(o => o.InventoryType == "RC").IsLotTrace; }
+            {
+                return WipRecord.WipWorkOrder.Picklist.Count(o => o.InventoryType == "RC" || o.InventoryType == "CS") > 0
+                    ? !WipRecord.WipWorkOrder.Picklist.FirstOrDefault(o => o.InventoryType == "RC" || o.InventoryType == "CS").IsLotTrace
+                    : false;
+            }
         }
 
         RelayCommand _wip;
@@ -319,21 +322,16 @@ namespace SFW.WIP
             CompoundPart = new string[4];
             CompoundLot = new string[4];
             var erpCon = new string[5] { App.ErpCon.HostName, App.ErpCon.UserName, App.ErpCon.Password, App.ErpCon.UniAccount, App.ErpCon.UniService };
-            var _delList = new List<CompWipInfo>();
-            foreach (var pl in woObject.Picklist)
+            foreach (var pl in woObject.Picklist.Where(o => o.IsLotTrace))
             {
-                foreach(var wi in pl.WipInfo.Where(o => o.LotNbr != null))
+                if (pl.WipInfo.Count(o => !string.IsNullOrEmpty(o.LotNbr)) > 0)
                 {
-                    _delList.Add(wi);
-                }
-                if (_delList.Count > 0)
-                {
-                    foreach (var delWi in _delList)
+                    foreach (var _wi in pl.WipInfo.Where(o => !string.IsNullOrEmpty(o.LotNbr)))
                     {
-                        pl.WipInfo.Remove(delWi);
+                        _wi.LotNbr = string.Empty;
                     }
-                    _delList.Clear();
                 }
+                pl.WipInfo.Last().ScrapList.ListChanged += ScrapList_ListChanged;
             }
             WipRecord = new WipReceipt(CurrentUser.UserIDNbr, CurrentUser.FirstName, CurrentUser.LastName, CurrentUser.Facility, woObject, erpCon);
             if (ScrapReasonCollection == null)
@@ -347,10 +345,6 @@ namespace SFW.WIP
                 ScrapReasonCollection = new ObservableCollection<string>(_descList);
             }
             _lotList = new List<string>();
-            foreach (var c in WipRecord.WipWorkOrder.Picklist?.Where(o => o.IsLotTrace))
-            {
-                c.WipInfo[0].ScrapList.ListChanged += ScrapList_ListChanged;
-            }
             IsSubmitted = false;
             IsLotValid = IsLocationValid = IsLocationEditable = true;
         }
@@ -550,6 +544,10 @@ namespace SFW.WIP
                         {
                             _baseValid = _locValid && IsLotValid && ValidateComponents();
                         }
+                    }
+                    if (App.SiteNumber == 2)
+                    {
+                        _baseValid = Weight > 0;
                     }
 
                     #endregion
@@ -789,9 +787,9 @@ namespace SFW.WIP
                     _counter++;
                 }
             }
-            if (WipRecord.WipWorkOrder.Picklist.FirstOrDefault(o => o.InventoryType == "RC").IsLotTrace)
+            if (WipRecord.WipWorkOrder.Picklist.Count(o => (o.InventoryType == "RC" || o.InventoryType == "CS") && o.IsLotTrace) > 0)
             {
-                foreach (var _part in WipRecord.WipWorkOrder.Picklist.Where(o => o.InventoryType == "RC" && o.IsLotTrace))
+                foreach (var _part in WipRecord.WipWorkOrder.Picklist.Where(o => (o.InventoryType == "RC" || o.InventoryType == "CS") && o.IsLotTrace))
                 {
                     var _counter = 0;
                     foreach (var _wip in _part.WipInfo.Where(o => o.IsValidLot))
@@ -1020,7 +1018,7 @@ namespace SFW.WIP
 
         private void RemoveCompExecute(object parameter)
         {
-            foreach (var c in WipRecord.WipWorkOrder.Picklist)
+            foreach (var c in WipRecord.WipWorkOrder.Picklist.Where(o => o.IsLotTrace))
             {
                 foreach (var w in c.WipInfo)
                 {

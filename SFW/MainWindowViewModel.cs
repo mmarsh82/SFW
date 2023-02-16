@@ -157,9 +157,9 @@ namespace SFW
             {
                 DisplayAction = false;
                 InTraining = false;
-                MachineList = Machine.GetMachineList(true);
+                MachineList = Machine.GetMachineList(true, App.SiteNumber);
                 SelectedMachine = MachineList.First();
-                MachineGroupList = Machine.GetMachineGroupList(true);
+                MachineGroupList = Machine.GetMachineGroupList(true, App.SiteNumber);
                 SelectedMachineGroup = MachineGroupList.First();
                 StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(MachineList)));
                 StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(MachineGroupList)));
