@@ -306,12 +306,26 @@ namespace SFW.Model
         /// <param name="lotNbr">Lot Number</param>
         /// <param name="partNbr">Part Number</param>
         /// <param name="woNbr">Optional: Work Order Number</param>
+        /// <param name="type">Optional: Type of lot to single out</param>
         /// <returns>Validation response</returns>
-        public static bool LotValidation(string lotNbr, string partNbr, string woNbr = null)
+        public static bool LotValidation(string lotNbr, string partNbr, string woNbr = null, string type = null)
         {
-            return string.IsNullOrEmpty(woNbr)
-                ? MasterDataSet.Tables["LOT"].Select($"[LotID] = '{lotNbr}' AND [SkuID] = '{partNbr}'").Length > 0
-                : MasterDataSet.Tables["LOT"].Select($"[LotID] = '{lotNbr}' AND [SkuID] = '{partNbr}' AND [WorkOrderID] = '{woNbr}'").Length > 0;
+            if (!string.IsNullOrEmpty(woNbr) && !string.IsNullOrEmpty(type))
+            {
+                return MasterDataSet.Tables["LOT"].Select($"[LotID] = '{lotNbr}' AND [SkuID] = '{partNbr}' AND [WorkOrderID] = '{woNbr}' AND [Type] = '{type}'").Length > 0;
+            }
+            else if (!string.IsNullOrEmpty(woNbr))
+            {
+                return MasterDataSet.Tables["LOT"].Select($"[LotID] = '{lotNbr}' AND [SkuID] = '{partNbr}' AND [WorkOrderID] = '{woNbr}'").Length > 0;
+            }
+            else if (!string.IsNullOrEmpty(type))
+            {
+                return MasterDataSet.Tables["LOT"].Select($"[LotID] = '{lotNbr}' AND [SkuID] = '{partNbr}' AND [Type] = '{type}'").Length > 0;
+            }
+            else
+            {
+                return MasterDataSet.Tables["LOT"].Select($"[LotID] = '{lotNbr}' AND [SkuID] = '{partNbr}'").Length > 0;
+            }
         }
 
         /// <summary>

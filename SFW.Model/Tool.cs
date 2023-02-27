@@ -105,12 +105,9 @@ namespace SFW.Model
                     _tempList.Add(new Tool
                     {
                         ID = _row.Field<string>("ID")
-                        ,
-                        SkuID = _row.Field<string>("SkuID")
-                        ,
-                        ToolID = _row.Field<string>("ToolID")
-                        ,
-                        MachineID = _row.Field<string>("MachineID")
+                        ,SkuID = _row.Field<string>("SkuID")
+                        ,ToolID = _row.Field<string>("ToolID")
+                        ,MachineID = _row.Field<string>("MachineID")
                     });
                 }
             }

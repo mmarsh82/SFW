@@ -28,10 +28,10 @@ namespace SFW.WIP
                 {
                     if (_wipStr == 0 || value == null)
                     {
-                        foreach (var c in WipRecord.WipWorkOrder.Picklist)
+                        foreach (var c in WipRecord.WipWorkOrder.Picklist.Where(o => o.IsLotTrace))
                         {
                             c.WipInfo.Clear();
-                            c.WipInfo.Add(new CompWipInfo(!string.IsNullOrEmpty(c.BackflushLoc), c.CompNumber, c.CompUom));
+                            c.WipInfo.Add(new CompWipInfo(!string.IsNullOrEmpty(c.BackflushLoc), c.CompNumber, c.CompUom, App.SiteNumber, WipRecord.WipWorkOrder.OrderNumber));
                         }
                     }
                     else if (WipRecord.WipQty != _wipStr)
@@ -324,13 +324,17 @@ namespace SFW.WIP
             var erpCon = new string[5] { App.ErpCon.HostName, App.ErpCon.UserName, App.ErpCon.Password, App.ErpCon.UniAccount, App.ErpCon.UniService };
             foreach (var pl in woObject.Picklist.Where(o => o.IsLotTrace))
             {
-                if (pl.WipInfo.Count(o => !string.IsNullOrEmpty(o.LotNbr)) > 0)
+                if (pl.WipInfo != null)
                 {
-                    foreach (var _wi in pl.WipInfo.Where(o => !string.IsNullOrEmpty(o.LotNbr)))
-                    {
-                        _wi.LotNbr = string.Empty;
-                    }
+                    pl.WipInfo.Clear();
+                    pl.WipInfo.ListChanged += Model.Component.WipInfo_ListChanged;
                 }
+                else
+                {
+                    pl.WipInfo = new BindingList<CompWipInfo>();
+                    pl.WipInfo.ListChanged += Model.Component.WipInfo_ListChanged;
+                }
+                pl.WipInfo.Add(new CompWipInfo(!string.IsNullOrEmpty(pl.BackflushLoc) ,pl.CompNumber, pl.CompUom, App.SiteNumber, woObject.OrderNumber));
                 pl.WipInfo.Last().ScrapList.ListChanged += ScrapList_ListChanged;
             }
             WipRecord = new WipReceipt(CurrentUser.UserIDNbr, CurrentUser.FirstName, CurrentUser.LastName, CurrentUser.Facility, woObject, erpCon);
@@ -511,6 +515,7 @@ namespace SFW.WIP
                 TQty = WipRecord.WipQty + _preOnHand;
                 if (App.SiteNumber == 2)
                 {
+                    M2kClient.M2kCommand.EditRecord("LOT.MASTER", WipLot, 19, Weight.ToString(), M2kClient.UdArrayCommand.Replace, App.ErpCon);
                     WipStickerPrintExecute(null);
                 }
                 OnPropertyChanged(nameof(WipRecord));

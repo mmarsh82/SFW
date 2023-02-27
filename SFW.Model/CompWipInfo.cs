@@ -43,6 +43,8 @@ namespace SFW.Model
         public int BaseQty { get; set; }
         public string Uom { get; set; }
         public int OnHandQty { get; set; }
+        public int Facility { get; set; }
+        public string WorkOrderNumber { get; set; }
 
         private int ohCalc;
         public int OnHandCalc
@@ -121,7 +123,8 @@ namespace SFW.Model
         /// <param name="hasBFLoc">Does the component have a default backflush location</param>
         /// <param name="partNbr">Part Number of the component</param>
         /// <param name="uom">Part Unit of Measure of the component</param>
-        public CompWipInfo(bool hasBFLoc, string partNbr, string uom)
+        /// <param name="facility">Default facility code</param>
+        public CompWipInfo(bool hasBFLoc, string partNbr, string uom, int facility, string workOrderNumber)
         {
             IsBackFlush = hasBFLoc;
             PartNbr = partNbr;
@@ -130,6 +133,8 @@ namespace SFW.Model
             ScrapList = new BindingList<WipReceipt.Scrap>();
             IsScrap = Complete.N;
             IsValidLot = false;
+            Facility = facility;
+            WorkOrderNumber = workOrderNumber;
         }
     }
 }

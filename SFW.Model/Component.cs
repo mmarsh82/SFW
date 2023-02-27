@@ -24,6 +24,7 @@ namespace SFW.Model
         public BindingList<CompWipInfo> WipInfo { get; set; }
         public bool IsLotTrace { get; set; }
         public string BackflushLoc { get; set; }
+        public int Facility { get; set; }
         public static bool WipInfoUpdating { get; set; }
         public static bool FromOtherChange { get; set; }
 
@@ -158,8 +159,9 @@ namespace SFW.Model
                         ,InventoryType = _row.Field<string>("Type")
                         ,IsLotTrace = _row.Field<string>("LotTrace") == "T"
                         ,BackflushLoc = _row.Field<string>("Backflush")
+                        ,Facility = _row.Field<int>("Site")
                         ,WipInfo = _row.Field<string>("LotTrace") == "T" 
-                            ? new BindingList<CompWipInfo>() { new CompWipInfo(!string.IsNullOrEmpty(_row.Field<string>("Backflush")), _row.Field<string>("ChildSkuID"), _row.Field<string>("Uom"))}
+                            ? new BindingList<CompWipInfo>() { new CompWipInfo(!string.IsNullOrEmpty(_row.Field<string>("Backflush")), _row.Field<string>("ChildSkuID"), _row.Field<string>("Uom"), _row.Field<int>("Site"), woNbr) }
                             : null
                     });
                     if (_tempList.Last().WipInfo != null)
@@ -211,128 +213,140 @@ namespace SFW.Model
         /// <param name="e">Change info</param>
         public static void WipInfo_ListChanged(object sender, ListChangedEventArgs e)
         {
-            var _tempItem = e.NewIndex != -1 && !WipInfoUpdating ? ((BindingList<CompWipInfo>)sender)[e.NewIndex] : null;
-
-            #region Lot Number Changed
-
-            if (e.ListChangedType == ListChangedType.ItemChanged && e.PropertyDescriptor?.DisplayName == "LotNbr")
+            if (e.ListChangedType != ListChangedType.ItemDeleted)
             {
-                FromOtherChange = true;
-                if (Lot.LotValidation(_tempItem.LotNbr, _tempItem.PartNbr))
+                var _tempItem = e.NewIndex != -1 && !WipInfoUpdating ? ((BindingList<CompWipInfo>)sender)[e.NewIndex] : null;
+
+                #region Lot Number Changed
+
+                if (e.ListChangedType == ListChangedType.ItemChanged && e.PropertyDescriptor?.DisplayName == "LotNbr")
                 {
-                    ((BindingList<CompWipInfo>)sender)[e.NewIndex].IsValidLot = true;
-                    ((BindingList<CompWipInfo>)sender)[e.NewIndex].RcptLoc = _tempItem.IsBackFlush
-                        ? Sku.GetBackFlushLoc(_tempItem.PartNbr)
-                        : Lot.GetLotLocation(_tempItem.LotNbr);
-                    ((BindingList<CompWipInfo>)sender)[e.NewIndex].LotQty = 0;
-                    ((BindingList<CompWipInfo>)sender)[e.NewIndex].OnHandQty = Lot.GetLotOnHandQuantity(_tempItem.LotNbr);
-                    ((BindingList<CompWipInfo>)sender)[e.NewIndex].OnHandCalc = 0;
-                    if (((BindingList<CompWipInfo>)sender).Count() == ((BindingList<CompWipInfo>)sender).Count(o => o.IsValidLot))
+                    FromOtherChange = true;
+                    var _validLot = ((BindingList<CompWipInfo>)sender)[e.NewIndex].Facility == 2
+                        ? Lot.LotValidation(_tempItem.LotNbr, _tempItem.PartNbr, _tempItem.WorkOrderNumber, "dLot")
+                        : Lot.LotValidation(_tempItem.LotNbr, _tempItem.PartNbr);
+                    if (_validLot)
                     {
-                        ((BindingList<CompWipInfo>)sender).Add(new CompWipInfo(_tempItem.IsBackFlush, _tempItem.PartNbr, _tempItem.Uom) { BaseQty = _tempItem.BaseQty });
-                        if (((BindingList<CompWipInfo>)sender).Count(o => o.IsValidLot) > 1)
+                        ((BindingList<CompWipInfo>)sender)[e.NewIndex].IsValidLot = true;
+                        ((BindingList<CompWipInfo>)sender)[e.NewIndex].RcptLoc = _tempItem.IsBackFlush
+                            ? Sku.GetBackFlushLoc(_tempItem.PartNbr)
+                            : Lot.GetLotLocation(_tempItem.LotNbr);
+                        ((BindingList<CompWipInfo>)sender)[e.NewIndex].LotQty = 0;
+                        ((BindingList<CompWipInfo>)sender)[e.NewIndex].OnHandQty = Lot.GetLotOnHandQuantity(_tempItem.LotNbr);
+                        ((BindingList<CompWipInfo>)sender)[e.NewIndex].OnHandCalc = 0;
+                        if (((BindingList<CompWipInfo>)sender).Count() == ((BindingList<CompWipInfo>)sender).Count(o => o.IsValidLot))
                         {
-                            ((BindingList<CompWipInfo>)sender)[0].ScrapList.ResetBindings();
-                        }
-                    }
-                    var _base = Lot.GetDiamondNumber(_tempItem.LotNbr, 1);
-                    ((BindingList<CompWipInfo>)sender)[e.NewIndex].BaseLot = _base != "error" ? _base : string.Empty;
-                }
-                else if (_tempItem.IsValidLot)
-                {
-                    ((BindingList<CompWipInfo>)sender)[e.NewIndex].IsValidLot = false;
-                    ((BindingList<CompWipInfo>)sender)[e.NewIndex].RcptLoc = string.Empty;
-                    ((BindingList<CompWipInfo>)sender)[e.NewIndex].LotQty = null;
-                    ((BindingList<CompWipInfo>)sender)[e.NewIndex].OnHandQty = 0;
-                    ((BindingList<CompWipInfo>)sender)[e.NewIndex].OnHandCalc = 0;
-                    ((BindingList<CompWipInfo>)sender)[e.NewIndex].BaseLot = string.Empty;
-                }
-                FromOtherChange = false;
-            }
-
-            #endregion
-
-            #region Lot Quantity Changed
-
-            if (e.ListChangedType == ListChangedType.ItemChanged && e.PropertyDescriptor?.DisplayName == "LotQty" && !WipInfoUpdating)
-            {
-                WipInfoUpdating = true;
-                ((BindingList<CompWipInfo>)sender)[e.NewIndex].IsQtyLocked = !FromOtherChange;
-                if (((BindingList<CompWipInfo>)sender)[e.NewIndex].IsValidLot && ((BindingList<CompWipInfo>)sender).Count(o => o.IsValidLot) == 1 && ((BindingList<CompWipInfo>)sender).Count(o => o.IsQtyLocked) == 0)
-                {
-                    ((BindingList<CompWipInfo>)sender)[e.NewIndex].LotQty = ((BindingList<CompWipInfo>)sender)[e.NewIndex].BaseQty;
-                }
-                else if (((BindingList<CompWipInfo>)sender).Count(o => o.IsValidLot) > 0)
-                {
-                    var _calcQtyPer = ((BindingList<CompWipInfo>)sender).Count(o => o.IsQtyLocked) > 0 && ((BindingList<CompWipInfo>)sender).Count(o => o.IsQtyLocked) != ((BindingList<CompWipInfo>)sender).Count(o => o.IsValidLot)
-                        ? (_tempItem.BaseQty - ((BindingList<CompWipInfo>)sender).Where(o => o.IsQtyLocked && o.IsValidLot).Sum(o => o.LotQty)) / ((BindingList<CompWipInfo>)sender).Count(o => !o.IsQtyLocked && o.IsValidLot)
-                        : _tempItem.BaseQty / ((BindingList<CompWipInfo>)sender).Count(o => o.IsValidLot);
-                    if (_calcQtyPer > 0)
-                    {
-                        var _counter = 1;
-                        foreach (var item in ((BindingList<CompWipInfo>)sender).Where(o => !o.IsQtyLocked && o.IsValidLot))
-                        {
-                            var index = ((BindingList<CompWipInfo>)sender).IndexOf(item);
-                            ((BindingList<CompWipInfo>)sender)[index].LotQty = _calcQtyPer;
-                            if (_counter == ((BindingList<CompWipInfo>)sender).Count(o => !o.IsQtyLocked && o.IsValidLot))
+                            ((BindingList<CompWipInfo>)sender).Add(new CompWipInfo(_tempItem.IsBackFlush, _tempItem.PartNbr, _tempItem.Uom, _tempItem.Facility, _tempItem.WorkOrderNumber) { BaseQty = _tempItem.BaseQty });
+                            if (((BindingList<CompWipInfo>)sender).Count(o => o.IsValidLot) > 1)
                             {
-                                ((BindingList<CompWipInfo>)sender)[index].LotQty += ((BindingList<CompWipInfo>)sender).Sum(o => o.LotQty) < ((BindingList<CompWipInfo>)sender)[index].BaseQty
-                                    ? ((BindingList<CompWipInfo>)sender)[index].BaseQty - ((BindingList<CompWipInfo>)sender).Sum(o => o.LotQty)
-                                    : 0;
+                                ((BindingList<CompWipInfo>)sender)[0].ScrapList.ResetBindings();
                             }
-                            _counter++;
                         }
+                        var _base = Lot.GetDiamondNumber(_tempItem.LotNbr, 1);
+                        ((BindingList<CompWipInfo>)sender)[e.NewIndex].BaseLot = _base != "error" ? _base : string.Empty;
                     }
-                    else
+                    else if (_tempItem.IsValidLot)
                     {
-                        foreach (var item in ((BindingList<CompWipInfo>)sender).Where(o => !o.IsQtyLocked && o.IsValidLot))
+                        ((BindingList<CompWipInfo>)sender)[e.NewIndex].IsValidLot = false;
+                        ((BindingList<CompWipInfo>)sender)[e.NewIndex].LotQty = 0;
+                        ((BindingList<CompWipInfo>)sender)[e.NewIndex].OnHandCalc = 0;
+                        while (((BindingList<CompWipInfo>)sender).Count(o => !o.IsValidLot) > 1)
                         {
-                            var index = ((BindingList<CompWipInfo>)sender).IndexOf(item);
-                            ((BindingList<CompWipInfo>)sender)[index].LotQty = 0;
+                            ((BindingList<CompWipInfo>)sender).Remove(((BindingList<CompWipInfo>)sender).Last());
+                        }
+                        foreach (var _item in ((BindingList<CompWipInfo>)sender).Where(o => o.IsValidLot))
+                        {
+                            ((BindingList<CompWipInfo>)sender)[((BindingList<CompWipInfo>)sender).IndexOf(_item)].LotQty = 0;
+                            ((BindingList<CompWipInfo>)sender)[((BindingList<CompWipInfo>)sender).IndexOf(_item)].OnHandCalc = 0;
                         }
                     }
+                    FromOtherChange = false;
                 }
-                WipInfoUpdating = false;
-                if (!FromOtherChange)
+
+                #endregion
+
+                #region Lot Quantity Changed
+
+                if (e.ListChangedType == ListChangedType.ItemChanged && e.PropertyDescriptor?.DisplayName == "LotQty" && !WipInfoUpdating)
                 {
-                    ((BindingList<CompWipInfo>)sender)[e.NewIndex].OnHandCalc = 0;
+                    WipInfoUpdating = true;
+                    ((BindingList<CompWipInfo>)sender)[e.NewIndex].IsQtyLocked = !FromOtherChange;
+                    if (((BindingList<CompWipInfo>)sender)[e.NewIndex].IsValidLot && ((BindingList<CompWipInfo>)sender).Count(o => o.IsValidLot) == 1 && ((BindingList<CompWipInfo>)sender).Count(o => o.IsQtyLocked) == 0)
+                    {
+                        ((BindingList<CompWipInfo>)sender)[e.NewIndex].LotQty = ((BindingList<CompWipInfo>)sender)[e.NewIndex].BaseQty;
+                    }
+                    else if (((BindingList<CompWipInfo>)sender).Count(o => o.IsValidLot) > 0)
+                    {
+                        var _calcQtyPer = ((BindingList<CompWipInfo>)sender).Count(o => o.IsQtyLocked) > 0 && ((BindingList<CompWipInfo>)sender).Count(o => o.IsQtyLocked) != ((BindingList<CompWipInfo>)sender).Count(o => o.IsValidLot)
+                            ? (_tempItem.BaseQty - ((BindingList<CompWipInfo>)sender).Where(o => o.IsQtyLocked && o.IsValidLot).Sum(o => o.LotQty)) / ((BindingList<CompWipInfo>)sender).Count(o => !o.IsQtyLocked && o.IsValidLot)
+                            : _tempItem.BaseQty / ((BindingList<CompWipInfo>)sender).Count(o => o.IsValidLot);
+                        if (_calcQtyPer > 0)
+                        {
+                            var _counter = 1;
+                            foreach (var item in ((BindingList<CompWipInfo>)sender).Where(o => !o.IsQtyLocked && o.IsValidLot))
+                            {
+                                var index = ((BindingList<CompWipInfo>)sender).IndexOf(item);
+                                ((BindingList<CompWipInfo>)sender)[index].LotQty = _calcQtyPer;
+                                if (_counter == ((BindingList<CompWipInfo>)sender).Count(o => !o.IsQtyLocked && o.IsValidLot))
+                                {
+                                    ((BindingList<CompWipInfo>)sender)[index].LotQty += ((BindingList<CompWipInfo>)sender).Sum(o => o.LotQty) < ((BindingList<CompWipInfo>)sender)[index].BaseQty
+                                        ? ((BindingList<CompWipInfo>)sender)[index].BaseQty - ((BindingList<CompWipInfo>)sender).Sum(o => o.LotQty)
+                                        : 0;
+                                }
+                                _counter++;
+                            }
+                        }
+                        else
+                        {
+                            foreach (var item in ((BindingList<CompWipInfo>)sender).Where(o => !o.IsQtyLocked && o.IsValidLot))
+                            {
+                                var index = ((BindingList<CompWipInfo>)sender).IndexOf(item);
+                                ((BindingList<CompWipInfo>)sender)[index].LotQty = 0;
+                            }
+                        }
+                    }
+                    WipInfoUpdating = false;
+                    if (!FromOtherChange)
+                    {
+                        ((BindingList<CompWipInfo>)sender)[e.NewIndex].OnHandCalc = 0;
+                    }
                 }
-            }
 
-            #endregion
+                #endregion
 
-            #region On Hand Quantity Calculation Changed
+                #region On Hand Quantity Calculation Changed
 
-            if (e.ListChangedType == ListChangedType.ItemChanged && e.PropertyDescriptor?.DisplayName == "OnHandCalc" && !WipInfoUpdating)
-            {
-                WipInfoUpdating = true;
-                foreach (var item in ((BindingList<CompWipInfo>)sender).Where(o => o.IsValidLot))
+                if (e.ListChangedType == ListChangedType.ItemChanged && e.PropertyDescriptor?.DisplayName == "OnHandCalc" && !WipInfoUpdating)
                 {
-                    var _scrap = item.ScrapList.Where(o => int.TryParse(o.Quantity, out int a)).Sum(o => Convert.ToInt32(o.Quantity));
-                    var index = ((BindingList<CompWipInfo>)sender).IndexOf(item);
-                    ((BindingList<CompWipInfo>)sender)[index].OnHandCalc = int.TryParse(((BindingList<CompWipInfo>)sender)[index].LotQty.ToString(), out int i)
-                        ? ((BindingList<CompWipInfo>)sender)[index].OnHandQty - (i + _scrap)
-                        : ((BindingList<CompWipInfo>)sender)[index].OnHandQty - _scrap;
+                    WipInfoUpdating = true;
+                    foreach (var item in ((BindingList<CompWipInfo>)sender).Where(o => o.IsValidLot))
+                    {
+                        var _scrap = item.ScrapList.Where(o => int.TryParse(o.Quantity, out int a)).Sum(o => Convert.ToInt32(o.Quantity));
+                        var index = ((BindingList<CompWipInfo>)sender).IndexOf(item);
+                        ((BindingList<CompWipInfo>)sender)[index].OnHandCalc = int.TryParse(((BindingList<CompWipInfo>)sender)[index].LotQty.ToString(), out int i)
+                            ? ((BindingList<CompWipInfo>)sender)[index].OnHandQty - (i + _scrap)
+                            : ((BindingList<CompWipInfo>)sender)[index].OnHandQty - _scrap;
+                    }
+                    WipInfoUpdating = false;
                 }
-                WipInfoUpdating = false;
-            }
 
-            #endregion
+                #endregion
 
-            #region List Reset
+                #region List Reset
 
-            if (e.ListChangedType == ListChangedType.Reset && ((BindingList<CompWipInfo>)sender).Count(o => o.IsValidLot) > 0)
-            {
-                FromOtherChange = true;
-                if (((BindingList<CompWipInfo>)sender).Count(o => o.IsQtyLocked) != ((BindingList<CompWipInfo>)sender).Count())
+                if (e.ListChangedType == ListChangedType.Reset && ((BindingList<CompWipInfo>)sender).Count(o => o.IsValidLot) > 0)
                 {
-                    ((BindingList<CompWipInfo>)sender).FirstOrDefault(o => !o.IsQtyLocked).LotQty = 0;
+                    FromOtherChange = true;
+                    if (((BindingList<CompWipInfo>)sender).Count(o => o.IsQtyLocked) != ((BindingList<CompWipInfo>)sender).Count())
+                    {
+                        ((BindingList<CompWipInfo>)sender).FirstOrDefault(o => !o.IsQtyLocked).LotQty = 0;
+                    }
+                    ((BindingList<CompWipInfo>)sender)[0].OnHandCalc = 0;
+                    FromOtherChange = false;
                 }
-                ((BindingList<CompWipInfo>)sender)[0].OnHandCalc = 0;
-                FromOtherChange = false;
-            }
 
-            #endregion
+                #endregion
+            }
         }
     }
 

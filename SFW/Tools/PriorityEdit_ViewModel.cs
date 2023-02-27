@@ -13,6 +13,7 @@ namespace SFW.Tools
 
         public string OrderNumber { get; set; }
 
+        private string _oldShift;
         private int? _shift;
         public string Shift
         {
@@ -32,6 +33,7 @@ namespace SFW.Tools
             }
         }
 
+        private string _oldPri;
         private int? _pri;
         public string Priority
         {
@@ -65,8 +67,8 @@ namespace SFW.Tools
         public PriorityEdit_ViewModel(string orderNbr, int shift, int pri)
         {
             OrderNumber = orderNbr;
-            Shift = shift.ToString();
-            Priority = pri.ToString();
+            Shift = _oldShift = shift.ToString();
+            Priority = _oldPri = pri.ToString();
         }
 
         #region Priority Change ICommand
@@ -86,11 +88,11 @@ namespace SFW.Tools
         private void PriorityChangeExecute(object parameter)
         {
             var _changeRequest = string.Empty;
-            if (!string.IsNullOrEmpty(Priority))
+            if (_oldPri != Priority)
             {
                 _changeRequest = M2kCommand.EditRecord("WP", OrderNumber, 89, Priority, UdArrayCommand.Replace, App.ErpCon);
             }
-            if (!string.IsNullOrEmpty(Shift) && string.IsNullOrEmpty(_changeRequest))
+            if (string.IsNullOrEmpty(_changeRequest) && _oldShift != Shift)
             {
                 _changeRequest = M2kCommand.EditRecord("WP", OrderNumber, 90, Shift, UdArrayCommand.Replace, App.ErpCon);
             }

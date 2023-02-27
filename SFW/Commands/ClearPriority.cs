@@ -24,7 +24,7 @@ namespace SFW.Commands
                     _wo = parameter.ToString();
                 }
                 var _changeRequest = M2kClient.M2kCommand.EditRecord("WP", _wo, 89, "",M2kClient.UdArrayCommand.Replace, App.ErpCon);
-                if (!string.IsNullOrEmpty(_changeRequest))
+                if (string.IsNullOrEmpty(_changeRequest))
                 {
                     _changeRequest = M2kClient.M2kCommand.EditRecord("WP", _wo, 90, "", M2kClient.UdArrayCommand.Replace, App.ErpCon);
                 }
