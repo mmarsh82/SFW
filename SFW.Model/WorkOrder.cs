@@ -236,7 +236,10 @@ namespace SFW.Model
             }
             foreach (DataRow _dr in MasterDataSet.Tables["WoNotes"].Select(_select, _sort))
             {
-                _notes += $"{_dr.Field<string>("Note")}\n";
+                if (!_notes.Contains($"{_dr.Field<string>("Note")}\n"))
+                {
+                    _notes += $"{_dr.Field<string>("Note")}\n";
+                }
             }
             return _notes?.Trim('\n');
         }

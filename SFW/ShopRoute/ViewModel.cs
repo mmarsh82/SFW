@@ -166,7 +166,7 @@ namespace SFW.ShopRoute
 
                             //Getting the work order notes and the shop floor notes
                             ShopOrderNotes = WorkOrder.GetNotes("WN", false, ShopOrder.OrderNumber);
-                            ShopOrder.ShopNotes = WorkOrder.GetNotes("SN", true, ShopOrder.OrderNumber, ShopOrder.SkuNumber);
+                            ShopOrder.ShopNotes = WorkOrder.GetNotes("SN", true, ShopOrder.OrderNumber, $"{ShopOrder.SkuNumber}|0{ShopOrder.Facility}");
 
                             //Getting the sales order internal comments
                             ShopOrder.SalesOrder.InternalComments = Model.SalesOrder.GetNotes(ShopOrder.SalesOrder.SalesNumber, 'C');
