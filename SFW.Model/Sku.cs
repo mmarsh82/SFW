@@ -37,6 +37,7 @@ namespace SFW.Model
         public string NonCon { get; set; }
         public List<Tool> ToolList { get; set; }
         public int Facility { get; set; }
+        public bool IsTransfer { get; set; }
 
         #endregion
 
@@ -423,12 +424,12 @@ namespace SFW.Model
         }
 
         /// <summary>
-        /// Get a Sku's item class type
+        /// Get a Sku's item type
         /// </summary>
         /// <param name="partNbr">Part number</param>
         /// <param name="site">Facility code</param>
         /// <returns>Sku item class as string</returns>
-        public static string GetClass(string partNbr, int site)
+        public static string GetType(string partNbr, int site)
         {
             var _class = MasterDataSet.Tables["SKU"].Select($"[SkuID] = '{partNbr}' AND [Site] = {site}");
             if (_class == null || _class.Length == 0)
@@ -442,6 +443,25 @@ namespace SFW.Model
         }
 
         /// <summary>
+        /// Get a Sku's item class
+        /// </summary>
+        /// <param name="partNbr">Part number</param>
+        /// <param name="site">Facility code</param>
+        /// <returns>Sku item class as string</returns>
+        public static string GetClass(string partNbr, int site)
+        {
+            var _class = MasterDataSet.Tables["SKU"].Select($"[SkuID] = '{partNbr}' AND [Site] = {site}");
+            if (_class == null || _class.Length == 0)
+            {
+                return string.Empty;
+            }
+            else
+            {
+                return _class.FirstOrDefault().Field<string>("Class");
+            }
+        }
+
+        /// <summary>
         /// Check to see if a Sku exists in the database
         /// </summary>
         /// <param name="partNbr">Part Number to check</param>
@@ -449,9 +469,22 @@ namespace SFW.Model
         /// <returns>Pass/Fail as boolean</returns>
         public static bool Exists(string partNbr, bool returnAll)
         {
-            return returnAll 
+            return returnAll
                 ? MasterDataSet.Tables["SKU"].Select($"[SkuID] = '{partNbr}'").Length > 0
                 : MasterDataSet.Tables["SKU"].Select($"[SkuID] = '{partNbr}' AND [Status] = 'A'").Length > 0;
+        }
+
+        /// <summary>
+        /// Check to see if a Sku exists in the database
+        /// </summary>
+        /// <param name="partNbr">Part Number to check</param>
+        /// <param name="returnAll">Return all or just active status</param>
+        /// <returns>Pass/Fail as boolean</returns>
+        public static bool Exists(string partNbr, bool returnAll, int site)
+        {
+            return returnAll 
+                ? MasterDataSet.Tables["SKU"].Select($"[SkuID] = '{partNbr}' AND [Site] = {site}").Length > 0
+                : MasterDataSet.Tables["SKU"].Select($"[SkuID] = '{partNbr}' AND [Status] = 'A' AND [Site] = {site}").Length > 0;
         }
 
         /// <summary>
@@ -580,6 +613,20 @@ namespace SFW.Model
             {
                 return null;
             }
+        }
+
+        /// <summary>
+        /// Check to see if a Sku is a transfer part
+        /// </summary>
+        /// <returns></returns>
+        public static bool GetIsTransfer(string partNbr)
+        {
+            if (Exists(partNbr, false, 1))
+            {
+                var _class = GetClass(partNbr, 1);
+                return !string.IsNullOrEmpty(_class) || _class == "T";
+            }
+            return false;
         }
     }
 }

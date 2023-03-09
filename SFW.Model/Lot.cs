@@ -146,9 +146,10 @@ namespace SFW.Model
         /// Get a DataTable of historical transactions of lots based on part number
         /// </summary>
         /// <param name="partNbr">Part Number</param>
+        /// <param name="site">Site Number</param>
         /// <param name="sqlCon">Sql Connection to use</param>
         /// <returns>DataTable of historical lot transactions</returns>
-        public static DataTable GetLotHistoryTable(string partNbr, SqlConnection sqlCon)
+        public static DataTable GetLotHistoryTable(string partNbr, int site, SqlConnection sqlCon)
         {
             if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
             {
@@ -165,11 +166,12 @@ namespace SFW.Model
                                                                                 FROM
                                                                                     [dbo].[SFW_LotHistory]
                                                                                 WHERE
-                                                                                    [PartNbr] = @p1 AND (CAST([TranDateTime] as DATE) > DATEADD(YEAR, -2, GETDATE()))
+                                                                                    [PartNbr] = @p1 AND (CAST([TranDateTime] as DATE) > DATEADD(YEAR, -2, GETDATE())) AND [SiteNumber] = @p2
                                                                                 ORDER BY
                                                                                     [TranDateTime] DESC;", sqlCon))
                             {
                                 adapter.SelectCommand.Parameters.AddWithValue("p1", partNbr);
+                                adapter.SelectCommand.Parameters.AddWithValue("p2", site);
                                 adapter.Fill(dt);
                             }
                         }
@@ -265,7 +267,7 @@ namespace SFW.Model
         public static string GetDiamondNumber(string lotNbr, int site)
         {
             var _item = MasterDataSet.Tables["LOT"].Select($"[LotID] = '{lotNbr}'").FirstOrDefault();
-            if (Sku.GetClass(_item.Field<string>("SkuID"), site) == "RR")
+            if (Sku.GetType(_item.Field<string>("SkuID"), site) == "RR")
             {
                 return lotNbr;
             }

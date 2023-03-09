@@ -255,7 +255,17 @@ namespace SFW.WIP
 
         public ObservableCollection<string> ScrapReasonCollection { get; set; }
 
-        private List<string> _lotList;
+        private List<string> _lList;
+        public List<string> LotList
+        {
+            get
+            { return _lList; }
+            set
+            {
+                _lList = value;
+                OnPropertyChanged(nameof(LotList));
+            }
+        }
 
         private bool isSubmit;
         public bool IsSubmitted
@@ -348,7 +358,7 @@ namespace SFW.WIP
                 }
                 ScrapReasonCollection = new ObservableCollection<string>(_descList);
             }
-            _lotList = new List<string>();
+            LotList = new List<string>();
             IsSubmitted = false;
             IsLotValid = IsLocationValid = IsLocationEditable = true;
         }
@@ -504,12 +514,12 @@ namespace SFW.WIP
                 if (_wipProc.First().Value != null)
                 {
                     WipLot = WipRecord.WipLot.LotNumber = _wipProc.First().Value.Contains("*") || !WipRecord.IsLotTracable ? "Mulitple" : _wipProc.First().Value;
-                    _lotList = _wipProc.First().Value.Contains("*") ? _wipProc.First().Value.Split('*').ToList() : null;
+                    LotList = _wipProc.First().Value.Contains("*") ? _wipProc.First().Value.Split('*').ToList() : null;
                 }
                 else
                 {
                     WipRecord.WipLot.LotNumber = "NonLotWip";
-                    _lotList = null;
+                    LotList = null;
                 }
                 IsSubmitted = true;
                 TQty = WipRecord.WipQty + _preOnHand;
@@ -634,7 +644,7 @@ namespace SFW.WIP
             var _diamond = string.Empty;
             var _qir = 0;
             //Printing the travel card logic
-            if (_lotList == null || _lotList.Count == 0)
+            if (LotList == null || LotList.Count == 0)
             {
                 if (App.SiteNumber == 1)
                 {
@@ -707,14 +717,21 @@ namespace SFW.WIP
             {
                 if (App.SiteNumber == 1)
                 {
-                    _diamond = Sku.IsLotTracable(WipRecord.WipWorkOrder.SkuNumber) ? Lot.GetDiamondNumber(_lotList.First(), App.SiteNumber) : "";
-                    if (_diamond == "error")
+                    foreach (var _rec in WipRecord.WipWorkOrder.Picklist.Where(o => o.IsLotTrace && o.InventoryType != "HM"))
+                    {
+                        if (_rec.WipInfo.Where(o => !string.IsNullOrEmpty(o.BaseLot)).Count() > 0)
+                        {
+                            _diamond = _rec.WipInfo.FirstOrDefault(o => !string.IsNullOrEmpty(o.BaseLot)).BaseLot;
+                            break;
+                        }
+                    }
+                    if (_diamond == string.Empty && WipRecord.IsLotTracable)
                     {
                         App.GetWindow<View>().Topmost = false;
                         _diamond = DiamondEntry.Show();
                         App.GetWindow<View>().Topmost = true;
                     }
-                    foreach (var _lot in _lotList)
+                    foreach (var _lot in LotList)
                     {
                         TravelCard.Create("", "technology#1",
                             WipRecord.WipWorkOrder.SkuNumber,
@@ -1084,7 +1101,7 @@ namespace SFW.WIP
                 WipRecord = null;
 
                 _wip = null;
-                _lotList = null;
+                LotList = null;
                 RefreshTimer.Start();
                 if (!RefreshTimer.IsRefreshing && IsSubmitted)
                 {

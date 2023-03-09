@@ -77,32 +77,19 @@ namespace SFW.Schedule.SalesOrder
             }
         }
 
-        private bool? _pickSel;
-        public bool? PickSelected
+        private bool _pickSel;
+        public bool PickSelected
         {
             get { return _pickSel; }
             set
             {
-                var _valAsStr = string.Empty;
-                if (value == null)
-                {
-                    _valAsStr = "[MTO]='-1'";
-                }
-                else if (value == true)
-                {
-                    _valAsStr = "[MTO]='1'";
-                }
-                else
-                {
-                    _valAsStr = "[MTO]='0'";
-                }
-                FilterSchedule(_valAsStr, 2);
+                FilterSchedule(value ? "[MTO]='0'" : "[MTO]='1'", 2);
                 _pickSel = value;
                 OnPropertyChanged(nameof(PickSelected));
                 OnPropertyChanged(nameof(PickContent));
             }
         }
-        public string PickContent { get { return PickSelected == null ? "Off:" : PickSelected == true ? "Pick:" : "MTO:"; } }
+        public string PickContent { get { return PickSelected == true ? "Pick:" : "MTO:"; } }
 
         private bool _schedType;
         public bool ScheduleType
@@ -148,7 +135,7 @@ namespace SFW.Schedule.SalesOrder
                 {
                     _valAsStr = "[IsWOLinked]=0";
                     SelectedType = OrderTypeList.FirstOrDefault(o => o.Contains("DAI"));
-                    PickSelected = null;
+                    PickSelected = true;
                 }
                 else
                 {
@@ -222,7 +209,7 @@ namespace SFW.Schedule.SalesOrder
         /// <param name="index">Index of the filter string list you are adding to our changing</param>
         public static void FilterSchedule(string filter, int index)
         {
-            if (SalesScheduleView != null && !filter.Contains("Machine")) 
+            if (SalesScheduleView != null && !filter.Contains("Machine"))
             {
                 SalesTableFilter[index] = filter;
                 var _filterStr = string.Empty;
@@ -256,15 +243,18 @@ namespace SFW.Schedule.SalesOrder
             try
             {
                 SalesScheduleView = CollectionViewSource.GetDefaultView(ModelBase.MasterDataSet.Tables["SalesMaster"]);
-                SalesScheduleView.GroupDescriptions.Add(new PropertyGroupDescription("FullCustName"));
-                if (!string.IsNullOrEmpty(filter))
+                if (SalesScheduleView != null)
                 {
-                    ((DataView)SalesScheduleView.SourceCollection).RowFilter = filter;
-                    OnPropertyChanged(nameof(SalesScheduleView));
+                    SalesScheduleView.GroupDescriptions.Add(new PropertyGroupDescription("FullCustName"));
+                    if (!string.IsNullOrEmpty(filter))
+                    {
+                        ((DataView)SalesScheduleView.SourceCollection).RowFilter = filter;
+                        OnPropertyChanged(nameof(SalesScheduleView));
+                    }
+                    SelectedCredStatus = CreditStatusList[0];
+                    IsSchedule = false;
+                    ScheduleType = true;
                 }
-                SelectedCredStatus = CreditStatusList[0];
-                IsSchedule = false;
-                ScheduleType = true;
             }
             catch (Exception ex)
             {

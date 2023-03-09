@@ -1,4 +1,6 @@
-﻿namespace M2kClient
+﻿using System.Reflection;
+
+namespace M2kClient
 {
     public class M2kConnection
     {
@@ -54,6 +56,7 @@
                     case Database.WCCOTRAIN:
                         return "C2K";
                     case Database.CONTI:
+                    case Database.CONTITRAIN:
                         return Facility == 1 ? "CONTI_W" : "CONTI_A";
                     default:
                         return string.Empty;
@@ -77,6 +80,8 @@
                     case Database.WCCOTRAIN:
                         return "E:/roi/WCCO.TRAIN";
                     case Database.CONTI:
+                        return "E:/roi/CONTI.MAIN";
+                    case Database.CONTITRAIN:
                         return "E:/roi/CONTI.MAIN";
                     default:
                         return string.Empty;

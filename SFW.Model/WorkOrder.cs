@@ -78,6 +78,9 @@ namespace SFW.Model
                 MasterPrint = _row.Field<string>("SkuMasterPrint");
                 InternalRev = _row.Field<DateTime>("InternalRev") != Convert.ToDateTime("1999-01-01") ? _row.Field<DateTime>("InternalRev").ToString("yyMMdd-1") : string.Empty;
                 CustomerRev = _row.Field<string>("CustomerRev");
+                IsTransfer = _row.Field<int>("Site") == 2
+                    ? GetIsTransfer(_row.Field<string>("SkuNumber"))
+                    : false;
                 if (!string.IsNullOrEmpty(_row.Field<string>("WO_SalesRef")))
                 {
                     var _so = _row.Field<string>("WO_SalesRef").Split('*');
@@ -134,6 +137,9 @@ namespace SFW.Model
                 MasterPrint = dRow.Field<string>("SkuMasterPrint");
                 InternalRev = dRow.Field<DateTime>("InternalRev") != Convert.ToDateTime("1999-01-01") ? dRow.Field<DateTime>("InternalRev").ToString("yyMMdd-1") : string.Empty;
                 CustomerRev = dRow.Field<string>("CustomerRev");
+                IsTransfer = dRow.Field<int>("Site") == 2
+                    ? GetIsTransfer(dRow.Field<string>("SkuNumber"))
+                    : false;
                 if (!string.IsNullOrEmpty(dRow.Field<string>("WO_SalesRef")))
                 {
                     var _so = dRow.Field<string>("WO_SalesRef").Split('*');

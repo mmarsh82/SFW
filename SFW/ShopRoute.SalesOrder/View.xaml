@@ -386,6 +386,23 @@
                             <StackPanel Orientation="Vertical">
                                 <StackPanel Orientation="Horizontal">
 
+                                    <Button Name="SO"
+                                            Margin="0,0,5,0"
+                                            Width="30"
+                                            Background="Transparent"
+                                            BorderThickness="0"
+                                            Command="{StaticResource ViewLoadCommand}"
+                                            Style="{DynamicResource DefaultButton}">
+                                        <Button.CommandParameter>
+                                            <MultiBinding Converter="{StaticResource MultiValConverter}">
+                                                <Binding Path="Name" RelativeSource="{RelativeSource Self}"/>
+                                                <Binding Path="Text" ElementName="PartTxt"/>
+                                            </MultiBinding>
+                                        </Button.CommandParameter>
+                                    <Image Source="/SFW;component/Icons/Search.ico"
+                                               Margin="1"/>
+                                    </Button>
+
                                     <TextBlock Text="Line:"
                                                TextDecorations="Underline"
                                                FontWeight="Bold" 
@@ -401,7 +418,8 @@
                                                Margin="20,0,0,0"
                                                Foreground="#FF135185"/>
 
-                                    <TextBlock Text="{Binding PartNumber, UpdateSourceTrigger=PropertyChanged}"
+                                    <TextBlock Name="PartTxt"
+                                               Text="{Binding PartNumber, UpdateSourceTrigger=PropertyChanged}"
                                                FontWeight="Bold"
                                                Margin="5,0,0,0" />
                                     <TextBlock Text="{Binding LineDesc, UpdateSourceTrigger=PropertyChanged}"
@@ -424,7 +442,7 @@
                                     <TextBlock Text="Out Of Stock"
                                                Foreground="Crimson"
                                                FontWeight="Bold"
-                                               Visibility="{Binding IsStagged, Converter={StaticResource BoolToVisConverter}}"
+                                               Visibility="{Binding CanShip, Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}"
                                                Margin="15,0,0,0" />
 
                                 </StackPanel>

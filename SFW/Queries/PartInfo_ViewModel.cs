@@ -158,6 +158,8 @@ namespace SFW.Queries
 
         public string MoveReference { get; set; }
 
+        public int Site { get; set; }
+
         public delegate void ResultsDelegate(string s);
         public ResultsDelegate ResultsAsyncDelegate { get; private set; }
         public IAsyncResult SearchAsyncResult { get; set; }
@@ -185,6 +187,7 @@ namespace SFW.Queries
                 MoveHistory = new ObservableCollection<Sku>();
             }
             ToLocation = FromLocation = string.Empty;
+            Site = App.SiteNumber;
         }
 
         /// <summary>
@@ -196,6 +199,7 @@ namespace SFW.Queries
             IsLoading = false;
             ResultsAsyncDelegate = new ResultsDelegate(ResultsLoading);
             UserInput = partNrb;
+            Site = App.SiteNumber;
             SearchICommand.Execute(partNrb);
             NonLotPart = false;
             if (MoveHistory == null)
@@ -221,6 +225,7 @@ namespace SFW.Queries
                 MoveHistory = new ObservableCollection<Sku>();
             }
             ToLocation = FromLocation = string.Empty;
+            Site = wo.Facility;
         }
 
         #region Load Results Async Delegation Implementation
@@ -228,14 +233,14 @@ namespace SFW.Queries
         public void ResultsLoading(string inputVal)
         {
             IsLoading = true;
-            ILotResultsList = Lot.GetOnHandLotList(inputVal, true, App.SiteNumber);
+            ILotResultsList = Lot.GetOnHandLotList(inputVal, true, Site);
             NonLotPart = false;
             if (ILotResultsList.Count == 0)
             {
-                ILotResultsList = Lot.GetOnHandLotList(inputVal, false, App.SiteNumber);
+                ILotResultsList = Lot.GetOnHandLotList(inputVal, false, Site);
                 NonLotPart = true;
             }
-            IthResultsTable = Lot.GetLotHistoryTable(inputVal, App.AppSqlCon);
+            IthResultsTable = Lot.GetLotHistoryTable(inputVal, Site, App.AppSqlCon);
         }
         public void ResultsLoaded(IAsyncResult r)
         {
@@ -302,7 +307,13 @@ namespace SFW.Queries
             OnPropertyChanged(nameof(ILotResultsList));
             Filter = FilterText = string.IsNullOrEmpty(PreFilter) ? null : PreFilter;
             OnPropertyChanged(nameof(FilterText));
-            Part = UseLot ? new Sku(UserInput, 'L', App.SiteNumber) : new Sku(UserInput, 'S', App.SiteNumber, true);
+            Site = UserInput.Contains('|')
+                ? int.TryParse(UserInput.Split('|')[1], out int i) ? i : App.SiteNumber
+                : App.SiteNumber;
+            UserInput = UserInput.Contains('|')
+                ? UserInput.Split('|')[0]
+                : UserInput;
+            Part = UseLot ? new Sku(UserInput, 'L', Site) : new Sku(UserInput, 'S', Site, true);
             if (UseLot && Part != null)
             {
                 QuantityInput = Part.TotalOnHand;

@@ -36,6 +36,12 @@ namespace SFW.Commands
         {
             try
             {
+                var _so = string.Empty;
+                if (parameter.ToString().Contains("SO*"))
+                {
+                    _so = parameter.ToString().Split('*')[1];
+                    parameter = 0;
+                }
                 if (int.TryParse(parameter.ToString(), out int z))
                 {
                     switch (z)
@@ -90,6 +96,10 @@ namespace SFW.Commands
                         if (_wo != null)
                         {
                             _viewModel = _wo.GetType() == typeof(Model.WorkOrder) ? new PartInfo_ViewModel((Model.WorkOrder)_wo) : new PartInfo_ViewModel(_wo.ToString());
+                        }
+                        else if (_so != null)
+                        {
+                            _viewModel = new PartInfo_ViewModel(_so);
                         }
                         break;
                     //Handles the refresh schedule calls

@@ -13,6 +13,8 @@ namespace M2kClient
         [Description("\\\\172.16.0.10\\ERP\\ROI\\CSI.TRAIN\\")]
         CSITRAIN = 3,
         [Description("\\\\172.16.0.10\\ERP\\ROI\\CONTI.MAIN\\")]
-        CONTI = 4
+        CONTI = 4,
+        [Description("\\\\172.16.0.10\\ERP\\ROI\\CONTI.TRAIN\\")]
+        CONTITRAIN = 5
     }
 }

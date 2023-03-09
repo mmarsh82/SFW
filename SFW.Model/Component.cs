@@ -222,9 +222,7 @@ namespace SFW.Model
                 if (e.ListChangedType == ListChangedType.ItemChanged && e.PropertyDescriptor?.DisplayName == "LotNbr")
                 {
                     FromOtherChange = true;
-                    var _validLot = ((BindingList<CompWipInfo>)sender)[e.NewIndex].Facility == 2
-                        ? Lot.LotValidation(_tempItem.LotNbr, _tempItem.PartNbr, _tempItem.WorkOrderNumber, "dLot")
-                        : Lot.LotValidation(_tempItem.LotNbr, _tempItem.PartNbr);
+                    var _validLot = Lot.LotValidation(_tempItem.LotNbr, _tempItem.PartNbr);
                     if (_validLot)
                     {
                         ((BindingList<CompWipInfo>)sender)[e.NewIndex].IsValidLot = true;

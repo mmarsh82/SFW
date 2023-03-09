@@ -244,6 +244,50 @@ namespace M2kClient
         }
 
         /// <summary>
+        /// Get the next available lot number in M2k
+        /// </summary>
+        /// <param name="connection">Your Manage 2000 Connection object</param>
+        /// <returns>
+        /// IReadOnlyDictionary file
+        /// Key is the Pass/Fail check
+        /// On Pass the value will be the lot number created
+        /// On Fail the value will be the error message
+        /// </returns>
+        public static IReadOnlyDictionary<bool, string> GetDiamondNumber(M2kConnection connection)
+        {
+            try
+            {
+                var _subResult = new Dictionary<bool, string>();
+                using (UniSession uSession = UniObjects.OpenSession(connection.HostName, connection.UserName, connection.Password, connection.UniAccount, connection.UniService))
+                {
+                    try
+                    {
+                        using (UniSubroutine uSubRout = uSession.CreateUniSubroutine("SUB.ARL.NEXT.LOT.NBR", 1))
+                        {
+                            uSubRout.SetArg(0, "");
+                            uSubRout.Call();
+                            //TODO:relace static with dynamic code
+                            var _m2kArg = $"{DateTime.Today:yMM}{uSubRout.GetArg(0)}".TrimStart('2');
+                            _subResult.Add(true, _m2kArg);
+                            UniObjects.CloseSession(uSession);
+                            return _subResult;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        UniObjects.CloseSession(uSession);
+                        _subResult.Add(false, ex.Message);
+                        return _subResult;
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
         /// Inventory move in the current ERP
         /// </summary>
         /// <param name="stationId">Submitter name</param>
@@ -313,7 +357,7 @@ namespace M2kClient
                 var _lotEntered = !string.IsNullOrEmpty(wipRecord.WipLot.LotNumber) || !isLot;
                 if (string.IsNullOrEmpty(wipRecord.WipLot.LotNumber) && isLot)
                 {
-                    var _response = GetLotNumber(connection);
+                    var _response = wipRecord.WipWorkOrder.IsTransfer ? GetDiamondNumber(connection) : GetLotNumber(connection);
                     if (_response.Count == 1 && !_response.First().Key)
                     {
                         System.Windows.MessageBox.Show(_response.First().Value, "Connection Error");
@@ -392,7 +436,7 @@ namespace M2kClient
                 var _counter = 1;
                 while (_counter <= wipRecord.RollQty)
                 {
-                    var _response = GetLotNumber(connection);
+                    var _response = wipRecord.WipWorkOrder.IsTransfer ? GetDiamondNumber(connection) : GetLotNumber(connection);
                     if (_response.Count == 1 && !_response.First().Key)
                     {
                         System.Windows.MessageBox.Show(_response.First().Value, "Connection Error");

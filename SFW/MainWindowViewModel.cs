@@ -1,4 +1,5 @@
-﻿using SFW.Controls;
+﻿using M2kClient;
+using SFW.Controls;
 using SFW.Model;
 using System;
 using System.Collections.Generic;
@@ -89,8 +90,10 @@ namespace SFW
             get { return iTraining; }
             set
             {
-                //TODO: need a training database
-                //App.ErpCon.DatabaseChange(Database.WCCOTRAIN, App.SiteNumber);
+                if (value)
+                {
+                    App.ErpCon.DatabaseChange(Database.CONTITRAIN, App.SiteNumber);
+                }
                 iTraining = value;
                 StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(InTraining)));
             }

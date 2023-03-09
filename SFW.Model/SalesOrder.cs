@@ -48,6 +48,7 @@ namespace SFW.Model
         public decimal CreditAllocatedBalance { get; set; }
         public decimal CurrentCreditLimit { get; set; }
         public decimal OrderBalance { get; set; }
+        public bool CanShip { get; set; }
         public int Facility { get; set; }
 
         #endregion
@@ -154,12 +155,10 @@ SELECT
 	,CAST(ISNULL(soh.[Requested_Date], soh.[Delivery_Date]) as date) as 'ReqDate'
 	,CAST(soh.[Commit_Ship_Date] as date) as 'ShipDate'
 	,ISNULL(cm.[Load_Pattern], '') as 'LoadPattern'
-	,CASE WHEN (SELECT COUNT(wp1.[Wp_Nbr]) FROM dbo.[WP-INIT] wp1 WHERE wp1.[So_Reference] = CONCAT(sod.[ID], '*1')) > 0
+	,CASE WHEN soh.[Ord_Type] = 'DAI'
+			AND ipl.[Qty_On_Hand] > ssd.[Quantity]
 		THEN 0
-		WHEN soh.[Ord_Type] = 'DAI' 
-			AND (SELECT ipl.[Qty_On_Hand] FROM [dbo].[IPL-INIT] ipl WHERE ipl.[Part_Nbr] = sod.[Part_Wo_Gl]) > (SELECT SUM(sod1.[Ln_Bal_Qty]) FROM [dbo].[SOD-INIT] sod1 WHERE sod1.[Part_Wo_Gl] = sod.[Part_Wo_Gl] AND DATEADD(DAY, -30, soh.[Commit_Ship_Date]) <= GETDATE())
-		THEN 1
-		ELSE -1 END as 'MTO'
+		ELSE 1 END as 'MTO'
 	,CASE WHEN CAST(sod.[Ln_Del_Qty] AS int) - CAST(sod.[Ln_Bal_Qty] AS int) = 0
 		THEN 0
 		ELSE 1 END as 'IsBackOrder'
@@ -169,21 +168,22 @@ SELECT
 	,ISNULL(cm.[Alloc_Bal], 0) as 'AR_ABal'
 	,ISNULL(cm.[Ar_Credit_Limit] - (cm.[Balance] + cm.[Ship_Bal] + cm.[Alloc_Bal]), 0.00) as 'AR_Credit'
 	,soh.[Order_Bal_Ext_Price] as 'AR_OrdBal'
-	,CASE WHEN (SELECT COUNT(wp2.[Wp_Nbr]) FROM dbo.[WP-INIT] wp2 WHERE wp2.[So_Reference] = CONCAT(sod.[ID], '*1')) > 0
+	,CASE WHEN ipl.[Qty_On_Hand] > sod.[Ln_Bal_Qty]
 		THEN 1
-		ELSE 0 END as 'IsWOLinked'
-	,CASE WHEN CAST(sod.[Ln_Bal_Qty] as int) <= (SELECT ipl.[Qty_On_Hand] FROM [dbo].[IPL-INIT] ipl WHERE ipl.[Part_Nbr] = sod.[Part_Wo_Gl]) OR CAST(soh.[Commit_Ship_Date] as date) >= CAST(GETDATE() as date)
-		THEN 1
-		ELSE 0 END as 'CanShip'
+		ELSE 0 END as 'HasStock'
 	,CAST(sod.[Facility_Code] AS int) as 'Site'
 FROM
 	dbo.[SOH-INIT] AS soh
-RIGHT JOIN
-	dbo.[SOD-INIT] AS sod ON SUBSTRING(sod.[ID], 0, CHARINDEX('*', sod.[ID], 0)) = soh.[So_Nbr]
-RIGHT JOIN
+LEFT JOIN
+	dbo.[SOD-INIT] AS sod ON sod.[ID] LIKE CONCAT(soh.[So_Nbr], '*%')
+LEFT JOIN
 	dbo.[CM-INIT] AS cm ON cm.[Cust_Nbr] = soh.[Cust_Nbr]
+LEFT JOIN
+	dbo.[IPL-INIT] ipl ON ipl.[Part_Nbr] = sod.[Part_Wo_Gl]
+LEFT JOIN
+	dbo.[SFW_SalesDemand] ssd on ssd.[ProductID] = sod.[Part_Wo_Gl]
 WHERE
-	soh.[Order_Status] IS NULL AND sod.[Comp] = 'O' AND sod.[Part_Wo_Gl] IS NOT NULL AND sod.[Part_Wo_Gl] <> '1010199'
+	soh.[Order_Status] IS NULL AND sod.[Comp] = 'O' AND sod.[Part_Wo_Gl] IS NOT NULL AND ISNULL(sod.[D_esc] ,(SELECT im.[Description] FROM [dbo].[IM-INIT] im WHERE (im.[Part_Number] = sod.[Part_Wo_Gl]))) NOT LIKE '%PALLET%'
 ORDER BY
 	soh.[Commit_Ship_Date], sod.[ID] ASC", sqlCon))
                         {
@@ -306,6 +306,7 @@ ORDER BY
                                         ,PartNumber = _row.Field<string>("PartNbr")
                                         ,LineBaseQuantity = _row.Field<int>("BaseQty")
                                         ,LineNotes = _row.Field<string>("Uom")
+                                        ,CanShip = _row.Field<int>("HasStock") == 1
                                     });
                 }
             }
