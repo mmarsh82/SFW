@@ -205,6 +205,17 @@
                 </CheckBox.Content>
             </CheckBox>
 
+            <CheckBox IsChecked="{Binding IsNew}"
+                      VerticalAlignment="Center"
+                      FontSize="18"
+                      Margin="10,0,0,0"
+                      Style="{DynamicResource SliderCheckBox}">
+                <CheckBox.Content>
+                    <TextBlock Text="New:"
+                               TextDecorations="Underline"/>
+                </CheckBox.Content>
+            </CheckBox>
+
         </StackPanel>
 
         <!--#endregion-->

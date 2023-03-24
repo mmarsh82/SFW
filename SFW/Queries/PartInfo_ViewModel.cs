@@ -240,7 +240,7 @@ namespace SFW.Queries
                 ILotResultsList = Lot.GetOnHandLotList(inputVal, false, Site);
                 NonLotPart = true;
             }
-            IthResultsTable = Lot.GetLotHistoryTable(inputVal, Site, App.AppSqlCon);
+            IthResultsTable = Lot.GetLotHistoryTable(inputVal, Site == App.SiteNumber ? 0 : Site, App.AppSqlCon);
         }
         public void ResultsLoaded(IAsyncResult r)
         {

@@ -77,6 +77,19 @@ namespace SFW.Schedule.SalesOrder
             }
         }
 
+        private bool _isNew;
+        public bool IsNew
+        {
+            get { return _isNew; }
+            set
+            {
+                var _fltr = value ? $"[DateAdded]='{DateTime.Today.ToString("yyyy-MM-dd")}'" : "";
+                FilterSchedule(_fltr, 7);
+                _isNew = value;
+                OnPropertyChanged(nameof(IsNew));
+            }
+        }
+
         private bool _pickSel;
         public bool PickSelected
         {
@@ -204,6 +217,7 @@ namespace SFW.Schedule.SalesOrder
         /// 4 = Work Center Group Filter
         /// 5 = Credit Status Filter
         /// 6 = Scheduling Status Filter
+        /// 7 = New Filter
         /// </summary>
         /// <param name="filter">Filter string to use on the default view</param>
         /// <param name="index">Index of the filter string list you are adding to our changing</param>

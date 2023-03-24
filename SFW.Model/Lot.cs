@@ -159,19 +159,23 @@ namespace SFW.Model
                     {
                         if (!string.IsNullOrEmpty(partNbr))
                         {
-
+                            var _where = site == 0
+                                ? "WHERE [PartNbr] = @p1"
+                                : "WHERE [PartNbr] = @p1 AND [SiteNumber] = @p2";
                             using (SqlDataAdapter adapter = new SqlDataAdapter($@"USE {sqlCon.Database};
                                                                                 SELECT 
                                                                                     *
                                                                                 FROM
                                                                                     [dbo].[SFW_LotHistory]
-                                                                                WHERE
-                                                                                    [PartNbr] = @p1 AND (CAST([TranDateTime] as DATE) > DATEADD(YEAR, -2, GETDATE())) AND [SiteNumber] = @p2
+                                                                                {_where}
                                                                                 ORDER BY
-                                                                                    [TranDateTime] DESC;", sqlCon))
+                                                                                    [TranDateTime] DESC", sqlCon))
                             {
                                 adapter.SelectCommand.Parameters.AddWithValue("p1", partNbr);
-                                adapter.SelectCommand.Parameters.AddWithValue("p2", site);
+                                if (site > 0)
+                                {
+                                    adapter.SelectCommand.Parameters.AddWithValue("p2", site);
+                                }
                                 adapter.Fill(dt);
                             }
                         }
