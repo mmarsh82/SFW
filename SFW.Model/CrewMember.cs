@@ -280,7 +280,7 @@ namespace SFW.Model
             try
             {
                 var id2 = (DateTime.Now - Convert.ToDateTime("1967/12/31")).Days;
-                if (shift == 3 && DateTime.Now.TimeOfDay > new TimeSpan(23,00,00))
+                if ((shift == 3 || shift == 5) && DateTime.Now.TimeOfDay > new TimeSpan(23,00,00))
                 {
                     id2++;
                 }
@@ -301,17 +301,22 @@ namespace SFW.Model
                                 uResponse = uResponse.Replace("\n", "");
                                 var uResArray = uResponse.Split('\r');
                                 var _sortList = new List<DateTime>();
-                                foreach (var s in uResArray)
+                                foreach (var s in uResArray.Where(o => o.Contains(idNbr)))
                                 {
-                                    if (s.Contains($"records") || s.Contains($"record"))
+                                    if (!s.Contains(uCmd.Command))
                                     {
-                                        break;
-                                    }
-                                    if (s.Contains($"{idNbr}*{id2}*{facCode}") && !s.Contains("@ID"))
-                                    {
-                                        var _temp = s.Replace($"{idNbr}*{id2}*{facCode}", "").Trim();
-                                        _sortList.Add(Convert.ToDateTime(_temp));
-                                        break;
+                                        if (s.Contains($"{idNbr}*{id2}*{facCode}"))
+                                        {
+                                            var _temp = s.Replace($"{idNbr}*{id2}*{facCode}", "").Trim();
+                                            _sortList.Add(Convert.ToDateTime(_temp));
+                                            break;
+                                        }
+                                        else if (s.Contains($"{idNbr}*{id2}"))
+                                        {
+                                            var _temp = s.Replace($"{idNbr}*{id2}*", "").Trim();
+                                            _sortList.Add(Convert.ToDateTime(_temp));
+                                            break;
+                                        }
                                     }
                                 }
                                 if (_sortList.Count == 0)
@@ -320,7 +325,7 @@ namespace SFW.Model
                                 }
                                 else
                                 {
-                                    if (shift == 3 && !_sortList.Any(o => o.TimeOfDay < new TimeSpan(23, 00, 00)))
+                                    if ((shift == 3 || shift == 5) && !_sortList.Any(o => o.TimeOfDay < new TimeSpan(23, 00, 00)))
                                     {
                                         _sortList = _sortList.OrderBy(o => o.TimeOfDay).ToList();
                                     }

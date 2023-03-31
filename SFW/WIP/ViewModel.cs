@@ -525,7 +525,7 @@ namespace SFW.WIP
                 TQty = WipRecord.WipQty + _preOnHand;
                 if (App.SiteNumber == 2)
                 {
-                    M2kClient.M2kCommand.EditRecord("LOT.MASTER", WipLot, 19, Weight.ToString(), M2kClient.UdArrayCommand.Insert, App.ErpCon);
+                    M2kClient.M2kCommand.EditRecord("LOT.MASTER", $"{WipLot}|P|02", 19, Weight.ToString(), M2kClient.UdArrayCommand.Insert, App.ErpCon);
                     WipStickerPrintExecute(null);
                 }
                 OnPropertyChanged(nameof(WipRecord));

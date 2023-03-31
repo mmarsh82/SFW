@@ -82,7 +82,7 @@ namespace M2kClient
                     case Database.CONTI:
                         return "E:/roi/CONTI.MAIN";
                     case Database.CONTITRAIN:
-                        return "E:/roi/CONTI.MAIN";
+                        return "E:/roi/CONTI.TRAIN";
                     default:
                         return string.Empty;
                 }
