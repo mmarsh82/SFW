@@ -2,6 +2,7 @@
 using System;
 using System.Data;
 using System.IO;
+using System.Linq;
 using System.Windows.Input;
 
 namespace SFW.Commands
@@ -15,16 +16,28 @@ namespace SFW.Commands
             if (parameter != null)
             {
                 var _wpNbr = ((DataRowView)parameter).Row.Field<string>("WorkOrder");
-                OpenFileDialog ofd = new OpenFileDialog();
-                ofd.DefaultExt = ".pdf";
-                ofd.Filter = "Part Prints (.pdf)|*.pdf";
-                var _result = ofd.ShowDialog();
-                if (_result == true)
+                var _filePath = $"\\\\fs-wcco\\WCCO-Prints\\Deviations\\{_wpNbr}-1.pdf";
+                var _row = Model.ModelBase.MasterDataSet.Tables["Master"].Select($"[WorkOrder] = '{_wpNbr}'").FirstOrDefault();
+                var _index = Model.ModelBase.MasterDataSet.Tables["Master"].Rows.IndexOf(_row);
+                if (((DataRowView)parameter).Row.Field<string>("Deviation") == "Y")
                 {
-                    var _newPath = $"\\\\fs-wcco\\WCCO-Prints\\Deviations\\{_wpNbr}-1.pdf";
-                    File.Move(ofd.FileName, _newPath);
+                    File.Delete(_filePath);
+                    M2kClient.M2kCommand.EditRecord("WP", _wpNbr, 47, "N", M2kClient.UdArrayCommand.Replace, App.ErpCon);
+                    Model.ModelBase.MasterDataSet.Tables["Master"].Rows[_index].SetField("Deviation", "N");
                 }
-                M2kClient.M2kCommand.EditRecord("WP", _wpNbr, 47, "Y", M2kClient.UdArrayCommand.Replace, App.ErpCon);
+                else
+                {
+                    OpenFileDialog ofd = new OpenFileDialog();
+                    ofd.DefaultExt = ".pdf";
+                    ofd.Filter = "Part Prints (.pdf)|*.pdf";
+                    var _result = ofd.ShowDialog();
+                    if (_result == true)
+                    {
+                        File.Move(ofd.FileName, _filePath);
+                    }
+                    M2kClient.M2kCommand.EditRecord("WP", _wpNbr, 47, "Y", M2kClient.UdArrayCommand.Replace, App.ErpCon);
+                    Model.ModelBase.MasterDataSet.Tables["Master"].Rows[_index].SetField("Deviation", "Y");
+                }
             }
         }
 

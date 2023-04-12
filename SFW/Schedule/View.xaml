@@ -69,9 +69,26 @@
             </MenuItem>
             <MenuItem Header="Deviate"
                       FontSize="16"
-                      Visibility="{Binding Path=(local:CurrentUser.CanSchedule), Converter={StaticResource BoolToVisConverter}}"
                       Command="{StaticResource DeviationICommand}"
-                      CommandParameter="{Binding DataContext.SelectedWorkOrder, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}"/>
+                      CommandParameter="{Binding DataContext.SelectedWorkOrder, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}">
+                <MenuItem.Visibility>
+                    <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="iDev">
+                        <Binding Path="(local:CurrentUser.CanSchedule)"/>
+                        <Binding Path="Deviation"/>
+                    </MultiBinding>
+                </MenuItem.Visibility>
+            </MenuItem>
+            <MenuItem Header="Clear Deviation"
+                      FontSize="16"
+                      Command="{StaticResource DeviationICommand}"
+                      CommandParameter="{Binding DataContext.SelectedWorkOrder, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}">
+                <MenuItem.Visibility>
+                    <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="dev">
+                        <Binding Path="(local:CurrentUser.CanSchedule)"/>
+                        <Binding Path="Deviation"/>
+                    </MultiBinding>
+                </MenuItem.Visibility>
+            </MenuItem>
         </ContextMenu>
         
     </UserControl.Resources>
