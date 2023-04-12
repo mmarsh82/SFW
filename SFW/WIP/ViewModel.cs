@@ -302,7 +302,7 @@ namespace SFW.WIP
         {
             get
             {
-                return WipRecord.WipWorkOrder.Picklist.Count(o => o.InventoryType == "RC" || o.InventoryType == "CS") > 0
+                return WipRecord.WipWorkOrder.Picklist.Count(o => o.InventoryType == "RC" || o.InventoryType == "CS") > 0 && App.SiteNumber == 2
                     ? !WipRecord.WipWorkOrder.Picklist.FirstOrDefault(o => o.InventoryType == "RC" || o.InventoryType == "CS").IsLotTrace
                     : false;
             }
@@ -602,7 +602,21 @@ namespace SFW.WIP
 
                     #endregion
 
-                    var _laborValid = WipRecord.CrewList.Where(o => DateTime.TryParse(o.LastClock, out var dt) && !string.IsNullOrEmpty(o.Name) && o.IsDirect).ToList().Count() == WipRecord.CrewList.Count(o => !string.IsNullOrEmpty(o.Name) && o.IsDirect);
+                    #region Labor Validation
+
+                    var _laborValid = true;
+                    _laborValid = WipRecord.CrewList != null;
+                    if (WipRecord.CrewList.Count(o => !string.IsNullOrEmpty(o.Name)) == 0)
+                    {
+                        _laborValid = false;
+                    }
+                    else
+                    {
+                        _laborValid = WipRecord.CrewList.Where(o => DateTime.TryParse(o.LastClock, out var dt) && o.IsDirect).ToList().Count() == WipRecord.CrewList.Count(o => o.IsDirect);
+                    }
+
+                    #endregion
+
                     var _multiValid = !WipRecord.IsMulti || (WipRecord.IsMulti && WipRecord.RollQty > 0);
                     return _baseValid && _scrapValid && _reclaimValid && _multiValid && _laborValid;
                 }

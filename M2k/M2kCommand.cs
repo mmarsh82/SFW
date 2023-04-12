@@ -521,7 +521,7 @@ namespace M2kClient
                     var _wipQty = wipRecord.IsMulti ? Convert.ToInt32(wipRecord.WipQty * wipRecord.RollQty) : Convert.ToInt32(wipRecord.WipQty);
                     foreach (var c in wipRecord.CrewList.Where(o => !string.IsNullOrEmpty(o.Name) && o.IsDirect))
                     {
-                        var _pl = PostLabor("SFW WIP", c.IdNumber, c.Shift, $"{wipRecord.WipWorkOrder.OrderNumber}*{wipRecord.WipWorkOrder.Seq}", _wipQty, machID, ' ', wipRecord.Facility, connection, c.LastClock, _crew);
+                        var _pl = PostLabor("SFW WIP", c.IdNumber, c.Shift, $"{wipRecord.WipWorkOrder.OrderNumber}*{wipRecord.WipWorkOrder.Routing}", _wipQty, machID, ' ', wipRecord.Facility, connection, c.LastClock, _crew);
                         if (_pl.Any(o => o.Key == 1))
                         {
                             System.Windows.MessageBox.Show($"Unable to process Labor\nPlease contact IT immediately!\n\n{_pl[1]}", "M2k Labor file error", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
