@@ -15,7 +15,7 @@
         <cvtr:CrewToVisibility x:Key="CrewtoVisConverter" />
         <cvtr:NegativeIntToBool x:Key="NegIntToBoolConverter" />
         <cvtr:BoolToBorderColor x:Key="BoolToBorderConverter" />
-        <cvtr:BoolToInt x:Key="BoolToIntConverter"/>
+        <cvtr:BoolToInt x:Key="BoolToIntConverter" />
         <cvtr:SiteToVisibility x:Key="SiteToVisConverter" />
         <cvtr:CountToVisibility x:Key="CountToVisConverter" />
     </Window.Resources>
@@ -783,7 +783,7 @@
                                                            FontWeight="Bold"
                                                            VerticalAlignment="Center"
                                                            Margin="3,0,0,0" />
-                                                <TextBlock Text="Is Roll Gone?"
+                                                <TextBlock Text="Is Component Gone?"
                                                            Visibility="{Binding IsValidLot, Converter={StaticResource BooltoVisConverter}}"
                                                            FontSize="16"
                                                            TextDecorations="UnderLine"
@@ -1191,8 +1191,8 @@
                         Margin="5"
                         Command="{Binding MPrintICommand}"
                         CommandParameter="R"
-                        Visibility="{Binding IsSubmitted, Converter={StaticResource BooltoVisConverter}}"
-                        Style="{DynamicResource DefaultButton}" />
+                        Visibility="{Binding IsSubmitted, Converter={StaticResource SiteToVisConverter}, ConverterParameter=Ref}"
+                        Style="{DynamicResource DefaultButton}"/>
 
                 <Button Content="WIP Stickers"
                         Width="150"
@@ -1213,7 +1213,7 @@
                    Fill="#FF135185"
                    HorizontalAlignment="Stretch"
                    VerticalAlignment="Stretch"
-                   Visibility="{Binding LotList.Count, Converter={StaticResource CountToVisConverter}}"/>
+                   Visibility="{Binding LotList.Count, Converter={StaticResource CountToVisConverter}, ConverterParameter=2}"/>
             <TextBlock Grid.Row="13"
                    HorizontalAlignment="Center"
                    VerticalAlignment="Center"
@@ -1221,7 +1221,7 @@
                    FontWeight="Bold"
                    FontSize="20"
                    Foreground="WhiteSmoke"
-                   Visibility="{Binding LotList.Count, Converter={StaticResource CountToVisConverter}}"/>
+                   Visibility="{Binding LotList.Count, Converter={StaticResource CountToVisConverter}, ConverterParameter=2}"/>
 
             <!--#endregion-->
 
@@ -1236,7 +1236,7 @@
                           Background="Transparent"
                           Foreground="Black"
                           Focusable="False"
-                          Visibility="{Binding LotList.Count, Converter={StaticResource CountToVisConverter}}">
+                          Visibility="{Binding LotList.Count, Converter={StaticResource CountToVisConverter}, ConverterParameter=2}">
 
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>

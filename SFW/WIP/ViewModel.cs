@@ -574,8 +574,15 @@ namespace SFW.WIP
                     {
                         if (WipRecord.ScrapList.Count(o => int.TryParse(o.Quantity, out int i) && i > 0) > 0)
                         {
-                            _scrapValid = WipRecord.ScrapList.Count(o => Convert.ToInt32(o.Quantity) > 0) == WipRecord.ScrapList.Count(o => !string.IsNullOrEmpty(o.Reason))
+                            if (App.SiteNumber == 2)
+                            {
+                                _scrapValid = WipRecord.ScrapList.Count(o => Convert.ToInt32(o.Quantity) > 0) == WipRecord.ScrapList.Count(o => !string.IsNullOrEmpty(o.Reason));
+                            }
+                            else
+                            {
+                                _scrapValid = WipRecord.ScrapList.Count(o => Convert.ToInt32(o.Quantity) > 0) == WipRecord.ScrapList.Count(o => !string.IsNullOrEmpty(o.Reason))
                                 && WipRecord.ScrapList.Count(o => o.Reason == "Quality Scrap") == WipRecord.ScrapList.Count(o => !string.IsNullOrEmpty(o.Reference));
+                            }
                         }
                         else
                         {
@@ -698,16 +705,19 @@ namespace SFW.WIP
                 }
                 else
                 {
-                    if (WipRecord.WipWorkOrder.Picklist.FirstOrDefault(o => o.InventoryType == "RC").IsLotTrace)
+                    if (WipRecord.WipWorkOrder.Picklist.Count(o => o.InventoryType == "RC") > 0)
                     {
-                        foreach (var _part in WipRecord.WipWorkOrder.Picklist.Where(o => o.InventoryType == "RC" && o.IsLotTrace))
+                        if (WipRecord.WipWorkOrder.Picklist.FirstOrDefault(o => o.InventoryType == "RC").IsLotTrace)
                         {
-                            var _counter = 0;
-                            foreach (var _wip in _part.WipInfo.Where(o => o.IsValidLot))
+                            foreach (var _part in WipRecord.WipWorkOrder.Picklist.Where(o => o.InventoryType == "RC" && o.IsLotTrace))
                             {
-                                CompoundPart[_counter] = _wip.PartNbr;
-                                CompoundLot[_counter] = _wip.LotNbr;
-                                _counter++;
+                                var _counter = 0;
+                                foreach (var _wip in _part.WipInfo.Where(o => o.IsValidLot))
+                                {
+                                    CompoundPart[_counter] = _wip.PartNbr;
+                                    CompoundLot[_counter] = _wip.LotNbr;
+                                    _counter++;
+                                }
                             }
                         }
                     }

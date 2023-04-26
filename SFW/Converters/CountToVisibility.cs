@@ -15,9 +15,15 @@ namespace SFW.Converters
         {
             if (value != null && parameter != null)
             {
-                if (int.TryParse(value.ToString(), out int i))
+                var _value = 0;
+                var _param = 0;
+                if (int.TryParse(parameter.ToString(), out _param) && int.TryParse(value.ToString(), out _value))
                 {
-                    return i >= 1 ? Visibility.Visible : Visibility.Collapsed;
+                    return _value >= _param ? Visibility.Visible : Visibility.Collapsed;
+                }
+                else if (int.TryParse(value.ToString(), out _value))
+                {
+                    return _value >= 1 ? Visibility.Visible : Visibility.Collapsed;
                 }
                 return Visibility.Collapsed;
             }
@@ -37,7 +43,7 @@ namespace SFW.Converters
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            return Visibility.Visible;
+            return Visibility.Collapsed;
         }
 
         #endregion

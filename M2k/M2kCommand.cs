@@ -540,6 +540,7 @@ namespace M2kClient
 
             var _adjustString = string.Empty;
             //Adjusting any scrap out of the system that was recorded during the wip
+            //Main part scrap adjustment string builder
             foreach (var s in wipRecord.ScrapList.Where(o => int.TryParse(o.Quantity, out int i) && i > 0))
             {
                 InventoryAdjustment(wipRecord.Submitter,
@@ -553,12 +554,21 @@ namespace M2kClient
                     connection,
                     wipRecord.WipLot.LotNumber == "NonLotWip" || wipRecord.WipLot.LotNumber == "Multiple" ? "" : wipRecord.WipLot.LotNumber);
             }
+            //Component part scrap adjustment string builder
             if (_tWip?.AdjustmentList?.Count > 0)
             {
                 foreach (var s in _tWip.AdjustmentList)
                 {
-                    File.WriteAllText($"{connection.BTIFolder}ADJUST{connection.AdiServer}.DAT{suffix}s{tranCount}", s.ToString());
-                    tranCount++;
+                    InventoryAdjustment(s.StationId,
+                        s.Reference,
+                        s.ItemNumber,
+                        s.ReasonCode,
+                        s.TranOperation,
+                        s.TranQuantity,
+                        s.Location,
+                        s.FacilityCode,
+                        connection,
+                        s.LotNumber);
                 }
             }
 

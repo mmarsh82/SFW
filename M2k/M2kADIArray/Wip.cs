@@ -157,7 +157,8 @@ namespace M2kClient.M2kADIArray
                                     (AdjustCode)Enum.Parse(typeof(AdjustCode), s.Reason.GetValueFromDescription<AdjustCode>().ToString(), true),
                                     'S',
                                     Convert.ToInt32(s.Quantity),
-                                    !string.IsNullOrEmpty(_backFlush) ? _backFlush : w.RcptLoc, w.LotNbr));
+                                    !string.IsNullOrEmpty(_backFlush) ? _backFlush : w.RcptLoc,
+                                    w.LotNbr));
                         }
                     }
                 }

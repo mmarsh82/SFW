@@ -17,6 +17,17 @@ namespace SFW.Converters
             {
                 return App.SiteNumber == 2 && !(bool)value ? Visibility.Visible : Visibility.Collapsed;
             }
+            else if (parameter.ToString() == "Ref")
+            {
+                if (App.SiteNumber == 2)
+                {
+                    return Visibility.Collapsed;
+                }
+                else
+                {
+                    return (bool)value ? Visibility.Visible : Visibility.Collapsed;
+                }
+            }
             else if (string.IsNullOrEmpty(parameter?.ToString()))
             {
                 switch (value.ToString())
