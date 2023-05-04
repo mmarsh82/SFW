@@ -151,7 +151,7 @@ namespace M2kClient.M2kADIArray
                         {
                             AdjustmentList.Add(new Adjust(
                                     wipRecord.Submitter,
-                                    "01",
+                                    wipRecord.Facility,
                                     !string.IsNullOrEmpty(s.Reference) ? $"{s.Reference}*{wipRecord.WipWorkOrder.OrderNumber}" : wipRecord.WipWorkOrder.OrderNumber,
                                     w.PartNbr,
                                     (AdjustCode)Enum.Parse(typeof(AdjustCode), s.Reason.GetValueFromDescription<AdjustCode>().ToString(), true),

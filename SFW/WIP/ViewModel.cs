@@ -347,7 +347,7 @@ namespace SFW.WIP
                 pl.WipInfo.Add(new CompWipInfo(!string.IsNullOrEmpty(pl.BackflushLoc) ,pl.CompNumber, pl.CompUom, App.SiteNumber, woObject.OrderNumber));
                 pl.WipInfo.Last().ScrapList.ListChanged += ScrapList_ListChanged;
             }
-            WipRecord = new WipReceipt(CurrentUser.UserIDNbr, CurrentUser.FirstName, CurrentUser.LastName, CurrentUser.Facility, woObject, erpCon);
+            WipRecord = new WipReceipt(CurrentUser.UserIDNbr, CurrentUser.FirstName, CurrentUser.LastName, App.SiteNumber, woObject, erpCon);
             if (ScrapReasonCollection == null)
             {
                 var _tempList = Enum.GetValues(typeof(M2kClient.AdjustCode)).Cast<M2kClient.AdjustCode>().Where(o => o != M2kClient.AdjustCode.CC && o != M2kClient.AdjustCode.REC);
