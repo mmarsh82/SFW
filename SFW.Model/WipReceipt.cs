@@ -300,6 +300,11 @@ namespace SFW.Model
         /// </summary>
         public int? Weight { get; set; }
 
+        /// <summary>
+        /// Default pull location for the work center
+        /// </summary>
+        public string PullLocation { get; set; }
+
         public bool IsLoading { get; set; }
         public static string[] ErpCon { get; set; }
 
@@ -342,6 +347,8 @@ namespace SFW.Model
             ReclaimList = new BindingList<Reclaim>();
             CanMulti = workOrder.MachineGroup == "SLIT";
             CanReclaim = workOrder.MachineGroup == "EXT";
+            ReceiptLocation = Machine.GetReceiptLocation(workOrder.Machine);
+            PullLocation = Machine.GetPullLocation(workOrder.Machine);
         }
 
         /// <summary>

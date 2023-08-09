@@ -226,9 +226,8 @@ namespace SFW.Model
                     if (_validLot)
                     {
                         ((BindingList<CompWipInfo>)sender)[e.NewIndex].IsValidLot = true;
-                        ((BindingList<CompWipInfo>)sender)[e.NewIndex].RcptLoc = _tempItem.IsBackFlush
-                            ? Sku.GetBackFlushLoc(_tempItem.PartNbr)
-                            : Lot.GetLotLocation(_tempItem.LotNbr);
+                        ((BindingList<CompWipInfo>)sender)[e.NewIndex].RcptLoc = Lot.GetLotLocation(_tempItem.LotNbr);
+                        ((BindingList<CompWipInfo>)sender)[e.NewIndex].BackFlushLoc = _tempItem.IsBackFlush ? Sku.GetBackFlushLoc(_tempItem.PartNbr) : null;
                         ((BindingList<CompWipInfo>)sender)[e.NewIndex].LotQty = 0;
                         ((BindingList<CompWipInfo>)sender)[e.NewIndex].OnHandQty = Lot.GetLotOnHandQuantity(_tempItem.LotNbr);
                         ((BindingList<CompWipInfo>)sender)[e.NewIndex].OnHandCalc = 0;

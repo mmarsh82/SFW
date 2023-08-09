@@ -119,7 +119,7 @@ namespace SFW.Tools
         public PriorityList_ViewModel()
         {
             PriorityView = CollectionViewSource.GetDefaultView(ModelBase.MasterDataSet.Tables["Master"]);
-            MachineList = Machine.GetMachineList(false, App.SiteNumber);
+            MachineList = Machine.GetMachineNameList(false, App.SiteNumber);
             IsWorkOrderValid = true;
             DisplayAction = false;
             PriorityViewFilter = new string[3];

@@ -30,6 +30,13 @@ namespace SFW.Model
             set { rcptLoc = value; OnPropertyChanged(nameof(RcptLoc)); }
         }
 
+        private string bfLoc;
+        public string BackFlushLoc
+        {
+            get { return bfLoc; }
+            set { bfLoc = value; OnPropertyChanged(nameof(BackFlushLoc)); }
+        }
+
         private bool rollStatus;
         public bool RollStatus
         {

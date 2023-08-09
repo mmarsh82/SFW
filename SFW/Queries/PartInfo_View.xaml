@@ -85,6 +85,7 @@
                         Width="50"
                         Margin="1"
                         Background="Transparent"
+                        Visibility="{Binding CanRefresh, Converter={StaticResource BoolToVisConverter}}"
                         BorderThickness="0"
                         Style="{DynamicResource DefaultButton}">
                     <Button.Content>

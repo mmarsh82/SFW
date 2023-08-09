@@ -493,6 +493,10 @@ namespace M2kClient
 
                         foreach (var w in c.WipInfo.Where(o => !string.IsNullOrEmpty(o.LotNbr)))
                         {
+                            if (w.ScrapList != null && w.ScrapList.Count > 0)
+                            {
+                                w.LotQty += w.ScrapList.Sum(o => Convert.ToInt32(o.Quantity));
+                            }
                             _issue.TranList.Add(new Transaction { Location = w.RcptLoc, LotNumber = w.LotNbr, Quantity = Convert.ToInt32(w.LotQty) });
                         }
                         if (c.WipInfo.Sum(o => o.BaseQty) > 0)

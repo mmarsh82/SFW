@@ -44,6 +44,18 @@
             <!--#region Wip Receipt Header-->
 
             <StackPanel Grid.Row="0"
+                        HorizontalAlignment="Left"
+                        Orientation="Horizontal">
+                <TextBlock Text="Training Mode"
+                           Foreground="Crimson"
+                           FontSize="18"
+                           FontWeight="Bold"
+                           Margin="10,0,0,0"
+                           Visibility="{Binding Path=(main:App.InTraining), Converter={StaticResource BooltoVisConverter}}"
+                           VerticalAlignment="Center"/>
+            </StackPanel>
+            
+            <StackPanel Grid.Row="0"
                         HorizontalAlignment="Center"
                         Orientation="Horizontal">
                 <TextBlock Text="Work Order:"

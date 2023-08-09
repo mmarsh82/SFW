@@ -1,8 +1,10 @@
-﻿using System;
+﻿using iTextSharp.text;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 //Created by Michael Marsh 4-19-18
 
@@ -146,7 +148,7 @@ ORDER BY
         /// <summary>
         /// Get a table containing all of the Machines
         /// </summary>
-        /// <param name="sqlCon"></param>
+        /// <param name="sqlCon">Sql Connection to use</param>
         /// <returns></returns>
         public static DataTable GetMachineTable(SqlConnection sqlCon)
         {
@@ -176,6 +178,55 @@ ORDER BY
                 {
                     throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
                 }
+            }
+        }
+
+        /// <summary>
+        /// Get a list of work centers
+        /// </summary>
+        /// <param name="sqlCon">Sql Connection to use</param>
+        /// <returns>generic list of worcenter objects</returns>
+        public static List<object> GetMachineList(SqlConnection sqlCon)
+        {
+            var _rtnList = new List<object>();
+            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
+            {
+                try
+                {
+                    using (SqlCommand cmd = new SqlCommand($"USE [{sqlCon.Database}]; SELECT * FROM [dbo].[SFW_Machine]", sqlCon))
+                    {
+                        using (SqlDataReader _reader = cmd.ExecuteReader())
+                        {
+                            if (_reader.HasRows)
+                            {
+                                while (_reader.Read())
+                                {
+                                    _rtnList.Add(new Machine
+                                    {
+                                        MachineNumber = _reader["WorkCenterID"].ToString()
+                                        ,MachineName = _reader["Name"].ToString()
+                                        ,MachineDescription = _reader["Description"].ToString()
+                                        ,MachineGroup = _reader["Group"].ToString()
+                                        ,IsLoaded = true
+                                    });
+                                }
+                            }
+                        }
+                    }
+                    return _rtnList;
+                }
+                catch (SqlException sqlEx)
+                {
+                    return _rtnList;
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception(ex.Message);
+                }
+            }
+            else
+            {
+                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
             }
         }
 
@@ -221,7 +272,7 @@ ORDER BY
         /// <param name="incAll">Include all in the return list</param>
         /// <param name="facCode">Facility Code</param>
         /// <returns>generic list of workcenter objects</returns>
-        public static List<string> GetMachineList(bool incAll, int facCode)
+        public static List<string> GetMachineNameList(bool incAll, int facCode)
         {
             var _tempList = new List<string>();
             if (incAll)
@@ -362,6 +413,28 @@ ORDER BY
         {
             var _tempRow = MasterDataSet.Tables["WC"].Select($"[Name] = '{machineName}'");
             return _tempRow.Length > 1 || _tempRow[0].Field<int>("Length") == 0 ? 0 : _tempRow[0].Field<int>("Length") + 1;
+        }
+
+        /// <summary>
+        /// Get the default receipt location
+        /// </summary>
+        /// <param name="machineName">Name of the machine</param>
+        /// <returns>Receipt Location as a string</returns>
+        public static string GetReceiptLocation(string machineName)
+        {
+            var _tempRow = MasterDataSet.Tables["WC"].Select($"[Name] = '{machineName}'");
+            return string.IsNullOrEmpty(_tempRow[0].Field<string>("ReceiptLoc")) ? string.Empty : _tempRow[0].Field<string>("ReceiptLoc");
+        }
+
+        /// <summary>
+        /// Get the default pull location
+        /// </summary>
+        /// <param name="machineName">Name of the machine</param>
+        /// <returns>Pull Location as a string</returns>
+        public static string GetPullLocation(string machineName)
+        {
+            var _tempRow = MasterDataSet.Tables["WC"].Select($"[Name] = '{machineName}'");
+            return string.IsNullOrEmpty(_tempRow[0].Field<string>("PullLoc")) ? string.Empty : _tempRow[0].Field<string>("PullLoc");
         }
     }
 }

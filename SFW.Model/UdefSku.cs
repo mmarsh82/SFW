@@ -227,7 +227,7 @@ namespace SFW.Model
                             {
                                 while (reader.Read())
                                 {
-                                    _temp += $"{reader.SafeGetString(colName).Replace("amp;","")}\n";
+                                    _temp += $"{reader.SafeGetString(colName).Replace("amp;", "")}\n";
                                 }
                             }
                         }

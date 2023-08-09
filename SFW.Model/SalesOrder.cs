@@ -73,7 +73,7 @@ namespace SFW.Model
             CustomerName = dRow.Field<string>("CustName");
             CustomerPart = dRow.Field<string>("CustPartNbr");
             LineNumber = dRow.Field<int>("LineNbr");
-            LineTotalNumber = dRow.Field<int>("LineCount");
+            LineTotalNumber = GetLineCount(SalesNumber, LineNumber);
             LineBalQuantity = dRow.Field<int>("BalQty");
             LineBaseQuantity = dRow.Field<int>("BaseQty");
             LineDesc = dRow.Field<string>("Description");
@@ -124,7 +124,6 @@ SELECT
 	sod.[ID]
 	,soh.[So_Nbr] as 'SoNbr'
 	,CAST(SUBSTRING(sod.[ID], CHARINDEX('*', sod.[ID], 0) + 1, LEN(sod.[ID])) as int) as 'LineNbr'
-	,(SELECT COUNT(ID) FROM [dbo].[SOD-INIT] AS ac WHERE (ID LIKE CONCAT(soh.[So_Nbr], '*%'))) as 'LineCount'
 	,sod.[Part_Wo_Gl] as 'PartNbr'
 	,CAST(sod.[Ln_Bal_Qty] as int) as 'BalQty'
 	,CAST(sod.[Ln_Del_Qty] as int) as 'BaseQty'
@@ -172,6 +171,9 @@ SELECT
 		THEN 1
 		ELSE 0 END as 'HasStock'
 	,CAST(sod.[Facility_Code] AS int) as 'Site'
+	,CASE WHEN (SELECT COUNT(wp.[Wp_Nbr]) FROM [dbo].[WP-INIT] wp WHERE wp.[So_Reference] = sod.[ID]) > 0
+		THEN 1
+		ELSE 0 END as 'IsWOLinked'
 FROM
 	dbo.[SOH-INIT] AS soh
 LEFT JOIN
@@ -265,6 +267,18 @@ ORDER BY
                 return string.IsNullOrEmpty(_note) ? null : _note?.Trim('\n');
             }
             return null;
+        }
+
+        /// <summary>
+        /// Get the sales order line count
+        /// </summary>
+        /// <param name="soNumber">Sales Order to get the line count</param>
+        /// <param name="lineNumber">Line number as a reference</param>
+        /// <returns>Line count as a int</returns>
+        public static int GetLineCount(string soNumber, int lineNumber)
+        {
+            var _rtnVal = MasterDataSet.Tables["SalesMaster"].Select($"[SoNbr] = '{soNumber}'").Count();
+            return _rtnVal >= lineNumber ? _rtnVal : lineNumber;
         }
 
         /// <summary>

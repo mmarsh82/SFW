@@ -357,8 +357,6 @@ namespace SFW
             UserIDNbr = user.EmployeeId;
             FirstName = user.GivenName;
             LastName = user.Surname;
-            context.Dispose();
-            user.Dispose();
         }
 
         /// <summary>

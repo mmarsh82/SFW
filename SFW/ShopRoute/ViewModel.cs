@@ -28,6 +28,7 @@ namespace SFW.ShopRoute
                 ShopOrderNotes = null;
                 MachineGroup = string.Empty;
                 OnPropertyChanged(nameof(CanCheckHistory));
+                OnPropertyChanged(nameof(HasFirstPiece));
             }
         }
 
@@ -126,6 +127,12 @@ namespace SFW.ShopRoute
                 OnPropertyChanged(nameof(SelectedILotItem));
                 OnPropertyChanged(nameof(LotListText));
             }
+        }
+
+        public bool HasFirstPiece
+        {
+            get
+            { return ShopOrder.MachineGroup == "PRESS"; }
         }
 
         private RelayCommand _noteChange;

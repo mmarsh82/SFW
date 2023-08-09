@@ -65,6 +65,20 @@ namespace SFW
             get { return _msg; }
             set { _msg = value; StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(SplashMessage))); }
         }
+        public static bool _inTrain;
+        public static bool InTraining
+        {
+            get { return _inTrain; }
+            set 
+            {
+                if (value)
+                {
+                    ErpCon.DatabaseChange(Database.CONTITRAIN, SiteNumber);
+                }
+                _inTrain = value;
+                StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(InTraining)));
+            }
+        }
 
         //Hardcoded application location will need to be changed based on actual file path
         public static string AppFilePath { get { return "\\\\fs-wcco\\WCCO-SFW\\ShopFloorWorkbench\\"; } }

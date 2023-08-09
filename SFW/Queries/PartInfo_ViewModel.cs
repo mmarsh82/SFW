@@ -160,6 +160,13 @@ namespace SFW.Queries
 
         public int Site { get; set; }
 
+        private bool _canRefresh;
+        public bool CanRefresh
+        {
+            get { return _canRefresh; }
+            set { _canRefresh = value; OnPropertyChanged(nameof(CanRefresh)); }
+        }
+
         public delegate void ResultsDelegate(string s);
         public ResultsDelegate ResultsAsyncDelegate { get; private set; }
         public IAsyncResult SearchAsyncResult { get; set; }
@@ -188,6 +195,7 @@ namespace SFW.Queries
             }
             ToLocation = FromLocation = string.Empty;
             Site = App.SiteNumber;
+            CanRefresh = !NoLotResults && !NoHistoryResults;
         }
 
         /// <summary>
@@ -207,6 +215,7 @@ namespace SFW.Queries
                 MoveHistory = new ObservableCollection<Sku>();
             }
             ToLocation = FromLocation = string.Empty;
+            CanRefresh = !NoLotResults && !NoHistoryResults;
         }
 
         /// <summary>
@@ -226,6 +235,7 @@ namespace SFW.Queries
             }
             ToLocation = FromLocation = string.Empty;
             Site = wo.Facility;
+            CanRefresh = !NoLotResults && !NoHistoryResults;
         }
 
         #region Load Results Async Delegation Implementation
@@ -233,6 +243,7 @@ namespace SFW.Queries
         public void ResultsLoading(string inputVal)
         {
             IsLoading = true;
+            CanRefresh = false;
             ILotResultsList = Lot.GetOnHandLotList(inputVal, true, Site);
             NonLotPart = false;
             if (ILotResultsList.Count == 0)
@@ -266,6 +277,7 @@ namespace SFW.Queries
             OnPropertyChanged(nameof(ILotResultsList));
             OnPropertyChanged(nameof(IthResultsTable));
             OnPropertyChanged(nameof(NoResults));
+            CanRefresh = !NoLotResults && !NoHistoryResults;
         }
 
         #endregion
@@ -307,23 +319,26 @@ namespace SFW.Queries
             OnPropertyChanged(nameof(ILotResultsList));
             Filter = FilterText = string.IsNullOrEmpty(PreFilter) ? null : PreFilter;
             OnPropertyChanged(nameof(FilterText));
-            Site = UserInput.Contains('|')
-                ? int.TryParse(UserInput.Split('|')[1], out int i) ? i : App.SiteNumber
-                : App.SiteNumber;
-            UserInput = UserInput.Contains('|')
-                ? UserInput.Split('|')[0]
-                : UserInput;
-            Part = UseLot ? new Sku(UserInput, 'L', Site) : new Sku(UserInput, 'S', Site, true);
-            if (UseLot && Part != null)
+            if (UserInput != null)
             {
-                QuantityInput = Part.TotalOnHand;
-                FromLocation = string.IsNullOrEmpty(Part.Location) ? string.Empty : Part.Location;
-                ToLocation = string.Empty;
+                Site = UserInput.Contains('|')
+                    ? int.TryParse(UserInput.Split('|')[1], out int i) ? i : App.SiteNumber
+                    : App.SiteNumber;
+                UserInput = UserInput.Contains('|')
+                    ? UserInput.Split('|')[0]
+                    : UserInput;
+                Part = UseLot ? new Sku(UserInput, 'L', Site) : new Sku(UserInput, 'S', Site, true);
+                if (UseLot && Part != null)
+                {
+                    QuantityInput = Part.TotalOnHand;
+                    FromLocation = string.IsNullOrEmpty(Part.Location) ? string.Empty : Part.Location;
+                    ToLocation = string.Empty;
+                }
+                OnPropertyChanged(nameof(Part));
+                _lot = UseLot ? UserInput : string.Empty;
+                UserInput = Part.SkuNumber;
+                SearchAsyncResult = ResultsAsyncDelegate.BeginInvoke(Part.SkuNumber, new AsyncCallback(ResultsLoaded), null);
             }
-            OnPropertyChanged(nameof(Part));
-            _lot = UseLot ? UserInput : string.Empty;
-            UserInput = Part.SkuNumber;
-            SearchAsyncResult = ResultsAsyncDelegate.BeginInvoke(Part.SkuNumber, new AsyncCallback(ResultsLoaded), null);
         }
         private bool SearchCanExecute(object parameter) => !string.IsNullOrWhiteSpace(parameter?.ToString());
 

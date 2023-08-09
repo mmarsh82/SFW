@@ -376,14 +376,10 @@ namespace SFW.WIP
                 var _validScrap = false;
                 foreach (var c in WipRecord.WipWorkOrder.Picklist.Where(o => o.IsLotTrace))
                 {
-                    if (string.IsNullOrEmpty(c.BackflushLoc))
-                    {
-                        _validLoc = c.WipInfo.Count(o => !string.IsNullOrEmpty(o.LotNbr)) == c.WipInfo.Count(o => !string.IsNullOrEmpty(o.RcptLoc));
-                    }
-                    else
-                    {
-                        _validLoc = c.WipInfo.Where(o => !o.IsValidLot && !string.IsNullOrEmpty(o.LotNbr)).Count() == 0;
-                    }
+                    _validLoc = string.IsNullOrEmpty(c.BackflushLoc)
+                        ? c.WipInfo.Count(o => !string.IsNullOrEmpty(o.LotNbr)) == c.WipInfo.Count(o => !string.IsNullOrEmpty(o.RcptLoc))
+                        : c.WipInfo.Where(o => !o.IsValidLot && !string.IsNullOrEmpty(o.LotNbr)).Count() == 0;
+                    
                     if (c.WipInfo.Count(o => o.IsScrap == Model.Enumerations.Complete.Y) > 0)
                     {
                         foreach (var w in c.WipInfo.Where(o => o.IsScrap == Model.Enumerations.Complete.Y))

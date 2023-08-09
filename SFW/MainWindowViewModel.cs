@@ -1,5 +1,4 @@
-﻿using M2kClient;
-using SFW.Controls;
+﻿using SFW.Controls;
 using SFW.Model;
 using System;
 using System.Collections.Generic;
@@ -84,21 +83,6 @@ namespace SFW
             set { cUpdate = value; OnPropertyChanged(nameof(CanUpdate)); }
         }
 
-        private static bool iTraining;
-        public static bool InTraining
-        {
-            get { return iTraining; }
-            set
-            {
-                if (value)
-                {
-                    App.ErpCon.DatabaseChange(Database.CONTITRAIN, App.SiteNumber);
-                }
-                iTraining = value;
-                StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(InTraining)));
-            }
-        }
-
         private static bool dAct;
         public static bool DisplayAction
         {
@@ -138,7 +122,6 @@ namespace SFW
                 UpdateProperties();
                 IsChanging = false;
                 CanUpdate = false;
-                InTraining = false;
                 CanFilter = !App.IsFocused;
                 new WorkSpaceDock();
                 RefreshTimer.Add(MainUpdate);
@@ -159,8 +142,7 @@ namespace SFW
             try
             {
                 DisplayAction = false;
-                InTraining = false;
-                MachineList = Machine.GetMachineList(true, App.SiteNumber);
+                MachineList = Machine.GetMachineNameList(true, App.SiteNumber);
                 SelectedMachine = MachineList.First();
                 MachineGroupList = Machine.GetMachineGroupList(true, App.SiteNumber);
                 SelectedMachineGroup = MachineGroupList.First();

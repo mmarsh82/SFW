@@ -192,7 +192,7 @@
                       Visibility="{Binding Path=(local:CurrentUser.CanTrain), Converter={StaticResource BoolToVisConverter}}">
                 <MenuItem Header="Train Mode"
                           IsCheckable="True"
-                          IsChecked="{Binding InTraining, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                          IsChecked="{Binding Path=(local:App.InTraining), UpdateSourceTrigger=PropertyChanged}"/>
             </MenuItem>
 
             <MenuItem Header="Admin"
@@ -326,7 +326,7 @@
                        VerticalAlignment="Center"
                        Foreground="Crimson"
                        Margin="20,0,0,0"
-                       Visibility="{Binding InTraining, Converter={StaticResource BoolToVisConverter}}"/>
+                       Visibility="{Binding Path=(local:App.InTraining), Converter={StaticResource BoolToVisConverter}}"/>
         </Grid>
 
         <!--#endregion-->
