@@ -57,7 +57,7 @@ namespace SFW.Model
 	,ISNULL(wpo.Qty_Avail, wpo.Qty_Req - ISNULL(wpo.Qty_Compl, 0)) AS WO_CurrentQty
 	,ISNULL(wpo.Date_Start, '1999-01-01') AS WO_SchedStartDate
 	,ISNULL(wpo.Date_Act_Start, '1999-01-01') AS WO_ActStartDate
-	,ISNULL(wpo.Due_Date, wpo.Date_Start) AS WO_DueDate
+	,ISNULL(wpo.Due_Date, ISNULL(wpo.Date_Start, '1999-01-01')) AS WO_DueDate
 	,ISNULL(CAST(ROUND(wpo.Mach_Load_Hrs_Rem, 1) AS float), 0) AS RunTime
 	,CASE WHEN wpo.[Due_Date] < GETDATE()
 		THEN 1

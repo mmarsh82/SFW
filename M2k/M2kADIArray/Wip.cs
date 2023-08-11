@@ -97,6 +97,11 @@ namespace M2kClient.M2kADIArray
         /// </summary>
         public List<Adjust> AdjustmentList { get; set; }
 
+        /// <summary>
+        /// List of inventory move objects for moving the product to a backflush location during the wip process
+        /// </summary>
+        public List<Locxfer> MoveList { get; set; }
+
         #endregion
 
         /// <summary>
@@ -132,6 +137,7 @@ namespace M2kClient.M2kADIArray
             Lot = wipRecord.WipLot.LotNumber;
             ComponentInfoList = new List<CompInfo>();
             AdjustmentList = new List<Adjust>();
+            MoveList = new List<Locxfer>();
             foreach(var c in wipRecord.WipWorkOrder.Picklist.Where(o => o.IsLotTrace))
             {
                 var _backFlush = c.BackflushLoc;
@@ -159,6 +165,35 @@ namespace M2kClient.M2kADIArray
                                     Convert.ToInt32(s.Quantity),
                                     !string.IsNullOrEmpty(_backFlush) ? _backFlush : w.RcptLoc,
                                     w.LotNbr));
+                        }
+                    }
+                    if (w.Facility == 1)
+                    {
+                        if (c.BackflushLoc != w.RcptLoc)
+                        {
+                            MoveList.Add(new Locxfer(
+                                "SFW",
+                                w.PartNbr,
+                                w.RcptLoc,
+                                w.BackFlushLoc,
+                                Convert.ToInt32(w.LotQty),
+                                w.LotNbr,
+                                "PreWIP",
+                                w.Facility.ToString(),
+                                w.Uom));
+                        }
+                        foreach(var n in wipRecord.WipWorkOrder.Picklist.Where(o => !o.IsLotTrace))
+                        {
+                            MoveList.Add(new Locxfer(
+                                "SFW",
+                                n.CompNumber,
+                                n.PullLocation,
+                                n.BackflushLoc,
+                                n.IssuedQty,
+                                string.Empty,
+                                "PreWIP",
+                                c.Facility.ToString(),
+                                n.CompUom));
                         }
                     }
                 }

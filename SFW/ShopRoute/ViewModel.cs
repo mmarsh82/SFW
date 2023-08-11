@@ -184,7 +184,7 @@ namespace SFW.ShopRoute
                             //Bill of Material and picklist loading, needs to be done in the background due to the recursive search
                             ShopOrder.ToolList = Tool.GetToolList(ShopOrder.SkuNumber, ShopOrder.Routing, CurrentUser.Facility);
                             ShopOrder.Bom = Model.Component.GetComponentBomList(ShopOrder.SkuNumber, ShopOrder.Seq);
-                            ShopOrder.Picklist = Model.Component.GetComponentPickList(ShopOrder.OrderNumber, ShopOrder.Seq, ShopOrder.StartQty - ShopOrder.CurrentQty);
+                            ShopOrder.Picklist = Model.Component.GetComponentPickList(ShopOrder.OrderNumber, ShopOrder.Seq, ShopOrder.StartQty - ShopOrder.CurrentQty, ShopOrder.Machine);
                             IsMultiLoading = false;
                             OnPropertyChanged(nameof(IsMultiLoading));
                             OnPropertyChanged(nameof(ShopOrder));

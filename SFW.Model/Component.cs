@@ -24,6 +24,7 @@ namespace SFW.Model
         public BindingList<CompWipInfo> WipInfo { get; set; }
         public bool IsLotTrace { get; set; }
         public string BackflushLoc { get; set; }
+        public string PullLocation { get; set; }
         public int Facility { get; set; }
         public static bool WipInfoUpdating { get; set; }
         public static bool FromOtherChange { get; set; }
@@ -131,9 +132,11 @@ namespace SFW.Model
         /// </summary>
         /// <param name="dataRows">Array of DataRow objects to translate to Component object properties</param>
         /// <param name="woNbr">Work Order Number</param>
+        /// <param name="woSeq">Work Order sequence</param>
         /// <param name="balQty">Balance quantity left on the work order</param>
+        /// <param name="machineNbr">Machine name</param>
         /// <returns>List of Component objects related to a picklist</returns>
-        public static List<Component> GetComponentPickList(string woNbr, string woSeq, int balQty)
+        public static List<Component> GetComponentPickList(string woNbr, string woSeq, int balQty, string machineName)
         {
             var _tempList = new List<Component>();
             WipInfoUpdating = false;
@@ -159,6 +162,7 @@ namespace SFW.Model
                         ,InventoryType = _row.Field<string>("Type")
                         ,IsLotTrace = _row.Field<string>("LotTrace") == "T"
                         ,BackflushLoc = _row.Field<string>("Backflush")
+                        ,PullLocation = Machine.GetPullLocation(machineName)
                         ,Facility = _row.Field<int>("Site")
                         ,WipInfo = _row.Field<string>("LotTrace") == "T" 
                             ? new BindingList<CompWipInfo>() { new CompWipInfo(!string.IsNullOrEmpty(_row.Field<string>("Backflush")), _row.Field<string>("ChildSkuID"), _row.Field<string>("Uom"), _row.Field<int>("Site"), woNbr) }
