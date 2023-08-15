@@ -172,30 +172,33 @@ namespace M2kClient.M2kADIArray
                         if (c.BackflushLoc != w.RcptLoc)
                         {
                             MoveList.Add(new Locxfer(
-                                "SFW",
+                                wipRecord.Submitter,
                                 w.PartNbr,
                                 w.RcptLoc,
                                 w.BackFlushLoc,
                                 Convert.ToInt32(w.LotQty),
                                 w.LotNbr,
                                 "PreWIP",
-                                w.Facility.ToString(),
+                                $"0{w.Facility}",
                                 w.Uom));
                         }
-                        foreach(var n in wipRecord.WipWorkOrder.Picklist.Where(o => !o.IsLotTrace))
-                        {
-                            MoveList.Add(new Locxfer(
-                                "SFW",
-                                n.CompNumber,
-                                n.PullLocation,
-                                n.BackflushLoc,
-                                n.IssuedQty,
-                                string.Empty,
-                                "PreWIP",
-                                c.Facility.ToString(),
-                                n.CompUom));
-                        }
                     }
+                }
+            }
+            if (wipRecord.WipWorkOrder.Facility == 1)
+            {
+                foreach (var n in wipRecord.WipWorkOrder.Picklist.Where(o => !o.IsLotTrace))
+                {
+                    MoveList.Add(new Locxfer(
+                        wipRecord.Submitter,
+                        n.CompNumber,
+                        n.PullLocation,
+                        n.BackflushLoc,
+                        Convert.ToInt32(n.AssemblyQty * Convert.ToDecimal(wipRecord.WipQty)),
+                        string.Empty,
+                        "PreWIP",
+                        "01",
+                        n.CompUom));
                 }
             }
         }
