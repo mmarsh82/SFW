@@ -97,11 +97,6 @@ namespace M2kClient.M2kADIArray
         /// </summary>
         public List<Adjust> AdjustmentList { get; set; }
 
-        /// <summary>
-        /// List of inventory move objects for moving the product to a backflush location during the wip process
-        /// </summary>
-        public List<Locxfer> MoveList { get; set; }
-
         #endregion
 
         /// <summary>
@@ -137,7 +132,6 @@ namespace M2kClient.M2kADIArray
             Lot = wipRecord.WipLot.LotNumber;
             ComponentInfoList = new List<CompInfo>();
             AdjustmentList = new List<Adjust>();
-            MoveList = new List<Locxfer>();
             foreach(var c in wipRecord.WipWorkOrder.Picklist.Where(o => o.IsLotTrace))
             {
                 var _backFlush = c.BackflushLoc;
@@ -167,38 +161,6 @@ namespace M2kClient.M2kADIArray
                                     w.LotNbr));
                         }
                     }
-                    if (w.Facility == 1)
-                    {
-                        if (c.BackflushLoc != w.RcptLoc)
-                        {
-                            MoveList.Add(new Locxfer(
-                                wipRecord.Submitter,
-                                w.PartNbr,
-                                w.RcptLoc,
-                                w.BackFlushLoc,
-                                Convert.ToInt32(w.LotQty),
-                                w.LotNbr,
-                                "PreWIP",
-                                $"0{w.Facility}",
-                                w.Uom));
-                        }
-                    }
-                }
-            }
-            if (wipRecord.WipWorkOrder.Facility == 1)
-            {
-                foreach (var n in wipRecord.WipWorkOrder.Picklist.Where(o => !o.IsLotTrace))
-                {
-                    MoveList.Add(new Locxfer(
-                        wipRecord.Submitter,
-                        n.CompNumber,
-                        n.PullLocation,
-                        n.BackflushLoc,
-                        Convert.ToInt32(n.AssemblyQty * Convert.ToDecimal(wipRecord.WipQty)),
-                        string.Empty,
-                        "PreWIP",
-                        "01",
-                        n.CompUom));
                 }
             }
         }
