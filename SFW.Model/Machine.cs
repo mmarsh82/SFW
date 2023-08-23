@@ -1,10 +1,8 @@
-﻿using iTextSharp.text;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
-using System.Text.RegularExpressions;
 
 //Created by Michael Marsh 4-19-18
 
@@ -319,8 +317,9 @@ ORDER BY
         /// Get a machines display name
         /// </summary>
         /// <param name="searchValue">Value to use in the search</param>
+        /// <param name="searchType">Type of search to perform (P is Part Number, M is Machine ID, W is Work Order)</param>
         /// <returns>Machine Name as string</returns>
-        public static string GetMachineName(string searchValue)
+        public static string GetMachineName(string searchValue, char searchType)
         {
             var _rVal = string.Empty;
             if (searchValue == "0")
@@ -329,18 +328,30 @@ ORDER BY
             }
             else
             {
-                if (!Exists(searchValue))
+                switch (searchType)
                 {
-                    var _sRows = MasterDataSet.Tables["SKU"].Select($"[SkuID] = '{searchValue}' AND [Status] = 'A'");
-                    if (_sRows.Length > 0)
-                    {
-                        searchValue = _sRows.FirstOrDefault().Field<string>("WorkCenterID");
-                    }
+                    case 'P':
+                        var _sRows = MasterDataSet.Tables["SKU"].Select($"[SkuID] = '{searchValue}' AND [Status] = 'A'");
+                        if (_sRows.Length > 0)
+                        {
+                            searchValue = _sRows.FirstOrDefault().Field<string>("WorkCenterID");
+                        }
+                        break;
+                    case 'W':
+                        var _wRows = MasterDataSet.Tables["Master"].Select($"[WorkOrder] = '{searchValue}'");
+                        if (_wRows.Length > 0)
+                        {
+                            _rVal = _wRows.FirstOrDefault().Field<string>("MachineName");
+                        }
+                        break;
                 }
-                var _rows = MasterDataSet.Tables["WC"].Select($"[WorkCenterID] = '{searchValue}'");
-                if (_rows.Length > 0)
+                if(searchType != 'W')
                 {
-                    _rVal = _rows.FirstOrDefault().Field<string>("Name");
+                    var _rows = MasterDataSet.Tables["WC"].Select($"[WorkCenterID] = '{searchValue}'");
+                    if (_rows.Length > 0)
+                    {
+                        _rVal = _rows.FirstOrDefault().Field<string>("Name");
+                    }
                 }
             }
             return _rVal;

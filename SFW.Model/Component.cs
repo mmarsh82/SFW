@@ -230,7 +230,9 @@ namespace SFW.Model
                     if (_validLot)
                     {
                         ((BindingList<CompWipInfo>)sender)[e.NewIndex].IsValidLot = true;
-                        ((BindingList<CompWipInfo>)sender)[e.NewIndex].RcptLoc = Lot.GetLotLocation(_tempItem.LotNbr);
+                        var _machName = Machine.GetMachineName(((BindingList<CompWipInfo>)sender)[e.NewIndex].WorkOrderNumber, 'W');
+                        var _loc = Machine.GetReceiptLocation(_machName);
+                        ((BindingList<CompWipInfo>)sender)[e.NewIndex].RcptLoc = !string.IsNullOrEmpty(_loc) ? _loc : Lot.GetLotLocation(_tempItem.LotNbr);
                         ((BindingList<CompWipInfo>)sender)[e.NewIndex].BackFlushLoc = _tempItem.IsBackFlush ? Sku.GetBackFlushLoc(_tempItem.PartNbr) : null;
                         ((BindingList<CompWipInfo>)sender)[e.NewIndex].LotQty = 0;
                         ((BindingList<CompWipInfo>)sender)[e.NewIndex].OnHandQty = Lot.GetLotOnHandQuantity(_tempItem.LotNbr);

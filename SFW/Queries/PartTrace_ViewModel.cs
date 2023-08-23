@@ -137,7 +137,7 @@ namespace SFW.Queries
                 }
                 else
                 {
-                    var _machName = Machine.GetMachineName(PartNumber);
+                    var _machName = Machine.GetMachineName(PartNumber, 'P');
                     if (!string.IsNullOrEmpty(_machName))
                     {
                         switch (App.SiteNumber)

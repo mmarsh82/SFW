@@ -1,8 +1,6 @@
 ﻿using SFW.Model;
 using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
 using System.Windows;
 using System.Windows.Data;
 
@@ -19,7 +17,7 @@ namespace SFW.Converters
             try
             {
                 return value != null && value != DependencyProperty.UnsetValue
-                        ? $"{Machine.GetMachineName(value.ToString())} ({value})"
+                        ? $"{Machine.GetMachineName(value.ToString(), 'M')} ({value})"
                         : string.Empty;
             }
             catch

@@ -178,7 +178,7 @@ namespace M2kClient.M2kADIArray
             //10~Disp code~11~Disp reference~12~Disp quantity
             //15~Lot number
             //24~Component #1 lot number~26~Component #1 work order~25~Component #1 item number~27~Component # 1 lot quantity~70~Component # 1 Issue location~71~static Y
-            //24~Component #2 lot number~26~Component #2 work order~25~Component #2 item number~27~Component # 2 lot quantity~70~Component # 1 Issue location~71~static Y
+            //24~Component #2 lot number~26~Component #2 work order~25~Component #2 item number~27~Component # 2 lot quantity~70~Component # 2 Issue location~71~static Y
             //99~COMPLETE
             //Must meet this format in order to work with M2k
 
@@ -193,9 +193,13 @@ namespace M2kClient.M2kADIArray
             }
             foreach (var c in ComponentInfoList.Where(o => !string.IsNullOrEmpty(o.Lot)))
             {
-                _rValue += $"\n24~{c.Lot}|P|{FacilityCode}~26~{WorkOrderNbr}~25~{c.PartNbr}|{FacilityCode}~27~{c.Quantity}~70~{c.IssueLoc}";
+                _rValue += FacilityCode == "01"
+                    ? $"\n24~{c.Lot}|P|{FacilityCode}~26~{WorkOrderNbr}~25~{c.PartNbr}|{FacilityCode}~27~{c.Quantity}"
+                    : $"\n24~{c.Lot}|P|{FacilityCode}~26~{WorkOrderNbr}~25~{c.PartNbr}|{FacilityCode}~27~{c.Quantity}~70~{c.IssueLoc}";
             }
-            _rValue += $"\n99~COMPLETE";
+            _rValue += FacilityCode == "01"
+                ? $"\n70~{RcptLocation}~99~COMPLETE"
+                : "\n99~COMPLETE";
 
             return _rValue;
         }
