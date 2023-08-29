@@ -556,6 +556,10 @@ namespace SFW.WIP
                             _baseValid = _locValid && IsLotValid && ValidateComponents();
                         }
                     }
+                    else if (WipRecord.WipQty < 0)
+                    {
+                        _baseValid = _locValid && !string.IsNullOrEmpty(WipRecord.WipLot.LotNumber) && IsLotValid && ValidateComponents();
+                    }
                     if (App.SiteNumber == 2)
                     {
                         _baseValid = _baseValid ? Weight > 0 : false;

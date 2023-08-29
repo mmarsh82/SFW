@@ -481,35 +481,41 @@ namespace M2kClient
 
             #endregion
 
-            #region Issue for Repair Orders
+            #region Issue Process
 
-            if (wipRecord.WipWorkOrder.TaskType == "R")
+            try
             {
-                try
+                foreach (var c in wipRecord.WipWorkOrder.Picklist.Where(o => o.IsLotTrace))
                 {
-                    foreach (var c in wipRecord.WipWorkOrder.Picklist)
-                    {
-                        var _issue = new Issue(wipRecord.Submitter, wipRecord.Facility, c.CompNumber, wipRecord.WipWorkOrder.OrderNumber, "II", new List<Transaction>());
+                    var _issue = new Issue(wipRecord.Submitter, wipRecord.Facility, c.CompNumber, wipRecord.WipWorkOrder.OrderNumber, "II", new List<Transaction>());
 
-                        foreach (var w in c.WipInfo.Where(o => !string.IsNullOrEmpty(o.LotNbr)))
+                    foreach (var w in c.WipInfo.Where(o => !string.IsNullOrEmpty(o.LotNbr)))
+                    {
+                        if (w.ScrapList != null && w.ScrapList.Count > 0)
                         {
-                            if (w.ScrapList != null && w.ScrapList.Count > 0)
-                            {
-                                w.LotQty += w.ScrapList.Sum(o => Convert.ToInt32(o.Quantity));
-                            }
-                            _issue.TranList.Add(new Transaction { Location = w.RcptLoc, LotNumber = w.LotNbr, Quantity = Convert.ToInt32(w.LotQty) });
+                            w.LotQty += w.ScrapList.Sum(o => Convert.ToInt32(o.Quantity));
                         }
-                        if (c.WipInfo.Sum(o => o.BaseQty) > 0)
-                        {
-                            File.WriteAllText($"{connection.BTIFolder}ISSUE{connection.AdiServer}.DAT{suffix}i{tranCount}", _issue.ToString());
-                            tranCount++;
-                        }
+                        _issue.TranList.Add(new Transaction { Location = w.RcptLoc, LotNumber = w.LotNbr, Quantity = Convert.ToInt32(w.LotQty) });
+                    }
+                    if (c.WipInfo.Sum(o => o.BaseQty) > 0)
+                    {
+                        File.WriteAllText($"{connection.BTIFolder}ISSUE{connection.AdiServer}.DAT{suffix}i{tranCount}", _issue.ToString());
+                        tranCount++;
                     }
                 }
-                catch (Exception e)
+                foreach (var c in wipRecord.WipWorkOrder.Picklist.Where(o => !o.IsLotTrace))
                 {
-                    System.Windows.MessageBox.Show($"Unable to process Issue\nPlease contact IT immediately!\n\n{e.Message}", "M2k Issue file error", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
+                    var _rcptLoc = wipRecord.Facility == "01" ? wipRecord.ReceiptLocation : c.BackflushLoc;
+                    var _issQty = wipRecord.WipQty * c.AssemblyQty;
+                    var _issue = new Issue(wipRecord.Submitter, wipRecord.Facility, c.CompNumber, wipRecord.WipWorkOrder.OrderNumber, "II", new List<Transaction>());
+                    _issue.TranList.Add(new Transaction { Location = _rcptLoc, Quantity = Convert.ToInt32(_issQty) });
+                    File.WriteAllText($"{connection.BTIFolder}ISSUE{connection.AdiServer}.DAT{suffix}i{tranCount}", _issue.ToString());
+                    tranCount++;
                 }
+            }
+            catch (Exception e)
+            {
+                System.Windows.MessageBox.Show($"Unable to process Issue\nPlease contact IT immediately!\n\n{e.Message}", "M2k Issue file error", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
             }
 
             #endregion
