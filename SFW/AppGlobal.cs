@@ -38,7 +38,7 @@ namespace SFW
         {
             try
             {
-                return File.Exists($"{filePath}GlobalConfig.xml");
+                return File.Exists($"{filePath}");
             }
             catch
             {
@@ -56,7 +56,7 @@ namespace SFW
             var _rDict = new Dictionary<bool, string>();
             try
             {
-                using (var wStream = new FileStream($"{filePath}GlobalConfig.xml", FileMode.CreateNew))
+                using (var wStream = new FileStream($"{filePath}", FileMode.CreateNew))
                 {
                     var wSettings = new XmlWriterSettings { Indent = true, IndentChars = "\t", NewLineOnAttributes = true };
                     using (var writer = XmlWriter.Create(wStream, wSettings))

@@ -189,7 +189,7 @@ namespace M2kClient.M2kADIArray
             }
             if (!string.IsNullOrEmpty(Lot))
             {
-                _rValue += $"\n15~{Lot}|P|{FacilityCode}";
+                _rValue += $"\n15~{Lot.Trim()}|P|{FacilityCode}";
             }
             foreach (var c in ComponentInfoList.Where(o => !string.IsNullOrEmpty(o.Lot)))
             {
