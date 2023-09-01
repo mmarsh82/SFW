@@ -193,13 +193,9 @@ namespace M2kClient.M2kADIArray
             }
             foreach (var c in ComponentInfoList.Where(o => !string.IsNullOrEmpty(o.Lot)))
             {
-                _rValue += FacilityCode == "01"
-                    ? $"\n24~{c.Lot}|P|{FacilityCode}~26~{WorkOrderNbr}~25~{c.PartNbr}|{FacilityCode}~27~{c.Quantity}"
-                    : $"\n24~{c.Lot}|P|{FacilityCode}~26~{WorkOrderNbr}~25~{c.PartNbr}|{FacilityCode}~27~{c.Quantity}~70~{c.IssueLoc}";
+                _rValue += $"\n24~{c.Lot}|P|{FacilityCode}~26~{WorkOrderNbr}~25~{c.PartNbr}|{FacilityCode}~27~{c.Quantity}~70~{c.IssueLoc}";
             }
-            _rValue += FacilityCode == "01"
-                ? $"\n70~{RcptLocation}~99~COMPLETE"
-                : "\n99~COMPLETE";
+            _rValue += $"\n99~COMPLETE";
 
             return _rValue;
         }

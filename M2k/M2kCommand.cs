@@ -406,7 +406,9 @@ namespace M2kClient
                     _subResult.Add(0, string.Empty);
                     return _subResult;
                 }
+                _subResult.Add(1, wipRecord.WipLot.LotNumber);
             }
+
             #endregion
 
             #region Multi Wip Process
@@ -477,71 +479,7 @@ namespace M2kClient
                     _counter++;
                 }
                 System.Windows.MessageBox.Show($"Multiple transaction of {wipRecord.WipWorkOrder.SkuNumber} has been submitted.", "Multi-Transaction Accepted", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
-            }
-
-            #endregion
-
-            #region Issue Process
-
-            try
-            {
-                foreach (var c in wipRecord.WipWorkOrder.Picklist.Where(o => o.IsLotTrace))
-                {
-                    var _issue = new Issue(wipRecord.Submitter, wipRecord.Facility, c.CompNumber, wipRecord.WipWorkOrder.OrderNumber, "II", new List<Transaction>());
-
-                    foreach (var w in c.WipInfo.Where(o => !string.IsNullOrEmpty(o.LotNbr)))
-                    {
-                        if (w.ScrapList != null && w.ScrapList.Count > 0)
-                        {
-                            w.LotQty += w.ScrapList.Sum(o => Convert.ToInt32(o.Quantity));
-                        }
-                        _issue.TranList.Add(new Transaction { Location = w.RcptLoc, LotNumber = w.LotNbr, Quantity = Convert.ToInt32(w.LotQty) });
-                    }
-                    if (c.WipInfo.Sum(o => o.BaseQty) > 0)
-                    {
-                        File.WriteAllText($"{connection.BTIFolder}ISSUE{connection.AdiServer}.DAT{suffix}i{tranCount}", _issue.ToString());
-                        tranCount++;
-                    }
-                }
-                foreach (var c in wipRecord.WipWorkOrder.Picklist.Where(o => !o.IsLotTrace))
-                {
-                    var _rcptLoc = wipRecord.Facility == "01" ? wipRecord.ReceiptLocation : c.BackflushLoc;
-                    var _issQty = wipRecord.WipQty * c.AssemblyQty;
-                    var _issue = new Issue(wipRecord.Submitter, wipRecord.Facility, c.CompNumber, wipRecord.WipWorkOrder.OrderNumber, "II", new List<Transaction>());
-                    _issue.TranList.Add(new Transaction { Location = _rcptLoc, Quantity = Convert.ToInt32(_issQty) });
-                    File.WriteAllText($"{connection.BTIFolder}ISSUE{connection.AdiServer}.DAT{suffix}i{tranCount}", _issue.ToString());
-                    tranCount++;
-                }
-            }
-            catch (Exception e)
-            {
-                System.Windows.MessageBox.Show($"Unable to process Issue\nPlease contact IT immediately!\n\n{e.Message}", "M2k Issue file error", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
-            }
-
-            #endregion
-
-            #region Post Labor
-
-            try
-            {
-                //Posting labor if a crew exists, if the machine is running an interactive report sheet then the labor should be posted there
-                if (postLabor && !string.IsNullOrEmpty(machID))
-                {
-                    var _crew = wipRecord.CrewList.Count(o => !string.IsNullOrEmpty(o.Name));
-                    var _wipQty = wipRecord.IsMulti ? Convert.ToInt32(wipRecord.WipQty * wipRecord.RollQty) : Convert.ToInt32(wipRecord.WipQty);
-                    foreach (var c in wipRecord.CrewList.Where(o => !string.IsNullOrEmpty(o.Name) && o.IsDirect))
-                    {
-                        var _pl = PostLabor("SFW WIP", c.IdNumber, c.Shift, $"{wipRecord.WipWorkOrder.OrderNumber}*{wipRecord.WipWorkOrder.Routing}", _wipQty, machID, ' ', wipRecord.Facility, connection, c.LastClock, _crew);
-                        if (_pl.Any(o => o.Key == 1))
-                        {
-                            System.Windows.MessageBox.Show($"Unable to process Labor\nPlease contact IT immediately!\n\n{_pl[1]}", "M2k Labor file error", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
-                        }
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                System.Windows.MessageBox.Show($"Unable to process Labor\nPlease contact IT immediately!\n\n{e.Message}", "M2k Labor file error", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
+                _subResult.Add(1, string.Join("*", _lotList));
             }
 
             #endregion
@@ -580,6 +518,74 @@ namespace M2kClient
                         connection,
                         s.LotNumber);
                 }
+            }
+
+            #endregion
+
+            #region Issue Process
+
+            if (wipRecord.WipWorkOrder.TaskType == "R")
+            {
+                try
+                {
+                    foreach (var c in wipRecord.WipWorkOrder.Picklist.Where(o => o.IsLotTrace))
+                    {
+                        var _issue = new Issue(wipRecord.Submitter, wipRecord.Facility, c.CompNumber, wipRecord.WipWorkOrder.OrderNumber, "II", new List<Transaction>());
+
+                        foreach (var w in c.WipInfo.Where(o => !string.IsNullOrEmpty(o.LotNbr)))
+                        {
+                            if (w.ScrapList != null && w.ScrapList.Count > 0)
+                            {
+                                w.LotQty += w.ScrapList.Sum(o => Convert.ToInt32(o.Quantity));
+                            }
+                            _issue.TranList.Add(new Transaction { Location = w.RcptLoc, LotNumber = w.LotNbr, Quantity = Convert.ToInt32(w.LotQty) });
+                        }
+                        if (c.WipInfo.Sum(o => o.BaseQty) > 0)
+                        {
+                            File.WriteAllText($"{connection.BTIFolder}ISSUE{connection.AdiServer}.DAT{suffix}i{tranCount}", _issue.ToString());
+                            tranCount++;
+                        }
+                    }
+                    foreach (var c in wipRecord.WipWorkOrder.Picklist.Where(o => !o.IsLotTrace))
+                    {
+                        var _rcptLoc = wipRecord.Facility == "01" ? wipRecord.ReceiptLocation : c.BackflushLoc;
+                        var _issQty = wipRecord.WipQty * c.AssemblyQty;
+                        var _issue = new Issue(wipRecord.Submitter, wipRecord.Facility, c.CompNumber, wipRecord.WipWorkOrder.OrderNumber, "II", new List<Transaction>());
+                        _issue.TranList.Add(new Transaction { Location = _rcptLoc, Quantity = Convert.ToInt32(_issQty) });
+                        File.WriteAllText($"{connection.BTIFolder}ISSUE{connection.AdiServer}.DAT{suffix}i{tranCount}", _issue.ToString());
+                        tranCount++;
+                    }
+                }
+                catch (Exception e)
+                {
+                    System.Windows.MessageBox.Show($"Unable to process Issue\nPlease contact IT immediately!\n\n{e.Message}", "M2k Issue file error", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
+                }
+            }
+
+            #endregion
+
+            #region Post Labor
+
+            try
+            {
+                //Posting labor if a crew exists, if the machine is running an interactive report sheet then the labor should be posted there
+                if (postLabor && !string.IsNullOrEmpty(machID))
+                {
+                    var _crew = wipRecord.CrewList.Count(o => !string.IsNullOrEmpty(o.Name));
+                    var _wipQty = wipRecord.IsMulti ? Convert.ToInt32(wipRecord.WipQty * wipRecord.RollQty) : Convert.ToInt32(wipRecord.WipQty);
+                    foreach (var c in wipRecord.CrewList.Where(o => !string.IsNullOrEmpty(o.Name) && o.IsDirect))
+                    {
+                        var _pl = PostLabor("SFW WIP", c.IdNumber, c.Shift, $"{wipRecord.WipWorkOrder.OrderNumber}*{wipRecord.WipWorkOrder.Routing}", _wipQty, machID, ' ', wipRecord.Facility, connection, c.LastClock, _crew);
+                        if (_pl.Any(o => o.Key == 1))
+                        {
+                            System.Windows.MessageBox.Show($"Unable to process Labor\nPlease contact IT immediately!\n\n{_pl[1]}", "M2k Labor file error", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
+                        }
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                System.Windows.MessageBox.Show($"Unable to process Labor\nPlease contact IT immediately!\n\n{e.Message}", "M2k Labor file error", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
             }
 
             #endregion
@@ -628,14 +634,6 @@ namespace M2kClient
 
             #endregion
 
-            if (!wipRecord.IsMulti)
-            {
-                _subResult.Add(1, wipRecord.WipLot.LotNumber);
-            }
-            else
-            {
-                _subResult.Add(1, string.Join("*", _lotList));
-            }
             return _subResult;
         }
 
@@ -820,11 +818,44 @@ namespace M2kClient
             }
         }
 
-        //Not implemented yet
-        public static IReadOnlyDictionary<int, string> ItemIssue(string stationId, string compNbr, string woNbr)
+        /// <summary>
+        /// Process an issue entry in the current ERP system with standard ADI template
+        /// </summary>
+        /// <param name="stationId">Station ID</param>
+        /// <param name="facCode">Facility Code</param>
+        /// <param name="partNbr">Part Number</param>
+        /// <param name="woNbr">Work Order Number</param>
+        /// <param name="rsn">Reason code</param>
+        /// <param name="transList">List of issue transations</param>
+        /// <param name="connection">Current M2k Connection to be used for processing the transaction</param>
+        /// <param name="op">Opetional: Work order sequence or operation</param>
+        /// <returns>Error number and error description, when returned as 0 and a empty string the transaction posted with no errors</returns>
+        public static IReadOnlyDictionary<int, string> ItemIssue(string stationId, string facCode, string partNbr, string woNbr, string rsn, List<Transaction> transList, M2kConnection connection, string op = "")
         {
-            var suffix = DateTime.Now.ToString("HHmmssfff");
-            return null;
+            var _subResult = new Dictionary<int, string>();
+            try
+            {
+                var suffix = DateTime.Now.ToString("ssffff");
+                var _tIssue = new Issue(
+                    stationId,
+                    facCode,
+                    partNbr,
+                    woNbr,
+                    rsn,
+                    transList);
+                if (!string.IsNullOrEmpty(op))
+                {
+                    _tIssue.Operation = op;
+                }
+                File.WriteAllText($"{connection.BTIFolder}ISSUE{connection.AdiServer}.DAT{suffix}", _tIssue.ToString());
+                _subResult.Add(0, string.Empty);
+                return _subResult;
+            }
+            catch (Exception ex)
+            {
+                _subResult.Add(1, ex.Message);
+                return _subResult;
+            }
         }
 
         //Not implemented yet

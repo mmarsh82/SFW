@@ -28,6 +28,7 @@ namespace SFW.Model
         public int Facility { get; set; }
         public static bool WipInfoUpdating { get; set; }
         public static bool FromOtherChange { get; set; }
+        public int IssueTotal { get; set; }
 
         #endregion
 
@@ -164,6 +165,7 @@ namespace SFW.Model
                         ,BackflushLoc = _row.Field<string>("Backflush")
                         ,PullLocation = Machine.GetPullLocation(machineName)
                         ,Facility = _row.Field<int>("Site")
+                        ,IssueTotal = _row.Field<int>("IssueTotal")
                         ,WipInfo = _row.Field<string>("LotTrace") == "T" 
                             ? new BindingList<CompWipInfo>() { new CompWipInfo(!string.IsNullOrEmpty(_row.Field<string>("Backflush")), _row.Field<string>("ChildSkuID"), _row.Field<string>("Uom"), _row.Field<int>("Site"), woNbr) }
                             : null
@@ -283,7 +285,7 @@ namespace SFW.Model
                         var _calcQtyPer = ((BindingList<CompWipInfo>)sender).Count(o => o.IsQtyLocked) > 0 && ((BindingList<CompWipInfo>)sender).Count(o => o.IsQtyLocked) != ((BindingList<CompWipInfo>)sender).Count(o => o.IsValidLot)
                             ? (_tempItem.BaseQty - ((BindingList<CompWipInfo>)sender).Where(o => o.IsQtyLocked && o.IsValidLot).Sum(o => o.LotQty)) / ((BindingList<CompWipInfo>)sender).Count(o => !o.IsQtyLocked && o.IsValidLot)
                             : _tempItem.BaseQty / ((BindingList<CompWipInfo>)sender).Count(o => o.IsValidLot);
-                        if (_calcQtyPer > 0)
+                        if (_calcQtyPer != 0)
                         {
                             var _counter = 1;
                             foreach (var item in ((BindingList<CompWipInfo>)sender).Where(o => !o.IsQtyLocked && o.IsValidLot))
@@ -292,9 +294,18 @@ namespace SFW.Model
                                 ((BindingList<CompWipInfo>)sender)[index].LotQty = _calcQtyPer;
                                 if (_counter == ((BindingList<CompWipInfo>)sender).Count(o => !o.IsQtyLocked && o.IsValidLot))
                                 {
-                                    ((BindingList<CompWipInfo>)sender)[index].LotQty += ((BindingList<CompWipInfo>)sender).Sum(o => o.LotQty) < ((BindingList<CompWipInfo>)sender)[index].BaseQty
+                                    if (((BindingList<CompWipInfo>)sender)[index].BaseQty > 0)
+                                    {
+                                        ((BindingList<CompWipInfo>)sender)[index].LotQty += ((BindingList<CompWipInfo>)sender).Sum(o => o.LotQty) < ((BindingList<CompWipInfo>)sender)[index].BaseQty
                                         ? ((BindingList<CompWipInfo>)sender)[index].BaseQty - ((BindingList<CompWipInfo>)sender).Sum(o => o.LotQty)
                                         : 0;
+                                    }
+                                    else
+                                    {
+                                        ((BindingList<CompWipInfo>)sender)[index].LotQty += ((BindingList<CompWipInfo>)sender).Sum(o => o.LotQty) > ((BindingList<CompWipInfo>)sender)[index].BaseQty
+                                        ? ((BindingList<CompWipInfo>)sender)[index].BaseQty - ((BindingList<CompWipInfo>)sender).Sum(o => o.LotQty)
+                                        : 0;
+                                    }
                                 }
                                 _counter++;
                             }
