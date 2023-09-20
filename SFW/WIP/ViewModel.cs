@@ -36,7 +36,7 @@ namespace SFW.WIP
                     }
                     else if (WipRecord.WipQty != _wipStr)
                     {
-                        if (_wipStr == -1)
+                        if (_wipStr == -987654)
                         {
                             _wipStr = Convert.ToInt32(WipRecord.WipQty);
                         }
@@ -169,7 +169,7 @@ namespace SFW.WIP
                 WipRecord.ScrapList.Clear();
                 WipRecord.ScrapList.Add(new WipReceipt.Scrap { ID = WipRecord.ScrapList.Count().ToString() });
                 WipRecord.ScrapList.ListChanged += ScrapList_ListChanged;
-                WipQuantity = "-1";
+                WipQuantity = "-987654";
                 OnPropertyChanged(nameof(WipRecord));
             }
         }
@@ -196,7 +196,7 @@ namespace SFW.WIP
                     WipRecord.ReclaimList.First().ParentAssyQty = WipRecord.WipWorkOrder.Picklist[0].AssemblyQty * _tempComp.AssemblyQty;
                 }
                 WipRecord.ReclaimList.ListChanged += ReclaimList_ListChanged;
-                WipQuantity = "-1";
+                WipQuantity = "-987654";
                 OnPropertyChanged(nameof(WipRecord));
             }
         }
@@ -215,7 +215,7 @@ namespace SFW.WIP
                     WipRecord.RollQty = null;
                 }
                 OnPropertyChanged(nameof(RollQuantity));
-                WipQuantity = "-1";
+                WipQuantity = "-987654";
             }
         }
 
@@ -456,7 +456,7 @@ namespace SFW.WIP
         {
             if (e.ListChangedType == ListChangedType.ItemChanged && e.PropertyDescriptor.DisplayName == "Quantity")
             {
-                WipQuantity = "-1";
+                WipQuantity = "-987654";
             }
             if(e.ListChangedType == ListChangedType.Reset)
             {
@@ -482,7 +482,7 @@ namespace SFW.WIP
         {
             if (e.ListChangedType == ListChangedType.ItemChanged && e.PropertyDescriptor.DisplayName == "Quantity")
             {
-                WipQuantity = "-1";
+                WipQuantity = "-987654";
             }
         }
 
@@ -905,7 +905,7 @@ namespace SFW.WIP
         {
             var _scr = (WipReceipt.Scrap)parameter;
             WipRecord.ScrapList.Remove(WipRecord.ScrapList.FirstOrDefault(c => c.ID == _scr.ID));
-            WipQuantity = "-1";
+            WipQuantity = "-987654";
         }
         private bool RemoveScrapCanExecute(object parameter) => parameter != null && !string.IsNullOrEmpty(parameter.ToString());
 
@@ -1005,7 +1005,7 @@ namespace SFW.WIP
         {
             var _rec = (WipReceipt.Reclaim)parameter;
             WipRecord.ReclaimList.Remove(WipRecord.ReclaimList.FirstOrDefault(c => c.ID == _rec.ID));
-            WipQuantity = "-1";
+            WipQuantity = "-987654";
         }
         private bool RemoveReclaimCanExecute(object parameter) => parameter != null && !string.IsNullOrEmpty(parameter.ToString());
 
@@ -1071,7 +1071,7 @@ namespace SFW.WIP
                     if (w.LotNbr == parameter.ToString())
                     {
                         c.WipInfo.Remove(w);
-                        WipQuantity = "-1";
+                        WipQuantity = "-987654";
                         return;
                     }
                 }

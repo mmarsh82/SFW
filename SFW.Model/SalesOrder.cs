@@ -155,7 +155,7 @@ SELECT
 	,CAST(soh.[Commit_Ship_Date] as date) as 'ShipDate'
 	,ISNULL(cm.[Load_Pattern], '') as 'LoadPattern'
 	,CASE WHEN soh.[Ord_Type] = 'DAI'
-			AND ipl.[Qty_On_Hand] > ssd.[Quantity]
+			AND ipl.[Qty_On_Hand] >= ssd.[Quantity]
 		THEN 0
 		ELSE 1 END as 'MTO'
 	,CASE WHEN CAST(sod.[Ln_Del_Qty] AS int) - CAST(sod.[Ln_Bal_Qty] AS int) = 0
@@ -167,7 +167,7 @@ SELECT
 	,ISNULL(cm.[Alloc_Bal], 0) as 'AR_ABal'
 	,ISNULL(cm.[Ar_Credit_Limit] - (cm.[Balance] + cm.[Ship_Bal] + cm.[Alloc_Bal]), 0.00) as 'AR_Credit'
 	,soh.[Order_Bal_Ext_Price] as 'AR_OrdBal'
-	,CASE WHEN ipl.[Qty_On_Hand] > sod.[Ln_Bal_Qty]
+	,CASE WHEN ipl.[Qty_On_Hand] >= sod.[Ln_Bal_Qty]
 		THEN 1
 		ELSE 0 END as 'HasStock'
 	,CAST(sod.[Facility_Code] AS int) as 'Site'
