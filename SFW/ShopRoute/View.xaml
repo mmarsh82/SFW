@@ -39,12 +39,19 @@
                        VerticalAlignment="Center"
                        Visibility="{Binding ShopOrder.OrderNumber, Converter={StaticResource StringToVisConverter}, ConverterParameter=i}"/>
 
+            <TextBlock Text="Select a Work Order"
+                       FontSize="32"
+                       FontWeight="Bold"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center"
+                       Visibility="{Binding ShopOrder.OrderNumber, Converter={StaticResource StringToVisConverter}, ConverterParameter=i}"/>
+
             <Grid Margin="10,0,10,0" Visibility="{Binding ShopOrder.OrderNumber, Converter={StaticResource StringToVisConverter}, ConverterParameter=Hide}">
 
                 <Grid.RowDefinitions>
                     <RowDefinition x:Name="Row0" Height="40"/>
                     <RowDefinition x:Name="Row1" Height="50"/>
-                    <RowDefinition x:Name="Row2" Height="30" />
+                    <RowDefinition x:Name="Row2" Height="30"/>
                     <RowDefinition x:Name="Row3" Height="30"/>
                     <RowDefinition x:Name="Row4" Height="10"/>
                     <RowDefinition x:Name="Row5" Height="60"/>

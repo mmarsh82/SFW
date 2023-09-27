@@ -57,6 +57,8 @@ namespace SFW.Converters
 
         public object Convert(object[] values, Type targetType, object parameter, System.Globalization.CultureInfo culture)
         {
+            var boolVal = values.Length == 2;
+            boolVal = boolVal ? bool.TryParse(values[1].ToString(), out boolVal) : false;
             if (parameter != null)
             {
                 switch (parameter.ToString())

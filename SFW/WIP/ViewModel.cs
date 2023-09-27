@@ -558,7 +558,14 @@ namespace SFW.WIP
                     }
                     else if (WipRecord.WipQty < 0)
                     {
-                        _baseValid = _locValid && !string.IsNullOrEmpty(WipRecord.WipLot.LotNumber) && IsLotValid && ValidateComponents();
+                        if (WipRecord.IsLotTracable)
+                        {
+                            _baseValid = _locValid && !string.IsNullOrEmpty(WipRecord.WipLot.LotNumber) && IsLotValid && ValidateComponents();
+                        }
+                        else
+                        {
+                            _baseValid = _locValid;
+                        }
                     }
                     if (App.SiteNumber == 2)
                     {

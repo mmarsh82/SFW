@@ -195,7 +195,7 @@ namespace M2kClient.M2kADIArray
             {
                 _rValue += $"\n24~{c.Lot}|P|{FacilityCode}~26~{WorkOrderNbr}~25~{c.PartNbr}|{FacilityCode}~27~{c.Quantity}~70~{c.IssueLoc}";
             }
-            _rValue += $"\n99~COMPLETE";
+            _rValue += $"\n75~{RcptLocation}~99~COMPLETE";
 
             return _rValue;
         }

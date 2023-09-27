@@ -39,6 +39,7 @@ namespace SFW.Model
         public int Shift { get; set; }
         public int Priority { get; set; }
         public new int Facility { get; set; }
+        public bool IsStarted { get; set; }
 
         #endregion
 
@@ -165,6 +166,7 @@ namespace SFW.Model
                 Priority = dRow.Field<int>("Sched_Priority");
                 Shift = dRow.Field<int>("Sched_Shift");
                 Facility = dRow.Field<int>("Site");
+                IsStarted = true;
             }
         }
 
