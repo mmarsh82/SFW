@@ -69,6 +69,19 @@ namespace SFW.CycleCount
             }
         }
 
+        public string ZoneLocation
+        {
+            get { return AppGlobal.ZoneLock; }
+            set
+            {
+                if (value != AppGlobal.ZoneLock)
+                {
+                    AppGlobal.ZoneLock = value;
+                }
+                OnPropertyChanged(nameof(ZoneLocation));
+            }
+        }
+
         public delegate void LoadDelegate(string s);
         public LoadDelegate LoadAsyncDelegate { get; private set; }
         public LoadDelegate FilterAsyncDelegate { get; private set; }

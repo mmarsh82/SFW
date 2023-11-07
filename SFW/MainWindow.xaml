@@ -164,7 +164,7 @@
 
             </MenuItem>
             <MenuItem Header="Help"
-                      Visibility="{Binding Path=(ctrl:WorkSpaceDock.Module), Converter={StaticResource IntToVisConverter}, ConverterParameter=0}">
+                      Visibility="{Binding Path=(ctrl:WorkSpaceDock.Module), Converter={StaticResource IntToVisConverter}, ConverterParameter=1}">
                 <MenuItem Header="Color Legend">
                     <MenuItem Header="Critical Work Order" Background="#FFF3321F" Focusable="False" IsHitTestVisible="False"/>
                     <MenuItem Header="Repair Work Order" Background="SteelBlue" Focusable="False" IsHitTestVisible="False"/>

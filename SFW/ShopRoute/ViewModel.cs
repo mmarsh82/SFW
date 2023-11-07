@@ -169,7 +169,10 @@ namespace SFW.ShopRoute
                         delegate (object sender, DoWorkEventArgs e)
                         {
                             //Getting the Work order work instructions
-                            ShopOrder.InstructionList = Sku.GetInstructions(ShopOrder.SkuNumber, App.SiteNumber, App.GlobalConfig.First(o => o.Site == App.Facility).WI);
+                            if (App.GlobalConfig != null)
+                            {
+                                ShopOrder.InstructionList = Sku.GetInstructions(ShopOrder.SkuNumber, App.SiteNumber, App.GlobalConfig.First(o => o.Site == App.Facility).WI);
+                            }
 
                             //Getting the work order notes and the shop floor notes
                             ShopOrderNotes = WorkOrder.GetNotes("WN", false, ShopOrder.OrderNumber);
@@ -226,6 +229,7 @@ namespace SFW.ShopRoute
                         {
                             case "PRESS":
                             case "ENG":
+                            case "ENDLSS":
                                 _fileName = ExcelReader.GetSetupPrintNumber(ShopOrder.SkuNumber, ShopOrder.Machine, App.GlobalConfig.First(o => o.Site == App.Facility).PressSetup, "Production");
                                 if (!string.IsNullOrEmpty(_fileName) && !_fileName.Contains("ERR:"))
                                 {

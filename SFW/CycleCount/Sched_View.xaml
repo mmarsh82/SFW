@@ -55,6 +55,20 @@
                      Margin="5"
                      Background="LightGray"
                      Style="{DynamicResource OptionalTextBox}" />
+
+            <TextBlock Text="Zone Lock:"
+                       FontSize="18"
+                       FontWeight="Bold"
+                       TextDecorations="Underline"
+                       Margin="10,0,0,0"
+                       VerticalAlignment="Center" />
+
+            <TextBox Text="{Binding ZoneLock, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                     Width="100"
+                     FontSize="18"
+                     Margin="5"
+                     Background="LightGray"
+                     Style="{DynamicResource OptionalTextBox}" />
         </StackPanel>
 
         <DataGrid x:Name="CountSchedule"

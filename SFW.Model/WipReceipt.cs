@@ -360,12 +360,19 @@ namespace SFW.Model
         {
             if (e.ListChangedType == ListChangedType.ItemChanged && e.PropertyDescriptor?.DisplayName == "IdNumber" && !IsLoading)
             {
-                if (CrewMember.IsCrewIDValid(((BindingList<CrewMember>)sender)[e.NewIndex].IdNumber))
+                if (CrewMember.IsCrewIDValid(((BindingList<CrewMember>)sender)[e.NewIndex].IdNumber) && ((BindingList<CrewMember>)sender).Count(o => o.IdNumber == ((BindingList<CrewMember>)sender)[e.NewIndex].IdNumber) == 1)
                 {
                     IsLoading = true;
                     var _tempCrew = new CrewMember(((BindingList<CrewMember>)sender)[e.NewIndex].IdNumber);
-                    ((BindingList<CrewMember>)sender).RemoveAt(e.NewIndex);
-                    ((BindingList<CrewMember>)sender).Insert(e.NewIndex, _tempCrew);
+                    ((BindingList<CrewMember>)sender)[e.NewIndex].Facility = _tempCrew.Facility;
+                    ((BindingList<CrewMember>)sender)[e.NewIndex].ClockTran = _tempCrew.ClockTran;
+                    ((BindingList<CrewMember>)sender)[e.NewIndex].IsDirect = _tempCrew.IsDirect;
+                    ((BindingList<CrewMember>)sender)[e.NewIndex].LastClock = _tempCrew.LastClock;
+                    ((BindingList<CrewMember>)sender)[e.NewIndex].Name = _tempCrew.Name;
+                    ((BindingList<CrewMember>)sender)[e.NewIndex].OutTime = _tempCrew.OutTime;
+                    ((BindingList<CrewMember>)sender)[e.NewIndex].Shift = _tempCrew.Shift;
+                    ((BindingList<CrewMember>)sender)[e.NewIndex].ShiftEnd = _tempCrew.ShiftEnd;
+                    ((BindingList<CrewMember>)sender)[e.NewIndex].ShiftStart = _tempCrew.ShiftStart;
                     if (((BindingList<CrewMember>)sender).Count() == ((BindingList<CrewMember>)sender).Count(o => !string.IsNullOrEmpty(o.Name)))
                     {
                         ((BindingList<CrewMember>)sender).AddNew();

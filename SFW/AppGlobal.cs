@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Data.SqlClient;
 using System.IO;
+using System.Linq;
 using System.Security;
 using System.Xml;
+using System.Xml.Linq;
 
 namespace SFW
 {
@@ -20,6 +23,20 @@ namespace SFW
         public string WI { get; set; }
         public string WorkOrderWeb { get; set; }
         public string SalesOrderWeb { get; set; }
+        public static string ConfigFilePath { get; set; }
+
+        public static string _zLock;
+        public static string ZoneLock
+        {
+            get { return _zLock; }
+            set
+            {
+                _zLock = value;
+                StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(ZoneLock)));
+            }
+        }
+
+        public static event EventHandler<PropertyChangedEventArgs> StaticPropertyChanged;
 
         #endregion
 
@@ -54,6 +71,7 @@ namespace SFW
         public static IDictionary<bool,string> Create(string filePath)
         {
             var _rDict = new Dictionary<bool, string>();
+            ConfigFilePath = filePath;
             try
             {
                 using (var wStream = new FileStream($"{filePath}", FileMode.CreateNew))
@@ -63,12 +81,7 @@ namespace SFW
                     {
                         writer.WriteComment("SFW Global Config File");
                         writer.WriteStartElement("GlobalConfig");
-                        writer.WriteAttributeString("Version", "1.0");
-
-                        writer.WriteComment("Application parameters");
-                        writer.WriteStartElement("SFWApp");
-                        writer.WriteAttributeString("IsLocked", "");
-                        writer.WriteEndElement();
+                        writer.WriteAttributeString("Version", "2.0");
 
                         writer.WriteComment("ERP connection parameters");
                         writer.WriteStartElement("M2kConnection");
@@ -140,6 +153,12 @@ namespace SFW
 
                         writer.WriteEndElement();
 
+                        writer.WriteComment("Application locks for business inventory control processes");
+                        writer.WriteStartElement("ApplicationLocks");
+                        writer.WriteAttributeString("Zone", "");
+                        writer.WriteAttributeString("System", "0");
+                        writer.WriteEndElement();
+
                         writer.WriteEndElement();
                     }
                 }
@@ -161,6 +180,7 @@ namespace SFW
         {
             try
             {
+                ConfigFilePath = filePath;
                 if (!Exists(filePath))
                 {
                     Create(filePath);
@@ -226,6 +246,10 @@ namespace SFW
                                                 ,WI = reader.GetAttribute("WI")
                                             });
                                             break;
+                                        case "Locks":
+                                            ZoneLock = reader.GetAttribute("Location");
+                                            App.AppLock = int.TryParse(reader.GetAttribute("System"), out int _sys) ? _sys == 1 : false;
+                                            break;
                                     }
                                 }
                             }
@@ -237,6 +261,150 @@ namespace SFW
             catch (Exception)
             {
                 return null;
+            }
+        }
+
+        /// <summary>
+        /// Refreshes all properties of the global config
+        /// </summary>
+        public static void RefreshAll()
+        {
+            try
+            {
+                var _tempList = new List<AppGlobal>();
+                using (var rStream = new FileStream(ConfigFilePath, FileMode.Open))
+                {
+                    var rSettings = new XmlReaderSettings { IgnoreComments = true, IgnoreWhitespace = true };
+                    using (var reader = XmlReader.Create(rStream, rSettings))
+                    {
+                        while (reader.Read())
+                        {
+                            if (reader.HasAttributes)
+                            {
+                                if (reader.NodeType == XmlNodeType.Element)
+                                {
+                                    switch (reader.Name)
+                                    {
+                                        case "RefreshRate":
+                                            var _hour = int.TryParse(reader.GetAttribute("Hours"), out int h) ? h : 0;
+                                            var _min = int.TryParse(reader.GetAttribute("Minutes"), out int m) ? m : 5;
+                                            var _sec = int.TryParse(reader.GetAttribute("Seconds"), out int s) ? s : 0;
+                                            var _mSec = int.TryParse(reader.GetAttribute("MilliSeconds"), out int mls) ? mls : 0;
+                                            RefreshTimer.Start(new TimeSpan(0, _hour, _min, _sec, _mSec));
+                                            break;
+                                        case "SqlConnection":
+                                            var pass = new SecureString();
+                                            foreach (var c in reader.GetAttribute("ServicePass"))
+                                            {
+                                                pass.AppendChar(c);
+                                            }
+                                            pass.MakeReadOnly();
+                                            var sqlCred = new SqlCredential(reader.GetAttribute("ServiceUser"), pass);
+                                            App.AppSqlCon = new SqlConnection($"Server={reader.GetAttribute("IP")};DataBase={App.Site};Connection Timeout={reader.GetAttribute("TimeOut")};MultipleActiveResultSets=True;Connection Lifetime=3;Max Pool Size=3;Pooling=true;", sqlCred);
+                                            App.AppSqlCon.StatisticsEnabled = true;
+                                            break;
+                                        //SiteDocumentation Element is written below
+                                        //Make sure any site added in the SiteDocumentation element exists in the main application site list
+                                        case "WCCO":
+                                            _tempList.Add(new AppGlobal
+                                            {
+                                                Site = "WCCO"
+                                                ,PartPrint = reader.GetAttribute("PartPrint")
+                                                ,PressSetup = reader.GetAttribute("PressSetup")
+                                                ,SyscoSetup = reader.GetAttribute("SyscoSetup")
+                                                ,TrimSetup = reader.GetAttribute("TrimSetup")
+                                                ,ExtSetup = reader.GetAttribute("ExtruderSetup")
+                                                ,WI = reader.GetAttribute("WI")
+                                            });
+                                            break;
+                                        case "CSI":
+                                            _tempList.Add(new AppGlobal
+                                            {
+                                                Site = "CSI"
+                                                ,PartPrint = reader.GetAttribute("PartPrint")
+                                                ,PressSetup = reader.GetAttribute("Setup")
+                                                ,WI = reader.GetAttribute("WI")
+                                            });
+                                            break;
+                                        case "ApplicationLocks":
+                                            ZoneLock =reader.GetAttribute("Location");
+                                            App.AppLock = int.TryParse(reader.GetAttribute("System"), out int _sys) ? _sys == 1 : false;
+                                            break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                return;
+            }
+        }
+
+        /// <summary>
+        /// Refreshes the locks portion of the global config
+        /// </summary>
+        public static void RefreshLocks()
+        {
+            try
+            {
+                var _tempList = new List<AppGlobal>();
+                using (var rStream = new FileStream(ConfigFilePath, FileMode.Open))
+                {
+                    var rSettings = new XmlReaderSettings { IgnoreComments = true, IgnoreWhitespace = true };
+                    using (var reader = XmlReader.Create(rStream, rSettings))
+                    {
+                        while (reader.Read())
+                        {
+                            if (reader.HasAttributes)
+                            {
+                                if (reader.NodeType == XmlNodeType.Element)
+                                {
+                                    switch (reader.Name)
+                                    {
+                                        case "ApplicationLocks":
+                                            ZoneLock = reader.GetAttribute("Location");
+                                            App.AppLock = int.TryParse(reader.GetAttribute("System"), out int _sys) ? _sys == 1 : false;
+                                            break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                return;
+            }
+        }
+
+        /// <summary>
+        /// Update an attribute value in the global config
+        /// </summary>
+        /// <param name="elementName">Name of the element</param>
+        /// <param name="attributeName">Name of the attribute you are changing</param>
+        /// <param name="newValue">New value for the attribute</param>
+        /// <returns>Pass - fail check on return of true or false</returns>
+        public static bool UpdateAttributeValue(string elementName, string attributeName, string newValue)
+        {
+            try
+            {
+                XDocument _configDoc = XDocument.Load(ConfigFilePath);
+                var _attribute = _configDoc.Elements("GlobalConfig").Elements(elementName).Attributes().Where(o => o.Name == attributeName).FirstOrDefault();
+                if (_attribute != null)
+                {
+                    _attribute.Value = newValue;
+                    _configDoc.Save(ConfigFilePath);
+                    return true;
+                }
+                return false;
+            }
+            catch (Exception)
+            {
+                return false;
             }
         }
     }

@@ -291,6 +291,8 @@ namespace SFW
             }
         }
 
+        public static bool IsNamedUser { get; set; }
+
         public static event EventHandler<PropertyChangedEventArgs> StaticPropertyChanged;
 
         #endregion
@@ -386,7 +388,12 @@ namespace SFW
                         {
                             if (!string.IsNullOrEmpty(uPrincipal.EmployeeId))
                             {
+                                IsNamedUser = true;
                                 new CurrentUser(pContext, uPrincipal);
+                            }
+                            else
+                            {
+                                IsNamedUser = false;
                             }
                         }
                     }

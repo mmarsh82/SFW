@@ -117,6 +117,10 @@ namespace SFW
                 MainWindowViewModel.DisplayAction = true;
                 RefreshActionGroup?.Invoke();
             }
+            if (UserIdleTimer.GetIdleTimeInfo().IdleTime.TotalMinutes >= 5 && !CurrentUser.IsNamedUser)
+            {
+                CurrentUser.LogOff();
+            }
         }
 
         /// <summary>
@@ -138,6 +142,10 @@ namespace SFW
             {
                 MainWindowViewModel.DisplayAction = true;
                 RefreshActionGroup?.Invoke();
+            }
+            if (UserIdleTimer.GetIdleTimeInfo().IdleTime.TotalMinutes >= 5 && !CurrentUser.IsNamedUser)
+            {
+                CurrentUser.LogOff();
             }
         }
 

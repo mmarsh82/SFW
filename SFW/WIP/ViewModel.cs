@@ -698,7 +698,8 @@ namespace SFW.WIP
                         _diamond,
                         _wQty,
                         WipRecord.WipWorkOrder.Uom,
-                        _qir
+                        _qir,
+                        deviation:WipRecord.WipWorkOrder.IsDeviated
                         );
                     switch (parameter.ToString())
                     {
@@ -771,7 +772,8 @@ namespace SFW.WIP
                             _diamond,
                             _wQty,
                             WipRecord.WipWorkOrder.Uom,
-                            Lot.GetAssociatedQIR(_lot, App.AppSqlCon));
+                            Lot.GetAssociatedQIR(_lot, App.AppSqlCon),
+                            deviation:WipRecord.WipWorkOrder.IsDeviated);
                         switch (parameter.ToString())
                         {
                             case "T":

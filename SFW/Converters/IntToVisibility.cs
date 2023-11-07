@@ -15,7 +15,7 @@ namespace SFW.Converters
             var _parInt = int.TryParse(parameter?.ToString(), out int _par);
             if (_parInt && _isInt)
             {
-                return _val == _par || (_par == 0 && (_val == 0 || _val == 5)) ? Visibility.Visible : Visibility.Collapsed; 
+                return _val == _par ? Visibility.Visible : Visibility.Collapsed; 
             }
             else if (parameter != null && _isInt)
             {

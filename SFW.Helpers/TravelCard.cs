@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing.Printing;
 using System.IO;
+using System.Security;
 using System.Text;
 using System.Windows.Forms;
 
@@ -33,6 +34,7 @@ namespace SFW.Helpers
         public static int QirNbr { get; set; }
         public static int Weight { get; set; }
         public static string Submitter { get; set; }
+        public static bool Deviation { get; set; }
         public static string[] CompPart { get; set; }
         public static string[] CompLot { get; set; }
 
@@ -51,7 +53,7 @@ namespace SFW.Helpers
         /// <param name="uom"></param>
         /// <param name="qirNbr"></param>
         /// <param name="weight"></param>
-        public static void Create(string filePath, string password, string partNbr, string lotNbr, string desc, string dmdNbr, int qty, string uom, int qirNbr, int weight = 0, string submitter = "", string[] cPart = null, string[] clot = null)
+        public static void Create(string filePath, string password, string partNbr, string lotNbr, string desc, string dmdNbr, int qty, string uom, int qirNbr, int weight = 0, string submitter = "", string[] cPart = null, string[] clot = null, bool deviation = false)
         {
             FilePath = filePath;
             Password = password;
@@ -63,6 +65,7 @@ namespace SFW.Helpers
             Uom = uom;
             QirNbr = qirNbr;
             Weight = weight;
+            Deviation = deviation;
             Submitter = submitter;
             CompPart = cPart;
             CompLot = clot;
@@ -122,6 +125,10 @@ namespace SFW.Helpers
                                 pdfField.SetField("QIR Bar", $"*{QirNbr}*");
                                 pdfField.SetField("QIR Bar Sm", $"*{QirNbr}*");
                             }
+                            if (Deviation)
+                            {
+                                pdfField.SetField("Deviation", "!! DEVIATED !!");
+                            }
                         }
                         else if (formType == FormType.Landscape)
                         {
@@ -143,6 +150,10 @@ namespace SFW.Helpers
                             {
                                 pdfField.SetField("QIR", QirNbr.ToString());
                                 pdfField.SetField("QIRBar", QirNbr.ToString());
+                            }
+                            if (Deviation)
+                            {
+                                pdfField.SetField("Deviation", "!! DEVIATED !!");
                             }
                         }
                         else if (formType == FormType.CoC)
