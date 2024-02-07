@@ -275,6 +275,10 @@ namespace SFW.Model
             {
                 return lotNbr;
             }
+            else if (Sku.GetType(_item.Field<string>("SkuID"), site) == "FR")
+            {
+                return string.Empty;
+            }
             var _search = $"[ParentLot] = '{lotNbr}'";
             var _dList = MasterDataSet.Tables["Diamond"].Select(_search);
             while (!string.IsNullOrEmpty(_search))

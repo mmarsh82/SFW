@@ -58,6 +58,7 @@
     <Compile Include="Count.cs" />
     <Compile Include="Enumerations\Complete.cs" />
     <Compile Include="Enumerations\Extensions.cs" />
+    <Compile Include="Location.cs" />
     <Compile Include="Lot.cs" />
     <Compile Include="ModelBase.cs" />
     <Compile Include="PressReport.cs" />

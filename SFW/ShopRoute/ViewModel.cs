@@ -116,11 +116,15 @@ namespace SFW.ShopRoute
                 if (value != null)
                 {
                     ILotResultsList = Lot.GetOnHandLotList(value.CompNumber, true, App.SiteNumber);
-                    OnPropertyChanged(nameof(ILotResultsList));    
-                    NoLotResults = ILotResultsList.Count == 0 || (ILotResultsList.Count == 0 && App.SiteNumber == 0 && CurrentUser.CanSchedule);
+                    NoLotResults = ILotResultsList.Count == 0;
                     IDedicateLotResultsList = Lot.GetDedicatedLotList(value.CompNumber, ShopOrder.OrderNumber);
-                    OnPropertyChanged(nameof(IDedicateLotResultsList));
                     NoDedicateResults = IDedicateLotResultsList.Count == 0;
+                    if (App.SiteNumber == 0 && NoDedicateResults)
+                    {
+
+                    }
+                    OnPropertyChanged(nameof(ILotResultsList));
+                    OnPropertyChanged(nameof(IDedicateLotResultsList));
                     LotListText = NoDedicateResults && NoLotResults ? "No Onhand Material" : "";
                 }
                 _selItem = value;
