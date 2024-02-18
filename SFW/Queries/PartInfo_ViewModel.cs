@@ -429,12 +429,18 @@ namespace SFW.Queries
                     case "R":
                         TravelCard.Display(FormType.Landscape);
                         break;
-
                 }
             }
             if (App.SiteNumber == 2)
             {
-                TravelCard.Create("", "",
+                switch (parameter.ToString())
+                {
+                    case "W":
+                        var _sticker = new WipSticker("", "", Part.SkuNumber, Part.SkuDescription, Part.Uom, SelectedILotRow.LotNumber, new string[4], new string[4], Convert.ToInt32(QuantityInput), 0, "", "", "");
+                        _sticker.Print(1);
+                        break;
+                    default:
+                        TravelCard.Create("", "",
                         Part.SkuNumber,
                         _lot,
                         Part.SkuDescription,
@@ -442,12 +448,21 @@ namespace SFW.Queries
                         Convert.ToInt32(QuantityInput),
                         Part.Uom,
                         0,
-                        submitter:CurrentUser.DisplayName
+                        submitter: CurrentUser.DisplayName
                         );
-                TravelCard.Display(FormType.CoC);
+                        TravelCard.Display(FormType.CoC);
+                        break;
+                }
             }
         }
-        private bool MPrintCanExecute(object parameter) => QuantityInput > 0;
+        private bool MPrintCanExecute(object parameter)
+        {
+            if (parameter.ToString() == "W" && SelectedILotRow == null)
+            {
+                return false;
+            }
+            return QuantityInput > 0;
+        }
 
         #endregion
 

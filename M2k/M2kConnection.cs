@@ -80,9 +80,9 @@ namespace M2kClient
                     case Database.WCCOTRAIN:
                         return "E:/roi/WCCO.TRAIN";
                     case Database.CONTI:
-                        return "E:/roi/CONTI.MAIN";
+                        return "D:/roi/CONTI.MAIN";
                     case Database.CONTITRAIN:
-                        return "E:/roi/CONTI.TRAIN";
+                        return "D:/roi/CONTI.TRAIN";
                     default:
                         return string.Empty;
                 }
@@ -106,8 +106,8 @@ namespace M2kClient
             Password = password;
             Database = database;
             Facility = facility;
-            BTIFolder = $"{database.GetDescription()}BTI.TRANSACTIONS\\";
-            SFDCFolder = $"{database.GetDescription()}SFDC.TRANSACTIONS\\";
+            BTIFolder = $"{database.GetDescription()}WAXAS001-BTI.TRANSACTIONS\\";
+            SFDCFolder = $"{database.GetDescription()}WAXAS001-SFDC.TRANSACTIONS\\";
         }
     }
 }

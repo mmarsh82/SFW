@@ -310,44 +310,32 @@ namespace SFW
         /// <param name="user">User Principal for the active directory</param>
         public CurrentUser(PrincipalContext context, UserPrincipal user)
         {
-            var _groups = new List<string>();
-            try
-            {
-                _groups = user.GetAuthorizationGroups().Where(o => o.Name.Contains("SFW_")).ToList().ConvertAll(o => o.Name);
-            }
-            catch
-            {
-                try
-                {
-                    _groups = user.GetGroups().Where(o => o.Name.Contains("SFW_")).ToList().ConvertAll(o => o.Name);
-                }
-                catch
-                {
-                    _groups = new List<string>();
-                }
-            }
+            var _aGroups = user.GetAuthorizationGroups().Where(o => o.Name.Contains("SFW-")).Select(o => o.Name).ToList();
             DomainName = context.ConnectedServer;
             DomainUserName = user.SamAccountName;
             DisplayName = user.DisplayName;
             Email = user.EmailAddress;
-            Site = user.DistinguishedName.Contains("WCCO") ? "WCCO" : "CSI";
-            Facility = user.DistinguishedName.Contains("WCCO") ? 1 : 2;
-            if (_groups.Exists(o => o.ToString().Contains("SFW_Admin")))
+            Site = user.DistinguishedName.Contains("wak1") ? "WCCO" : "CSI";
+            Facility = user.DistinguishedName.Contains("wak1") ? 1 : 2;
+            if (_aGroups.Count() > 0)
             {
-                CanTrain = CanSchedule = IsSupervisor = IsInventoryControl = IsAccountsReceivable = IsAdmin = HasSalesOrderModule = IsQuality = IsEngineer = true;
-                BasicUser = false;
-            }
-            else if (_groups.Exists(o => o.ToString().Contains("SFW_")))
-            {
-                CanSchedule = _groups.Exists(o => o.ToString().Contains("SFW_Sched"));
-                IsSupervisor = _groups.Exists(o => o.ToString().Contains("SFW_Super"));
-                IsInventoryControl = _groups.Exists(o => o.ToString().Contains("SFW_IC"));
-                IsAccountsReceivable = _groups.Exists(o => o.ToString().Contains("SFW_AR"));
-                HasSalesOrderModule = _groups.Exists(o => o.ToString().Contains("SFW_SalesOrderMod"));
-                CanTrain = _groups.Exists(o => o.ToString().Contains("SFW_Trainer"));
-                IsQuality = _groups.Exists(o => o.ToString().Contains("SFW_QC"));
-                IsEngineer = _groups.Exists(o => o.ToString().Contains("SFW_Eng"));
-                BasicUser = false;
+                if (_aGroups.Count(o => o.Contains("SFW-Admin")) > 0)
+                {
+                    CanTrain = CanSchedule = IsSupervisor = IsInventoryControl = IsAccountsReceivable = IsAdmin = HasSalesOrderModule = IsQuality = IsEngineer = true;
+                    BasicUser = false;
+                }
+                else
+                {
+                    CanSchedule = _aGroups.Count(o => o.Contains("SFW-Scheduler")) > 0;
+                    IsSupervisor = _aGroups.Count(o => o.Contains("SFW-Supervisor")) > 0;
+                    IsInventoryControl = _aGroups.Count(o => o.Contains("SFW-Inventory")) > 0;
+                    IsAccountsReceivable = _aGroups.Count(o => o.Contains("SFW-AR")) > 0;
+                    HasSalesOrderModule = _aGroups.Count(o => o.Contains("SFW-Sales")) > 0;
+                    CanTrain = _aGroups.Count(o => o.Contains("SFW-Train")) > 0;
+                    IsQuality = _aGroups.Count(o => o.Contains("SFW-Quality")) > 0;
+                    IsEngineer = _aGroups.Count(o => o.Contains("SFW-Engineer")) > 0;
+                    BasicUser = false;
+                }
             }
             else
             {
@@ -380,23 +368,31 @@ namespace SFW
                     {
                         _user = System.Security.Principal.WindowsIdentity.GetCurrent().Name;
                     }
-                    _user = _user.Contains("\\") ? _user.Split('\\')[1] : _user;
-                    _user = _user.Length <= 20 ? _user : _user.Substring(0, 20);
-                    using (PrincipalContext pContext = GetPrincipal(_user))
+                    if(!_user.Contains("_FA"))
                     {
-                        using (UserPrincipal uPrincipal = UserPrincipal.FindByIdentity(pContext, _user))
+                        _user = _user.Contains("\\") ? _user.Split('\\')[1] : _user;
+                        _user = _user.Length <= 20 ? _user : _user.Substring(0, 20);
+                        using (PrincipalContext pContext = GetPrincipal(_user))
                         {
-                            if (!string.IsNullOrEmpty(uPrincipal.EmployeeId))
+                            using (UserPrincipal uPrincipal = UserPrincipal.FindByIdentity(pContext, _user))
                             {
-                                IsNamedUser = true;
-                                new CurrentUser(pContext, uPrincipal);
-                            }
-                            else
-                            {
+                                if (uPrincipal != null)
+                                {
+                                    if (!string.IsNullOrEmpty(uPrincipal.EmployeeId))
+                                    {
+                                        IsNamedUser = true;
+                                        new CurrentUser(pContext, uPrincipal);
+                                    }
+                                    else
+                                    {
+                                        IsNamedUser = false;
+                                    }
+                                }
                                 IsNamedUser = false;
                             }
                         }
                     }
+                    IsNamedUser = false;
                 }
                 catch (Exception)
                 {
@@ -416,7 +412,7 @@ namespace SFW
             {
                 using (UserPrincipal uPrincipal = UserPrincipal.FindByIdentity(pContext,userName))
                 {
-                    if (uPrincipal.GetAuthorizationGroups().ToList().ConvertAll(o => o.Name).Exists(o => o.Contains("SFW_")))
+                    if (uPrincipal.GetAuthorizationGroups().ToList().ConvertAll(o => o.Name).Exists(o => o.Contains("-SFW")))
                     {
                         new CurrentUser(pContext, uPrincipal);
                         MainWindowViewModel.UpdateProperties();
@@ -529,12 +525,12 @@ namespace SFW
             {
                 using (UserPrincipal uPrincipal = UserPrincipal.FindByIdentity(pContext, _user))
                 {
-                    if (uPrincipal.DistinguishedName.Contains("CSI"))
+                    if (uPrincipal.DistinguishedName.Contains("arx1"))
                     {
                         Site = "CSI";
                         return 2;
                     }
-                    else if (uPrincipal.DistinguishedName.Contains("WCCO"))
+                    else if (uPrincipal.DistinguishedName.Contains("wak1"))
                     {
                         Site = "WCCO";
                         return 1;
@@ -544,6 +540,29 @@ namespace SFW
                         return -1;
                     }
                 }
+            }
+        }
+
+        /// <summary>
+        /// Set the site for the application to run
+        /// </summary>
+        /// <param name="siteNbr">Site number</param>
+        /// <returns>site number</returns>
+        public static int SetSite(int siteNbr)
+        {
+            if (siteNbr == 2)
+            {
+                Site = "CSI";
+                return 2;
+            }
+            else if (siteNbr == 1)
+            {
+                Site = "WCCO";
+                return 1;
+            }
+            else
+            {
+                return -1;
             }
         }
 
@@ -641,7 +660,8 @@ namespace SFW
             }
             else
             {
-                return new PrincipalContext(ContextType.Domain);
+                var _site = App.SiteNumber == 1 ? "wak1" : "arx1";
+                return new PrincipalContext(ContextType.Domain, "tiretech2.contiwan.com", $"OU={_site},OU=us,OU=lda,DC=tiretech2,DC=contiwan,DC=com");
             }
         }
     }

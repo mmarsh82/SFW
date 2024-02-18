@@ -257,14 +257,18 @@ ORDER BY
         public static string GetNotes(string soNumber, char type)
         {
             var _note = string.Empty;
-            var _rows = MasterDataSet.Tables["SoNotes"].Select($"[SalesID] = '{soNumber}' AND [Type] = '{type}'");
-            if (_rows.Length > 0)
+            if (MasterDataSet.Tables.Contains("SoNotes"))
             {
-                foreach (var _row in _rows)
+                var _rows = MasterDataSet.Tables["SoNotes"].Select($"[SalesID] = '{soNumber}' AND [Type] = '{type}'");
+                if (_rows.Length > 0)
                 {
-                    _note += $"{_row.Field<string>("Comments")}\n";
+                    foreach (var _row in _rows)
+                    {
+                        _note += $"{_row.Field<string>("Comments")}\n";
+                    }
+                    return string.IsNullOrEmpty(_note) ? null : _note?.Trim('\n');
                 }
-                return string.IsNullOrEmpty(_note) ? null : _note?.Trim('\n');
+                return null;
             }
             return null;
         }

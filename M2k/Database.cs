@@ -4,17 +4,17 @@ namespace M2kClient
 {
     public enum Database
     {
-        [Description("\\\\172.16.0.10\\ERP\\ROI\\CSI.MAIN\\")]
+        [Description("\\\\10.20.177.21\\ERP\\ROI\\CSI.MAIN\\")]
         CSI = 0,
-        [Description("\\\\172.16.0.10\\ERP\\ROI\\WCCO.MAIN\\")]
+        [Description("\\\\10.20.177.21\\ERP\\ROI\\WCCO.MAIN\\")]
         WCCO = 1,
-        [Description("\\\\172.16.0.10\\ERP\\ROI\\WCCO.TRAIN\\")]
+        [Description("\\\\10.20.177.21\\ERP\\ROI\\WCCO.TRAIN\\")]
         WCCOTRAIN = 2,
-        [Description("\\\\172.16.0.10\\ERP\\ROI\\CSI.TRAIN\\")]
+        [Description("\\\\10.20.177.21\\ERP\\ROI\\CSI.TRAIN\\")]
         CSITRAIN = 3,
-        [Description("\\\\172.16.0.10\\ERP\\ROI\\CONTI.MAIN\\")]
+        [Description("\\\\WAXAS001\\")]
         CONTI = 4,
-        [Description("\\\\172.16.0.10\\ERP\\ROI\\CONTI.TRAIN\\")]
+        [Description("\\\\WAXAS001\\")]
         CONTITRAIN = 5
     }
 }

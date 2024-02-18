@@ -5,6 +5,7 @@ using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
 using System.Security;
+using System.Windows;
 using System.Xml;
 using System.Xml.Linq;
 
@@ -186,7 +187,7 @@ namespace SFW
                     Create(filePath);
                 }
                 var _tempList = new List<AppGlobal>();
-                using (var rStream = new FileStream(filePath, FileMode.Open))
+                using (var rStream = new FileStream(filePath, FileMode.Open, FileAccess.Read))
                 {
                     var rSettings = new XmlReaderSettings { IgnoreComments = true, IgnoreWhitespace = true };
                     using (var reader = XmlReader.Create(rStream, rSettings))
@@ -258,8 +259,9 @@ namespace SFW
                 }
                 return _tempList;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                MessageBox.Show(ex.Message);
                 return null;
             }
         }

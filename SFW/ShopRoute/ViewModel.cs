@@ -5,6 +5,7 @@ using SFW.Reports;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Input;
@@ -175,7 +176,14 @@ namespace SFW.ShopRoute
                             //Getting the Work order work instructions
                             if (App.GlobalConfig != null)
                             {
-                                ShopOrder.InstructionList = Sku.GetInstructions(ShopOrder.SkuNumber, App.SiteNumber, App.GlobalConfig.First(o => o.Site == App.Facility).WI);
+                                try
+                                {
+                                    ShopOrder.InstructionList = Sku.GetInstructions(ShopOrder.SkuNumber, App.SiteNumber, App.GlobalConfig.First(o => o.Site == App.Facility).WI);
+                                }
+                                catch
+                                {
+                                    ShopOrder.InstructionList = new List<string>();
+                                }
                             }
 
                             //Getting the work order notes and the shop floor notes

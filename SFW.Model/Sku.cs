@@ -508,29 +508,35 @@ namespace SFW.Model
         /// <returns>A list of URL strings to open the work instructions</returns>
         public static List<string> GetInstructions(string partNbr, int siteNbr, string filepath)
         {
-            //TODO: this code will need to be reformated once CSI has moved to the same process model as WCCO
             var _inst = new List<string>();
-            if (siteNbr == 2)
+            try
             {
-                if (File.Exists($"{filepath}{partNbr}.pdf"))
+                if (siteNbr == 2)
                 {
-                    _inst.Add(partNbr);
-                }
-            }
-            else
-            {
-                var _rows = MasterDataSet.Tables["WI"].Select($"[SkuID] = '{partNbr}'");
-                foreach (var _row in _rows)
-                {
-                    var dir = new DirectoryInfo(filepath);
-                    var fileList = dir.GetFiles($"*{_row.Field<int>("WI")}*");
-                    foreach (var file in fileList)
+                    if (File.Exists($"{filepath}{partNbr}.pdf"))
                     {
-                        _inst.Add(file.Name);
+                        _inst.Add(partNbr);
                     }
                 }
+                else
+                {
+                    var _rows = MasterDataSet.Tables["WI"].Select($"[SkuID] = '{partNbr}'");
+                    foreach (var _row in _rows)
+                    {
+                        var dir = new DirectoryInfo(filepath);
+                        var fileList = dir.GetFiles($"*{_row.Field<int>("WI")}*");
+                        foreach (var file in fileList)
+                        {
+                            _inst.Add(file.Name);
+                        }
+                    }
+                }
+                return _inst;
             }
-            return _inst;
+            catch
+            {
+                return _inst;
+            }
         }
 
         /// <summary>

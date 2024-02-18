@@ -179,7 +179,15 @@
                         Margin="3"
                         Command="{Binding MPrintICommand}"
                         CommandParameter="R"
-                        Visibility="{Binding Path=(base:App.SiteNumber), Converter={StaticResource SiteToVisConverter}, ConverterParameter=NotNull}"
+                        Visibility="{Binding Path=(base:App.SiteNumber), Converter={StaticResource SiteToVisConverter}, ConverterParameter=Ref}"
+                        Style="{DynamicResource DefaultButton}" />
+
+                <Button Content="Wip Sticker"
+                        Width="110"
+                        Margin="3"
+                        Command="{Binding MPrintICommand}"
+                        CommandParameter="W"
+                        Visibility="{Binding Path=(base:App.SiteNumber), Converter={StaticResource SiteToVisConverter}, ConverterParameter=Sticker}"
                         Style="{DynamicResource DefaultButton}" />
 
                 <TextBlock Text="To:"

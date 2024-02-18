@@ -78,7 +78,7 @@ namespace SFW
         }
 
         //Hardcoded application location will need to be changed based on actual file path
-        public static string AppFilePath { get { return "\\\\fs-wcco\\WCCO-SFW\\ShopFloorWorkbench\\"; } }
+        public static string AppFilePath { get { return "\\\\WAXFS001\\WAXG-SFW\\ShopFloorWorkbench\\"; } }
 
         public static IList<AppGlobal> GlobalConfig { get; set; }
 

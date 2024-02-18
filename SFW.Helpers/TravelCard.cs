@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing.Printing;
 using System.IO;
-using System.Security;
 using System.Text;
 using System.Windows.Forms;
 
@@ -84,19 +83,21 @@ namespace SFW.Helpers
                 switch (formType)
                 {
                     case FormType.Portrait:
-                        FilePath = "\\\\fs-wcco\\WCCO-PublishedDocuments\\FORM5125 - Travel Card.pdf";
+                        FilePath = "\\\\waxfs001\\WAXG-Wahpeton\\PublishedDocuments\\FORM5125 - Travel Card.pdf";
                         break;
                     case FormType.Landscape:
-                        FilePath = "\\\\fs-wcco\\WCCO-PublishedDocuments\\FORM5127 - Reference Travel Card.pdf";
+                        FilePath = "\\\\waxfs001\\WAXG-Wahpeton\\PublishedDocuments\\FORM5127 - Reference Travel Card.pdf";
                         break;
                     case FormType.CoC:
-                        FilePath = "\\\\fs-wcco\\WCCO-SFW\\CSI Travel Card.pdf";
+                        FilePath = "\\\\waxfs001\\WAXG-SFW\\CSI Travel Card.pdf";
                         break;
                 }
+                var _folder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
                 var _fileName = string.IsNullOrEmpty(LotNbr) ? $"{PartNbr}{DateTime.Now:MMyyHHmm}" : $"{LotNbr.Replace("-","")}{DateTime.Now:MMyyHHmm}";
+                var _documentPath = $"{_folder}\\SFW\\TravelCard\\{_fileName}.pdf";
                 using (PdfReader reader = new PdfReader(FilePath, PdfEncodings.ConvertToBytes(Password, "ASCII")))
                 {
-                    using (PdfStamper stamp = new PdfStamper(reader, new FileStream($"\\\\fs-wcco\\WCCO-OMNI\\Application Data\\temp\\{_fileName}.pdf", FileMode.Create)))
+                    using (PdfStamper stamp = new PdfStamper(reader, new FileStream(_documentPath, FileMode.Create)))
                     {
                         if (formType == FormType.Portrait)
                         {
@@ -185,7 +186,7 @@ namespace SFW.Helpers
                         stamp.FormFlattening = false;
                     }
                 }
-                return new Dictionary<bool, string> { { true, _fileName } };
+                return new Dictionary<bool, string> { { true, _documentPath } };
             }
             catch (Exception ex)
             {
@@ -203,9 +204,9 @@ namespace SFW.Helpers
                 var _response = CreatePDF(formType);
                 if (_response.ContainsKey(true))
                 {
-                    _response.TryGetValue(true, out string _fileName);
-                    Process.Start($"\\\\fs-wcco\\WCCO-OMNI\\Application Data\\temp\\{_fileName}.pdf");
-                    DeleteDocuments(_fileName);
+                    _response.TryGetValue(true, out string _documentPath);
+                    Process.Start(_documentPath);
+                    DeleteDocuments();
                 }
                 else
                 {
@@ -230,9 +231,8 @@ namespace SFW.Helpers
                 var _response = CreatePDF(formType);
                 if (_response.ContainsKey(true))
                 {
-                    _response.TryGetValue(true, out string _fileName);
-                    var _documentName = $"\\\\fs-wcco\\WCCO-OMNI\\Application Data\\temp\\{_fileName}.pdf";
-                    using (Spire.Pdf.PdfDocument doc = new Spire.Pdf.PdfDocument(_documentName, "technology#1"))
+                    _response.TryGetValue(true, out string _documentPath);
+                    using (Spire.Pdf.PdfDocument doc = new Spire.Pdf.PdfDocument(_documentPath, "technology#1"))
                     {
                         using (PrintDialog pdialog = new PrintDialog { AllowPrintToFile = true, AllowSomePages = true })
                         {
@@ -268,20 +268,21 @@ namespace SFW.Helpers
         /// </summary>
         private static void DeleteDocuments(string fileName = "")
         {
-            //TODO:Rewreite to handle multiple deletions
-            foreach (var f in Directory.GetFiles("\\\\fs-wcco\\WCCO-OMNI\\Application Data\\temp\\"))
+            try
             {
-                try
+                var _folder = $"{Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)}\\SFW\\TravelCard";
+                var _dir = new DirectoryInfo(_folder);
+                foreach (var _file in _dir.GetFiles())
                 {
-                    if (f != $"\\\\fs-wcco\\WCCO-OMNI\\Application Data\\temp\\{fileName}.pdf")
+                    if (_file.LastAccessTime < DateTime.Now.AddHours(-1))
                     {
-                        File.Delete(f);
+                        File.Delete(_file.FullName);
                     }
                 }
-                catch
-                {
-                    continue;
-                }
+            }
+            catch
+            {
+
             }
         }
 

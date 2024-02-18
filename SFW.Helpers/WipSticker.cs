@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Windows.Forms;
 
 namespace SFW.Helpers
 {
@@ -116,7 +117,7 @@ namespace SFW.Helpers
                 var _prtName = string.Empty;
                 foreach (string printer in System.Drawing.Printing.PrinterSettings.InstalledPrinters)
                 {
-                    if (printer.Contains("GX420"))
+                    if (printer.Contains("-ARZ"))
                     {
                         _prtName = printer;
                         break;
@@ -132,8 +133,9 @@ namespace SFW.Helpers
                     return false;
                 }
             }
-            catch(Exception)
+            catch(Exception ex)
             {
+                MessageBox.Show(ex.Message);
                 return false;
             }
         }

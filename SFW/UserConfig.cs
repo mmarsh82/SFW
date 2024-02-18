@@ -115,6 +115,7 @@ namespace SFW
             {
                 var folder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
                 Directory.CreateDirectory($"{folder}\\SFW");
+                Directory.CreateDirectory($"{folder}\\SFW\\TravelCard");
                 using (var wStream = new FileStream($"{folder}\\SFW\\SfwConfig.xml", FileMode.CreateNew))
                 {
                     var wSettings = new XmlWriterSettings { Indent = true, IndentChars = "\t", NewLineOnAttributes = true };
@@ -168,6 +169,7 @@ namespace SFW
             {
                 var folder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
                 Directory.CreateDirectory($"{folder}\\SFW");
+                Directory.CreateDirectory($"{folder}\\SFW\\TravelCard");
                 using (var wStream = new FileStream($"{folder}\\SFW\\SfwConfig.xml", FileMode.Create))
                 {
                     var wSettings = new XmlWriterSettings { Indent = true, IndentChars = "\t", NewLineOnAttributes = true };

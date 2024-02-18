@@ -16,7 +16,7 @@
     <TargetFrameworkProfile>
     </TargetFrameworkProfile>
     <IsWebBootstrapper>false</IsWebBootstrapper>
-    <PublishUrl>\\fs-wcco\WCCO-SFW\ShopFloorWorkbench\</PublishUrl>
+    <PublishUrl>\\WAXFS001\WAXG-SFW\ShopFloorWorkbench\</PublishUrl>
     <Install>true</Install>
     <InstallFrom>Unc</InstallFrom>
     <UpdateEnabled>true</UpdateEnabled>
@@ -28,10 +28,9 @@
     <MapFileExtensions>true</MapFileExtensions>
     <ProductName>Shop Floor Workbench</ProductName>
     <PublisherName>Michael Marsh</PublisherName>
-    <SuiteName>WCCO Belting Inc.</SuiteName>
-    <AutorunEnabled>true</AutorunEnabled>
-    <ApplicationRevision>3484</ApplicationRevision>
-    <ApplicationVersion>1.0.481.3484</ApplicationVersion>
+    <SuiteName>ContiTech</SuiteName>
+    <ApplicationRevision>3615</ApplicationRevision>
+    <ApplicationVersion>1.0.510.3615</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <CreateDesktopShortcut>true</CreateDesktopShortcut>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -483,10 +482,6 @@
     <ProjectReference Include="..\M2k\M2kClient.csproj">
       <Project>{5dbe7a03-346d-4a21-86b8-f11d737e93f3}</Project>
       <Name>M2kClient</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\QT9Client\QT9Client.csproj">
-      <Project>{5f05cb68-f5dc-46d2-ac43-caf704cc0895}</Project>
-      <Name>QT9Client</Name>
     </ProjectReference>
     <ProjectReference Include="..\SFW.Helpers\SFW.Helpers.csproj">
       <Project>{6f663e0a-cd5e-40a9-b67e-7564627915f6}</Project>

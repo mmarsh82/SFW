@@ -25,7 +25,25 @@ namespace SFW.Converters
                 }
                 else
                 {
-                    return (bool)value ? Visibility.Visible : Visibility.Collapsed;
+                    if (bool.TryParse(value.ToString(), out bool b))
+                    {
+                        return b ? Visibility.Visible : Visibility.Collapsed;
+                    }
+                    else if (int.TryParse(value.ToString(), out int i))
+                    {
+                        return i == 1 ? Visibility.Visible : Visibility.Collapsed;
+                    }
+                    return Visibility.Collapsed;
+                }
+            }
+            else if (parameter.ToString() == "Sticker")
+            {
+                switch (value.ToString())
+                {
+                    case "2":
+                        return Visibility.Visible;
+                    default:
+                        return Visibility.Collapsed;
                 }
             }
             else if (string.IsNullOrEmpty(parameter?.ToString()))
