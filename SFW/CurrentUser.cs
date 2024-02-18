@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DocumentFormat.OpenXml.Spreadsheet;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.DirectoryServices;
@@ -412,7 +413,7 @@ namespace SFW
             {
                 using (UserPrincipal uPrincipal = UserPrincipal.FindByIdentity(pContext,userName))
                 {
-                    if (uPrincipal.GetAuthorizationGroups().ToList().ConvertAll(o => o.Name).Exists(o => o.Contains("-SFW")))
+                    if (uPrincipal.GetAuthorizationGroups().ToList().ConvertAll(o => o.Name).Exists(o => o.Contains("SFW-")) && !userName.Contains("_FA"))
                     {
                         new CurrentUser(pContext, uPrincipal);
                         MainWindowViewModel.UpdateProperties();
@@ -433,63 +434,67 @@ namespace SFW
         /// </returns>
         public static IReadOnlyDictionary<int, string> LogIn(string userName, string pwd)
         {
-            userName = userName.Length <= 20 ? userName : userName.Substring(0, 20);
             var _result = new Dictionary<int, string>();
             var _resultKey = 0;
             var _resultVal = string.Empty;
-            try
+            if (!userName.Contains("_FA"))
             {
-                using (PrincipalContext pContext = GetPrincipal(userName))
+                userName = userName.Length <= 20 ? userName : userName.Substring(0, 20);
+                try
                 {
-                    using (UserPrincipal uPrincipal = UserPrincipal.FindByIdentity(pContext, userName))
+                    using (PrincipalContext pContext = GetPrincipal(userName))
                     {
-                        using (DirectoryEntry dEntry = uPrincipal.GetUnderlyingObject() as DirectoryEntry)
+                        using (UserPrincipal uPrincipal = UserPrincipal.FindByIdentity(pContext, userName))
                         {
-                            var _expireDate = !uPrincipal.PasswordNeverExpires ? Convert.ToDateTime(dEntry.InvokeGet("PasswordExpirationDate")) : DateTime.Today.AddDays(1);
-                            if (_expireDate <= DateTime.Today && _expireDate != new DateTime(1970, 1, 1))
+                            using (DirectoryEntry dEntry = uPrincipal.GetUnderlyingObject() as DirectoryEntry)
                             {
-                                _resultKey = 1;
-                                _resultVal = "Expired Password.";
-                            }
-                            else if (uPrincipal.IsAccountLockedOut())
-                            {
-                                _resultKey = 2;
-                                _resultVal = "Your account is currently locked out.\nPlease contact IT for assistance.";
-                            }
-                            else if (uPrincipal.Enabled == false)
-                            {
-                                _resultKey = 3;
-                                _resultVal = "Your account is currently disabled.\nPlease contact IT for assistance.";
-                            }
-                            else if (!pContext.ValidateCredentials(userName, pwd, ContextOptions.Negotiate))
-                            {
-                                _resultKey = 4;
-                                _resultVal = "Invalid credentials.\nPlease check your user name and password and try again.\nIf you feel you have reached this message in error,\nplease contact IT for further assistance.";
-                            }
-                            if (!string.IsNullOrEmpty(_resultVal))
-                            {
+                                var _expireDate = !uPrincipal.PasswordNeverExpires ? Convert.ToDateTime(dEntry.InvokeGet("PasswordExpirationDate")) : DateTime.Today.AddDays(1);
+                                if (_expireDate <= DateTime.Today && _expireDate != new DateTime(1970, 1, 1))
+                                {
+                                    _resultKey = 1;
+                                    _resultVal = "Expired Password.";
+                                }
+                                else if (uPrincipal.IsAccountLockedOut())
+                                {
+                                    _resultKey = 2;
+                                    _resultVal = "Your account is currently locked out.\nPlease contact IT for assistance.";
+                                }
+                                else if (uPrincipal.Enabled == false)
+                                {
+                                    _resultKey = 3;
+                                    _resultVal = "Your account is currently disabled.\nPlease contact IT for assistance.";
+                                }
+                                else if (!pContext.ValidateCredentials(userName, pwd, ContextOptions.Negotiate))
+                                {
+                                    _resultKey = 4;
+                                    _resultVal = "Invalid credentials.\nPlease check your user name and password and try again.\nIf you feel you have reached this message in error,\nplease contact IT for further assistance.";
+                                }
+                                if (!string.IsNullOrEmpty(_resultVal))
+                                {
+                                    _result.Add(_resultKey, _resultVal);
+                                    return _result;
+                                }
+                                else
+                                {
+                                    new CurrentUser(pContext, uPrincipal);
+                                    Controls.WorkSpaceDock.RefreshMainDock();
+                                    MainWindowViewModel.UpdateProperties();
+                                }
                                 _result.Add(_resultKey, _resultVal);
                                 return _result;
                             }
-                            else
-                            {
-                                new CurrentUser(pContext, uPrincipal);
-                                Controls.WorkSpaceDock.RefreshMainDock();
-                                MainWindowViewModel.UpdateProperties();
-                            }
-                            _result.Add(_resultKey, _resultVal);
-                            return _result;
                         }
                     }
                 }
+                catch (Exception)
+                {
+                    _resultKey = -1;
+                    _resultVal = "Your account does not exist on the domain.\nPlease contact IT for assistance.";
+                    _result.Add(_resultKey, _resultVal);
+                    return _result;
+                }
             }
-            catch (Exception)
-            {
-                _resultKey = -1;
-                _resultVal = "Your account does not exist on the domain.\nPlease contact IT for assistance.";
-                _result.Add(_resultKey, _resultVal);
-                return _result;
-            }
+            return _result;
         }
 
         /// <summary>
@@ -504,7 +509,7 @@ namespace SFW
                 userName = userName.Length <= 20 ? userName : userName.Substring(0, 20);
                 using (PrincipalContext pCon = GetPrincipal(userName))
                 {
-                    return (UserPrincipal.FindByIdentity(pCon, userName) != null);
+                    return (UserPrincipal.FindByIdentity(pCon, userName) != null && !userName.Contains("_FA"));
                 }
             }
             catch(Exception)

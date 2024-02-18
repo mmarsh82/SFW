@@ -257,7 +257,10 @@ namespace SFW.Schedule
                 ScheduleView = CollectionViewSource.GetDefaultView(ModelBase.MasterDataSet.Tables["Master"]);
                 ScheduleFilter(UserConfig.BuildMachineFilter(), 1);
                 ScheduleFilter(UserConfig.BuildPriorityFilter(), 3);
-                ScheduleView.GroupDescriptions.Add(new PropertyGroupDescription("MachineNumber", new WorkCenterNameConverter()));
+                if (ScheduleView.GroupDescriptions.Count() == 0)
+                {
+                    ScheduleView.GroupDescriptions.Add(new PropertyGroupDescription("MachineNumber", new WorkCenterNameConverter()));
+                }
                 if (_oldSelectedWO != null)
                 {
                     if (((DataView)ScheduleView.SourceCollection).Table.AsEnumerable().Any(row => row.Field<string>("WorkOrderID") == ((DataRowView)_oldSelectedWO).Row.Field<string>("WorkOrderID")))

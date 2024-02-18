@@ -259,7 +259,10 @@ namespace SFW.Schedule.SalesOrder
                 SalesScheduleView = CollectionViewSource.GetDefaultView(ModelBase.MasterDataSet.Tables["SalesMaster"]);
                 if (SalesScheduleView != null)
                 {
-                    SalesScheduleView.GroupDescriptions.Add(new PropertyGroupDescription("FullCustName"));
+                    if (SalesScheduleView.GroupDescriptions.Count() == 0)
+                    {
+                        SalesScheduleView.GroupDescriptions.Add(new PropertyGroupDescription("FullCustName"));
+                    }
                     if (!string.IsNullOrEmpty(filter))
                     {
                         ((DataView)SalesScheduleView.SourceCollection).RowFilter = filter;
