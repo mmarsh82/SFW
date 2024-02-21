@@ -1,5 +1,4 @@
-﻿using DocumentFormat.OpenXml.Spreadsheet;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.DirectoryServices;
@@ -184,6 +183,18 @@ namespace SFW
             }
         }
 
+        private static bool _canSplit;
+        public static bool CanSplit
+        {
+            get
+            { return _canSplit; }
+            private set
+            {
+                _canSplit = value;
+                StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(CanSplit)));
+            }
+        }
+
         private static bool _isInvCtrl;
         public static bool IsInventoryControl
         {
@@ -241,6 +252,18 @@ namespace SFW
             {
                 _isEng = value;
                 StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(IsEngineer)));
+            }
+        }
+
+        private static bool _canDev;
+        public static bool CanDeviate
+        {
+            get
+            { return _canDev; }
+            private set
+            {
+                _canDev = value;
+                StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(CanDeviate)));
             }
         }
 
@@ -322,7 +345,7 @@ namespace SFW
             {
                 if (_aGroups.Count(o => o.Contains("SFW-Admin")) > 0)
                 {
-                    CanTrain = CanSchedule = IsSupervisor = IsInventoryControl = IsAccountsReceivable = IsAdmin = HasSalesOrderModule = IsQuality = IsEngineer = true;
+                    CanTrain = CanSchedule = IsSupervisor = IsInventoryControl = IsAccountsReceivable = IsAdmin = HasSalesOrderModule = IsQuality = IsEngineer = CanSplit = CanDeviate = true;
                     BasicUser = false;
                 }
                 else
@@ -335,6 +358,8 @@ namespace SFW
                     CanTrain = _aGroups.Count(o => o.Contains("SFW-Train")) > 0;
                     IsQuality = _aGroups.Count(o => o.Contains("SFW-Quality")) > 0;
                     IsEngineer = _aGroups.Count(o => o.Contains("SFW-Engineer")) > 0;
+                    CanSplit = _aGroups.Count(o => o.Contains("SFW-Adjust")) > 0;
+                    CanDeviate = _aGroups.Count(o => o.Contains("SFW-Deviate")) > 0;
                     BasicUser = false;
                 }
             }
@@ -369,31 +394,26 @@ namespace SFW
                     {
                         _user = System.Security.Principal.WindowsIdentity.GetCurrent().Name;
                     }
-                    if(!_user.Contains("_FA"))
+                    _user = _user.Contains("\\") ? _user.Split('\\')[1] : _user;
+                    using (PrincipalContext pContext = GetPrincipal(_user))
                     {
-                        _user = _user.Contains("\\") ? _user.Split('\\')[1] : _user;
-                        _user = _user.Length <= 20 ? _user : _user.Substring(0, 20);
-                        using (PrincipalContext pContext = GetPrincipal(_user))
+                        using (UserPrincipal uPrincipal = UserPrincipal.FindByIdentity(pContext, _user))
                         {
-                            using (UserPrincipal uPrincipal = UserPrincipal.FindByIdentity(pContext, _user))
+                            if (uPrincipal != null && !uPrincipal.DisplayName.Contains("_FA"))
                             {
-                                if (uPrincipal != null)
+                                if (!string.IsNullOrEmpty(uPrincipal.EmployeeId))
                                 {
-                                    if (!string.IsNullOrEmpty(uPrincipal.EmployeeId))
-                                    {
-                                        IsNamedUser = true;
-                                        new CurrentUser(pContext, uPrincipal);
-                                    }
-                                    else
-                                    {
-                                        IsNamedUser = false;
-                                    }
+                                    IsNamedUser = true;
+                                    new CurrentUser(pContext, uPrincipal);
                                 }
-                                IsNamedUser = false;
+                                else
+                                {
+                                    IsNamedUser = false;
+                                }
                             }
+                            IsNamedUser = false;
                         }
                     }
-                    IsNamedUser = false;
                 }
                 catch (Exception)
                 {
@@ -408,15 +428,17 @@ namespace SFW
         /// <param name="userName">User Name</param>
         public static void LogIn(string userName)
         {
-            userName = userName.Length <= 20 ? userName : userName.Substring(0, 20);
             using (PrincipalContext pContext = GetPrincipal(userName))
             {
                 using (UserPrincipal uPrincipal = UserPrincipal.FindByIdentity(pContext,userName))
                 {
-                    if (uPrincipal.GetAuthorizationGroups().ToList().ConvertAll(o => o.Name).Exists(o => o.Contains("SFW-")) && !userName.Contains("_FA"))
+                    if (!uPrincipal.DisplayName.Contains("_FA"))
                     {
-                        new CurrentUser(pContext, uPrincipal);
-                        MainWindowViewModel.UpdateProperties();
+                        if (uPrincipal.GetAuthorizationGroups().ToList().ConvertAll(o => o.Name).Exists(o => o.Contains("SFW-")))
+                        {
+                            new CurrentUser(pContext, uPrincipal);
+                            MainWindowViewModel.UpdateProperties();
+                        }
                     }
                 }
             }
@@ -437,64 +459,65 @@ namespace SFW
             var _result = new Dictionary<int, string>();
             var _resultKey = 0;
             var _resultVal = string.Empty;
-            if (!userName.Contains("_FA"))
+            try
             {
-                userName = userName.Length <= 20 ? userName : userName.Substring(0, 20);
-                try
+                using (PrincipalContext pContext = GetPrincipal(userName))
                 {
-                    using (PrincipalContext pContext = GetPrincipal(userName))
+                    using (UserPrincipal uPrincipal = UserPrincipal.FindByIdentity(pContext, userName))
                     {
-                        using (UserPrincipal uPrincipal = UserPrincipal.FindByIdentity(pContext, userName))
+                        if (uPrincipal != null && uPrincipal.DisplayName.Contains("_FA"))
                         {
-                            using (DirectoryEntry dEntry = uPrincipal.GetUnderlyingObject() as DirectoryEntry)
+                            _resultKey = 5;
+                            _resultVal = "Service accounts are denied.";
+                            return _result;
+                        }
+                        using (DirectoryEntry dEntry = uPrincipal.GetUnderlyingObject() as DirectoryEntry)
+                        {
+                            var _expireDate = !uPrincipal.PasswordNeverExpires ? Convert.ToDateTime(dEntry.InvokeGet("PasswordExpirationDate")) : DateTime.Today.AddDays(1);
+                            if (_expireDate <= DateTime.Today && _expireDate != new DateTime(1970, 1, 1))
                             {
-                                var _expireDate = !uPrincipal.PasswordNeverExpires ? Convert.ToDateTime(dEntry.InvokeGet("PasswordExpirationDate")) : DateTime.Today.AddDays(1);
-                                if (_expireDate <= DateTime.Today && _expireDate != new DateTime(1970, 1, 1))
-                                {
-                                    _resultKey = 1;
-                                    _resultVal = "Expired Password.";
-                                }
-                                else if (uPrincipal.IsAccountLockedOut())
-                                {
-                                    _resultKey = 2;
-                                    _resultVal = "Your account is currently locked out.\nPlease contact IT for assistance.";
-                                }
-                                else if (uPrincipal.Enabled == false)
-                                {
-                                    _resultKey = 3;
-                                    _resultVal = "Your account is currently disabled.\nPlease contact IT for assistance.";
-                                }
-                                else if (!pContext.ValidateCredentials(userName, pwd, ContextOptions.Negotiate))
-                                {
-                                    _resultKey = 4;
-                                    _resultVal = "Invalid credentials.\nPlease check your user name and password and try again.\nIf you feel you have reached this message in error,\nplease contact IT for further assistance.";
-                                }
-                                if (!string.IsNullOrEmpty(_resultVal))
-                                {
-                                    _result.Add(_resultKey, _resultVal);
-                                    return _result;
-                                }
-                                else
-                                {
-                                    new CurrentUser(pContext, uPrincipal);
-                                    Controls.WorkSpaceDock.RefreshMainDock();
-                                    MainWindowViewModel.UpdateProperties();
-                                }
+                                _resultKey = 1;
+                                _resultVal = "Expired Password.";
+                            }
+                            else if (uPrincipal.IsAccountLockedOut())
+                            {
+                                _resultKey = 2;
+                                _resultVal = "Your account is currently locked out.\nPlease contact IT for assistance.";
+                            }
+                            else if (uPrincipal.Enabled == false)
+                            {
+                                _resultKey = 3;
+                                _resultVal = "Your account is currently disabled.\nPlease contact IT for assistance.";
+                            }
+                            else if (!pContext.ValidateCredentials(userName, pwd, ContextOptions.Negotiate))
+                            {
+                                _resultKey = 4;
+                                _resultVal = "Invalid credentials.\nPlease check your user name and password and try again.\nIf you feel you have reached this message in error,\nplease contact IT for further assistance.";
+                            }
+                            if (!string.IsNullOrEmpty(_resultVal))
+                            {
                                 _result.Add(_resultKey, _resultVal);
                                 return _result;
                             }
+                            else
+                            {
+                                new CurrentUser(pContext, uPrincipal);
+                                Controls.WorkSpaceDock.RefreshMainDock();
+                                MainWindowViewModel.UpdateProperties();
+                            }
+                            _result.Add(_resultKey, _resultVal);
+                            return _result;
                         }
                     }
                 }
-                catch (Exception)
-                {
-                    _resultKey = -1;
-                    _resultVal = "Your account does not exist on the domain.\nPlease contact IT for assistance.";
-                    _result.Add(_resultKey, _resultVal);
-                    return _result;
-                }
             }
-            return _result;
+            catch (Exception)
+            {
+                _resultKey = -1;
+                _resultVal = "Your account does not exist on the domain.\nPlease contact IT for assistance.";
+                _result.Add(_resultKey, _resultVal);
+                return _result;
+            }
         }
 
         /// <summary>
@@ -506,10 +529,10 @@ namespace SFW
         {
             try
             {
-                userName = userName.Length <= 20 ? userName : userName.Substring(0, 20);
                 using (PrincipalContext pCon = GetPrincipal(userName))
                 {
-                    return (UserPrincipal.FindByIdentity(pCon, userName) != null && !userName.Contains("_FA"));
+                    var _uPrincipal = UserPrincipal.FindByIdentity(pCon, userName);
+                    return (_uPrincipal != null && !_uPrincipal.DisplayName.Contains("_FA"));
                 }
             }
             catch(Exception)
@@ -607,8 +630,11 @@ namespace SFW
                 {
                     using (UserPrincipal uPrincipal = UserPrincipal.FindByIdentity(pContext, DomainUserName))
                     {
-                        new CurrentUser(pContext, uPrincipal);
-                        MainWindowViewModel.UpdateProperties();
+                        if (!uPrincipal.DisplayName.Contains("_FA"))
+                        {
+                            new CurrentUser(pContext, uPrincipal);
+                            MainWindowViewModel.UpdateProperties();
+                        }
                     }
                 }
             }
@@ -623,7 +649,6 @@ namespace SFW
         /// <returns>Any error that was reflected from the AD, will be null if no errors occured</returns>
         public static string UpdatePassword(string userName, string oldPwd, string newPwd)
         {
-            userName = userName.Length <= 20 ? userName : userName.Substring(0, 20);
             using (PrincipalContext context = GetPrincipal(userName))
             {
                 try

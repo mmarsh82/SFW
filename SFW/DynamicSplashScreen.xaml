@@ -6,7 +6,8 @@
         WindowStartupLocation="CenterScreen"
         WindowStyle="None"
         ShowInTaskbar="False"
-        DataContext="{Binding RelativeSource={RelativeSource Self}}">
+        DataContext="{Binding RelativeSource={RelativeSource Self}}"
+        Background="Black">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
@@ -35,6 +36,6 @@
                    HorizontalAlignment="Center"
                    VerticalAlignment="Bottom"
                    FontSize="22"
-                   Foreground="Crimson" />
+                   Foreground="DeepSkyBlue" />
     </Grid>
 </Window>

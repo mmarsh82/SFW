@@ -117,7 +117,7 @@ namespace SFW.Helpers
                 var _prtName = string.Empty;
                 foreach (string printer in System.Drawing.Printing.PrinterSettings.InstalledPrinters)
                 {
-                    if (printer.Contains("-ARZ"))
+                    if (printer.Contains("-ARZ") || printer.Contains("-WAZ"))
                     {
                         _prtName = printer;
                         break;

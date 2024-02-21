@@ -14,7 +14,7 @@ namespace SFW.Commands
             var _prtName = string.Empty;
             foreach (string printer in System.Drawing.Printing.PrinterSettings.InstalledPrinters)
             {
-                if (printer.Contains("GX420"))
+                if (printer.Contains("-WAZ"))
                 {
                     _prtName = printer;
                     break;

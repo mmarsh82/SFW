@@ -327,7 +327,7 @@ namespace SFW.Model
             }
             Submitter = $"{subFName} {subLName}";
             Facility = $"0{facCode}";
-            var _crewID = userId;
+            var _crewID = "";
             SeqComplete = Complete.N;
             WipLot = new Lot();
             WipWorkOrder = workOrder;

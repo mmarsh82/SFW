@@ -16,7 +16,7 @@ namespace SFW.Commands
             if (parameter != null)
             {
                 var _wpNbr = ((DataRowView)parameter).Row.Field<string>("WorkOrder");
-                var _filePath = $"\\\\fs-wcco\\WCCO-Prints\\Deviations\\{_wpNbr}-1.pdf";
+                var _filePath = $"\\\\waxfs001\\WAXG-Wahpeton\\Prints\\Deviations\\{_wpNbr}-1.pdf";
                 var _row = Model.ModelBase.MasterDataSet.Tables["Master"].Select($"[WorkOrder] = '{_wpNbr}'").FirstOrDefault();
                 var _index = Model.ModelBase.MasterDataSet.Tables["Master"].Rows.IndexOf(_row);
                 if (((DataRowView)parameter).Row.Field<string>("Deviation") == "Y")

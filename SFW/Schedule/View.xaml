@@ -73,7 +73,7 @@
                       CommandParameter="{Binding DataContext.SelectedWorkOrder, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}">
                 <MenuItem.Visibility>
                     <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="iDev">
-                        <Binding Path="(local:CurrentUser.CanSchedule)"/>
+                        <Binding Path="(local:CurrentUser.CanDeviate)"/>
                         <Binding Path="Deviation"/>
                     </MultiBinding>
                 </MenuItem.Visibility>

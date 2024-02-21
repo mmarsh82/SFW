@@ -150,7 +150,7 @@
                           InputGestureText="Alt+P" />
                 <MenuItem Header="Split Roll"
                           Command="{StaticResource RollSplitICommand}"
-                          Visibility="{Binding Path=(local:CurrentUser.IsSupervisor), Converter={StaticResource BoolToVisConverter}}"
+                          Visibility="{Binding Path=(local:CurrentUser.CanSplit), Converter={StaticResource BoolToVisConverter}}"
                           InputGestureText="Alt+R"/>
                 <MenuItem Header="Print Search"
                           Command="{StaticResource ViewLoadICommand}"

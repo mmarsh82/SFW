@@ -6,7 +6,7 @@
              xmlns:main="clr-namespace:SFW"
              x:Name="ShopRouteUserControl">
     <ScrollViewer x:Name="MainScroll" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" Margin="0,0,0,20" VerticalAlignment="Top">
-        <Grid AllowDrop="{Binding Path=(main:CurrentUser.CanSchedule)}" Drop="Deviation_Drop">
+        <Grid AllowDrop="{Binding Path=(main:CurrentUser.CanDeviate)}" Drop="Deviation_Drop">
 
             <!--#region Resources -->
 

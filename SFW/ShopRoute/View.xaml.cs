@@ -25,7 +25,7 @@ namespace SFW.ShopRoute
             {
                 var _oldPath = ((string[])e.Data.GetData(DataFormats.FileDrop))[0];
                 var _woNbr = ((ViewModel)DataContext).ShopOrder.OrderNumber;
-                var _newPath = $"\\\\fs-wcco\\WCCO-Prints\\Deviations\\{_woNbr}-1.pdf";
+                var _newPath = $"\\\\waxfs001\\WAXG-Wahpeton\\Prints\\Deviations\\{_woNbr}-1.pdf";
                 if (((ViewModel)DataContext).ShopOrder.IsDeviated && File.Exists(_newPath))
                 {
                     File.Delete(_newPath);

@@ -18,23 +18,23 @@ namespace SFW.Commands
         {
             try
             {
-                var _site = App.Site.Split('_')[0];
+                var _site = App.Site.Replace('_', '.');
                 if (parameter.ToString().Contains("*"))
                 {
                     var _parSplit = parameter.ToString().Split('*');
                     switch (_parSplit[0])
                     {
                         case "WO":
-                            Process.Start($"http://intranet-wcco-1/{App.Site}/SFC/IssuedMaterialDetail/IssuedMaterialDetail.aspx?WorkOrder={_parSplit[1]}");
+                            Process.Start($"http://waxas003/{_site}/SFC/IssuedMaterialDetail/IssuedMaterialDetail.aspx?WorkOrder={_parSplit[1]}");
                             break;
                         case "SO":
                             var _startInfo = _parSplit.Length == 2
-                                ? $"http://intranet-wcco-1/{App.Site}/SOP/SoLineDetail/SoLineDetail.aspx?SoNbr={_parSplit[1]}&LineNbr=1"
-                                : $"http://intranet-wcco-1/{App.Site}/SOP/SoLineDetail/SoLineDetail.aspx?SoNbr={_parSplit[1]}&LineNbr={_parSplit[2]}";
+                                ? $"http://waxas003/{_site}/SOP/SoLineDetail/SoLineDetail.aspx?SoNbr={_parSplit[1]}&LineNbr=1"
+                                : $"http://waxas003/{_site}/SOP/SoLineDetail/SoLineDetail.aspx?SoNbr={_parSplit[1]}&LineNbr={_parSplit[2]}";
                             Process.Start(_startInfo);
                             break;
                         case "AR":
-                            Process.Start($"http://intranet-wcco-1/{App.Site}/ROIPortals/CustomerPortal/CustomerPortal.aspx?CustNbr={_parSplit[1]}");
+                            Process.Start($"http://waxas003/{_site}/ROIPortals/CustomerPortal/CustomerPortal.aspx?CustNbr={_parSplit[1]}");
                             break;
                     }
                 }
