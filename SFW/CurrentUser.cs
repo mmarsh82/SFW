@@ -411,7 +411,6 @@ namespace SFW
                                     IsNamedUser = false;
                                 }
                             }
-                            IsNamedUser = false;
                         }
                     }
                 }
@@ -691,7 +690,7 @@ namespace SFW
             else
             {
                 var _site = App.SiteNumber == 1 ? "wak1" : "arx1";
-                return new PrincipalContext(ContextType.Domain, "tiretech2.contiwan.com", $"OU={_site},OU=us,OU=lda,DC=tiretech2,DC=contiwan,DC=com");
+                return new PrincipalContext(ContextType.Domain);
             }
         }
     }

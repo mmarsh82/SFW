@@ -121,6 +121,10 @@ namespace SFW
             {
                 CurrentUser.LogOff();
             }
+            else if (CurrentUser.IsNamedUser)
+            {
+                CurrentUser.RefreshLogIn();
+            }
         }
 
         /// <summary>
@@ -146,6 +150,10 @@ namespace SFW
             if (UserIdleTimer.GetIdleTimeInfo().IdleTime.TotalMinutes >= 5 && !CurrentUser.IsNamedUser)
             {
                 CurrentUser.LogOff();
+            }
+            else if (CurrentUser.IsNamedUser)
+            {
+                CurrentUser.RefreshLogIn();
             }
         }
 
