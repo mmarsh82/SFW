@@ -479,12 +479,23 @@ namespace SFW.Model
         /// </summary>
         /// <param name="partNbr">Part Number to check</param>
         /// <param name="returnAll">Return all or just active status</param>
+        /// <param name="site">Application site number</param>
+        /// <param name="masterCheck">Optional: Check to see if the part number is a master print number</param>
         /// <returns>Pass/Fail as boolean</returns>
-        public static bool Exists(string partNbr, bool returnAll, int site)
+        public static bool Exists(string partNbr, bool returnAll, int site, bool masterCheck = false)
         {
-            return returnAll 
+            if (!masterCheck)
+            {
+                return returnAll
                 ? MasterDataSet.Tables["SKU"].Select($"[SkuID] = '{partNbr}' AND [Site] = {site}").Length > 0
                 : MasterDataSet.Tables["SKU"].Select($"[SkuID] = '{partNbr}' AND [Status] = 'A' AND [Site] = {site}").Length > 0;
+            }
+            else
+            {
+                return returnAll
+                ? MasterDataSet.Tables["SKU"].Select($"[MasterSkuID] = '{partNbr}' AND [Site] = {site}").Length > 0
+                : MasterDataSet.Tables["SKU"].Select($"[MasterSkuID] = '{partNbr}' AND [Status] = 'A' AND [Site] = {site}").Length > 0;
+            }
         }
 
         /// <summary>

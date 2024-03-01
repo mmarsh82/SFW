@@ -7,6 +7,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Windows;
 using System.Windows.Data;
 using System.Windows.Input;
 
@@ -292,48 +293,33 @@ namespace SFW.Queries
             if (parameter == null)
             {
                 var _master = string.Empty;
-                //Check CSI first then move to WCCO
-                if(App.SiteNumber == 0)
+                var _part = PartNumber;
+                var _site = App.SiteNumber;
+                if (PartNumber.Contains("|"))
                 {
-                    if (Sku.Exists(PartNumber, CurrentUser.IsEngineer))
-                    {
-                        _master = Sku.GetMasterNumber(PartNumber, CurrentUser.IsEngineer);
-                    }
-                    else
-                    {
-                        App.DatabaseChange("WCCO_MAIN");
-                        if (Sku.Exists(PartNumber, CurrentUser.IsEngineer))
-                        {
-                            _master = Sku.GetMasterNumber(PartNumber, CurrentUser.IsEngineer);
-                        }
-                        App.DatabaseChange("CSI_MAIN");
-                    }
+                    _part = PartNumber.Split('|')[0];
+                    _site = int.TryParse(PartNumber.Split('|')[1], out int i) ? i : App.SiteNumber;
                 }
-                //Check WCCO first then move to CSI
+                if (Sku.Exists(_part, CurrentUser.IsEngineer, _site))
+                {
+                    _master = Sku.GetMasterNumber(_part, CurrentUser.IsEngineer);
+                }
+                else if (Sku.Exists(_part, CurrentUser.IsEngineer, _site, true))
+                {
+                    _master = _part;
+                }
                 else
                 {
-                    if (Sku.Exists(PartNumber, CurrentUser.IsEngineer))
-                    {
-                        _master = Sku.GetMasterNumber(PartNumber, CurrentUser.IsEngineer);
-                    }
-                    else
-                    {
-                        App.DatabaseChange("CSI_MAIN");
-                        if(Sku.Exists(PartNumber, CurrentUser.IsEngineer))
-                        {
-                            _master = Sku.GetMasterNumber(PartNumber, CurrentUser.IsEngineer);
-                        }
-                        App.DatabaseChange("WCCO_MAIN");
-                    }
+                    MessageBox.Show("The part number you entered does not exist.", "Invalid Part Number");
                 }
                 //Check to see how to open the print based on the results from the master print search
                 if (!string.IsNullOrEmpty(_master))
                 {
                     new Commands.PartSearch().Execute(_master);
                 }
-                else if (File.Exists($"{App.GlobalConfig.First(o => o.Site == App.Facility).PartPrint}{ PartNumber}.pdf"))
+                else if (File.Exists($"{App.GlobalConfig.First(o => o.Site == App.Facility).PartPrint}{_part}.pdf"))
                 {
-                    Process.Start($"{App.GlobalConfig.First(o => o.Site == App.Facility).PartPrint}{ PartNumber}.pdf");
+                    Process.Start($"{App.GlobalConfig.First(o => o.Site == App.Facility).PartPrint}{_part}.pdf");
                 }
                 else
                 {

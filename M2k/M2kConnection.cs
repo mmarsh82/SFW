@@ -106,8 +106,16 @@ namespace M2kClient
             Password = password;
             Database = database;
             Facility = facility;
-            BTIFolder = $"{database.GetDescription()}WAXAS001-BTI.TRANSACTIONS\\";
-            SFDCFolder = $"{database.GetDescription()}WAXAS001-SFDC.TRANSACTIONS\\";
+            if (database == Database.CONTITRAIN)
+            {
+                BTIFolder = $"{database.GetDescription()}WAXAS001-BTI.TRANSACTIONS.TRAIN\\";
+                SFDCFolder = $"{database.GetDescription()}WAXAS001-SFDC.TRANSACTIONS.TRAIN\\";
+            }
+            else
+            {
+                BTIFolder = $"{database.GetDescription()}WAXAS001-BTI.TRANSACTIONS\\";
+                SFDCFolder = $"{database.GetDescription()}WAXAS001-SFDC.TRANSACTIONS\\";
+            }
         }
     }
 }

@@ -203,10 +203,16 @@ namespace SFW.Schedule
             if (ScheduleViewFilter != null)
             {
                 ScheduleViewFilter = new string[7];
-                ((DataView)ScheduleView.SourceCollection).RowFilter = "";
+                if (ScheduleView != null && ScheduleView.SourceCollection != null && ((DataView)ScheduleView.SourceCollection).RowFilter != null)
+                {
+                    ((DataView)ScheduleView.SourceCollection).RowFilter = "";
+                }
                 ScheduleFilter("[Status] <> 'C'", 5);
                 ScheduleFilter($"[Site] = {App.SiteNumber}", 6);
-                ScheduleView.Refresh();
+                if (ScheduleView != null)
+                {
+                    ScheduleView.Refresh();
+                }
             }
         }
 

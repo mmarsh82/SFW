@@ -1,5 +1,6 @@
 ﻿using System;
-using System.Windows.Forms;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace SFW.Helpers
 {
@@ -109,9 +110,10 @@ namespace SFW.Helpers
         /// </summary>
         /// <param name="_wipSticker"></param>
         /// <param name="_copies"></param>
-        /// <returns>Completion as a bool</returns>
-        public bool Print(int _copies)
+        /// <returns>Completion as a read only dictionary (key: bool success or failure; value: error message)</returns>
+        public IReadOnlyDictionary<bool, string> Print(int _copies)
         {
+            var _result = new Dictionary<bool, string>();
             try
             {
                 var _prtName = string.Empty;
@@ -125,18 +127,20 @@ namespace SFW.Helpers
                 }
                 if (_prtName != string.Empty) 
                 {
-                    RawPrinter.SendStringToPrinter(_prtName, ToZPLString(), _copies);
-                    return true;
+                    var _rtnValue = RawPrinter.SendStringToPrinter(_prtName, ToZPLString(), _copies);
+                    _result.Add(_rtnValue.FirstOrDefault().Key, _rtnValue.FirstOrDefault().Value);
+                    return _result;
                 }
                 else
                 {
-                    return false;
+                    _result.Add(false, "No printer found.");
+                    return _result;
                 }
             }
             catch(Exception ex)
             {
-                MessageBox.Show(ex.Message);
-                return false;
+                _result.Add(false, ex.Message);
+                return _result;
             }
         }
     }

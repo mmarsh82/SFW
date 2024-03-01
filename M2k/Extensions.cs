@@ -16,8 +16,16 @@ namespace M2kClient
         {
             connection.Facility = facCode;
             connection.Database = database;
-            connection.BTIFolder = $"{database.GetDescription()}BTI.TRANSACTIONS\\";
-            connection.SFDCFolder = $"{database.GetDescription()}SFDC.TRANSACTIONS\\";
+            if (database == Database.CONTITRAIN)
+            {
+                connection.BTIFolder = $"{database.GetDescription()}WAXAS001-BTI.TRANSACTIONS.TRAIN\\";
+                connection.SFDCFolder = $"{database.GetDescription()}WAXAS001-SFDC.TRANSACTIONS.TRAIN\\";
+            }
+            else
+            {
+                connection.BTIFolder = $"{database.GetDescription()}WAXAS001-BTI.TRANSACTIONS\\";
+                connection.SFDCFolder = $"{database.GetDescription()}WAXAS001-SFDC.TRANSACTIONS\\";
+            }    
         }
 
         /// <summary>

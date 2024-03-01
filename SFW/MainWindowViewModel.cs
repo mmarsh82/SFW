@@ -119,7 +119,7 @@ namespace SFW
         {
             try
             {
-                UpdateProperties();
+                UpdateProperties(false);
                 IsChanging = false;
                 CanUpdate = false;
                 CanFilter = !App.IsFocused;
@@ -137,18 +137,22 @@ namespace SFW
         /// <summary>
         /// Updates all the static properties in the MainWindow View components when other views require new data
         /// </summary>
-        public static void UpdateProperties()
+        /// <param name="isRefresh">Standard refresh function</param>
+        public static void UpdateProperties(bool isRefresh)
         {
             try
             {
                 DisplayAction = false;
-                MachineList = Machine.GetMachineNameList(true, App.SiteNumber);
-                SelectedMachine = MachineList.First();
-                MachineGroupList = Machine.GetMachineGroupList(true, App.SiteNumber);
-                SelectedMachineGroup = MachineGroupList.First();
+                if (!isRefresh && SelectedMachine == null && SelectedMachineGroup == null)
+                {
+                    MachineList = Machine.GetMachineNameList(true, App.SiteNumber);
+                    SelectedMachine = MachineList.First();
+                    MachineGroupList = Machine.GetMachineGroupList(true, App.SiteNumber);
+                    SelectedMachineGroup = MachineGroupList.First();
+                }
                 StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(MachineList)));
                 StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(MachineGroupList)));
-                if (CurrentUser.BasicUser)
+                if (CurrentUser.BasicUser && !isRefresh)
                 {
                     Schedule.ViewModel.ScheduleFilter(UserConfig.BuildMachineFilter(), 1);
                     Schedule.ViewModel.ScheduleFilter(UserConfig.BuildPriorityFilter(), 3);
@@ -156,7 +160,7 @@ namespace SFW
                 }
                 else
                 {
-                    if (!Initialization)
+                    if (!isRefresh)
                     {
                         Schedule.ViewModel.ClearFilter();
                         CanFilter = true;

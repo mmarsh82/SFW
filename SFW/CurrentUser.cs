@@ -436,7 +436,7 @@ namespace SFW
                         if (uPrincipal.GetAuthorizationGroups().ToList().ConvertAll(o => o.Name).Exists(o => o.Contains("SFW-")))
                         {
                             new CurrentUser(pContext, uPrincipal);
-                            MainWindowViewModel.UpdateProperties();
+                            MainWindowViewModel.UpdateProperties(false);
                         }
                     }
                 }
@@ -502,7 +502,7 @@ namespace SFW
                             {
                                 new CurrentUser(pContext, uPrincipal);
                                 Controls.WorkSpaceDock.RefreshMainDock();
-                                MainWindowViewModel.UpdateProperties();
+                                MainWindowViewModel.UpdateProperties(false);
                             }
                             _result.Add(_resultKey, _resultVal);
                             return _result;
@@ -615,7 +615,7 @@ namespace SFW
             BasicUser = true;
             IsEngineer = false;
             Controls.WorkSpaceDock.RefreshMainDock();
-            MainWindowViewModel.UpdateProperties();
+            MainWindowViewModel.UpdateProperties(false);
         }
 
         /// <summary>
@@ -632,7 +632,7 @@ namespace SFW
                         if (!uPrincipal.DisplayName.Contains("_FA"))
                         {
                             new CurrentUser(pContext, uPrincipal);
-                            MainWindowViewModel.UpdateProperties();
+                            MainWindowViewModel.UpdateProperties(true);
                         }
                     }
                 }

@@ -48,7 +48,7 @@
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml" />
     <Reference Include="uodotnet">
-      <HintPath>\\manage2\FSW\ShopFloorWorkbench\uodotnet.dll</HintPath>
+      <HintPath>\\waxfs001\WAXG-SFW\ShopFloorWorkbench\uodotnet.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>

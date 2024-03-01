@@ -46,7 +46,7 @@
     <Reference Include="System.Xml" />
     <Reference Include="uodotnet, Version=1.1.7073.0, Culture=neutral, PublicKeyToken=335f3fbd4be82339">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>\\manage2\FSW\ShopFloorWorkbench\uodotnet.dll</HintPath>
+      <HintPath>\\waxfs001\WAXG-SFW\ShopFloorWorkbench\uodotnet.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>

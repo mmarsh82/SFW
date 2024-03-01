@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
 
@@ -73,6 +74,12 @@ namespace SFW.Helpers
             return bSuccess;
         }
 
+        /// <summary>
+        /// Converts a text file to bytes and sends it to a named printer
+        /// </summary>
+        /// <param name="szPrinterName">Printer Name</param>
+        /// <param name="szFileName">Full file path</param>
+        /// <returns>true on success, false on failure</returns>
         public static bool SendFileToPrinter(string szPrinterName, string szFileName)
         {
             // Open the file.
@@ -99,20 +106,44 @@ namespace SFW.Helpers
                 }
             }
         }
-        public static bool SendStringToPrinter(string szPrinterName, string szString, int pageCnt = 1)
+
+        /// <summary>
+        /// Converts a string into bytes and sends it to a named printer
+        /// </summary>
+        /// <param name="szPrinterName">Printer Name</param>
+        /// <param name="szString">String to convert</param>
+        /// <param name="pageCnt">Number of copies</param>
+        /// <returns></returns>
+        public static IReadOnlyDictionary<bool, string> SendStringToPrinter(string szPrinterName, string szString, int pageCnt = 1)
         {
-            // How many characters are in the string?
-            for (int i = 1; i <= pageCnt; i++)
+            var _result = new Dictionary<bool, string>();
+            try
             {
-                int dwCount = szString.Length;
-                // Assume that the printer is expecting ANSI text, and then convert
-                // the string to ANSI text.
-                IntPtr pBytes = Marshal.StringToCoTaskMemAnsi(szString);
-                // Send the converted ANSI string to the printer.
-                SendBytesToPrinter(szPrinterName, pBytes, dwCount);
-                Marshal.FreeCoTaskMem(pBytes);
+                // How many characters are in the string?
+                for (int i = 1; i <= pageCnt; i++)
+                {
+                    int dwCount = szString.Length;
+                    // Assume that the printer is expecting ANSI text, and then convert
+                    // the string to ANSI text.
+                    IntPtr pBytes = Marshal.StringToCoTaskMemAnsi(szString);
+                    // Send the converted ANSI string to the printer.
+                    if (SendBytesToPrinter(szPrinterName, pBytes, dwCount))
+                    {
+                        _result.Add(true, "");
+                    }
+                    else
+                    {
+                        _result.Add(false, "Failed to send the Bytes document to the printer.");
+                    }
+                    Marshal.FreeCoTaskMem(pBytes);
+                }
+                return _result;
             }
-            return true;
+            catch (Exception ex)
+            {
+                _result.Add(false, ex.Message);
+                return _result;
+            }
         }
     }
 }

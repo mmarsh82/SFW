@@ -7,6 +7,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Data;
 using System.Linq;
+using System.Windows;
 using System.Windows.Input;
 
 //Created by Michael Marsh 10-23-18
@@ -521,7 +522,14 @@ namespace SFW.WIP
                 TQty = WipRecord.WipQty + _preOnHand;
                 if (App.SiteNumber == 2)
                 {
-                    M2kClient.M2kCommand.EditRecord("LOT.MASTER", $"{WipLot}|P|02", 19, Weight.ToString(), M2kClient.UdArrayCommand.Insert, App.ErpCon);
+                    try
+                    {
+                        M2kClient.M2kCommand.EditRecord("LOT.MASTER", $"{WipLot}|P|02", 19, Weight.ToString(), M2kClient.UdArrayCommand.Insert, App.ErpCon);
+                    }
+                    catch
+                    {
+                        MessageBox.Show("Unable to write weight to the database.", "ERP Error");
+                    }
                     WipStickerPrintExecute(null);
                 }
                 OnPropertyChanged(nameof(WipRecord));
@@ -868,7 +876,11 @@ namespace SFW.WIP
                 , WipRecord.WipWorkOrder.SalesOrder.SalesNumber
                 , "" //TODO: add in customer order
                 , WipRecord.WipWorkOrder.OrderNumber);
-            _sticker.Print(1);
+            var _result = _sticker.Print(1);
+            if (_result.FirstOrDefault().Key)
+            {
+                MessageBox.Show(_result.FirstOrDefault().Value, "Zebra Printer Error");
+            }
         }
         private bool WipStickerPrintCanExecute(object parameter) => Weight != null && Weight > 0;
 

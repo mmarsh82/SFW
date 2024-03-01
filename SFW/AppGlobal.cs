@@ -221,7 +221,7 @@ namespace SFW
                                             }
                                             pass.MakeReadOnly();
                                             var sqlCred = new SqlCredential(reader.GetAttribute("ServiceUser"), pass);
-                                            App.AppSqlCon = new SqlConnection($"Server={reader.GetAttribute("IP")};DataBase={App.Site};Connection Timeout={reader.GetAttribute("TimeOut")};MultipleActiveResultSets=True;Connection Lifetime=3;Max Pool Size=3;Pooling=true;", sqlCred);
+                                            App.AppSqlCon = new SqlConnection($"Server={reader.GetAttribute("Name")};DataBase={App.Site};Connection Timeout={reader.GetAttribute("TimeOut")};MultipleActiveResultSets=True;Connection Lifetime=3;Max Pool Size=3;Pooling=true;", sqlCred);
                                             App.AppSqlCon.StatisticsEnabled = true;
                                             break;
                                         //SiteDocumentation Element is written below
