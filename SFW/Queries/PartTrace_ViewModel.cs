@@ -294,17 +294,30 @@ namespace SFW.Queries
             {
                 var _master = string.Empty;
                 var _part = PartNumber;
-                var _site = App.SiteNumber;
+                var _site = App.Facility;
+                var _siteNbr = App.SiteNumber;
                 if (PartNumber.Contains("|"))
                 {
                     _part = PartNumber.Split('|')[0];
-                    _site = int.TryParse(PartNumber.Split('|')[1], out int i) ? i : App.SiteNumber;
+                    if(int.TryParse(PartNumber.Split('|')[1], out int i))
+                    {
+                        if (i == 1)
+                        {
+                            _site = "WCCO";
+                            _siteNbr = i;
+                        }
+                        else
+                        {
+                            _site = "CSI";
+                            _siteNbr = i;
+                        }
+                    }
                 }
-                if (Sku.Exists(_part, CurrentUser.IsEngineer, _site))
+                if (Sku.Exists(_part, CurrentUser.IsEngineer, _siteNbr))
                 {
                     _master = Sku.GetMasterNumber(_part, CurrentUser.IsEngineer);
                 }
-                else if (Sku.Exists(_part, CurrentUser.IsEngineer, _site, true))
+                else if (Sku.Exists(_part, CurrentUser.IsEngineer, _siteNbr, true))
                 {
                     _master = _part;
                 }
@@ -317,9 +330,9 @@ namespace SFW.Queries
                 {
                     new Commands.PartSearch().Execute(_master);
                 }
-                else if (File.Exists($"{App.GlobalConfig.First(o => o.Site == App.Facility).PartPrint}{_part}.pdf"))
+                else if (File.Exists($"{App.GlobalConfig.First(o => o.Site == _site.ToString()).PartPrint}{_part}.pdf"))
                 {
-                    Process.Start($"{App.GlobalConfig.First(o => o.Site == App.Facility).PartPrint}{_part}.pdf");
+                    Process.Start($"{App.GlobalConfig.First(o => o.Site == _site.ToString()).PartPrint}{_part}.pdf");
                 }
                 else
                 {
