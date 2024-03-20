@@ -660,16 +660,23 @@ namespace SFW
                 }
                 catch(PasswordException passEx)
                 {
-                    if (passEx.Message == "The specified network password is not correct. (Exception from HRESULT: 0x80070056)")
+                    if (passEx.Message.Contains("HRESULT: 0x80070056"))
                         return "The old password is incorrect";
-                    else if (passEx.Message == "The password does not meet the password policy requirements. Check the minimum password length, password complexity and password history requirements. (Exception from HRESULT: 0x800708C5)")
+                    else if (passEx.Message.Contains("HRESULT: 0x800708C5"))
                         return "The password does not meet the password policy requirements.";
                     else
                         return passEx.Message;
                 }
+                catch(PrincipalOperationException poEx)
+                {
+                    if (poEx.Message.Contains("HRESULT: 0x80070056"))
+                        return "Account is locked out.";
+                    else
+                        return poEx.Message;
+                }
                 catch(Exception ex)
                 {
-                    return "Unknown error";
+                    return ex.Message;
                 }
             }
             return null;
