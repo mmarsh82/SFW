@@ -368,7 +368,7 @@ namespace SFW.Model
         /// <returns>Lot numbers current on hand quantity</returns>
         public static int GetLotOnHandQuantity(string lotNbr)
         {
-            var _rows = MasterDataSet.Tables["LOT"].Select($"[LotID] = '{lotNbr}' AND [OnHand] <> 0");
+            var _rows = MasterDataSet.Tables["LOT"].Select($"[LotID] = '{lotNbr}' AND [OnHand] <> 0 AND [Type] = 'Lot'");
             return _rows.Length > 0
                 ? _rows.FirstOrDefault().Field<int>("OnHand")
                 : 0;

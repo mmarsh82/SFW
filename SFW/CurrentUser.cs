@@ -667,7 +667,7 @@ namespace SFW
                     else
                         return passEx.Message;
                 }
-                catch(Exception)
+                catch(Exception ex)
                 {
                     return "Unknown error";
                 }
