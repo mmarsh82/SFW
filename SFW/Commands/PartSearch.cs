@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SFW.Converters;
+using System;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
@@ -40,7 +41,18 @@ namespace SFW.Commands
                         }
                     }
                 }
-                if (!string.IsNullOrEmpty(parameter?.ToString()) && !_isdeviated)
+                if (parameter.ToString().Contains("|"))
+                {
+                    var _result = parameter.ToString().Split('|');
+                    var _part = _result[0];
+                    var _fac = int.TryParse(_result[1], out int i) ? i == 1 ? "WCCO" : "CSI" : "WCCO";
+                    if (!File.Exists($"{App.GlobalConfig.First(o => o.Site == _fac).PartPrint}{_part}.pdf"))
+                    {
+                        _fac = i == 1 ? "CSI" : "WCCO";
+                    }
+                    Process.Start($"{App.GlobalConfig.First(o => o.Site == _fac.ToString()).PartPrint}{_part}.pdf");
+                }
+                else if (!string.IsNullOrEmpty(parameter?.ToString()) && !_isdeviated)
                 {
                     Process.Start($"{App.GlobalConfig.First(o => o.Site == App.Facility).PartPrint}{parameter}.pdf");
                 }

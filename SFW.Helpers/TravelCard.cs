@@ -168,6 +168,7 @@ namespace SFW.Helpers
                             pdfField.SetField("UoM", Uom);
                             pdfField.SetField("Description", Desc);
                             pdfField.SetField("Lot", LotNbr);
+                            pdfField.SetField("LotBar", $"*{LotNbr}*");
                             if (CompPart != null)
                             {
                                 pdfField.SetField("RubPart1", CompPart[0]);

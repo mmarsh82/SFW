@@ -347,7 +347,7 @@ namespace SFW.Queries
             else
             {
                 var _sku = (Sku)parameter;
-                new Commands.PartSearch().Execute(!string.IsNullOrEmpty(_sku.MasterPrint) ? _sku.MasterPrint : _sku.SkuNumber);
+                new Commands.PartSearch().Execute(!string.IsNullOrEmpty(_sku.MasterPrint) ? _sku.MasterPrint : $"{_sku.SkuNumber}|0{_sku.Facility}");
             }
         }
 
