@@ -553,15 +553,10 @@
                                Foreground="#FF135185" 
                                Margin="20,0,0,0"/>
 
-                    <TextBlock Text="{Binding ShopOrder.SalesOrder.CustomerName}"
+                    <TextBlock Text="{Binding ShopOrder.SalesOrder.FullCustomerName}"
                                FontSize="24"
                                FontWeight="Bold"
                                Margin="10,0,0,0" />
-
-                    <TextBlock Text="{Binding ShopOrder.SalesOrder.CustomerNumber, StringFormat='({0})'}"
-                               FontSize="24"
-                               FontWeight="Bold"
-                               Margin="5,0,0,0" />
 
                 </StackPanel>
 

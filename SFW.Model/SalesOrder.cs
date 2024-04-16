@@ -16,6 +16,7 @@ namespace SFW.Model
         public string PartNumber { get; set; }
         public string CustomerNumber { get; set; }
         public string CustomerName { get; set; }
+        public string FullCustomerName { get; set; }
         public string CustomerPart { get; set; }
         public int LineNumber { get; set; }
         public int LineTotalNumber { get; set; }
@@ -64,13 +65,13 @@ namespace SFW.Model
         /// Will create a new SalesOrder Object based on a DataRow from any DataTable Object
         /// </summary>
         /// <param name="dRow">DataRow with the item array values for the sales order</param>
-        /// <param name="sqlCon">Sql Connection to use</param>
         public SalesOrder(DataRow dRow)
         {
             SalesNumber = dRow.Field<string>("SoNbr");
             PartNumber = dRow.Field<string>("PartNbr");
             CustomerNumber = dRow.Field<string>("CustNbr");
             CustomerName = dRow.Field<string>("CustName");
+            FullCustomerName = dRow.Field<string>("FullCustName");
             CustomerPart = dRow.Field<string>("CustPartNbr");
             LineNumber = dRow.Field<int>("LineNbr");
             LineTotalNumber = GetLineCount(SalesNumber, LineNumber);
@@ -104,6 +105,57 @@ namespace SFW.Model
             Facility = dRow.Field<int>("Site");
         }
 
+        /// <summary>
+        /// Sales Order Object constructor
+        /// Will create a new SalesOrder Object based on sales order ID as string
+        /// </summary>
+        /// <param name="salesOrder">Sales order ID as string</param>
+        public SalesOrder(string soID)
+        {
+            var _rows = MasterDataSet.Tables["SalesMaster"].Select($"[ID] = '{soID}'");
+            if (_rows.Length > 0)
+            {
+                var _row = _rows.FirstOrDefault();
+                SalesNumber = _row.Field<string>("SoNbr");
+                PartNumber = _row.Field<string>("PartNbr");
+                CustomerNumber = _row.Field<string>("CustNbr");
+                CustomerName = _row.Field<string>("CustName");
+                FullCustomerName = _row.Field<string>("FullCustName");
+                CustomerPart = _row.Field<string>("CustPartNbr");
+                LineNumber = _row.Field<int>("LineNbr");
+                LineTotalNumber = GetLineCount(SalesNumber, LineNumber);
+                LineBalQuantity = _row.Field<int>("BalQty");
+                LineBaseQuantity = _row.Field<int>("BaseQty");
+                LineDesc = _row.Field<string>("Description");
+                LoadPattern = _row.Field<string>("LoadPattern").ToUpper() == "PLASTIC";
+                InternalComments = GetNotes(SalesNumber, 'C');
+                SpecialInstructions = GetNotes(SalesNumber, 'I');
+                IsExpedited = _row.Field<int>("IsExpedited") > 0;
+                ShipName = _row.Field<string>("ShipName");
+                ShipAddress = new string[2];
+                ShipAddress[0] = _row.Field<string>("ShipAddr1");
+                ShipAddress[1] = _row.Field<string>("ShipAddr2");
+                ShipCity = _row.Field<string>("ShipCity");
+                ShipState = _row.Field<string>("ShipState");
+                ShipZip = _row.Field<string>("ShipZip");
+                ShipCountry = _row.Field<string>("ShipCountry");
+                CommitDate = _row.Field<DateTime>("ShipDate");
+                RequestDate = _row.Field<DateTime>("ReqDate");
+                DeliveryDate = _row.Field<DateTime>("DelDate");
+                CreditStatus = _row.Field<string>("CredStatus");
+                CreditApprover = _row.Field<string>("CredApprover");
+                CreditDate = _row.Field<DateTime>("CredDate") == new DateTime(1999, 01, 01) ? DateTime.MinValue : _row.Field<DateTime>("CredDate");
+                CreditLimit = _row.Field<int>("AR_Limit");
+                CreditBalance = _row.Field<decimal>("AR_Bal");
+                CreditShippedBalance = _row.Field<decimal>("AR_SBal");
+                CreditAllocatedBalance = _row.Field<decimal>("AR_ABal");
+                CurrentCreditLimit = _row.Field<decimal>("AR_Credit");
+                OrderBalance = _row.Field<decimal>("AR_OrdBal");
+                Facility = _row.Field<int>("Site");
+                LoadPattern = _row.Field<string>("LoadPattern").ToUpper() == "PLASTIC";
+            }
+        }
+
         #region Data Access
 
         /// <summary>
@@ -131,7 +183,11 @@ SELECT
 	,ISNULL(sod.[D_esc] ,(SELECT im.[Description] FROM [dbo].[IM-INIT] im WHERE (im.[Part_Number] = sod.[Part_Wo_Gl]))) as 'Description'
 	,soh.[Cust_Nbr] as 'CustNbr'
 	,cm.[Name] as 'CustName'
-	,CONCAT(CONCAT(CONCAT((SELECT cm2.[Name] FROM [dbo].[CM-INIT] cm2 WHERE cm2.[Cust_Nbr] = soh.[Cust_Nbr]), ' ('), soh.[Cust_Nbr]), ')') as 'FullCustName'
+	,CASE WHEN soh.[Ship_To_Addr1] LIKE '%M1' AND soh.[Ship_To_Name] LIKE 'MacDon%'
+		THEN CONCAT(CONCAT(CONCAT((SELECT cm2.[Name] FROM [dbo].[CM-INIT] cm2 WHERE cm2.[Cust_Nbr] = soh.[Cust_Nbr]), ' ('), soh.[Cust_Nbr]), ') M1')
+		WHEN soh.[Ship_To_Addr1] LIKE '%S1' AND soh.[Ship_To_Name] LIKE 'MacDon%'
+		THEN CONCAT(CONCAT(CONCAT((SELECT cm2.[Name] FROM [dbo].[CM-INIT] cm2 WHERE cm2.[Cust_Nbr] = soh.[Cust_Nbr]), ' ('), soh.[Cust_Nbr]), ') S1')
+		ELSE CONCAT(CONCAT(CONCAT((SELECT cm2.[Name] FROM [dbo].[CM-INIT] cm2 WHERE cm2.[Cust_Nbr] = soh.[Cust_Nbr]), ' ('), soh.[Cust_Nbr]), ')') END as 'FullCustName'
 	,ISNULL(sod.[Cust_Part_Nbr], '') as 'CustPartNbr'
 	,RTRIM(soh.[Credit_Code]) as 'CredStatus'
 	,ISNULL(soh.[Credit_Chk], '') as 'CredApprover'

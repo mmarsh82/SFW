@@ -40,8 +40,8 @@ namespace SFW.Model
         public static DataTable GetScheduleData(IReadOnlyDictionary<string, int> machOrder, SqlConnection sqlCon)
         {
             var _conString = @"SELECT
-	wc.Wc_Nbr AS MachineNumber,
-	wc.Name AS MachineName
+	wc.Wc_Nbr AS MachineNumber
+	,wc.Name AS MachineName
 	,wc.D_esc AS MachineDesc
 	,wc.Work_Ctr_Group AS MachineGroup
 	,0 AS MachineOrder
@@ -78,9 +78,6 @@ namespace SFW.Model
 	,im.Description AS SkuDesc
 	,im.Um AS SkuUom
 	,im.Drawing_Nbrs AS SkuMasterPrint
-	,cm.Cust_Nbr
-	,cm.Name AS Cust_Name
-	,ISNULL(cm.Load_Pattern, '') AS LoadPattern
 	,ISNULL(CASE WHEN (SELECT aa.[Ord_Type] FROM [dbo].[SOH-INIT] aa WHERE aa.[So_Nbr] = SUBSTRING(wp.[So_Reference], 0, CHARINDEX('*', wp.[So_Reference], 0))) = 'DAI' THEN 'A' WHEN wp.[Wo_Type] = 'R'
 		THEN 'B'
 		ELSE wp.[Mgt_Priority_Code]
@@ -98,8 +95,6 @@ LEFT JOIN
 	dbo.[WP-INIT] AS wp ON wp.Wp_Nbr = SUBSTRING(wpo.ID, 0, CHARINDEX('*', wpo.ID, 0))
 LEFT JOIN
 	dbo.[IM-INIT] AS im ON im.Part_Number = wp.Part_Wo_Desc
-LEFT JOIN
-	dbo.[CM-INIT] AS cm ON cm.Cust_Nbr = CASE WHEN CHARINDEX('*', wp.[Cust_Nbr], 0) > 0 THEN SUBSTRING(wp.[Cust_Nbr], 0, CHARINDEX('*', wp.[Cust_Nbr], 0)) ELSE wp.[Cust_Nbr] END
 WHERE
 	(wc.D_esc <> 'DO NOT USE') AND (wpo.Alt_Seq_Status IS NULL) AND (wp.Status_Flag = 'C' OR wp.Status_Flag = 'A' OR wp.Status_Flag = 'R') AND im.[Part_Number] IS NOT NULL
 ORDER BY

@@ -84,17 +84,7 @@ namespace SFW.Model
                     : false;
                 if (!string.IsNullOrEmpty(_row.Field<string>("WO_SalesRef")))
                 {
-                    var _so = _row.Field<string>("WO_SalesRef").Split('*');
-                    SalesOrder = new SalesOrder
-                    {
-                        SalesNumber = _so[0],
-                        CustomerName = _row.Field<string>("Cust_Name"),
-                        CustomerNumber = _row.Field<string>("Cust_Nbr"),
-                        CustomerPart = _row.Field<string>("Cust_Part_Nbr"),
-                        LineNumber = Convert.ToInt32(_so[1]),
-                        LineBalQuantity = _row.Field<int>("Ln_Bal_Qty"),
-                        LoadPattern = _row.Field<string>("LoadPattern").ToUpper() == "PLASTIC"
-                    };
+                    SalesOrder = new SalesOrder(_row.Field<string>("WO_SalesRef"));
                 }
                 else
                 {
@@ -143,17 +133,7 @@ namespace SFW.Model
                     : false;
                 if (!string.IsNullOrEmpty(dRow.Field<string>("WO_SalesRef")))
                 {
-                    var _so = dRow.Field<string>("WO_SalesRef").Split('*');
-                    SalesOrder = new SalesOrder
-                    {
-                        SalesNumber = _so[0],
-                        CustomerName = dRow.Field<string>("Cust_Name"),
-                        CustomerNumber = dRow.Field<string>("Cust_Nbr"),
-                        CustomerPart = dRow.Field<string>("Cust_Part_Nbr"),
-                        LineNumber = Convert.ToInt32(_so[1]),
-                        LineBalQuantity = dRow.Field<int>("Ln_Bal_Qty"),
-                        LoadPattern = dRow.Field<string>("LoadPattern").ToUpper() == "PLASTIC"
-                     };
+                    SalesOrder = new SalesOrder(dRow.Field<string>("WO_SalesRef"));
                 }
                 else
                 {
