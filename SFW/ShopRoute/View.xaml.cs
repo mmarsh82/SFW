@@ -21,6 +21,7 @@ namespace SFW.ShopRoute
 
         private void Deviation_Drop(object sender, DragEventArgs e)
         {
+            //TODO: move this to command execution with the _woNbr being the passed parameter object
             try
             {
                 var _oldPath = ((string[])e.Data.GetData(DataFormats.FileDrop))[0];

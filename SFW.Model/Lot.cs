@@ -207,7 +207,7 @@ namespace SFW.Model
                 try
                 {
                     var _qirNbr = 0;
-                    using (SqlCommand cmd = new SqlCommand(@"USE OMNI; SELECT [QIRNumber] FROM [qir_metrics_view] WHERE LotNumber=@p1;", sqlCon))
+                    using (SqlCommand cmd = new SqlCommand(@"USE OMNI; SELECT [QIRNumber] FROM [qir_metrics_view] WHERE LotNumber=@p1 AND [Status] <> 'Closed';", sqlCon))
                     {
                         cmd.Parameters.AddWithValue("p1", lotNbr);
                         _qirNbr = Convert.ToInt32(cmd.ExecuteScalar());
