@@ -271,11 +271,12 @@ namespace SFW.Model
         public static string GetDiamondNumber(string lotNbr, int site)
         {
             var _item = MasterDataSet.Tables["LOT"].Select($"[LotID] = '{lotNbr}'").FirstOrDefault();
-            if (Sku.GetType(_item.Field<string>("SkuID"), site) == "RR")
+            var _type = Sku.GetType(_item.Field<string>("SkuID"), site);
+            if (_type == "RR")
             {
                 return lotNbr;
             }
-            else if (Sku.GetType(_item.Field<string>("SkuID"), site) == "FR")
+            else if (_type == "FR" || _type == "MT")
             {
                 return string.Empty;
             }
