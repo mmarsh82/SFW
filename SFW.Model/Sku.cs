@@ -4,6 +4,7 @@ using System.Data;
 using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
+using System.Security.Policy;
 using System.Text.RegularExpressions;
 
 //Created by Michael Marsh 4-19-18
@@ -52,9 +53,10 @@ namespace SFW.Model
         /// <summary>
         /// Load a datatable with all the sku information
         /// </summary>
+        /// <param name="site">Facility to load</param>
         /// <param name="sqlCon">Sql Connection to use</param>
         /// <returns>A table of Sku information</returns>
-        public static DataTable GetSkuTable (SqlConnection sqlCon)
+        public static DataTable GetSkuTable (int site, SqlConnection sqlCon)
         {
             using (DataTable _dt = new DataTable())
             {
@@ -62,8 +64,9 @@ namespace SFW.Model
                 {
                     try
                     {
-                        using (SqlDataAdapter adapter = new SqlDataAdapter($@"USE {sqlCon.Database}; SELECT * FROM [dbo].[SFW_Products]", sqlCon))
+                        using (SqlDataAdapter adapter = new SqlDataAdapter($@"USE {sqlCon.Database}; SELECT * FROM [dbo].[SFW_Products] WHERE [Site] = @p1", sqlCon))
                         {
+                            adapter.SelectCommand.Parameters.AddWithValue("p1", site);
                             adapter.Fill(_dt);
                         }
                         return _dt;
@@ -122,9 +125,10 @@ namespace SFW.Model
         /// <summary>
         /// Load a datatable with all the location information
         /// </summary>
+        /// <param name="site">Facility to load</param>
         /// <param name="sqlCon">Sql Connection to use</param>
         /// <returns>A table of location information</returns>
-        public static DataTable GetLocationTable(SqlConnection sqlCon)
+        public static DataTable GetLocationTable(int site, SqlConnection sqlCon)
         {
             using (DataTable _dt = new DataTable())
             {
@@ -134,6 +138,7 @@ namespace SFW.Model
                     {
                         using (SqlDataAdapter adapter = new SqlDataAdapter($@"USE {sqlCon.Database}; SELECT * FROM [dbo].[SFW_Locations]", sqlCon))
                         {
+                            adapter.SelectCommand.Parameters.AddWithValue("p1", site);
                             adapter.Fill(_dt);
                         }
                         return _dt;
@@ -157,9 +162,10 @@ namespace SFW.Model
         /// <summary>
         /// Load a datatable with all the structure information
         /// </summary>
+        /// <param name="site">Facility to load</param>
         /// <param name="sqlCon">Sql Connection to use</param>
         /// <returns>A table of structure information</returns>
-        public static DataTable GetStructureTable(SqlConnection sqlCon)
+        public static DataTable GetStructureTable(int site, SqlConnection sqlCon)
         {
             using (DataTable _dt = new DataTable())
             {
@@ -167,8 +173,9 @@ namespace SFW.Model
                 {
                     try
                     {
-                        using (SqlDataAdapter adapter = new SqlDataAdapter($@"USE {sqlCon.Database}; SELECT * FROM [dbo].[SFW_ProductStructure]", sqlCon))
+                        using (SqlDataAdapter adapter = new SqlDataAdapter($@"USE {sqlCon.Database}; SELECT * FROM [dbo].[SFW_ProductStructure] WHERE [Site] = @p1", sqlCon))
                         {
+                            adapter.SelectCommand.Parameters.AddWithValue("p1", site);
                             adapter.Fill(_dt);
                         }
                         return _dt;

@@ -59,9 +59,10 @@ namespace SFW.Model
         /// <summary>
         /// Get a table of all BOM's for every SKU on file
         /// </summary>
+        /// <param name="site">Facility to load</param>
         /// <param name="sqlCon">Sql Connection to use</param>
         /// <returns>DataTable of bill of materials</returns>
-        public static DataTable GetComponentBomTable(SqlConnection sqlCon)
+        public static DataTable GetComponentBomTable(int site, SqlConnection sqlCon)
         {
             using (var _tempTable = new DataTable())
             {
@@ -69,8 +70,9 @@ namespace SFW.Model
                 {
                     try
                     {
-                        using (SqlDataAdapter adapter = new SqlDataAdapter($@"USE {sqlCon.Database}; SELECT * FROM [dbo].[SFW_BOM]", sqlCon))
+                        using (SqlDataAdapter adapter = new SqlDataAdapter($@"USE {sqlCon.Database}; SELECT * FROM [dbo].[SFW_BOM] WHERE [Site] = @p1", sqlCon))
                         {
+                            adapter.SelectCommand.Parameters.Add("p1", SqlDbType.Int).Value = site;
                             adapter.Fill(_tempTable);
                             return _tempTable;
                         }
@@ -94,9 +96,10 @@ namespace SFW.Model
         /// <summary>
         /// Get a table of all pick lists for every SKU on file
         /// </summary>
+        /// <param name="site">Facility to load</param>
         /// <param name="sqlCon">Sql Connection to use</param>
         /// <returns>DataTable of pick lists</returns>
-        public static DataTable GetComponentPickTable(SqlConnection sqlCon)
+        public static DataTable GetComponentPickTable(int site, SqlConnection sqlCon)
         {
             using (var _tempTable = new DataTable())
             {
@@ -104,8 +107,9 @@ namespace SFW.Model
                 {
                     try
                     {
-                        using (SqlDataAdapter adapter = new SqlDataAdapter($@"USE {sqlCon.Database}; SELECT * FROM [dbo].[SFW_PickList]", sqlCon))
+                        using (SqlDataAdapter adapter = new SqlDataAdapter($@"USE {sqlCon.Database}; SELECT * FROM [dbo].[SFW_PickList] WHERE [Site] = @p1", sqlCon))
                         {
+                            adapter.SelectCommand.Parameters.Add("p1", SqlDbType.Int).Value = site;
                             adapter.Fill(_tempTable);
                             return _tempTable;
                         }

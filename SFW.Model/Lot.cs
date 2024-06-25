@@ -83,9 +83,10 @@ namespace SFW.Model
         /// <summary>
         /// Get a DataTable of all sku objects with onhand values
         /// </summary>
+        /// <param name="site">Facility to load</param>
         /// <param name="sqlCon">Sql Connection to use</param>
         /// <returns>DataTable of all onhand values</returns>
-        public static DataTable GetLotTable(SqlConnection sqlCon)
+        public static DataTable GetLotTable(int site, SqlConnection sqlCon)
         {
             if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
             {
@@ -95,6 +96,7 @@ namespace SFW.Model
                     {
                         using (SqlDataAdapter adapter = new SqlDataAdapter($@"USE {sqlCon.Database}; SELECT * FROM [dbo].[SFW_Lot]", sqlCon))
                         {
+                            adapter.SelectCommand.Parameters.Add("p1", SqlDbType.Int).Value = site;
                             adapter.Fill(_dt);
                             return _dt;
                         }

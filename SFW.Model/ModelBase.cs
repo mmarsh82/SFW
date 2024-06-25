@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Data.SqlClient;
+using System.Security.Policy;
 
 //Created by Michael Marsh 4-19-18
 
@@ -66,8 +67,9 @@ namespace SFW.Model
         /// </summary>
         /// <param name="machOrder"></param>
         /// <param name="site"></param>
+        /// <param name="seeSales"></param>
         /// <param name="sqlCon"></param>
-        public static IReadOnlyDictionary<bool, string> BuildMasterDataSet(IReadOnlyDictionary<string, int> machOrder, string site, SqlConnection sqlCon)
+        public static IReadOnlyDictionary<bool, string> BuildMasterDataSet(IReadOnlyDictionary<string, int> machOrder, int site, SqlConnection sqlCon)
         {
             ModelSqlCon = sqlCon;
             var _rtnDict = new Dictionary<bool, string>();
@@ -77,50 +79,60 @@ namespace SFW.Model
                 {
                     _tempDS.DataSetName = $"{site}DataSet";
 
-                    _tempDS.Tables.Add(Machine.GetScheduleData(machOrder, ModelSqlCon));
+                    //Load the Schedule Master table
+                    _tempDS.Tables.Add(Machine.GetScheduleData(machOrder, site, ModelSqlCon));
                     _tempDS.Tables[_tempDS.Tables.Count - 1].TableName = "Master";
 
-                    _tempDS.Tables.Add(SalesOrder.GetScheduleData(ModelSqlCon));
-                    _tempDS.Tables[_tempDS.Tables.Count - 1].TableName = "SalesMaster";
-
-                    _tempDS.Tables.Add(Tool.GetTools(ModelSqlCon));
-                    _tempDS.Tables[_tempDS.Tables.Count - 1].TableName = "TL";
-
-                    _tempDS.Tables.Add(Component.GetComponentBomTable(ModelSqlCon));
-                    _tempDS.Tables[_tempDS.Tables.Count - 1].TableName = "BOM";
-
-                    _tempDS.Tables.Add(Component.GetComponentPickTable(ModelSqlCon));
-                    _tempDS.Tables[_tempDS.Tables.Count - 1].TableName = "PL";
-
-                    _tempDS.Tables.Add(WorkOrder.GetNotesTable(ModelSqlCon));
-                    _tempDS.Tables[_tempDS.Tables.Count - 1].TableName = "WoNotes";
-
-                    _tempDS.Tables.Add(Sku.GetInstructions(ModelSqlCon));
+                    //Loading Diamond number and tooling for Wahpeton site
+                    if (site == 1)
+                    {
+                        _tempDS.Tables.Add(Lot.GetDiamondTable(ModelSqlCon));
+                        _tempDS.Tables.Add(Tool.GetTools(ModelSqlCon));
+                        _tempDS.Tables.Add(Sku.GetInstructions(ModelSqlCon));
+                    }
+                    else
+                    {
+                        _tempDS.Tables.Add();
+                        _tempDS.Tables.Add();
+                        _tempDS.Tables.Add();
+                    }
+                    _tempDS.Tables[_tempDS.Tables.Count - 3].TableName = "Diamond";
+                    _tempDS.Tables[_tempDS.Tables.Count - 2].TableName = "TL";
                     _tempDS.Tables[_tempDS.Tables.Count - 1].TableName = "WI";
 
-                    _tempDS.Tables.Add(Lot.GetLotTable(ModelSqlCon));
+
+                    _tempDS.Tables.Add(Component.GetComponentBomTable(site, ModelSqlCon));
+                    _tempDS.Tables[_tempDS.Tables.Count - 1].TableName = "BOM";
+
+                    _tempDS.Tables.Add(Component.GetComponentPickTable(site, ModelSqlCon));
+                    _tempDS.Tables[_tempDS.Tables.Count - 1].TableName = "PL";
+
+                    _tempDS.Tables.Add(WorkOrder.GetNotesTable(site, ModelSqlCon));
+                    _tempDS.Tables[_tempDS.Tables.Count - 1].TableName = "WoNotes";
+
+                    _tempDS.Tables.Add(Lot.GetLotTable(site, ModelSqlCon));
                     _tempDS.Tables[_tempDS.Tables.Count - 1].TableName = "LOT";
+
+                    _tempDS.Tables.Add(Machine.GetMachineTable(site, ModelSqlCon));
+                    _tempDS.Tables[_tempDS.Tables.Count - 1].TableName = "WC";
+
+                    _tempDS.Tables.Add(Sku.GetSkuTable(site, ModelSqlCon));
+                    _tempDS.Tables[_tempDS.Tables.Count - 1].TableName = "SKU";
+
+                    _tempDS.Tables.Add(Sku.GetLocationTable(site, ModelSqlCon));
+                    _tempDS.Tables[_tempDS.Tables.Count - 1].TableName = "LOC";
+
+                    _tempDS.Tables.Add(CrewMember.GetCrewTable(site, ModelSqlCon));
+                    _tempDS.Tables[_tempDS.Tables.Count - 1].TableName = "CREW";
+
+                    _tempDS.Tables.Add(Sku.GetStructureTable(site, ModelSqlCon));
+                    _tempDS.Tables[_tempDS.Tables.Count - 1].TableName = "PS";
 
                     _tempDS.Tables.Add(SalesOrder.GetNotesTable(ModelSqlCon));
                     _tempDS.Tables[_tempDS.Tables.Count - 1].TableName = "SoNotes";
 
-                    _tempDS.Tables.Add(Machine.GetMachineTable(ModelSqlCon));
-                    _tempDS.Tables[_tempDS.Tables.Count - 1].TableName = "WC";
-
-                    _tempDS.Tables.Add(Sku.GetSkuTable(ModelSqlCon));
-                    _tempDS.Tables[_tempDS.Tables.Count - 1].TableName = "SKU";
-
-                    _tempDS.Tables.Add(Sku.GetLocationTable(ModelSqlCon));
-                    _tempDS.Tables[_tempDS.Tables.Count - 1].TableName = "LOC";
-
-                    _tempDS.Tables.Add(CrewMember.GetCrewTable(ModelSqlCon));
-                    _tempDS.Tables[_tempDS.Tables.Count - 1].TableName = "CREW";
-
-                    _tempDS.Tables.Add(Lot.GetDiamondTable(ModelSqlCon));
-                    _tempDS.Tables[_tempDS.Tables.Count - 1].TableName = "Diamond";
-
-                    _tempDS.Tables.Add(Sku.GetStructureTable(ModelSqlCon));
-                    _tempDS.Tables[_tempDS.Tables.Count - 1].TableName = "PS";
+                    _tempDS.Tables.Add(SalesOrder.GetScheduleData(site, ModelSqlCon));
+                    _tempDS.Tables[_tempDS.Tables.Count - 1].TableName = "SalesMaster";
 
                     MasterDataSet = _tempDS;
                 }
@@ -165,13 +177,37 @@ namespace SFW.Model
         /// </summary>
         /// <param name="dataSet"></param>
         /// <param name="table"></param>
-        public static void RefreshTable(this DataSet dataSet, Tables table)
+        public static void RefreshTable(this DataSet dataSet, Tables table, int site)
         {
             var _dt = new DataTable();
             switch (table)
             {
+                case Tables.BOM:
+                    _dt = Component.GetComponentBomTable(site, ModelBase.ModelSqlCon);
+                    break;
+                case Tables.CREW:
+                    _dt = CrewMember.GetCrewTable(site, ModelBase.ModelSqlCon);
+                    break;
+                case Tables.LOC:
+                    _dt = Sku.GetLocationTable(site, ModelBase.ModelSqlCon);
+                    break;
                 case Tables.LOT:
-                    _dt = Lot.GetLotTable(ModelBase.ModelSqlCon);
+                    _dt = Lot.GetLotTable(site, ModelBase.ModelSqlCon);
+                    break;
+                case Tables.Master:
+                    _dt = Machine.GetScheduleData(null, site, ModelBase.ModelSqlCon);
+                    break;
+                case Tables.PL:
+                    _dt = Component.GetComponentPickTable(site, ModelBase.ModelSqlCon);
+                    break;
+                case Tables.SalesMaster:
+                    _dt = ModelBase.ModelSqlCon.Database.Contains("WCCO") ? SalesOrder.GetScheduleData(site, ModelBase.ModelSqlCon) : new DataTable();
+                    break;
+                case Tables.SKU:
+                    _dt = Sku.GetSkuTable(site, ModelBase.ModelSqlCon);
+                    break;
+                case Tables.SoNotes:
+                    _dt = SalesOrder.GetNotesTable(ModelBase.ModelSqlCon);
                     break;
             }
             dataSet.Tables[table.ToString()].Clear();
@@ -183,7 +219,7 @@ namespace SFW.Model
         /// </summary>
         /// <param name="dataSet"></param>
         /// <param name="machOrder"></param>
-        public static void Refresh(this DataSet dataSet, IReadOnlyDictionary<string, int> machOrder)
+        public static void Refresh(this DataSet dataSet, IReadOnlyDictionary<string, int> machOrder, int site)
         {
             foreach (DataTable _table in dataSet.Tables)
             {
@@ -192,28 +228,28 @@ namespace SFW.Model
                 switch (_tName)
                 {
                     case Tables.BOM:
-                        _dt = Component.GetComponentBomTable(ModelBase.ModelSqlCon);
+                        _dt = Component.GetComponentBomTable(site, ModelBase.ModelSqlCon);
                         break;
                     case Tables.CREW:
-                        _dt = CrewMember.GetCrewTable(ModelBase.ModelSqlCon);
+                        _dt = CrewMember.GetCrewTable(site, ModelBase.ModelSqlCon);
                         break;
                     case Tables.LOC:
-                        _dt = Sku.GetLocationTable(ModelBase.ModelSqlCon);
+                        _dt = Sku.GetLocationTable(site, ModelBase.ModelSqlCon);
                         break;
                     case Tables.LOT:
-                        _dt = Lot.GetLotTable(ModelBase.ModelSqlCon);
+                        _dt = Lot.GetLotTable(site, ModelBase.ModelSqlCon);
                         break;
                     case Tables.Master:
-                        _dt = Machine.GetScheduleData(machOrder, ModelBase.ModelSqlCon);
+                        _dt = Machine.GetScheduleData(machOrder, site, ModelBase.ModelSqlCon);
                         break;
                     case Tables.PL:
-                        _dt = Component.GetComponentPickTable(ModelBase.ModelSqlCon);
+                        _dt = Component.GetComponentPickTable(site, ModelBase.ModelSqlCon);
                         break;
                     case Tables.SalesMaster:
-                        _dt = ModelBase.ModelSqlCon.Database.Contains("WCCO") ? SalesOrder.GetScheduleData(ModelBase.ModelSqlCon) : new DataTable();
+                        _dt = ModelBase.ModelSqlCon.Database.Contains("WCCO") ? SalesOrder.GetScheduleData(site, ModelBase.ModelSqlCon) : new DataTable();
                         break;
                     case Tables.SKU:
-                        _dt = Sku.GetSkuTable(ModelBase.ModelSqlCon);
+                        _dt = Sku.GetSkuTable(site, ModelBase.ModelSqlCon);
                         break;
                     case Tables.SoNotes:
                         _dt = SalesOrder.GetNotesTable(ModelBase.ModelSqlCon);

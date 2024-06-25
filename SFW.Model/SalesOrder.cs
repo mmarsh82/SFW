@@ -161,9 +161,10 @@ namespace SFW.Model
         /// <summary>
         /// Retrieve a DataTable with all the data relevent to a schedule
         /// </summary>
+        /// <param name="site">Facility to load</param>
         /// <param name="sqlCon">Sql Connection to use</param>
         /// <returns>DataTable with the schedule data results</returns>
-        public static DataTable GetScheduleData(SqlConnection sqlCon)
+        public static DataTable GetScheduleData(int site, SqlConnection sqlCon)
         {
             using (var _tempTable = new DataTable())
             {
@@ -227,9 +228,6 @@ SELECT
 		THEN 1
 		ELSE 0 END as 'HasStock'
 	,CAST(sod.[Facility_Code] AS int) as 'Site'
-	,CASE WHEN (SELECT COUNT(wp.[Wp_Nbr]) FROM [dbo].[WP-INIT] wp WHERE wp.[So_Reference] = sod.[ID]) > 0
-		THEN 1
-		ELSE 0 END as 'IsWOLinked'
 FROM
 	dbo.[SOH-INIT] AS soh
 LEFT JOIN
@@ -241,10 +239,11 @@ LEFT JOIN
 LEFT JOIN
 	dbo.[SFW_SalesDemand] ssd on ssd.[ProductID] = sod.[Part_Wo_Gl]
 WHERE
-	soh.[Order_Status] IS NULL AND sod.[Comp] = 'O' AND sod.[Part_Wo_Gl] IS NOT NULL AND ISNULL(sod.[D_esc] ,(SELECT im.[Description] FROM [dbo].[IM-INIT] im WHERE (im.[Part_Number] = sod.[Part_Wo_Gl]))) NOT LIKE '%PALLET%'
+	soh.[Order_Status] IS NULL AND sod.[Comp] = 'O' AND sod.[Part_Wo_Gl] IS NOT NULL AND ISNULL(sod.[D_esc] ,(SELECT im.[Description] FROM [dbo].[IM-INIT] im WHERE (im.[Part_Number] = sod.[Part_Wo_Gl]))) NOT LIKE '%PALLET%' AND sod.[Facility_Code] = @p1
 ORDER BY
 	soh.[Commit_Ship_Date], sod.[ID] ASC", sqlCon))
                         {
+                            adapter.SelectCommand.Parameters.AddWithValue("p1", site);
                             adapter.Fill(_tempTable);
                             return _tempTable.AsEnumerable()
                                 .GroupBy(r => r.Field<string>("ID"))

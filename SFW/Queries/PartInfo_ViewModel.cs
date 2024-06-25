@@ -308,7 +308,7 @@ namespace SFW.Queries
             if (parameter != null && parameter.ToString() == "r")
             {
                 UserInput = UseLot ? _lot : Part.SkuNumber;
-                ModelBase.MasterDataSet.RefreshTable(Tables.LOT);
+                ModelBase.MasterDataSet.RefreshTable(Tables.LOT, App.SiteNumber);
             }
             NoLotResults = false;
             NoHistoryResults = false;

@@ -148,7 +148,7 @@ namespace SFW
                     ,{ 2, "" }
                 };
                 SplashMessage = "Getting your schedule ready.  This may take a few moments.";
-                var _load = Model.ModelBase.BuildMasterDataSet(UserConfig.GetIROD(), Site, AppSqlCon);
+                var _load = Model.ModelBase.BuildMasterDataSet(UserConfig.GetIROD(), SiteNumber, AppSqlCon);
                 if (_load.ContainsKey(true))
                 {
                     var _msg = _load.TryGetValue(true, out string s) ? s : string.Empty;

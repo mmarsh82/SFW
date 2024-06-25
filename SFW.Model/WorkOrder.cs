@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
+using System.Security.Policy;
 
 //Created by Michael Marsh 4-19-18
 
@@ -155,9 +156,10 @@ namespace SFW.Model
         /// <summary>
         /// Get work order note's table
         /// </summary>
+        /// <param name="site">Facility to load</param>
         /// <param name="sqlCon">Sql Connection to use</param>
         /// <returns>All work order notes in a datatable</returns>
-        public static DataTable GetNotesTable(SqlConnection sqlCon)
+        public static DataTable GetNotesTable(int site, SqlConnection sqlCon)
         {
             using (var _tempTable = new DataTable())
             {
@@ -165,8 +167,9 @@ namespace SFW.Model
                 {
                     try
                     {
-                        using (SqlDataAdapter adapter = new SqlDataAdapter($"USE {sqlCon.Database}; SELECT * FROM [dbo].[SFW_Notes]", sqlCon))
+                        using (SqlDataAdapter adapter = new SqlDataAdapter($"USE {sqlCon.Database}; SELECT * FROM [dbo].[SFW_Notes] WHERE [Site] = @p1", sqlCon))
                         {
+                            adapter.SelectCommand.Parameters.AddWithValue("p1", site);
                             adapter.Fill(_tempTable);
                             return _tempTable;
                         }

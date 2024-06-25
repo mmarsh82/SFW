@@ -5,6 +5,7 @@ using System.Data;
 using System.Data.SqlClient;
 using System.DirectoryServices.AccountManagement;
 using System.Linq;
+using System.Security.Policy;
 
 namespace SFW.Model
 {
@@ -180,9 +181,10 @@ namespace SFW.Model
         /// <summary>
         /// Get a table of all BOM's for every SKU on file
         /// </summary>
+        /// <param name="site">Facility to load</param>
         /// <param name="sqlCon">Sql Connection to use</param>
         /// <returns>DataTable of bill of materials</returns>
-        public static DataTable GetCrewTable(SqlConnection sqlCon)
+        public static DataTable GetCrewTable(int site, SqlConnection sqlCon)
         {
             using (var _tempTable = new DataTable())
             {
@@ -190,8 +192,9 @@ namespace SFW.Model
                 {
                     try
                     {
-                        using (SqlDataAdapter adapter = new SqlDataAdapter($@"USE {sqlCon.Database}; SELECT * FROM [dbo].[SFW_Staff]", sqlCon))
+                        using (SqlDataAdapter adapter = new SqlDataAdapter($@"USE {sqlCon.Database}; SELECT * FROM [dbo].[SFW_Staff] WHERE [Site] = @p1", sqlCon))
                         {
+                            adapter.SelectCommand.Parameters.AddWithValue("p1", site);
                             adapter.Fill(_tempTable);
                             return _tempTable;
                         }

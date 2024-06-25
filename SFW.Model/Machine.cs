@@ -35,9 +35,10 @@ namespace SFW.Model
         /// Retrieve a DataTable with all the data relevent to a schedule
         /// </summary>
         /// <param name="machOrder">Dictionary containing the order property for the machines, based on the user config</param>
+        /// <param name="site">Facility to load</param>
         /// <param name="sqlCon">Sql Connection to use</param>
         /// <returns>DataTable with the schedule data results</returns>
-        public static DataTable GetScheduleData(IReadOnlyDictionary<string, int> machOrder, SqlConnection sqlCon)
+        public static DataTable GetScheduleData(IReadOnlyDictionary<string, int> machOrder, int site, SqlConnection sqlCon)
         {
             var _conString = @"SELECT
 	wc.Wc_Nbr AS MachineNumber
@@ -46,7 +47,7 @@ namespace SFW.Model
 	,wc.Work_Ctr_Group AS MachineGroup
 	,0 AS MachineOrder
 	,wpo.ID AS WorkOrderID
-	,SUBSTRING(wpo.ID, 0, CHARINDEX('*', wpo.ID, 0)) AS WorkOrder
+	,wp.[Wp_Nbr] AS WorkOrder
 	,CASE WHEN SUBSTRING(wpo.[ID], CHARINDEX('*', wpo.[ID], 0) + 1, LEN(wpo.[ID])) <> '10' AND wpo.[Next_Seq] IS NULL AND wpo.[Prev_Seq] IS NULL
 		THEN '10'
 		ELSE SUBSTRING(wpo.[ID], CHARINDEX('*', wpo.[ID], 0) + 1, LEN(wpo.[ID]))
@@ -86,7 +87,7 @@ namespace SFW.Model
     ,ISNULL((SELECT ISNULL(Insp_Req, 'N') AS Expr1 FROM dbo.[RT-INIT] AS rt WHERE (ID = { fn CONCAT({ fn CONCAT(im.Part_Number, '*') }, SUBSTRING(wpo.ID, CHARINDEX('*', wpo.ID, 0) + 1, LEN(wpo.ID))) })), 'N') AS Inspection
 	,(SELECT Cust_Part_Nbr FROM dbo.[SOD-INIT] AS ac WHERE (ID = SUBSTRING(wp.So_Reference, 0, LEN(wp.So_Reference) - 1))) AS Cust_Part_Nbr
 	,CAST(ISNULL((SELECT Ln_Bal_Qty FROM dbo.[SOD-INIT] AS ad WHERE (ID = SUBSTRING(wp.So_Reference, 0, LEN(wp.So_Reference) - 1))), 0) AS int) AS Ln_Bal_Qty
-	,CAST(SUBSTRING(im.[Part_Number], CHARINDEX('|', im.[Part_Number], 0) +1, LEN(im.[Part_Number])) as int) as 'Site'
+	,CAST(wc.[Fac_Code] as int) as 'Site'
 FROM
 	dbo.[WC-INIT] AS wc
 LEFT JOIN
@@ -96,7 +97,7 @@ LEFT JOIN
 LEFT JOIN
 	dbo.[IM-INIT] AS im ON im.Part_Number = wp.Part_Wo_Desc
 WHERE
-	(wc.D_esc <> 'DO NOT USE') AND (wpo.Alt_Seq_Status IS NULL) AND (wp.Status_Flag = 'C' OR wp.Status_Flag = 'A' OR wp.Status_Flag = 'R') AND im.[Part_Number] IS NOT NULL
+	(wc.D_esc <> 'DO NOT USE') AND (wpo.Alt_Seq_Status IS NULL) AND (wp.Status_Flag = 'C' OR wp.Status_Flag = 'A' OR wp.Status_Flag = 'R') AND im.[Part_Number] IS NOT NULL AND wc.[Fac_Code] = @p1
 ORDER BY
 	MachineOrder, MachineNumber, WO_Priority, Sched_Shift, Sched_Priority, WO_SchedStartDate, WorkOrderID ASC";
 
@@ -108,6 +109,7 @@ ORDER BY
                 {
                     using (SqlDataAdapter adapter = new SqlDataAdapter($"USE {sqlCon.Database}; {_conString}", sqlCon))
                     {
+                        adapter.SelectCommand.Parameters.AddWithValue("p1", site);
                         adapter.Fill(_tempTable);
                         foreach (var _keyValPair in machOrder)
                         {
@@ -141,9 +143,10 @@ ORDER BY
         /// <summary>
         /// Get a table containing all of the Machines
         /// </summary>
+        /// <param name="site">Facility to load</param>
         /// <param name="sqlCon">Sql Connection to use</param>
         /// <returns></returns>
-        public static DataTable GetMachineTable(SqlConnection sqlCon)
+        public static DataTable GetMachineTable(int site, SqlConnection sqlCon)
         {
             using (var _tempTable = new DataTable())
             {
@@ -152,8 +155,9 @@ ORDER BY
                     var _selectCmd = string.Empty;
                     try
                     {
-                        using (SqlDataAdapter adapter = new SqlDataAdapter($"USE [{sqlCon.Database}]; SELECT * FROM [dbo].[SFW_Machine]", sqlCon))
+                        using (SqlDataAdapter adapter = new SqlDataAdapter($"USE [{sqlCon.Database}]; SELECT * FROM [dbo].[SFW_Machine] WHERE [Site] = @p1", sqlCon))
                         {
+                            adapter.SelectCommand.Parameters.AddWithValue("p1", site);
                             adapter.Fill(_tempTable);
                             return _tempTable;
                         }
@@ -186,7 +190,7 @@ ORDER BY
             {
                 try
                 {
-                    using (SqlCommand cmd = new SqlCommand($"USE [{sqlCon.Database}]; SELECT * FROM [dbo].[SFW_Machine]", sqlCon))
+                    using (SqlCommand cmd = new SqlCommand($"USE [{sqlCon.Database}]; SELECT * FROM [dbo].[SFW_Machine] WHERE [Site] = @p1", sqlCon))
                     {
                         using (SqlDataReader _reader = cmd.ExecuteReader())
                         {
