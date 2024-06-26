@@ -148,6 +148,10 @@ namespace SFW.Controls
                 ((UserControl)MainDock.Children[index]).DataContext = dataContext;
             }
             MainDock.Children[index].Visibility = Visibility.Visible;
+            if (index == 0)
+            {
+                ((PartInfo_View)MainDock.Children[index]).SearchTextBox.Focus();
+            }
             App.LoadedModule = Enum.TryParse(index.ToString(), out Enumerations.UsersControls eUC) ? eUC : Enumerations.UsersControls.Schedule;
             StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(Module)));
         }

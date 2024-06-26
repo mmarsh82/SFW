@@ -272,45 +272,52 @@ namespace SFW.Model
         /// <returns>Diamond number as string, or the error that was encountered</returns>
         public static string GetDiamondNumber(string lotNbr, int site)
         {
-            var _item = MasterDataSet.Tables["LOT"].Select($"[LotID] = '{lotNbr}'").FirstOrDefault();
-            var _type = Sku.GetType(_item.Field<string>("SkuID"), site);
-            if (_type == "RR")
+            try
             {
-                return lotNbr;
-            }
-            else if (_type == "FR" || _type == "MT")
-            {
-                return string.Empty;
-            }
-            var _search = $"[ParentLot] = '{lotNbr}'";
-            var _dList = MasterDataSet.Tables["Diamond"].Select(_search);
-            while (!string.IsNullOrEmpty(_search))
-            {
-                _dList = _dList == null ? MasterDataSet.Tables["Diamond"].Select(_search) : _dList;
-                if (_dList.Length > 0)
+                var _item = MasterDataSet.Tables["LOT"].Select($"[LotID] = '{lotNbr}'").FirstOrDefault();
+                var _type = Sku.GetType(_item.Field<string>("SkuID"), site);
+                if (_type == "RR")
                 {
-                    _search = string.Empty;
-                    foreach(var _row in _dList)
+                    return lotNbr;
+                }
+                else if (_type == "FR" || _type == "MT")
+                {
+                    return string.Empty;
+                }
+                var _search = $"[ParentLot] = '{lotNbr}'";
+                var _dList = MasterDataSet.Tables["Diamond"].Select(_search);
+                while (!string.IsNullOrEmpty(_search))
+                {
+                    _dList = _dList == null ? MasterDataSet.Tables["Diamond"].Select(_search) : _dList;
+                    if (_dList.Length > 0)
                     {
-                        if (_row.Field<string>("IsDiamond") == "Y")
+                        _search = string.Empty;
+                        foreach (var _row in _dList)
                         {
-                            return _row.Field<string>("ChildLot");
+                            if (_row.Field<string>("IsDiamond") == "Y")
+                            {
+                                return _row.Field<string>("ChildLot");
+                            }
+                            else
+                            {
+                                _search += string.IsNullOrEmpty(_search)
+                                    ? $"[ParentLot] = '{_row.Field<string>("ChildLot")}'"
+                                    : $" OR [ParentLot] = '{_row.Field<string>("ChildLot")}'";
+                            }
                         }
-                        else
-                        {
-                            _search += string.IsNullOrEmpty(_search)
-                                ? $"[ParentLot] = '{_row.Field<string>("ChildLot")}'"
-                                : $" OR [ParentLot] = '{_row.Field<string>("ChildLot")}'";
-                        }
+                        _dList = null;
                     }
-                    _dList = null;
+                    else
+                    {
+                        return "error";
+                    }
                 }
-                else
-                {
-                    return "error";
-                }
+                return "error";
             }
-            return "error";
+            catch
+            {
+                return "error";
+            }
         }
 
         /// <summary>

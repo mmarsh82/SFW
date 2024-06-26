@@ -116,7 +116,7 @@ namespace SFW.Model
                     _tempDS.Tables.Add(Machine.GetMachineTable(site, ModelSqlCon));
                     _tempDS.Tables[_tempDS.Tables.Count - 1].TableName = "WC";
 
-                    _tempDS.Tables.Add(Sku.GetSkuTable(site, ModelSqlCon));
+                    _tempDS.Tables.Add(Sku.GetSkuTable(ModelSqlCon));
                     _tempDS.Tables[_tempDS.Tables.Count - 1].TableName = "SKU";
 
                     _tempDS.Tables.Add(Sku.GetLocationTable(site, ModelSqlCon));
@@ -204,7 +204,7 @@ namespace SFW.Model
                     _dt = ModelBase.ModelSqlCon.Database.Contains("WCCO") ? SalesOrder.GetScheduleData(site, ModelBase.ModelSqlCon) : new DataTable();
                     break;
                 case Tables.SKU:
-                    _dt = Sku.GetSkuTable(site, ModelBase.ModelSqlCon);
+                    _dt = Sku.GetSkuTable(ModelBase.ModelSqlCon);
                     break;
                 case Tables.SoNotes:
                     _dt = SalesOrder.GetNotesTable(ModelBase.ModelSqlCon);
@@ -249,7 +249,7 @@ namespace SFW.Model
                         _dt = ModelBase.ModelSqlCon.Database.Contains("WCCO") ? SalesOrder.GetScheduleData(site, ModelBase.ModelSqlCon) : new DataTable();
                         break;
                     case Tables.SKU:
-                        _dt = Sku.GetSkuTable(site, ModelBase.ModelSqlCon);
+                        _dt = Sku.GetSkuTable(ModelBase.ModelSqlCon);
                         break;
                     case Tables.SoNotes:
                         _dt = SalesOrder.GetNotesTable(ModelBase.ModelSqlCon);
