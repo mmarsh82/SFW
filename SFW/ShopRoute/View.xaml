@@ -5,11 +5,18 @@
              xmlns:cmd="clr-namespace:SFW.Commands"
              xmlns:main="clr-namespace:SFW"
              x:Name="ShopRouteUserControl">
+
+    <UserControl.Resources>
+        <ContextMenu x:Key="rowMenu">
+            
+        </ContextMenu>
+    </UserControl.Resources>
+    
     <ScrollViewer x:Name="MainScroll" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" Margin="0,0,0,20" VerticalAlignment="Top">
         <Grid AllowDrop="{Binding Path=(main:CurrentUser.CanDeviate)}" Drop="Deviation_Drop">
 
             <!--#region Resources -->
-
+            
             <Grid.Resources>
                 <cvtr:StringToVisibility x:Key="StringToVisConverter"/>
                 <cvtr:CountToVisibility x:Key="CountToVisConverter"/>
@@ -814,6 +821,13 @@
                                             <DataGridTextColumn Header=" Location "
                                                                 Binding="{Binding Location}" />
                                         </DataGrid.Columns>
+
+                                        <DataGrid.RowStyle>
+                                            <Style TargetType="{x:Type DataGridRow}">
+                                                <Setter Property="ContextMenu" Value="{StaticResource rowMenu}"/>
+                                            </Style>
+                                        </DataGrid.RowStyle>
+                                        
                                     </DataGrid>
 
                                 </Grid>

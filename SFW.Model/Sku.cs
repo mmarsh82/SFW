@@ -63,7 +63,7 @@ namespace SFW.Model
                 {
                     try
                     {
-                        using (SqlDataAdapter adapter = new SqlDataAdapter($@"USE {sqlCon.Database}; SELECT * FROM [dbo].[SFW_Products] WHERE [Site] = @p1", sqlCon))
+                        using (SqlDataAdapter adapter = new SqlDataAdapter($@"USE {sqlCon.Database}; SELECT * FROM [dbo].[SFW_Products]", sqlCon))
                         {
                             adapter.Fill(_dt);
                         }

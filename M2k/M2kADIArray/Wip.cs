@@ -97,6 +97,12 @@ namespace M2kClient.M2kADIArray
         /// </summary>
         public List<Adjust> AdjustmentList { get; set; }
 
+        /// <summary>
+        /// R = Repair, S = Standard
+        /// Type of work order, not used for the inport but is nessesary for classification of what the import sends
+        /// </summary>
+        public char Type { get; set; }
+
         #endregion
 
         /// <summary>
@@ -117,7 +123,7 @@ namespace M2kClient.M2kADIArray
             FacilityCode = wipRecord.Facility;
             WorkOrderNbr = wipRecord.WipWorkOrder.OrderNumber;
             QtyReceived = wipRecord.ScrapList.Count(o => int.TryParse(o.Quantity, out int i) && i > 0) > 0
-                ? wipRecord.ScrapList.Sum(o => Convert.ToInt32(o.Quantity)) + Convert.ToInt32(wipRecord.WipQty) 
+                ? wipRecord.ScrapList.Sum(o => Convert.ToInt32(o.Quantity)) + Convert.ToInt32(wipRecord.WipQty)
                 : Convert.ToInt32(wipRecord.WipQty);
             QtyReceived += wipRecord.ReclaimList.Count(o => int.TryParse(o.Quantity, out int i) && i > 0) > 0
                 ? wipRecord.ReclaimList.Sum(o => Convert.ToInt32(o.Quantity))
@@ -132,6 +138,7 @@ namespace M2kClient.M2kADIArray
             Lot = wipRecord.WipLot.LotNumber;
             ComponentInfoList = new List<CompInfo>();
             AdjustmentList = new List<Adjust>();
+            Type = wipRecord.WipWorkOrder.TaskType.FirstOrDefault();
             foreach(var c in wipRecord.WipWorkOrder.Picklist.Where(o => o.IsLotTrace))
             {
                 var _backFlush = c.BackflushLoc;
@@ -182,7 +189,9 @@ namespace M2kClient.M2kADIArray
             //99~COMPLETE
             //Must meet this format in order to work with M2k
 
-            var _rValue = $"1~{TranType}~2~{StationId}~3~{TranTime}~4~{TranDate}~5~{FacilityCode}~6~{WorkOrderNbr}~7~{QtyReceived}~8~{CFlag}~9~{Operation}~14~{RcptLocation}";
+            var _rValue = Type == 'S'
+                ? $"1~{TranType}~2~{StationId}~3~{TranTime}~4~{TranDate}~5~{FacilityCode}~6~{WorkOrderNbr}~7~{QtyReceived}~8~{CFlag}~9~{Operation}~14~{RcptLocation}"
+                : $"1~{TranType}~2~{StationId}~3~{TranTime}~4~{TranDate}~5~{FacilityCode}~6~{WorkOrderNbr}~7~{QtyReceived}~8~{CFlag}~9~~14~{RcptLocation}";
             foreach (var disp in DisplayInfoList)
             {
                 _rValue += $"\n10~{disp.Code}~11~{disp.Reference}~12~{disp.Quantity}";
@@ -191,9 +200,12 @@ namespace M2kClient.M2kADIArray
             {
                 _rValue += $"\n15~{Lot.Trim()}|P|{FacilityCode}";
             }
-            foreach (var c in ComponentInfoList.Where(o => !string.IsNullOrEmpty(o.Lot)))
+            if (Type == 'S')
             {
-                _rValue += $"\n24~{c.Lot}|P|{FacilityCode}~26~{WorkOrderNbr}~25~{c.PartNbr}|{FacilityCode}~27~{c.Quantity}";
+                foreach (var c in ComponentInfoList.Where(o => !string.IsNullOrEmpty(o.Lot)))
+                {
+                    _rValue += $"\n24~{c.Lot}|P|{FacilityCode}~26~{WorkOrderNbr}~25~{c.PartNbr}|{FacilityCode}~27~{c.Quantity}";
+                }
             }
             _rValue += $"\n75~{RcptLocation}~99~COMPLETE";
 

@@ -70,6 +70,12 @@ namespace M2kClient.M2kADIArray
         /// </summary>
         public List<Transaction> TranList { get; set; }
 
+        /// <summary>
+        /// R = Repair, S = Standard
+        /// Type of work order, not used for the inport but is nessesary for classification of what the import sends
+        /// </summary>
+        public char Type { get; set; }
+
         #endregion
 
         /// <summary>
@@ -81,8 +87,9 @@ namespace M2kClient.M2kADIArray
         /// <param name="woNbr">Work Order Number</param>
         /// <param name="rsn">Issue reason</param>
         /// <param name="tranList">Transaction object list</param>
+        /// <param name="woType">Work order type</param>
         /// <param name="op">Optional: Operation also know as sequence number</param>
-        public Issue(string stationId, string facCode, string partNbr, string woNbr, string rsn, List<Transaction> tranList, string op = "")
+        public Issue(string stationId, string facCode, string partNbr, string woNbr, string rsn, List<Transaction> tranList, char woType, string op = "10")
         {
             StationId = stationId;
             FacilityCode = facCode;
@@ -91,6 +98,7 @@ namespace M2kClient.M2kADIArray
             Operation = op;
             Reason = rsn;
             TranList = tranList;
+            Type = woType;
         }
 
         /// <summary>
@@ -107,7 +115,7 @@ namespace M2kClient.M2kADIArray
             //13~Transaction Quantity~14~Location~15~Lot Number~99~COMPLETE
             //Must meet this format in order to work with M2k
 
-            var _rValue = !string.IsNullOrEmpty(Operation)
+            var _rValue = !string.IsNullOrEmpty(Operation) || Type != 'R'
                 ? $"1~{TranType}~2~{StationId}~3~{TranTime}~4~{TranDate}~5~{FacilityCode}~6~{PartNbr}|{FacilityCode}~7~{WorkOrderNbr}~8~{Operation}~10~{Reason}"
                 : $"1~{TranType}~2~{StationId}~3~{TranTime}~4~{TranDate}~5~{FacilityCode}~6~{PartNbr}|{FacilityCode}~7~{WorkOrderNbr}~10~{Reason}";
             foreach (var t in TranList)
