@@ -119,7 +119,7 @@ namespace SFW.Model
                 State = dRow.Field<string>("WO_Priority");
                 TaskType = dRow.Field<string>("WO_Type");
                 StartQty = dRow.Field<int>("WO_StartQty");
-                CurrentQty = Convert.ToInt32(dRow.Field<decimal>("WO_CurrentQty"));
+                CurrentQty = Convert.ToInt32(dRow.Field<int>("WO_CurrentQty"));
                 SchedStartDate = dRow.Field<DateTime>("WO_SchedStartDate");
                 ActStartDate = dRow.Field<DateTime>("WO_ActStartDate") != Convert.ToDateTime("1999-01-01") ? dRow.Field<DateTime>("WO_ActStartDate") : DateTime.MinValue;
                 DueDate = dRow.Field<DateTime>("WO_DueDate");

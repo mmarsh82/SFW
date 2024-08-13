@@ -53,9 +53,9 @@ namespace SFW.Model
 		ELSE SUBSTRING(wpo.[ID], CHARINDEX('*', wpo.[ID], 0) + 1, LEN(wpo.[ID]))
 	END AS Operation
 	,SUBSTRING(wpo.ID, CHARINDEX('*', wpo.ID, 0) + 1, LEN(wpo.ID)) AS Routing
-	,CASE WHEN wpo.Qty_Req - ISNULL(wpo.Qty_Compl, 0) <= 0
-		THEN 0
-		ELSE wpo.Qty_Req - ISNULL(wpo.Qty_Compl, 0) END AS WO_CurrentQty
+	,CAST(CASE WHEN (SELECT COUNT(wpci.[ID1]) FROM [dbo].[WP-INIT_Comp_Info] wpci WHERE wpci.[ID1] = wp.[Wp_Nbr]) = 0
+		THEN wp.[Qty_To_Start]
+		ELSE wp.[Qty_To_Start] - (SELECT SUM(CAST(wpci.[Qty_Comp] as int)) FROM [dbo].[WP-INIT_Comp_Info] wpci WHERE wpci.[ID1] = wp.[Wp_Nbr]) END AS int) AS WO_CurrentQty
 	,ISNULL(wpo.Date_Start, '1999-01-01') AS WO_SchedStartDate
 	,ISNULL(wpo.Date_Act_Start, '1999-01-01') AS WO_ActStartDate
 	,ISNULL(wpo.Due_Date, ISNULL(wpo.Date_Start, '1999-01-01')) AS WO_DueDate

@@ -671,37 +671,32 @@ namespace M2kClient
                     {
                         if (string.IsNullOrEmpty(tranDate))
                         {
-                            if (shift == 3)
+                            if ((shift == 3 && DateTime.Now.TimeOfDay < TimeSpan.Parse("21:00")) || (shift == 5 && DateTime.Now.TimeOfDay < TimeSpan.Parse("14:00")))
                             {
-                                if (DateTime.TryParse(time, out DateTime dt))
-                                {
-                                    if (dt.TimeOfDay > new TimeSpan(19, 00, 00) && dt.TimeOfDay < new TimeSpan(23, 59, 59))
-                                    {
-                                        if (DateTime.Now.TimeOfDay > new TimeSpan(19,00,00) && DateTime.Now.TimeOfDay < new TimeSpan(23,59,59))
-                                        {
-                                            tranDate = DateTime.Now.ToString("MM-dd-yyyy");
-                                        }
-                                        else
-                                        {
-                                            tranDate = DateTime.Now.AddDays(-1).ToString("MM-dd-yyyy");
-                                        }
-                                    }
-                                    else
-                                    {
-                                        tranDate = DateTime.Now.ToString("MM-dd-yyyy");
-                                    }
-                                }
+                                tranDate = DateTime.Today.AddDays(-1).ToString("MM-dd-yyyy");
                             }
                             else
                             {
-                                tranDate = DateTime.Now.ToString("MM-dd-yyyy");
+                                tranDate = DateTime.Today.ToString("MM-dd-yyyy");
                             }
                         }
+                        if ((shift == 3 && TimeSpan.Parse(time) < TimeSpan.Parse("21:00")) || (shift == 5 && TimeSpan.Parse(time) < TimeSpan.Parse("14:00")))
+                        {
+                            var _timeSplit = time.Split(':');
+                            var _hour = int.Parse(_timeSplit[0]) + 24;
+                            time = $"{_hour}:{_timeSplit[1]}";
+                        }           
                         var _inDL = new DirectLabor(stationId, empID, 'I', time, _wSplit[0], _wSplit[1], 0, 0, machID, CompletionFlag.N, facCode, crew, tranDate);
 
                         //posting the clock out time for DateTime.Now
 
                         time = DateTime.Now.ToString("HH:mm");
+                        if ((shift == 3 && TimeSpan.Parse(time) < TimeSpan.Parse("21:00")) || (shift == 5 && TimeSpan.Parse(time) < TimeSpan.Parse("14:00")))
+                        {
+                            var _timeSplit = time.Split(':');
+                            var _hour = int.Parse(_timeSplit[0]) + 24;
+                            time = $"{_hour}:{_timeSplit[1]}";
+                        }
                         var _outDL = crew > 0
                             ? new DirectLabor(stationId, empID, 'O', time, _wSplit[0], _wSplit[1], qtyComp, 0, machID, CompletionFlag.N, facCode, crew)
                             : new DirectLabor(stationId, empID, 'O', time, _wSplit[0], _wSplit[1], qtyComp, 0, machID, CompletionFlag.N, facCode);
@@ -709,6 +704,12 @@ namespace M2kClient
                     }
                     else
                     {
+                        if ((shift == 3 && TimeSpan.Parse(time) < TimeSpan.Parse("21:00")) || (shift == 5 && TimeSpan.Parse(time) < TimeSpan.Parse("14:00")))
+                        {
+                            var _timeSplit = time.Split(':');
+                            var _hour = int.Parse(_timeSplit[0]) + 24;
+                            time = $"{_hour}:{_timeSplit[1]}";
+                        }
                         var _tempDL = crew > 0
                             ? new DirectLabor(stationId, empID, clockTranType, time, _wSplit[0], _wSplit[1], qtyComp, 0, machID, CompletionFlag.N, facCode, crew)
                             : new DirectLabor(stationId, empID, clockTranType, time, _wSplit[0], _wSplit[1], qtyComp, 0, machID, CompletionFlag.N, facCode);

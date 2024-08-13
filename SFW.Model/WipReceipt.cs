@@ -313,13 +313,12 @@ namespace SFW.Model
         /// <summary>
         /// Wip Receipt Constructor
         /// </summary>
-        /// <param name="userId">Currently logged in user ID</param>
         /// <param name="subFName">Currently logged in user First Name</param>
         /// <param name="subLName">Currently logged in user Last Name</param>
         /// <param name="facCode">Currently logged in user facility code</param>
         /// <param name="workOrder">Work order object to process</param>
         /// <param name="erpCon">ERP connection</param>
-        public WipReceipt(string userId, string subFName, string subLName, int facCode, WorkOrder workOrder, string[] erpCon)
+        public WipReceipt(string subFName, string subLName, int facCode, WorkOrder workOrder, string[] erpCon)
         {
             if (ErpCon == null)
             {
@@ -327,7 +326,6 @@ namespace SFW.Model
             }
             Submitter = $"{subFName} {subLName}";
             Facility = $"0{facCode}";
-            var _crewID = "";
             SeqComplete = Complete.N;
             WipLot = new Lot();
             WipWorkOrder = workOrder;
@@ -336,9 +334,9 @@ namespace SFW.Model
             if (HasCrew)
             {
                 CrewList = new BindingList<CrewMember>();
-                CrewList.ListChanged += CrewList_ListChanged;
                 CrewList.AddNew();
-                CrewList[0].IdNumber = _crewID;
+                CrewList.ListChanged += CrewList_ListChanged;
+                CrewList[0].IdNumber = CrewMember.GetCrewID(subFName, subLName);
             }
             IsLotTracable = Sku.IsLotTracable(workOrder.SkuNumber);
             IsScrap = Complete.N;
@@ -367,12 +365,12 @@ namespace SFW.Model
                     ((BindingList<CrewMember>)sender)[e.NewIndex].Facility = _tempCrew.Facility;
                     ((BindingList<CrewMember>)sender)[e.NewIndex].ClockTran = _tempCrew.ClockTran;
                     ((BindingList<CrewMember>)sender)[e.NewIndex].IsDirect = _tempCrew.IsDirect;
-                    ((BindingList<CrewMember>)sender)[e.NewIndex].LastClock = _tempCrew.LastClock;
                     ((BindingList<CrewMember>)sender)[e.NewIndex].Name = _tempCrew.Name;
                     ((BindingList<CrewMember>)sender)[e.NewIndex].OutTime = _tempCrew.OutTime;
                     ((BindingList<CrewMember>)sender)[e.NewIndex].Shift = _tempCrew.Shift;
                     ((BindingList<CrewMember>)sender)[e.NewIndex].ShiftEnd = _tempCrew.ShiftEnd;
                     ((BindingList<CrewMember>)sender)[e.NewIndex].ShiftStart = _tempCrew.ShiftStart;
+                    ((BindingList<CrewMember>)sender)[e.NewIndex].LastClock = _tempCrew.LastClock;
                     if (((BindingList<CrewMember>)sender).Count() == ((BindingList<CrewMember>)sender).Count(o => !string.IsNullOrEmpty(o.Name)))
                     {
                         ((BindingList<CrewMember>)sender).AddNew();
@@ -386,6 +384,7 @@ namespace SFW.Model
                     ((BindingList<CrewMember>)sender)[e.NewIndex].Shift = 0;
                     ((BindingList<CrewMember>)sender)[e.NewIndex].Facility = null;
                     ((BindingList<CrewMember>)sender)[e.NewIndex].LastClock = null;
+                    ((BindingList<CrewMember>)sender)[e.NewIndex].ErrorMessage = string.Empty;
                 }
             }
         }

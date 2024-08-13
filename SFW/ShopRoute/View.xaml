@@ -183,8 +183,7 @@
                                FontWeight="Bold"
                                Margin="10,0,0,0" />
 
-                    <TextBlock Text="PLASTIC PALLET"
-                               Visibility="{Binding ShopOrder.SalesOrder.LoadPattern, Converter={StaticResource BoolToVisConverter}}"
+                    <TextBlock Text="{Binding ShopOrder.SalesOrder.LoadPattern}"
                                Foreground="Crimson"
                                FontSize="32"
                                FontWeight="Bold"

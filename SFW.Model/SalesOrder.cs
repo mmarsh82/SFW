@@ -24,7 +24,7 @@ namespace SFW.Model
         public int LineBalQuantity { get; set; }
         public string LineDesc { get; set; }
         public string LineNotes { get; set; }
-        public bool LoadPattern { get; set; }
+        public string LoadPattern { get; set; }
         public string InternalComments { get; set; }
         public string SpecialInstructions { get; set; }
         public bool IsExpedited { get; set; }
@@ -78,7 +78,7 @@ namespace SFW.Model
             LineBalQuantity = dRow.Field<int>("BalQty");
             LineBaseQuantity = dRow.Field<int>("BaseQty");
             LineDesc = dRow.Field<string>("Description");
-            LoadPattern = dRow.Field<string>("LoadPattern").ToUpper() == "PLASTIC";
+            LoadPattern = dRow.Field<string>("LoadPattern").ToUpper();
             InternalComments = GetNotes(SalesNumber, 'C');
             SpecialInstructions = GetNotes(SalesNumber, 'I');
             IsExpedited = dRow.Field<int>("IsExpedited") > 0;
@@ -127,7 +127,7 @@ namespace SFW.Model
                 LineBalQuantity = _row.Field<int>("BalQty");
                 LineBaseQuantity = _row.Field<int>("BaseQty");
                 LineDesc = _row.Field<string>("Description");
-                LoadPattern = _row.Field<string>("LoadPattern").ToUpper() == "PLASTIC";
+                LoadPattern = _row.Field<string>("LoadPattern").ToUpper();
                 InternalComments = GetNotes(SalesNumber, 'C');
                 SpecialInstructions = GetNotes(SalesNumber, 'I');
                 IsExpedited = _row.Field<int>("IsExpedited") > 0;
@@ -152,7 +152,6 @@ namespace SFW.Model
                 CurrentCreditLimit = _row.Field<decimal>("AR_Credit");
                 OrderBalance = _row.Field<decimal>("AR_OrdBal");
                 Facility = _row.Field<int>("Site");
-                LoadPattern = _row.Field<string>("LoadPattern").ToUpper() == "PLASTIC";
             }
         }
 

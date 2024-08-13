@@ -89,7 +89,7 @@ namespace M2kClient.M2kADIArray
         /// <param name="tranList">Transaction object list</param>
         /// <param name="woType">Work order type</param>
         /// <param name="op">Optional: Operation also know as sequence number</param>
-        public Issue(string stationId, string facCode, string partNbr, string woNbr, string rsn, List<Transaction> tranList, char woType, string op = "10")
+        public Issue(string stationId, string facCode, string partNbr, string woNbr, string rsn, List<Transaction> tranList, char woType, string op = "")
         {
             StationId = stationId;
             FacilityCode = facCode;

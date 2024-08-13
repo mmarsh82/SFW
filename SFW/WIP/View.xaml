@@ -600,6 +600,18 @@
                                     </TextBox.Visibility>
                                 </TextBox>
 
+                                <TextBlock Text="{Binding ErrorMessage}"
+                                           VerticalAlignment="Center"
+                                           Margin="5,0,0,0"
+                                           Foreground="Crimson">
+                                    <TextBlock.Visibility>
+                                        <MultiBinding Converter="{StaticResource CrewtoVisConverter}">
+                                            <Binding Path="IsDirect" />
+                                            <Binding Path="Name" />
+                                        </MultiBinding>
+                                    </TextBlock.Visibility>
+                                </TextBlock>
+
                                 <Button Command="{Binding DataContext.RemoveCrewICommand, ElementName=Wip_Window}"
                                         CommandParameter="{Binding IdNumber}"
                                         Visibility="{Binding IdNumber, Converter={StaticResource StringtoVisConverter}}"

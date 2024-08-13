@@ -49,7 +49,7 @@ namespace SFW.Labor
         {
             RefreshTimer.Stop();
             var erpCon = new string[5] { App.ErpCon.HostName, App.ErpCon.UserName, App.ErpCon.Password, App.ErpCon.UniAccount, App.ErpCon.UniService };
-            WipRecord = new WipReceipt(CurrentUser.UserIDNbr, CurrentUser.FirstName, CurrentUser.LastName, App.SiteNumber, woObject, erpCon);
+            WipRecord = new WipReceipt(CurrentUser.FirstName, CurrentUser.LastName, App.SiteNumber, woObject, erpCon);
         }
 
         #region Submit ICommand
