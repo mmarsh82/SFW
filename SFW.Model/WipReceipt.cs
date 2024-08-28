@@ -371,6 +371,7 @@ namespace SFW.Model
                     ((BindingList<CrewMember>)sender)[e.NewIndex].ShiftEnd = _tempCrew.ShiftEnd;
                     ((BindingList<CrewMember>)sender)[e.NewIndex].ShiftStart = _tempCrew.ShiftStart;
                     ((BindingList<CrewMember>)sender)[e.NewIndex].LastClock = _tempCrew.LastClock;
+                    ((BindingList<CrewMember>)sender)[e.NewIndex].ErrorMessage = _tempCrew.ErrorMessage;
                     if (((BindingList<CrewMember>)sender).Count() == ((BindingList<CrewMember>)sender).Count(o => !string.IsNullOrEmpty(o.Name)))
                     {
                         ((BindingList<CrewMember>)sender).AddNew();

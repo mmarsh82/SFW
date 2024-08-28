@@ -160,7 +160,11 @@
                           Visibility="{Binding Path=(local:CurrentUser.CanSchedule), Converter={StaticResource BoolToVisConverter}}"
                           Command="{StaticResource ShowWindowICommand}"
                           CommandParameter="SFW.Tools.PriorityList_View"/>
-                
+                <MenuItem Header="Crew Management"
+                          Visibility="{Binding Path=(local:CurrentUser.IsSupervisor), Converter={StaticResource BoolToVisConverter}}"
+                          Command="{StaticResource ShowWindowICommand}"
+                          CommandParameter="SFW.Tools.CrewList_View"/>
+
 
             </MenuItem>
             <MenuItem Header="Help"

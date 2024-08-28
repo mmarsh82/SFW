@@ -105,22 +105,26 @@ namespace SFW.Model
                                 if (DateTime.Now < dt && (Shift != 3 || Shift != 5))
                                 {
                                     _time = string.Empty;
+                                    ErrorMessage = "Must manually enter time.";
                                 }
                             }
                             else
                             {
                                 _time = string.Empty;
+                                ErrorMessage = "Must manually enter time.";
                             }
                             _lastClock = value = _time;
                             _clockLoaded = true;
                         }
                         OnPropertyChanged(nameof(LastClock));
+                        OnPropertyChanged(nameof(ErrorMessage));
                     });
                 }
                 else
                 {
                     _lastClock = value;
                     OnPropertyChanged(nameof(LastClock));
+                    OnPropertyChanged(nameof(ErrorMessage));
                 }
             }
         }
@@ -160,9 +164,9 @@ namespace SFW.Model
                 ShiftStart = _rows.FirstOrDefault().Field<string>("ShiftStart");
                 ShiftEnd = _rows.FirstOrDefault().Field<string>("ShiftEnd");
                 Facility = $"0{_rows.FirstOrDefault().Field<int>("Site")}";
-                LastClock = string.Empty;
                 OutTime = DateTime.Now.ToString("HH:mm");
                 ErrorMessage = string.Empty;
+                _clockLoaded = false;
             }
         }
 
@@ -250,7 +254,7 @@ namespace SFW.Model
         /// <returns>Crew member existance in the database</returns>
         public static string GetCrewID(string firstName, string lastName)
         {
-            return MasterDataSet.Tables["CREW"].Select($"[FirstName] = '{firstName}' AND [LastName] = '{lastName}'").FirstOrDefault().SafeGetField<string>("EmployeeID");
+            return MasterDataSet.Tables["CREW"].Select($"[FirstName] = '{firstName}' AND [LastName] LIKE '{lastName}%'").FirstOrDefault().SafeGetField<string>("EmployeeID");
         }
 
         /// <summary>

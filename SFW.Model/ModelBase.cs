@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Data.SqlClient;
-using System.Security.Policy;
 
 //Created by Michael Marsh 4-19-18
 
@@ -166,6 +165,26 @@ namespace SFW.Model
             catch (Exception)
             {
                 return 0;
+            }
+        }
+
+        /// <summary>
+        /// Get the SFW application version
+        /// </summary>
+        /// <param name="sqlCon">Open SqlConnection to use</param>
+        /// <returns>Application version as string</returns>
+        public static string GetVersion(SqlConnection sqlCon)
+        {
+            try
+            {
+                using (SqlCommand cmd = new SqlCommand($"SELECT * FROM SFW_Version", sqlCon))
+                {
+                    return cmd.ExecuteScalar().ToString();
+                }
+            }
+            catch (Exception)
+            {
+                return null;
             }
         }
     }
@@ -337,13 +356,20 @@ namespace SFW.Model
         /// <param name="colName">Name of the column to get the value of</param>
         public static T SafeGetField<T>(this DataRow dRow, string colName)
         {
-            if (dRow[colName] == DBNull.Value)
+            try
+            {
+                if (dRow[colName] == DBNull.Value)
+                {
+                    return default;
+                }
+                else
+                {
+                    return dRow.Field<T>(colName);
+                }
+            }
+            catch
             {
                 return default;
-            }
-            else
-            {
-                return dRow.Field<T>(colName);
             }
         }
 

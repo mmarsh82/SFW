@@ -29,8 +29,8 @@
     <ProductName>Shop Floor Workbench</ProductName>
     <PublisherName>Michael Marsh</PublisherName>
     <SuiteName>ContiTech</SuiteName>
-    <ApplicationRevision>191</ApplicationRevision>
-    <ApplicationVersion>2.0.37.191</ApplicationVersion>
+    <ApplicationRevision>230</ApplicationRevision>
+    <ApplicationVersion>2.0.39.230</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <CreateDesktopShortcut>true</CreateDesktopShortcut>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -220,6 +220,10 @@
     </Compile>
     <Compile Include="ShopRoute\QTask\ViewModel.cs" />
     <Compile Include="Styles\Converters\RequiredWidthCutoff.cs" />
+    <Compile Include="Tools\CrewList_View.xaml.cs">
+      <DependentUpon>CrewList_View.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Tools\CrewList_ViewModel.cs" />
     <Compile Include="Tools\DiamondEntry_View.xaml.cs">
       <DependentUpon>DiamondEntry_View.xaml</DependentUpon>
     </Compile>
@@ -423,6 +427,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Styles\TextBox.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Tools\CrewList_View.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

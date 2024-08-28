@@ -575,7 +575,7 @@ namespace M2kClient
                     var _wipQty = wipRecord.IsMulti ? Convert.ToInt32(wipRecord.WipQty * wipRecord.RollQty) : Convert.ToInt32(wipRecord.WipQty);
                     foreach (var c in wipRecord.CrewList.Where(o => !string.IsNullOrEmpty(o.Name) && o.IsDirect))
                     {
-                        var _pl = PostLabor("SFW WIP", c.IdNumber, c.Shift, $"{wipRecord.WipWorkOrder.OrderNumber}*{wipRecord.WipWorkOrder.Routing}", _wipQty, machID, ' ', wipRecord.Facility, connection, c.LastClock, _crew);
+                        var _pl = PostLabor("SFW WIP", c.IdNumber, c.Shift, wipRecord.WipWorkOrder.OrderNumber, wipRecord.WipWorkOrder.Routing, _wipQty, machID, ' ', wipRecord.Facility, connection, c.LastClock, _crew);
                         if (_pl.Any(o => o.Key == 1))
                         {
                             System.Windows.MessageBox.Show($"Unable to process Labor\nPlease contact IT immediately!\n\n{_pl[1]}", "M2k Labor file error", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
@@ -643,7 +643,8 @@ namespace M2kClient
         /// <param name="stationId">Station ID</param>
         /// <param name="empID">Employee ID</param>
         /// <param name="shift">Employee Shift, used to calc third shift labor varience</param>
-        /// <param name="woAndSeq">Work order and sequence seporated by a '*'</param>
+        /// <param name="workOrder">Work order number</param>
+        /// <param name="seq">Work order sequence</param>
         /// <param name="qtyComp">Quantity completed for this transaction</param>
         /// <param name="machID">Machine ID that will receive the labor posting</param>
         /// <param name="clockTranType">Clock transaction type, when passed will need to be formated as 'I' or 'O', by leaving this parameter blank will cause the method to calculate labor</param>
@@ -653,71 +654,63 @@ namespace M2kClient
         /// <param name="crew">Optional: Crew size, only needs to be passed when the crewsize listed in the ERP is smaller or larger that the amount of crew members posting labor to the work order</param>
         /// <param name="tranDate">Optional: Date of transaction</param>
         /// <returns>Error number and error description, when returned as 0 and a empty string the transaction posted with no errors</returns>
-        public static IReadOnlyDictionary<int, string> PostLabor(string stationId, string empID, int shift, string woAndSeq, int qtyComp, string machID, char clockTranType, string facCode, M2kConnection connection, string time = "", int crew = 0, string tranDate = "")
+        public static IReadOnlyDictionary<int, string> PostLabor(string stationId, string empID, int shift, string workOrder, string seq, int qtyComp, string machID, char clockTranType, string facCode, M2kConnection connection, string time = "", int crew = 0, string tranDate = "")
         {
             var _subResult = new Dictionary<int, string>();
             try
             {
                 var suffix = DateTime.Now.ToString($"ssffff");
-                if (!woAndSeq.Contains('*'))
+                if (string.IsNullOrEmpty(tranDate))
                 {
-                    _subResult.Add(1, "Work order or sequence is not in the correct format to pass into M2k.");
-                    return _subResult;
-                }
-                else
-                {
-                    var _wSplit = woAndSeq.Split('*');
-                    if (char.IsWhiteSpace(clockTranType))
+                    if ((shift == 3 && DateTime.Now.TimeOfDay < TimeSpan.Parse("21:00")) || (shift == 5 && DateTime.Now.TimeOfDay < TimeSpan.Parse("14:00")))
                     {
-                        if (string.IsNullOrEmpty(tranDate))
-                        {
-                            if ((shift == 3 && DateTime.Now.TimeOfDay < TimeSpan.Parse("21:00")) || (shift == 5 && DateTime.Now.TimeOfDay < TimeSpan.Parse("14:00")))
-                            {
-                                tranDate = DateTime.Today.AddDays(-1).ToString("MM-dd-yyyy");
-                            }
-                            else
-                            {
-                                tranDate = DateTime.Today.ToString("MM-dd-yyyy");
-                            }
-                        }
-                        if ((shift == 3 && TimeSpan.Parse(time) < TimeSpan.Parse("21:00")) || (shift == 5 && TimeSpan.Parse(time) < TimeSpan.Parse("14:00")))
-                        {
-                            var _timeSplit = time.Split(':');
-                            var _hour = int.Parse(_timeSplit[0]) + 24;
-                            time = $"{_hour}:{_timeSplit[1]}";
-                        }           
-                        var _inDL = new DirectLabor(stationId, empID, 'I', time, _wSplit[0], _wSplit[1], 0, 0, machID, CompletionFlag.N, facCode, crew, tranDate);
-
-                        //posting the clock out time for DateTime.Now
-
-                        time = DateTime.Now.ToString("HH:mm");
-                        if ((shift == 3 && TimeSpan.Parse(time) < TimeSpan.Parse("21:00")) || (shift == 5 && TimeSpan.Parse(time) < TimeSpan.Parse("14:00")))
-                        {
-                            var _timeSplit = time.Split(':');
-                            var _hour = int.Parse(_timeSplit[0]) + 24;
-                            time = $"{_hour}:{_timeSplit[1]}";
-                        }
-                        var _outDL = crew > 0
-                            ? new DirectLabor(stationId, empID, 'O', time, _wSplit[0], _wSplit[1], qtyComp, 0, machID, CompletionFlag.N, facCode, crew)
-                            : new DirectLabor(stationId, empID, 'O', time, _wSplit[0], _wSplit[1], qtyComp, 0, machID, CompletionFlag.N, facCode);
-                        File.WriteAllText($"{connection.SFDCFolder}LB{connection.AdiServer}.DAT{suffix}{empID}", $"{_inDL.ToString()}\n\n{_outDL.ToString()}");
+                        tranDate = DateTime.Today.AddDays(-1).ToString("MM-dd-yyyy");
                     }
                     else
                     {
-                        if ((shift == 3 && TimeSpan.Parse(time) < TimeSpan.Parse("21:00")) || (shift == 5 && TimeSpan.Parse(time) < TimeSpan.Parse("14:00")))
-                        {
-                            var _timeSplit = time.Split(':');
-                            var _hour = int.Parse(_timeSplit[0]) + 24;
-                            time = $"{_hour}:{_timeSplit[1]}";
-                        }
-                        var _tempDL = crew > 0
-                            ? new DirectLabor(stationId, empID, clockTranType, time, _wSplit[0], _wSplit[1], qtyComp, 0, machID, CompletionFlag.N, facCode, crew)
-                            : new DirectLabor(stationId, empID, clockTranType, time, _wSplit[0], _wSplit[1], qtyComp, 0, machID, CompletionFlag.N, facCode);
-                        File.WriteAllText($"{connection.SFDCFolder}LB{connection.AdiServer}.DAT{suffix}{empID}", _tempDL.ToString());
+                        tranDate = DateTime.Today.ToString("MM-dd-yyyy");
                     }
-                    _subResult.Add(0, string.Empty);
-                    return _subResult;
                 }
+                if (char.IsWhiteSpace(clockTranType))
+                {
+                    if ((shift == 3 && TimeSpan.Parse(time) < TimeSpan.Parse("21:00")) || (shift == 5 && TimeSpan.Parse(time) < TimeSpan.Parse("14:00")))
+                    {
+                        var _timeSplit = time.Split(':');
+                        var _hour = int.Parse(_timeSplit[0]) + 24;
+                        time = $"{_hour}:{_timeSplit[1]}";
+                    }
+                    var _inDL = new DirectLabor(stationId, empID, 'I', time, workOrder, seq, 0, 0, machID, CompletionFlag.N, facCode, crew, tranDate);
+
+                    //posting the clock out time for DateTime.Now
+
+                    time = DateTime.Now.ToString("HH:mm");
+                    if ((shift == 3 && TimeSpan.Parse(time) < TimeSpan.Parse("21:00")) || (shift == 5 && TimeSpan.Parse(time) < TimeSpan.Parse("14:00")))
+                    {
+                        var _timeSplit = time.Split(':');
+                        var _hour = int.Parse(_timeSplit[0]) + 24;
+                        time = $"{_hour}:{_timeSplit[1]}";
+                    }
+                    var _outDL = crew > 0
+                        ? new DirectLabor(stationId, empID, 'O', time, workOrder, seq, qtyComp, 0, machID, CompletionFlag.N, facCode, crew, tranDate)
+                        : new DirectLabor(stationId, empID, 'O', time, workOrder, seq, qtyComp, 0, machID, CompletionFlag.N, facCode, 0, tranDate);
+                    File.WriteAllText($"{connection.SFDCFolder}LB{connection.AdiServer}.DAT{suffix}{empID}", $"{_inDL}\n\n{_outDL}");
+                }
+                else
+                {
+                    //Manual labor entry
+                    if ((shift == 3 && TimeSpan.Parse(time) < TimeSpan.Parse("21:00")) || (shift == 5 && TimeSpan.Parse(time) < TimeSpan.Parse("14:00")))
+                    {
+                        var _timeSplit = time.Split(':');
+                        var _hour = int.Parse(_timeSplit[0]) + 24;
+                        time = $"{_hour}:{_timeSplit[1]}";
+                    }
+                    var _tempDL = crew > 0
+                        ? new DirectLabor(stationId, empID, clockTranType, time, workOrder, seq, qtyComp, 0, machID, CompletionFlag.N, facCode, crew, tranDate)
+                        : new DirectLabor(stationId, empID, clockTranType, time, workOrder, seq, qtyComp, 0, machID, CompletionFlag.N, facCode, 0, tranDate);
+                    File.WriteAllText($"{connection.SFDCFolder}LB{connection.AdiServer}.DAT{suffix}{empID}", _tempDL.ToString());
+                }
+                _subResult.Add(0, string.Empty);
+                return _subResult;
             }
             catch (Exception ex)
             {

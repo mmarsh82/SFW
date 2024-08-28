@@ -181,14 +181,9 @@ namespace SFW
             try
             {
                 var _ver = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
-                var _dirList = Directory.GetDirectories($"{App.AppFilePath}Application Files\\");
-                foreach (var d in _dirList)
+                if (_ver != new Version(ModelBase.GetVersion(App.AppSqlCon)))
                 {
-                    if (_ver < new Version(Path.GetFileName(d).Remove(0, 4).Replace('_', '.')))
-                    {
-                        CanUpdate = true;
-                        break;
-                    }
+                    CanUpdate = true;
                 }
             }
             catch (Exception ex)
