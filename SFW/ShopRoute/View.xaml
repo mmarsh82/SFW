@@ -34,6 +34,7 @@
                 <cmd:M2kWipReceipt x:Key="WipCommand" />
                 <cmd:M2kLabor x:Key="LaborCommand" />
                 <cmd:WorkInstructions x:Key="WorkInstICommand" />
+                <cmd:M2kLookQuery x:Key="LookQueryCommand" />
                 <main:CurrentUser x:Key="User" />
             </Grid.Resources>
 
@@ -734,6 +735,22 @@
                                                                 BorderThickness="0"
                                                                 Style="{DynamicResource DefaultButton}">
                                                             <Image Source="/SFW;component/Icons/Search.ico" />
+                                                        </Button>
+                                                        <Button Name="ACT"
+                                                                Command="{StaticResource LookQueryCommand}"
+                                                                Height="20"
+                                                                Width="40"
+                                                                Background="Transparent"
+                                                                BorderThickness="0"
+                                                                Visibility="Collapsed"
+                                                                Style="{DynamicResource DefaultButton}">
+                                                            <Image Source="/SFW;component/Icons/Help.ico" />
+                                                            <Button.CommandParameter>
+                                                                <MultiBinding Converter="{StaticResource MultiValConverter}">
+                                                                    <Binding Path="Name" RelativeSource="{RelativeSource Self}"/>
+                                                                    <Binding Path="CompNumber"/>
+                                                                </MultiBinding>
+                                                            </Button.CommandParameter>
                                                         </Button>
                                                         <TextBlock Text="{Binding CompNumber}"
                                                                    Margin="20,0,5,0"/>

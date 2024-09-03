@@ -3,6 +3,7 @@
              xmlns:cvtr="clr-namespace:SFW.Converters"
              xmlns:cmd="clr-namespace:SFW.Commands"
              xmlns:local="clr-namespace:SFW.Queries"
+             xmlns:applocal="clr-namespace:SFW"
              xmlns:base="clr-namespace:SFW"
              x:Class="SFW.Queries.PartInfo_View">
     <ScrollViewer HorizontalScrollBarVisibility="Auto"
@@ -233,6 +234,7 @@
                 <Button Content="Unplanned Move"
                         Width="120"
                         Margin="3"
+                        Visibility="{Binding Path=(applocal:CurrentUser.IsLoggedIn), Converter={StaticResource BoolToVisConverter}}"
                         IsEnabled="{Binding Path=(base:App.AppLock), Converter={StaticResource InvertBoolConverter}}"
                         Command="{Binding MoveICommand}"
                         Style="{DynamicResource DefaultButton}" />

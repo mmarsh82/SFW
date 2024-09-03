@@ -22,6 +22,7 @@ namespace SFW.Commands
                 if (parameter.ToString().Contains("*"))
                 {
                     var _parSplit = parameter.ToString().Split('*');
+                    var test = $"http://waxas003/{_site}/SHR/ItemActivity/ManufacturingDetail.aspx?PartNbr={_parSplit[1]}%7c0{App.SiteNumber}&tabID=970533";
                     switch (_parSplit[0])
                     {
                         case "WO":
@@ -35,6 +36,9 @@ namespace SFW.Commands
                             break;
                         case "AR":
                             Process.Start($"http://waxas003/{_site}/ROIPortals/CustomerPortal/CustomerPortal.aspx?CustNbr={_parSplit[1]}");
+                            break;
+                        case "ACT":
+                            Process.Start($"http://waxas003/{_site}/SHR/ItemActivity/ManufacturingDetail.aspx?PartNbr={_parSplit[1]}|0{App.SiteNumber}");
                             break;
                     }
                 }

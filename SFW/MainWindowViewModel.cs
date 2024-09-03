@@ -3,7 +3,6 @@ using SFW.Model;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.IO;
 using System.Linq;
 using System.Windows;
 
@@ -181,9 +180,14 @@ namespace SFW
             try
             {
                 var _ver = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
-                if (_ver != new Version(ModelBase.GetVersion(App.AppSqlCon)))
+                var _pubVer = new Version(ModelBase.GetVersion(App.AppSqlCon));
+                if(_ver.Major != _pubVer.Major || _ver.Minor != _pubVer.Minor || _ver.Build != _pubVer.Build || _ver.Revision != _pubVer.Revision)
                 {
                     CanUpdate = true;
+                }
+                else
+                {
+                    CanUpdate = false;
                 }
             }
             catch (Exception ex)

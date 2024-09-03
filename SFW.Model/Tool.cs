@@ -92,14 +92,51 @@ namespace SFW.Model
         /// </summary>
         /// <param name="skuNbr">Sku ID Number</param>
         /// <param name="seq">Sku's sequence</param>
-        /// <param name="facility">Current user facility number</param>
+        /// <param name="facCode">Current user facility number</param>
         /// <returns>A list of tool's associated with the Sku</returns>
-        public static List<Tool> GetToolList(string skuNbr, string seq, int facCode)
+        public static List<Tool> GetToolList(string skuNbr, int seq, int facCode)
         {
             try
             {
                 var _tempList = new List<Tool>();
                 var _rows = MasterDataSet.Tables["TL"].Select($"[ID] = '{skuNbr}|0{facCode}*{seq}'");
+                if (_rows.Length > 0)
+                {
+                    foreach (var _row in _rows)
+                    {
+                        _tempList.Add(new Tool
+                        {
+                            ID = _row.Field<string>("ID")
+                            ,
+                            SkuID = _row.Field<string>("SkuID")
+                            ,
+                            ToolID = _row.Field<string>("ToolID")
+                            ,
+                            MachineID = _row.Field<string>("MachineID")
+                        });
+                    }
+                }
+                return _tempList;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Get a Sku's tool list
+        /// </summary>
+        /// <param name="skuNbr">Sku ID Number</param>
+        /// <param name="machine">Sku's work center</param>
+        /// <param name="facCode">Current user facility number</param>
+        /// <returns>A list of tool's associated with the Sku</returns>
+        public static List<Tool> GetToolList(string skuNbr, string machine, int facCode)
+        {
+            try
+            {
+                var _tempList = new List<Tool>();
+                var _rows = MasterDataSet.Tables["TL"].Select($"[ID] LIKE '{skuNbr}|0{facCode}*%' AND [MachineID] = '{machine}'");
                 if (_rows.Length > 0)
                 {
                     foreach (var _row in _rows)
