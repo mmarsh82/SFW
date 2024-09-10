@@ -366,11 +366,10 @@ namespace SFW.Model
                     ((BindingList<CrewMember>)sender)[e.NewIndex].ClockTran = _tempCrew.ClockTran;
                     ((BindingList<CrewMember>)sender)[e.NewIndex].IsDirect = _tempCrew.IsDirect;
                     ((BindingList<CrewMember>)sender)[e.NewIndex].Name = _tempCrew.Name;
-                    ((BindingList<CrewMember>)sender)[e.NewIndex].OutTime = _tempCrew.OutTime;
                     ((BindingList<CrewMember>)sender)[e.NewIndex].Shift = _tempCrew.Shift;
                     ((BindingList<CrewMember>)sender)[e.NewIndex].ShiftEnd = _tempCrew.ShiftEnd;
                     ((BindingList<CrewMember>)sender)[e.NewIndex].ShiftStart = _tempCrew.ShiftStart;
-                    ((BindingList<CrewMember>)sender)[e.NewIndex].LastClock = _tempCrew.LastClock;
+                    ((BindingList<CrewMember>)sender)[e.NewIndex].InTime = _tempCrew.InTime;
                     ((BindingList<CrewMember>)sender)[e.NewIndex].ErrorMessage = _tempCrew.ErrorMessage;
                     if (((BindingList<CrewMember>)sender).Count() == ((BindingList<CrewMember>)sender).Count(o => !string.IsNullOrEmpty(o.Name)))
                     {
@@ -384,7 +383,7 @@ namespace SFW.Model
                     ((BindingList<CrewMember>)sender)[e.NewIndex].IsDirect = false;
                     ((BindingList<CrewMember>)sender)[e.NewIndex].Shift = 0;
                     ((BindingList<CrewMember>)sender)[e.NewIndex].Facility = null;
-                    ((BindingList<CrewMember>)sender)[e.NewIndex].LastClock = null;
+                    ((BindingList<CrewMember>)sender)[e.NewIndex].InTime = null;
                     ((BindingList<CrewMember>)sender)[e.NewIndex].ErrorMessage = string.Empty;
                 }
             }

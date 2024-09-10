@@ -583,7 +583,7 @@
                                     </TextBlock.Visibility>
                                 </TextBlock>
 
-                                <TextBox Text="{Binding LastClock, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                <TextBox Text="{Binding InTime, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                          VerticalAlignment="Center"
                                          Margin="3"
                                          FontSize="18"

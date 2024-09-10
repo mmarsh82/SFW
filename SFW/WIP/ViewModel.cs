@@ -634,7 +634,7 @@ namespace SFW.WIP
                     }
                     else
                     {
-                        _laborValid = WipRecord.CrewList.Where(o => DateTime.TryParse(o.LastClock, out var dt) && o.IsDirect).ToList().Count() == WipRecord.CrewList.Count(o => o.IsDirect);
+                        _laborValid = WipRecord.CrewList.Where(o => DateTime.TryParse(o.InTime, out var dt) && o.IsDirect).ToList().Count() == WipRecord.CrewList.Count(o => o.IsDirect);
                     }
 
                     #endregion

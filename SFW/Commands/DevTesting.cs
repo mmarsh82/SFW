@@ -14,7 +14,7 @@ namespace SFW.Commands
         /// <param name="parameter"></param>
         public void Execute(object parameter)
         {
-            MessageBox.Show($"{TimeSpan.Parse("21:00")}\n{DateTime.Now.TimeOfDay}");
+            MessageBox.Show($"{DateTime.Now.ToString("HH:mm")}");
         }
 
         public bool CanExecute(object parameter) { return true; }

@@ -82,33 +82,16 @@ namespace SFW.Labor
                     , WipRecord.WipWorkOrder.Routing
                     , _qty
                     , _machId
-                    , 'I'
                     , _crew.Facility
-                    , App.ErpCon
-                    , _crew.LastClock
                     , _crewSize
-                    , DateTime.Now.ToString("MM-dd-yyyy"));
-                //Posting Labor for Time out
-                M2kClient.M2kCommand.PostLabor(
-                    "SFWLabor"
-                    , _crew.IdNumber
-                    , _crew.Shift
-                    , WipRecord.WipWorkOrder.WorkOrder
-                    , WipRecord.WipWorkOrder.Routing
-                    , _qty
-                    , _machId
-                    , 'O'
-                    , _crew.Facility
-                    , App.ErpCon
-                    , DateTime.Now.ToString("HH:mm")
-                    , _crewSize
-                    , DateTime.Now.ToString("MM-dd-yyyy"));
+                    , _crew
+                    , App.ErpCon);
             }
         }
         private bool SubmitCanExecute(object parameter)
         {
             return WipRecord.CrewList.Count(o => o.IsDirect) > 0
-                && WipRecord.CrewList.Count(o => o.IsDirect) == WipRecord.CrewList.Count(o => !string.IsNullOrEmpty(o.LastClock))
+                && WipRecord.CrewList.Count(o => o.IsDirect) == WipRecord.CrewList.Count(o => !string.IsNullOrEmpty(o.InTime))
                 && WipRecord.CrewList.Count(o => !string.IsNullOrEmpty(o.IdNumber)) == WipRecord.CrewList.Count(o => !string.IsNullOrEmpty(o.Name))
                 && WipRecord.WipQty != null
                 && WipRecord.WipQty > 0;

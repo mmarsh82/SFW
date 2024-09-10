@@ -75,14 +75,14 @@ namespace SFW.Model
             set { _errMsg = value; OnPropertyChanged(nameof(ErrorMessage)); }
         }
 
-        private string _lastClock;
-        public string LastClock
+        private string _inTime;
+        public string InTime
         {
             get
-            { return _lastClock; }
+            { return _inTime; }
             set
             {
-                if (IsDirect && !_clockLoaded && string.IsNullOrEmpty(_lastClock))
+                if (IsDirect && !_clockLoaded && string.IsNullOrEmpty(_inTime))
                 {
                     System.Threading.Tasks.Task.Run(() =>
                     {
@@ -90,10 +90,10 @@ namespace SFW.Model
                         {
                             Facility = GetFacility(IdNumber);
                         }
-                        var _time = GetLastClockTime(IdNumber, Shift, Facility);
+                        var _time = GetInTime(IdNumber, Shift, Facility, InDate);
                         if (_time.Contains("ERR"))
                         {
-                            _lastClock = string.Empty;
+                            _inTime = string.Empty;
                             _clockLoaded = false;
                             ErrorMessage = _time.Replace("ERR:", "");
                         }
@@ -113,28 +113,44 @@ namespace SFW.Model
                                 _time = string.Empty;
                                 ErrorMessage = "Must manually enter time.";
                             }
-                            _lastClock = value = _time;
+                            _inTime = value = _time;
                             _clockLoaded = true;
                         }
-                        OnPropertyChanged(nameof(LastClock));
+                        OnPropertyChanged(nameof(InTime));
                         OnPropertyChanged(nameof(ErrorMessage));
                     });
                 }
                 else
                 {
-                    _lastClock = value;
-                    OnPropertyChanged(nameof(LastClock));
+                    _inTime = value;
+                    _clockLoaded = false;
+                    OnPropertyChanged(nameof(InTime));
                     OnPropertyChanged(nameof(ErrorMessage));
                 }
             }
         }
         private bool _clockLoaded;
-
-        private string _outTime;
+        public string InDate
+        {
+            get 
+            {
+                return ((Shift == 3 && DateTime.Now.TimeOfDay < TimeSpan.Parse("21:00")) || (Shift == 5 && DateTime.Now.TimeOfDay < TimeSpan.Parse("14:00")))
+                    ? DateTime.Now.AddDays(-1).ToString("MM-dd-yyyy")
+                    : DateTime.Now.ToString("MM-dd-yyyy");
+            }
+        }
         public string OutTime
         {
-            get { return _outTime; }
-            set { _outTime = value; OnPropertyChanged(nameof(OutTime)); }
+            get { return DateTime.Now.ToString("HH:mm"); }
+        }
+        public string OutDate
+        {
+            get
+            {
+                return ((Shift == 3 && DateTime.Now.TimeOfDay < TimeSpan.Parse("21:00")) || (Shift == 5 && DateTime.Now.TimeOfDay < TimeSpan.Parse("14:00")))
+                    ? DateTime.Now.AddDays(-1).ToString("MM-dd-yyyy")
+                    : DateTime.Now.ToString("MM-dd-yyyy");
+            }
         }
 
         public char ClockTran { get; set; }
@@ -164,7 +180,6 @@ namespace SFW.Model
                 ShiftStart = _rows.FirstOrDefault().Field<string>("ShiftStart");
                 ShiftEnd = _rows.FirstOrDefault().Field<string>("ShiftEnd");
                 Facility = $"0{_rows.FirstOrDefault().Field<int>("Site")}";
-                OutTime = DateTime.Now.ToString("HH:mm");
                 ErrorMessage = string.Empty;
                 _clockLoaded = false;
             }
@@ -190,8 +205,7 @@ namespace SFW.Model
                 ShiftStart = _rows.FirstOrDefault().Field<string>("ShiftStart");
                 ShiftEnd = _rows.FirstOrDefault().Field<string>("ShiftEnd");
                 Facility = $"0{_rows.FirstOrDefault().Field<int>("Site")}";
-                LastClock = string.Empty;
-                OutTime = DateTime.Now.ToString("HH:mm");
+                InTime = string.Empty;
             }
         }
 
@@ -307,20 +321,13 @@ namespace SFW.Model
         /// <param name="crewId">User ID number</param>
         /// <param name="shift">Crew member shift</param>
         /// <param name="facCode">Facility code</param>
+        /// <param name="inDate">Date to get labor in time</param>
         /// <returns>Time as a string</returns>
-        public static string GetLastClockTime(string crewId, int shift, string facCode)
+        public static string GetInTime(string crewId, int shift, string facCode, string inDate)
         {
             try
             {
-                var dateId = 0;
-                if ((shift == 3 && DateTime.Now.TimeOfDay < TimeSpan.Parse("21:00")) || (shift == 5 && DateTime.Now.TimeOfDay < TimeSpan.Parse("14:00")))
-                {
-                    dateId = (DateTime.Now - Convert.ToDateTime("1967/12/31")).Days - 1;
-                }
-                else
-                {
-                    dateId = (DateTime.Now - Convert.ToDateTime("1967/12/31")).Days;
-                }
+                var dateId = (DateTime.Parse(inDate) - Convert.ToDateTime("1967/12/31")).Days;
                 using (UniSession uSession = UniObjects.OpenSession(WipReceipt.ErpCon[0], WipReceipt.ErpCon[1], WipReceipt.ErpCon[2], WipReceipt.ErpCon[3], WipReceipt.ErpCon[4]))
                 {
                     try
