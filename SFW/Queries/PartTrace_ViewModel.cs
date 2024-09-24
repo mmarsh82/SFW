@@ -328,7 +328,7 @@ namespace SFW.Queries
                 //Check to see how to open the print based on the results from the master print search
                 if (!string.IsNullOrEmpty(_master))
                 {
-                    new Commands.PartSearch().Execute(_master);
+                    new Commands.PartSearch().Execute($"{_master}|0{_siteNbr}");
                 }
                 else if (File.Exists($"{App.GlobalConfig.First(o => o.Site == _site.ToString()).PartPrint}{_part}.pdf"))
                 {

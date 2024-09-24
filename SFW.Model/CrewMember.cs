@@ -1,5 +1,6 @@
 ﻿using IBMU2.UODOTNET;
 using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.DirectoryServices.AccountManagement;
@@ -90,31 +91,88 @@ namespace SFW.Model
                         {
                             Facility = GetFacility(IdNumber);
                         }
-                        var _time = GetInTime(IdNumber, Shift, Facility, InDate);
+                        var dateId = (DateTime.Today - Convert.ToDateTime("1967/12/31")).Days;
+                        var _time = GetInTime(IdNumber, Facility, dateId);
                         if (_time.Contains("ERR"))
                         {
                             _inTime = string.Empty;
                             _clockLoaded = false;
                             ErrorMessage = _time.Replace("ERR:", "");
                         }
-                        else
+                        else if (Shift == 3)
                         {
-                            _time = string.IsNullOrEmpty(_time) || _time == "00:00" ? ShiftStart : _time;
-                            if (DateTime.TryParse(_time, out DateTime dt))
+                            if (string.IsNullOrEmpty(_time))
                             {
-                                if (DateTime.Now < dt && (Shift != 3 || Shift != 5))
+                                dateId = (DateTime.Today.AddDays(-1) - Convert.ToDateTime("1967/12/31")).Days;
+                                _time = GetInTime(IdNumber, Facility, dateId);
+                                if (string.IsNullOrEmpty(_time))
                                 {
-                                    _time = string.Empty;
-                                    ErrorMessage = "Must manually enter time.";
+                                    _time = GetShiftStartTime(IdNumber);
+                                    _clockLoaded = true;
+                                }
+                                else
+                                {
+                                    if(TimeSpan.Parse(_time) < TimeSpan.Parse("21:00") && DateTime.Now.TimeOfDay > TimeSpan.Parse("21:00"))
+                                    {
+                                        _time = GetShiftStartTime(IdNumber);
+                                        _clockLoaded = true;
+                                    }
                                 }
                             }
                             else
                             {
-                                _time = string.Empty;
-                                ErrorMessage = "Must manually enter time.";
+                                if (TimeSpan.Parse(_time) < TimeSpan.Parse("21:00") && DateTime.Now.TimeOfDay > TimeSpan.Parse("21:00"))
+                                {
+                                    _time = GetShiftStartTime(IdNumber);
+                                    _clockLoaded = true;
+                                }
                             }
                             _inTime = value = _time;
-                            _clockLoaded = true;
+                        }
+                        else if (Shift == 5)
+                        {
+                            if (string.IsNullOrEmpty(_time))
+                            {
+                                dateId = (DateTime.Today.AddDays(-1) - Convert.ToDateTime("1967/12/31")).Days;
+                                _time = GetInTime(IdNumber, Facility, dateId);
+                                if (string.IsNullOrEmpty(_time))
+                                {
+                                    _time = GetShiftStartTime(IdNumber);
+                                    _clockLoaded = true;
+                                }
+                                else
+                                {
+                                    if (TimeSpan.Parse(_time) < TimeSpan.Parse("14:00") && DateTime.Now.TimeOfDay > TimeSpan.Parse("14:00"))
+                                    {
+                                        _time = GetShiftStartTime(IdNumber);
+                                        _clockLoaded = true;
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                if (TimeSpan.Parse(_time) < TimeSpan.Parse("14:00") && DateTime.Now.TimeOfDay > TimeSpan.Parse("14:00"))
+                                {
+                                    _time = GetShiftStartTime(IdNumber);
+                                    _clockLoaded = true;
+                                }
+                            }
+                            _inTime = value = _time;
+                        }
+                        else
+                        {
+                            _time = string.IsNullOrEmpty(_time) ? GetShiftStartTime(IdNumber) : _time;
+                            if (DateTime.Now.TimeOfDay < TimeSpan.Parse(_time))
+                            {
+                                _time = string.Empty;
+                                ErrorMessage = "Must manually enter time.";
+                                _clockLoaded = false;
+                            }
+                            else
+                            {
+                                _clockLoaded = true;
+                            }
+                            _inTime = value = _time;
                         }
                         OnPropertyChanged(nameof(InTime));
                         OnPropertyChanged(nameof(ErrorMessage));
@@ -132,28 +190,60 @@ namespace SFW.Model
         private bool _clockLoaded;
         public string InDate
         {
-            get 
-            {
-                return ((Shift == 3 && DateTime.Now.TimeOfDay < TimeSpan.Parse("21:00")) || (Shift == 5 && DateTime.Now.TimeOfDay < TimeSpan.Parse("14:00")))
-                    ? DateTime.Now.AddDays(-1).ToString("MM-dd-yyyy")
-                    : DateTime.Now.ToString("MM-dd-yyyy");
-            }
-        }
-        public string OutTime
-        {
-            get { return DateTime.Now.ToString("HH:mm"); }
-        }
-        public string OutDate
-        {
             get
             {
-                return ((Shift == 3 && DateTime.Now.TimeOfDay < TimeSpan.Parse("21:00")) || (Shift == 5 && DateTime.Now.TimeOfDay < TimeSpan.Parse("14:00")))
-                    ? DateTime.Now.AddDays(-1).ToString("MM-dd-yyyy")
-                    : DateTime.Now.ToString("MM-dd-yyyy");
+                if(Shift == 3)
+                {
+                    if (DateTime.Now.TimeOfDay > TimeSpan.Parse("21:00"))
+                    {
+                        return DateTime.Today.ToString("MM-dd-yyyy");
+                    }
+                    else if (DateTime.Now.TimeOfDay < TimeSpan.Parse("21:00") && TimeSpan.Parse(InTime) < TimeSpan.Parse("21:00"))
+                    {
+                        return DateTime.Today.ToString("MM-dd-yyyy");
+                    }
+                    else
+                    {
+                        return DateTime.Now.AddDays(-1).ToString("MM-dd-yyyy");
+                    }
+                }
+                else if (Shift == 5)
+                {
+                    if (DateTime.Now.TimeOfDay > TimeSpan.Parse("14:00"))
+                    {
+                        return DateTime.Today.ToString("MM-dd-yyyy");
+                    }
+                    else if (DateTime.Now.TimeOfDay < TimeSpan.Parse("14:00") && TimeSpan.Parse(InTime) < TimeSpan.Parse("14:00"))
+                    {
+                        return DateTime.Today.ToString("MM-dd-yyyy");
+                    }
+                    else
+                    {
+                        return DateTime.Now.AddDays(-1).ToString("MM-dd-yyyy");
+                    }
+                }
+                else
+                {
+                    return DateTime.Today.ToString("MM-dd-yyyy");
+                }
             }
         }
 
         public char ClockTran { get; set; }
+
+        private bool _work;
+        public bool IsWorking
+        {
+            get { return _work; }
+            set { _work = value; OnPropertyChanged(nameof(IsWorking)); }
+        }
+
+        private int _workHours;
+        public int HoursWorked
+        {
+            get { return _workHours; }
+            set { _workHours = value; OnPropertyChanged(nameof(HoursWorked)); }
+        }
 
         #endregion
 
@@ -319,20 +409,19 @@ namespace SFW.Model
         /// Retreives the last labor clocked in time for the current user
         /// </summary>
         /// <param name="crewId">User ID number</param>
-        /// <param name="shift">Crew member shift</param>
         /// <param name="facCode">Facility code</param>
-        /// <param name="inDate">Date to get labor in time</param>
+        /// <param name="dateId">ERP Date ID in unix time to be used for query</param>
         /// <returns>Time as a string</returns>
-        public static string GetInTime(string crewId, int shift, string facCode, string inDate)
+        public static string GetInTime(string crewId, string facCode, int dateId)
         {
             try
             {
-                var dateId = (DateTime.Parse(inDate) - Convert.ToDateTime("1967/12/31")).Days;
+                //var dateId = (DateTime.Today - Convert.ToDateTime("1967/12/31")).Days;
+                var uResponse = string.Empty;
                 using (UniSession uSession = UniObjects.OpenSession(WipReceipt.ErpCon[0], WipReceipt.ErpCon[1], WipReceipt.ErpCon[2], WipReceipt.ErpCon[3], WipReceipt.ErpCon[4]))
                 {
                     try
                     {
-                        var uResponse = string.Empty;
                         using (UniCommand uCmd = uSession.CreateUniCommand())
                         {
                             uCmd.Command = $"LIST LBR.DETAIL WITH @ID = \"{crewId}*{dateId}*{facCode}\" Latest_Time_Out";
@@ -344,45 +433,27 @@ namespace SFW.Model
                                 //The response returns identical to a M2k TCL response
                                 uResponse = uResponse.Replace("\n", "");
                                 var uResArray = uResponse.Split('\r');
-                                var _rtnVal = string.Empty;
                                 foreach (var s in uResArray.Where(o => o.Contains(crewId)))
                                 {
                                     if (!s.Contains(uCmd.Command))
                                     {
                                         if (s.Contains($"{crewId}*{dateId}*{facCode}"))
                                         {
-                                            _rtnVal = s.Replace($"{crewId}*{dateId}*{facCode}", "").Trim();
-                                            break;
+                                            return s.Replace($"{crewId}*{dateId}*{facCode}", "").Trim();
                                         }
                                         else if (s.Contains($"{crewId}*{dateId}"))
                                         {
-                                            _rtnVal = s.Replace($"{crewId}*{dateId}*", "").Trim();
-                                            break;
+                                            return s.Replace($"{crewId}*{dateId}*", "").Trim();
                                         }
                                     }
-                                }
-                                if (string.IsNullOrEmpty(_rtnVal))
-                                {
-                                    uResponse = GetShiftStartTime(crewId);
-                                }
-                                else
-                                {
-                                    var _timeClean = _rtnVal.Split(':');
-                                    if (int.TryParse(_timeClean[0], out int i) && i >= 24)
-                                    {
-                                        i = i - 24;
-                                        _rtnVal = i.ToString().Length == 1 ? $"0{i}{_timeClean[1]}{_timeClean[2]}" : $"{i}{_timeClean[1]}{_timeClean[2]}";
-                                    }
-                                    uResponse = _rtnVal;
                                 }
                             }
                             else
                             {
-                                uResponse = "ERR:Unable to query system.";
+                                return "ERR:Unable to query system.";
                             }
                         }
                         UniObjects.CloseSession(uSession);
-                        return uResponse;
                     }
                     catch (Exception ex)
                     {
@@ -393,10 +464,11 @@ namespace SFW.Model
                         return $"ERR:{ex.Message}";
                     }
                 }
+                return GetShiftStartTime(crewId);
             }
             catch
             {
-                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
+                return "ERR:Connection Error";
             }
         }
 
@@ -414,6 +486,35 @@ namespace SFW.Model
                     return uPrincipal != null ? $"{uPrincipal.GivenName} {uPrincipal.Surname}" : domainName;
                 }
             }
+        }
+
+        /// <summary>
+        /// Get facility code for a user
+        /// </summary>
+        /// <param name="idNbr">User Id number</param>
+        /// <returns>facility code as a string</returns>
+        public static List<CrewMember> GetCrewList(int shift, int site)
+        {
+            var _rtnVal = new List<CrewMember>();
+            if (site == 2 && shift == 4)
+            {
+                shift = 1;
+            }
+            else if (site == 2 && shift == 5)
+            {
+                shift = 2;
+            }
+            var _rows = MasterDataSet.Tables["CREW"].Select($"[Shift] = '{shift}' AND [Site] = '{site}' AND [IsDirect] = 1");
+            foreach (var _row in _rows)
+            {
+                _rtnVal.Add(new CrewMember
+                {
+                    IdNumber = _row.Field<string>("EmployeeID")
+                    ,Name = _row.Field<string>("DisplayName")
+                    ,IsWorking = true
+                });
+            }
+            return _rtnVal;
         }
     }
 }

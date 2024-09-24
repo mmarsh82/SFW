@@ -147,7 +147,7 @@
                                 </TextBlock.Visibility>
                             </TextBlock>
 
-                            <TextBox Text="{Binding LastClock, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                            <TextBox Text="{Binding InTime, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                          VerticalAlignment="Center"
                                          Margin="3"
                                          FontSize="18"
@@ -177,22 +177,16 @@
                                 </TextBlock.Visibility>
                             </TextBlock>
 
-                            <TextBox Text="{Binding OutTime, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                         VerticalAlignment="Center"
-                                         Margin="3"
-                                         FontSize="18"
-                                         Background="LightGray"
-                                         Width="75"
-                                         MaxLength="5"
-                                         IsTabStop="False"
-                                         Style="{DynamicResource RequiredTextBox}">
-                                <TextBox.Visibility>
+                            <TextBlock Text="{Binding OutTime}"
+                                       VerticalAlignment="Center"
+                                       Margin="5,0,0,0">
+                                <TextBlock.Visibility>
                                     <MultiBinding Converter="{StaticResource CrewtoVisConverter}">
                                         <Binding Path="IsDirect" />
                                         <Binding Path="Name" />
                                     </MultiBinding>
-                                </TextBox.Visibility>
-                            </TextBox>
+                                </TextBlock.Visibility>
+                            </TextBlock>
 
                             <Button Command="{Binding DataContext.RemoveCrewICommand, ElementName=Labor_Window}"
                                         CommandParameter="{Binding IdNumber}"

@@ -78,7 +78,7 @@ namespace SFW.Labor
                     "SFWLabor"
                     , _crew.IdNumber
                     , _crew.Shift
-                    , WipRecord.WipWorkOrder.WorkOrder
+                    , WipRecord.WipWorkOrder.OrderNumber
                     , WipRecord.WipWorkOrder.Routing
                     , _qty
                     , _machId

@@ -660,26 +660,11 @@ namespace M2kClient
             {
                 var suffix = DateTime.Now.ToString($"ssffff");
                 var _inTime = crewMember.InTime;
-                var _outTime = crewMember.OutTime;
-                if (shift == 3 || shift == 5)
-                {
-                    if (TimeSpan.Parse(_inTime) < TimeSpan.Parse("23:59:59"))
-                    {
-                        var _timeSplit = _inTime.Split(':');
-                        var _hour = int.Parse(_timeSplit[0]) + 24;
-                        _inTime = $"{_hour}:{_timeSplit[1]}";
-                    }
-                    if (TimeSpan.Parse(_outTime) < TimeSpan.Parse("23:59:59"))
-                    {
-                        var _timeSplit = _outTime.Split(':');
-                        var _hour = int.Parse(_timeSplit[0]) + 24;
-                        _outTime = $"{_hour}:{_timeSplit[1]}";
-                    }
-                }
-                var _inDL = new DirectLabor(stationId, empID, 'I', _inTime, workOrder, seq, 0, 0, machID, CompletionFlag.N, facCode, crew, crewMember.InDate);
+                var _inDate = crewMember.InDate;
+                var _inDL = new DirectLabor(stationId, empID, 'I', _inTime, workOrder, seq, 0, 0, machID, CompletionFlag.N, facCode, crew, _inDate);
                 var _outDL = crew > 0
-                    ? new DirectLabor(stationId, empID, 'O', _outTime, workOrder, seq, qtyComp, 0, machID, CompletionFlag.N, facCode, crew, crewMember.OutDate)
-                    : new DirectLabor(stationId, empID, 'O', _outTime, workOrder, seq, qtyComp, 0, machID, CompletionFlag.N, facCode, 0, crewMember.OutDate);
+                    ? new DirectLabor(stationId, empID, 'O', DateTime.Now.ToString("HH:mm"), workOrder, seq, qtyComp, 0, machID, CompletionFlag.N, facCode, crew, DateTime.Now.ToString("MM-dd-yyyy"))
+                    : new DirectLabor(stationId, empID, 'O', DateTime.Now.ToString("HH:mm"), workOrder, seq, qtyComp, 0, machID, CompletionFlag.N, facCode, 0, DateTime.Now.ToString("MM-dd-yyyy"));
                 File.WriteAllText($"{connection.SFDCFolder}LB{connection.AdiServer}.DAT{suffix}{empID}", $"{_inDL}\n\n{_outDL}");
                 _subResult.Add(0, string.Empty);
                 return _subResult;

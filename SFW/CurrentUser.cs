@@ -369,7 +369,7 @@ namespace SFW
             }
             IsLoggedIn = true;
             CanWip = true;
-            CanLabor = App.SiteNumber == 2;
+            CanLabor = App.SiteNumber == 2 || IsAdmin;
             UserIDNbr = user.EmployeeId;
             FirstName = user.GivenName;
             LastName = user.Surname;

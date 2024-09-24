@@ -115,9 +115,9 @@ namespace M2kClient.M2kADIArray
         /// <param name="setComp">Setups completed</param>
         /// <param name="machId">Machine or work center number</param>
         /// <param name="cFlag">Completion flag</param>
+        /// <param name="facCode">Optional: Facility code, default is 01</param>
         /// <param name="crew">Optional: Crew size, default will be determined by ERP</param>
         /// <param name="tranDate">Optional: Date of transaction</param>
-        /// <param name="facCode">Optional: Facility code, default is 01</param>
         public DirectLabor(string stationId, string empId, char clockTran, string tranTime, string woNbr, string seq, int qtyComp, int setComp, string machId, CompletionFlag cFlag, string facCode, int crew = 0, string tranDate = "")
         {
             StationId = stationId;

@@ -1,21 +1,20 @@
-﻿using SFW.Helpers;
-using SFW.Model;
+﻿using SFW.Model;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
-using System.Windows.Input;
+using System.ComponentModel;
 
 namespace SFW.Tools
 {
-    public class CrewList_ViewModel
+    public class CrewList_ViewModel : ViewModelBase
     {
         #region Properties
 
-        public ObservableCollection<IList<CrewMember>> CrewCollection;
+        public BindingList<CrewMember> CrewList { get; set; }
 
-        private bool IsLoading;
+        public bool NoData { get; set; }
 
-        RelayCommand _removeCrew;
+        public string PublishDate { get; set; }
+
+        public string ActionInput { get; set; }
 
         #endregion
 
@@ -24,31 +23,18 @@ namespace SFW.Tools
         /// </summary>
         public CrewList_ViewModel()
         {
-            IsLoading = true;
-
-        }
-
-        #region Remove Crew List Item ICommand
-
-        public ICommand RemoveCrewICommand
-        {
-            get
+            var _shift = 2;  //new CrewMember(CurrentUser.FirstName, CurrentUser.LastName).Shift;
+            var _site = CurrentUser.GetSite();
+            if (_shift == 4 && _site == 2)
             {
-                if (_removeCrew == null)
-                {
-                    _removeCrew = new RelayCommand(RemoveCrewExecute, RemoveCrewCanExecute);
-                }
-                return _removeCrew;
+                _shift = 1;
             }
+            else if (_shift == 5 && _site == 2)
+            {
+                _shift = 2;
+            }
+            CrewList = new BindingList<CrewMember>(CrewMember.GetCrewList(_shift, _site));
+            NoData = CrewList.Count == 0;
         }
-
-        private void RemoveCrewExecute(object parameter)
-        {
-            //CrewCollection.Remove()
-            //WipRecord.CrewList.Remove(WipRecord.CrewList.FirstOrDefault(c => c.IdNumber.ToString() == parameter.ToString()));
-        }
-        private bool RemoveCrewCanExecute(object parameter) => parameter != null && !string.IsNullOrEmpty(parameter.ToString());
-
-        #endregion
     }
 }
