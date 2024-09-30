@@ -19,12 +19,13 @@ namespace SFW.Queries
             set
             {
                 value = value.ToUpper();
-                var _valid = Lot.IsValid(value);
+                var _valid = Lot.IsValid(value) && !string.IsNullOrEmpty(value);
                 if (ValidLot && !_valid)
                 {
                     SplitLotList.Clear();
                     RollQuantity = string.Empty;
                     LotQuantity = 0;
+                    _startingQty = 0;
                     LotLocation = string.Empty;
                     LotScrap = null;
                 }
@@ -94,7 +95,7 @@ namespace SFW.Queries
                     var _alphaCount = 65;
                     while (_tempCount != 0)
                     {
-                        while (Lot.IsValid($"{_lot}{Convert.ToChar(_alphaCount)}"))
+                        while (Lot.IsValid($"{_lot}{Convert.ToChar(_alphaCount)}|P|0{App.SiteNumber}", App.AppSqlCon))
                         {
                             _alphaCount++;
                         }

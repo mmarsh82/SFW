@@ -262,6 +262,34 @@ namespace SFW.Model
             }
         }
 
+        /// <summary>
+        /// Validate lot number existance
+        /// </summary>
+        /// <param name="lotNbr">Database ready Lot Number</param>
+        /// <returns>Validation response</returns>
+        public static bool IsValid(string lotNbr, SqlConnection sqlCon)
+        {
+            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
+            {
+                try
+                {
+                    using (SqlCommand cmd = new SqlCommand(@"SELECT COUNT([Lot_Number]) FROM [dbo].[LOT-INIT] WHERE [Lot_Number]=@p1", sqlCon))
+                    {
+                        cmd.Parameters.AddWithValue("p1", lotNbr);
+                        return int.TryParse(cmd.ExecuteScalar().ToString(), out int i) && i > 0;
+                    }
+                }
+                catch (Exception)
+                {
+                    return false;
+                }
+            }
+            else
+            {
+                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
+            }
+        }
+
         #endregion
 
         /// <summary>

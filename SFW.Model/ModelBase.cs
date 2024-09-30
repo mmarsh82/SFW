@@ -358,7 +358,7 @@ namespace SFW.Model
         {
             try
             {
-                if (dRow[colName] == DBNull.Value)
+                if (dRow == null || dRow[colName] == DBNull.Value)
                 {
                     return default;
                 }

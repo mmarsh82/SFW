@@ -132,21 +132,30 @@ namespace SFW.Queries
             {
                 //Get a products set up print
                 ErrorMsg = string.Empty;
-                if (new Sku(PartNumber, 'C', App.SiteNumber).EngStatus == "O" && !CurrentUser.IsEngineer)
+                var _part = PartNumber;
+                var _site = App.SiteNumber;
+                if (_part.Contains("|"))
+                {
+                    var _prtSite = _part.Split('|');
+                    _part = _prtSite[0];
+                    _site = int.TryParse(_prtSite[1], out int i) ? i : _site;
+                }
+                if (new Sku(_part, 'C', _site).EngStatus == "O" && !CurrentUser.IsEngineer)
                 {
                     ErrorMsg = "Obsolete parts and can only be viewed by Engineering.";
                 }
                 else
                 {
-                    var _machName = Machine.GetMachineName(PartNumber, 'P');
+                    var _machName = Machine.GetMachineName(_part, 'P');
+                    var _fac = _site == 1 ? "WCCO" : "CSI";
                     if (!string.IsNullOrEmpty(_machName))
                     {
-                        switch (App.SiteNumber)
+                        switch (_site)
                         {
                             case 0:
                                 try
                                 {
-                                    SetupPrint = $"{App.GlobalConfig.First(o => o.Site == App.Facility).PressSetup}{PartNumber}.pdf";
+                                    SetupPrint = $"{App.GlobalConfig.First(o => o.Site == _fac).PressSetup}{_part}.pdf";
                                     VerifyText = "Accepted";
                                     break;
                                 }
@@ -163,7 +172,7 @@ namespace SFW.Queries
                                 {
                                     case "PRESS":
                                     case "ENG":
-                                        _fileName = ExcelReader.GetSetupPrintNumber(PartNumber, _machName, App.GlobalConfig.First(o => o.Site == App.Facility).PressSetup, "Production");
+                                        _fileName = ExcelReader.GetSetupPrintNumber(_part, _machName, App.GlobalConfig.First(o => o.Site == _fac).PressSetup, "Production");
                                         if (!string.IsNullOrEmpty(_fileName) && !_fileName.Contains("ERR:"))
                                         {
                                             var _fileheader = string.Empty;
@@ -172,7 +181,7 @@ namespace SFW.Queries
                                                 _fileheader += "0";
                                             }
                                             _fileName = _fileheader + _fileName;
-                                            SetupPrint = $"{App.GlobalConfig.First(o => o.Site == App.Facility).PartPrint}{_fileName}.PDF";
+                                            SetupPrint = $"{App.GlobalConfig.First(o => o.Site == _fac).PartPrint}{_fileName}.PDF";
                                             VerifyText = "Accepted";
                                         }
                                         else
@@ -182,13 +191,13 @@ namespace SFW.Queries
                                         }
                                         break;
                                     case "FABE":
-                                        _fileName = ExcelReader.GetSetupPrintNumber(PartNumber, _machName, App.GlobalConfig.First(o => o.Site == App.Facility).SyscoSetup, "PRODUCTION");
-                                        SetupPrint = $"{App.GlobalConfig.First(o => o.Site == App.Facility).PartPrint}{_fileName}.PDF";
+                                        _fileName = ExcelReader.GetSetupPrintNumber(_part, _machName, App.GlobalConfig.First(o => o.Site == _fac).SyscoSetup, "PRODUCTION");
+                                        SetupPrint = $"{App.GlobalConfig.First(o => o.Site == _fac).PartPrint}{_fileName}.PDF";
                                         VerifyText = "Accepted";
                                         break;
                                     case "EXT":
-                                        _fileName = ExcelReader.GetSetupPrintNumber(PartNumber, _machName, App.GlobalConfig.First(o => o.Site == App.Facility).ExtSetup, "PRODUCTION");
-                                        SetupPrint = $"{App.GlobalConfig.First(o => o.Site == App.Facility).PartPrint}{_fileName}.PDF";
+                                        _fileName = ExcelReader.GetSetupPrintNumber(_part, _machName, App.GlobalConfig.First(o => o.Site == _fac).ExtSetup, "PRODUCTION");
+                                        SetupPrint = $"{App.GlobalConfig.First(o => o.Site == _fac).PartPrint}{_fileName}.PDF";
                                         VerifyText = "Accepted";
                                         break;
                                     default:
@@ -201,11 +210,11 @@ namespace SFW.Queries
                     }
 
                     //Get the sku work instruction list
-                    SkuWIList = Sku.GetInstructions(PartNumber, App.SiteNumber, App.GlobalConfig.First(o => o.Site == App.Facility).WI);
+                    SkuWIList = Sku.GetInstructions(_part, _site, App.GlobalConfig.First(o => o.Site == _fac).WI);
                     OnPropertyChanged(nameof(SkuWIList));
 
                     //Get a sku tooling list
-                    SkuToolList = CollectionViewSource.GetDefaultView(Tool.GetToolList(PartNumber));
+                    SkuToolList = CollectionViewSource.GetDefaultView(Tool.GetToolList(_part));
                     SkuToolList.GroupDescriptions.Add(new PropertyGroupDescription("MachineID", new WorkCenterNameConverter()));
                     OnPropertyChanged(nameof(SkuToolList));
                     OnPropertyChanged(nameof(EmptyToolList));
@@ -220,14 +229,14 @@ namespace SFW.Queries
                                 delegate (object sender, DoWorkEventArgs e)
                                 {
                                     SkuPartStructure = new Dictionary<Sku, int>();
-                                    var _structList = Sku.GetStructure(PartNumber, $"{App.SiteNumber}");
+                                    var _structList = Sku.GetStructure(_part, $"{_site}");
                                     if (_structList == null)
                                     {
                                         ErrorMsg += "Trace list was to large to display.";
                                     }
                                     else
                                     {
-                                        var _groupedDict = Sku.GetStructure(PartNumber, $"{App.SiteNumber}").OrderBy(o => o.Value).GroupBy(o => o.Key.DiamondNumber);
+                                        var _groupedDict = Sku.GetStructure(_part, $"{_site}").OrderBy(o => o.Value).GroupBy(o => o.Key.DiamondNumber);
                                         if (_groupedDict.Count(o => o.FirstOrDefault().Key.SkuNumber != null) > 0)
                                         {
                                             foreach (var _group in _groupedDict)

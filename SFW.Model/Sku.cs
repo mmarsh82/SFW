@@ -525,6 +525,7 @@ namespace SFW.Model
         /// <returns>A list of URL strings to open the work instructions</returns>
         public static List<string> GetInstructions(string partNbr, int siteNbr, string filepath)
         {
+            //TODO: redo based on the numbers so that are coming out of salesforce
             var _inst = new List<string>();
             try
             {
@@ -541,7 +542,7 @@ namespace SFW.Model
                     foreach (var _row in _rows)
                     {
                         var dir = new DirectoryInfo(filepath);
-                        var fileList = dir.GetFiles($"*{_row.Field<int>("WI")}*");
+                        var fileList = dir.GetFiles($"*{_row.Field<int>("WI")} *");
                         foreach (var file in fileList)
                         {
                             _inst.Add(file.Name);
