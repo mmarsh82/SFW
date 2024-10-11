@@ -5,7 +5,7 @@
         xmlns:cvtr="clr-namespace:SFW.Converters"
         
         x:Name="CrewMgt_Window"
-        Title="Crew Labor Allocation" Height="430" Width="800" WindowStyle="ToolWindow" WindowStartupLocation="CenterScreen" Topmost="True">
+        Title="Crew Labor Allocation" MinHeight="440" Width="800" WindowStyle="ToolWindow" WindowStartupLocation="CenterScreen" Topmost="True">
 
     <Window.Resources>
         <cvtr:BoolToVisibility x:Key="BooltoVisConverter" />
@@ -15,7 +15,7 @@
 
         <Grid.RowDefinitions>
             <RowDefinition Height="35" />
-            <RowDefinition Height="310" />
+            <RowDefinition Height="*" />
             <RowDefinition Height="50" />
         </Grid.RowDefinitions>
 
@@ -57,6 +57,7 @@
                           Cursor="Hand"
                           Background="Transparent"
                           Foreground="Black"
+                          
                           Focusable="False">
 
                 <ItemsControl.ItemsPanel>
@@ -69,37 +70,50 @@
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
 
-                        <StackPanel Orientation="Vertical">
-                            <StackPanel Orientation="Horizontal">
+                        <StackPanel Orientation="Vertical"
+                                    Margin="5">
+                            <Grid>
 
-                                <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="100"/>
+                                    <ColumnDefinition Width="300"/>
+                                    <ColumnDefinition Width="120"/>
+                                    <ColumnDefinition Width="20"/>
+                                    <ColumnDefinition Width="60"/>
+                                    <ColumnDefinition Width="40"/>
+                                </Grid.ColumnDefinitions>
 
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="100"/>
-                                        <ColumnDefinition Width="300"/>
-                                        <ColumnDefinition Width="120"/>
-                                        <ColumnDefinition Width="50"/>
-                                    </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0"
+                                           Text="{Binding IdNumber}"
+                                           VerticalAlignment="Center"/>
 
-                                    <TextBlock Grid.Column="0"
-                                               Text="{Binding IdNumber}"
-                                               VerticalAlignment="Center"/>
+                                <TextBlock Grid.Column="1"
+                                           Text="{Binding Name}"
+                                           VerticalAlignment="Center"/>
 
-                                    <TextBlock Grid.Column="1"
-                                               Text="{Binding Name}"
-                                               VerticalAlignment="Center"/>
+                                <CheckBox Grid.Column="2"
+                                          x:Name="IsWorking"
+                                          IsChecked="{Binding IsWorking, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                          Content="Is Working"
+                                          FontSize="18"
+                                          FontWeight="Bold"
+                                          IsTabStop="False"
+                                          VerticalAlignment="Center"/>
 
-                                    <CheckBox Grid.Column="2"
-                                              x:Name="IsWorking"
-                                              IsChecked="{Binding IsWorking, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                              Content="Is Working"
-                                              FontSize="18"
-                                              FontWeight="Bold"
-                                              IsTabStop="False" />
+                                <TextBlock Grid.Column="4"
+                                           Text="Hours:"
+                                           VerticalAlignment="Center"
+                                           Visibility="{Binding IsWorking, Converter={StaticResource BooltoVisConverter}}"/>
 
-                                </Grid>
+                                <TextBox Grid.Column="5"
+                                         Text="{Binding HoursWorked, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                         MaxLength="2"
+                                         Background="LightGray"
+                                         VerticalAlignment="Center"
+                                         Visibility="{Binding IsWorking, Converter={StaticResource BooltoVisConverter}}"
+                                         Style="{DynamicResource RequiredTextBox}" />
 
-                            </StackPanel>
+                            </Grid>
                         </StackPanel>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
@@ -124,7 +138,7 @@
                        FontSize="18" />
 
             <TextBlock Grid.Row="2"
-                       Text="09-18-2024"
+                       Text="{Binding PublishDate}"
                        Foreground="Crimson"
                        FontWeight="Bold"
                        Margin="10,0,0,0"
@@ -136,10 +150,10 @@
                 Content="Submit"
                 Width="100"
                 FontSize="18"
-                Margin="5"
+                Margin="5,5,10,5"
                 VerticalAlignment="Center"
                 HorizontalAlignment="Right"
-                Command="{Binding WipICommand}"
+                Command="{Binding SubmitICommand}"
                 Style="{DynamicResource DefaultButton}" />
 
         <!--#endregion-->

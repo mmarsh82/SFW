@@ -530,8 +530,7 @@ namespace M2kClient
                 {
                     foreach (var c in wipRecord.WipWorkOrder.Picklist.Where(o => o.IsLotTrace))
                     {
-                        var _issue = new Issue(wipRecord.Submitter, wipRecord.Facility, c.CompNumber, wipRecord.WipWorkOrder.OrderNumber, "II", new List<Transaction>(), 'R');
-
+                        var _issue = new Issue(wipRecord.Submitter, wipRecord.Facility, c.CompNumber, wipRecord.WipWorkOrder.OrderNumber, "II", new List<Transaction>(), 'R', _tWip.CFlag);
                         foreach (var w in c.WipInfo.Where(o => !string.IsNullOrEmpty(o.LotNbr)))
                         {
                             if (w.ScrapList != null && w.ScrapList.Count > 0)
@@ -550,7 +549,7 @@ namespace M2kClient
                     {
                         var _rcptLoc = wipRecord.Facility == "01" ? wipRecord.ReceiptLocation : c.BackflushLoc;
                         var _issQty = wipRecord.WipQty * c.AssemblyQty;
-                        var _issue = new Issue(wipRecord.Submitter, wipRecord.Facility, c.CompNumber, wipRecord.WipWorkOrder.OrderNumber, "II", new List<Transaction>(), 'R');
+                        var _issue = new Issue(wipRecord.Submitter, wipRecord.Facility, c.CompNumber, wipRecord.WipWorkOrder.OrderNumber, "II", new List<Transaction>(), 'R', _tWip.CFlag);
                         _issue.TranList.Add(new Transaction { Location = _rcptLoc, Quantity = Convert.ToInt32(_issQty) });
                         File.WriteAllText($"{connection.BTIFolder}ISSUE{connection.AdiServer}.DAT{suffix}i{tranCount}", _issue.ToString());
                         tranCount++;
@@ -779,9 +778,11 @@ namespace M2kClient
         /// <param name="rsn">Reason code</param>
         /// <param name="transList">List of issue transations</param>
         /// <param name="connection">Current M2k Connection to be used for processing the transaction</param>
-        /// <param name="op">Opetional: Work order sequence or operation</param>
+        /// <param name="compFlag">Completion status</param>
+        /// <param name="woType">Type of work order to be processed</param>
+        /// <param name="op">Optional: Work order sequence or operation</param>
         /// <returns>Error number and error description, when returned as 0 and a empty string the transaction posted with no errors</returns>
-        public static IReadOnlyDictionary<int, string> ItemIssue(string stationId, string facCode, string partNbr, string woNbr, string rsn, List<Transaction> transList, M2kConnection connection, char woType = 'S', string op = "")
+        public static IReadOnlyDictionary<int, string> ItemIssue(string stationId, string facCode, string partNbr, string woNbr, string rsn, List<Transaction> transList, M2kConnection connection, CompletionFlag compFlag, char woType = 'S', string op = "")
         {
             var _subResult = new Dictionary<int, string>();
             try
@@ -794,7 +795,8 @@ namespace M2kClient
                     woNbr,
                     rsn,
                     transList,
-                    woType);
+                    woType,
+                    compFlag);
                 if (!string.IsNullOrEmpty(op))
                 {
                     _tIssue.Operation = op;

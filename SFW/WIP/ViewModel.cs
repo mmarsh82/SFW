@@ -563,6 +563,10 @@ namespace SFW.WIP
                         {
                             _baseValid = _locValid && IsLotValid && ValidateComponents();
                         }
+                        else if (WipRecord.SeqComplete == Model.Enumerations.Complete.Y)
+                        {
+                            _baseValid = _locValid = true;
+                        }
                     }
                     else if (WipRecord.WipQty < 0)
                     {

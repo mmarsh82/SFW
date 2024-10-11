@@ -65,6 +65,12 @@ namespace M2kClient.M2kADIArray
         public string Reason { get; set; }
 
         /// <summary>
+        /// Field 12
+        /// Completion Flag
+        /// </summary>
+        public CompletionFlag CFlag { get; set; }
+
+        /// <summary>
         /// Fields 13 - 15
         /// List of tranasactions to post during Issue validation
         /// </summary>
@@ -88,8 +94,9 @@ namespace M2kClient.M2kADIArray
         /// <param name="rsn">Issue reason</param>
         /// <param name="tranList">Transaction object list</param>
         /// <param name="woType">Work order type</param>
+        /// <param name="comp">Completion flag for the transaction, only need to pass when work order passes it</param>
         /// <param name="op">Optional: Operation also know as sequence number</param>
-        public Issue(string stationId, string facCode, string partNbr, string woNbr, string rsn, List<Transaction> tranList, char woType, string op = "")
+        public Issue(string stationId, string facCode, string partNbr, string woNbr, string rsn, List<Transaction> tranList, char woType, CompletionFlag comp, string op = "")
         {
             StationId = stationId;
             FacilityCode = facCode;
@@ -114,18 +121,34 @@ namespace M2kClient.M2kADIArray
             //13~Transaction Quantity~14~Location~15~Lot Number
             //13~Transaction Quantity~14~Location~15~Lot Number~99~COMPLETE
             //Must meet this format in order to work with M2k
-
-            var _rValue = !string.IsNullOrEmpty(Operation) || Type != 'R'
+            if (CFlag == CompletionFlag.Y)
+            {
+                var _rValue = !string.IsNullOrEmpty(Operation) || Type != 'R'
+                ? $"1~{TranType}~2~{StationId}~3~{TranTime}~4~{TranDate}~5~{FacilityCode}~6~{PartNbr}|{FacilityCode}~7~{WorkOrderNbr}~8~{Operation}~10~{Reason}~12~{CFlag}"
+                : $"1~{TranType}~2~{StationId}~3~{TranTime}~4~{TranDate}~5~{FacilityCode}~6~{PartNbr}|{FacilityCode}~7~{WorkOrderNbr}~10~{Reason}~12~{CFlag}";
+                foreach (var t in TranList)
+                {
+                    _rValue += !string.IsNullOrEmpty(t.LotNumber)
+                        ? $"\n13~{t.Quantity}~14~{t.Location}~15~{t.LotNumber}|P|{FacilityCode}"
+                        : $"\n13~{t.Quantity}~14~{t.Location}";
+                }
+                _rValue += "~99~COMPLETE";
+                return _rValue;
+            }
+            else
+            {
+                var _rValue = !string.IsNullOrEmpty(Operation) || Type != 'R'
                 ? $"1~{TranType}~2~{StationId}~3~{TranTime}~4~{TranDate}~5~{FacilityCode}~6~{PartNbr}|{FacilityCode}~7~{WorkOrderNbr}~8~{Operation}~10~{Reason}"
                 : $"1~{TranType}~2~{StationId}~3~{TranTime}~4~{TranDate}~5~{FacilityCode}~6~{PartNbr}|{FacilityCode}~7~{WorkOrderNbr}~10~{Reason}";
-            foreach (var t in TranList)
-            {
-                _rValue += !string.IsNullOrEmpty(t.LotNumber)
-                    ? $"\n13~{t.Quantity}~14~{t.Location}~15~{t.LotNumber}|P|{FacilityCode}"
-                    : $"\n13~{t.Quantity}~14~{t.Location}";
+                foreach (var t in TranList)
+                {
+                    _rValue += !string.IsNullOrEmpty(t.LotNumber)
+                        ? $"\n13~{t.Quantity}~14~{t.Location}~15~{t.LotNumber}|P|{FacilityCode}"
+                        : $"\n13~{t.Quantity}~14~{t.Location}";
+                }
+                _rValue += "~99~COMPLETE";
+                return _rValue;
             }
-            _rValue += "~99~COMPLETE";
-            return _rValue;
         }
     }
 }

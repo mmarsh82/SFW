@@ -133,6 +133,9 @@ namespace SFW.Model
                     _tempDS.Tables.Add(SalesOrder.GetScheduleData(site, ModelSqlCon));
                     _tempDS.Tables[_tempDS.Tables.Count - 1].TableName = "SalesMaster";
 
+                    _tempDS.Tables.Add(CrewMember.GetCrewLaborTable(site, ModelSqlCon));
+                    _tempDS.Tables[_tempDS.Tables.Count - 1].TableName = "CrewLabor";
+
                     MasterDataSet = _tempDS;
                 }
                 _rtnDict.Add(false, string.Empty);
