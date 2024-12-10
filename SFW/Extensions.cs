@@ -138,7 +138,7 @@ namespace SFW
                 {
                     while (e.MoveNext())
                     {
-                        if (((DataRowView)item).Row.Field<string>(colSearch) == ((DataRowView)e.Current).Row.Field<string>(colSearch))
+                        if (((DataRowView)item).Row.Field<object>(colSearch).ToString() == ((DataRowView)e.Current).Row.Field<object>(colSearch).ToString())
                             return idx;
                         else
                             idx++;

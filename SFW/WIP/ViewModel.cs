@@ -397,7 +397,7 @@ namespace SFW.WIP
                                     {
                                         if (s.Reason == "Quality Scrap" && !string.IsNullOrEmpty(s.Reference))
                                         {
-                                            _validScrap = Lot.IsValidQIR(s.Reference, App.AppSqlCon);
+                                            _validScrap = Lot.IsValidQIR(s.Reference, WipRecord.WipWorkOrder.OrderNumber, App.AppSqlCon);
                                         }
                                         else if (s.Reason != "Quality Scrap")
                                         {
@@ -599,8 +599,21 @@ namespace SFW.WIP
                             }
                             else
                             {
-                                _scrapValid = WipRecord.ScrapList.Count(o => Convert.ToInt32(o.Quantity) > 0) == WipRecord.ScrapList.Count(o => !string.IsNullOrEmpty(o.Reason))
-                                && WipRecord.ScrapList.Count(o => o.Reason == "Quality Scrap") == WipRecord.ScrapList.Count(o => !string.IsNullOrEmpty(o.Reference));
+                                _scrapValid = false;
+                                if (WipRecord.ScrapList.Count(o => Convert.ToInt32(o.Quantity) > 0) == WipRecord.ScrapList.Count())
+                                {
+                                    foreach(var s in WipRecord.ScrapList)
+                                    {
+                                        if(s.Reason == "Quality Scrap")
+                                        {
+                                            _scrapValid = Lot.IsValidQIR(s.Reference, WipRecord.WipWorkOrder.OrderNumber, App.AppSqlCon);
+                                        }
+                                        else if (!string.IsNullOrEmpty(s.Reason))
+                                        {
+                                            _scrapValid = true;
+                                        }
+                                    }
+                                }
                             }
                         }
                         else

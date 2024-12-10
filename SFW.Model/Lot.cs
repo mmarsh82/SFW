@@ -234,17 +234,22 @@ namespace SFW.Model
         /// </summary>
         /// <param name="reference">Reference value</param>
         /// <returns>QIR Validity</returns>
-        public static bool IsValidQIR(string reference, SqlConnection sqlCon)
+        public static bool IsValidQIR(string reference, string workOrder, SqlConnection sqlCon)
         {
+            if (string.IsNullOrEmpty(reference))
+            {
+                return false;
+            }
             if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
             {
                 var _db = sqlCon.Database;
                 try
                 {
                     var _rtnVal = false;
-                    using (SqlCommand cmd = new SqlCommand(@"USE OMNI; SELECT COUNT([QIRNumber]) FROM [qir_metrics_view] WHERE [QIRNumber]=@p1;", sqlCon))
+                    using (SqlCommand cmd = new SqlCommand(@"USE OMNI; SELECT COUNT([QIRNumber]) FROM [qir_metrics_view] WHERE [QIRNumber]=@p1 AND [WONumber]=@p2;", sqlCon))
                     {
                         cmd.Parameters.AddWithValue("p1", reference);
+                        cmd.Parameters.AddWithValue("p2", workOrder);
                         _rtnVal = Convert.ToInt32(cmd.ExecuteScalar()) > 0;
                     }
                     sqlCon.ChangeDatabase(_db);

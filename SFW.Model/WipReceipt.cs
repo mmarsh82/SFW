@@ -361,7 +361,7 @@ namespace SFW.Model
                 if (CrewMember.IsCrewIDValid(((BindingList<CrewMember>)sender)[e.NewIndex].IdNumber) && ((BindingList<CrewMember>)sender).Count(o => o.IdNumber == ((BindingList<CrewMember>)sender)[e.NewIndex].IdNumber) == 1)
                 {
                     IsLoading = true;
-                    var _tempCrew = new CrewMember(((BindingList<CrewMember>)sender)[e.NewIndex].IdNumber);
+                    var _tempCrew = new CrewMember(((BindingList<CrewMember>)sender)[e.NewIndex].IdNumber, true);
                     ((BindingList<CrewMember>)sender)[e.NewIndex].Facility = _tempCrew.Facility;
                     ((BindingList<CrewMember>)sender)[e.NewIndex].ClockTran = _tempCrew.ClockTran;
                     ((BindingList<CrewMember>)sender)[e.NewIndex].IsDirect = _tempCrew.IsDirect;

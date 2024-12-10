@@ -86,9 +86,6 @@ namespace SFW.UserLogIn
             ForceReset = false;
         }
 
-
-
-
         #region Log In ICommand
 
         public ICommand LogInCommand

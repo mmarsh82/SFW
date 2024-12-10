@@ -41,6 +41,8 @@ namespace SFW.Model
         public int Priority { get; set; }
         public new int Facility { get; set; }
         public bool IsStarted { get; set; }
+        public DateTime OriginStartDate { get; set; }
+        public DateTime OriginDueDate { get; set; }
 
         #endregion
 
@@ -98,6 +100,8 @@ namespace SFW.Model
                 Priority = _row.Field<int>("Sched_Priority");
                 Shift = _row.Field<int>("Sched_Shift");
                 Facility = _row.Field<int>("Site");
+                OriginStartDate = _row.Field<DateTime>("OriginalStartDate");
+                OriginDueDate = _row.Field<DateTime>("OriginalDueDate");
             }
         }
 
@@ -148,6 +152,8 @@ namespace SFW.Model
                 Shift = dRow.Field<int>("Sched_Shift");
                 Facility = dRow.Field<int>("Site");
                 IsStarted = true;
+                OriginStartDate = dRow.Field<DateTime>("OriginalStartDate");
+                OriginDueDate = dRow.Field<DateTime>("OriginalDueDate");
             }
         }
 

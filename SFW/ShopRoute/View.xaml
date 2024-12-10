@@ -62,7 +62,7 @@
                     <RowDefinition x:Name="Row2" Height="30"/>
                     <RowDefinition x:Name="Row3" Height="30"/>
                     <RowDefinition x:Name="Row4" Height="10"/>
-                    <RowDefinition x:Name="Row5" Height="60"/>
+                    <RowDefinition x:Name="Row5" Height="90"/>
                     <RowDefinition x:Name="Row6" Height="40"/>
                     <RowDefinition x:Name="Row7" Height="200"/>
                     <RowDefinition x:Name="Row8" Height="{Binding ShopOrder.SalesOrder.SalesNumber, Converter={StaticResource ValueToHeightConverter}, ConverterParameter=40}"/>
@@ -162,6 +162,13 @@
                             Visibility="Collapsed"
                             Command="{Binding ReportICommand}"
                             CommandParameter="2"
+                            Style="{DynamicResource MenuButtonStyle}" />
+                    <Button Content="Record Defect"
+                            FontSize="16"
+                            Width="120"
+                            Visibility="Visible"
+                            Command="{Binding ViewLoadCommand}"
+                            CommandParameter="9"
                             Style="{DynamicResource MenuButtonStyle}" />
 
                 </StackPanel>
@@ -286,79 +293,235 @@
                 <Grid Grid.Row="5">
 
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="300"/>
-                        <ColumnDefinition Width="300"/>
+                        <ColumnDefinition Width="225"/>
+                        <ColumnDefinition Width="225"/>
+                        <ColumnDefinition Width="200"/>
                         <ColumnDefinition Width="300"/>
                     </Grid.ColumnDefinitions>
 
-                    <StackPanel Grid.Column="0" Orientation="Vertical">
+                    <Grid Grid.Column="0">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="30"/>
+                            <RowDefinition Height="30"/>
+                            <RowDefinition Height="30"/>
+                        </Grid.RowDefinitions>
 
-                        <StackPanel Orientation="Horizontal">
+                        <Rectangle Grid.Row="1" Grid.RowSpan="2"
+                                   HorizontalAlignment="Stretch"
+                                   VerticalAlignment="Stretch"
+                                   Stroke="Black"
+                                   StrokeThickness="1"
+                                   Margin="1,0,5,0"
+                                   Panel.ZIndex="0"/>
 
-                            <TextBlock Text="Start Date:"
-                                   FontSize="18"
-                                   TextDecorations="Underline"
-                                   Foreground="#FF135185"/>
+                        <Rectangle Grid.Row="0"
+                                   HorizontalAlignment="Stretch"
+                                   VerticalAlignment="Stretch"
+                                   Stroke="Black"
+                                   StrokeThickness="1"
+                                   Margin="1,0,5,0"
+                                   Panel.ZIndex="0">
+                            <Rectangle.Fill>
+                                <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
+                                    <GradientStop Color="#FF6B8E95" Offset="0"/>
+                                    <GradientStop Color="#FF14A7C1" Offset="1"/>
+                                    <GradientStop Color="#FF1E424E" Offset="0.509"/>
+                                    <GradientStop Color="#FF1D4855" Offset="0.542"/>
+                                    <GradientStop Color="#FF193A44" Offset="0.526"/>
+                                </LinearGradientBrush>
+                            </Rectangle.Fill>
+                        </Rectangle>
+
+                        <TextBlock Grid.Row="0"
+                                   Text="Scheduled"
+                                   FontSize="20"
+                                   VerticalAlignment="Center"
+                                   HorizontalAlignment="Center"
+                                   FontWeight="Bold"
+                                   Foreground="White"/>
+
+                        <StackPanel Grid.Row="1" Orientation="Horizontal">
+
+                            <TextBlock Text="Start:"
+                                       FontSize="18"
+                                       Margin="5,0,0,0"
+                                       TextDecorations="Underline"
+                                       Foreground="#FF135185"/>
 
                             <TextBlock Text="{Binding ShopOrder.SchedStartDate, StringFormat=d}"
-                                   FontSize="18"
-                                   FontWeight="Bold"
-                                   Margin="10,0,0,0"/>
+                                       FontSize="18"
+                                       FontWeight="Bold"
+                                       Margin="10,0,0,0"/>
 
                         </StackPanel>
 
-                        <StackPanel Orientation="Horizontal">
+                        <StackPanel Grid.Row="2" Orientation="Horizontal">
 
-                            <TextBlock Text="Due Date:"
-                                   FontSize="18"
-                                   TextDecorations="Underline"
-                                   Foreground="#FF135185"/>
+                            <TextBlock Text="Due:"
+                                       FontSize="18"
+                                       TextDecorations="Underline"
+                                       Margin="5,0,0,0"
+                                       Foreground="#FF135185"/>
 
                             <TextBlock Text="{Binding ShopOrder.DueDate, StringFormat=d}"
-                                   FontSize="18"
-                                   FontWeight="Bold"
-                                   Margin="10,0,0,0"/>
+                                       FontSize="18"
+                                       FontWeight="Bold"
+                                       Margin="10,0,0,0"/>
 
                         </StackPanel>
-                    </StackPanel>
+                    </Grid>
 
-                    <StackPanel Grid.Column="1" Orientation="Vertical">
+                    <Grid Grid.Column="1">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="30"/>
+                            <RowDefinition Height="30"/>
+                            <RowDefinition Height="30"/>
+                        </Grid.RowDefinitions>
 
-                        <StackPanel Orientation="Horizontal">
+                        <Rectangle Grid.Row="1" Grid.RowSpan="2"
+                                   HorizontalAlignment="Stretch"
+                                   VerticalAlignment="Stretch"
+                                   Stroke="Black"
+                                   StrokeThickness="1"
+                                   Margin="1,0,5,0"
+                                   Panel.ZIndex="0"/>
 
-                            <TextBlock Text="Required Qty:"
-                                   FontSize="18"
-                                   TextDecorations="Underline"
-                                   Foreground="#FF135185"/>
+                        <Rectangle Grid.Row="0"
+                                   HorizontalAlignment="Stretch"
+                                   VerticalAlignment="Stretch"
+                                   Stroke="Black"
+                                   StrokeThickness="1"
+                                   Margin="1,0,5,0"
+                                   Panel.ZIndex="0">
+                            <Rectangle.Fill>
+                                <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
+                                    <GradientStop Color="#FF6B8E95" Offset="0"/>
+                                    <GradientStop Color="#FF14A7C1" Offset="1"/>
+                                    <GradientStop Color="#FF1E424E" Offset="0.509"/>
+                                    <GradientStop Color="#FF1D4855" Offset="0.542"/>
+                                    <GradientStop Color="#FF193A44" Offset="0.526"/>
+                                </LinearGradientBrush>
+                            </Rectangle.Fill>
+                        </Rectangle>
+
+                        <TextBlock Grid.Row="0"
+                                   Text="Original"
+                                   FontSize="20"
+                                   VerticalAlignment="Center"
+                                   HorizontalAlignment="Center"
+                                   FontWeight="Bold"
+                                   Foreground="White"/>
+
+                        <StackPanel Grid.Row="1" Orientation="Horizontal">
+
+                            <TextBlock Text="Start:"
+                                       FontSize="18"
+                                       TextDecorations="Underline"
+                                       Margin="5,0,0,0"
+                                       Foreground="#FF135185"/>
+
+                            <TextBlock Text="{Binding ShopOrder.OriginStartDate, StringFormat=d}"
+                                       FontSize="18"
+                                       FontWeight="Bold"
+                                       Margin="10,0,0,0"/>
+
+                        </StackPanel>
+
+                        <StackPanel Grid.Row="2" Orientation="Horizontal">
+
+                            <TextBlock Text="Due:"
+                                       FontSize="18"
+                                       TextDecorations="Underline"
+                                       Margin="5,0,0,0"
+                                       Foreground="#FF135185"/>
+
+                            <TextBlock Text="{Binding ShopOrder.OriginDueDate, StringFormat=d}"
+                                       FontSize="18"
+                                       FontWeight="Bold"
+                                       Margin="10,0,0,0"/>
+
+                        </StackPanel>
+                    </Grid>
+
+                    <Grid Grid.Column="2">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="30"/>
+                            <RowDefinition Height="30"/>
+                            <RowDefinition Height="30"/>
+                        </Grid.RowDefinitions>
+
+                        <Rectangle Grid.Row="1" Grid.RowSpan="2"
+                                  HorizontalAlignment="Stretch"
+                                  VerticalAlignment="Stretch"
+                                  Stroke="Black"
+                                  StrokeThickness="1"
+                                  Margin="1,0,5,0"
+                                  Panel.ZIndex="0"/>
+
+                        <Rectangle Grid.Row="0"
+                                  HorizontalAlignment="Stretch"
+                                  VerticalAlignment="Stretch"
+                                  Stroke="Black"
+                                  StrokeThickness="1"
+                                  Margin="1,0,5,0"
+                                  Panel.ZIndex="0">
+                            <Rectangle.Fill>
+                                <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
+                                    <GradientStop Color="#FF6B8E95" Offset="0"/>
+                                    <GradientStop Color="#FF14A7C1" Offset="1"/>
+                                    <GradientStop Color="#FF1E424E" Offset="0.509"/>
+                                    <GradientStop Color="#FF1D4855" Offset="0.542"/>
+                                    <GradientStop Color="#FF193A44" Offset="0.526"/>
+                                </LinearGradientBrush>
+                            </Rectangle.Fill>
+                        </Rectangle>
+
+                        <TextBlock Grid.Row="0"
+                                  Text="Quantity"
+                                  FontSize="20"
+                                  VerticalAlignment="Center"
+                                  HorizontalAlignment="Center"
+                                  FontWeight="Bold"
+                                  Foreground="White"/>
+
+                        <StackPanel Grid.Row="1" Orientation="Horizontal">
+
+                            <TextBlock Text="Required:"
+                                       FontSize="18"
+                                       TextDecorations="Underline"
+                                       Margin="10,0,0,0"
+                                       Foreground="#FF135185"/>
 
                             <TextBlock Text="{Binding ShopOrder.StartQty}"
-                                   FontSize="18"
-                                   FontWeight="Bold"
-                                   Margin="10,0,0,0"/>
+                                       FontSize="18"
+                                       FontWeight="Bold"
+                                       Margin="10,0,0,0"/>
 
                         </StackPanel>
 
-                        <StackPanel Orientation="Horizontal">
+                        <StackPanel Grid.Row="2" Orientation="Horizontal">
 
-                            <TextBlock Text="Balance Qty:"
-                                   FontSize="18"
-                                   TextDecorations="Underline"
-                                   Foreground="#FF135185"/>
+                            <TextBlock Text="Balance:"
+                                       FontSize="18"
+                                       TextDecorations="Underline"
+                                       Margin="10,0,0,0"
+                                       Foreground="#FF135185"/>
 
                             <TextBlock Text="{Binding ShopOrder.CurrentQty}"
-                                   FontSize="18"
-                                   FontWeight="Bold"
-                                   Margin="10,0,0,0"/>
+                                       FontSize="18"
+                                       FontWeight="Bold"
+                                       Margin="10,0,0,0"/>
 
                         </StackPanel>
-                    </StackPanel>
+                    </Grid>
 
-                    <StackPanel Grid.Column="2" Orientation="Vertical">
+                    <StackPanel Grid.Column="3" Orientation="Vertical" VerticalAlignment="Center">
 
                         <StackPanel Orientation="Horizontal" Visibility="{Binding ShopOrder.CustomerRev, Converter={StaticResource StringToVisConverter}}">
 
                             <TextBlock Text="Customer Revision:"
                                    FontSize="18"
+                                       Margin="10,0,0,0"
                                    TextDecorations="Underline"
                                    Foreground="#FF135185"/>
 
@@ -372,9 +535,10 @@
                         <StackPanel Orientation="Horizontal" Visibility="{Binding ShopOrder.InternalRev, Converter={StaticResource StringToVisConverter}}">
 
                             <TextBlock Text="Internal Revision:"
-                                   FontSize="18"
-                                   TextDecorations="Underline"
-                                   Foreground="#FF135185"/>
+                                       FontSize="18"
+                                       TextDecorations="Underline"
+                                       Margin="10,0,0,0"
+                                       Foreground="#FF135185"/>
 
                             <TextBlock Text="{Binding ShopOrder.InternalRev}"
                                    FontSize="18"

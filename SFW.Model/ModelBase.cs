@@ -136,6 +136,9 @@ namespace SFW.Model
                     _tempDS.Tables.Add(CrewMember.GetCrewLaborTable(site, ModelSqlCon));
                     _tempDS.Tables[_tempDS.Tables.Count - 1].TableName = "CrewLabor";
 
+                    _tempDS.Tables.Add(Ncr.GetNoticeTable(site, ModelSqlCon));
+                    _tempDS.Tables[_tempDS.Tables.Count - 1].TableName = "NcrNotice";
+
                     MasterDataSet = _tempDS;
                 }
                 _rtnDict.Add(false, string.Empty);

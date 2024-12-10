@@ -29,8 +29,8 @@
     <ProductName>Shop Floor Workbench</ProductName>
     <PublisherName>Michael Marsh</PublisherName>
     <SuiteName>ContiTech</SuiteName>
-    <ApplicationRevision>315</ApplicationRevision>
-    <ApplicationVersion>2.0.57.315</ApplicationVersion>
+    <ApplicationRevision>359</ApplicationRevision>
+    <ApplicationVersion>2.0.58.359</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <CreateDesktopShortcut>true</CreateDesktopShortcut>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -89,6 +89,7 @@
     <Reference Include="System.Data" />
     <Reference Include="System.DirectoryServices" />
     <Reference Include="System.DirectoryServices.AccountManagement" />
+    <Reference Include="System.DirectoryServices.Protocols" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Windows.Interactivity, Version=4.5.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
@@ -141,6 +142,7 @@
     <Compile Include="Converters\BoolToBorderColor.cs" />
     <Compile Include="Converters\BoolToInt.cs" />
     <Compile Include="Converters\CrewToVisibility.cs" />
+    <Compile Include="Converters\DateGroupConverter.cs" />
     <Compile Include="Converters\DisplayToolTip.cs" />
     <Compile Include="Converters\EnumToBool.cs" />
     <Compile Include="Converters\EnumToVisibility.cs" />
@@ -151,6 +153,7 @@
     <Compile Include="Converters\SelectedRowToBool.cs" />
     <Compile Include="Converters\SiteNumberToBool.cs" />
     <Compile Include="Converters\SiteToVisibility.cs" />
+    <Compile Include="Converters\StatusToColor.cs" />
     <Compile Include="Converters\StringConcat.cs" />
     <Compile Include="Converters\StringToBool.cs" />
     <Compile Include="Converters\ValueToHeight.cs" />
@@ -175,6 +178,18 @@
       <DependentUpon>View.xaml</DependentUpon>
     </Compile>
     <Compile Include="Labor\ViewModel.cs" />
+    <Compile Include="QMS\NcrForm\View.xaml.cs">
+      <DependentUpon>View.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="QMS\NcrForm\ViewModel.cs" />
+    <Compile Include="QMS\NcrNotice\View.xaml.cs">
+      <DependentUpon>View.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="QMS\NcrNotice\ViewModel.cs" />
+    <Compile Include="Queries\Container_View.xaml.cs">
+      <DependentUpon>Container_View.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Queries\Container_ViewModel.cs" />
     <Compile Include="Queries\PartLabel_View.xaml.cs">
       <DependentUpon>PartLabel_View.xaml</DependentUpon>
     </Compile>
@@ -314,6 +329,18 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="QMS\NcrForm\View.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="QMS\NcrNotice\View.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Queries\Container_View.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Queries\PartInfo_View.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -399,6 +426,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Styles\CheckBox.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Styles\ComboBox.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

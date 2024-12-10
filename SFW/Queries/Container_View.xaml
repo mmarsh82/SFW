@@ -1,0 +1,63 @@
+﻿<UserControl x:Class="SFW.Queries.Container_View"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:SFW.Queries"
+             xmlns:cvtr="clr-namespace:SFW.Converters"
+             xmlns:cmd="clr-namespace:SFW.Commands">
+    <Grid Background="LightGray">
+
+        <Grid.Resources>
+            <cvtr:ObjectToVisibility x:Key="ObjectToVisConverter" />
+            <cvtr:NegativeIntToBool x:Key="NegIntToBoolConverter" />
+            <cvtr:StringToVisibility x:Key="StringToVisConverter" />
+            <cvtr:CountToVisibility x:Key="CountToVisConverter" />
+            <cvtr:BoolToVisibility x:Key="BoolToVisConverter" />
+            <cvtr:BoolToBorderColor x:Key="BoolToBorderConverter" />
+            <cvtr:MultiValueParameter x:Key="MultiValConverter" />
+            <cmd:M2kLookQuery x:Key="LookQueryCommand" />
+            <cmd:ViewLoad x:Key="ViewLoadCommand" />
+            <cvtr:BoolInverter x:Key="InvertBoolConverter"/>
+            <cvtr:SiteToVisibility x:Key="SiteToVisConverter" />
+        </Grid.Resources>
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="35" />
+            <RowDefinition Height="35" />
+            <RowDefinition Height="35" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!--#region Row 0 Information Header and Input-->
+
+        <StackPanel Grid.Row="0"
+                    Orientation="Horizontal">
+            <Button Background="Transparent"
+                    BorderThickness="0"
+                    Command="{StaticResource ViewLoadCommand}"
+                    CommandParameter="-1">
+                <Button.Content>
+                    <StackPanel Orientation="Horizontal">
+                        <Image Source="/SFW;component/Icons/BackArrow.ico" />
+                        <TextBlock Text="Back"
+                                   VerticalAlignment="Center"
+                                   FontSize="16"
+                                   FontWeight="Bold"
+                                   Foreground="Crimson"/>
+                    </StackPanel>
+                </Button.Content>
+            </Button>
+            
+        </StackPanel>
+
+        <TextBlock Grid.RowSpan="4"
+                   FontSize="48"
+                   VerticalAlignment="Center"
+                   HorizontalAlignment="Center"
+                   Text="Under Development"
+                   FontWeight="Bold"/>
+
+
+        <!--#endregion-->
+
+    </Grid>
+</UserControl>

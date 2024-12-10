@@ -486,6 +486,14 @@ namespace M2kClient
 
             #region Scrap Adjustment
 
+            var _scrapWip = string.Empty;
+            //Scrapping product by wipping to inspection location
+            foreach (var s in wipRecord.ScrapList.Where(o => int.TryParse(o.Quantity, out int i) && i > 0))
+            {
+                new Wip(wipRecord);
+
+            }
+
             var _adjustString = string.Empty;
             //Adjusting any scrap out of the system that was recorded during the wip
             //Main part scrap adjustment string builder

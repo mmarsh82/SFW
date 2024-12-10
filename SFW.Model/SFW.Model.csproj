@@ -61,6 +61,7 @@
     <Compile Include="Location.cs" />
     <Compile Include="Lot.cs" />
     <Compile Include="ModelBase.cs" />
+    <Compile Include="Ncr.cs" />
     <Compile Include="PressReport.cs" />
     <Compile Include="PressRound.cs" />
     <Compile Include="PressShiftReport.cs" />

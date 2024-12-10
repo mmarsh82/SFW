@@ -192,6 +192,10 @@
                                                Visibility="{Binding IsStartLate, Converter={StaticResource BoolToVisConverter}}"
                                                ToolTip="Work Order has currently went past it's expected start date."
                                                Margin="10,0,0,0" Height="25" Width="25"/>
+                                        <Image Source="/SFW;component/Icons/Pending.ico"
+                                               Visibility="{Binding IsPastDue, Converter={StaticResource BoolToVisConverter}}"
+                                               ToolTip="Work order is scheduled to complete past the original date required."
+                                               Margin="10,0,0,0" Height="25" Width="25"/>
                                         <Image Source="/SFW;component/Icons/First.ico"
                                                Visibility="{Binding Sched_Shift, Converter={StaticResource StringToVisConverter}, ConverterParameter=~1}"
                                                ToolTip="Work order created for 1st shift."
@@ -204,6 +208,15 @@
                                                Visibility="{Binding Sched_Shift, Converter={StaticResource StringToVisConverter}, ConverterParameter=~3}"
                                                ToolTip="Work order created for 3rd shift."
                                                Margin="10,0,0,0" Height="25" Width="25"/>
+                                        <TextBlock Text="Priority:"
+                                                   TextDecorations="Underline"
+                                                   Margin="20,0,0,0"
+                                                   VerticalAlignment="Center"
+                                                   Visibility="{Binding Sched_Priority, Converter={StaticResource StringToVisConverter}, ConverterParameter=Sched_Priority}"/>
+                                        <TextBlock Text="{Binding Sched_Priority}"
+                                                   Margin="5,0,0,0"
+                                                   VerticalAlignment="Center"
+                                                   Visibility="{Binding Sched_Priority, Converter={StaticResource StringToVisConverter}, ConverterParameter=Sched_Priority}"/>
                                     </StackPanel>
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                                         <TextBlock Text="{Binding SkuNumber}" VerticalAlignment="Center"/>
@@ -229,14 +242,12 @@
                                 </Grid>
                                 <Grid>
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
-                                        <TextBlock Text="Start:" TextDecorations="Underline"/>
-                                        <TextBlock Text="{Binding WO_SchedStartDate, StringFormat=d}" Margin="5,0,0,0"/>
-                                        <TextBlock Text="Due:" Margin="20,0,0,0" TextDecorations="Underline"/>
+                                        <TextBlock Text="Due:" Margin="5,0,0,0" TextDecorations="Underline"/>
                                         <TextBlock Text="{Binding WO_DueDate, StringFormat=d}" Margin="5,0,0,0"/>
+                                        <TextBlock Text="Needed:" Margin="20,0,0,0" TextDecorations="Underline"/>
+                                        <TextBlock Text="{Binding OriginalDueDate, StringFormat=d}" Margin="5,0,0,0"/>
                                         <TextBlock Text="Run:" Margin="20,0,0,0" TextDecorations="Underline"/>
                                         <TextBlock Text="{Binding RunTime, StringFormat={}{0} hr}" Margin="5,0,0,0"/>
-                                        <TextBlock Text="Priority:" TextDecorations="Underline" Margin="20,0,0,0" Visibility="{Binding Sched_Priority, Converter={StaticResource StringToVisConverter}, ConverterParameter=Sched_Priority}"/>
-                                        <TextBlock Text="{Binding Sched_Priority}" Margin="5,0,0,0" Visibility="{Binding Sched_Priority, Converter={StaticResource StringToVisConverter}, ConverterParameter=Sched_Priority}"/>
                                     </StackPanel>
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
                                         <TextBlock Text="Need" Margin="0,0,5,0">

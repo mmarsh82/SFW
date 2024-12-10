@@ -92,6 +92,13 @@
                         </MenuItem.ItemContainerStyle>
                     </MenuItem>
                 </Menu>
+                <Button Content="Record Defect"
+                        FontSize="16"
+                        Width="110"
+                        Visibility="{Binding Path=(main:CurrentUser.IsQuality), Converter={StaticResource BoolToVisConverter}}"
+                        Command="{Binding ViewLoadCommand}"
+                        CommandParameter="9"
+                        Style="{DynamicResource MenuButtonStyle}" />
 
             </StackPanel>
 

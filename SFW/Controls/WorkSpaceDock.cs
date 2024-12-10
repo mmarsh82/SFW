@@ -17,6 +17,7 @@ namespace SFW.Controls
         public static DockPanel PurchaseDock { get; set; }
         public static DockPanel CountDock { get; set; }
         public static DockPanel SalesDock { get; set; }
+        public static DockPanel NcrDock { get; set; }
         public static int Module => (int)App.LoadedModule;
 
         public static event EventHandler<PropertyChangedEventArgs> StaticPropertyChanged;
@@ -38,6 +39,7 @@ namespace SFW.Controls
                 PurchaseDock = new DockPanel();
                 CountDock = new DockPanel();
                 SalesDock = new DockPanel();
+                NcrDock = new DockPanel();
 
                 //Add the Part Info View to [0]
                 MainDock.Children.Insert(0, new PartInfo_View());
@@ -85,6 +87,14 @@ namespace SFW.Controls
                     while (!Schedule.SalesOrder.ViewModel.LoadAsyncComplete.IsCompleted) { }
                 }
 
+                //Add the Quality NCR Notice View to [9]
+                NcrDock.Children.Insert(0, new QMS.NcrNotice.View());
+                NcrDock.Children.Insert(1, new QMS.NcrForm.View() { DataContext = new QMS.NcrForm.View() });
+                MainDock.Children.Insert(9, NcrDock);
+
+                //Add the Container Detail View to [6]
+                MainDock.Children.Insert(10, new Container_View());
+
                 SwitchView(App.SiteNumber, null, false);
                 RefreshTimer.IsRefreshing = false;
                 App.LoadedModule = Enumerations.UsersControls.Schedule;
@@ -130,6 +140,10 @@ namespace SFW.Controls
                     break;
                 case 8:
                     _tempDock = SalesDock;
+                    break;
+                case 9:
+                    _tempDock = NcrDock;
+                    UpdateChildDock(9, 1, new QMS.NcrForm.View { DataContext = new QMS.NcrForm.ViewModel() });
                     break;
             }
             if (refreshDock)

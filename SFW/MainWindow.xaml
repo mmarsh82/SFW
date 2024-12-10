@@ -37,6 +37,9 @@
         <KeyBinding Gesture="Alt+I"
                     Command="{StaticResource ViewLoadICommand}"
                     CommandParameter="0"/>
+        <KeyBinding Gesture="Alt+C"
+                    Command="{StaticResource ViewLoadICommand}"
+                    CommandParameter="10"/>
         <KeyBinding Gesture="Alt+R"
                     Command="{StaticResource RollSplitICommand}" />
         <KeyBinding Gesture="Shift+Ctrl+C"
@@ -132,18 +135,25 @@
                           Command="{StaticResource ViewLoadICommand}"
                           CommandParameter="8"
                           InputGestureText="Shift+Ctrl+S"
-                          Visibility="{Binding Path=(local:CurrentUser.HasSalesOrderModule), Converter={StaticResource BoolToVisConverter}}">
-                </MenuItem>
+                          Visibility="{Binding Path=(local:CurrentUser.HasSalesOrderModule), Converter={StaticResource BoolToVisConverter}}"/>
                 <MenuItem Header="Cycle Count"
                           Command="{StaticResource ViewLoadICommand}"
                           CommandParameter="3"
                           Visibility="{Binding Path=(local:CurrentUser.IsInventoryControl), Converter={StaticResource BoolToVisConverter}}"/>
+                <MenuItem Header="Quality NCRs"
+                          Command="{StaticResource ViewLoadICommand}"
+                          CommandParameter="9"
+                          Visibility="Visible"/>
             </MenuItem>
             <MenuItem Header="Tools">
                 <MenuItem Header="Part Information"
                           Command="{StaticResource ViewLoadICommand}"
                           CommandParameter="0"
                           InputGestureText="Alt+I"/>
+                <MenuItem Header="Container Information"
+                          Command="{StaticResource ViewLoadICommand}"
+                          CommandParameter="10"
+                          InputGestureText="Alt+C"/>
                 <MenuItem Header="Print Label"
                           Command="{StaticResource ShowWindowICommand}"
                           CommandParameter="SFW.Queries.PartLabel_View"

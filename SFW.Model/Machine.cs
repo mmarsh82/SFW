@@ -29,6 +29,18 @@ namespace SFW.Model
         public Machine()
         { }
 
+        /// <summary>
+        /// Work Center Overridden Constructor
+        /// </summary>
+        public Machine(int machId)
+        {
+            var _machineDataRow = MasterDataSet.Tables["WC"].Select($"[WorkCenterID] = '{machId}'").FirstOrDefault();
+            MachineNumber = machId.ToString();
+            MachineName = _machineDataRow.Field<string>("Name");
+            MachineDescription = _machineDataRow.Field<string>("Description");
+            MachineGroup = _machineDataRow.Field<string>("Group");
+        }
+
         #region Data Access
 
         /// <summary>
@@ -59,6 +71,8 @@ namespace SFW.Model
 	,ISNULL(wpo.Date_Start, '1999-01-01') AS WO_SchedStartDate
 	,ISNULL(wpo.Date_Act_Start, '1999-01-01') AS WO_ActStartDate
 	,ISNULL(wpo.Due_Date, ISNULL(wpo.Date_Start, '1999-01-01')) AS WO_DueDate
+	,ISNULL(wp.[Date_Orig_Comp], '1999-01-01') as OriginalDueDate
+	,ISNULL(wp.[Orig_Start_Date], '1999-01-01') as OriginalStartDate
 	,ISNULL(CAST(ROUND(wpo.Mach_Load_Hrs_Rem, 1) AS float), 0) AS RunTime
 	,CASE WHEN wpo.[Due_Date] < GETDATE()
 		THEN 1
@@ -90,6 +104,7 @@ namespace SFW.Model
 	,(SELECT Cust_Part_Nbr FROM dbo.[SOD-INIT] AS ac WHERE (ID = SUBSTRING(wp.So_Reference, 0, LEN(wp.So_Reference) - 1))) AS Cust_Part_Nbr
 	,CAST(ISNULL((SELECT Ln_Bal_Qty FROM dbo.[SOD-INIT] AS ad WHERE (ID = SUBSTRING(wp.So_Reference, 0, LEN(wp.So_Reference) - 1))), 0) AS int) AS Ln_Bal_Qty
 	,CAST(wc.[Fac_Code] as int) as 'Site'
+	,CASE WHEN wp.[Date_Sch_Comp] > wp.[Date_Orig_Comp] THEN 1 ELSE 0 END as 'IsPastDue'
 FROM
 	dbo.[WC-INIT] AS wc
 LEFT JOIN
@@ -99,7 +114,7 @@ LEFT JOIN
 LEFT JOIN
 	dbo.[IM-INIT] AS im ON im.Part_Number = wp.Part_Wo_Desc
 WHERE
-	(wc.D_esc <> 'DO NOT USE') AND (wpo.Alt_Seq_Status IS NULL) AND (wp.Status_Flag = 'C' OR wp.Status_Flag = 'A' OR wp.Status_Flag = 'R') AND im.[Part_Number] IS NOT NULL AND wc.[Fac_Code] = @p1
+	(wc.D_esc <> 'DO NOT USE') AND (wpo.Alt_Seq_Status IS NULL) AND (wp.Status_Flag = 'C' OR wp.Status_Flag = 'A' OR wp.Status_Flag = 'R') AND im.[Part_Number] IS NOT NULL AND wc.[Fac_Code] = 1
 ORDER BY
 	MachineOrder, MachineNumber, WO_Priority, Sched_Shift, Sched_Priority, WO_SchedStartDate, WorkOrderID ASC";
 
@@ -177,55 +192,6 @@ ORDER BY
                 {
                     throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
                 }
-            }
-        }
-
-        /// <summary>
-        /// Get a list of work centers
-        /// </summary>
-        /// <param name="sqlCon">Sql Connection to use</param>
-        /// <returns>generic list of worcenter objects</returns>
-        public static List<object> GetMachineList(SqlConnection sqlCon)
-        {
-            var _rtnList = new List<object>();
-            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
-            {
-                try
-                {
-                    using (SqlCommand cmd = new SqlCommand($"USE [{sqlCon.Database}]; SELECT * FROM [dbo].[SFW_Machine] WHERE [Site] = @p1", sqlCon))
-                    {
-                        using (SqlDataReader _reader = cmd.ExecuteReader())
-                        {
-                            if (_reader.HasRows)
-                            {
-                                while (_reader.Read())
-                                {
-                                    _rtnList.Add(new Machine
-                                    {
-                                        MachineNumber = _reader["WorkCenterID"].ToString()
-                                        ,MachineName = _reader["Name"].ToString()
-                                        ,MachineDescription = _reader["Description"].ToString()
-                                        ,MachineGroup = _reader["Group"].ToString()
-                                        ,IsLoaded = true
-                                    });
-                                }
-                            }
-                        }
-                    }
-                    return _rtnList;
-                }
-                catch (SqlException sqlEx)
-                {
-                    return _rtnList;
-                }
-                catch (Exception ex)
-                {
-                    throw new Exception(ex.Message);
-                }
-            }
-            else
-            {
-                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
             }
         }
 

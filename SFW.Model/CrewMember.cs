@@ -1,6 +1,7 @@
 ﻿using IBMU2.UODOTNET;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Data;
 using System.Data.SqlClient;
 using System.DirectoryServices.AccountManagement;
@@ -231,6 +232,11 @@ namespace SFW.Model
 
         public char ClockTran { get; set; }
 
+        public string OutTime
+        {
+            get { return DateTime.Now.ToString("HH:mm"); }
+        }
+
         private bool _work;
         public bool IsWorking
         {
@@ -263,20 +269,24 @@ namespace SFW.Model
         /// Load a crewmember object based on an employee ID
         /// </summary>
         /// <param name="idNbr">Crew member ID Number</param>
-        public CrewMember(string idNbr)
+        /// <param name="loadLabor">Load the labor fields for the crew member</param>
+        public CrewMember(string idNbr, bool loadLabor)
         {
             var _rows = MasterDataSet.Tables["CREW"].Select($"[EmployeeID] = '{idNbr}'");
             if (_rows.Length > 0)
             {
                 IdNumber = idNbr;
                 Name = _rows.FirstOrDefault().Field<string>("DisplayName");
-                IsDirect = _rows.FirstOrDefault().Field<int>("IsDirect") == 1;
-                Shift = _rows.FirstOrDefault().Field<int>("Shift");
-                ShiftStart = _rows.FirstOrDefault().Field<string>("ShiftStart");
-                ShiftEnd = _rows.FirstOrDefault().Field<string>("ShiftEnd");
-                Facility = $"0{_rows.FirstOrDefault().Field<int>("Site")}";
-                ErrorMessage = string.Empty;
-                _clockLoaded = false;
+                if (loadLabor)
+                {
+                    IsDirect = _rows.FirstOrDefault().Field<int>("IsDirect") == 1;
+                    Shift = _rows.FirstOrDefault().Field<int>("Shift");
+                    ShiftStart = _rows.FirstOrDefault().Field<string>("ShiftStart");
+                    ShiftEnd = _rows.FirstOrDefault().Field<string>("ShiftEnd");
+                    Facility = $"0{_rows.FirstOrDefault().Field<int>("Site")}";
+                    ErrorMessage = string.Empty;
+                    _clockLoaded = false;
+                }
             }
         }
 
@@ -593,10 +603,11 @@ namespace SFW.Model
         }
 
         /// <summary>
-        /// Get facility code for a user
+        /// Get crew members by shift
         /// </summary>
-        /// <param name="idNbr">User Id number</param>
-        /// <returns>facility code as a string</returns>
+        /// <param name="shift">Crew shift filter</param>
+        /// <param name="site">Crew site filter</param>
+        /// <returns>Read only dictionary of crewmember objects</returns>
         public static IReadOnlyDictionary<char, List<CrewMember>> GetCrewList(int shift, int site)
         {
             var _crewList = new List<CrewMember>();
@@ -648,6 +659,28 @@ namespace SFW.Model
             }
             _rtnDict.Add(_rtnAction, _crewList);
             return _rtnDict;
+        }
+
+        /// <summary>
+        /// Get observable collection of crew members
+        /// </summary>
+        /// <param name="site">Crew site filter</param>
+        /// <returns>ObservableCollection of crewmember objects</returns>
+        public static ObservableCollection<CrewMember> GetCrewCollection(int site)
+        {
+            var _crewCol = new ObservableCollection<CrewMember>();
+            var _crewRows = MasterDataSet.Tables["CREW"].Select($"[Site] = '{site}'");
+            foreach (var _row in _crewRows)
+            {
+               _crewCol.Add(new CrewMember
+                    {
+                        IdNumber = _row.Field<string>("EmployeeID")
+                        ,Name = _row.Field<string>("DisplayName")
+                        ,Shift = _row.Field<int>("Shift")
+                        ,Facility = _row.Field<int>("Site").ToString()
+                    });
+            }
+            return _crewCol;
         }
     }
 }

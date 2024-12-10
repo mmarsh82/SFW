@@ -32,7 +32,7 @@ namespace SFW.Schedule
                 try
                 {
                     _selectedWO = value;
-                    Controls.WorkSpaceDock.UpdateChildDock(0, 1, new ShopRoute.View { DataContext = new ShopRoute.ViewModel() });
+                    Controls.WorkSpaceDock.UpdateChildDock(1, 1, new ShopRoute.View { DataContext = new ShopRoute.ViewModel() });
                     if (value != null)
                     {
                         var _wo = new WorkOrder(value.Row);
