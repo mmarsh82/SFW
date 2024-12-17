@@ -34,10 +34,22 @@
                    FontSize="32"
                    FontWeight="Bold"
                    HorizontalAlignment="Center"
-                   VerticalAlignment="Center"
-                   Visibility="{Binding NcrObject.NcrId, Converter={StaticResource IntToVisConverter}, ConverterParameter=NcrHeader}"/>
+                   VerticalAlignment="Center">
+                <TextBlock.Visibility>
+                    <MultiBinding Converter="{StaticResource IntToVisConverter}" ConverterParameter="NcrHeader">
+                        <Binding Path="NcrObject.NcrId"/>
+                        <Binding Path="IsNewNcr"/>
+                    </MultiBinding>
+                </TextBlock.Visibility>
+            </TextBlock>
 
-            <Grid Margin="10,0,10,0" Visibility="{Binding NcrObject.NcrId, Converter={StaticResource IntToVisConverter}, ConverterParameter=NcrDetail}">
+            <Grid Margin="10,0,10,0">
+                <Grid.Visibility>
+                    <MultiBinding Converter="{StaticResource IntToVisConverter}" ConverterParameter="NcrDetail">
+                        <Binding Path="NcrObject.NcrId"/>
+                        <Binding Path="IsNewNcr"/>
+                    </MultiBinding>
+                </Grid.Visibility>
 
                 <Grid.RowDefinitions>
                     <RowDefinition x:Name="Row0" Height="40"/>
@@ -213,17 +225,17 @@
                     <TextBlock Text="{Binding NcrObject.OrderSeqId}"
                                FontSize="24"
                                FontWeight="Bold"
-                               Visibility="Visible"
+                               Visibility="{Binding IsNewNcr, Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}"
                                Margin="10,0,0,0" />
 
                     <TextBox x:Name="OrderSeqId"
                              Text="{Binding IsNewNcr, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                              FontSize="18"
+                             Margin="10,0,0,0"
                              FontWeight="Bold"
                              Background="LightGray"
                              Width="75"
                              MaxLength="2"
-                             TabIndex="1"
                              Visibility="{Binding IsNewNcr, Converter={StaticResource BoolToVisConverter}}"
                              Style="{DynamicResource RequiredTextBox}" />
 
@@ -475,7 +487,6 @@
                               DisplayMemberPath="Description"
                               FontSize="18"
                               FontWeight="Bold"
-                              IsEditable="True"
                               Width="200"
                               TabIndex="5"
                               Margin="5,0,0,0"

@@ -1,4 +1,6 @@
-﻿using SFW.Converters;
+﻿using SFW.Controls;
+using SFW.Converters;
+using SFW.Helpers;
 using SFW.Model;
 using System;
 using System.Collections.Generic;
@@ -7,6 +9,7 @@ using System.Data;
 using System.Linq;
 using System.Windows;
 using System.Windows.Data;
+using System.Windows.Input;
 
 namespace SFW.QMS.NcrNotice
 {
@@ -26,7 +29,7 @@ namespace SFW.QMS.NcrNotice
                 try
                 {
                     _selectedNcr = value;
-                    Controls.WorkSpaceDock.UpdateChildDock(9, 1, new NcrForm.View { DataContext = new NcrForm.ViewModel() });
+                    WorkSpaceDock.UpdateChildDock(9, 1, new NcrForm.View { DataContext = new NcrForm.ViewModel(false) });
                     if (value != null)
                     {
                         var _ncr = new Ncr(value.Row.Field<int>("NcrId"));
@@ -87,6 +90,8 @@ namespace SFW.QMS.NcrNotice
         }
 
         private bool Refresh { get; set; }
+
+        RelayCommand _newNcr;
 
         public delegate void LoadDelegate(string s);
         public LoadDelegate LoadAsyncDelegate { get; private set; }
@@ -163,6 +168,28 @@ namespace SFW.QMS.NcrNotice
                 }
             }
         }
+
+        #region New NCR input ICommand
+
+        public ICommand NewNcrICommand
+        {
+            get
+            {
+                if (_newNcr == null)
+                {
+                    _newNcr = new RelayCommand(NewNcrExecute);
+                }
+                return _newNcr;
+            }
+        }
+
+        private void NewNcrExecute(object parameter)
+        {
+            RefreshTimer.Stop();
+            WorkSpaceDock.UpdateChildDock(9, 1, new NcrForm.View { DataContext = new NcrForm.ViewModel(true) });
+        }
+
+        #endregion
 
         #region Loading Async Delegation Implementation
 

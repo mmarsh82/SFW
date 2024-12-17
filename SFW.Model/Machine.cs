@@ -114,7 +114,7 @@ LEFT JOIN
 LEFT JOIN
 	dbo.[IM-INIT] AS im ON im.Part_Number = wp.Part_Wo_Desc
 WHERE
-	(wc.D_esc <> 'DO NOT USE') AND (wpo.Alt_Seq_Status IS NULL) AND (wp.Status_Flag = 'C' OR wp.Status_Flag = 'A' OR wp.Status_Flag = 'R') AND im.[Part_Number] IS NOT NULL AND wc.[Fac_Code] = 1
+	(wc.D_esc <> 'DO NOT USE') AND (wpo.Alt_Seq_Status IS NULL) AND (wp.Status_Flag = 'C' OR wp.Status_Flag = 'A' OR wp.Status_Flag = 'R') AND im.[Part_Number] IS NOT NULL AND wc.[Fac_Code] = @p1
 ORDER BY
 	MachineOrder, MachineNumber, WO_Priority, Sched_Shift, Sched_Priority, WO_SchedStartDate, WorkOrderID ASC";
 

@@ -95,7 +95,7 @@
 
                 <Button Background="Transparent"
                         BorderThickness="0"
-                        Command="{Binding NewNcrCommand}"
+                        Command="{Binding NewNcrICommand}"
                         Margin="10,0,0,0">
                     <Button.Content>
                         <StackPanel Orientation="Horizontal">

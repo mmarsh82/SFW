@@ -1,6 +1,7 @@
 ﻿using SFW.Queries;
 using System;
 using System.ComponentModel;
+using System.Security.Policy;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -87,13 +88,16 @@ namespace SFW.Controls
                     while (!Schedule.SalesOrder.ViewModel.LoadAsyncComplete.IsCompleted) { }
                 }
 
-                //Add the Quality NCR Notice View to [9]
-                NcrDock.Children.Insert(0, new QMS.NcrNotice.View());
-                NcrDock.Children.Insert(1, new QMS.NcrForm.View() { DataContext = new QMS.NcrForm.View() });
-                MainDock.Children.Insert(9, NcrDock);
+                if (CurrentUser.Facility == 1)
+                {
+                    //Add the Quality NCR Notice View to [9]
+                    NcrDock.Children.Insert(0, new QMS.NcrNotice.View());
+                    NcrDock.Children.Insert(1, new QMS.NcrForm.View() { DataContext = new QMS.NcrForm.View() });
+                    MainDock.Children.Insert(9, NcrDock);
 
-                //Add the Container Detail View to [6]
-                MainDock.Children.Insert(10, new Container_View());
+                    //Add the Container Detail View to [6]
+                    MainDock.Children.Insert(10, new Container_View());
+                }
 
                 SwitchView(App.SiteNumber, null, false);
                 RefreshTimer.IsRefreshing = false;
@@ -143,7 +147,7 @@ namespace SFW.Controls
                     break;
                 case 9:
                     _tempDock = NcrDock;
-                    UpdateChildDock(9, 1, new QMS.NcrForm.View { DataContext = new QMS.NcrForm.ViewModel() });
+                    UpdateChildDock(9, 1, new QMS.NcrForm.View { DataContext = new QMS.NcrForm.ViewModel(false) });
                     break;
             }
             if (refreshDock)

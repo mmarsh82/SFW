@@ -311,7 +311,7 @@
                                    VerticalAlignment="Stretch"
                                    Stroke="Black"
                                    StrokeThickness="1"
-                                   Margin="1,0,5,0"
+                                   Margin="1,0,5,2"
                                    Panel.ZIndex="0"/>
 
                         <Rectangle Grid.Row="0"
@@ -383,7 +383,7 @@
                                    VerticalAlignment="Stretch"
                                    Stroke="Black"
                                    StrokeThickness="1"
-                                   Margin="1,0,5,0"
+                                   Margin="1,0,5,2"
                                    Panel.ZIndex="0"/>
 
                         <Rectangle Grid.Row="0"
@@ -455,7 +455,7 @@
                                   VerticalAlignment="Stretch"
                                   Stroke="Black"
                                   StrokeThickness="1"
-                                  Margin="1,0,5,0"
+                                  Margin="1,0,5,2"
                                   Panel.ZIndex="0"/>
 
                         <Rectangle Grid.Row="0"

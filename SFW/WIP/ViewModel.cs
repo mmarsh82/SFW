@@ -397,7 +397,9 @@ namespace SFW.WIP
                                     {
                                         if (s.Reason == "Quality Scrap" && !string.IsNullOrEmpty(s.Reference))
                                         {
-                                            _validScrap = Lot.IsValidQIR(s.Reference, WipRecord.WipWorkOrder.OrderNumber, App.AppSqlCon);
+                                            _validScrap = string.IsNullOrEmpty(w.LotNbr)
+                                                ? Lot.IsValidQIR(s.Reference, WipRecord.WipWorkOrder.OrderNumber, "", w.PartNbr, App.AppSqlCon)
+                                                : Lot.IsValidQIR(s.Reference, WipRecord.WipWorkOrder.OrderNumber, w.LotNbr, w.PartNbr, App.AppSqlCon);
                                         }
                                         else if (s.Reason != "Quality Scrap")
                                         {
@@ -606,7 +608,9 @@ namespace SFW.WIP
                                     {
                                         if(s.Reason == "Quality Scrap")
                                         {
-                                            _scrapValid = Lot.IsValidQIR(s.Reference, WipRecord.WipWorkOrder.OrderNumber, App.AppSqlCon);
+                                            _scrapValid = WipRecord.IsLotTracable || string.IsNullOrEmpty(WipLot)
+                                                ? Lot.IsValidQIR(s.Reference, WipRecord.WipWorkOrder.OrderNumber, "", WipRecord.WipWorkOrder.SkuNumber, App.AppSqlCon)
+                                                : Lot.IsValidQIR(s.Reference, WipRecord.WipWorkOrder.OrderNumber, WipLot, WipRecord.WipWorkOrder.SkuNumber, App.AppSqlCon);
                                         }
                                         else if (!string.IsNullOrEmpty(s.Reason))
                                         {

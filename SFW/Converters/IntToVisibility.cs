@@ -5,7 +5,7 @@ using System.Windows.Data;
 
 namespace SFW.Converters
 {
-    public class IntToVisibility : IValueConverter
+    public class IntToVisibility : IValueConverter, IMultiValueConverter
     {
         #region IValueConverter Implementation
 
@@ -42,6 +42,33 @@ namespace SFW.Converters
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
             return Visibility.Collapsed;
+        }
+
+        #endregion
+
+        #region IMultiValueConverter Implementation
+
+        public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (parameter != null && values?.Length != 0)
+            {
+                if (int.TryParse(values[0].ToString(), out int _id) && bool.TryParse(values[1].ToString(), out bool _isNew))
+                {
+                    switch (parameter.ToString())
+                    {
+                        case "NcrHeader":
+                            return _id == 0 && _isNew == false ? Visibility.Visible : Visibility.Hidden;
+                        case "NcrDetail":
+                            return (_id == 0 && _isNew) || (_id > 0 && !_isNew) ? Visibility.Visible : Visibility.Hidden;
+                    }
+                }
+            }
+            return Visibility.Visible;
+        }
+
+        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
         }
 
         #endregion

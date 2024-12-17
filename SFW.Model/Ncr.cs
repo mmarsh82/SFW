@@ -247,8 +247,11 @@ namespace SFW.Model
             /// <summary>
             /// NCR revisions default constructor
             /// </summary>
-            public Revision()
-            { }
+            public Revision(CrewMember submitter)
+            {
+                Submitter = submitter;
+                SubmitDateTime = DateTime.Now;
+            }
 
             /// <summary>
             /// Ncr Overridden Constructor
@@ -290,8 +293,10 @@ namespace SFW.Model
         /// <summary>
         /// Ncr Default Constructor
         /// </summary>
-        public Ncr()
-        { }
+        public Ncr(CrewMember submitter)
+        {
+            RevisionList = new List<Revision>{ new Revision(submitter) };
+        }
 
         /// <summary>
         /// Ncr Overridden Constructor

@@ -152,22 +152,19 @@ namespace SFW.QMS.NcrForm
         /// <summary>
         /// ViewModel Default Constructor
         /// </summary>
-        public ViewModel()
+        public ViewModel(bool isNew)
         {
-            try
+            if (NcrObject == null)
             {
-                if (NcrObject == null)
-                {
-                    NcrObject = new Ncr();
-                    _origNcrObj = NcrObject;
-                }
-                if (NcrRevision == null)
-                {
-                    NcrRevision = new Ncr.Revision();
-                    _origNcrRev = NcrRevision;
-                }
-                IsNewNcr = true;
-                ActionType = "Submit";
+                NcrObject = new Ncr(new CrewMember(CurrentUser.UserIDNbr, false));
+                _origNcrObj = NcrObject;
+                NcrRevision = NcrObject.RevisionList.FirstOrDefault();
+                _origNcrRev = NcrObject.RevisionList.FirstOrDefault();
+            }
+            IsNewNcr = isNew;
+            ActionType = "Submit";
+            if (IsNewNcr)
+            {
                 if (NcrReasonCollection == null)
                 {
                     NcrReasonCollection = Ncr.DefectReason.GetDefectReasonCollection(App.AppSqlCon);
@@ -188,10 +185,6 @@ namespace SFW.QMS.NcrForm
                 {
                     CrewCollection = CrewMember.GetCrewCollection(CurrentUser.Facility);
                 }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message, "Unhandled Exception", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -271,6 +264,10 @@ namespace SFW.QMS.NcrForm
             ActionType = "Update";
             _origNcrObj = NcrObject;
             _origNcrRev = NcrRevision;
+            if (!RefreshTimer.Status)
+            {
+                RefreshTimer.Start();
+            }
         }
         private bool ActionCanExecute(object parameter)
         {

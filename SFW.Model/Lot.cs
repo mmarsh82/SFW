@@ -233,23 +233,40 @@ namespace SFW.Model
         /// Check to see if an entered QIR number is valid
         /// </summary>
         /// <param name="reference">Reference value</param>
+        /// <param name="workOrder">Work Order number</param>
+        /// <param name="lot">Lot Number, only used for lot traceable parts</param>
+        /// <param name="part">Part number</param>
+        /// <param name="sqlCon">Sql Connection to use</param>
         /// <returns>QIR Validity</returns>
-        public static bool IsValidQIR(string reference, string workOrder, SqlConnection sqlCon)
+        public static bool IsValidQIR(string reference, string workOrder, string lot, string part, SqlConnection sqlCon)
         {
             if (string.IsNullOrEmpty(reference))
             {
                 return false;
             }
+            if (!part.Contains('|'))
+            {
+                part += "|01";
+            }
             if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
             {
+                var _conString = string.IsNullOrEmpty(lot)
+                    ? "USE OMNI; SELECT COUNT([QIRNumber]) FROM [qir_metrics_view] WHERE [QIRNumber]=@p1 AND [WONumber]=@p2;"
+                    : "USE OMNI; SELECT COUNT([QIRNumber]) FROM [qir_metrics_view] WHERE [QIRNumber] = @p1 AND (([WONumber] = @p2 AND [PartNumber] = @p3) OR ([PartNumber] = @p3 AND [LotNumber] = @p4))";
+
                 var _db = sqlCon.Database;
                 try
                 {
                     var _rtnVal = false;
-                    using (SqlCommand cmd = new SqlCommand(@"USE OMNI; SELECT COUNT([QIRNumber]) FROM [qir_metrics_view] WHERE [QIRNumber]=@p1 AND [WONumber]=@p2;", sqlCon))
+                    using (SqlCommand cmd = new SqlCommand(_conString, sqlCon))
                     {
                         cmd.Parameters.AddWithValue("p1", reference);
                         cmd.Parameters.AddWithValue("p2", workOrder);
+                        if (!string.IsNullOrEmpty(lot))
+                        {
+                            cmd.Parameters.AddWithValue("p3", part);
+                            cmd.Parameters.AddWithValue("p4", lot);
+                        }
                         _rtnVal = Convert.ToInt32(cmd.ExecuteScalar()) > 0;
                     }
                     sqlCon.ChangeDatabase(_db);
