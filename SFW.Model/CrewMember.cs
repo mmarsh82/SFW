@@ -9,7 +9,7 @@ using System.Linq;
 
 namespace SFW.Model
 {
-    public class CrewMember : ModelBase
+    public class CrewMember : ModelBase, IComparable
     {
         #region Properties
 
@@ -254,6 +254,15 @@ namespace SFW.Model
         public string LaborId
         {
             get { return $"{IdNumber}*{(DateTime.Today - Convert.ToDateTime("1967/12/31")).Days}*0{Facility}"; }
+        }
+
+        #endregion
+
+        #region IComparable Implementation
+
+        public int CompareTo(object obj)
+        {
+            return Name.CompareTo(obj);
         }
 
         #endregion

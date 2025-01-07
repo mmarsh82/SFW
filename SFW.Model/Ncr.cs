@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Data;
 using System.Data.SqlClient;
+using System.DirectoryServices.ActiveDirectory;
 using System.Linq;
 
 namespace SFW.Model
@@ -224,19 +226,65 @@ namespace SFW.Model
             }
         }
 
-        public class Revision
+        public class Revision : ModelBase
         {
             #region Properties
 
             public int RevisionId { get; set; }
-            public CrewMember Submitter { get; set; }
-            public DateTime SubmitDateTime { get; set; }
+
+            private CrewMember _submitter;
+            public CrewMember Submitter
+            {
+                get
+                { return _submitter; }
+                set
+                {
+                    _submitter = value;
+                    OnPropertyChanged(nameof(Submitter));
+                }
+            }
+
+            private DateTime _submitDT;
+            public DateTime SubmitDateTime
+            {
+                get
+                { return _submitDT; }
+                set
+                {
+                    _submitDT = value;
+                    OnPropertyChanged(nameof(SubmitDateTime));
+                }
+            }
+
             public bool IsEscape { get; set; }
             public Machine OriginWorkCenter { get; set; }
             public DefectReason DefectReason { get; set; }
             public DefectType DefectType { get; set; }
-            public int PotentialLoss { get; set; }
-            public double PotentialValue { get; set; }
+
+            private int _potLoss;
+            public int PotentialLoss
+            {
+                get
+                { return _potLoss; }
+                set
+                {
+                    _potLoss = value;
+                    OnPropertyChanged(nameof(PotentialLoss));
+                }
+            }
+
+            private double _potVal;
+            public double PotentialValue
+            {
+                get
+                { return _potVal; }
+                set
+                {
+                    _potVal = value;
+                    OnPropertyChanged(nameof(PotentialValue));
+                }
+            }
+
             public int ActualLoss { get; set; }
             public double ActualCost { get; set; }
             public Disposition Disposition { get; set; }
@@ -249,8 +297,10 @@ namespace SFW.Model
             /// </summary>
             public Revision(CrewMember submitter)
             {
+                RevisionId = 1;
                 Submitter = submitter;
                 SubmitDateTime = DateTime.Now;
+                IsEscape = false;
             }
 
             /// <summary>
@@ -260,16 +310,16 @@ namespace SFW.Model
             public Revision(DataRow ncrDataRow, double prodVal)
             {
                 RevisionId = ncrDataRow.Field<int>("NcrRevisionId");
-                Submitter = new CrewMember(ncrDataRow.Field<int>("SubmitterId").ToString(), false);
+                Submitter = new CrewMember(ncrDataRow.Field<string>("SubmitterId"), false);
                 SubmitDateTime = ncrDataRow.Field<DateTime>("RevisionDateTime");
                 IsEscape = ncrDataRow.Field<short>("IsEscape") == 1;
-                OriginWorkCenter = new Machine(ncrDataRow.Field<int>("OriginWorkCenterId"));
+                OriginWorkCenter = ncrDataRow.IsNull("OriginWorkCenterId") ? new Machine() : new Machine(ncrDataRow.Field<int>("OriginWorkCenterId"));
                 DefectReason = new DefectReason(ncrDataRow.Field<string>("DefectReason"), ncrDataRow.Field<string>("DefectReasonDescription"));
                 DefectType = new DefectType(ncrDataRow.Field<int>("DefectType"), ncrDataRow.Field<string>("DefectTypeDescription"));
                 PotentialLoss = ncrDataRow.Field<int>("PotentialLoss");
                 PotentialValue = ncrDataRow.Field<int>("PotentialLoss") * prodVal;
-                ActualLoss = int.TryParse(ncrDataRow.Field<decimal>("ActualLoss").ToString(), out int i) ? i : 0;
-                ActualCost = double.TryParse(ncrDataRow.Field<decimal>("ActualCost").ToString(), out double d) ? d : 0.00;
+                //ActualLoss = int.TryParse(ncrDataRow.Field<decimal>("ActualLoss").ToString(), out int i) ? i : 0;
+                //ActualCost = double.TryParse(ncrDataRow.Field<decimal>("ActualCost").ToString(), out double d) ? d : 0.00;
                 Disposition = new Disposition(ncrDataRow.Field<int>("DispositionId"), ncrDataRow.Field<string>("DispositionDescription"), ncrDataRow.Field<string>("LinkedStatus"));
                 Description = ncrDataRow.Field<string>("Description");
             }
@@ -277,14 +327,127 @@ namespace SFW.Model
 
         #region Properties
 
-        public int NcrId { get; set; }
-        public string OrderId { get; set; }
-        public int OrderSeqId { get; set; }
-        public Sku Part { get; set; }
-        public IList<string> LotList { get; set; }
-        public Machine FoundWorkCenter { get; set; }
-        public CrewMember Reporter { get; set; }
-        public double ProductValue { get; set; }
+        private int _ncrId;
+        public int NcrId
+        {
+            get
+            { return _ncrId; }
+            set
+            {
+                _ncrId = value;
+                OnPropertyChanged(nameof(NcrId));
+            }
+        }
+
+        private string _orderId;
+        public string OrderId 
+        {
+            get
+            { return _orderId; }
+            set
+            {
+                _orderId = value;
+                IsValidOrder = WorkOrder.Exists(value, int.TryParse(OrderSeqId, out int i) ? i : 0);
+                OnPropertyChanged(nameof(OrderId));
+            }
+        }
+        private int? _ordSeqId;
+        public string OrderSeqId
+        { 
+            get
+            { return _ordSeqId.ToString(); }
+            set
+            {
+                if (int.TryParse(value, out int i))
+                {
+                    _ordSeqId = i;
+                    IsValidOrder = WorkOrder.Exists(OrderId, i);
+                }
+                else
+                {
+                    _ordSeqId = null;
+                }
+                OnPropertyChanged(nameof(OrderSeqId));
+            }
+        }
+
+        private bool _isValOrd;
+        public bool IsValidOrder
+        {
+            get
+            { return _isValOrd; }
+            set
+            {
+                _isValOrd = value;
+                if (value && int.TryParse(OrderSeqId, out int i))
+                {
+                    PartCollection = Sku.GetSkuCollection(OrderId, i);
+                    OnPropertyChanged(nameof(PartCollection));
+                    Part = PartCollection.FirstOrDefault();
+                    FoundWorkCenter = new Machine(Machine.GetMachineID(OrderId, i));
+                }
+                OnPropertyChanged(nameof(IsValidOrder));
+            }
+        }
+
+        public ObservableCollection<Sku> PartCollection { get; set; }
+
+        private Sku _part;
+        public Sku Part 
+        {
+            get
+            { return _part; }
+            set
+            {
+                _part = value;
+                ProductValue = Sku.GetPartValue(value.SkuNumber);
+                if (Sku.IsLotTracable(value.SkuNumber) && (LotList == null || LotList.Count == 0))
+                {
+                    LotList = new BindingList<Lot>();
+                    LotList.ListChanged += LotList_Changed;
+                    LotList.Add(new Lot());
+                }
+                OnPropertyChanged(nameof(Part));
+                OnPropertyChanged(nameof(LotList));
+            }
+        }
+        public BindingList<Lot> LotList { get; set; }
+
+        private Machine _foundWC;
+        public Machine FoundWorkCenter
+        {
+            get
+            { return _foundWC; }
+            set
+            {
+                _foundWC = value;
+                OnPropertyChanged(nameof(FoundWorkCenter));
+            }
+        }
+
+        private CrewMember _reporter;
+        public CrewMember Reporter
+        {
+            get
+            { return _reporter; }
+            set
+            {
+                _reporter = value;
+                OnPropertyChanged(nameof(Reporter));
+            }
+        }
+
+        private double _prodValue;
+        public double ProductValue
+        {
+            get
+            { return _prodValue; }
+            set
+            {
+                _prodValue = value;
+                OnPropertyChanged(nameof(ProductValue));
+            }
+        }
         public int Site { get; set; }
         public IList<Revision> RevisionList { get; set; }
 
@@ -296,6 +459,8 @@ namespace SFW.Model
         public Ncr(CrewMember submitter)
         {
             RevisionList = new List<Revision>{ new Revision(submitter) };
+            OrderId = string.Empty;
+            Site = int.TryParse(submitter.Facility, out int i) ? i : 1;
         }
 
         /// <summary>
@@ -307,11 +472,13 @@ namespace SFW.Model
             var ncrDataRows = MasterDataSet.Tables["NcrNotice"].Select($"[NcrId] = '{id}'", "[NcrRevisionId] DESC");
             NcrId = id;
             OrderId = ncrDataRows[0].Field<string>("WorkOrderId");
-            OrderSeqId = ncrDataRows[0].Field<int>("WorkOrderSeqId");
-            Part = new Sku(ncrDataRows[0].Field<string>("PartId"));
+            OrderSeqId = ncrDataRows[0].Field<int>("WorkOrderSeqId").ToString();
+            PartCollection = int.TryParse(OrderSeqId, out int i) ? Sku.GetSkuCollection(OrderId, i) : Sku.GetSkuCollection(OrderId, 10);
             LotList = GetNcrLotList(id, ModelSqlCon);
+            LotList.ListChanged += LotList_Changed;
+            Part = new Sku(ncrDataRows[0].Field<string>("PartId"));
             FoundWorkCenter = new Machine(ncrDataRows[0].Field<int>("FoundWorkCenterId"));
-            Reporter = new CrewMember(ncrDataRows[0].Field<int>("ReporterId").ToString(), false);
+            Reporter = new CrewMember(ncrDataRows[0].Field<string>("ReporterId"), false);
             ProductValue = double.TryParse(ncrDataRows[0].Field<decimal>("ProductValue").ToString(), out double d) ? d : 0.00;
             Site = ncrDataRows[0].Field<int>("Site");
             RevisionList = new List<Revision>();
@@ -325,12 +492,14 @@ namespace SFW.Model
         /// Ncr Overridden Constructor
         /// </summary>
         /// <param name="workOrder">WorkOrder object</param>
-        public Ncr(WorkOrder workOrder)
+        /// <param name="submitter">Current User</param>
+        public Ncr(WorkOrder workOrder, CrewMember submitter)
         {
             OrderId = workOrder.OrderNumber;
-            OrderSeqId = int.TryParse(workOrder.Seq, out int seq) ? seq : 0;
-            var _machNumber = int.TryParse(Machine.GetMachineNumber(workOrder.Machine), out int mach) ? mach : 0;
-            FoundWorkCenter = new Machine(_machNumber);
+            OrderSeqId = workOrder.Seq;
+            IsValidOrder = true;
+            RevisionList = new List<Revision> { new Revision(submitter) };
+            Site = workOrder.Facility;
         }
 
         #region Data Access
@@ -349,7 +518,7 @@ namespace SFW.Model
                 {
                     try
                     {
-                        using (SqlDataAdapter adapter = new SqlDataAdapter($"SELECT * FROM [dbo].[SFW_NcrNotice] ncr WHERE ncr.[Site] = @p1", sqlCon))
+                        using (SqlDataAdapter adapter = new SqlDataAdapter($"SELECT * FROM [dbo].[SFW_NcrNotice] ncr WHERE ncr.[Site] = @p1 ORDER BY ncr.[RevisionDateTime] DESC", sqlCon))
                         {
                             adapter.SelectCommand.Parameters.AddWithValue("p1", site);
                             adapter.Fill(_dt);
@@ -378,9 +547,9 @@ namespace SFW.Model
         /// <param name="ncrId">Ncr object ID</param>
         /// <param name="sqlCon">Sql Connection to use</param>
         /// <returns>A table of NCR Notice information</returns>
-        public static IList<string> GetNcrLotList(int ncrId, SqlConnection sqlCon)
+        public static BindingList<Lot> GetNcrLotList(int ncrId, SqlConnection sqlCon)
         {
-            var _rtnList = new List<string>();
+            var _rtnList = new BindingList<Lot>();
             if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
             {
                 try
@@ -394,7 +563,7 @@ namespace SFW.Model
                             {
                                 while (reader.Read())
                                 {
-                                    _rtnList.Add(reader.SafeGetString("LotId"));
+                                    _rtnList.Add(new Lot(reader.SafeGetString("LotId")));
                                 }
                             }
                         }
@@ -418,6 +587,46 @@ namespace SFW.Model
 
         #endregion
 
+        /// <summary>
+        /// Happens when an item is added or changed in the Lot Binding List property
+        /// </summary>
+        /// <param name="sender">BindingList<Lot> list passed without changes</param>
+        /// <param name="e">Change info</param>
+        public static void LotList_Changed(object sender, ListChangedEventArgs e)
+        {
+            if (e.ListChangedType != ListChangedType.ItemChanged)
+            {
+
+            }
+        }
+
+        /// <summary>
+        /// Gets a list of NCR IDs that exist on a work order
+        /// </summary>
+        /// <param name="orderId">Work Order ID</param>
+        /// <returns>List of NCR ID's as strings</returns>
+        public static IList<string> GetNcrList(string orderId)
+        {
+            var _rtnList = new List<string>();
+            var _rows = MasterDataSet.Tables["NcrNotice"].Select($"[WorkOrderId] = '{orderId}'");
+            if (_rows.Count() > 0)
+            {
+                foreach (var _row in _rows)
+                {
+                    _rtnList.Add(_row.SafeGetField<int>("NcrId").ToString());
+                }
+            }
+            return _rtnList;
+        }
+
+        /// <summary>
+        /// Gets the last NCR ID in the database
+        /// </summary>
+        /// <returns>Last NCR ID as an int</returns>
+        public static int GetLastNcrId()
+        {
+            return MasterDataSet.Tables["NcrNotice"].Select().ToList().LastOrDefault().SafeGetField<int>("NcrId");
+        }
     }
 
     public static class NcrExtensions
@@ -447,6 +656,10 @@ namespace SFW.Model
                     _idNumber = Convert.ToInt32(cmd.ExecuteScalar());
                 }
                 ncrObject.RevisionList.Last().Submit(_idNumber, 1, sqlCon);
+                if (ncrObject.Part.IsLotTrace && ncrObject.LotList.Count(o => !string.IsNullOrEmpty(o.LotNumber)) > 0)
+                {
+                    ncrObject.SubmitLots(sqlCon);
+                }
                 return _idNumber;
             }
             catch (Exception)
@@ -456,7 +669,7 @@ namespace SFW.Model
         }
 
         /// <summary>
-        /// Submit a NCR to the NCR Master DataBase
+        /// Submit a NCR revision to the NCR revision DataBase
         /// </summary>
         /// <param name="ncrRev">NCR revision object</param>
         /// <param name="ncrId">NCR ID</param>
@@ -466,21 +679,29 @@ namespace SFW.Model
         {
             try
             {
-                using (SqlCommand cmd = new SqlCommand($@"INSERT INTO [dbo].[NCR-CSTM_Revisions] ([NcrId], [NcrRevisionId], [Submitter], [RevisionDateTime], [IsEscape], [OriginWorkCenterId], [DefectReason], [DefectType], [PotentialLoss], [Disposition], [Status], [Description])
-                                                        Values(@p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, @p10, @p11, @p12);", sqlCon))
+                using (SqlCommand cmd = new SqlCommand($@"INSERT INTO [dbo].[NCR-CSTM_Revisions] ([NcrId], [NcrRevisionId], [SubmitterId], [RevisionDateTime], [IsEscape], [OriginWorkCenterId], [DefectReason], [DefectType], [PotentialLoss], [DispositionId], [Description])
+                                                        Values(@p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, @p10, @p11);", sqlCon))
                 {
                     cmd.Parameters.AddWithValue("p1", ncrId);
                     cmd.Parameters.AddWithValue("p2", ncrRevId);
                     cmd.Parameters.AddWithValue("p3", ncrRev.Submitter.IdNumber);
                     cmd.Parameters.AddWithValue("p4", ncrRev.SubmitDateTime.ToString("yyyy-MM-dd HH:mm"));
-                    cmd.Parameters.AddWithValue("p5", ncrRev.IsEscape ? 1 : 0);
-                    cmd.Parameters.AddWithValue("p6", ncrRev.OriginWorkCenter.MachineNumber);
+                    if (ncrRev.IsEscape)
+                    {
+                        cmd.Parameters.AddWithValue("p5", 1);
+                        cmd.Parameters.AddWithValue("p6", ncrRev.OriginWorkCenter.MachineNumber);
+                    }
+                    else
+                    {
+                        cmd.Parameters.AddWithValue("p5", 0);
+                        cmd.Parameters.AddWithValue("p6", DBNull.Value);
+                    }
                     cmd.Parameters.AddWithValue("p7", ncrRev.DefectReason.Id);
                     cmd.Parameters.AddWithValue("p8", ncrRev.DefectType.Id);
                     cmd.Parameters.AddWithValue("p9", ncrRev.PotentialLoss);
                     cmd.Parameters.AddWithValue("p10", ncrRev.Disposition.Id);
-                    cmd.Parameters.AddWithValue("p11", ncrRev.Disposition.Status);
-                    cmd.Parameters.AddWithValue("p12", ncrRev.Description);
+                    cmd.Parameters.AddWithValue("p11", ncrRev.Description);
+                    cmd.ExecuteNonQuery();
                 }
             }
             catch (Exception)
@@ -490,25 +711,66 @@ namespace SFW.Model
         }
 
         /// <summary>
-        /// Submit a NCR to the NCR Master DataBase
+        /// Push an update of a NCR to the NCR Revision DataBase
         /// </summary>
-        /// <param name="ncrObject">QIR Object</param>
+        /// <param name="ncrRev">NCR revision object</param>
+        /// <param name="ncrId">NCR ID</param>
+        /// <param name="ncrRevId">NCR Revision ID</param>
         /// <param name="sqlCon">Sql Connection to use</param>
-        /// <returns>Last inserted NCR ID</returns>
-        public static void SubmitLot(this Ncr ncrObject, SqlConnection sqlCon)
+        public static void Update(this Ncr.Revision ncrRev, int ncrId, int ncrRevId, SqlConnection sqlCon)
         {
-            var _idNumber = 0;
             try
             {
-                foreach (var lot in ncrObject.LotList)
+                using (SqlCommand cmd = new SqlCommand($@"UPDATE [dbo].[NCR-CSTM_Revisions]
+SET ([NcrId] = @p1, [NcrRevisionId] = @p2, [SubmitterId] = @p3, [RevisionDateTime] = @p4, [IsEscape] = @p5, 
+[OriginWorkCenterId] = @p6, [DefectReason] = @p7, [DefectType] = @p8, [PotentialLoss] = @p9, [DispositionId] = @p10, [Description] = @p11);", sqlCon))
+                {
+                    cmd.Parameters.AddWithValue("p1", ncrId);
+                    cmd.Parameters.AddWithValue("p2", ncrRevId);
+                    cmd.Parameters.AddWithValue("p3", ncrRev.Submitter.IdNumber);
+                    cmd.Parameters.AddWithValue("p4", ncrRev.SubmitDateTime.ToString("yyyy-MM-dd HH:mm"));
+                    if (ncrRev.IsEscape)
+                    {
+                        cmd.Parameters.AddWithValue("p5", 1);
+                        cmd.Parameters.AddWithValue("p6", ncrRev.OriginWorkCenter.MachineNumber);
+                    }
+                    else
+                    {
+                        cmd.Parameters.AddWithValue("p5", 0);
+                        cmd.Parameters.AddWithValue("p6", DBNull.Value);
+                    }
+                    cmd.Parameters.AddWithValue("p7", ncrRev.DefectReason.Id);
+                    cmd.Parameters.AddWithValue("p8", ncrRev.DefectType.Id);
+                    cmd.Parameters.AddWithValue("p9", ncrRev.PotentialLoss);
+                    cmd.Parameters.AddWithValue("p10", ncrRev.Disposition.Id);
+                    cmd.Parameters.AddWithValue("p11", ncrRev.Description);
+                    cmd.ExecuteNonQuery();
+                }
+            }
+            catch (Exception)
+            {
+
+            }
+        }
+
+        /// <summary>
+        /// Submit a NCR to the NCR Master DataBase
+        /// </summary>
+        /// <param name="lotList">Binding list of lot numbers</param>
+        /// <param name="sqlCon">Sql Connection to use</param>
+        /// <returns>Last inserted NCR ID</returns>
+        public static void SubmitLots(this Ncr ncrObj, SqlConnection sqlCon)
+        {
+            try
+            {
+                foreach (var lot in ncrObj.LotList)
                 {
                     using (SqlCommand cmd = new SqlCommand($@"INSERT INTO [dbo].[NCR-CSTM_LotInfo] ([NcrId], [LotId]) Values(@p1, @p2)", sqlCon))
                     {
-                        cmd.Parameters.AddWithValue("p1", ncrObject.NcrId);
+                        cmd.Parameters.AddWithValue("p1", ncrObj.NcrId);
                         cmd.Parameters.AddWithValue("p2", lot);
-                        _idNumber = Convert.ToInt32(cmd.ExecuteNonQuery());
+                        cmd.ExecuteNonQuery();
                     }
-                    ncrObject.RevisionList.Last().Submit(_idNumber, 1, sqlCon);
                 }
             }
             catch (Exception)

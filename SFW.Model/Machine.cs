@@ -195,6 +195,39 @@ ORDER BY
             }
         }
 
+        /// <summary>
+        /// Gets a machine ID to load
+        /// </summary>
+        /// <param name="woNumber">Work Order number to check</param>
+        /// <param name="seq">Optional: Machine Name</param>
+        /// <returns>Validation as bool; true = valid, false = invalid</returns>
+        public static int GetMachineID(string woNumber, int seq)
+        {
+            if (ModelSqlCon != null && ModelSqlCon.State != ConnectionState.Closed && ModelSqlCon.State != ConnectionState.Broken)
+            {
+                try
+                {
+                    using (SqlCommand cmd = new SqlCommand($"USE {ModelSqlCon.Database}; SELECT [Work_Center] FROM [dbo].[WPO-INIT] WHERE [ID] = @p1", ModelSqlCon))
+                    {
+                        cmd.Parameters.AddWithValue("p1", $"{woNumber}*{seq}");
+                        return int.TryParse(cmd.ExecuteScalar().ToString(), out int i) ? i : 0;
+                    }
+                }
+                catch (SqlException)
+                {
+                    return 0;
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception(ex.Message);
+                }
+            }
+            else
+            {
+                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
+            }
+        }
+
         #endregion
 
         /// <summary>

@@ -19,6 +19,7 @@ namespace SFW.Controls
         public static DockPanel CountDock { get; set; }
         public static DockPanel SalesDock { get; set; }
         public static DockPanel NcrDock { get; set; }
+        public static DockPanel PlanDock { get; set; }
         public static int Module => (int)App.LoadedModule;
 
         public static event EventHandler<PropertyChangedEventArgs> StaticPropertyChanged;
@@ -31,6 +32,7 @@ namespace SFW.Controls
         /// </summary>
         public WorkSpaceDock()
         {
+            //TODO: moved to a 2 docks, one that uses the maindock and one that uses a main split dock then just push elements from there.
             try
             {
                 RefreshTimer.IsRefreshing = true;
@@ -41,6 +43,7 @@ namespace SFW.Controls
                 CountDock = new DockPanel();
                 SalesDock = new DockPanel();
                 NcrDock = new DockPanel();
+                PlanDock = new DockPanel();
 
                 //Add the Part Info View to [0]
                 MainDock.Children.Insert(0, new PartInfo_View());
@@ -160,6 +163,12 @@ namespace SFW.Controls
                 MainDock.Children[4].Visibility = Visibility.Collapsed;
                 index = 1;
                 refreshDock = false;
+            }
+            else if (dataContext != null && index == 1)
+            {
+                SchedDock.Children.RemoveAt(1);
+                SchedDock.Children.Insert(1, new QMS.NcrForm.View { DataContext = dataContext });
+                RefreshTimer.Stop();
             }
             else if (dataContext != null)
             {

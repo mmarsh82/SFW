@@ -33,7 +33,7 @@ namespace SFW.QMS.NcrNotice
                     if (value != null)
                     {
                         var _ncr = new Ncr(value.Row.Field<int>("NcrId"));
-                        Controls.WorkSpaceDock.UpdateChildDock(9, 1, new NcrForm.View { DataContext = new NcrForm.ViewModel(_ncr, SelectedNcr.Row.Field<int>("NcrRevisionId")) });
+                        WorkSpaceDock.UpdateChildDock(9, 1, new NcrForm.View { DataContext = new NcrForm.ViewModel(_ncr, SelectedNcr.Row.Field<int>("NcrRevisionId")) });
                     }
                     OnPropertyChanged(nameof(SelectedNcr));
                 }
@@ -107,13 +107,13 @@ namespace SFW.QMS.NcrNotice
         public ViewModel()
         {
             Refresh = false;
+            NoticeViewFilter = new string[7];
+            NoticeFilter($"[Site] = {App.SiteNumber}", 2);
+            ClosedFilter = false;
             LoadAsyncDelegate = new LoadDelegate(ViewLoading);
             FilterAsyncDelegate = new LoadDelegate(FilterView);
             LoadAsyncComplete = LoadAsyncDelegate.BeginInvoke(App.ViewFilter[App.SiteNumber], new AsyncCallback(ViewLoaded), null);
             RefreshTimer.Add(RefreshNotice);
-            NoticeViewFilter = new string[7];
-            NoticeFilter($"[Site] = {App.SiteNumber}", 2);
-            ClosedFilter = false;
         }
 
         /// <summary>
@@ -146,6 +146,20 @@ namespace SFW.QMS.NcrNotice
             {
                 NoticeViewFilter = new string[6];
             }
+        }
+
+        /// <summary>
+        /// Get the current notice filter
+        /// </summary>
+        /// <returns>notice filter as string</returns>
+        public static string NoticeFilter()
+        {
+            var _filterStr = string.Empty;
+            foreach (var s in NoticeViewFilter.Where(o => !string.IsNullOrEmpty(o)))
+            {
+                _filterStr += string.IsNullOrEmpty(_filterStr) ? $"({s})" : $" AND ({s})";
+            }
+            return _filterStr;
         }
 
         /// <summary>
@@ -255,6 +269,10 @@ namespace SFW.QMS.NcrNotice
                 if (!string.IsNullOrEmpty(_oldfilter))
                 {
                     ((DataView)NoticeView.SourceCollection).RowFilter = _oldfilter;
+                }
+                else
+                {
+                    ((DataView)NoticeView.SourceCollection).RowFilter = NoticeFilter();
                 }
                 if (!string.IsNullOrEmpty(SearchFilter))
                 {

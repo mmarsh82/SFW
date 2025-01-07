@@ -1,16 +1,16 @@
 ﻿using System.Windows.Controls;
 
-namespace SFW.QMS.NcrForm
+namespace SFW.Schedule.Plan
 {
     /// <summary>
-    /// Interaction logic for NCRForm.xaml
+    /// Interaction logic for View.xaml
     /// </summary>
     public partial class View : UserControl
     {
         public View()
         {
             InitializeComponent();
-            Loaded += delegate { OrderId.Focus(); };
+            DataContext = new ViewModel();
         }
     }
 }

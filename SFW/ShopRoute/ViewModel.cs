@@ -1,4 +1,5 @@
 ﻿using M2kClient;
+using SFW.Controls;
 using SFW.Helpers;
 using SFW.Model;
 using SFW.Reports;
@@ -139,6 +140,17 @@ namespace SFW.ShopRoute
             { return ShopOrder.MachineGroup == "PRESS"; }
         }
 
+        private IList<string> _ncrList;
+        public IList<string> NcrList
+        {
+            get { return _ncrList; }
+            set
+            {
+                _ncrList = value;
+                OnPropertyChanged(nameof(NcrList));
+            }
+        }
+
         private RelayCommand _noteChange;
         private RelayCommand _loadReport;
 
@@ -202,6 +214,14 @@ namespace SFW.ShopRoute
                             ShopOrder.Bom = Model.Component.GetComponentBomList(ShopOrder.SkuNumber, ShopOrder.Seq);
                             ShopOrder.Picklist = Model.Component.GetComponentPickList(ShopOrder.OrderNumber, ShopOrder.Seq, ShopOrder.StartQty - ShopOrder.CurrentQty, ShopOrder.Machine);
                             IsMultiLoading = false;
+                            if (App.SiteNumber == 1)
+                            {
+                                NcrList = Ncr.GetNcrList(ShopOrder.OrderNumber);
+                            }
+                            else
+                            {
+                                NcrList = new List<string>();
+                            }
                             OnPropertyChanged(nameof(IsMultiLoading));
                             OnPropertyChanged(nameof(ShopOrder));
                         });

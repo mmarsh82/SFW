@@ -5,7 +5,7 @@
              xmlns:cvtr="clr-namespace:SFW.Converters"
              xmlns:main="clr-namespace:SFW"
              xmlns:local="clr-namespace:SFW.QMS.NcrForm"
-             x:Name="NcrFormUserControl">
+             x:Name="NcrFormUC">
 
     <ScrollViewer x:Name="MainScroll" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" Margin="0,0,0,20" VerticalAlignment="Top">
         <Grid>
@@ -55,17 +55,18 @@
                     <RowDefinition x:Name="Row0" Height="40"/>
                     <RowDefinition x:Name="Row1" Height="50"/>
                     <RowDefinition x:Name="Row2" Height="30"/>
-                    <RowDefinition x:Name="Row3" Height="30"/>
-                    <RowDefinition x:Name="Row4" Height="10"/>
-                    <RowDefinition x:Name="Row5" Height="30"/>
-                    <RowDefinition x:Name="Row6" Height="10"/>
-                    <RowDefinition x:Name="Row7" Height="30"/>
-                    <RowDefinition x:Name="Row8" Height="10"/>
-                    <RowDefinition x:Name="Row9" Height="30"/>
-                    <RowDefinition x:Name="Row10" Height="10"/>
-                    <RowDefinition x:Name="Row11" Height="30" />
-                    <RowDefinition x:Name="Row12" Height="10"/>
-                    <RowDefinition x:Name="Row13" Height="*"/>
+                    <RowDefinition x:Name="Row3" Height="10"/>
+                    <RowDefinition x:Name="Row4" Height="30"/>
+                    <RowDefinition x:Name="Row5" Height="10"/>
+                    <RowDefinition x:Name="Row6" Height="30"/>
+                    <RowDefinition x:Name="Row7" Height="10"/>
+                    <RowDefinition x:Name="Row8" Height="30"/>
+                    <RowDefinition x:Name="Row9" Height="10"/>
+                    <RowDefinition x:Name="Row10" Height="30"/>
+                    <RowDefinition x:Name="Row11" Height="10"/>
+                    <RowDefinition x:Name="Row12" Height="30" />
+                    <RowDefinition x:Name="Row13" Height="10"/>
+                    <RowDefinition x:Name="Row14" Height="*"/>
                 </Grid.RowDefinitions>
 
                 <!--#region Grid.Row 0  Command Array-->
@@ -95,9 +96,38 @@
 
                     <Button Content="Cancel"
                             FontSize="16"
-                            Visibility="{Binding IsNewNcr, Converter={StaticResource BoolToVisConverter}}"
-                            Command="{StaticResource ViewLoadCommand}"
-                            Style="{DynamicResource MenuButtonStyle}" />
+                            Command="{Binding CancelICommand}"
+                            Style="{DynamicResource MenuButtonStyle}">
+                        <Button.Visibility>
+                            <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="NCR">
+                                <Binding Source="Button"/>
+                                <Binding Path="FromSchedule"/>
+                                <Binding Path="IsNewNcr"/>
+                            </MultiBinding>
+                        </Button.Visibility>
+                    </Button>
+
+                    <Menu Style="{DynamicResource ModernMenu}"
+                          Visibility="{Binding NcrObject.RevisionList.Count, Converter={StaticResource CountToVisConverter}, ConverterParameter=ncr}">
+                        <MenuItem Header="   Revisions"
+                                  ItemsSource="{Binding NcrObject.RevisionList}"
+                                  DisplayMemberPath="RevisionId"
+                                  FontSize="16"
+                                  Width="110"
+                                  Height="39"
+                                  Style="{DynamicResource ModernMenuItem}">
+                            <MenuItem.ItemContainerStyle>
+                                <Style TargetType="MenuItem">
+                                    <Setter Property="Command"
+                                            Value="{StaticResource ViewLoadCommand}" />
+                                    <Setter Property="CommandParameter"
+                                            Value="{Binding}" />
+                                    <Setter Property="Foreground"
+                                            Value="Black"/>
+                                </Style>
+                            </MenuItem.ItemContainerStyle>
+                        </MenuItem>
+                    </Menu>
 
                 </StackPanel>
 
@@ -129,6 +159,14 @@
 
                 </StackPanel>
 
+                <TextBlock Grid.Row="1"
+                           Text="{Binding NcrRevision.SubmitDateTime, StringFormat=MM-dd-yyyy HH:mm}"
+                           VerticalAlignment="Center"
+                           HorizontalAlignment="Right"
+                           FontSize="20"
+                           FontWeight="Bold"
+                           Margin="0,0,50,0" />
+
                 <!--#endregion-->
 
                 <!--#region Grid.Row 2 NCR Submission Header-->
@@ -147,17 +185,6 @@
                                FontWeight="Bold"
                                Margin="10,0,30,0" />
 
-                    <TextBlock Text="Submitted:"
-                               FontSize="20"
-                               FontWeight="Bold"
-                               TextDecorations="UnderLine"
-                               Foreground="#FF135185" />
-
-                    <TextBlock Text="{Binding NcrRevision.SubmitDateTime, StringFormat=MM-dd-yyyy HH:mm}"
-                               FontSize="20"
-                               FontWeight="Bold"
-                               Margin="10,0,0,0" />
-
                     <TextBlock Text="Reporter:"
                                FontSize="20"
                                FontWeight="Bold"
@@ -168,18 +195,19 @@
                     <TextBlock Text="{Binding NcrObject.Reporter.Name}"
                                FontSize="20"
                                FontWeight="Bold"
-                               Margin="10,0,0,0" />
+                               Visibility="{Binding IsNewNcr, Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}"
+                               Margin="10,0,0,0"/>
 
                     <ComboBox x:Name="ReporterName"
                               ItemsSource="{Binding CrewCollection, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                              SelectedValue="{Binding SelectedReporter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                              SelectedValue="{Binding NcrObject.Reporter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                               DisplayMemberPath="Name"
                               FontSize="18"
                               FontWeight="Bold"
                               Background="LightGray"
                               IsEditable="True"
                               Width="Auto"
-                              TabIndex="5"
+                              MinWidth="100"
                               Margin="5,0,0,0"
                               Visibility="{Binding IsNewNcr, Converter={StaticResource BoolToVisConverter}}"
                               Style="{DynamicResource RequiredComboBox}"/>
@@ -188,9 +216,12 @@
 
                 <!--#endregion-->
 
-                <!--#region Grid.Row 3 Work Order Data-->
+                <!--#region Grid.Row 3 (Used as a spacer)-->
+                <!--#endregion-->
 
-                <StackPanel Grid.Row="3" Orientation="Horizontal">
+                <!--#region Grid.Row 4 Work Order Data-->
+
+                <StackPanel Grid.Row="4" Orientation="Horizontal">
 
                     <TextBlock Text="Work Order:"
                                FontSize="24"
@@ -201,19 +232,34 @@
                     <TextBlock Text="{Binding NcrObject.OrderId}"
                                FontSize="24"
                                FontWeight="Bold"
-                               Visibility="Visible"
-                               Margin="10,0,0,0"/>
+                               Margin="10,0,0,0">
+                        <TextBlock.Visibility>
+                            <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="NCR">
+                                <Binding Source="Block"/>
+                                <Binding Path="FromSchedule"/>
+                                <Binding Path="IsNewNcr"/>
+                            </MultiBinding>
+                        </TextBlock.Visibility>
+                    </TextBlock>
 
                     <TextBox x:Name="OrderId"
                              Text="{Binding NcrObject.OrderId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                             Visibility="{Binding IsNewNcr, Converter={StaticResource BoolToVisConverter}}"
                              FontSize="18"
                              FontWeight="Bold"
                              Background="LightGray"
                              Width="150"
+                             Margin="10,0,0,0"
                              MaxLength="7"
                              TabIndex="0"
-                             Style="{DynamicResource RequiredTextBox}" />
+                             Style="{DynamicResource RequiredTextBox}">
+                        <TextBox.Visibility>
+                            <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="NCR">
+                                <Binding Source="Box"/>
+                                <Binding Path="FromSchedule"/>
+                                <Binding Path="IsNewNcr"/>
+                            </MultiBinding>
+                        </TextBox.Visibility>
+                    </TextBox>
 
                     <TextBlock Text="Operation:"
                                FontSize="24"
@@ -225,30 +271,46 @@
                     <TextBlock Text="{Binding NcrObject.OrderSeqId}"
                                FontSize="24"
                                FontWeight="Bold"
-                               Visibility="{Binding IsNewNcr, Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}"
-                               Margin="10,0,0,0" />
+                               Margin="10,0,0,0">
+                        <TextBlock.Visibility>
+                            <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="NCR">
+                                <Binding Source="Block"/>
+                                <Binding Path="FromSchedule"/>
+                                <Binding Path="IsNewNcr"/>
+                            </MultiBinding>
+                        </TextBlock.Visibility>
+                    </TextBlock>
 
                     <TextBox x:Name="OrderSeqId"
-                             Text="{Binding IsNewNcr, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                             Text="{Binding NcrObject.OrderSeqId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                              FontSize="18"
                              Margin="10,0,0,0"
                              FontWeight="Bold"
                              Background="LightGray"
-                             Width="75"
+                             Width="50"
                              MaxLength="2"
-                             Visibility="{Binding IsNewNcr, Converter={StaticResource BoolToVisConverter}}"
-                             Style="{DynamicResource RequiredTextBox}" />
+                             TabIndex="1"
+                             Style="{DynamicResource RequiredTextBox}">
+                        <TextBox.Visibility>
+                            <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="NCR">
+                                <Binding Source="Box"/>
+                                <Binding Path="FromSchedule"/>
+                                <Binding Path="IsNewNcr"/>
+                            </MultiBinding>
+                        </TextBox.Visibility>
+                    </TextBox>
 
                 </StackPanel>
 
                 <!--#endregion-->
 
-                <!--#region Grid.Row 4 (Used as a spacer)-->
+                <!--#region Grid.Row 5 (Used as a spacer)-->
                 <!--#endregion-->
 
-                <!--#region Grid.Row 5  Part Data-->
+                <!--#region Grid.Row 6  Part Data-->
 
-                <StackPanel Grid.Row="5" Orientation="Horizontal">
+                <StackPanel Grid.Row="6" Orientation="Horizontal"
+                            Visibility="{Binding NcrObject.IsValidOrder, Converter={StaticResource BoolToVisConverter}}">
 
                     <TextBlock Text="Part:"
                                FontSize="24"
@@ -259,19 +321,21 @@
                     <TextBlock Text="{Binding NcrObject.Part.SkuNumber}"
                                FontSize="24"
                                FontWeight="Bold"
-                               Visibility="Visible"
+                               Visibility="{Binding IsNewNcr, Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}"
                                Margin="10,0,0,0"/>
 
-                    <TextBox x:Name="ProductId"
-                             Text="{Binding NcrObject.Part.SkuNumber, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                             FontSize="18"
-                             FontWeight="Bold"
-                             Background="LightGray"
-                             Width="200"
-                             MaxLength="20"
-                             TabIndex="2"
-                             Visibility="{Binding IsNewNcr, Converter={StaticResource BoolToVisConverter}}"
-                             Style="{DynamicResource RequiredTextBox}" />
+                    <ComboBox x:Name="ProductCollection"
+                              ItemsSource="{Binding NcrObject.PartCollection, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                              SelectedValue="{Binding NcrObject.Part, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                              DisplayMemberPath="SkuNumber"
+                              FontSize="18"
+                              FontWeight="Bold"
+                              Background="LightGray"
+                              Width="150"
+                              TabIndex="2"
+                              Margin="5,0,0,0"
+                              Visibility="{Binding IsNewNcr, Converter={StaticResource BoolToVisConverter}}"
+                              Style="{DynamicResource RequiredComboBox}"/>
 
                     <TextBlock Text="{Binding NcrObject.Part.SkuDescription}"
                                FontSize="24"
@@ -279,40 +343,17 @@
                                Visibility="Visible"
                                Margin="10,0,0,0" />
 
-                    <TextBlock Text="Lot:"
-                               FontSize="24"
-                               FontWeight="Bold"
-                               Margin="50,0,0,0"
-                               TextDecorations="Underline"
-                               Foreground="#FF135185"/>
-
-                    <TextBlock Text="{Binding NcrObject.LotId}"
-                               FontSize="24"
-                               FontWeight="Bold"
-                               Visibility="Visible"
-                               Margin="10,0,0,0" />
-
-                    <TextBox x:Name="LotId"
-                             Text="{Binding NcrObject.LotId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                             FontSize="18"
-                             FontWeight="Bold"
-                             Background="LightGray"
-                             Width="200"
-                             MaxLength="20"
-                             TabIndex="3"
-                             Visibility="{Binding IsNewNcr, Converter={StaticResource BoolToVisConverter}}"
-                             Style="{DynamicResource RequiredTextBox}" />
-
                 </StackPanel>
 
                 <!--#endregion-->
 
-                <!--#region Grid.Row 6  (Used as a spacer)-->
+                <!--#region Grid.Row 7  (Used as a spacer)-->
                 <!--#endregion-->
 
-                <!--#region Grid.Row 7 Defect Information-->
+                <!--#region Grid.Row 8 Defect Information-->
 
-                <StackPanel Grid.Row="7" Orientation="Horizontal">
+                <StackPanel Grid.Row="8" Orientation="Horizontal"
+                            Visibility="{Binding NcrObject.IsValidOrder, Converter={StaticResource BoolToVisConverter}}">
 
                     <TextBlock Text="Reason:"
                                FontSize="24"
@@ -328,7 +369,8 @@
                               FontWeight="Bold"
                               Background="LightGray"
                               Width="Auto"
-                              TabIndex="5"
+                              MinWidth="100"
+                              TabIndex="3"
                               Margin="5,0,0,0"
                               Style="{DynamicResource RequiredComboBox}"/>
 
@@ -347,7 +389,9 @@
                               FontWeight="Bold"
                               Background="LightGray"
                               Width="Auto"
-                              TabIndex="6"
+                              IsEditable="True"
+                              MinWidth="100"
+                              TabIndex="4"
                               Margin="5,0,0,0"
                               Visibility="Visible"
                               Style="{DynamicResource RequiredComboBox}"/>
@@ -356,12 +400,13 @@
 
                 <!--#endregion-->
 
-                <!--#region Grid.Row 8  (Used as a spacer)-->
+                <!--#region Grid.Row 9  (Used as a spacer)-->
                 <!--#endregion-->
 
-                <!--#region Grid.Row 9 Machine Information-->
+                <!--#region Grid.Row 10 Machine Information-->
 
-                <StackPanel Grid.Row="9" Orientation="Horizontal">
+                <StackPanel Grid.Row="10" Orientation="Horizontal"
+                            Visibility="{Binding NcrObject.IsValidOrder, Converter={StaticResource BoolToVisConverter}}">
 
                     <TextBlock Text="Found:"
                                FontSize="24"
@@ -369,18 +414,11 @@
                                TextDecorations="UnderLine"
                                Foreground="#FF135185"/>
 
-                    <ComboBox x:Name="FoundMachine"
-                              ItemsSource="{Binding MachineCollection, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                              SelectedValue="{Binding SelectedFoundMachine, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                              DisplayMemberPath="MachineName"
-                              FontSize="18"
-                              FontWeight="Bold"
-                              
-                              IsEditable="True"
-                              Width="200"
-                              TabIndex="5"
-                              Margin="5,0,0,0"
-                              Style="{DynamicResource RequiredComboBox}"/>
+                    <TextBlock Text="{Binding NcrObject.FoundWorkCenter.MachineName}"
+                               FontSize="20"
+                               Margin="10,0,0,0"
+                               VerticalAlignment="Center"
+                               FontWeight="Bold"/>
 
                     <CheckBox x:Name="IsEscape"
                               IsChecked="{Binding NcrRevision.IsEscape}"
@@ -410,22 +448,23 @@
                               FontWeight="Bold"
                               Background="LightGray"
                               IsEditable="True"
-                              Width="200"
+                              Width="150"
                               TabIndex="5"
                               Margin="5,0,0,0"
                               Visibility="{Binding IsChecked, ElementName=IsEscape, Converter={StaticResource BoolToVisConverter}}"
                               Style="{DynamicResource RequiredComboBox}"/>
-                    
+
                 </StackPanel>
 
                 <!--#endregion-->
 
-                <!--#region Grid.Row 10  (Used as a spacer)-->
+                <!--#region Grid.Row 11  (Used as a spacer)-->
                 <!--#endregion-->
 
-                <!--#region Grid.Row 11 Loss Information-->
+                <!--#region Grid.Row 12 Loss Information-->
 
-                <StackPanel Grid.Row="11" Orientation="Horizontal">
+                <StackPanel Grid.Row="12" Orientation="Horizontal"
+                            Visibility="{Binding NcrObject.IsValidOrder, Converter={StaticResource BoolToVisConverter}}">
 
                     <TextBlock Text="Potential Loss:"
                                FontSize="24"
@@ -434,16 +473,22 @@
                                Foreground="#FF135185"/>
 
                     <TextBox x:Name="PotentialLoss"
-                             Text="{Binding NcrRevision.PotentialLoss, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                             Text="{Binding ViewPotentialLoss, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                              FontSize="20"
                              FontWeight="Bold"
                              Background="LightGray"
                              Width="75"
                              VerticalAlignment="Center"
                              MaxLength="10"
-                             TabIndex="7"
+                             TabIndex="6"
                              Margin="5,0,0,0"
                              Style="{DynamicResource RequiredTextBox}" />
+
+                    <TextBlock Text="{Binding NcrObject.Part.Uom}"
+                               FontSize="20"
+                               VerticalAlignment="Center"
+                               Margin="5,0,0,0"
+                               Foreground="#FF135185"/>
 
                     <TextBlock Text="{Binding NcrRevision.PotentialValue, StringFormat=c}"
                                FontSize="20"
@@ -488,7 +533,7 @@
                               FontSize="18"
                               FontWeight="Bold"
                               Width="200"
-                              TabIndex="5"
+                              TabIndex="7"
                               Margin="5,0,0,0"
                               Style="{DynamicResource RequiredComboBox}"/>
 
@@ -496,44 +541,135 @@
 
                 <!--#endregion-->
 
-                <!--#region Grid.Row 12  (Used as a spacer)-->
+                <!--#region Grid.Row 13  (Used as a spacer)-->
                 <!--#endregion-->
 
-                <!--#region Grid.Row 11 Loss Information-->
+                <!--#region Grid.Row 14 NCR Notes-->
 
-                <Grid Grid.Row="13">
+                <Grid Grid.Row="14"
+                      Visibility="{Binding NcrObject.IsValidOrder, Converter={StaticResource BoolToVisConverter}}">
 
                     <Grid.RowDefinitions>
                         <RowDefinition Height="30"/>
                         <RowDefinition Height="*"/>
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
-                    
-                    <TextBlock Grid.Row="0"
+
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="600"/>
+                        <ColumnDefinition Width="300"/>
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Grid.Column="0" Grid.Row="0"
                                Text="Notes:"
                                FontSize="24"
                                FontWeight="Bold"
                                TextDecorations="UnderLine"
                                Foreground="#FF135185"/>
 
-                    <TextBox x:Name="NcrNotes" Grid.Row="1"
-                             Text="{Binding NcrRevision.Description}"
+                    <TextBox x:Name="NcrNotes"
+                             Grid.Column="0" Grid.Row="1"
+                             Text="{Binding NcrRevision.Description, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                              ScrollViewer.VerticalScrollBarVisibility="Auto"
                              MinWidth="300"
-                             MaxWidth="800"
+                             MaxWidth="580"
                              MaxLength="1000"
                              Background="LightGray"
                              HorizontalAlignment="Left"
                              FontSize="20"
                              AcceptsReturn="True"
                              AcceptsTab="True"
+                             TabIndex="8"
                              SpellCheck.IsEnabled="True"
                              SpellCheck.SpellingReform="PreAndPostreform"
                              TextWrapping="WrapWithOverflow"
                              Margin="0,10,0,0"
                              Style="{StaticResource OptionalTextBox}"/>
 
-                    <Image x:Name="DefectPhotos">
+                    <Rectangle Grid.Column="1" Grid.Row="0"
+                               Fill="#FF135185"
+                               HorizontalAlignment="Stretch"
+                               VerticalAlignment="Stretch"/>
+
+                    <TextBlock Grid.Column="1" Grid.Row="0"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center"
+                               Text="Lot Numbers"
+                               FontWeight="Bold"
+                               FontSize="20"
+                               Foreground="WhiteSmoke" />
+
+                    <Button Grid.Column="1" Grid.Row="0"
+                            Command="{Binding AddLotICommand}"
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Center"
+                            Margin="0,1,10,4"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            Style="{DynamicResource DefaultButton}">
+                        <Button.Content>
+                            <Image Source="/SFW;component/Icons/Add.ico" />
+                        </Button.Content>
+                    </Button>
+
+                    <ItemsControl Name="LotNumbers"
+                                  Grid.Column="1" Grid.Row="1"
+                                  ItemsSource="{Binding Path=NcrObject.LotList}"
+                                  Margin="10,0,0,0"
+                                  FontSize="18"
+                                  Cursor="Hand"
+                                  Background="Transparent"
+                                  Foreground="Black"
+                                  Focusable="False">
+
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <VirtualizingStackPanel IsItemsHost="True"
+                                                        Orientation="Vertical" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+
+                                <StackPanel Orientation="Vertical">
+                                    <StackPanel Orientation="Horizontal">
+
+                                        <TextBlock Text="Lot Number:"
+                                                   TextDecorations="Underline"
+                                                   FontWeight="Bold" />
+
+                                        <TextBox Text="{Binding LotNumber, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                 FontSize="16"
+                                                 Width="120"
+                                                 CharacterCasing="Upper"
+                                                 Margin="3"
+                                                 Background="LightGray" />
+
+                                        <TextBlock Text="{Binding Name}"
+                                                   VerticalAlignment="Center"
+                                                   Margin="10,0,0,0"/>
+
+                                        <Button Command="{Binding DataContext.RemoveLotICommand, ElementName=NcrFormUC}"
+                                                CommandParameter="{Binding LotNumber}"
+                                                Width="20"
+                                                Height="20"
+                                                Margin="10,0 0 0"
+                                                Style="{DynamicResource DefaultButton}">
+                                            <Button.Content>
+                                                <Image Source="/SFW;component/Icons/Delete.ico" />
+                                            </Button.Content>
+                                        </Button>
+
+                                    </StackPanel>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+
+                    </ItemsControl>
+
+                    <Image Grid.ColumnSpan="2" Grid.Row="2"
+                           x:Name="DefectPhotos">
                         
                     </Image>
                     

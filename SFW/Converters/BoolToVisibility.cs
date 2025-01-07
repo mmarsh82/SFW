@@ -44,6 +44,22 @@ namespace SFW.Converters
 
         public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
         {
+            if (parameter.ToString() == "NCR")
+            {
+                var _type = values[0];
+                var _new = bool.TryParse(values[2].ToString(), out bool n) ? n : false;
+                var _sched = bool.TryParse(values[1].ToString(), out bool s) ? s : false;
+                switch (_type)
+                {
+                    case "Box":
+                        return _new && !_sched ? Visibility.Visible : Visibility.Collapsed;
+                    case "Block":
+                        return _sched && _new ? Visibility.Visible : Visibility.Collapsed;
+                    case "Button":
+                        return _sched || _new ? Visibility.Visible : Visibility.Collapsed;
+                }
+                return Visibility.Visible;
+            }
             if(values[0] != null)
             {
                 switch (values[0])

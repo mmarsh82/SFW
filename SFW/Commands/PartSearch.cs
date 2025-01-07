@@ -1,4 +1,5 @@
 ﻿using SFW.Converters;
+using SFW.Model;
 using System;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -31,6 +32,14 @@ namespace SFW.Commands
                     {
                         parameter = $"\\\\waxfs001\\WAXG-Wahpeton\\Prints\\Deviations\\{_temp[3]}-1.pdf";
                         _isdeviated = true;
+                    }
+                    else if (_temp[0] == "NCR")
+                    {
+                        if (_temp[1].Contains('|'))
+                        {
+                            _temp[1] = _temp[1].Split('|')[0];
+                        }
+                        parameter = Sku.GetMasterNumber(_temp[1], false, App.SiteNumber);
                     }
                     else
                     {

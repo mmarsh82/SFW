@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
@@ -12,7 +13,17 @@ namespace SFW.Model
     {
         #region Properties
 
-        public string LotNumber { get; set; }
+        private string lot;
+        public string LotNumber
+        {
+            get
+            { return lot; }
+            set
+            {
+                lot = value;
+                OnPropertyChanged(nameof(LotNumber));
+            }
+        }
         public int Onhand { get; set; }
         public string Uom { get; set; }
         private string _loc;
@@ -55,6 +66,8 @@ namespace SFW.Model
         public bool Validated { get; set; }
         public DateTime ReceivedDate { get; set; }
 
+        public ObservableCollection<string> LotCollection { get; set; }
+
         #endregion
 
         /// <summary>
@@ -75,6 +88,20 @@ namespace SFW.Model
             foreach (var _row in _rows)
             {
                 Dedication.Add(_row.Field<string>("WorkOrderID"), _row.Field<int>("OnHand"));
+            }
+        }
+
+        /// <summary>
+        /// Lot Constructor for dedication population
+        /// </summary>
+        /// <param name="lotNbr">Lot Number</param>
+        /// <param name="partNbr">Part Number</param>
+        public Lot(string lotNbr, string partNbr)
+        {
+            var _rows = MasterDataSet.Tables["LOT"].Select($"[LotID] = '{lotNbr}' AND [Sku] = '{partNbr}'");
+            foreach (var _row in _rows)
+            {
+                LotCollection.Add(_row.Field<string>("LotID"));
             }
         }
 

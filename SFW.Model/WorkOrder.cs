@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
@@ -59,7 +60,7 @@ namespace SFW.Model
         /// <param name="woNumber">Work Order Number</param>
         public WorkOrder(string woNumber)
         {
-            var _rows = MasterDataSet.Tables["Master"].Select($"[WO_Number] = '{woNumber}'");
+            var _rows = MasterDataSet.Tables["Master"].Select($"[WorkOrder] = '{woNumber}'");
             if (_rows.Length > 0)
             {
                 var _row = _rows.FirstOrDefault();
@@ -72,7 +73,7 @@ namespace SFW.Model
                 State = _row.Field<string>("WO_Priority");
                 TaskType = _row.Field<string>("WO_Type");
                 StartQty = _row.Field<int>("WO_StartQty");
-                CurrentQty = Convert.ToInt32(_row.Field<decimal>("WO_CurrentQty"));
+                CurrentQty = _row.Field<int>("WO_CurrentQty");
                 SchedStartDate = _row.Field<DateTime>("WO_SchedStartDate");
                 ActStartDate = _row.Field<DateTime>("WO_ActStartDate") != Convert.ToDateTime("1999-01-01") ? _row.Field<DateTime>("WO_ActStartDate") : DateTime.MinValue;
                 DueDate = _row.Field<DateTime>("WO_DueDate");
@@ -123,7 +124,7 @@ namespace SFW.Model
                 State = dRow.Field<string>("WO_Priority");
                 TaskType = dRow.Field<string>("WO_Type");
                 StartQty = dRow.Field<int>("WO_StartQty");
-                CurrentQty = Convert.ToInt32(dRow.Field<int>("WO_CurrentQty"));
+                CurrentQty = dRow.Field<int>("WO_CurrentQty");
                 SchedStartDate = dRow.Field<DateTime>("WO_SchedStartDate");
                 ActStartDate = dRow.Field<DateTime>("WO_ActStartDate") != Convert.ToDateTime("1999-01-01") ? dRow.Field<DateTime>("WO_ActStartDate") : DateTime.MinValue;
                 DueDate = dRow.Field<DateTime>("WO_DueDate");
@@ -193,6 +194,39 @@ namespace SFW.Model
                 {
                     throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
                 }
+            }
+        }
+
+        /// <summary>
+        /// Checks to see if the work order is valid
+        /// </summary>
+        /// <param name="woNumber">Work Order number to check</param>
+        /// <param name="seq">Optional: Machine Name</param>
+        /// <returns>Validation as bool; true = valid, false = invalid</returns>
+        public static bool Exists(string woNumber, int seq)
+        {
+            if (ModelSqlCon != null && ModelSqlCon.State != ConnectionState.Closed && ModelSqlCon.State != ConnectionState.Broken)
+            {
+                try
+                {
+                    using (SqlCommand cmd = new SqlCommand($"USE {ModelSqlCon.Database}; SELECT COUNT(ID) FROM [dbo].[WPO-INIT] WHERE [ID] = @p1", ModelSqlCon))
+                    {
+                        cmd.Parameters.AddWithValue("p1", $"{woNumber}*{seq}");
+                        return int.TryParse(cmd.ExecuteScalar().ToString(), out int i) ? i > 0 : false;
+                    }
+                }
+                catch (SqlException)
+                {
+                    return false;
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception(ex.Message);
+                }
+            }
+            else
+            {
+                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
             }
         }
 

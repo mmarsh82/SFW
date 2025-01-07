@@ -1,4 +1,5 @@
 ﻿using SFW.Controls;
+using SFW.Model;
 using SFW.Queries;
 using System;
 using System.Collections.Generic;
@@ -56,7 +57,7 @@ namespace SFW.Commands
                 }
                 var _wo = new object();
                 _wo = null;
-                if (parameter.GetType() == typeof(Model.WorkOrder) || parameter.ToString().Length > 3)
+                if ((parameter.GetType() == typeof(WorkOrder) || parameter.ToString().Length > 3) && !parameter.ToString().Contains("NCR"))
                 {
                     _wo = parameter;
                     parameter = 0;
@@ -66,6 +67,12 @@ namespace SFW.Commands
                 var _viewModel = new object();
                 _viewModel = null;
                 var refreshView = _view == 1 || _view == 2;
+                if (parameter.ToString().Contains("NCR*"))
+                {
+                    _viewModel = new QMS.NcrForm.ViewModel(new WorkOrder(parameter.ToString().Split('*').Last()));
+                    refreshView = false;
+                }
+
                 //Handling the back function
                 if (_view == -1)
                 {
@@ -94,7 +101,7 @@ namespace SFW.Commands
                     case 0:
                         if (_wo != null)
                         {
-                            _viewModel = _wo.GetType() == typeof(Model.WorkOrder) ? new PartInfo_ViewModel((Model.WorkOrder)_wo) : new PartInfo_ViewModel(_wo.ToString());
+                            _viewModel = _wo.GetType() == typeof(WorkOrder) ? new PartInfo_ViewModel((WorkOrder)_wo) : new PartInfo_ViewModel(_wo.ToString());
                         }
                         else if (_so != null)
                         {

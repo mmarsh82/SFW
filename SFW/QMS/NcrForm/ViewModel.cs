@@ -22,7 +22,6 @@ namespace SFW.QMS.NcrForm
                 OnPropertyChanged(nameof(NcrObject));
             }
         }
-        private Ncr _origNcrObj;
 
         private Ncr.Revision _ncrRev;
         public Ncr.Revision NcrRevision
@@ -34,7 +33,6 @@ namespace SFW.QMS.NcrForm
                 OnPropertyChanged(nameof(NcrRevision));
             }
         }
-        private Ncr.Revision _origNcrRev;
 
         public ObservableCollection<Ncr.DefectReason> NcrReasonCollection { get; set; }
         public Ncr.DefectReason SelectedReason
@@ -82,19 +80,6 @@ namespace SFW.QMS.NcrForm
         }
 
         public ObservableCollection<Machine> MachineCollection { get; set; }
-        public Machine SelectedFoundMachine
-        {
-            get { return NcrObject.FoundWorkCenter; }
-            set
-            {
-                if (NcrObject != null)
-                {
-                    NcrObject.FoundWorkCenter = value;
-                }
-                OnPropertyChanged(nameof(SelectedFoundMachine));
-                OnPropertyChanged(nameof(NcrObject));
-            }
-        }
         public Machine SelectedOriginMachine
         {
             get { return NcrRevision.OriginWorkCenter; }
@@ -110,19 +95,6 @@ namespace SFW.QMS.NcrForm
         }
 
         public ObservableCollection<CrewMember> CrewCollection { get; set; }
-        public CrewMember SelectedReporter
-        {
-            get { return NcrObject.Reporter; }
-            set
-            {
-                if (NcrObject != null)
-                {
-                    NcrObject.Reporter = value;
-                }
-                OnPropertyChanged(nameof(SelectedReporter));
-                OnPropertyChanged(nameof(NcrObject));
-            }
-        }
 
         private bool _isNew;
         public bool IsNewNcr
@@ -145,7 +117,48 @@ namespace SFW.QMS.NcrForm
                 OnPropertyChanged(nameof(ActionType));
             }
         }
+
+        private int? _pLoss;
+        public string ViewPotentialLoss
+        {
+            get
+            { return _pLoss.ToString(); }
+            set
+            {
+                if (int.TryParse(value, out int i))
+                {
+                    _pLoss = i;
+                    if (i > 0)
+                    {
+                        NcrRevision.PotentialLoss = i;
+                        NcrRevision.PotentialValue = i * NcrObject.ProductValue;
+                    }
+                }
+                else
+                {
+                    _pLoss = null;
+                }
+                OnPropertyChanged(nameof(ViewPotentialLoss));
+            }
+        }
+
+        private bool _fromSched;
+        public bool FromSchedule
+        {
+            get
+            { return _fromSched; }
+            set
+            {
+                _fromSched = value;
+                OnPropertyChanged(nameof(FromSchedule));
+            }
+        }
+        private WorkOrder LoadedWorkOrder;
+
         RelayCommand _action;
+        RelayCommand _xLot;
+        RelayCommand _aLot;
+        RelayCommand _cancel;
 
         #endregion
 
@@ -154,14 +167,13 @@ namespace SFW.QMS.NcrForm
         /// </summary>
         public ViewModel(bool isNew)
         {
+            IsNewNcr = isNew;
+            FromSchedule = false;
             if (NcrObject == null)
             {
-                NcrObject = new Ncr(new CrewMember(CurrentUser.UserIDNbr, false));
-                _origNcrObj = NcrObject;
+                NcrObject = new Ncr(new CrewMember(CurrentUser.FirstName, CurrentUser.LastName));
                 NcrRevision = NcrObject.RevisionList.FirstOrDefault();
-                _origNcrRev = NcrObject.RevisionList.FirstOrDefault();
             }
-            IsNewNcr = isNew;
             ActionType = "Submit";
             if (IsNewNcr)
             {
@@ -196,16 +208,17 @@ namespace SFW.QMS.NcrForm
         {
             try
             {
-                NcrObject = _origNcrObj = new Ncr(workOrder);
-                NcrRevision = _origNcrRev = NcrObject.RevisionList[0];
+                FromSchedule = true;
                 IsNewNcr = true;
-                ActionType = "New";
+                NcrObject = new Ncr(workOrder, new CrewMember(CurrentUser.FirstName, CurrentUser.LastName));
+                NcrRevision = NcrObject.RevisionList[0];
+                ActionType = "Submit";
                 NcrReasonCollection = Ncr.DefectReason.GetDefectReasonCollection(App.AppSqlCon);
                 NcrTypeCollection = Ncr.DefectType.GetDefectTypeCollection(App.AppSqlCon);
                 DispositionCollection = Ncr.Disposition.GetDispositionCollection(App.AppSqlCon);
                 MachineCollection = new ObservableCollection<Machine>(Machine.GetMachineList(false, false, NcrObject.Site));
-                SelectedFoundMachine = MachineCollection.FirstOrDefault(o => o.MachineNumber == NcrObject.FoundWorkCenter.MachineNumber);
                 CrewCollection = CrewMember.GetCrewCollection(NcrObject.Site);
+                LoadedWorkOrder = workOrder;
             }
             catch (Exception ex)
             {
@@ -218,13 +231,19 @@ namespace SFW.QMS.NcrForm
         /// </summary>
         /// <param name="ncr">Ncr Object</param>
         /// <param name="revId">Ncr Revision ID to load</param>
-        public ViewModel(Ncr ncr, int revId)
+        /// <param name="fromSched">Optional: Load from schedule</param>
+        public ViewModel(Ncr ncr, int revId, bool fromSched = false)
         {
             try
             {
-                NcrObject = _origNcrObj = ncr;
-                NcrRevision = _origNcrRev = ncr.RevisionList.FirstOrDefault(o => o.RevisionId == revId);
                 IsNewNcr = false;
+                FromSchedule = fromSched;
+                if (FromSchedule)
+                {
+                    LoadedWorkOrder = new WorkOrder(ncr.OrderId);
+                }
+                NcrObject = ncr;
+                NcrRevision = ncr.RevisionList.FirstOrDefault(o => o.RevisionId == revId);
                 ActionType = "Update";
                 NcrReasonCollection = Ncr.DefectReason.GetDefectReasonCollection(App.AppSqlCon);
                 SelectedReason = NcrReasonCollection.FirstOrDefault(o => o.Id == NcrRevision.DefectReason.Id);
@@ -233,15 +252,29 @@ namespace SFW.QMS.NcrForm
                 DispositionCollection = Ncr.Disposition.GetDispositionCollection(App.AppSqlCon);
                 SelectedDisposition = DispositionCollection.FirstOrDefault(o => o.Id == NcrRevision.Disposition.Id);
                 MachineCollection = new ObservableCollection<Machine>(Machine.GetMachineList(false, false, NcrObject.Site));
-                SelectedFoundMachine = MachineCollection.FirstOrDefault(o => o.MachineNumber == NcrObject.FoundWorkCenter.MachineNumber);
                 SelectedOriginMachine = MachineCollection.FirstOrDefault(o => o.MachineNumber == NcrRevision.OriginWorkCenter.MachineNumber);
                 CrewCollection = CrewMember.GetCrewCollection(NcrObject.Site);
-                SelectedReporter = CrewCollection.FirstOrDefault(o => o.IdNumber == NcrObject.Reporter.IdNumber);
+                NcrObject.Reporter = CrewCollection.FirstOrDefault(o => o.IdNumber == NcrObject.Reporter.IdNumber);
+                ViewPotentialLoss = NcrRevision.PotentialLoss.ToString();
             }
             catch (Exception ex)
             {
                 MessageBox.Show(ex.Message, "Unhandled Exception", MessageBoxButton.OK, MessageBoxImage.Error);
             }
+        }
+
+        /// <summary>
+        /// Validates a submission of a new NCR
+        /// </summary>
+        /// <returns>Validatity as bool</returns>
+        public bool ValidateNewSubmission()
+        {
+            var validObj = NcrObject.IsValidOrder && !string.IsNullOrEmpty(NcrObject.Reporter?.Name);
+            var validRev = !string.IsNullOrEmpty(NcrRevision.Disposition?.Description) 
+                && ((NcrRevision.IsEscape && !string.IsNullOrEmpty(NcrRevision.OriginWorkCenter?.MachineName) || !NcrRevision.IsEscape))
+                && !string.IsNullOrEmpty(NcrRevision.DefectReason?.Description) && !string.IsNullOrEmpty(NcrRevision.DefectType?.Description)
+                && !string.IsNullOrEmpty(NcrRevision.Description);
+            return validObj && validRev;
         }
 
         #region Submission/Update ICommand
@@ -260,18 +293,118 @@ namespace SFW.QMS.NcrForm
 
         private void ActionExecute(object parameter)
         {
-            NcrObject.Submit(App.AppSqlCon);
-            ActionType = "Update";
-            _origNcrObj = NcrObject;
-            _origNcrRev = NcrRevision;
+            if (IsNewNcr)
+            {
+                NcrObject.NcrId = NcrObject.Submit(App.AppSqlCon);
+                ActionType = "Update";
+                IsNewNcr = false;
+            }
+            else
+            {
+                var newRevId = NcrObject.RevisionList.Count + 1;
+                NcrRevision.SubmitDateTime = DateTime.Now;
+                NcrRevision.Submitter = new CrewMember(CurrentUser.FirstName, CurrentUser.LastName);
+                NcrRevision.Update(NcrObject.NcrId, newRevId, App.AppSqlCon);
+                NcrObject = new Ncr(NcrObject.NcrId);
+                NcrRevision = NcrObject.RevisionList.FirstOrDefault(o => o.RevisionId == newRevId);
+            }
+            
             if (!RefreshTimer.Status)
             {
                 RefreshTimer.Start();
+                RefreshTimer.RefreshTimerTick();
             }
         }
-        private bool ActionCanExecute(object parameter)
+        private bool ActionCanExecute(object parameter) => IsNewNcr ? ValidateNewSubmission() : true;
+
+        #endregion
+
+        #region Remove Lot List Item ICommand
+
+        public ICommand RemoveLotICommand
         {
-            return NcrObject != _origNcrObj && NcrRevision != _origNcrRev;
+            get
+            {
+                if (_xLot == null)
+                {
+                    _xLot = new RelayCommand(RemoveLotExecute);
+                }
+                return _xLot;
+            }
+        }
+
+        private void RemoveLotExecute(object parameter)
+        {
+            if (parameter == null)
+            {
+                NcrObject.LotList.Remove(NcrObject.LotList.LastOrDefault());
+            }
+            else
+            {
+                NcrObject.LotList.Remove(NcrObject.LotList.FirstOrDefault(o => o.LotNumber == parameter.ToString()));
+            }
+        }
+
+        #endregion
+
+        #region Remove Lot List Item ICommand
+
+        public ICommand AddLotICommand
+        {
+            get
+            {
+                if (_aLot == null)
+                {
+                    _aLot = new RelayCommand(AddLotExecute);
+                }
+                return _aLot;
+            }
+        }
+
+        private void AddLotExecute(object parameter)
+        {
+            NcrObject.LotList.Add(new Lot());
+        }
+
+        #endregion
+
+        #region Cancel Submission ICommand
+
+        public ICommand CancelICommand
+        {
+            get
+            {
+                if (_cancel == null)
+                {
+                    _cancel = new RelayCommand(CancelExecute);
+                }
+                return _cancel;
+            }
+        }
+
+        private void CancelExecute(object parameter)
+        {
+            if(FromSchedule)
+            {
+                Controls.WorkSpaceDock.SchedDock.Children.RemoveAt(1);
+                Controls.WorkSpaceDock.SchedDock.Children.Insert(1, new ShopRoute.View { DataContext = new ShopRoute.ViewModel(LoadedWorkOrder) });
+                if (!RefreshTimer.Status)
+                {
+                    RefreshTimer.Start();
+                    RefreshTimer.RefreshTimerTick();
+                }
+            }
+            else
+            {
+                Controls.WorkSpaceDock.NcrDock.Children.RemoveAt(1);
+                var _ncr = new Ncr(Ncr.GetLastNcrId());
+                Controls.WorkSpaceDock.NcrDock.Children.Insert(1, new View { DataContext = new ViewModel(_ncr, _ncr.RevisionList.Count()) });
+                if (!RefreshTimer.Status)
+                {
+                    RefreshTimer.Start();
+                    RefreshTimer.RefreshTimerTick();
+                }
+            }
         }
 
         #endregion

@@ -29,8 +29,8 @@
     <ProductName>Shop Floor Workbench</ProductName>
     <PublisherName>Michael Marsh</PublisherName>
     <SuiteName>ContiTech</SuiteName>
-    <ApplicationRevision>383</ApplicationRevision>
-    <ApplicationVersion>2.0.61.383</ApplicationVersion>
+    <ApplicationRevision>425</ApplicationRevision>
+    <ApplicationVersion>2.0.66.425</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <CreateDesktopShortcut>true</CreateDesktopShortcut>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -122,6 +122,7 @@
     <Compile Include="AppGlobal.cs" />
     <Compile Include="Commands\AppReload.cs" />
     <Compile Include="Commands\ClearPriority.cs" />
+    <Compile Include="Commands\LoadNcr.cs" />
     <Compile Include="Commands\DevTesting.cs" />
     <Compile Include="Commands\DiamondEntry.cs" />
     <Compile Include="Commands\M2kDeviate.cs" />
@@ -214,6 +215,10 @@
       <DependentUpon>PressShift_View.xaml</DependentUpon>
     </Compile>
     <Compile Include="Reports\PressShift_ViewModel.cs" />
+    <Compile Include="Schedule.Plan\View.xaml.cs">
+      <DependentUpon>View.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Schedule.Plan\ViewModel.cs" />
     <Compile Include="Schedule.PurchaseOrder\View.xaml.cs">
       <DependentUpon>View.xaml</DependentUpon>
     </Compile>
@@ -376,6 +381,10 @@
     <Page Include="Reports\ProcessSpec_View.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Schedule.Plan\View.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
     </Page>
     <Page Include="Schedule.PurchaseOrder\View.xaml">
       <Generator>MSBuild:Compile</Generator>

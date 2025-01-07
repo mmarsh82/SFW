@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Data;
 using System.Data.SqlClient;
 using System.IO;
@@ -38,6 +39,8 @@ namespace SFW.Model
         public List<Tool> ToolList { get; set; }
         public int Facility { get; set; }
         public bool IsTransfer { get; set; }
+        public bool IsLotTrace { get; set; }
+        public double Value { get; set; }
 
         #endregion
 
@@ -65,6 +68,8 @@ namespace SFW.Model
             SkuDescription = skuRow.Field<string>("Description");
             Uom = skuRow.Field<string>("Uom");
             Facility = _site;
+            IsLotTrace = IsLotTracable(skuId);
+            Value = GetPartValue(skuId);
         }
 
         #region Data Access
@@ -212,6 +217,87 @@ namespace SFW.Model
                 {
                     throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
                 }
+            }
+        }
+
+        /// <summary>
+        /// Get the product cost value based on an ID
+        /// </summary>
+        /// <param name="skuId">Product ID</param>
+        /// <returns>Product value as double</returns>
+        public static double GetPartValue(string skuId)
+        {
+            if (ModelSqlCon != null && ModelSqlCon.State != ConnectionState.Closed && ModelSqlCon.State != ConnectionState.Broken)
+            {
+                try
+                {
+                    using (SqlCommand cmd = new SqlCommand($"USE {ModelSqlCon.Database}; SELECT SUM(imav.[Inc_Av_Costs]) + SUM(imav.[Ru_Av_Costs]) FROM [dbo].[IM-INIT_Av_Costs] imav WHERE [imav].[ID1] = @p1", ModelSqlCon))
+                    {
+                        cmd.Parameters.AddWithValue("p1", skuId);
+                        return double.TryParse(cmd.ExecuteScalar().ToString(), out double d) ? d : 0.00;
+                    }
+                }
+                catch (SqlException)
+                {
+                    return 0.00;
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception(ex.Message);
+                }
+            }
+            else
+            {
+                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
+            }
+        }
+
+        /// <summary>
+        /// Get observable collection of products
+        /// </summary>
+        /// <param name="workOrder">Work Order filter</param>
+        /// <returns>ObservableCollection of crewmember objects</returns>
+        public static ObservableCollection<Sku> GetSkuCollection(string workOrder, int op)
+        {
+            var _skuCol = new ObservableCollection<Sku>();
+            if (ModelSqlCon != null && ModelSqlCon.State != ConnectionState.Closed && ModelSqlCon.State != ConnectionState.Broken)
+            {
+                try
+                {
+                    using (SqlCommand cmd = new SqlCommand($"USE {ModelSqlCon.Database}; SELECT wp.[Part_Wo_Desc] FROM [dbo].[WP-INIT] wp WHERE wp.[Wp_Nbr] = @p1", ModelSqlCon))
+                    {
+                        cmd.Parameters.AddWithValue("p1", workOrder);
+                        _skuCol.Add(new Sku(cmd.ExecuteScalar().ToString()));
+                    }
+                    using (SqlCommand cmd = new SqlCommand($"USE {ModelSqlCon.Database}; SELECT CONCAT([ChildSkuID], '|0', [Site]) 'ProductId' FROM [dbo].[SFW_Picklist] WHERE [WorkOrderID] = @p1 AND [Routing] = @p2", ModelSqlCon))
+                    {
+                        cmd.Parameters.AddWithValue("p1", workOrder);
+                        cmd.Parameters.AddWithValue("p2", op);
+                        using (SqlDataReader reader = cmd.ExecuteReader())
+                        {
+                            if (reader.HasRows)
+                            {
+                                while (reader.Read())
+                                {
+                                    _skuCol.Add(new Sku(reader.SafeGetString("ProductId")));
+                                }
+                            }
+                        }
+                    }
+                    return _skuCol;
+                }
+                catch (SqlException)
+                {
+                    return null;
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception(ex.Message);
+                }
+            }
+            else
+            {
+                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
             }
         }
 
@@ -401,6 +487,10 @@ namespace SFW.Model
         /// <returns>lot tracability as bool</returns>
         public static bool IsLotTracable(string partNbr)
         {
+            if (partNbr.Contains('|'))
+            {
+                partNbr = partNbr.Split('|')[0];
+            }
             return MasterDataSet.Tables["SKU"].Select($"[SkuID] = '{partNbr}' AND [Status] = 'A'").FirstOrDefault().Field<string>("LotTraceable") == "T";
         }
 
@@ -528,12 +618,13 @@ namespace SFW.Model
         /// Check to see if a Sku exists in the database
         /// </summary>
         /// <param name="partNbr">Part Number to check</param>
+        /// <param name="returnAll">Return all results</param>
         /// <returns>Pass/Fail as boolean</returns>
-        public static string GetMasterNumber(string partNbr, bool returnAll)
+        public static string GetMasterNumber(string partNbr, bool returnAll, int site)
         {
             return returnAll
-                ? MasterDataSet.Tables["SKU"].Select($"[SkuID] = '{partNbr}'").FirstOrDefault().Field<string>("MasterSkuID")
-                : MasterDataSet.Tables["SKU"].Select($"[SkuID] = '{partNbr}' AND [Status] = 'A'").FirstOrDefault().Field<string>("MasterSkuID");
+                ? MasterDataSet.Tables["SKU"].Select($"[SkuID] = '{partNbr}' AND [Site] = {site}").FirstOrDefault().Field<string>("MasterSkuID")
+                : MasterDataSet.Tables["SKU"].Select($"[SkuID] = '{partNbr}' AND [Status] = 'A' AND [Site] = {site}").FirstOrDefault().Field<string>("MasterSkuID");
         }
 
         /// <summary>

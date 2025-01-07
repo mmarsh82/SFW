@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Globalization;
+using System.Linq;
 using System.Windows;
 using System.Windows.Data;
 
@@ -30,11 +31,15 @@ namespace SFW.Converters
             if (parameter == null || values.Length == 0)
             {
                 var _rtnStr = string.Empty;
-                foreach (var o in values)
+                foreach (var o in values.Where(o => o != null && o != DependencyProperty.UnsetValue))
                 {
                     _rtnStr += o.ToString();
                 }
                 return _rtnStr;
+            }
+            else if (parameter.ToString() == "NCR")
+            {
+                return $"{parameter}*{values.FirstOrDefault()}";
             }
             else
             {

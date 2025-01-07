@@ -13,6 +13,10 @@ namespace SFW.Converters
 
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
+            if (parameter?.ToString() == "ncr" && int.TryParse(value.ToString(), out int id))
+            {
+                return id > 1 ? Visibility.Visible : Visibility.Collapsed;
+            }
             if (value != null && parameter != null)
             {
                 var _value = 0;

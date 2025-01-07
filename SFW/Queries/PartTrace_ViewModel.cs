@@ -324,7 +324,7 @@ namespace SFW.Queries
                 }
                 if (Sku.Exists(_part, CurrentUser.IsEngineer, _siteNbr))
                 {
-                    _master = Sku.GetMasterNumber(_part, CurrentUser.IsEngineer);
+                    _master = Sku.GetMasterNumber(_part, CurrentUser.IsEngineer, _siteNbr);
                 }
                 else if (Sku.Exists(_part, CurrentUser.IsEngineer, _siteNbr, true))
                 {

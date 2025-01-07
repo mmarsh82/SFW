@@ -149,8 +149,8 @@
                                             <Image Source="/SFW;component/Icons/PartSearch.ico"/>
                                             <Button.CommandParameter>
                                                 <MultiBinding Converter="{StaticResource PartSearchConverter}">
+                                                    <Binding Source="NCR"/>
                                                     <Binding Path="PartId"/>
-                                                    <Binding Path="WorkOrderId"/>
                                                 </MultiBinding>
                                             </Button.CommandParameter>
                                         </Button>
