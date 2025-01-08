@@ -25,7 +25,6 @@
                 <cvtr:StatusToColor x:Key="StatusToColorConverter"/>
                 <cmd:ViewLoad x:Key="ViewLoadCommand" />
                 <cmd:PartSearch x:Key="PartSearchICommand"/>
-                <main:CurrentUser x:Key="User" />
             </Grid.Resources>
 
             <!--#endregion-->
@@ -43,7 +42,9 @@
                 </TextBlock.Visibility>
             </TextBlock>
 
-            <Grid Margin="10,0,10,0">
+            <Grid Margin="10,0,10,0"
+                  AllowDrop="{Binding Path=(main:CurrentUser.IsQuality)}"
+                  DragDrop.Drop="Photo_Drop">
                 <Grid.Visibility>
                     <MultiBinding Converter="{StaticResource IntToVisConverter}" ConverterParameter="NcrDetail">
                         <Binding Path="NcrObject.NcrId"/>
@@ -67,6 +68,8 @@
                     <RowDefinition x:Name="Row12" Height="30" />
                     <RowDefinition x:Name="Row13" Height="10"/>
                     <RowDefinition x:Name="Row14" Height="*"/>
+                    <RowDefinition x:Name="Row15" Height="10"/>
+                    <RowDefinition x:Name="Row16" Height="*"/>
                 </Grid.RowDefinitions>
 
                 <!--#region Grid.Row 0  Command Array-->
@@ -741,6 +744,67 @@
                     </Image>
                     
                 </Grid>
+
+                <!--#endregion-->
+
+                <!--#region Grid.Row 15  (Used as a spacer)-->
+                <!--#endregion-->
+
+                <!--#region Grid.Row 16  Defect Images-->
+
+                <DataGrid x:Name="NcrPhotos"
+                          Grid.Row="16"
+                          ItemsSource="{Binding NcrPhotoCollection, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                          HorizontalAlignment="Left"
+                          HeadersVisibility="None"
+                          AutoGenerateColumns="False"
+                          CanUserAddRows="False"
+                          SelectionMode="Single"
+                          VirtualizingPanel.IsVirtualizingWhenGrouping="True"
+                          ScrollViewer.CanContentScroll="True">
+
+                    <DataGrid.Columns>
+                        <DataGridTemplateColumn x:Name="dataGridTemplateColumn">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="500"/>
+                                                <ColumnDefinition Width="50"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Image Grid.Column="0"
+                                                   Source="{Binding}"
+                                                   MaxHeight="500"/>
+                                            <Button Grid.Column="1"
+                                                    Command="{Binding DataContext.RemovePhotoICommand, ElementName=NcrFormUC}"
+                                                    CommandParameter="{Binding}"
+                                                    Background="Transparent"
+                                                    BorderThickness="0"
+                                                    HorizontalAlignment="Right"
+                                                    VerticalAlignment="Top"
+                                                    Visibility="{Binding Path=(main:CurrentUser.IsQuality), Converter={StaticResource BoolToVisConverter}}"
+                                                    Style="{DynamicResource ResourceKey=DefaultButton}">
+                                                <Image Source="/SFW;component/Icons/Remove.ico"/>
+                                            </Button>
+                                        </Grid>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                    </DataGrid.Columns>
+
+                    <DataGrid.CellStyle>
+                        <Style TargetType="{x:Type DataGridCell}">
+                            <Style.Resources>
+                                <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightBrushKey}" Color="Transparent"/>
+                            </Style.Resources>
+                            <Setter Property="Background" Value="Transparent"/>
+                            <Setter Property="BorderThickness" Value="0"/>
+                        </Style>
+                    </DataGrid.CellStyle>
+
+                </DataGrid>
 
                 <!--#endregion-->
 

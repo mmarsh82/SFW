@@ -1,5 +1,4 @@
 ﻿using M2kClient;
-using SFW.Controls;
 using SFW.Helpers;
 using SFW.Model;
 using SFW.Reports;
@@ -177,6 +176,7 @@ namespace SFW.ShopRoute
             IsMultiLoading = true;
             NoLotResults = NoDedicateResults = true;
             LotListText = "Select a Part";
+            NcrList = new List<string>();
             using (BackgroundWorker bw = new BackgroundWorker())
             {
                 try
@@ -217,10 +217,6 @@ namespace SFW.ShopRoute
                             if (App.SiteNumber == 1)
                             {
                                 NcrList = Ncr.GetNcrList(ShopOrder.OrderNumber);
-                            }
-                            else
-                            {
-                                NcrList = new List<string>();
                             }
                             OnPropertyChanged(nameof(IsMultiLoading));
                             OnPropertyChanged(nameof(ShopOrder));

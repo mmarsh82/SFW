@@ -271,6 +271,7 @@ namespace SFW.Schedule.SalesOrder
                     SelectedCredStatus = CreditStatusList[0];
                     IsSchedule = false;
                     ScheduleType = true;
+                    SalesScheduleView.Refresh();
                 }
             }
             catch (Exception ex)
@@ -280,7 +281,7 @@ namespace SFW.Schedule.SalesOrder
         }
         public void ViewLoaded(IAsyncResult r)
         {
-            SalesScheduleView.Refresh();
+
         }
 
         #endregion

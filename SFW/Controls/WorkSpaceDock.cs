@@ -91,7 +91,7 @@ namespace SFW.Controls
                     while (!Schedule.SalesOrder.ViewModel.LoadAsyncComplete.IsCompleted) { }
                 }
 
-                if (CurrentUser.Facility == 1)
+                if (App.SiteNumber == 1)
                 {
                     //Add the Quality NCR Notice View to [9]
                     NcrDock.Children.Insert(0, new QMS.NcrNotice.View());
@@ -197,6 +197,10 @@ namespace SFW.Controls
                 if (CurrentUser.IsInventoryControl)
                 {
                     ((CycleCount.Sched_View)CountDock.Children[0]).DataContext = new CycleCount.Sched_ViewModel();
+                }
+                if (CurrentUser.IsQuality)
+                {
+                    ((QMS.NcrNotice.View)NcrDock.Children[0]).DataContext = new QMS.NcrNotice.ViewModel();
                 }
             }
             else

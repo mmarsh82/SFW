@@ -136,10 +136,10 @@ namespace SFW.CycleCount
             CountView = CollectionViewSource.GetDefaultView(Count.GetScheduleData(App.AppSqlCon));
             CountView.GroupDescriptions.Add(new PropertyGroupDescription("CountLoc"));
             EmptyCount = CountView.Cast<object>().Count() == 0;
+            CountView.Refresh();
         }
         public void ViewLoaded(IAsyncResult r)
         {
-            CountView.Refresh();
         }
 
         #endregion

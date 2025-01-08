@@ -6,6 +6,7 @@
              xmlns:cmd="clr-namespace:SFW.Commands"
              xmlns:cvtr="clr-namespace:SFW.Converters"
              xmlns:local="clr-namespace:SFW.QMS.NcrNotice"
+             xmlns:main="clr-namespace:SFW"
              x:Name="NcrNoticeUC">
 
     <UserControl.Resources>
@@ -20,8 +21,13 @@
         <cvtr:StringToVisibility x:Key="StringToVisConverter"/>
         <cvtr:BoolToBackgroundColor x:Key="BoolToBGConverter"/>
         <cvtr:IntToBool x:Key="IntToBoolConverter"/>
+        <local:ViewModel x:Key="DataContext"/>
 
     </UserControl.Resources>
+
+    <UserControl.DataContext>
+        <Binding Source="{StaticResource DataContext}"/>
+    </UserControl.DataContext>
 
     <Grid>
 
@@ -96,6 +102,7 @@
                 <Button Background="Transparent"
                         BorderThickness="0"
                         Command="{Binding NewNcrICommand}"
+                        Visibility="{Binding Path=(main:CurrentUser.IsQuality), Converter={StaticResource BoolToVisConverter}}"
                         Margin="10,0,0,0">
                     <Button.Content>
                         <StackPanel Orientation="Horizontal">
@@ -114,7 +121,7 @@
 
         <DataGrid x:Name="NcrNotice"
                   Grid.Row="1"
-                  ItemsSource="{Binding NoticeView, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                  ItemsSource="{Binding NoticeView}"
                   SelectedItem="{Binding SelectedNcr, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                   HorizontalAlignment="Left"
                   HeadersVisibility="None"

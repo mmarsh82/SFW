@@ -740,13 +740,29 @@ namespace SFW.Model
         {
             try
             {
+                var _oldLotList = Ncr.GetNcrLotList(ncrObj.NcrId, sqlCon);
                 foreach (var lot in ncrObj.LotList)
                 {
-                    using (SqlCommand cmd = new SqlCommand($@"INSERT INTO [dbo].[NCR-CSTM_LotInfo] ([NcrId], [LotId]) Values(@p1, @p2)", sqlCon))
+                    if (_oldLotList.Count(o => o.LotNumber == lot.LotNumber) == 0)
                     {
-                        cmd.Parameters.AddWithValue("p1", ncrObj.NcrId);
-                        cmd.Parameters.AddWithValue("p2", lot.LotNumber);
-                        cmd.ExecuteNonQuery();
+                        using (SqlCommand cmd = new SqlCommand($@"INSERT INTO [dbo].[NCR-CSTM_LotInfo] ([NcrId], [LotId]) Values(@p1, @p2)", sqlCon))
+                        {
+                            cmd.Parameters.AddWithValue("p1", ncrObj.NcrId);
+                            cmd.Parameters.AddWithValue("p2", lot.LotNumber);
+                            cmd.ExecuteNonQuery();
+                        }
+                    }
+                }
+                foreach (var oldLot in _oldLotList)
+                {
+                    if (ncrObj.LotList.Count(o => o.LotNumber == oldLot.LotNumber) == 0)
+                    {
+                        using (SqlCommand cmd = new SqlCommand($@"DELETE FROM [dbo].[NCR-CSTM_LotInfo] WHERE [NcrId] = @p1 AND [LotId] = @p2", sqlCon))
+                        {
+                            cmd.Parameters.AddWithValue("p1", ncrObj.NcrId);
+                            cmd.Parameters.AddWithValue("p2", oldLot.LotNumber);
+                            cmd.ExecuteNonQuery();
+                        }
                     }
                 }
             }

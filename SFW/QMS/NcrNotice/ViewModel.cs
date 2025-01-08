@@ -8,6 +8,7 @@ using System.ComponentModel;
 using System.Data;
 using System.Linq;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
 
@@ -18,7 +19,7 @@ namespace SFW.QMS.NcrNotice
         #region Properties
 
         public static string[] NoticeViewFilter;
-        public static ICollectionView NoticeView { get; set; }
+        public ICollectionView NoticeView { get; set; }
 
         private DataRowView _selectedNcr;
         public DataRowView SelectedNcr
@@ -89,8 +90,6 @@ namespace SFW.QMS.NcrNotice
             }
         }
 
-        private bool Refresh { get; set; }
-
         RelayCommand _newNcr;
 
         public delegate void LoadDelegate(string s);
@@ -106,7 +105,6 @@ namespace SFW.QMS.NcrNotice
         /// </summary>
         public ViewModel()
         {
-            Refresh = false;
             NoticeViewFilter = new string[7];
             NoticeFilter($"[Site] = {App.SiteNumber}", 2);
             ClosedFilter = false;
@@ -125,7 +123,7 @@ namespace SFW.QMS.NcrNotice
         /// </summary>
         /// <param name="filter">Filter string to use on the default view</param>
         /// <param name="index">Index of the filter string list you are adding to our changing</param>
-        public static void NoticeFilter(string filter, int index)
+        public void NoticeFilter(string filter, int index)
         {
             if (NoticeViewFilter != null)
             {
@@ -165,7 +163,7 @@ namespace SFW.QMS.NcrNotice
         /// <summary>
         /// Clears the notice filter string array
         /// </summary>
-        public static void ClearFilter()
+        public void ClearFilter()
         {
             if (NoticeViewFilter != null)
             {
@@ -176,10 +174,6 @@ namespace SFW.QMS.NcrNotice
                 }
                 NoticeFilter("[Status] <> 'C'", 5);
                 NoticeFilter($"[Site] = {App.SiteNumber}", 6);
-                if (NoticeView != null)
-                {
-                    NoticeView.Refresh();
-                }
             }
         }
 
@@ -226,23 +220,7 @@ namespace SFW.QMS.NcrNotice
         {
             try
             {
-                IsLoading = true;
-                if (Refresh)
-                {
-                    ModelBase.BuildMasterDataSet(UserConfig.GetIROD(), App.SiteNumber, App.AppSqlCon);
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message, "Unhandled Exception", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-        }
-
-        public void ViewLoaded(IAsyncResult r)
-        {
-            try
-            {
-                RefreshTimer.IsRefreshing = IsLoading = Refresh = false;
+                RefreshTimer.IsRefreshing = IsLoading = false;
                 MainWindowViewModel.DisplayAction = false;
                 var _oldfilter = string.Empty;
                 if (NoticeView != null && CurrentUser.IsLoggedIn)
@@ -266,6 +244,11 @@ namespace SFW.QMS.NcrNotice
                         SelectedNcr = null;
                     }
                 }
+                else
+                {
+                    NoticeView.MoveCurrentToPosition(-1);
+                    SelectedNcr = null;
+                }
                 if (!string.IsNullOrEmpty(_oldfilter))
                 {
                     ((DataView)NoticeView.SourceCollection).RowFilter = _oldfilter;
@@ -278,12 +261,17 @@ namespace SFW.QMS.NcrNotice
                 {
                     SearchFilter = SearchFilter;
                 }
-                StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(NoticeView)));
+                OnPropertyChanged(nameof(NoticeView));
             }
             catch (Exception ex)
             {
                 MessageBox.Show(ex.Message, "Unhandled Exception", MessageBoxButton.OK, MessageBoxImage.Error);
             }
+        }
+
+        public void ViewLoaded(IAsyncResult r)
+        {
+            IsLoading = false;
         }
 
         #endregion
@@ -297,7 +285,7 @@ namespace SFW.QMS.NcrNotice
             {
                 if (!IsLoading)
                 {
-                    RefreshTimer.IsRefreshing = IsLoading = Refresh = true;
+                    RefreshTimer.IsRefreshing = IsLoading = true;
                     MainWindowViewModel.DisplayAction = App.LoadedModule == Enumerations.UsersControls.Quality;
                     if (NoticeView?.CurrentItem != null)
                     {
