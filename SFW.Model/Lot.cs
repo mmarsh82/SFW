@@ -63,7 +63,18 @@ namespace SFW.Model
         public string Submitter { get; set; }
         public string TransactionCrew { get; set; }
         public IDictionary<string, int> Dedication { get; set; }
-        public bool Validated { get; set; }
+
+        private bool _valid;
+        public bool Validated
+        { 
+            get
+            { return _valid; }
+            set
+            {
+                _valid = value;
+                OnPropertyChanged(nameof(Validated));
+            }
+        }
         public DateTime ReceivedDate { get; set; }
 
         public ObservableCollection<string> LotCollection { get; set; }
@@ -74,9 +85,7 @@ namespace SFW.Model
         /// Default Constructor
         /// </summary>
         public Lot()
-        {
-
-        }
+        { }
 
         /// <summary>
         /// Lot Constructor for dedication population
@@ -89,6 +98,17 @@ namespace SFW.Model
             {
                 Dedication.Add(_row.Field<string>("WorkOrderID"), _row.Field<int>("OnHand"));
             }
+        }
+
+        /// <summary>
+        /// Lot Constructor for NCR population
+        /// </summary>
+        /// <param name="lotNbr">Lot Number</param>
+        /// <param name="valid">Validated</param>
+        public Lot(string lotNbr, bool valid)
+        {
+            LotNumber = lotNbr;
+            Validated = valid;
         }
 
         /// <summary>

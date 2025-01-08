@@ -4,8 +4,8 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Data;
 using System.Data.SqlClient;
-using System.DirectoryServices.ActiveDirectory;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 
 namespace SFW.Model
 {
@@ -451,6 +451,8 @@ namespace SFW.Model
         public int Site { get; set; }
         public IList<Revision> RevisionList { get; set; }
 
+        public static bool LotChanging;
+
         #endregion
 
         /// <summary>
@@ -563,7 +565,7 @@ namespace SFW.Model
                             {
                                 while (reader.Read())
                                 {
-                                    _rtnList.Add(new Lot(reader.SafeGetString("LotId")));
+                                    _rtnList.Add(new Lot(reader.SafeGetString("LotId"), true));
                                 }
                             }
                         }
@@ -594,10 +596,27 @@ namespace SFW.Model
         /// <param name="e">Change info</param>
         public static void LotList_Changed(object sender, ListChangedEventArgs e)
         {
-            if (e.ListChangedType != ListChangedType.ItemChanged)
+            if (e.ListChangedType == ListChangedType.ItemChanged)
             {
-
+                if (sender != null && e.PropertyDescriptor.DisplayName == "LotNumber" && !LotChanging)
+                {
+                    if (!string.IsNullOrEmpty(((BindingList<Lot>)sender)[e.NewIndex].LotNumber))
+                    {
+                        var _isValid = Lot.IsValid($"{((BindingList<Lot>)sender)[e.NewIndex].LotNumber}|P|01", ModelSqlCon);
+                        if (_isValid)
+                        {
+                            ((BindingList<Lot>)sender)[e.NewIndex].Validated = _isValid;
+                            LotChanging = true;
+                            ((BindingList<Lot>)sender)[e.NewIndex].LotNumber += "|P|01";
+                        }
+                        else
+                        {
+                            ((BindingList<Lot>)sender)[e.NewIndex].Validated = _isValid;
+                        }
+                    }
+                }
             }
+            LotChanging = false;
         }
 
         /// <summary>
@@ -608,7 +627,7 @@ namespace SFW.Model
         public static IList<string> GetNcrList(string orderId)
         {
             var _rtnList = new List<string>();
-            var _rows = MasterDataSet.Tables["NcrNotice"].Select($"[WorkOrderId] = '{orderId}'");
+            var _rows = MasterDataSet.Tables["NcrNotice"].Select($"[WorkOrderId] = '{orderId}' AND [NcrRevisionId] = [RevisionFilter]");
             if (_rows.Count() > 0)
             {
                 foreach (var _row in _rows)
@@ -654,6 +673,7 @@ namespace SFW.Model
                     cmd.Parameters.AddWithValue("p6", ncrObject.ProductValue);
                     cmd.Parameters.AddWithValue("p7", ncrObject.Site);
                     _idNumber = Convert.ToInt32(cmd.ExecuteScalar());
+                    ncrObject.NcrId = _idNumber;
                 }
                 ncrObject.RevisionList.Last().Submit(_idNumber, 1, sqlCon);
                 if (ncrObject.Part.IsLotTrace && ncrObject.LotList.Count(o => !string.IsNullOrEmpty(o.LotNumber)) > 0)
@@ -711,49 +731,6 @@ namespace SFW.Model
         }
 
         /// <summary>
-        /// Push an update of a NCR to the NCR Revision DataBase
-        /// </summary>
-        /// <param name="ncrRev">NCR revision object</param>
-        /// <param name="ncrId">NCR ID</param>
-        /// <param name="ncrRevId">NCR Revision ID</param>
-        /// <param name="sqlCon">Sql Connection to use</param>
-        public static void Update(this Ncr.Revision ncrRev, int ncrId, int ncrRevId, SqlConnection sqlCon)
-        {
-            try
-            {
-                using (SqlCommand cmd = new SqlCommand($@"UPDATE [dbo].[NCR-CSTM_Revisions]
-SET ([NcrId] = @p1, [NcrRevisionId] = @p2, [SubmitterId] = @p3, [RevisionDateTime] = @p4, [IsEscape] = @p5, 
-[OriginWorkCenterId] = @p6, [DefectReason] = @p7, [DefectType] = @p8, [PotentialLoss] = @p9, [DispositionId] = @p10, [Description] = @p11);", sqlCon))
-                {
-                    cmd.Parameters.AddWithValue("p1", ncrId);
-                    cmd.Parameters.AddWithValue("p2", ncrRevId);
-                    cmd.Parameters.AddWithValue("p3", ncrRev.Submitter.IdNumber);
-                    cmd.Parameters.AddWithValue("p4", ncrRev.SubmitDateTime.ToString("yyyy-MM-dd HH:mm"));
-                    if (ncrRev.IsEscape)
-                    {
-                        cmd.Parameters.AddWithValue("p5", 1);
-                        cmd.Parameters.AddWithValue("p6", ncrRev.OriginWorkCenter.MachineNumber);
-                    }
-                    else
-                    {
-                        cmd.Parameters.AddWithValue("p5", 0);
-                        cmd.Parameters.AddWithValue("p6", DBNull.Value);
-                    }
-                    cmd.Parameters.AddWithValue("p7", ncrRev.DefectReason.Id);
-                    cmd.Parameters.AddWithValue("p8", ncrRev.DefectType.Id);
-                    cmd.Parameters.AddWithValue("p9", ncrRev.PotentialLoss);
-                    cmd.Parameters.AddWithValue("p10", ncrRev.Disposition.Id);
-                    cmd.Parameters.AddWithValue("p11", ncrRev.Description);
-                    cmd.ExecuteNonQuery();
-                }
-            }
-            catch (Exception)
-            {
-
-            }
-        }
-
-        /// <summary>
         /// Submit a NCR to the NCR Master DataBase
         /// </summary>
         /// <param name="lotList">Binding list of lot numbers</param>
@@ -768,7 +745,7 @@ SET ([NcrId] = @p1, [NcrRevisionId] = @p2, [SubmitterId] = @p3, [RevisionDateTim
                     using (SqlCommand cmd = new SqlCommand($@"INSERT INTO [dbo].[NCR-CSTM_LotInfo] ([NcrId], [LotId]) Values(@p1, @p2)", sqlCon))
                     {
                         cmd.Parameters.AddWithValue("p1", ncrObj.NcrId);
-                        cmd.Parameters.AddWithValue("p2", lot);
+                        cmd.Parameters.AddWithValue("p2", lot.LotNumber);
                         cmd.ExecuteNonQuery();
                     }
                 }

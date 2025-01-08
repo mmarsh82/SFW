@@ -274,6 +274,7 @@ namespace SFW.QMS.NcrForm
                 && ((NcrRevision.IsEscape && !string.IsNullOrEmpty(NcrRevision.OriginWorkCenter?.MachineName) || !NcrRevision.IsEscape))
                 && !string.IsNullOrEmpty(NcrRevision.DefectReason?.Description) && !string.IsNullOrEmpty(NcrRevision.DefectType?.Description)
                 && !string.IsNullOrEmpty(NcrRevision.Description);
+            var validLot = (NcrObject.Part.IsLotTrace && NcrObject.LotList.Where(o => o.Validated).Count() == NcrObject.LotList.Count() && NcrObject.LotList.Count > 0) || !NcrObject.Part.IsLotTrace;
             return validObj && validRev;
         }
 
@@ -304,9 +305,7 @@ namespace SFW.QMS.NcrForm
                 var newRevId = NcrObject.RevisionList.Count + 1;
                 NcrRevision.SubmitDateTime = DateTime.Now;
                 NcrRevision.Submitter = new CrewMember(CurrentUser.FirstName, CurrentUser.LastName);
-                NcrRevision.Update(NcrObject.NcrId, newRevId, App.AppSqlCon);
-                NcrObject = new Ncr(NcrObject.NcrId);
-                NcrRevision = NcrObject.RevisionList.FirstOrDefault(o => o.RevisionId == newRevId);
+                NcrRevision.Submit(NcrObject.NcrId, newRevId, App.AppSqlCon);
             }
             
             if (!RefreshTimer.Status)

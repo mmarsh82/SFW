@@ -76,20 +76,20 @@
                     
                     <Button Content="{Binding ActionType}"
                             FontSize="16"
-                            Visibility="{Binding CanCheckHistory, Converter={StaticResource BoolToVisConverter}}"
+                            Visibility="{Binding Path=(main:CurrentUser.IsQuality), Converter={StaticResource BoolToVisConverter}}"
                             Command="{Binding ActionICommand}"
                             Style="{DynamicResource MenuButtonStyle}" />
 
                     <Button Content="Add Link"
                             FontSize="16"
-                            Visibility="{Binding CanCheckHistory, Converter={StaticResource BoolToVisConverter}}"
+                            Visibility="{Binding Path=(main:CurrentUser.IsQuality), Converter={StaticResource BoolToVisConverter}}"
                             Command="{StaticResource ViewLoadCommand}"
                             CommandParameter="{Binding ShopOrder}"
                             Style="{DynamicResource MenuButtonStyle}" />
 
                     <Button Content="Add Photo"
                             FontSize="16"
-                            Visibility="{Binding CanCheckHistory, Converter={StaticResource BoolToVisConverter}}"
+                            Visibility="{Binding Path=(main:CurrentUser.IsQuality), Converter={StaticResource BoolToVisConverter}}"
                             Command="{StaticResource ViewLoadCommand}"
                             CommandParameter="{Binding ShopOrder}"
                             Style="{DynamicResource MenuButtonStyle}" />
@@ -361,9 +361,16 @@
                                TextDecorations="UnderLine"
                                Foreground="#FF135185"/>
 
+                    <TextBlock Text="{Binding SelectedReason.Description}"
+                               Visibility="{Binding Path=(main:CurrentUser.IsQuality), Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}"
+                               FontSize="22"
+                               FontWeight="Bold"
+                               Margin="10,0,0,0" />
+
                     <ComboBox x:Name="DefectReason"
                               ItemsSource="{Binding NcrReasonCollection, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                               SelectedValue="{Binding SelectedReason, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                              Visibility="{Binding Path=(main:CurrentUser.IsQuality), Converter={StaticResource BoolToVisConverter}}"
                               DisplayMemberPath="Description"
                               FontSize="18"
                               FontWeight="Bold"
@@ -381,9 +388,16 @@
                                TextDecorations="Underline"
                                Foreground="#FF135185"/>
 
+                    <TextBlock Text="{Binding SelectedType.Description}"
+                               Visibility="{Binding Path=(main:CurrentUser.IsQuality), Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}"
+                               FontSize="22"
+                               FontWeight="Bold"
+                               Margin="10,0,0,0" />
+
                     <ComboBox x:Name="DefectType"
                               ItemsSource="{Binding NcrTypeCollection, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                               SelectedValue="{Binding SelectedType, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                              Visibility="{Binding Path=(main:CurrentUser.IsQuality), Converter={StaticResource BoolToVisConverter}}"
                               DisplayMemberPath="Description"
                               FontSize="18"
                               FontWeight="Bold"
@@ -393,7 +407,6 @@
                               MinWidth="100"
                               TabIndex="4"
                               Margin="5,0,0,0"
-                              Visibility="Visible"
                               Style="{DynamicResource RequiredComboBox}"/>
 
                 </StackPanel>
@@ -425,6 +438,7 @@
                               FontSize="24"
                               Margin="30,0,0,0"
                               Foreground="#FF135185"
+                              IsEnabled="{Binding Path=(main:CurrentUser.IsQuality)}"
                               Style="{DynamicResource SliderCheckBox}">
                         <CheckBox.Content>
                             <TextBlock Text="Escape:"
@@ -440,6 +454,13 @@
                                Visibility="{Binding IsChecked, ElementName=IsEscape, Converter={StaticResource BoolToVisConverter}}"
                                Foreground="#FF135185"/>
 
+                    <TextBlock Text="{Binding SelectedOriginMachine.MachineName}"
+                               FontSize="20"
+                               Margin="10,0,0,0"
+                               VerticalAlignment="Center"
+                               Visibility="{Binding Path=(main:CurrentUser.IsQuality), Converter={StaticResource BoolToVisConverter}}"
+                               FontWeight="Bold"/>
+
                     <ComboBox x:Name="OriginMachine"
                               ItemsSource="{Binding MachineCollection, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                               SelectedValue="{Binding SelectedOriginMachine, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
@@ -451,8 +472,14 @@
                               Width="150"
                               TabIndex="5"
                               Margin="5,0,0,0"
-                              Visibility="{Binding IsChecked, ElementName=IsEscape, Converter={StaticResource BoolToVisConverter}}"
-                              Style="{DynamicResource RequiredComboBox}"/>
+                              Style="{DynamicResource RequiredComboBox}">
+                        <ComboBox.Visibility>
+                            <MultiBinding Converter="{StaticResource BoolToVisConverter}">
+                                <Binding Path="IsChecked" ElementName="IsEscape"/>
+                                <Binding Path="(main:CurrentUser.IsQuality)"/>
+                            </MultiBinding>
+                        </ComboBox.Visibility>
+                    </ComboBox>
 
                 </StackPanel>
 
@@ -472,6 +499,13 @@
                                TextDecorations="UnderLine"
                                Foreground="#FF135185"/>
 
+                    <TextBlock Text="{Binding NcrObject.FoundWorkCenter.MachineName}"
+                               FontSize="20"
+                               Margin="10,0,0,0"
+                               VerticalAlignment="Center"
+                               FontWeight="Bold"
+                               Visibility="{Binding Path=(main:CurrentUser.IsQuality), Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}"/>
+
                     <TextBox x:Name="PotentialLoss"
                              Text="{Binding ViewPotentialLoss, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                              FontSize="20"
@@ -482,6 +516,7 @@
                              MaxLength="10"
                              TabIndex="6"
                              Margin="5,0,0,0"
+                             Visibility="{Binding Path=(main:CurrentUser.IsQuality), Converter={StaticResource BoolToVisConverter}}"
                              Style="{DynamicResource RequiredTextBox}" />
 
                     <TextBlock Text="{Binding NcrObject.Part.Uom}"
@@ -526,6 +561,13 @@
                                TextDecorations="Underline"
                                Foreground="#FF135185"/>
 
+                    <TextBlock Text="{Binding SelectedDisposition.Description}"
+                               FontSize="20"
+                               Margin="10,0,0,0"
+                               VerticalAlignment="Center"
+                               FontWeight="Bold"
+                               Visibility="{Binding Path=(main:CurrentUser.IsQuality), Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}"/>
+
                     <ComboBox x:Name="Disposition"
                               ItemsSource="{Binding DispositionCollection, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                               SelectedValue="{Binding SelectedDisposition, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
@@ -535,6 +577,7 @@
                               Width="200"
                               TabIndex="7"
                               Margin="5,0,0,0"
+                              Visibility="{Binding Path=(main:CurrentUser.IsQuality), Converter={StaticResource BoolToVisConverter}}"
                               Style="{DynamicResource RequiredComboBox}"/>
 
                 </StackPanel>
@@ -557,7 +600,7 @@
 
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="600"/>
-                        <ColumnDefinition Width="300"/>
+                        <ColumnDefinition Width="350"/>
                     </Grid.ColumnDefinitions>
 
                     <TextBlock Grid.Column="0" Grid.Row="0"
@@ -574,6 +617,7 @@
                              MinWidth="300"
                              MaxWidth="580"
                              MaxLength="1000"
+                             IsEnabled="{Binding Path=(main:CurrentUser.IsQuality)}"
                              Background="LightGray"
                              HorizontalAlignment="Left"
                              FontSize="20"
@@ -589,7 +633,8 @@
                     <Rectangle Grid.Column="1" Grid.Row="0"
                                Fill="#FF135185"
                                HorizontalAlignment="Stretch"
-                               VerticalAlignment="Stretch"/>
+                               VerticalAlignment="Stretch"
+                               Visibility="{Binding NcrObject.Part.IsLotTrace, Converter={StaticResource BoolToVisConverter}}"/>
 
                     <TextBlock Grid.Column="1" Grid.Row="0"
                                HorizontalAlignment="Center"
@@ -597,7 +642,8 @@
                                Text="Lot Numbers"
                                FontWeight="Bold"
                                FontSize="20"
-                               Foreground="WhiteSmoke" />
+                               Foreground="WhiteSmoke"
+                               Visibility="{Binding NcrObject.Part.IsLotTrace, Converter={StaticResource BoolToVisConverter}}"/>
 
                     <Button Grid.Column="1" Grid.Row="0"
                             Command="{Binding AddLotICommand}"
@@ -610,6 +656,12 @@
                         <Button.Content>
                             <Image Source="/SFW;component/Icons/Add.ico" />
                         </Button.Content>
+                        <Button.Visibility>
+                            <MultiBinding Converter="{StaticResource BoolToVisConverter}">
+                                <Binding Path="(main:CurrentUser.IsQuality)"/>
+                                <Binding Path="NcrObject.Part.IsLotTrace"/>
+                            </MultiBinding>
+                        </Button.Visibility>
                     </Button>
 
                     <ItemsControl Name="LotNumbers"
@@ -620,7 +672,8 @@
                                   Cursor="Hand"
                                   Background="Transparent"
                                   Foreground="Black"
-                                  Focusable="False">
+                                  Focusable="False"
+                                  Visibility="{Binding NcrObject.Part.IsLotTrace, Converter={StaticResource BoolToVisConverter}}">
 
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
@@ -635,29 +688,43 @@
                                 <StackPanel Orientation="Vertical">
                                     <StackPanel Orientation="Horizontal">
 
+                                        <Image Source="/SFW;component/Icons/Warning.ico"
+                                               Width="20"
+                                               Height="20"
+                                               Visibility="{Binding Validated, Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}"/>
+
                                         <TextBlock Text="Lot Number:"
                                                    TextDecorations="Underline"
-                                                   FontWeight="Bold" />
+                                                   FontWeight="Bold"
+                                                   Foreground="#FF135185"
+                                                   Margin="5,0,0,0"/>
 
                                         <TextBox Text="{Binding LotNumber, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                                  FontSize="16"
-                                                 Width="120"
+                                                 Width="150"
                                                  CharacterCasing="Upper"
                                                  Margin="3"
+                                                 Visibility="{Binding Path=(main:CurrentUser.IsQuality), Converter={StaticResource BoolToVisConverter}}"
                                                  Background="LightGray" />
 
-                                        <TextBlock Text="{Binding Name}"
+                                        <TextBlock Text="{Binding LotNumber}"
                                                    VerticalAlignment="Center"
-                                                   Margin="10,0,0,0"/>
+                                                   FontSize="16"
+                                                   FontWeight="Bold"
+                                                   Visibility="{Binding Path=(main:CurrentUser.IsQuality), Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}"
+                                                   Margin="5,0,0,0"/>
 
                                         <Button Command="{Binding DataContext.RemoveLotICommand, ElementName=NcrFormUC}"
                                                 CommandParameter="{Binding LotNumber}"
-                                                Width="20"
-                                                Height="20"
+                                                Width="22"
+                                                Height="22"
+                                                Background="Transparent"
+                                                BorderThickness="0"
                                                 Margin="10,0 0 0"
+                                                Visibility="{Binding Path=(main:CurrentUser.IsQuality), Converter={StaticResource BoolToVisConverter}}"
                                                 Style="{DynamicResource DefaultButton}">
                                             <Button.Content>
-                                                <Image Source="/SFW;component/Icons/Delete.ico" />
+                                                <Image Source="/SFW;component/Icons/Remove.ico" />
                                             </Button.Content>
                                         </Button>
 
