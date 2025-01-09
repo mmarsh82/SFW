@@ -43,23 +43,6 @@ namespace SFW.Model
                 }
             }
 
-            private string reason;
-            /// <summary>
-            /// Reason for scrapping the material
-            /// </summary>
-            public string Reason
-            {
-                get
-                { return reason; }
-                set
-                {
-                    reason = value;
-                    OnPropertyChanged(nameof(Reason));
-                    Reference = null;
-                    OnPropertyChanged(nameof(Reference));
-                }
-            }
-
             /// <summary>
             /// Reference information for scrapping the material
             /// </summary>

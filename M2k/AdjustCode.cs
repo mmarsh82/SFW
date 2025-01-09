@@ -15,6 +15,10 @@ namespace M2kClient
         [Description("Quality Testing")]
         TES = 4,
         [Description("Yield")]
-        YIE = 5
+        YIE = 5,
+        QOP = 6,
+        QIV = 7,
+        QLN = 8,
+        QEM = 9
     }
 }

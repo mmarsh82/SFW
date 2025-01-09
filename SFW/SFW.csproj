@@ -29,8 +29,8 @@
     <ProductName>Shop Floor Workbench</ProductName>
     <PublisherName>Michael Marsh</PublisherName>
     <SuiteName>ContiTech</SuiteName>
-    <ApplicationRevision>452</ApplicationRevision>
-    <ApplicationVersion>2.0.71.452</ApplicationVersion>
+    <ApplicationRevision>490</ApplicationRevision>
+    <ApplicationVersion>2.0.74.490</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <CreateDesktopShortcut>true</CreateDesktopShortcut>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -125,6 +125,7 @@
     <Compile Include="Commands\LoadNcr.cs" />
     <Compile Include="Commands\DevTesting.cs" />
     <Compile Include="Commands\DiamondEntry.cs" />
+    <Compile Include="Commands\AddPhoto.cs" />
     <Compile Include="Commands\M2kDeviate.cs" />
     <Compile Include="Commands\M2kLabor.cs" />
     <Compile Include="Commands\M2kValueEdit.cs" />
@@ -244,9 +245,13 @@
       <DependentUpon>CrewList_View.xaml</DependentUpon>
     </Compile>
     <Compile Include="Tools\CrewList_ViewModel.cs" />
+    <Compile Include="Tools\NcrSearch_View.xaml.cs">
+      <DependentUpon>NcrSearch_View.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Tools\DiamondEntry_View.xaml.cs">
       <DependentUpon>DiamondEntry_View.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Tools\NcrSearch_ViewModel.cs" />
     <Compile Include="Tools\DiamondEntry_ViewModel.cs" />
     <Compile Include="Tools\ItemLink_View.xaml.cs">
       <DependentUpon>ItemLink_View.xaml</DependentUpon>
@@ -473,6 +478,10 @@
     <Page Include="Tools\CrewList_View.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Tools\NcrSearch_View.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
     </Page>
     <Page Include="Tools\DiamondEntry_View.xaml">
       <SubType>Designer</SubType>

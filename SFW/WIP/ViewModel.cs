@@ -254,8 +254,6 @@ namespace SFW.WIP
             get { return WipRecord.IsLotTracable || WipRecord.WipWorkOrder.Picklist.Count(o => o.IsLotTrace) > 0; }
         }
 
-        public ObservableCollection<string> ScrapReasonCollection { get; set; }
-
         private List<string> _lList;
         public List<string> LotList
         {
@@ -349,16 +347,6 @@ namespace SFW.WIP
                 pl.WipInfo.Last().ScrapList.ListChanged += ScrapList_ListChanged;
             }
             WipRecord = new WipReceipt(CurrentUser.FirstName, CurrentUser.LastName, App.SiteNumber, woObject, erpCon);
-            if (ScrapReasonCollection == null)
-            {
-                var _tempList = Enum.GetValues(typeof(M2kClient.AdjustCode)).Cast<M2kClient.AdjustCode>().Where(o => o != M2kClient.AdjustCode.CC && o != M2kClient.AdjustCode.REC);
-                var _descList = new List<string>();
-                foreach (var e in _tempList)
-                {
-                    _descList.Add(e.GetDescription());
-                }
-                ScrapReasonCollection = new ObservableCollection<string>(_descList);
-            }
             LotList = new List<string>();
             IsSubmitted = false;
             IsLotValid = IsLocationValid = IsLocationEditable = true;
@@ -393,27 +381,19 @@ namespace SFW.WIP
                             {
                                 if (Convert.ToInt32(s.Quantity) > 0)
                                 {
-                                    if (!string.IsNullOrEmpty(s.Reason))
+                                    _validScrap = int.TryParse(s.Reference, out int lref);
+                                    if (string.IsNullOrEmpty(w.LotNbr) && _validScrap)
                                     {
-                                        if (s.Reason == "Quality Scrap" && !string.IsNullOrEmpty(s.Reference))
-                                        {
-                                            _validScrap = string.IsNullOrEmpty(w.LotNbr)
-                                                ? Lot.IsValidQIR(s.Reference, WipRecord.WipWorkOrder.OrderNumber, "", w.PartNbr, App.AppSqlCon)
-                                                : Lot.IsValidQIR(s.Reference, WipRecord.WipWorkOrder.OrderNumber, w.LotNbr, w.PartNbr, App.AppSqlCon);
-                                        }
-                                        else if (s.Reason != "Quality Scrap")
-                                        {
-                                            _validScrap = true;
-                                        }
-                                        else
-                                        {
-                                            return false;
-                                        }
+                                        _validScrap = Lot.IsValidQIR(s.Reference, WipRecord.WipWorkOrder.OrderNumber, "", w.PartNbr, App.AppSqlCon) || Ncr.IsValid(lref);
                                     }
                                     else
                                     {
-                                        return false;
+                                        _validScrap = Lot.IsValidQIR(s.Reference, WipRecord.WipWorkOrder.OrderNumber, w.LotNbr, w.PartNbr, App.AppSqlCon) || Ncr.IsValid(lref);
                                     }
+                                }
+                                else
+                                {
+                                    return false;
                                 }
                             }
                         }
@@ -595,27 +575,17 @@ namespace SFW.WIP
                     {
                         if (WipRecord.ScrapList.Count(o => int.TryParse(o.Quantity, out int i) && i > 0) > 0)
                         {
-                            if (App.SiteNumber == 2)
-                            {
-                                _scrapValid = WipRecord.ScrapList.Count(o => Convert.ToInt32(o.Quantity) > 0) == WipRecord.ScrapList.Count(o => !string.IsNullOrEmpty(o.Reason));
-                            }
-                            else
+                            if (App.SiteNumber == 1)
                             {
                                 _scrapValid = false;
                                 if (WipRecord.ScrapList.Count(o => Convert.ToInt32(o.Quantity) > 0) == WipRecord.ScrapList.Count())
                                 {
                                     foreach(var s in WipRecord.ScrapList)
                                     {
-                                        if(s.Reason == "Quality Scrap")
-                                        {
-                                            _scrapValid = WipRecord.IsLotTracable || string.IsNullOrEmpty(WipLot)
-                                                ? Lot.IsValidQIR(s.Reference, WipRecord.WipWorkOrder.OrderNumber, "", WipRecord.WipWorkOrder.SkuNumber, App.AppSqlCon)
-                                                : Lot.IsValidQIR(s.Reference, WipRecord.WipWorkOrder.OrderNumber, WipLot, WipRecord.WipWorkOrder.SkuNumber, App.AppSqlCon);
-                                        }
-                                        else if (!string.IsNullOrEmpty(s.Reason))
-                                        {
-                                            _scrapValid = true;
-                                        }
+                                        var _ncrId = int.TryParse(s.Reference, out int nRef) ? nRef : 0;
+                                        _scrapValid = (WipRecord.IsLotTracable || string.IsNullOrEmpty(WipLot))
+                                            ? Lot.IsValidQIR(s.Reference, WipRecord.WipWorkOrder.OrderNumber, "", WipRecord.WipWorkOrder.SkuNumber, App.AppSqlCon) || Ncr.IsValid(nRef)
+                                            : Lot.IsValidQIR(s.Reference, WipRecord.WipWorkOrder.OrderNumber, WipLot, WipRecord.WipWorkOrder.SkuNumber, App.AppSqlCon) || Ncr.IsValid(nRef);
                                     }
                                 }
                             }

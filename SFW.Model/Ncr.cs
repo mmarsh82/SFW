@@ -451,6 +451,8 @@ namespace SFW.Model
         public int Site { get; set; }
         public IList<Revision> RevisionList { get; set; }
 
+        public ObservableCollection<string> PhotoCollection { get; set; }
+
         public static bool LotChanging;
 
         #endregion
@@ -484,6 +486,7 @@ namespace SFW.Model
             ProductValue = double.TryParse(ncrDataRows[0].Field<decimal>("ProductValue").ToString(), out double d) ? d : 0.00;
             Site = ncrDataRows[0].Field<int>("Site");
             RevisionList = new List<Revision>();
+            PhotoCollection = new ObservableCollection<string>(GetNcrPhotoList(id, ModelSqlCon));
             foreach (var ncr in ncrDataRows)
             {
                 RevisionList.Add(new Revision(ncr, ProductValue));
@@ -587,6 +590,83 @@ namespace SFW.Model
             }
         }
 
+        /// <summary>
+        /// Load a list with all the NCR photo information
+        /// </summary>
+        /// <param name="ncrId">Ncr object ID</param>
+        /// <param name="sqlCon">Sql Connection to use</param>
+        /// <returns>A table of NCR Notice information</returns>
+        public static List<string> GetNcrPhotoList(int ncrId, SqlConnection sqlCon)
+        {
+            var _rtnList = new List<string>();
+            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
+            {
+                try
+                {
+                    using (SqlCommand cmd = new SqlCommand($"SELECT * FROM [dbo].[NCR-CSTM_PhotoPath] ncrPic WHERE ncrPic.[NcrId] = @p1", sqlCon))
+                    {
+                        cmd.Parameters.AddWithValue("p1", ncrId);
+                        using (SqlDataReader reader = cmd.ExecuteReader())
+                        {
+                            if (reader.HasRows)
+                            {
+                                var _folderPath = $"\\\\waxfs001\\WAXG-SFW\\QMS Pictures\\";
+                                while (reader.Read())
+                                {
+                                    _rtnList.Add($"{_folderPath}{reader.SafeGetString("PhotoPath")}");
+                                }
+                            }
+                        }
+                    }
+                    return _rtnList;
+                }
+                catch (SqlException)
+                {
+                    return null;
+                }
+                catch (Exception)
+                {
+                    return null;
+                }
+            }
+            else
+            {
+                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
+            }
+        }
+
+        /// <summary>
+        /// Submit Lot numbers to an NCR
+        /// </summary>
+        /// <param name="ncrId">NCR object ID</param>
+        /// <param name="lot">Lot ID</param>
+        public static void SubmitLot(int ncrId, string lotId)
+        {
+            if (!lotId.Contains("|"))
+            {
+                lotId += $"{lotId}|P|01";
+            }
+            try
+            {
+                using (SqlCommand cmd = new SqlCommand($@"SELECT COUNT([NcrId]) FROM [dbo].[NCR-CSTM_LotInfo] WHERE [NcrId] = )", ModelSqlCon))
+                {
+                    cmd.Parameters.AddWithValue("p1", ncrId);
+                    cmd.Parameters.AddWithValue("p2", lotId);
+                    cmd.ExecuteNonQuery();
+                }
+                using (SqlCommand cmd = new SqlCommand($@"INSERT INTO [dbo].[NCR-CSTM_LotInfo] ([NcrId], [LotId]) Values(@p1, @p2)", ModelSqlCon))
+                {
+                    cmd.Parameters.AddWithValue("p1", ncrId);
+                    cmd.Parameters.AddWithValue("p2", lotId);
+                    cmd.ExecuteNonQuery();
+                }
+            }
+            catch (Exception)
+            {
+
+            }
+        }
+
         #endregion
 
         /// <summary>
@@ -639,6 +719,26 @@ namespace SFW.Model
         }
 
         /// <summary>
+        /// Gets the NCR Reason
+        /// </summary>
+        /// <param name="orderId">ncrId</param>
+        /// <returns>NCR Reason as string</returns>
+        public static string GetNcrReason(int ncrId)
+        {
+            return MasterDataSet.Tables["NcrNotice"].Select($"[NcrId] = '{ncrId}' AND [NcrRevisionId] = [RevisionFilter]").FirstOrDefault().SafeGetField<string>("DefectReason");
+        }
+
+        /// <summary>
+        /// Checks to see if it is a valid NCR
+        /// </summary>
+        /// <param name="ncrId">Ncr ID</param>
+        /// <returns>pass flag as bool</returns>
+        public static bool IsValid(int ncrId)
+        {
+            return MasterDataSet.Tables["NcrNotice"].Select($"[NcrId] = '{ncrId}' AND [NcrRevisionId] = [RevisionFilter]").Count() > 0;
+        }
+
+        /// <summary>
         /// Gets the last NCR ID in the database
         /// </summary>
         /// <returns>Last NCR ID as an int</returns>
@@ -679,6 +779,10 @@ namespace SFW.Model
                 if (ncrObject.Part.IsLotTrace && ncrObject.LotList.Count(o => !string.IsNullOrEmpty(o.LotNumber)) > 0)
                 {
                     ncrObject.SubmitLots(sqlCon);
+                }
+                if (ncrObject.PhotoCollection.Count > 0)
+                {
+                    ncrObject.SubmitPhotoPath(sqlCon);
                 }
                 return _idNumber;
             }
@@ -733,7 +837,7 @@ namespace SFW.Model
         /// <summary>
         /// Submit a NCR to the NCR Master DataBase
         /// </summary>
-        /// <param name="lotList">Binding list of lot numbers</param>
+        /// <param name="ncrObj">QIR Object</param>
         /// <param name="sqlCon">Sql Connection to use</param>
         /// <returns>Last inserted NCR ID</returns>
         public static void SubmitLots(this Ncr ncrObj, SqlConnection sqlCon)
@@ -741,7 +845,7 @@ namespace SFW.Model
             try
             {
                 var _oldLotList = Ncr.GetNcrLotList(ncrObj.NcrId, sqlCon);
-                foreach (var lot in ncrObj.LotList)
+                foreach (var lot in ncrObj.LotList.Where(o => o.Validated))
                 {
                     if (_oldLotList.Count(o => o.LotNumber == lot.LotNumber) == 0)
                     {
@@ -772,5 +876,47 @@ namespace SFW.Model
             }
         }
 
+        /// <summary>
+        /// Submit NCR photo path
+        /// </summary>
+        /// <param name="ncrObj">QIR Object</param>
+        /// <param name="sqlCon">Sql Connection to use</param>
+        public static void SubmitPhotoPath(this Ncr ncrObj, SqlConnection sqlCon)
+        {
+            try
+            {
+                var _oldPhotoList = Ncr.GetNcrPhotoList(ncrObj.NcrId, sqlCon);
+                var _folderPath = $"\\\\waxfs001\\WAXG-SFW\\QMS Pictures\\";
+                foreach (var fullPathPhoto in ncrObj.PhotoCollection)
+                {
+                    var _photo = fullPathPhoto.Replace(_folderPath, "");
+                    if (_oldPhotoList.Count(o => o == _photo) == 0)
+                    {
+                        using (SqlCommand cmd = new SqlCommand($@"INSERT INTO [dbo].[NCR-CSTM_PhotoPath] ([NcrId], [LotId]) Values(@p1, @p2)", sqlCon))
+                        {
+                            cmd.Parameters.AddWithValue("p1", ncrObj.NcrId);
+                            cmd.Parameters.AddWithValue("p2", _photo);
+                            cmd.ExecuteNonQuery();
+                        }
+                    }
+                }
+                foreach (var oldPhoto in _oldPhotoList)
+                {
+                    if (ncrObj.PhotoCollection.Count(o => o == oldPhoto) == 0)
+                    {
+                        using (SqlCommand cmd = new SqlCommand($@"DELETE FROM [dbo].[NCR-CSTM_PhotoPath] WHERE [NcrId] = @p1 AND [LotId] = @p2", sqlCon))
+                        {
+                            cmd.Parameters.AddWithValue("p1", ncrObj.NcrId);
+                            cmd.Parameters.AddWithValue("p2", oldPhoto);
+                            cmd.ExecuteNonQuery();
+                        }
+                    }
+                }
+            }
+            catch (Exception)
+            {
+
+            }
+        }
     }
 }

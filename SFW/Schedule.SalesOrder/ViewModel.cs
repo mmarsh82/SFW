@@ -271,7 +271,6 @@ namespace SFW.Schedule.SalesOrder
                     SelectedCredStatus = CreditStatusList[0];
                     IsSchedule = false;
                     ScheduleType = true;
-                    SalesScheduleView.Refresh();
                 }
             }
             catch (Exception ex)
@@ -308,7 +307,6 @@ namespace SFW.Schedule.SalesOrder
                 }
                 SearchFilter = SearchFilter;
                 StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(SalesScheduleView)));
-                SalesScheduleView.Refresh();
             }
             catch (Exception)
             {

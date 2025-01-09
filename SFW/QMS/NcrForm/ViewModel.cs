@@ -142,8 +142,6 @@ namespace SFW.QMS.NcrForm
             }
         }
 
-        public ObservableCollection<string> NcrPhotoCollection { get; set; }
-
         private bool _fromSched;
         public bool FromSchedule
         {
@@ -162,6 +160,7 @@ namespace SFW.QMS.NcrForm
         RelayCommand _aLot;
         RelayCommand _cancel;
         RelayCommand _xPic;
+        RelayCommand _chgRev;
 
         #endregion
 
@@ -259,7 +258,6 @@ namespace SFW.QMS.NcrForm
                 CrewCollection = CrewMember.GetCrewCollection(NcrObject.Site);
                 NcrObject.Reporter = CrewCollection.FirstOrDefault(o => o.IdNumber == NcrObject.Reporter.IdNumber);
                 ViewPotentialLoss = NcrRevision.PotentialLoss.ToString();
-                NcrPhotoCollection = new ObservableCollection<string>();
             }
             catch (Exception ex)
             {
@@ -279,9 +277,9 @@ namespace SFW.QMS.NcrForm
                 && !string.IsNullOrEmpty(NcrRevision.DefectReason?.Description) && !string.IsNullOrEmpty(NcrRevision.DefectType?.Description)
                 && !string.IsNullOrEmpty(NcrRevision.Description);
             var validLot = false;
-            if (NcrObject.Part != null && NcrObject.LotList != null)
+            if (NcrObject.Part != null && NcrObject.LotList != null && NcrObject.Part.IsLotTrace && NcrObject.LotList.Count(o => o.Validated) > 0)
             {
-                validLot = (NcrObject.Part.IsLotTrace && NcrObject.LotList.Where(o => o.Validated).Count() == NcrObject.LotList.Count() && NcrObject.LotList.Count > 0) || !NcrObject.Part.IsLotTrace;
+                validLot = NcrObject.LotList.Where(o => o.Validated).Count() == NcrObject.LotList.Count();
             }
             return validObj && validRev && validLot;
         }
@@ -315,6 +313,7 @@ namespace SFW.QMS.NcrForm
                 NcrRevision.Submitter = new CrewMember(CurrentUser.FirstName, CurrentUser.LastName);
                 NcrRevision.Submit(NcrObject.NcrId, newRevId, App.AppSqlCon);
                 NcrObject.SubmitLots(App.AppSqlCon);
+                NcrObject.SubmitPhotoPath(App.AppSqlCon);
             }
             
             if (!RefreshTimer.Status)
@@ -433,7 +432,28 @@ namespace SFW.QMS.NcrForm
 
         private void RemovePhotoExecute(object parameter)
         {
-            NcrPhotoCollection.Remove(parameter.ToString());
+            NcrObject.PhotoCollection.Remove(parameter.ToString());
+        }
+
+        #endregion
+
+        #region Change Revision ICommand
+
+        public ICommand ChangeRevICommand
+        {
+            get
+            {
+                if (_chgRev == null)
+                {
+                    _chgRev = new RelayCommand(ChangeRevExecute);
+                }
+                return _chgRev;
+            }
+        }
+
+        private void ChangeRevExecute(object parameter)
+        {
+            
         }
 
         #endregion

@@ -60,7 +60,11 @@ namespace SFW.Converters
                 }
                 return Visibility.Visible;
             }
-            if(values[0] != null)
+            if (int.TryParse(values[1].ToString(), out int nRef) && bool.TryParse(values[0].ToString(), out bool qRef))
+            {
+                return qRef && nRef > 0 ? Visibility.Visible : Visibility.Collapsed;
+            }
+            if (values[0] != null)
             {
                 switch (values[0])
                 {

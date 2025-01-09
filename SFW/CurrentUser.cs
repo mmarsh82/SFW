@@ -219,6 +219,18 @@ namespace SFW
             }
         }
 
+        private static bool _hasNotice;
+        public static bool HasNotice
+        {
+            get
+            { return _hasNotice; }
+            private set
+            {
+                _hasNotice = value;
+                StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(HasNotice)));
+            }
+        }
+
         private static bool _isAcctRec;
         public static bool IsAccountsReceivable
         {
@@ -345,7 +357,7 @@ namespace SFW
             {
                 if (_aGroups.Count(o => o.Contains("SFW-Admin")) > 0)
                 {
-                    CanTrain = CanSchedule = IsSupervisor = IsInventoryControl = IsAccountsReceivable = IsAdmin = HasSalesOrderModule = IsQuality = IsEngineer = CanSplit = CanDeviate = true;
+                    CanTrain = CanSchedule = IsSupervisor = IsInventoryControl = IsAccountsReceivable = IsAdmin = HasSalesOrderModule = IsQuality = IsEngineer = CanSplit = CanDeviate = HasNotice = true;
                     BasicUser = false;
                 }
                 else
@@ -357,6 +369,7 @@ namespace SFW
                     HasSalesOrderModule = _aGroups.Count(o => o.Contains("SFW-Sales")) > 0;
                     CanTrain = _aGroups.Count(o => o.Contains("SFW-Train")) > 0;
                     IsQuality = _aGroups.Count(o => o.Contains("SFW-Quality")) > 0;
+                    HasNotice = _aGroups.Count(o => o.Contains("SFW-Quality")) > 0 || _aGroups.Count(o => o.Contains("SFW-QNotice")) > 0;
                     IsEngineer = _aGroups.Count(o => o.Contains("SFW-Engineer")) > 0;
                     CanSplit = _aGroups.Count(o => o.Contains("SFW-Adjust")) > 0;
                     CanDeviate = _aGroups.Count(o => o.Contains("SFW-Deviate")) > 0;
@@ -614,6 +627,7 @@ namespace SFW
             CanTrain = false;
             BasicUser = true;
             IsEngineer = false;
+            IsQuality = HasNotice = false;
             Controls.WorkSpaceDock.RefreshMainDock();
             MainWindowViewModel.UpdateProperties(false);
         }

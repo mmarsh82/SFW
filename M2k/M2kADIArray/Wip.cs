@@ -156,16 +156,25 @@ namespace M2kClient.M2kADIArray
                     {
                         foreach (var s in w.ScrapList.Where(o => int.TryParse(o.Quantity, out int i)))
                         {
+                            var _reason = AdjustCode.QSC;
+                            if (wipRecord.WipWorkOrder.Facility == 2 && string.IsNullOrEmpty(s.Reference))
+                            {
+                                _reason = AdjustCode.YIE;
+                            }
+                            else if (!string.IsNullOrEmpty(s.Reference) && int.TryParse(s.Reference, out int nRef))
+                            {
+                                _reason = (AdjustCode)Enum.Parse(typeof(AdjustCode), Ncr.GetNcrReason(nRef), true);
+                            }
                             AdjustmentList.Add(new Adjust(
-                                    wipRecord.Submitter,
-                                    wipRecord.Facility,
-                                    !string.IsNullOrEmpty(s.Reference) ? $"{s.Reference}*{wipRecord.WipWorkOrder.OrderNumber}" : wipRecord.WipWorkOrder.OrderNumber,
-                                    w.PartNbr,
-                                    (AdjustCode)Enum.Parse(typeof(AdjustCode), s.Reason.GetValueFromDescription<AdjustCode>().ToString(), true),
-                                    'S',
-                                    Convert.ToInt32(s.Quantity),
-                                    !string.IsNullOrEmpty(_backFlush) ? _backFlush : w.RcptLoc,
-                                    w.LotNbr));
+                                        wipRecord.Submitter,
+                                        wipRecord.Facility,
+                                        !string.IsNullOrEmpty(s.Reference) ? $"{s.Reference}*{wipRecord.WipWorkOrder.OrderNumber}" : wipRecord.WipWorkOrder.OrderNumber,
+                                        w.PartNbr,
+                                        _reason,
+                                        'S',
+                                        Convert.ToInt32(s.Quantity),
+                                        !string.IsNullOrEmpty(_backFlush) ? _backFlush : w.RcptLoc,
+                                        w.LotNbr));
                         }
                     }
                 }

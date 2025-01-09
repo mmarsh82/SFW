@@ -85,17 +85,27 @@
 
                     <Button Content="Add Link"
                             FontSize="16"
-                            Visibility="{Binding Path=(main:CurrentUser.IsQuality), Converter={StaticResource BoolToVisConverter}}"
                             Command="{StaticResource ViewLoadCommand}"
-                            CommandParameter="{Binding ShopOrder}"
-                            Style="{DynamicResource MenuButtonStyle}" />
+                            Style="{DynamicResource MenuButtonStyle}">
+                        <Button.Visibility>
+                            <MultiBinding Converter="{StaticResource BoolToVisConverter}">
+                                <Binding Path="(main:CurrentUser.IsQuality)"/>
+                                <Binding Path="NcrObject.NcrId"/>
+                            </MultiBinding>
+                        </Button.Visibility>
+                    </Button>
 
                     <Button Content="Add Photo"
                             FontSize="16"
-                            Visibility="{Binding Path=(main:CurrentUser.IsQuality), Converter={StaticResource BoolToVisConverter}}"
                             Command="{StaticResource ViewLoadCommand}"
-                            CommandParameter="{Binding ShopOrder}"
-                            Style="{DynamicResource MenuButtonStyle}" />
+                            Style="{DynamicResource MenuButtonStyle}">
+                        <Button.Visibility>
+                            <MultiBinding Converter="{StaticResource BoolToVisConverter}">
+                                <Binding Path="(main:CurrentUser.IsQuality)"/>
+                                <Binding Path="NcrObject.NcrId"/>
+                            </MultiBinding>
+                        </Button.Visibility>
+                    </Button>
 
                     <Button Content="Cancel"
                             FontSize="16"
@@ -122,7 +132,7 @@
                             <MenuItem.ItemContainerStyle>
                                 <Style TargetType="MenuItem">
                                     <Setter Property="Command"
-                                            Value="{StaticResource ViewLoadCommand}" />
+                                            Value="{Binding ChangeRevICommand}" />
                                     <Setter Property="CommandParameter"
                                             Value="{Binding}" />
                                     <Setter Property="Foreground"
@@ -502,7 +512,7 @@
                                TextDecorations="UnderLine"
                                Foreground="#FF135185"/>
 
-                    <TextBlock Text="{Binding NcrObject.FoundWorkCenter.MachineName}"
+                    <TextBlock Text="{Binding ViewPotentialLoss}"
                                FontSize="20"
                                Margin="10,0,0,0"
                                VerticalAlignment="Center"

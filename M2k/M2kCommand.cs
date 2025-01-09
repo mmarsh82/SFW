@@ -487,28 +487,39 @@ namespace M2kClient
             #region Scrap Adjustment
 
             var _scrapWip = string.Empty;
+            /* Coming soon
             //Scrapping product by wipping to inspection location
             foreach (var s in wipRecord.ScrapList.Where(o => int.TryParse(o.Quantity, out int i) && i > 0))
             {
                 new Wip(wipRecord);
-
             }
+            */
 
             var _adjustString = string.Empty;
             //Adjusting any scrap out of the system that was recorded during the wip
             //Main part scrap adjustment string builder
             foreach (var s in wipRecord.ScrapList.Where(o => int.TryParse(o.Quantity, out int i) && i > 0))
             {
+                var _reason = AdjustCode.QSC;
+                if (wipRecord.WipWorkOrder.Facility == 2 && string.IsNullOrEmpty(s.Reference))
+                {
+                    _reason = AdjustCode.YIE;
+                }
+                else if (!string.IsNullOrEmpty(s.Reference) && int.TryParse(s.Reference, out int nRef))
+                {
+                    _reason = (AdjustCode)Enum.Parse(typeof(AdjustCode), Ncr.GetNcrReason(nRef), true);
+                }
                 InventoryAdjustment(wipRecord.Submitter,
                     !string.IsNullOrEmpty(s.Reference) ? $"{s.Reference}*{wipRecord.WipWorkOrder.OrderNumber}" : wipRecord.WipWorkOrder.OrderNumber,
                     wipRecord.WipWorkOrder.SkuNumber,
-                    (AdjustCode)Enum.Parse(typeof(AdjustCode), s.Reason.GetValueFromDescription<AdjustCode>().ToString(), true),
+                    _reason,
                     'S',
                     Convert.ToInt32(s.Quantity),
                     wipRecord.ReceiptLocation,
                     wipRecord.Facility,
                     connection,
                     wipRecord.WipLot.LotNumber == "NonLotWip" || wipRecord.WipLot.LotNumber == "Multiple" ? "" : wipRecord.WipLot.LotNumber);
+
             }
             //Component part scrap adjustment string builder
             if (_tWip?.AdjustmentList?.Count > 0)
@@ -525,6 +536,14 @@ namespace M2kClient
                         s.FacilityCode,
                         connection,
                         s.LotNumber);
+
+                    if (!string.IsNullOrEmpty(s.LotNumber) && int.TryParse(s.Reference, out int iRef))
+                    {
+                        if (Ncr.IsValid(iRef) && wipRecord.WipWorkOrder.Facility == 1)
+                        {
+                            Ncr.SubmitLot(iRef, s.LotNumber);
+                        }
+                    }
                 }
             }
 

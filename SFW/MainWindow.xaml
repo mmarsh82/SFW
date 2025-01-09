@@ -54,6 +54,9 @@
         <KeyBinding Gesture="Alt+T"
                     Command="{StaticResource ViewLoadICommand}"
                     CommandParameter="8"/>
+        <KeyBinding Gesture="Alt+N"
+                    Command="{StaticResource ShowWindowICommand}"
+                    CommandParameter="SFW.Tools.NcrSearch_View"/>
     </Window.InputBindings>
 
     <Grid>
@@ -143,7 +146,7 @@
                 <MenuItem Header="Quality NCRs"
                           Command="{StaticResource ViewLoadICommand}"
                           CommandParameter="9"
-                          Visibility="{Binding Path=(local:CurrentUser.IsQuality), Converter={StaticResource BoolToVisConverter}}"/>
+                          Visibility="{Binding Path=(local:CurrentUser.HasNotice), Converter={StaticResource BoolToVisConverter}}"/>
             </MenuItem>
             <MenuItem Header="Tools">
                 <MenuItem Header="Part Information"
@@ -166,6 +169,10 @@
                           Command="{StaticResource ViewLoadICommand}"
                           CommandParameter="7"
                           InputGestureText="Alt+T"/>
+                <MenuItem Header="NCR Search"
+                          Command="{StaticResource ShowWindowICommand}"
+                          CommandParameter="SFW.Tools.NcrSearch_View"
+                          InputGestureText="Alt+N"/>
                 <MenuItem Header="Priority Management"
                           Visibility="{Binding Path=(local:CurrentUser.CanSchedule), Converter={StaticResource BoolToVisConverter}}"
                           Command="{StaticResource ShowWindowICommand}"
