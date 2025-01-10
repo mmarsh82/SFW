@@ -4,6 +4,7 @@ using System.Windows;
 using System;
 using System.Windows.Controls;
 using System.IO;
+using SFW.Model;
 
 namespace SFW.QMS.NcrForm
 {
@@ -20,28 +21,56 @@ namespace SFW.QMS.NcrForm
 
         private void Photo_Drop(object sender, DragEventArgs e)
         {
-            try
+            if (CurrentUser.IsQuality)
             {
-                if (((ViewModel)DataContext).NcrObject?.NcrId > 0)
+                MainGrid.Opacity = 1;
+                AttachPhotoText.Visibility = Visibility.Hidden;
+                try
                 {
                     var _oldPath = ((string[])e.Data.GetData(DataFormats.FileDrop))[0];
                     var _fileExt = Path.GetExtension(_oldPath);
-                    var _ncr = ((ViewModel)DataContext).NcrObject.NcrId;
-                    var _folderPath = $"\\\\waxfs001\\WAXG-SFW\\QMS Pictures\\";
-                    var _fileCount = Directory.GetFiles(_folderPath, $"{_ncr}-*", SearchOption.TopDirectoryOnly).Count();
-                    var _newPath = $"{_folderPath}{_ncr}-{_fileCount + 1}{_fileExt}";
-                    File.Move(_oldPath, _newPath);
-                    ((ViewModel)DataContext).NcrObject.PhotoCollection.Add($"{_ncr}-{_fileCount + 1}{_fileExt}");
+                    if (((ViewModel)DataContext).NcrObject?.NcrId > 0 && CurrentUser.IsQuality && _fileExt.ToUpper() == ".JPG")
+                    {
+                        var _ncr = ((ViewModel)DataContext).NcrObject.NcrId;
+                        var _folderPath = $"\\\\waxfs001\\WAXG-SFW\\QMS Pictures\\";
+                        var _fileCount = Directory.GetFiles(_folderPath, $"{_ncr}-*", SearchOption.TopDirectoryOnly).Count();
+                        var _newPath = $"{_folderPath}{_ncr}-{_fileCount + 1}{_fileExt}";
+                        File.Move(_oldPath, _newPath);
+                        ((ViewModel)DataContext).NcrObject.PhotoCollection.Add($"{_folderPath}{_ncr}-{_fileCount + 1}{_fileExt}");
+                        if (((ViewModel)DataContext).NcrObject.NcrId > 0)
+                        {
+                            Ncr.SubmitPhotoPath(((ViewModel)DataContext).NcrObject.NcrId, $"{_ncr}-{_fileCount + 1}{_fileExt}", App.AppSqlCon);
+                        }
+                    }
+                }
+                catch (UnauthorizedAccessException)
+                {
+                    MessageBox.Show("Linking was denied.\nUnable to access the orginal file path.", "Access Denied", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+                catch (Exception)
+                {
+                    return;
                 }
             }
-            catch (UnauthorizedAccessException)
+        }
+
+        private void Photo_DragOver(object sender, DragEventArgs e)
+        {
+            if (CurrentUser.IsQuality)
             {
-                MessageBox.Show("Linking was denied.\nUnable to access the orginal file path.", "Access Denied", MessageBoxButton.OK, MessageBoxImage.Error);
-                return;
+                MainGrid.Opacity = .3;
+                AttachPhotoText.Visibility = Visibility.Visible;
+                AttachPhotoText.Opacity = 1;
             }
-            catch (Exception)
+        }
+
+        private void Photo_DragLeave(object sender, DragEventArgs e)
+        {
+            if (CurrentUser.IsQuality)
             {
-                return;
+                MainGrid.Opacity = 1;
+                AttachPhotoText.Visibility = Visibility.Hidden;
             }
         }
     }

@@ -2,6 +2,7 @@
 using SFW.Model;
 using System;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
 using System.Windows;
 using System.Windows.Input;
@@ -161,6 +162,7 @@ namespace SFW.QMS.NcrForm
         RelayCommand _cancel;
         RelayCommand _xPic;
         RelayCommand _chgRev;
+        RelayCommand _void;
 
         #endregion
 
@@ -215,12 +217,12 @@ namespace SFW.QMS.NcrForm
                 NcrObject = new Ncr(workOrder, new CrewMember(CurrentUser.FirstName, CurrentUser.LastName));
                 NcrRevision = NcrObject.RevisionList[0];
                 ActionType = "Submit";
-                NcrReasonCollection = Ncr.DefectReason.GetDefectReasonCollection(App.AppSqlCon);
-                NcrTypeCollection = Ncr.DefectType.GetDefectTypeCollection(App.AppSqlCon);
-                DispositionCollection = Ncr.Disposition.GetDispositionCollection(App.AppSqlCon);
                 MachineCollection = new ObservableCollection<Machine>(Machine.GetMachineList(false, false, NcrObject.Site));
                 CrewCollection = CrewMember.GetCrewCollection(NcrObject.Site);
                 LoadedWorkOrder = workOrder;
+                NcrReasonCollection = Ncr.DefectReason.GetDefectReasonCollection(App.AppSqlCon);
+                NcrTypeCollection = Ncr.DefectType.GetDefectTypeCollection(App.AppSqlCon);
+                DispositionCollection = Ncr.Disposition.GetDispositionCollection(App.AppSqlCon);
             }
             catch (Exception ex)
             {
@@ -247,17 +249,17 @@ namespace SFW.QMS.NcrForm
                 NcrObject = ncr;
                 NcrRevision = ncr.RevisionList.FirstOrDefault(o => o.RevisionId == revId);
                 ActionType = "Update";
+                MachineCollection = new ObservableCollection<Machine>(Machine.GetMachineList(false, false, NcrObject.Site));
+                SelectedOriginMachine = MachineCollection.FirstOrDefault(o => o.MachineNumber == NcrRevision.OriginWorkCenter.MachineNumber);
+                CrewCollection = CrewMember.GetCrewCollection(NcrObject.Site);
+                NcrObject.Reporter = CrewCollection.FirstOrDefault(o => o.IdNumber == NcrObject.Reporter.IdNumber);
+                ViewPotentialLoss = NcrRevision.PotentialLoss.ToString();
                 NcrReasonCollection = Ncr.DefectReason.GetDefectReasonCollection(App.AppSqlCon);
                 SelectedReason = NcrReasonCollection.FirstOrDefault(o => o.Id == NcrRevision.DefectReason.Id);
                 NcrTypeCollection = Ncr.DefectType.GetDefectTypeCollection(App.AppSqlCon);
                 SelectedType = NcrTypeCollection.FirstOrDefault(o => o.Id == NcrRevision.DefectType.Id);
                 DispositionCollection = Ncr.Disposition.GetDispositionCollection(App.AppSqlCon);
                 SelectedDisposition = DispositionCollection.FirstOrDefault(o => o.Id == NcrRevision.Disposition.Id);
-                MachineCollection = new ObservableCollection<Machine>(Machine.GetMachineList(false, false, NcrObject.Site));
-                SelectedOriginMachine = MachineCollection.FirstOrDefault(o => o.MachineNumber == NcrRevision.OriginWorkCenter.MachineNumber);
-                CrewCollection = CrewMember.GetCrewCollection(NcrObject.Site);
-                NcrObject.Reporter = CrewCollection.FirstOrDefault(o => o.IdNumber == NcrObject.Reporter.IdNumber);
-                ViewPotentialLoss = NcrRevision.PotentialLoss.ToString();
             }
             catch (Exception ex)
             {
@@ -457,5 +459,33 @@ namespace SFW.QMS.NcrForm
         }
 
         #endregion
+
+        #region Void NCR ICommand
+
+        public ICommand VoidICommand
+        {
+            get
+            {
+                if (_void == null)
+                {
+                    _void = new RelayCommand(VoidExecute);
+                }
+                return _void;
+            }
+        }
+
+        private void VoidExecute(object parameter)
+        {
+            var _result = MessageBox.Show("Are you sure you want to void this NCR?\nOnce Voided only IT can bring it back.", "Void NCR", MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No);
+            if (_result == MessageBoxResult.Yes)
+            {
+                NcrRevision.Disposition = new Ncr.Disposition(7, "Void", "Voided");
+                NcrRevision.Submit(NcrObject.NcrId, NcrObject.RevisionList.Count() + 1, App.AppSqlCon);
+            }
+        }
+
+        #endregion
+
+
     }
 }

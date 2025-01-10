@@ -5,7 +5,11 @@
              xmlns:cvtr="clr-namespace:SFW.Converters"
              xmlns:main="clr-namespace:SFW"
              xmlns:local="clr-namespace:SFW.QMS.NcrForm"
-             x:Name="NcrFormUC">
+             x:Name="NcrFormUC"
+             AllowDrop="True"
+             DragDrop.Drop="Photo_Drop"
+             DragDrop.DragOver="Photo_DragOver"
+             DragLeave="Photo_DragLeave">
 
     <ScrollViewer x:Name="MainScroll" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" Margin="0,0,0,20" VerticalAlignment="Top">
         <Grid>
@@ -25,9 +29,22 @@
                 <cvtr:StatusToColor x:Key="StatusToColorConverter"/>
                 <cmd:ViewLoad x:Key="ViewLoadCommand" />
                 <cmd:PartSearch x:Key="PartSearchICommand"/>
+                <cmd:AddPhoto x:Key="AddPhoto"/>
             </Grid.Resources>
 
             <!--#endregion-->
+
+            <TextBlock x:Name="AttachPhotoText"
+                       Text="Attach Photo"
+                       FontSize="56"
+                       FontWeight="Bold"
+                       HorizontalAlignment="Center"
+                       Visibility="Collapsed"
+                       VerticalAlignment="Center">
+                <TextBlock.RenderTransform>
+                    <RotateTransform Angle="-35" CenterY="90" CenterX="180"/>
+                </TextBlock.RenderTransform>
+            </TextBlock>
 
             <TextBlock Text="Select a NCR"
                    FontSize="32"
@@ -42,9 +59,8 @@
                 </TextBlock.Visibility>
             </TextBlock>
 
-            <Grid Margin="10,0,10,0"
-                  AllowDrop="{Binding Path=(main:CurrentUser.IsQuality)}"
-                  DragDrop.Drop="Photo_Drop">
+            <Grid x:Name="MainGrid"
+                  Margin="10,0,10,0">
                 <Grid.Visibility>
                     <MultiBinding Converter="{StaticResource IntToVisConverter}" ConverterParameter="NcrDetail">
                         <Binding Path="NcrObject.NcrId"/>
@@ -97,7 +113,8 @@
 
                     <Button Content="Add Photo"
                             FontSize="16"
-                            Command="{StaticResource ViewLoadCommand}"
+                            Command="{StaticResource AddPhoto}"
+                            CommandParameter="{Binding NcrObject.NcrId}"
                             Style="{DynamicResource MenuButtonStyle}">
                         <Button.Visibility>
                             <MultiBinding Converter="{StaticResource BoolToVisConverter}">
@@ -141,6 +158,19 @@
                             </MenuItem.ItemContainerStyle>
                         </MenuItem>
                     </Menu>
+
+                    <Button Content="Void"
+                            FontSize="16"
+                            Command="{Binding VoidICommand}"
+                            Style="{DynamicResource MenuButtonStyle}">
+                        <Button.Visibility>
+                            <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="NCR">
+                                <Binding Source="Void"/>
+                                <Binding Path="IsNewNcr"/>
+                                <Binding Path="(main:CurrentUser.IsQuality)"/>
+                            </MultiBinding>
+                        </Button.Visibility>
+                    </Button>
 
                 </StackPanel>
 
@@ -764,7 +794,7 @@
 
                 <DataGrid x:Name="NcrPhotos"
                           Grid.Row="16"
-                          ItemsSource="{Binding NcrPhotoCollection, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                          ItemsSource="{Binding NcrObject.PhotoCollection, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                           HorizontalAlignment="Left"
                           HeadersVisibility="None"
                           AutoGenerateColumns="False"

@@ -378,84 +378,32 @@
 
             <!--#region Reclaim Inputs-->
 
-            <ItemsControl x:Name="ReclaimInput"
-                          Grid.Row="5"
-                          HorizontalAlignment="Left"
-                          ItemsSource="{Binding WipRecord.ReclaimList, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                          Visibility="{Binding WipRecord.IsReclaim, Converter={StaticResource EnumtoVisConverter}}">
-                <ItemsControl.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <VirtualizingStackPanel IsItemsHost="True"
-                                                Orientation="Vertical" />
-                    </ItemsPanelTemplate>
-                </ItemsControl.ItemsPanel>
+            <StackPanel x:Name="ReclaimInput"
+                        Grid.Row="5"
+                        Orientation="Horizontal"
+                        Visibility="{Binding WipRecord.IsReclaim, Converter={StaticResource EnumtoVisConverter}}">
 
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                        <StackPanel Orientation="Horizontal">
+                <TextBlock Text="Reclaim Quantity:"
+                           FontSize="18"
+                           FontWeight="Bold"
+                           TextDecorations="Underline"
+                           VerticalAlignment="Center"
+                           Margin="10,0,0,0" />
+                <TextBox Text="{Binding WipRecord.ReclaimObject.Quantity, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                         FontSize="18"
+                         FontWeight="Bold"
+                         Background="LightGray"
+                         Margin="5"
+                         Width="75"
+                         MaxLength="4"
+                         Style="{DynamicResource RequiredTextBox}" />
+                <TextBlock Text="{Binding DataContext.WipRecord.WipWorkOrder.Uom, ElementName=Wip_Window}"
+                           FontSize="18"
+                           FontWeight="Bold"
+                           VerticalAlignment="Center"
+                           Margin="5,0,0,0" />
 
-                            <TextBlock Text="Reclaim Quantity:"
-                                       FontSize="18"
-                                       FontWeight="Bold"
-                                       TextDecorations="Underline"
-                                       VerticalAlignment="Center"
-                                       Margin="10,0,0,0" />
-                            <TextBox Text="{Binding Quantity, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                     FontSize="18"
-                                     FontWeight="Bold"
-                                     Background="LightGray"
-                                     Margin="5"
-                                     Width="75"
-                                     MaxLength="4"
-                                     Style="{DynamicResource RequiredTextBox}" />
-                            <TextBlock Text="{Binding DataContext.WipRecord.WipWorkOrder.Uom, ElementName=Wip_Window}"
-                                       FontSize="18"
-                                       FontWeight="Bold"
-                                       VerticalAlignment="Center"
-                                       Margin="5,0,0,0" />
-                            <TextBlock Text="QIR:"
-                                       FontSize="18"
-                                       FontWeight="Bold"
-                                       TextDecorations="Underline"
-                                       VerticalAlignment="Center"
-                                       Margin="20,0,0,0" />
-                            <TextBox Text="{Binding Reference, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                     FontSize="18"
-                                     FontWeight="Bold"
-                                     Background="LightGray"
-                                     Margin="5"
-                                     Width="100"
-                                     MaxLength="8"
-                                     CharacterCasing="Upper"
-                                     Style="{DynamicResource RequiredTextBox}" />
-
-                            <Button Background="Green"
-                                    Foreground="WhiteSmoke"
-                                    Content="Add"
-                                    Command="{Binding DataContext.AddReclaimICommand, ElementName=Wip_Window}"
-                                    CommandParameter="{Binding}"
-                                    Visibility="{Binding ID, Converter={StaticResource BooltoVisConverter}, ConverterParameter=i}"
-                                    Width="50"
-                                    Height="20"
-                                    Margin="10,0 0 0"
-                                    Style="{DynamicResource DefaultButton}"/>
-
-                            <Button Command="{Binding DataContext.RemoveReclaimICommand, ElementName=Wip_Window}"
-                                    CommandParameter="{Binding}"
-                                    Visibility="{Binding ID, Converter={StaticResource BooltoVisConverter}}"
-                                    Width="20"
-                                    Height="20"
-                                    Margin="10,0 0 0"
-                                    Style="{DynamicResource DefaultButton}">
-                                <Button.Content>
-                                    <Image Source="/SFW;component/Icons/Delete.ico" />
-                                </Button.Content>
-                            </Button>
-
-                        </StackPanel>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
+            </StackPanel>
 
             <!--#endregion-->
 

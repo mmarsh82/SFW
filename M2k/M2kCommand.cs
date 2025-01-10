@@ -621,29 +621,26 @@ namespace M2kClient
             //Adjusting out any reclaim from the system and then adjusting it back in as the raw compound
             if (wipRecord.IsReclaim == SFW.Model.Enumerations.Complete.Y)
             {
-                foreach (var _reclaim in wipRecord.ReclaimList)
-                {
-                    //Adjustment out
-                    InventoryAdjustment(wipRecord.Submitter,
-                        $"{_reclaim.Reference}*{wipRecord.WipWorkOrder.OrderNumber}",
-                        wipRecord.WipWorkOrder.SkuNumber,
-                        AdjustCode.REC,
-                        'S',
-                        Convert.ToInt32(_reclaim.Quantity),
-                        wipRecord.ReceiptLocation,
-                        wipRecord.Facility,
-                        connection);
-                    //Adjustment in
-                    InventoryAdjustment(wipRecord.Submitter,
-                        $"{_reclaim.Reference}*{wipRecord.WipWorkOrder.OrderNumber}",
-                        _reclaim.Parent,
-                        AdjustCode.REC,
-                        'A',
-                        Convert.ToInt32(Math.Round(Convert.ToDecimal(_reclaim.Quantity) * _reclaim.ParentAssyQty, 0, MidpointRounding.AwayFromZero)),
-                        "EXT-1",
-                        wipRecord.Facility,
-                        connection);
-                }
+                //Adjustment out
+                InventoryAdjustment(wipRecord.Submitter,
+                    $"{wipRecord.ReclaimObject.Reference}*{wipRecord.WipWorkOrder.OrderNumber}",
+                    wipRecord.WipWorkOrder.SkuNumber,
+                    AdjustCode.REC,
+                    'S',
+                    Convert.ToInt32(wipRecord.ReclaimObject.Quantity),
+                    wipRecord.ReceiptLocation,
+                    wipRecord.Facility,
+                    connection);
+                //Adjustment in
+                InventoryAdjustment(wipRecord.Submitter,
+                    $"{wipRecord.ReclaimObject.Reference}*{wipRecord.WipWorkOrder.OrderNumber}",
+                    wipRecord.ReclaimObject.Parent,
+                    AdjustCode.REC,
+                    'A',
+                    Convert.ToInt32(Math.Round(Convert.ToDecimal(wipRecord.ReclaimObject.Quantity) * wipRecord.ReclaimObject.ParentAssyQty, 0, MidpointRounding.AwayFromZero)),
+                    "EXT-1",
+                    wipRecord.Facility,
+                    connection);
             }
 
             #endregion

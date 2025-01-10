@@ -84,8 +84,6 @@ namespace SFW.Model
         {
             #region Properties
 
-            public int ID { get; set; }
-
             private int? qty;
             /// <summary>
             /// Quantity of reclaim for the wip receipt
@@ -251,17 +249,17 @@ namespace SFW.Model
             set
             {
                 isReclaim = value;
-                if (value == Complete.N && ReclaimList != null)
+                if (value == Complete.N && ReclaimObject != null)
                 {
-                    ReclaimList.Clear();
+                    ReclaimObject = null;
                 }
             }
         }
 
         /// <summary>
-        /// Wip receipt reclaim list to use for the adjust part of the transaction
+        /// Wip receipt reclaim to use for the adjust part of the transaction
         /// </summary>
-        public BindingList<Reclaim> ReclaimList { get; set; }
+        public Reclaim ReclaimObject { get; set; }
 
         /// <summary>
         /// Determines if a work order is eligable for the Multi-Wip function
@@ -325,7 +323,7 @@ namespace SFW.Model
             IsScrap = Complete.N;
             ScrapList = new BindingList<Scrap>();
             IsReclaim = Complete.N;
-            ReclaimList = new BindingList<Reclaim>();
+            ReclaimObject = new Reclaim();
             CanMulti = workOrder.MachineGroup == "SLIT";
             CanReclaim = workOrder.MachineGroup == "EXT";
             ReceiptLocation = Machine.GetReceiptLocation(workOrder.Machine);

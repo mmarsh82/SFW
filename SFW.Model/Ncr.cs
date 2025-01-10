@@ -5,7 +5,6 @@ using System.ComponentModel;
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
-using System.Security.Cryptography.X509Certificates;
 
 namespace SFW.Model
 {
@@ -35,7 +34,7 @@ namespace SFW.Model
                 {
                     try
                     {
-                        using (SqlCommand cmd = new SqlCommand($@"SELECT * FROM [dbo].[NCR-CSTM_Disposition]", sqlCon))
+                        using (SqlCommand cmd = new SqlCommand($@"SELECT * FROM [dbo].[NCR-CSTM_Disposition] WHERE [DispositionId] <> 7", sqlCon))
                         {
                             using (SqlDataReader _reader = cmd.ExecuteReader())
                             {
@@ -477,20 +476,20 @@ namespace SFW.Model
             NcrId = id;
             OrderId = ncrDataRows[0].Field<string>("WorkOrderId");
             OrderSeqId = ncrDataRows[0].Field<int>("WorkOrderSeqId").ToString();
-            PartCollection = int.TryParse(OrderSeqId, out int i) ? Sku.GetSkuCollection(OrderId, i) : Sku.GetSkuCollection(OrderId, 10);
-            LotList = GetNcrLotList(id, ModelSqlCon);
-            LotList.ListChanged += LotList_Changed;
             Part = new Sku(ncrDataRows[0].Field<string>("PartId"));
             FoundWorkCenter = new Machine(ncrDataRows[0].Field<int>("FoundWorkCenterId"));
             Reporter = new CrewMember(ncrDataRows[0].Field<string>("ReporterId"), false);
             ProductValue = double.TryParse(ncrDataRows[0].Field<decimal>("ProductValue").ToString(), out double d) ? d : 0.00;
             Site = ncrDataRows[0].Field<int>("Site");
             RevisionList = new List<Revision>();
-            PhotoCollection = new ObservableCollection<string>(GetNcrPhotoList(id, ModelSqlCon));
+            PartCollection = int.TryParse(OrderSeqId, out int i) ? Sku.GetSkuCollection(OrderId, i) : Sku.GetSkuCollection(OrderId, 10);
+            LotList = GetNcrLotList(id, ModelSqlCon);
+            LotList.ListChanged += LotList_Changed;
             foreach (var ncr in ncrDataRows)
             {
                 RevisionList.Add(new Revision(ncr, ProductValue));
             }
+            PhotoCollection = new ObservableCollection<string>(GetNcrPhotoList(id, ModelSqlCon));
         }
 
         /// <summary>
@@ -658,6 +657,29 @@ namespace SFW.Model
                 {
                     cmd.Parameters.AddWithValue("p1", ncrId);
                     cmd.Parameters.AddWithValue("p2", lotId);
+                    cmd.ExecuteNonQuery();
+                }
+            }
+            catch (Exception)
+            {
+
+            }
+        }
+
+        /// <summary>
+        /// Submit NCR photo path
+        /// </summary>
+        /// <param name="ncrId">NCR ID</param>
+        /// <param name="photo">Photo path</param>
+        /// <param name="sqlCon">Sql Connection to use</param>
+        public static void SubmitPhotoPath(int ncrId, string photo, SqlConnection sqlCon)
+        {
+            try
+            {
+                using (SqlCommand cmd = new SqlCommand($@"INSERT INTO [dbo].[NCR-CSTM_PhotoPath] ([NcrId], [PhotoPath]) Values(@p1, @p2)", sqlCon))
+                {
+                    cmd.Parameters.AddWithValue("p1", ncrId);
+                    cmd.Parameters.AddWithValue("p2", photo);
                     cmd.ExecuteNonQuery();
                 }
             }
@@ -892,7 +914,7 @@ namespace SFW.Model
                     var _photo = fullPathPhoto.Replace(_folderPath, "");
                     if (_oldPhotoList.Count(o => o == _photo) == 0)
                     {
-                        using (SqlCommand cmd = new SqlCommand($@"INSERT INTO [dbo].[NCR-CSTM_PhotoPath] ([NcrId], [LotId]) Values(@p1, @p2)", sqlCon))
+                        using (SqlCommand cmd = new SqlCommand($@"INSERT INTO [dbo].[NCR-CSTM_PhotoPath] ([NcrId], [PhotoPath]) Values(@p1, @p2)", sqlCon))
                         {
                             cmd.Parameters.AddWithValue("p1", ncrObj.NcrId);
                             cmd.Parameters.AddWithValue("p2", _photo);
@@ -904,7 +926,7 @@ namespace SFW.Model
                 {
                     if (ncrObj.PhotoCollection.Count(o => o == oldPhoto) == 0)
                     {
-                        using (SqlCommand cmd = new SqlCommand($@"DELETE FROM [dbo].[NCR-CSTM_PhotoPath] WHERE [NcrId] = @p1 AND [LotId] = @p2", sqlCon))
+                        using (SqlCommand cmd = new SqlCommand($@"DELETE FROM [dbo].[NCR-CSTM_PhotoPath] WHERE [NcrId] = @p1 AND [PhotoPath] = @p2", sqlCon))
                         {
                             cmd.Parameters.AddWithValue("p1", ncrObj.NcrId);
                             cmd.Parameters.AddWithValue("p2", oldPhoto);
