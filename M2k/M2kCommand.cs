@@ -505,10 +505,6 @@ namespace M2kClient
                 {
                     _reason = AdjustCode.YIE;
                 }
-                else if (!string.IsNullOrEmpty(s.Reference) && int.TryParse(s.Reference, out int nRef))
-                {
-                    _reason = (AdjustCode)Enum.Parse(typeof(AdjustCode), Ncr.GetNcrReason(nRef), true);
-                }
                 InventoryAdjustment(wipRecord.Submitter,
                     !string.IsNullOrEmpty(s.Reference) ? $"{s.Reference}*{wipRecord.WipWorkOrder.OrderNumber}" : wipRecord.WipWorkOrder.OrderNumber,
                     wipRecord.WipWorkOrder.SkuNumber,

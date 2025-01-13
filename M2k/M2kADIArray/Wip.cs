@@ -125,7 +125,7 @@ namespace M2kClient.M2kADIArray
             QtyReceived = wipRecord.ScrapList.Count(o => int.TryParse(o.Quantity, out int i) && i > 0) > 0
                 ? wipRecord.ScrapList.Sum(o => Convert.ToInt32(o.Quantity)) + Convert.ToInt32(wipRecord.WipQty)
                 : Convert.ToInt32(wipRecord.WipQty);
-            QtyReceived += wipRecord.ReclaimObject != null ? Convert.ToInt32(wipRecord.ReclaimObject.Quantity) : 0;
+            QtyReceived += wipRecord.ReclaimObject != null && int.TryParse(wipRecord.ReclaimObject.Quantity, out int rRef) ? rRef : 0;
             CFlag = Enum.TryParse(wipRecord.SeqComplete.ToString().ToUpper(), out CompletionFlag cFlag) ? cFlag : CompletionFlag.N;
             Operation = wipRecord.WipWorkOrder.Routing;
             RcptLocation = wipRecord.ReceiptLocation;
@@ -158,10 +158,6 @@ namespace M2kClient.M2kADIArray
                             if (wipRecord.WipWorkOrder.Facility == 2 && string.IsNullOrEmpty(s.Reference))
                             {
                                 _reason = AdjustCode.YIE;
-                            }
-                            else if (!string.IsNullOrEmpty(s.Reference) && int.TryParse(s.Reference, out int nRef))
-                            {
-                                _reason = (AdjustCode)Enum.Parse(typeof(AdjustCode), Ncr.GetNcrReason(nRef), true);
                             }
                             AdjustmentList.Add(new Adjust(
                                         wipRecord.Submitter,

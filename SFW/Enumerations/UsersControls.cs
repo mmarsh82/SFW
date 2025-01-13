@@ -22,7 +22,11 @@ namespace SFW.Enumerations
         // The flag for the sales order module
         SalesOrder = 8,
         // The flag for the Quality module
-        Quality = 9
+        Quality = 9,
+        // The flag for the container query
+        Container = 10,
+        // The flag for the Scheduling Plan module
+        Plan = 11
 
     }
 }

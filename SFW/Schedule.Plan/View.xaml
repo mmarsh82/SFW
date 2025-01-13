@@ -11,6 +11,7 @@
         <cmd:PartSearch x:Key="PartSearchCommand"/>
         <cmd:ClearPriority x:Key="ClearPriICommand"/>
         <cmd:M2kDeviate x:Key="DeviationICommand"/>
+        <cmd:ViewLoad x:Key="ViewLoadCommand"/>
         <cvtr:BoolToVisibility x:Key="BoolToVisConverter"/>
         <cvtr:SkuMasterPrint x:Key="PartSearchConverter"/>
         <cvtr:DateToVisibility x:Key="DateToVisConverter"/>
@@ -110,6 +111,22 @@
             <StackPanel Grid.Column="0"
                         Orientation="Horizontal"
                         HorizontalAlignment="Left">
+
+                <Button Background="Transparent"
+                        BorderThickness="0"
+                        Command="{StaticResource ViewLoadCommand}"
+                        CommandParameter="-1">
+                    <Button.Content>
+                        <StackPanel Orientation="Horizontal">
+                            <Image Source="/SFW;component/Icons/BackArrow.ico" />
+                            <TextBlock Text="Back"
+                                       VerticalAlignment="Center"
+                                       FontSize="16"
+                                       FontWeight="Bold"
+                                       Foreground="Crimson" />
+                        </StackPanel>
+                    </Button.Content>
+                </Button>
 
                 <TextBlock Text="Search:"
                            FontSize="18"

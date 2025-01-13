@@ -279,6 +279,18 @@ namespace SFW
             }
         }
 
+        private static bool _planner;
+        public static bool Planner
+        {
+            get
+            { return _planner; }
+            private set
+            {
+                _planner = value;
+                StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(Planner)));
+            }
+        }
+
         private static string _uID;
         public static string UserIDNbr
         {
@@ -357,7 +369,7 @@ namespace SFW
             {
                 if (_aGroups.Count(o => o.Contains("SFW-Admin")) > 0)
                 {
-                    CanTrain = CanSchedule = IsSupervisor = IsInventoryControl = IsAccountsReceivable = IsAdmin = HasSalesOrderModule = IsQuality = IsEngineer = CanSplit = CanDeviate = HasNotice = true;
+                    CanTrain = CanSchedule = IsSupervisor = IsInventoryControl = IsAccountsReceivable = IsAdmin = HasSalesOrderModule = IsQuality = IsEngineer = CanSplit = CanDeviate = HasNotice = Planner = true;
                     BasicUser = false;
                 }
                 else
@@ -373,6 +385,7 @@ namespace SFW
                     IsEngineer = _aGroups.Count(o => o.Contains("SFW-Engineer")) > 0;
                     CanSplit = _aGroups.Count(o => o.Contains("SFW-Adjust")) > 0;
                     CanDeviate = _aGroups.Count(o => o.Contains("SFW-Deviate")) > 0;
+                    Planner = _aGroups.Count(o => o.Contains("SFW-Planner")) > 0;
                     BasicUser = false;
                 }
             }
@@ -628,6 +641,7 @@ namespace SFW
             BasicUser = true;
             IsEngineer = false;
             IsQuality = HasNotice = false;
+            Planner = false;
             Controls.WorkSpaceDock.RefreshMainDock();
             MainWindowViewModel.UpdateProperties(false);
         }

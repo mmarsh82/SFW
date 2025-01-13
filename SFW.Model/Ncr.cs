@@ -289,6 +289,18 @@ namespace SFW.Model
             public Disposition Disposition { get; set; }
             public string Description { get; set; }
 
+            private bool _cur;
+            public bool Current
+            {
+                get
+                { return _cur; }
+                set
+                {
+                    _cur = value;
+                    OnPropertyChanged(nameof(Current));
+                }
+            }
+
             #endregion
 
             /// <summary>
@@ -321,6 +333,7 @@ namespace SFW.Model
                 //ActualCost = double.TryParse(ncrDataRow.Field<decimal>("ActualCost").ToString(), out double d) ? d : 0.00;
                 Disposition = new Disposition(ncrDataRow.Field<int>("DispositionId"), ncrDataRow.Field<string>("DispositionDescription"), ncrDataRow.Field<string>("LinkedStatus"));
                 Description = ncrDataRow.Field<string>("Description");
+                Current = ncrDataRow.Field<int>("RevisionFilter") == RevisionId;
             }
         }
 
@@ -674,9 +687,40 @@ namespace SFW.Model
         /// <param name="sqlCon">Sql Connection to use</param>
         public static void SubmitPhotoPath(int ncrId, string photo, SqlConnection sqlCon)
         {
+            if (photo.Contains("waxfs001"))
+            {
+                photo = photo.Replace($"\\\\waxfs001\\WAXG-SFW\\QMS Pictures\\", "");
+            }
             try
             {
                 using (SqlCommand cmd = new SqlCommand($@"INSERT INTO [dbo].[NCR-CSTM_PhotoPath] ([NcrId], [PhotoPath]) Values(@p1, @p2)", sqlCon))
+                {
+                    cmd.Parameters.AddWithValue("p1", ncrId);
+                    cmd.Parameters.AddWithValue("p2", photo);
+                    cmd.ExecuteNonQuery();
+                }
+            }
+            catch (Exception)
+            {
+
+            }
+        }
+
+        /// <summary>
+        /// Submit NCR photo path
+        /// </summary>
+        /// <param name="ncrId">NCR ID</param>
+        /// <param name="photo">Photo path</param>
+        /// <param name="sqlCon">Sql Connection to use</param>
+        public static void DeletePhotoPath(int ncrId, string photo, SqlConnection sqlCon)
+        {
+            if (photo.Contains("waxfs001"))
+            {
+                photo = photo.Replace($"\\\\waxfs001\\WAXG-SFW\\QMS Pictures\\", "");
+            }
+            try
+            {
+                using (SqlCommand cmd = new SqlCommand($@"DELETE FROM [dbo].[NCR-CSTM_PhotoPath] WHERE [NcrId] = @p1 AND [PhotoPath] = @p2", sqlCon))
                 {
                     cmd.Parameters.AddWithValue("p1", ncrId);
                     cmd.Parameters.AddWithValue("p2", photo);
@@ -802,7 +846,7 @@ namespace SFW.Model
                 {
                     ncrObject.SubmitLots(sqlCon);
                 }
-                if (ncrObject.PhotoCollection.Count > 0)
+                if (ncrObject.PhotoCollection != null && ncrObject.PhotoCollection.Count > 0)
                 {
                     ncrObject.SubmitPhotoPath(sqlCon);
                 }

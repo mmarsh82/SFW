@@ -2,7 +2,6 @@
 using SFW.Model;
 using System;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Linq;
 using System.Windows;
 using System.Windows.Input;
@@ -278,7 +277,7 @@ namespace SFW.QMS.NcrForm
                 && ((NcrRevision.IsEscape && !string.IsNullOrEmpty(NcrRevision.OriginWorkCenter?.MachineName) || !NcrRevision.IsEscape))
                 && !string.IsNullOrEmpty(NcrRevision.DefectReason?.Description) && !string.IsNullOrEmpty(NcrRevision.DefectType?.Description)
                 && !string.IsNullOrEmpty(NcrRevision.Description);
-            var validLot = false;
+            var validLot = true;
             if (NcrObject.Part != null && NcrObject.LotList != null && NcrObject.Part.IsLotTrace && NcrObject.LotList.Count(o => o.Validated) > 0)
             {
                 validLot = NcrObject.LotList.Where(o => o.Validated).Count() == NcrObject.LotList.Count();
@@ -435,6 +434,7 @@ namespace SFW.QMS.NcrForm
         private void RemovePhotoExecute(object parameter)
         {
             NcrObject.PhotoCollection.Remove(parameter.ToString());
+            Ncr.DeletePhotoPath(NcrObject.NcrId, parameter.ToString(), App.AppSqlCon);
         }
 
         #endregion

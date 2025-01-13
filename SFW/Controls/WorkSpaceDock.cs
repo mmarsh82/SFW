@@ -101,6 +101,18 @@ namespace SFW.Controls
                     //Add the Container Detail View to [6]
                     MainDock.Children.Insert(10, new Container_View());
                 }
+                else
+                {
+                    MainDock.Children.Insert(9, new UserControl());
+                    MainDock.Children.Insert(10, new UserControl());
+                }
+
+                //Add the Scheduling Plan View
+                /*PlanDock.Children.Insert(0, new Schedule.Plan.View());
+                PlanDock.Children.Insert(1, new ShopRoute.View { DataContext = new ShopRoute.ViewModel() });
+                MainDock.Children.Insert(11, PlanDock);*/
+
+                MainDock.Children.Insert(11, new UserControl());
 
                 SwitchView(App.SiteNumber, null, false);
                 RefreshTimer.IsRefreshing = false;

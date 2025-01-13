@@ -27,6 +27,7 @@
                 <cvtr:MultiValueParameter x:Key="MultiValConverter"/>
                 <cvtr:NegativeIntToBool x:Key="NegIntToBoolConverter" />
                 <cvtr:StatusToColor x:Key="StatusToColorConverter"/>
+                <cvtr:StringToImageSource x:Key="StringToImageConverter"/>
                 <cmd:ViewLoad x:Key="ViewLoadCommand" />
                 <cmd:PartSearch x:Key="PartSearchICommand"/>
                 <cmd:AddPhoto x:Key="AddPhoto"/>
@@ -114,7 +115,7 @@
                     <Button Content="Add Photo"
                             FontSize="16"
                             Command="{StaticResource AddPhoto}"
-                            CommandParameter="{Binding NcrObject.NcrId}"
+                            CommandParameter="{Binding DataContext, ElementName=NcrFormUC}"
                             Style="{DynamicResource MenuButtonStyle}">
                         <Button.Visibility>
                             <MultiBinding Converter="{StaticResource BoolToVisConverter}">
@@ -140,7 +141,7 @@
                     <Menu Style="{DynamicResource ModernMenu}"
                           Visibility="{Binding NcrObject.RevisionList.Count, Converter={StaticResource CountToVisConverter}, ConverterParameter=ncr}">
                         <MenuItem Header="   Revisions"
-                                  ItemsSource="{Binding NcrObject.RevisionList}"
+                                  ItemsSource="{Binding NcrObject.RevisionList, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                   DisplayMemberPath="RevisionId"
                                   FontSize="16"
                                   Width="110"
@@ -148,12 +149,17 @@
                                   Style="{DynamicResource ModernMenuItem}">
                             <MenuItem.ItemContainerStyle>
                                 <Style TargetType="MenuItem">
+                                    <Style.Resources>
+                                        <cvtr:SelectedRevision x:Key="SelectedRevConverter"/>
+                                    </Style.Resources>
                                     <Setter Property="Command"
                                             Value="{Binding ChangeRevICommand}" />
                                     <Setter Property="CommandParameter"
                                             Value="{Binding}" />
                                     <Setter Property="Foreground"
                                             Value="Black"/>
+                                    <Setter Property="IsChecked"
+                                            Value="{Binding Current, Converter={StaticResource SelectedRevConverter}}"/>
                                 </Style>
                             </MenuItem.ItemContainerStyle>
                         </MenuItem>
@@ -815,7 +821,8 @@
                                             </Grid.ColumnDefinitions>
                                             <Image Grid.Column="0"
                                                    Source="{Binding}"
-                                                   MaxHeight="500"/>
+                                                   MaxHeight="500">
+                                            </Image>
                                             <Button Grid.Column="1"
                                                     Command="{Binding DataContext.RemovePhotoICommand, ElementName=NcrFormUC}"
                                                     CommandParameter="{Binding}"

@@ -1,7 +1,7 @@
 ﻿using Microsoft.Win32;
+using SFW.Controls;
 using SFW.Model;
 using System;
-using System.Data;
 using System.IO;
 using System.Linq;
 using System.Windows;
@@ -17,19 +17,29 @@ namespace SFW.Commands
         {
             try
             {
-                if (parameter != null && int.TryParse(parameter.ToString(), out int nRef))
+                var _ncrId = ((QMS.NcrForm.ViewModel)parameter).NcrObject != null ? ((QMS.NcrForm.ViewModel)parameter).NcrObject.NcrId : 0;
+                if (parameter != null && _ncrId > 0)
                 {
                     var _folderPath = $"\\\\waxfs001\\WAXG-SFW\\QMS Pictures\\";
-                    var _fileCount = Directory.GetFiles(_folderPath, $"{nRef}-*", SearchOption.TopDirectoryOnly).Count();
+                    var _fileCount = Directory.GetFiles(_folderPath, $"{_ncrId}-*", SearchOption.TopDirectoryOnly).Count();
                     OpenFileDialog ofd = new OpenFileDialog();
                     ofd.DefaultExt = ".jpg";
                     ofd.Filter = "Photos (.jpg)|*.jpg";
                     var _result = ofd.ShowDialog();
                     if (_result == true)
                     {
-                        File.Move(ofd.FileName, $"{_folderPath}{nRef}-{_fileCount + 1}.jpg");
+                        File.Move(ofd.FileName, $"{_folderPath}{_ncrId}-{_fileCount + 1}.jpg");
+                        Ncr.SubmitPhotoPath(_ncrId, $"{_ncrId}-{_fileCount + 1}.jpg", App.AppSqlCon);
+                        ((QMS.NcrForm.ViewModel)parameter).NcrObject.PhotoCollection.Add($"{_folderPath}{_ncrId}-{_fileCount + 1}.jpg");
+                        if (((QMS.NcrForm.ViewModel)parameter).FromSchedule)
+                        {
+                            ((QMS.NcrForm.View)WorkSpaceDock.SchedDock.Children[1]).DataContext = ((QMS.NcrForm.ViewModel)parameter);
+                        }
+                        else
+                        {
+                            ((QMS.NcrForm.View)WorkSpaceDock.NcrDock.Children[1]).DataContext = ((QMS.NcrForm.ViewModel)parameter);
+                        }
                     }
-                    Ncr.SubmitPhotoPath(nRef, $"{nRef}-{_fileCount + 1}.jpg", App.AppSqlCon);
                 }
             }
             catch (UnauthorizedAccessException)
