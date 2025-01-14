@@ -1,7 +1,9 @@
 ﻿using SFW.Helpers;
 using SFW.Model;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
 using System.Windows;
 using System.Windows.Input;
@@ -259,6 +261,28 @@ namespace SFW.QMS.NcrForm
                 SelectedType = NcrTypeCollection.FirstOrDefault(o => o.Id == NcrRevision.DefectType.Id);
                 DispositionCollection = Ncr.Disposition.GetDispositionCollection(App.AppSqlCon);
                 SelectedDisposition = DispositionCollection.FirstOrDefault(o => o.Id == NcrRevision.Disposition.Id);
+                using (BackgroundWorker bw = new BackgroundWorker())
+                {
+                    try
+                    {
+                        bw.DoWork += new DoWorkEventHandler(
+                            delegate (object sender, DoWorkEventArgs e)
+                            {
+                                var _actuals = Ncr.GetActuals(NcrObject.NcrId, App.AppSqlCon);
+                                if (_actuals.Count > 0)
+                                {
+                                    NcrRevision.ActualLoss = _actuals.FirstOrDefault().Key;
+                                    NcrRevision.ActualCost = _actuals.FirstOrDefault().Value;
+                                    OnPropertyChanged(nameof(NcrRevision));
+                                }
+                            });
+                        bw.RunWorkerAsync();
+                    }
+                    catch (Exception)
+                    {
+
+                    }
+                }
             }
             catch (Exception ex)
             {
@@ -399,7 +423,6 @@ namespace SFW.QMS.NcrForm
                 if (!RefreshTimer.Status)
                 {
                     RefreshTimer.Start();
-                    RefreshTimer.RefreshTimerTick();
                 }
             }
             else
@@ -410,7 +433,6 @@ namespace SFW.QMS.NcrForm
                 if (!RefreshTimer.Status)
                 {
                     RefreshTimer.Start();
-                    RefreshTimer.RefreshTimerTick();
                 }
             }
         }
@@ -455,7 +477,16 @@ namespace SFW.QMS.NcrForm
 
         private void ChangeRevExecute(object parameter)
         {
-            
+            if (int.TryParse(parameter.ToString(), out int i))
+            {
+                foreach (var _rev in NcrObject.RevisionList)
+                {
+                    _rev.Current = false;
+                }
+                NcrObject.RevisionList.FirstOrDefault(o => o.RevisionId == i).Current = true;
+                NcrRevision = NcrObject.RevisionList.FirstOrDefault(o => o.RevisionId == i);
+                OnPropertyChanged(nameof(NcrRevision));
+            }
         }
 
         #endregion

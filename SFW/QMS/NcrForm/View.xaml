@@ -153,9 +153,9 @@
                                         <cvtr:SelectedRevision x:Key="SelectedRevConverter"/>
                                     </Style.Resources>
                                     <Setter Property="Command"
-                                            Value="{Binding ChangeRevICommand}" />
+                                            Value="{Binding DataContext.ChangeRevICommand, ElementName=NcrFormUC}" />
                                     <Setter Property="CommandParameter"
-                                            Value="{Binding}" />
+                                            Value="{Binding RevisionId}" />
                                     <Setter Property="Foreground"
                                             Value="Black"/>
                                     <Setter Property="IsChecked"
@@ -231,7 +231,6 @@
 
                     <TextBlock Text="{Binding NcrRevision.Submitter.Name}"
                                FontSize="20"
-                               FontWeight="Bold"
                                Margin="10,0,30,0" />
 
                     <TextBlock Text="Reporter:"
@@ -243,7 +242,6 @@
 
                     <TextBlock Text="{Binding NcrObject.Reporter.Name}"
                                FontSize="20"
-                               FontWeight="Bold"
                                Visibility="{Binding IsNewNcr, Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}"
                                Margin="10,0,0,0"/>
 
@@ -280,7 +278,6 @@
 
                     <TextBlock Text="{Binding NcrObject.OrderId}"
                                FontSize="24"
-                               FontWeight="Bold"
                                Margin="10,0,0,0">
                         <TextBlock.Visibility>
                             <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="NCR">
@@ -319,7 +316,6 @@
 
                     <TextBlock Text="{Binding NcrObject.OrderSeqId}"
                                FontSize="24"
-                               FontWeight="Bold"
                                Margin="10,0,0,0">
                         <TextBlock.Visibility>
                             <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="NCR">
@@ -369,7 +365,6 @@
 
                     <TextBlock Text="{Binding NcrObject.Part.SkuNumber}"
                                FontSize="24"
-                               FontWeight="Bold"
                                Visibility="{Binding IsNewNcr, Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}"
                                Margin="10,0,0,0"/>
 
@@ -388,7 +383,6 @@
 
                     <TextBlock Text="{Binding NcrObject.Part.SkuDescription}"
                                FontSize="24"
-                               FontWeight="Bold"
                                Visibility="Visible"
                                Margin="10,0,0,0" />
 
@@ -412,8 +406,7 @@
 
                     <TextBlock Text="{Binding SelectedReason.Description}"
                                Visibility="{Binding Path=(main:CurrentUser.IsQuality), Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}"
-                               FontSize="22"
-                               FontWeight="Bold"
+                               FontSize="24"
                                Margin="10,0,0,0" />
 
                     <ComboBox x:Name="DefectReason"
@@ -439,8 +432,7 @@
 
                     <TextBlock Text="{Binding SelectedType.Description}"
                                Visibility="{Binding Path=(main:CurrentUser.IsQuality), Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}"
-                               FontSize="22"
-                               FontWeight="Bold"
+                               FontSize="24"
                                Margin="10,0,0,0" />
 
                     <ComboBox x:Name="DefectType"
@@ -477,10 +469,8 @@
                                Foreground="#FF135185"/>
 
                     <TextBlock Text="{Binding NcrObject.FoundWorkCenter.MachineName}"
-                               FontSize="20"
-                               Margin="10,0,0,0"
-                               VerticalAlignment="Center"
-                               FontWeight="Bold"/>
+                               FontSize="24"
+                               Margin="10,0,0,0"/>
 
                     <CheckBox x:Name="IsEscape"
                               IsChecked="{Binding NcrRevision.IsEscape}"
@@ -504,11 +494,9 @@
                                Foreground="#FF135185"/>
 
                     <TextBlock Text="{Binding SelectedOriginMachine.MachineName}"
-                               FontSize="20"
+                               FontSize="24"
                                Margin="10,0,0,0"
-                               VerticalAlignment="Center"
-                               Visibility="{Binding Path=(main:CurrentUser.IsQuality), Converter={StaticResource BoolToVisConverter}}"
-                               FontWeight="Bold"/>
+                               Visibility="{Binding Path=(main:CurrentUser.IsQuality), Converter={StaticResource BoolToVisConverter}}"/>
 
                     <ComboBox x:Name="OriginMachine"
                               ItemsSource="{Binding MachineCollection, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
@@ -549,15 +537,13 @@
                                Foreground="#FF135185"/>
 
                     <TextBlock Text="{Binding ViewPotentialLoss}"
-                               FontSize="20"
+                               FontSize="24"
                                Margin="10,0,0,0"
-                               VerticalAlignment="Center"
-                               FontWeight="Bold"
                                Visibility="{Binding Path=(main:CurrentUser.IsQuality), Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}"/>
 
                     <TextBox x:Name="PotentialLoss"
                              Text="{Binding ViewPotentialLoss, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                             FontSize="20"
+                             FontSize="22"
                              FontWeight="Bold"
                              Background="LightGray"
                              Width="75"
@@ -569,17 +555,13 @@
                              Style="{DynamicResource RequiredTextBox}" />
 
                     <TextBlock Text="{Binding NcrObject.Part.Uom}"
-                               FontSize="20"
-                               VerticalAlignment="Center"
-                               Margin="5,0,0,0"
-                               Foreground="#FF135185"/>
+                               FontSize="24"
+                               Margin="5,0,0,0"/>
 
                     <TextBlock Text="{Binding NcrRevision.PotentialValue, StringFormat=c}"
-                               FontSize="20"
-                               VerticalAlignment="Center"
+                               FontSize="24"
                                Visibility="{Binding NcrRevision.PotentialLoss, Converter={StaticResource IntToVisConverter}, ConverterParameter=n0}"
-                               Margin="10,0,0,0"
-                               Foreground="Crimson"/>
+                               Margin="15,0,0,0"/>
 
                     <TextBlock Text="Actual Loss:"
                                FontSize="24"
@@ -590,15 +572,19 @@
                                Foreground="#FF135185"/>
 
                     <TextBlock Text="{Binding NcrRevision.ActualLoss}"
-                               FontSize="20"
-                               VerticalAlignment="Center"
+                               FontSize="24"
                                Visibility="{Binding NcrRevision.ActualLoss, Converter={StaticResource IntToVisConverter}, ConverterParameter=n0}"
                                Foreground="Crimson"
                                Margin="10,0,0,0"/>
 
+                    <TextBlock Text="{Binding NcrObject.Part.Uom}"
+                               FontSize="24"
+                               Margin="5,0,0,0"
+                               Visibility="{Binding NcrRevision.ActualLoss, Converter={StaticResource IntToVisConverter}, ConverterParameter=n0}"
+                               Foreground="Crimson"/>
+
                     <TextBlock Text="{Binding NcrRevision.ActualCost, StringFormat=c}"
-                               FontSize="20"
-                               VerticalAlignment="Center"
+                               FontSize="24"
                                Visibility="{Binding NcrRevision.ActualLoss, Converter={StaticResource IntToVisConverter}, ConverterParameter=n0}"
                                Foreground="Crimson"
                                Margin="10,0,0,0"/>
@@ -611,10 +597,8 @@
                                Foreground="#FF135185"/>
 
                     <TextBlock Text="{Binding SelectedDisposition.Description}"
-                               FontSize="20"
+                               FontSize="24"
                                Margin="10,0,0,0"
-                               VerticalAlignment="Center"
-                               FontWeight="Bold"
                                Visibility="{Binding Path=(main:CurrentUser.IsQuality), Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}"/>
 
                     <ComboBox x:Name="Disposition"

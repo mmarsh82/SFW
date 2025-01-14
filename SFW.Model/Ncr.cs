@@ -284,8 +284,30 @@ namespace SFW.Model
                 }
             }
 
-            public int ActualLoss { get; set; }
-            public double ActualCost { get; set; }
+            private int _actLoss;
+            public int ActualLoss
+            {
+                get
+                { return _actLoss; }
+                set
+                {
+                    _actLoss = value;
+                    OnPropertyChanged(nameof(ActualLoss));
+                }
+            }
+
+            private double _actCost;
+            public double ActualCost
+            {
+                get
+                { return _actCost; }
+                set
+                {
+                    _actCost = value;
+                    OnPropertyChanged(nameof(ActualCost));
+                }
+            }
+
             public Disposition Disposition { get; set; }
             public string Description { get; set; }
 
@@ -329,8 +351,6 @@ namespace SFW.Model
                 DefectType = new DefectType(ncrDataRow.Field<int>("DefectType"), ncrDataRow.Field<string>("DefectTypeDescription"));
                 PotentialLoss = ncrDataRow.Field<int>("PotentialLoss");
                 PotentialValue = ncrDataRow.Field<int>("PotentialLoss") * prodVal;
-                //ActualLoss = int.TryParse(ncrDataRow.Field<decimal>("ActualLoss").ToString(), out int i) ? i : 0;
-                //ActualCost = double.TryParse(ncrDataRow.Field<decimal>("ActualCost").ToString(), out double d) ? d : 0.00;
                 Disposition = new Disposition(ncrDataRow.Field<int>("DispositionId"), ncrDataRow.Field<string>("DispositionDescription"), ncrDataRow.Field<string>("LinkedStatus"));
                 Description = ncrDataRow.Field<string>("Description");
                 Current = ncrDataRow.Field<int>("RevisionFilter") == RevisionId;
@@ -730,6 +750,38 @@ namespace SFW.Model
             catch (Exception)
             {
 
+            }
+        }
+
+        /// <summary>
+        /// Get NCR actual loss and actual cost
+        /// </summary>
+        /// <param name="ncrId">NCR ID</param>
+        /// <param name="sqlCon">Sql Connection to use</param>
+        public static IReadOnlyDictionary<int, double> GetActuals(int ncrId, SqlConnection sqlCon)
+        {
+            var _rtnDict = new Dictionary<int, double>();
+            try
+            {
+                using (SqlCommand cmd = new SqlCommand($@"SELECT SUM(Quantity) as 'Quantity', SUM(ScrapCost) as 'ScrapCost' FROM [dbo].[SFW_ScrapCost] WHERE [NcrId] = @p1", sqlCon))
+                {
+                    cmd.Parameters.AddWithValue("p1", ncrId);
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        if (reader.HasRows)
+                        {
+                            while(reader.Read())
+                            {
+                                _rtnDict.Add(reader.SafeGetInt32("Quantity"), reader.SafeGetDouble("ScrapCost"));
+                            }
+                        }
+                    }
+                }
+                return _rtnDict;
+            }
+            catch (Exception)
+            {
+                return _rtnDict;
             }
         }
 

@@ -219,6 +219,7 @@ namespace SFW.QMS.NcrNotice
         {
             try
             {
+                NoticeView?.DeferRefresh();
                 RefreshTimer.IsRefreshing = IsLoading = false;
                 MainWindowViewModel.DisplayAction = false;
                 var _oldfilter = string.Empty;
@@ -226,8 +227,7 @@ namespace SFW.QMS.NcrNotice
                 {
                     _oldfilter = ((DataView)NoticeView.SourceCollection).RowFilter;
                 }
-                var _notice = new Ncr.Notice();
-                NoticeView = CollectionViewSource.GetDefaultView(_notice.Table);
+                NoticeView = CollectionViewSource.GetDefaultView(new Ncr.Notice().Table);
                 NoticeView.GroupDescriptions.Add(new PropertyGroupDescription("RevisionDateTime", new DateGroupConverter()));
                 if (_oldSelectedNcr != null)
                 {
@@ -271,6 +271,7 @@ namespace SFW.QMS.NcrNotice
         public void ViewLoaded(IAsyncResult r)
         {
             IsLoading = false;
+            NoticeView.Refresh();
         }
 
         #endregion
