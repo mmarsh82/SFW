@@ -21,13 +21,15 @@
         <cvtr:StringToVisibility x:Key="StringToVisConverter"/>
         <cvtr:BoolToBackgroundColor x:Key="BoolToBGConverter"/>
         <cvtr:IntToBool x:Key="IntToBoolConverter"/>
-        <local:ViewModel x:Key="DataContext"/>
+        <cvtr:DateGroupConverter x:Key="DateGroupConverter"/>
+        <CollectionViewSource x:Key="NoticeSource" Source="{Binding NoticeView}">
+            <CollectionViewSource.GroupDescriptions>
+                <PropertyGroupDescription PropertyName="RevisionDateTime"
+                                          Converter="{StaticResource DateGroupConverter}"/>
+            </CollectionViewSource.GroupDescriptions>
+        </CollectionViewSource>
 
     </UserControl.Resources>
-
-    <UserControl.DataContext>
-        <Binding Source="{StaticResource DataContext}"/>
-    </UserControl.DataContext>
 
     <Grid>
 
@@ -121,7 +123,7 @@
 
         <DataGrid x:Name="NcrNotice"
                   Grid.Row="1"
-                  ItemsSource="{Binding NoticeView}"
+                  ItemsSource="{Binding Source={StaticResource NoticeSource}}"
                   SelectedItem="{Binding SelectedNcr, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                   HorizontalAlignment="Left"
                   HeadersVisibility="None"

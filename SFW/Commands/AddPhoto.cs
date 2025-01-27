@@ -18,7 +18,7 @@ namespace SFW.Commands
             try
             {
                 var _ncrId = ((QMS.NcrForm.ViewModel)parameter).NcrObject != null ? ((QMS.NcrForm.ViewModel)parameter).NcrObject.NcrId : 0;
-                if (parameter != null && _ncrId > 0)
+                if (parameter != null)
                 {
                     var _folderPath = $"\\\\waxfs001\\WAXG-SFW\\QMS Pictures\\";
                     var _fileCount = Directory.GetFiles(_folderPath, $"{_ncrId}-*", SearchOption.TopDirectoryOnly).Count();
@@ -29,7 +29,10 @@ namespace SFW.Commands
                     if (_result == true)
                     {
                         File.Move(ofd.FileName, $"{_folderPath}{_ncrId}-{_fileCount + 1}.jpg");
-                        Ncr.SubmitPhotoPath(_ncrId, $"{_ncrId}-{_fileCount + 1}.jpg", App.AppSqlCon);
+                        if (_ncrId > 0)
+                        {
+                            Ncr.SubmitPhotoPath(_ncrId, $"{_ncrId}-{_fileCount + 1}.jpg", App.AppSqlCon);
+                        }
                         ((QMS.NcrForm.ViewModel)parameter).NcrObject.PhotoCollection.Add($"{_folderPath}{_ncrId}-{_fileCount + 1}.jpg");
                         if (((QMS.NcrForm.ViewModel)parameter).FromSchedule)
                         {

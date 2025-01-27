@@ -29,7 +29,7 @@ namespace SFW.QMS.NcrForm
                 {
                     var _oldPath = ((string[])e.Data.GetData(DataFormats.FileDrop))[0];
                     var _fileExt = Path.GetExtension(_oldPath);
-                    if (((ViewModel)DataContext).NcrObject?.NcrId > 0 && CurrentUser.IsQuality && _fileExt.ToUpper() == ".JPG")
+                    if (CurrentUser.IsQuality && _fileExt.ToUpper() == ".JPG")
                     {
                         var _ncr = ((ViewModel)DataContext).NcrObject.NcrId;
                         var _folderPath = $"\\\\waxfs001\\WAXG-SFW\\QMS Pictures\\";

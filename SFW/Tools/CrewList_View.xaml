@@ -3,12 +3,13 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:local="clr-namespace:SFW.Tools"
         xmlns:cvtr="clr-namespace:SFW.Converters"
-        
         x:Name="CrewMgt_Window"
-        Title="Crew Labor Allocation" MinHeight="440" Width="800" WindowStyle="ToolWindow" WindowStartupLocation="CenterScreen" Topmost="True">
+        Title="Crew Labor Allocation" MinHeight="440" Width="1000" WindowStyle="ToolWindow" WindowStartupLocation="CenterScreen" Topmost="True">
 
     <Window.Resources>
-        <cvtr:BoolToVisibility x:Key="BooltoVisConverter" />
+        <cvtr:BoolToVisibility x:Key="BoolToVisConverter" />
+        <cvtr:IntToVisibility x:Key="IntToVisConverter"/>
+        <cvtr:BoolInverter x:Key="BoolInverterConverter"/>
     </Window.Resources>
 
     <Grid>
@@ -26,7 +27,7 @@
                    HorizontalAlignment="Center"
                    VerticalAlignment="Center"
                    FontSize="30"
-                   Visibility="{Binding NoData, Converter={StaticResource BooltoVisConverter}}"/>
+                   Visibility="{Binding NoData, Converter={StaticResource BoolToVisConverter}}"/>
 
         <!--#region Crew Header-->
 
@@ -41,6 +42,12 @@
                    FontWeight="Bold"
                    FontSize="20"
                    Foreground="WhiteSmoke"/>
+        <DatePicker Grid.Row="0"
+                    FontSize="18"
+                    FontWeight="Bold"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Center"
+                    SelectedDate="{Binding SelectedDate, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
 
         <!--#endregion-->
 
@@ -75,43 +82,118 @@
                             <Grid>
 
                                 <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="100"/>
+                                    <ColumnDefinition Width="30"/>
+                                    <ColumnDefinition Width="110"/>
                                     <ColumnDefinition Width="300"/>
                                     <ColumnDefinition Width="120"/>
                                     <ColumnDefinition Width="20"/>
                                     <ColumnDefinition Width="60"/>
                                     <ColumnDefinition Width="40"/>
+                                    <ColumnDefinition Width="200"/>
                                 </Grid.ColumnDefinitions>
 
-                                <TextBlock Grid.Column="0"
-                                           Text="{Binding IdNumber}"
-                                           VerticalAlignment="Center"/>
+                                <Image Grid.Column="0"
+                                       Source="/SFW;component/Icons/First.ico"
+                                       Visibility="{Binding Shift, Converter={StaticResource IntToVisConverter}, ConverterParameter=L1}"/>
+                                <Image Grid.Column="0"
+                                       Source="/SFW;component/Icons/Second.ico"
+                                       Visibility="{Binding Shift, Converter={StaticResource IntToVisConverter}, ConverterParameter=L2}"/>
+                                <Image Grid.Column="0"
+                                       Source="/SFW;component/Icons/Third.ico"
+                                       Visibility="{Binding Shift, Converter={StaticResource IntToVisConverter}, ConverterParameter=L3}"/>
 
                                 <TextBlock Grid.Column="1"
-                                           Text="{Binding Name}"
+                                           Text="{Binding IdNumber}"
+                                           Margin="10,0,0,0"
+                                           FontWeight="Bold"
                                            VerticalAlignment="Center"/>
 
-                                <CheckBox Grid.Column="2"
+                                <TextBlock Grid.Column="2"
+                                           Text="{Binding Name}"
+                                           FontWeight="Bold"
+                                           VerticalAlignment="Center"/>
+
+                                <CheckBox Grid.Column="3"
                                           x:Name="IsWorking"
                                           IsChecked="{Binding IsWorking, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                           Content="Is Working"
                                           FontSize="18"
                                           FontWeight="Bold"
                                           IsTabStop="False"
+                                          IsEnabled="{Binding CanEdit}"
                                           VerticalAlignment="Center"/>
 
-                                <TextBlock Grid.Column="4"
+                                <TextBlock Grid.Column="5"
                                            Text="Hours:"
-                                           VerticalAlignment="Center"
-                                           Visibility="{Binding IsWorking, Converter={StaticResource BooltoVisConverter}}"/>
+                                           FontWeight="Bold"
+                                           Foreground="#FF135185"
+                                           TextDecorations="Underline"
+                                           VerticalAlignment="Center">
+                                    <TextBlock.Visibility>
+                                        <MultiBinding Converter="{StaticResource BoolToVisConverter}">
+                                            <Binding Path="IsWorking"/>
+                                            <Binding Path="CanEdit"/>
+                                        </MultiBinding>
+                                    </TextBlock.Visibility>
+                                </TextBlock>
 
-                                <TextBox Grid.Column="5"
+                                <TextBlock Grid.Column="6"
+                                           Text="{Binding HoursWorked}"
+                                           Margin="10,0,0,0"
+                                           VerticalAlignment="Center">
+                                    <TextBlock.Visibility>
+                                        <MultiBinding Converter="{StaticResource BoolToVisConverter}">
+                                            <Binding Path="IsWorking"/>
+                                            <Binding Path="CanEdit" Converter="{StaticResource BoolInverterConverter}"/>
+                                        </MultiBinding>
+                                    </TextBlock.Visibility>
+                                </TextBlock>
+
+                                <TextBox Grid.Column="6"
                                          Text="{Binding HoursWorked, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                          MaxLength="2"
                                          Background="LightGray"
                                          VerticalAlignment="Center"
-                                         Visibility="{Binding IsWorking, Converter={StaticResource BooltoVisConverter}}"
-                                         Style="{DynamicResource RequiredTextBox}" />
+                                         Style="{DynamicResource RequiredTextBox}">
+                                    <TextBox.Visibility>
+                                        <MultiBinding Converter="{StaticResource BoolToVisConverter}">
+                                            <Binding Path="IsWorking"/>
+                                            <Binding Path="CanEdit"/>
+                                        </MultiBinding>
+                                    </TextBox.Visibility>
+                                </TextBox>
+
+                                <TextBlock Grid.Column="7"
+                                           Text="{Binding WorkCenter}"
+                                           Margin="10,0,0,0"
+                                           VerticalAlignment="Center">
+                                    <TextBlock.Visibility>
+                                        <MultiBinding Converter="{StaticResource BoolToVisConverter}">
+                                            <Binding Path="IsWorking"/>
+                                            <Binding Path="CanEdit" Converter="{StaticResource BoolInverterConverter}"/>
+                                        </MultiBinding>
+                                    </TextBlock.Visibility>
+                                </TextBlock>
+
+                                <ComboBox x:Name="WorkMachine"
+                                          Grid.Column="7"
+                                          ItemsSource="{Binding DataContext.MachineCollection, ElementName=CrewMgt_Window}"
+                                          SelectedValue="{Binding WorkCenter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                          DisplayMemberPath="MachineName"
+                                          FontSize="18"
+                                          FontWeight="Bold"
+                                          Background="LightGray"
+                                          Width="150"
+                                          TabIndex="5"
+                                          Margin="5,0,0,0"
+                                          Style="{DynamicResource RequiredComboBox}">
+                                    <ComboBox.Visibility>
+                                        <MultiBinding Converter="{StaticResource BoolToVisConverter}">
+                                            <Binding Path="IsWorking"/>
+                                            <Binding Path="CanEdit"/>
+                                        </MultiBinding>
+                                    </ComboBox.Visibility>
+                                </ComboBox>
 
                             </Grid>
                         </StackPanel>
@@ -126,33 +208,23 @@
         
         <!--#region Cew Submissions-->
 
-        <StackPanel Grid.Row="2"
-                    Orientation="Horizontal"
-                    Margin="5"
-                    VerticalAlignment="Center">
-
-            <TextBlock Grid.Row="2"
-                       Text="Published on:"
-                       Foreground="Crimson"
-                       FontWeight="Bold"
-                       FontSize="18" />
-
-            <TextBlock Grid.Row="2"
-                       Text="{Binding PublishDate}"
-                       Foreground="Crimson"
-                       FontWeight="Bold"
-                       Margin="10,0,0,0"
-                       FontSize="18" />
-
-        </StackPanel>
+        <TextBlock Grid.Row="2"
+                   Margin="10,0,0,0"
+                   VerticalAlignment="Center"
+                   Text="Published"
+                   Visibility="{Binding Published, Converter={StaticResource BoolToVisConverter}}"
+                   Foreground="Crimson"
+                   FontWeight="Bold"
+                   FontSize="18" />
 
         <Button Grid.Row="2"
-                Content="Submit"
+                Content="Publish"
                 Width="100"
                 FontSize="18"
                 Margin="5,5,10,5"
                 VerticalAlignment="Center"
                 HorizontalAlignment="Right"
+                Visibility="{Binding CanEdit, Converter={StaticResource BoolToVisConverter}}"
                 Command="{Binding SubmitICommand}"
                 Style="{DynamicResource DefaultButton}" />
 

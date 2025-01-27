@@ -1,6 +1,7 @@
 ﻿using SFW.Helpers;
 using SFW.Model;
 using System;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Windows;
@@ -12,16 +13,88 @@ namespace SFW.Tools
     {
         #region Properties
 
-        public BindingList<CrewMember> CrewList { get; set; }
+        public ObservableCollection<Machine> MachineCollection { get; set; }
+        public ObservableCollection<CrewMember> CrewCollection { get; set; }
 
         public bool NoData { get; set; }
 
-        public string PublishDate { get; set; }
-
-        public string ActionInput { get; set; }
-
         private bool _isLoading { get; set; }
         private char _actionType { get; set; }
+
+        private int _shift;
+        public int Shift
+        {
+            get
+            { return _shift; }
+            set
+            {
+                _shift = value;
+                OnPropertyChanged(nameof(Shift));
+            }
+        }
+
+        private string _manager;
+        public string ManagerId
+        {
+            get
+            { return _manager; }
+            set
+            {
+                _manager = value;
+                OnPropertyChanged(nameof(ManagerId));
+            }
+        }
+
+        private DateTime _date;
+        public DateTime SelectedDate
+        {
+            get
+            { return _date; }
+            set
+            {
+                if (_date != value)
+                {
+                    if (CrewMember.IsPublished(ManagerId, value, App.AppSqlCon))
+                    {
+                        CrewCollection = new ObservableCollection<CrewMember>(CrewMember.GetCrewLaborCollection(ManagerId, value, App.AppSqlCon));
+                        _actionType = 'U';
+                    }
+                    else
+                    {
+                        CrewCollection = new ObservableCollection<CrewMember>(CurrentUser.DirectReports);
+                        _actionType = 'S';
+                    }
+                    NoData = CrewCollection.Count == 0;
+                    Published = !NoData && _actionType != 'S';
+                    _date = value;
+                }
+                OnPropertyChanged(nameof(SelectedDate));
+            }
+        }
+
+        private bool _edit;
+        public bool CanEdit
+        {
+            get
+            { return _edit; }
+            set
+            {
+                _edit = value;
+                OnPropertyChanged(nameof(CanEdit));
+            }
+        }
+
+        private bool _publish;
+        public bool Published
+        {
+            get
+            { return _publish; }
+            set
+            {
+                _publish = value;
+                OnPropertyChanged(nameof(Published));
+            }
+        }
 
         private RelayCommand _submitICommand;
 
@@ -32,52 +105,15 @@ namespace SFW.Tools
         /// </summary>
         public CrewList_ViewModel()
         {
-            var _shift = new CrewMember(CurrentUser.FirstName, CurrentUser.LastName).Shift;
-            var _site = CurrentUser.GetSite();
+            var _tempCrewMember = new CrewMember(CurrentUser.FirstName, CurrentUser.LastName);
+            Shift = _tempCrewMember.Shift;
+            ManagerId = _tempCrewMember.IdNumber;
+            CanEdit = Shift > 0 && Shift < 4 && CurrentUser.IsSupervisor;
             _isLoading = false;
-            PublishDate = DateTime.Today.ToShortDateString();
-            var _tempDict = CrewMember.GetCrewList(_shift, _site);
-            if (_tempDict.Count > 0)
+            SelectedDate = DateTime.Today;
+            if (MachineCollection == null)
             {
-                CrewList = new BindingList<CrewMember>(_tempDict.FirstOrDefault().Value);
-                _actionType = _tempDict.FirstOrDefault().Key;
-            }
-            NoData = CrewList.Count == 0;
-            CrewList.ListChanged += CrewList_ListChanged;
-        }
-
-        /// <summary>
-        /// Happens when an item is added or changed in the WipInfo Binding List property
-        /// </summary>
-        /// <param name="sender">BindingList<CompWipInfo> list passed without changes</param>
-        /// <param name="e">Change info</param>
-        private void CrewList_ListChanged(object sender, ListChangedEventArgs e)
-        {
-            if (e.ListChangedType == ListChangedType.ItemChanged && e.PropertyDescriptor?.DisplayName == "IsWorking" && !_isLoading)
-            {
-                _isLoading = true;
-                if (((BindingList<CrewMember>)sender)[e.NewIndex].IsWorking)
-                {
-                    ((BindingList<CrewMember>)sender)[e.NewIndex].HoursWorked = ((BindingList<CrewMember>)sender)[e.NewIndex].Facility == "1" ? 8 : 10;
-                }
-                else
-                {
-                    ((BindingList<CrewMember>)sender)[e.NewIndex].HoursWorked = 0;
-                }
-                _isLoading = false;
-            }
-            if (e.ListChangedType == ListChangedType.ItemChanged && e.PropertyDescriptor?.DisplayName == "HoursWorked" && !_isLoading)
-            {
-                _isLoading = true;
-                if (((BindingList<CrewMember>)sender)[e.NewIndex].HoursWorked > 8 && ((BindingList<CrewMember>)sender)[e.NewIndex].Facility == "1")
-                {
-                    ((BindingList<CrewMember>)sender)[e.NewIndex].HoursWorked = 8;
-                }
-                else if (((BindingList<CrewMember>)sender)[e.NewIndex].HoursWorked > 10 && ((BindingList<CrewMember>)sender)[e.NewIndex].Facility == "2")
-                {
-                    ((BindingList<CrewMember>)sender)[e.NewIndex].HoursWorked = 10;
-                }
-                _isLoading = false;
+                MachineCollection = new ObservableCollection<Machine>(Machine.GetMachineList(false, false, 1));
             }
         }
 
@@ -97,11 +133,12 @@ namespace SFW.Tools
 
         private void ActionCommandExecute(object parameter)
         {
-            var _msgText = CrewMember.PublishLabor(CrewList.ToList(), _actionType, App.AppSqlCon);
+            var _msgText = CrewMember.PublishLabor(CrewCollection.ToList(), _actionType, App.AppSqlCon);
             MessageBox.Show(_msgText, "Publishing Message", MessageBoxButton.OK, MessageBoxImage.Information);
             if (_msgText.Contains("Successfully"))
             {
                 _actionType = 'U';
+                Published = true;
             }
         }
         private bool ActionCommandCanExecute(object parameter) => true;

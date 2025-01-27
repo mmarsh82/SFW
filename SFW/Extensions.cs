@@ -1,6 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.DirectoryServices;
+using System.DirectoryServices.AccountManagement;
 using System.Linq;
 using System.Text;
 using System.Windows;
@@ -162,6 +165,24 @@ namespace SFW
             {
                 return -1;
             }
+        }
+
+        /// <summary>
+        /// Get direct reports collection with User Principal
+        /// </summary>
+        /// <param name="userPrincipal">User Principal Object</param>
+        /// <returns>List of direct reports</returns>
+        public static IReadOnlyDictionary<string, string> GetDirectReports(this UserPrincipal userPrincipal)
+        {
+            var _rtnDict = new Dictionary<string, string>();
+            var _propColl = ((DirectoryEntry)userPrincipal.GetUnderlyingObject()).Properties["DirectReports"].Cast<string>();
+            _propColl = _propColl.Where(dn => !string.IsNullOrEmpty(dn));
+            foreach (var _directReport in _propColl)
+            {
+                var _reportPrincipal = UserPrincipal.FindByIdentity(userPrincipal.Context, _directReport);
+                _rtnDict.Add(_reportPrincipal.GivenName, _reportPrincipal.Surname);
+            }
+            return _rtnDict;
         }
     }
 }

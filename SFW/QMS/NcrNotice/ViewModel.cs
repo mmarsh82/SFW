@@ -1,5 +1,4 @@
 ﻿using SFW.Controls;
-using SFW.Converters;
 using SFW.Helpers;
 using SFW.Model;
 using System;
@@ -8,7 +7,6 @@ using System.ComponentModel;
 using System.Data;
 using System.Linq;
 using System.Windows;
-using System.Windows.Data;
 using System.Windows.Input;
 
 namespace SFW.QMS.NcrNotice
@@ -18,7 +16,7 @@ namespace SFW.QMS.NcrNotice
         #region Properties
 
         public static string[] NoticeViewFilter;
-        public ICollectionView NoticeView { get; set; }
+        public DataView NoticeView { get; set; }
 
         private DataRowView _selectedNcr;
         public DataRowView SelectedNcr
@@ -41,7 +39,7 @@ namespace SFW.QMS.NcrNotice
                 { }
             }
         }
-        private object _oldSelectedNcr;
+        private DataRowView _oldSelectedNcr;
 
         private bool _isLoading;
         public bool IsLoading
@@ -57,7 +55,7 @@ namespace SFW.QMS.NcrNotice
             set
             {
                 _sFilter = value == "" ? null : value;
-                var _filter = string.IsNullOrEmpty(value) ? "" : ((DataView)NoticeView.SourceCollection).Table.SearchRowFilter(value);
+                var _filter = string.IsNullOrEmpty(value) ? "" : NoticeView.Table.SearchRowFilter(value);
                 NoticeFilter(_filter, 0);
                 OnPropertyChanged(nameof(SearchFilter));
             }
@@ -135,8 +133,8 @@ namespace SFW.QMS.NcrNotice
                 var _tempList = new List<DataView>();
                 if (NoticeView != null)
                 {
-                    ((DataView)NoticeView.SourceCollection).RowFilter = _filterStr;
-                    NoticeView.Refresh();
+                    NoticeView.RowFilter = _filterStr;
+                    OnPropertyChanged(nameof(NoticeView));
                 }
             }
             else
@@ -167,12 +165,13 @@ namespace SFW.QMS.NcrNotice
             if (NoticeViewFilter != null)
             {
                 NoticeViewFilter = new string[7];
-                if (NoticeView != null && NoticeView.SourceCollection != null && ((DataView)NoticeView.SourceCollection).RowFilter != null)
+                if (NoticeView != null && NoticeView != null && NoticeView.RowFilter != null)
                 {
-                    ((DataView)NoticeView.SourceCollection).RowFilter = "";
+                    NoticeView.RowFilter = "";
                 }
                 NoticeFilter("[Status] <> 'C'", 5);
                 NoticeFilter($"[Site] = {App.SiteNumber}", 6);
+                OnPropertyChanged(nameof(NoticeView));
             }
         }
 
@@ -219,59 +218,35 @@ namespace SFW.QMS.NcrNotice
         {
             try
             {
-                NoticeView?.DeferRefresh();
-                RefreshTimer.IsRefreshing = IsLoading = false;
-                MainWindowViewModel.DisplayAction = false;
+                NoticeView = new Ncr.Notice().Table.AsDataView();
                 var _oldfilter = string.Empty;
                 if (NoticeView != null && CurrentUser.IsLoggedIn)
                 {
-                    _oldfilter = ((DataView)NoticeView.SourceCollection).RowFilter;
+                    _oldfilter = NoticeView.RowFilter;
                 }
-                NoticeView = CollectionViewSource.GetDefaultView(new Ncr.Notice().Table);
-                NoticeView.GroupDescriptions.Add(new PropertyGroupDescription("RevisionDateTime", new DateGroupConverter()));
-                if (_oldSelectedNcr != null)
-                {
-                    if (((DataView)NoticeView.SourceCollection).Table.AsEnumerable().Any(row => row.Field<int>("NcrId") == ((DataRowView)_oldSelectedNcr).Row.Field<int>("NcrId")))
-                    {
-                        var _index = NoticeView.IndexOf(_oldSelectedNcr, "NcrId");
-                        NoticeView.MoveCurrentToPosition(_index);
-                        SelectedNcr = (DataRowView)_oldSelectedNcr;
-                    }
-                    else
-                    {
-                        NoticeView.MoveCurrentToPosition(-1);
-                        SelectedNcr = null;
-                    }
-                }
-                else
-                {
-                    NoticeView.MoveCurrentToPosition(-1);
-                    SelectedNcr = null;
-                }
-                if (!string.IsNullOrEmpty(_oldfilter))
-                {
-                    ((DataView)NoticeView.SourceCollection).RowFilter = _oldfilter;
-                }
-                else
-                {
-                    ((DataView)NoticeView.SourceCollection).RowFilter = NoticeFilter();
-                }
-                if (!string.IsNullOrEmpty(SearchFilter))
-                {
-                    SearchFilter = SearchFilter;
-                }
+                SelectedNcr = _oldSelectedNcr != null && NoticeView.Table.AsEnumerable().Any(row => row.Field<int>("NcrId") == _oldSelectedNcr.Row.Field<int>("NcrId"))
+                    ? _oldSelectedNcr
+                    : null;
+                NoticeView.RowFilter = !string.IsNullOrEmpty(_oldfilter)
+                    ? _oldfilter
+                    : NoticeFilter();
+                SearchFilter = !string.IsNullOrEmpty(SearchFilter)
+                    ? SearchFilter
+                    : string.Empty;
+                NoticeView.Sort = "RevisionDateTime DESC";
+                OnPropertyChanged(nameof(SelectedNcr));
                 OnPropertyChanged(nameof(NoticeView));
+                RefreshTimer.IsRefreshing = IsLoading = false;
+                MainWindowViewModel.DisplayAction = false;
             }
-            catch (Exception ex)
+            catch
             {
-                MessageBox.Show(ex.Message, "Unhandled Exception", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
         public void ViewLoaded(IAsyncResult r)
         {
             IsLoading = false;
-            NoticeView.Refresh();
         }
 
         #endregion
@@ -287,12 +262,11 @@ namespace SFW.QMS.NcrNotice
                 {
                     RefreshTimer.IsRefreshing = IsLoading = true;
                     MainWindowViewModel.DisplayAction = App.LoadedModule == Enumerations.UsersControls.Quality;
-                    if (NoticeView?.CurrentItem != null)
-                    {
-                        _oldSelectedNcr = NoticeView.CurrentItem;
-                    }
+                    _oldSelectedNcr = SelectedNcr != null
+                        ? SelectedNcr
+                        : null;
                     SelectedNcr = null;
-                    LoadAsyncComplete = LoadAsyncDelegate.BeginInvoke(((DataView)NoticeView.SourceCollection).RowFilter, new AsyncCallback(ViewLoaded), null);
+                    LoadAsyncComplete = LoadAsyncDelegate.BeginInvoke(NoticeView.RowFilter, new AsyncCallback(ViewLoaded), null);
                 }
             }
             catch (Exception ex)

@@ -241,7 +241,13 @@ namespace SFW.Model
         public bool IsWorking
         {
             get { return _work; }
-            set { _work = value; OnPropertyChanged(nameof(IsWorking)); }
+            set
+            {
+                _work = value;
+                HoursWorked = value ? 8 : 0;
+                WorkCenter = value ? new Machine() : null;
+                OnPropertyChanged(nameof(IsWorking));
+            }
         }
 
         private int _workHours;
@@ -249,6 +255,13 @@ namespace SFW.Model
         {
             get { return _workHours; }
             set { _workHours = value; OnPropertyChanged(nameof(HoursWorked)); }
+        }
+
+        private Machine _workCenter;
+        public Machine WorkCenter
+        {
+            get { return _workCenter; }
+            set{ _workCenter = value; OnPropertyChanged(nameof(WorkCenter)); }
         }
 
         public string LaborId
@@ -320,6 +333,12 @@ namespace SFW.Model
                 ShiftEnd = _rows.FirstOrDefault().Field<string>("ShiftEnd");
                 Facility = $"0{_rows.FirstOrDefault().Field<int>("Site")}";
                 InTime = string.Empty;
+                if (IsDirect)
+                {
+                    IsWorking = true;
+                    HoursWorked = 8;
+                    WorkCenter = new Machine();
+                }
             }
         }
 
@@ -365,37 +384,84 @@ namespace SFW.Model
         /// <summary>
         /// Get a table of all the staff labor for crew management
         /// </summary>
-        /// <param name="site">Facility to load</param>
+        /// <param name="manager">Manager ID</param>
+        /// <param name="date">Date to get the data from</param>
         /// <param name="sqlCon">Sql Connection to use</param>
-        /// <returns>DataTable of staff labor</returns>
-        public static DataTable GetCrewLaborTable(int site, SqlConnection sqlCon)
+        /// <returns>List of staff labor</returns>
+        public static List<CrewMember> GetCrewLaborCollection(string manager, DateTime date, SqlConnection sqlCon)
         {
-            using (var _tempTable = new DataTable())
+            var _rtnList = new List<CrewMember>();
+            var _dateId = (date - Convert.ToDateTime("1967/12/31")).Days;
+            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
             {
-                if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
+                try
                 {
-                    try
+                    using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database}; SELECT * FROM [dbo].[SFW_StaffLabor] WHERE [Manager] = @p1 AND [LaborID] LIKE @p2", sqlCon))
                     {
-                        using (SqlDataAdapter adapter = new SqlDataAdapter($@"USE {sqlCon.Database}; SELECT * FROM [dbo].[SFW_StaffLabor] WHERE [FacilityID] = @p1", sqlCon))
+                        cmd.Parameters.AddWithValue("p1", manager);
+                        cmd.Parameters.AddWithValue("p2", $"%*{date}*%");
+                        using (SqlDataReader reader = cmd.ExecuteReader())
                         {
-                            adapter.SelectCommand.Parameters.AddWithValue("p1", site);
-                            adapter.Fill(_tempTable);
-                            return _tempTable;
+                            if (reader.HasRows)
+                            {
+                                var _laborId = reader.SafeGetString("LaborID").Split('*');
+                                _rtnList.Add(new CrewMember {
+                                    IdNumber = _laborId[0]
+                                    , Name = reader.SafeGetString("DisplayName")
+                                    , Shift = reader.SafeGetInt32("Shift")
+                                    , Facility = _laborId[2]
+                                });
+                            }   
                         }
                     }
-                    catch (SqlException sqlEx)
-                    {
-                        throw new Exception(sqlEx.Message);
-                    }
-                    catch (Exception ex)
-                    {
-                        throw new Exception(ex.Message);
-                    }
+                    return _rtnList;
                 }
-                else
+                catch (SqlException sqlEx)
                 {
-                    throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
+                    throw new Exception(sqlEx.Message);
                 }
+                catch (Exception ex)
+                {
+                    throw new Exception(ex.Message);
+                }
+            }
+            else
+            {
+                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
+            }
+        }
+
+        /// <summary>
+        /// Checks to see if any crew labor has been published
+        /// </summary>
+        /// <param name="shift">Facility to load</param>
+        /// <param name="sqlCon">Sql Connection to use</param>
+        /// <returns>Pass or fail as bool</returns>
+        public static bool IsPublished(string manager, DateTime date, SqlConnection sqlCon)
+        {
+            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
+            {
+                try
+                {
+                    using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database}; SELECT COUNT(LaborID) FROM [dbo].[SFW_StaffLabor] WHERE [Manager] = @p1 AND [DateChanged] = @p2", sqlCon))
+                    {
+                        cmd.Parameters.AddWithValue("p1", manager);
+                        cmd.Parameters.AddWithValue("p2", date);
+                        return int.TryParse(cmd.ExecuteScalar().ToString(), out int i) && i > 0;
+                    }
+                }
+                catch (SqlException sqlEx)
+                {
+                    throw new Exception(sqlEx.Message);
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception(ex.Message);
+                }
+            }
+            else
+            {
+                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
             }
         }
 
@@ -413,10 +479,10 @@ namespace SFW.Model
             switch (action)
             {
                 case 'S':
-                    cmdString = "INSERT INTO dbo.[EM-CSTM_Working_Data] ([LaborID], [WorkHours], [Shift], [DisplayName]) VALUES (@p1, @p2, @p3, @p4)";
+                    cmdString = "INSERT INTO dbo.[EM-CSTM_Working_Data] ([LaborID], [WorkHours], [Shift], [DisplayName], [WorkCenter]) VALUES (@p1, @p2, @p3, @p4, @p5)";
                     break;
                 case 'U':
-                    cmdString = "UPDATE dbo.[EM-CSTM_Working_Data] SET [WorkHours] = @p1 WHERE [LaborID] = @p2";
+                    cmdString = "UPDATE dbo.[EM-CSTM_Working_Data] SET [WorkHours] = @p1, [WorkCenter] = @p2 WHERE [LaborID] = @p3";
                     break;
             }
             if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
@@ -435,10 +501,12 @@ namespace SFW.Model
                                     sqlCommand.Parameters.AddWithValue("@p2", _crewMember.HoursWorked);
                                     sqlCommand.Parameters.AddWithValue("@p3", _crewMember.Shift);
                                     sqlCommand.Parameters.AddWithValue("@p4", _crewMember.Name);
+                                    sqlCommand.Parameters.AddWithValue("@p5", _crewMember.WorkCenter.MachineNumber);
                                     break;
                                 case 'U':
                                     sqlCommand.Parameters.AddWithValue("@p1", _crewMember.HoursWorked);
-                                    sqlCommand.Parameters.AddWithValue("@p2", $"{_crewMember.IdNumber}*{_dateId}*{_crewMember.Facility}");
+                                    sqlCommand.Parameters.AddWithValue("@p2", _crewMember.WorkCenter.MachineNumber);
+                                    sqlCommand.Parameters.AddWithValue("@p3", $"{_crewMember.IdNumber}*{_dateId}*{_crewMember.Facility}");
                                     break;
                             }
                             sqlCommand.ExecuteNonQuery();
@@ -609,65 +677,6 @@ namespace SFW.Model
                     return uPrincipal != null ? $"{uPrincipal.GivenName} {uPrincipal.Surname}" : domainName;
                 }
             }
-        }
-
-        /// <summary>
-        /// Get crew members by shift
-        /// </summary>
-        /// <param name="shift">Crew shift filter</param>
-        /// <param name="site">Crew site filter</param>
-        /// <returns>Read only dictionary of crewmember objects</returns>
-        public static IReadOnlyDictionary<char, List<CrewMember>> GetCrewList(int shift, int site)
-        {
-            var _crewList = new List<CrewMember>();
-            var _rowList = new List<DataRow>();
-            var _rtnDict = new Dictionary<char, List<CrewMember>>();
-            if (site == 2 && shift == 4)
-            {
-                shift = 1;
-            }
-            else if (site == 2 && shift == 5)
-            {
-                shift = 2;
-            }
-            if (MasterDataSet.Tables["CrewLabor"].Select($"[Shift] = '{shift}' AND [FacilityID] = '0{site}' AND [DateChanged] = '{DateTime.Today.ToString("yyyy-MM-dd")}'").Count() > 0)
-            {
-                _rowList = MasterDataSet.Tables["CrewLabor"].Select($"[Shift] = '{shift}' AND [FacilityID] = '0{site}' AND [DateChanged] = '{DateTime.Today.ToString("yyyy-MM-dd")}'").ToList();
-            }
-            else
-            {
-                _rowList = MasterDataSet.Tables["CREW"].Select($"[Shift] = '{shift}' AND [Site] = '{site}' AND [IsDirect] = 1").ToList();
-            }
-            var _rtnAction = _rowList[0].Table.TableName == "CrewLabor" ? 'U' : 'S';
-            foreach (var _row in _rowList)
-            {
-                if (_rowList[0].Table.TableName == "CrewLabor")
-                {
-                    _crewList.Add(new CrewMember
-                    {
-                        IdNumber = _row.Field<string>("UserID")
-                        ,Name = _row.Field<string>("DisplayName")
-                        ,IsWorking = _row.Field<int>("WorkHours") > 0
-                        ,Shift = _row.Field<int>("Shift")
-                        ,Facility = _row.Field<string>("FacilityID")
-                        ,HoursWorked = _row.Field<int>("WorkHours")
-                    });
-                }
-                else
-                {
-                    _crewList.Add(new CrewMember
-                    {
-                        IdNumber = _row.Field<string>("EmployeeID")
-                        ,Name = _row.Field<string>("DisplayName")
-                        ,IsWorking = true
-                        ,Shift = shift
-                        ,Facility = site.ToString()
-                        ,HoursWorked = site == 1 ? 8 : 10
-                    });
-                }
-            }
-            _rtnDict.Add(_rtnAction, _crewList);
-            return _rtnDict;
         }
 
         /// <summary>

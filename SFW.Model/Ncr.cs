@@ -10,6 +10,81 @@ namespace SFW.Model
 {
     public class Ncr : ModelBase
     {
+        public class ClosingAction
+        {
+            #region Properties
+
+            public int Id { get; set; }
+            public string Description { get; set; }
+            public string Status { get; set; }
+
+            #endregion
+
+            #region Data Access
+
+            /// <summary>
+            /// Load a table with all the NCR closing action information
+            /// </summary>
+            /// <param name="sqlCon">Sql Connection to use</param>
+            /// <returns>An ObservableCollection of NCR closing actions</returns>
+            public static DataTable GetClosingActionTable(SqlConnection sqlCon)
+            {
+                using (var _dt = new DataTable())
+                {
+                    if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
+                    {
+                        try
+                        {
+                            using (SqlDataAdapter adapter = new SqlDataAdapter($@"SELECT * FROM [dbo].[NCR-CSTM_Disposition] WHERE [DispositionId] <> 7", sqlCon))
+                            {
+                                adapter.Fill(_dt);
+                            }
+                            return _dt;
+                        }
+                        catch (SqlException)
+                        {
+                            return _dt;
+                        }
+                        catch (Exception ex)
+                        {
+                            throw new Exception(ex.Message);
+                        }
+                    }
+                    else
+                    {
+                        throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
+                    }
+                }
+            }
+
+            #endregion
+
+            /// <summary>
+            /// Default Constructor
+            /// </summary>
+            public ClosingAction(int dType, string dDescrip, string status)
+            {
+                Id = dType;
+                Description = dDescrip;
+                Status = status;
+            }
+
+            /// <summary>
+            /// Load an observable collection with all the NCR disposition information
+            /// </summary>
+            /// <param name="sqlCon">Sql Connection to use</param>
+            /// <returns>An ObservableCollection of NCR dispositions</returns>
+            public static ObservableCollection<ClosingAction> GetClosingActionCollection()
+            {
+                var _rtnColl = new ObservableCollection<ClosingAction>();
+                foreach (DataRow _row in MasterDataSet.Tables["NcrDispo"].Rows)
+                {
+                    _rtnColl.Add(new ClosingAction(_row.SafeGetField<int>("ActionId"), _row.SafeGetField<string>("ActionDescription"), _row.SafeGetField<string>("LinkedStatus")));
+                }
+                return _rtnColl;
+            }
+        }
+
         public class Disposition
         {
             #region Properties
@@ -23,44 +98,37 @@ namespace SFW.Model
             #region Data Access
 
             /// <summary>
-            /// Load an observable collection with all the NCR disposition information
+            /// Load a table with all the NCR disposition information
             /// </summary>
             /// <param name="sqlCon">Sql Connection to use</param>
             /// <returns>An ObservableCollection of NCR dispositions</returns>
-            public static ObservableCollection<Disposition> GetDispositionCollection(SqlConnection sqlCon)
+            public static DataTable GetDispositionTable(SqlConnection sqlCon)
             {
-                var _rtnDict = new ObservableCollection<Disposition>();
-                if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
+                using (var _dt = new DataTable())
                 {
-                    try
+                    if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
                     {
-                        using (SqlCommand cmd = new SqlCommand($@"SELECT * FROM [dbo].[NCR-CSTM_Disposition] WHERE [DispositionId] <> 7", sqlCon))
+                        try
                         {
-                            using (SqlDataReader _reader = cmd.ExecuteReader())
+                            using (SqlDataAdapter adapter = new SqlDataAdapter($@"SELECT * FROM [dbo].[NCR-CSTM_Disposition] WHERE [DispositionId] <> 7", sqlCon))
                             {
-                                if (_reader.HasRows)
-                                {
-                                    while (_reader.Read())
-                                    {
-                                        _rtnDict.Add(new Disposition(_reader.GetFieldValue<int>(0), _reader.GetFieldValue<string>(1), _reader.GetFieldValue<string>(2)));
-                                    }
-                                }
+                                adapter.Fill(_dt);
                             }
+                            return _dt;
                         }
-                        return _rtnDict;
+                        catch (SqlException)
+                        {
+                            return _dt;
+                        }
+                        catch (Exception ex)
+                        {
+                            throw new Exception(ex.Message);
+                        }
                     }
-                    catch (SqlException)
+                    else
                     {
-                        return _rtnDict;
+                        throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
                     }
-                    catch (Exception ex)
-                    {
-                        throw new Exception(ex.Message);
-                    }
-                }
-                else
-                {
-                    throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
                 }
             }
 
@@ -74,6 +142,21 @@ namespace SFW.Model
                 Id = dType;
                 Description = dDescrip;
                 Status = status;
+            }
+
+            /// <summary>
+            /// Load an observable collection with all the NCR disposition information
+            /// </summary>
+            /// <param name="sqlCon">Sql Connection to use</param>
+            /// <returns>An ObservableCollection of NCR dispositions</returns>
+            public static ObservableCollection<Disposition> GetDispositionCollection()
+            {
+                var _rtnColl = new ObservableCollection<Disposition>();
+                foreach (DataRow _row in MasterDataSet.Tables["NcrDispo"].Rows)
+                {
+                    _rtnColl.Add(new Disposition(_row.SafeGetField<int>("DispositionId"), _row.SafeGetField<string>("DispositionDescription"), _row.SafeGetField<string>("LinkedStatus")));
+                }
+                return _rtnColl;
             }
         }
 
@@ -89,44 +172,37 @@ namespace SFW.Model
             #region Data Access
 
             /// <summary>
-            /// Load an observable collection with all the NCR defect type information
+            /// Load a table with all the NCR defect type information
             /// </summary>
             /// <param name="sqlCon">Sql Connection to use</param>
             /// <returns>An ObservableCollection of NCR defect types</returns>
-            public static ObservableCollection<DefectType> GetDefectTypeCollection(SqlConnection sqlCon)
+            public static DataTable GetDefectTypeTable(SqlConnection sqlCon)
             {
-                var _rtnDict = new ObservableCollection<DefectType>();
-                if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
+                using (var _dt = new DataTable())
                 {
-                    try
+                    if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
                     {
-                        using (SqlCommand cmd = new SqlCommand($@"SELECT * FROM [dbo].[NCR-CSTM_DefectType]", sqlCon))
+                        try
                         {
-                            using (SqlDataReader _reader = cmd.ExecuteReader())
+                            using (SqlDataAdapter adapter = new SqlDataAdapter($@"SELECT * FROM [dbo].[NCR-CSTM_DefectType]", sqlCon))
                             {
-                                if (_reader.HasRows)
-                                {
-                                    while (_reader.Read())
-                                    {
-                                        _rtnDict.Add(new DefectType(_reader.GetFieldValue<int>(0), _reader.GetFieldValue<string>(1)));
-                                    }
-                                }
+                                adapter.Fill(_dt);
                             }
+                            return _dt;
                         }
-                        return _rtnDict;
+                        catch (SqlException)
+                        {
+                            return _dt;
+                        }
+                        catch (Exception ex)
+                        {
+                            throw new Exception(ex.Message);
+                        }
                     }
-                    catch (SqlException)
+                    else
                     {
-                        return _rtnDict;
+                        throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
                     }
-                    catch (Exception ex)
-                    {
-                        throw new Exception(ex.Message);
-                    }
-                }
-                else
-                {
-                    throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
                 }
             }
 
@@ -139,6 +215,20 @@ namespace SFW.Model
             {
                 Id = dType;
                 Description = dDescrip;
+            }
+
+            /// <summary>
+            /// Load an observable collection with all the NCR defect type information
+            /// </summary>
+            /// <returns>An ObservableCollection of NCR defect types</returns>
+            public static ObservableCollection<DefectType> GetDefectTypeCollection()
+            {
+                var _rtnColl = new ObservableCollection<DefectType>();
+                foreach (DataRow _row in MasterDataSet.Tables["NcrType"].Rows)
+                {
+                    _rtnColl.Add(new DefectType(_row.SafeGetField<int>("DefectTypeId"), _row.SafeGetField<string>("DefectTypeDescription")));
+                }
+                return _rtnColl;
             }
         }
 
@@ -158,40 +248,33 @@ namespace SFW.Model
             /// </summary>
             /// <param name="sqlCon">Sql Connection to use</param>
             /// <returns>An ObservableCollection of NCR reason types</returns>
-            public static ObservableCollection<DefectReason> GetDefectReasonCollection(SqlConnection sqlCon)
+            public static DataTable GetDefectReasonTable(SqlConnection sqlCon)
             {
-                var _rtnDict = new ObservableCollection<DefectReason>();
-                if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
+                using (var _dt = new DataTable())
                 {
-                    try
+                    if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
                     {
-                        using (SqlCommand cmd = new SqlCommand($@"SELECT tmar.[Reason_Code] as 'DefectReasonId', tmar.[Reason_Description] as 'DefectReasonDescription' FROM [dbo].[TM-INIT_Adjust_Reasons] tmar WHERE tmar.[Reason_Code] LIKE 'Q%'", sqlCon))
+                        try
                         {
-                            using (SqlDataReader _reader = cmd.ExecuteReader())
+                            using (SqlDataAdapter adapter = new SqlDataAdapter($@"SELECT tmar.[Reason_Code] as 'DefectReasonId', tmar.[Reason_Description] as 'DefectReasonDescription' FROM [dbo].[TM-INIT_Adjust_Reasons] tmar WHERE tmar.[Reason_Code] LIKE 'Q%'", sqlCon))
                             {
-                                if (_reader.HasRows)
-                                {
-                                    while (_reader.Read())
-                                    {
-                                        _rtnDict.Add(new DefectReason(_reader.GetFieldValue<string>(0), _reader.GetFieldValue<string>(1)));
-                                    }
-                                }
+                                adapter.Fill(_dt);
                             }
+                            return _dt;
                         }
-                        return _rtnDict;
+                        catch (SqlException)
+                        {
+                            return _dt;
+                        }
+                        catch (Exception ex)
+                        {
+                            throw new Exception(ex.Message);
+                        }
                     }
-                    catch (SqlException)
+                    else
                     {
-                        return _rtnDict;
+                        throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
                     }
-                    catch (Exception ex)
-                    {
-                        throw new Exception(ex.Message);
-                    }
-                }
-                else
-                {
-                    throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
                 }
             }
 
@@ -204,6 +287,20 @@ namespace SFW.Model
             {
                 Id = dReason;
                 Description = dDescrip;
+            }
+
+            /// <summary>
+            /// Load an observable collection with all the NCR defect reason information
+            /// </summary>
+            /// <returns>An ObservableCollection of NCR reason types</returns>
+            public static ObservableCollection<DefectReason> GetDefectReasonCollection()
+            {
+                var _rtnColl = new ObservableCollection<DefectReason>();
+                foreach (DataRow _row in MasterDataSet.Tables["NcrReason"].Rows)
+                {
+                    _rtnColl.Add(new DefectReason(_row.SafeGetField<string>("DefectReasonId"), _row.SafeGetField<string>("DefectReasonDescription")));
+                }
+                return _rtnColl;
             }
         }
 
@@ -254,9 +351,6 @@ namespace SFW.Model
                     OnPropertyChanged(nameof(SubmitDateTime));
                 }
             }
-
-            public bool IsEscape { get; set; }
-            public Machine OriginWorkCenter { get; set; }
             public DefectReason DefectReason { get; set; }
             public DefectType DefectType { get; set; }
 
@@ -333,7 +427,6 @@ namespace SFW.Model
                 RevisionId = 1;
                 Submitter = submitter;
                 SubmitDateTime = DateTime.Now;
-                IsEscape = false;
             }
 
             /// <summary>
@@ -345,8 +438,6 @@ namespace SFW.Model
                 RevisionId = ncrDataRow.Field<int>("NcrRevisionId");
                 Submitter = new CrewMember(ncrDataRow.Field<string>("SubmitterId"), false);
                 SubmitDateTime = ncrDataRow.Field<DateTime>("RevisionDateTime");
-                IsEscape = ncrDataRow.Field<short>("IsEscape") == 1;
-                OriginWorkCenter = ncrDataRow.IsNull("OriginWorkCenterId") ? new Machine() : new Machine(ncrDataRow.Field<int>("OriginWorkCenterId"));
                 DefectReason = new DefectReason(ncrDataRow.Field<string>("DefectReason"), ncrDataRow.Field<string>("DefectReasonDescription"));
                 DefectType = new DefectType(ncrDataRow.Field<int>("DefectType"), ncrDataRow.Field<string>("DefectTypeDescription"));
                 PotentialLoss = ncrDataRow.Field<int>("PotentialLoss");
@@ -440,9 +531,24 @@ namespace SFW.Model
                     LotList.Add(new Lot());
                 }
                 OnPropertyChanged(nameof(Part));
+                OnPropertyChanged(nameof(IsEscape));
                 OnPropertyChanged(nameof(LotList));
             }
         }
+        public bool IsEscape 
+        { 
+            get 
+            {
+                if (Part != null && PartCollection != null)
+                {
+                    var _part = PartCollection.FirstOrDefault(o => o.SkuNumber == Part.SkuNumber);
+                    return PartCollection.IndexOf(_part) > 0;
+                }
+                return false;
+            } 
+        }
+
+        
         public BindingList<Lot> LotList { get; set; }
 
         private Machine _foundWC;
@@ -515,14 +621,29 @@ namespace SFW.Model
             ProductValue = double.TryParse(ncrDataRows[0].Field<decimal>("ProductValue").ToString(), out double d) ? d : 0.00;
             Site = ncrDataRows[0].Field<int>("Site");
             RevisionList = new List<Revision>();
-            PartCollection = int.TryParse(OrderSeqId, out int i) ? Sku.GetSkuCollection(OrderId, i) : Sku.GetSkuCollection(OrderId, 10);
-            LotList = GetNcrLotList(id, ModelSqlCon);
-            LotList.ListChanged += LotList_Changed;
             foreach (var ncr in ncrDataRows)
             {
                 RevisionList.Add(new Revision(ncr, ProductValue));
             }
-            PhotoCollection = new ObservableCollection<string>(GetNcrPhotoList(id, ModelSqlCon));
+            using (BackgroundWorker bw = new BackgroundWorker())
+            {
+                try
+                {
+                    bw.DoWork += new DoWorkEventHandler(
+                        delegate (object sender, DoWorkEventArgs e)
+                        {
+                            PartCollection = int.TryParse(OrderSeqId, out int i) ? Sku.GetSkuCollection(OrderId, i) : Sku.GetSkuCollection(OrderId, 10);
+                            LotList = GetNcrLotList(id, ModelSqlCon);
+                            LotList.ListChanged += LotList_Changed;
+                            PhotoCollection = new ObservableCollection<string>(GetNcrPhotoList(id, ModelSqlCon));
+                        });
+                    bw.RunWorkerAsync();
+                }
+                catch (Exception)
+                {
+
+                }
+            }
         }
 
         /// <summary>
@@ -671,7 +792,7 @@ namespace SFW.Model
         /// Submit Lot numbers to an NCR
         /// </summary>
         /// <param name="ncrId">NCR object ID</param>
-        /// <param name="lot">Lot ID</param>
+        /// <param name="lotId">Lot ID</param>
         public static void SubmitLot(int ncrId, string lotId)
         {
             if (!lotId.Contains("|"))
@@ -696,6 +817,34 @@ namespace SFW.Model
             catch (Exception)
             {
 
+            }
+        }
+
+        /// <summary>
+        /// Find out if a photo exists already in the database
+        /// </summary>
+        /// <param name="ncrId">NCR Id</param>
+        /// <param name="photoId">Photo ID</param>
+        /// <param name="sqlCon">Sql Connection to use</param>
+        /// <returns>Pass or fail as bool</returns>
+        public static bool PhotoExists(int ncrId, string photoId, SqlConnection sqlCon)
+        {
+            if (photoId.Contains("waxfs001"))
+            {
+                photoId = photoId.Replace($"\\\\waxfs001\\WAXG-SFW\\QMS Pictures\\", "");
+            }
+            try
+            {
+                using (SqlCommand cmd = new SqlCommand($@"SELECT COUNT([NcrId]) FROM [dbo].[NCR-CSTM_PhotoPath] WHERE [NcrId] = @p1 AND [PhotoPath] = @p2", sqlCon))
+                {
+                    cmd.Parameters.AddWithValue("p1", ncrId);
+                    cmd.Parameters.AddWithValue("p2", photoId);
+                    return int.TryParse(cmd.ExecuteScalar().ToString(), out int i) ? i > 0 : true;
+                }
+            }
+            catch (Exception)
+            {
+                return true;
             }
         }
 
@@ -879,8 +1028,8 @@ namespace SFW.Model
             var _idNumber = 0;
             try
             {
-                using (SqlCommand cmd = new SqlCommand($@"INSERT INTO [dbo].[NCR-CSTM] ([WorkOrderId], [WorkOrderSeqId], [PartId], [FoundWorkCenterId], [ReporterId], [ProductValue], [Site])
-                                                        Values(@p1, @p2, @p3, @p4, @p5, @p6, @p7);
+                using (SqlCommand cmd = new SqlCommand($@"INSERT INTO [dbo].[NCR-CSTM] ([WorkOrderId], [WorkOrderSeqId], [PartId], [FoundWorkCenterId], [ReporterId], [ProductValue], [Site], [IsEscape])
+                                                        Values(@p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8);
                                                         SELECT [NcrId] FROM [dbo].[NCR-CSTM] WHERE [NcrId] = @@IDENTITY;", sqlCon))
                 {
                     cmd.Parameters.AddWithValue("p1", ncrObject.OrderId);
@@ -890,6 +1039,7 @@ namespace SFW.Model
                     cmd.Parameters.AddWithValue("p5", ncrObject.Reporter.IdNumber);
                     cmd.Parameters.AddWithValue("p6", ncrObject.ProductValue);
                     cmd.Parameters.AddWithValue("p7", ncrObject.Site);
+                    cmd.Parameters.AddWithValue("p8", ncrObject.IsEscape ? 1 : 0);
                     _idNumber = Convert.ToInt32(cmd.ExecuteScalar());
                     ncrObject.NcrId = _idNumber;
                 }
@@ -921,28 +1071,18 @@ namespace SFW.Model
         {
             try
             {
-                using (SqlCommand cmd = new SqlCommand($@"INSERT INTO [dbo].[NCR-CSTM_Revisions] ([NcrId], [NcrRevisionId], [SubmitterId], [RevisionDateTime], [IsEscape], [OriginWorkCenterId], [DefectReason], [DefectType], [PotentialLoss], [DispositionId], [Description])
-                                                        Values(@p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, @p10, @p11);", sqlCon))
+                using (SqlCommand cmd = new SqlCommand($@"INSERT INTO [dbo].[NCR-CSTM_Revisions] ([NcrId], [NcrRevisionId], [SubmitterId], [RevisionDateTime], [DefectReason], [DefectType], [PotentialLoss], [DispositionId], [Description])
+                                                        Values(@p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9);", sqlCon))
                 {
                     cmd.Parameters.AddWithValue("p1", ncrId);
                     cmd.Parameters.AddWithValue("p2", ncrRevId);
                     cmd.Parameters.AddWithValue("p3", ncrRev.Submitter.IdNumber);
                     cmd.Parameters.AddWithValue("p4", ncrRev.SubmitDateTime.ToString("yyyy-MM-dd HH:mm"));
-                    if (ncrRev.IsEscape)
-                    {
-                        cmd.Parameters.AddWithValue("p5", 1);
-                        cmd.Parameters.AddWithValue("p6", ncrRev.OriginWorkCenter.MachineNumber);
-                    }
-                    else
-                    {
-                        cmd.Parameters.AddWithValue("p5", 0);
-                        cmd.Parameters.AddWithValue("p6", DBNull.Value);
-                    }
-                    cmd.Parameters.AddWithValue("p7", ncrRev.DefectReason.Id);
-                    cmd.Parameters.AddWithValue("p8", ncrRev.DefectType.Id);
-                    cmd.Parameters.AddWithValue("p9", ncrRev.PotentialLoss);
-                    cmd.Parameters.AddWithValue("p10", ncrRev.Disposition.Id);
-                    cmd.Parameters.AddWithValue("p11", ncrRev.Description);
+                    cmd.Parameters.AddWithValue("p5", ncrRev.DefectReason.Id);
+                    cmd.Parameters.AddWithValue("p6", ncrRev.DefectType.Id);
+                    cmd.Parameters.AddWithValue("p7", ncrRev.PotentialLoss);
+                    cmd.Parameters.AddWithValue("p8", ncrRev.Disposition.Id);
+                    cmd.Parameters.AddWithValue("p9", ncrRev.Description);
                     cmd.ExecuteNonQuery();
                 }
             }
@@ -1003,31 +1143,15 @@ namespace SFW.Model
         {
             try
             {
-                var _oldPhotoList = Ncr.GetNcrPhotoList(ncrObj.NcrId, sqlCon);
                 var _folderPath = $"\\\\waxfs001\\WAXG-SFW\\QMS Pictures\\";
                 foreach (var fullPathPhoto in ncrObj.PhotoCollection)
                 {
                     var _photo = fullPathPhoto.Replace(_folderPath, "");
-                    if (_oldPhotoList.Count(o => o == _photo) == 0)
+                    using (SqlCommand cmd = new SqlCommand($@"INSERT INTO [dbo].[NCR-CSTM_PhotoPath] ([NcrId], [PhotoPath]) Values(@p1, @p2)", sqlCon))
                     {
-                        using (SqlCommand cmd = new SqlCommand($@"INSERT INTO [dbo].[NCR-CSTM_PhotoPath] ([NcrId], [PhotoPath]) Values(@p1, @p2)", sqlCon))
-                        {
-                            cmd.Parameters.AddWithValue("p1", ncrObj.NcrId);
-                            cmd.Parameters.AddWithValue("p2", _photo);
-                            cmd.ExecuteNonQuery();
-                        }
-                    }
-                }
-                foreach (var oldPhoto in _oldPhotoList)
-                {
-                    if (ncrObj.PhotoCollection.Count(o => o == oldPhoto) == 0)
-                    {
-                        using (SqlCommand cmd = new SqlCommand($@"DELETE FROM [dbo].[NCR-CSTM_PhotoPath] WHERE [NcrId] = @p1 AND [PhotoPath] = @p2", sqlCon))
-                        {
-                            cmd.Parameters.AddWithValue("p1", ncrObj.NcrId);
-                            cmd.Parameters.AddWithValue("p2", oldPhoto);
-                            cmd.ExecuteNonQuery();
-                        }
+                        cmd.Parameters.AddWithValue("p1", ncrObj.NcrId);
+                        cmd.Parameters.AddWithValue("p2", _photo);
+                        cmd.ExecuteNonQuery();
                     }
                 }
             }

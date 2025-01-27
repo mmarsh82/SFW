@@ -1,9 +1,7 @@
 ﻿using SFW.Model;
 using System;
-using System.ComponentModel;
 using System.Data;
 using System.Linq;
-using System.Windows.Data;
 
 namespace SFW.CycleCount
 {
@@ -11,7 +9,7 @@ namespace SFW.CycleCount
     {
         #region Properties
 
-        public ICollectionView CountView { get; set; }
+        public DataView CountView { get; set; }
 
         private DataRowView _selCnt;
         public DataRowView SelectedCount
@@ -38,22 +36,21 @@ namespace SFW.CycleCount
             {
                 if (_sFilter == null || value == null)
                 {
-                    _originalFilter = ((DataView)CountView.SourceCollection).RowFilter;
+                    _originalFilter = CountView.RowFilter;
                 }
                 if (!string.IsNullOrEmpty(value))
                 {
-                    var _sRowFilter = ((DataView)CountView.SourceCollection).Table.SearchRowFilter(value);
-                    ((DataView)CountView.SourceCollection).RowFilter = !string.IsNullOrEmpty(_originalFilter)
+                    var _sRowFilter = CountView.Table.SearchRowFilter(value);
+                    CountView.RowFilter = !string.IsNullOrEmpty(_originalFilter)
                         ? $"{_originalFilter} AND ({_sRowFilter})"
                         : _sRowFilter;
                 }
                 else
                 {
-                    ((DataView)CountView.SourceCollection).RowFilter = _originalFilter;
+                    CountView.RowFilter = _originalFilter;
                 }
                 _sFilter = value == "" ? null : value;
                 OnPropertyChanged(nameof(SearchFilter));
-                CountView.Refresh();
             }
         }
 
@@ -126,17 +123,16 @@ namespace SFW.CycleCount
             }
             else
             {
-                ((DataView)CountView.SourceCollection).RowFilter = $"PartNumber = '{filter}'";
+                CountView.RowFilter = $"PartNumber = '{filter}'";
                 OnPropertyChanged(nameof(CountView));
             }
         }
 
         public void ViewLoading(string filter)
         {
-            CountView = CollectionViewSource.GetDefaultView(Count.GetScheduleData(App.AppSqlCon));
-            CountView.GroupDescriptions.Add(new PropertyGroupDescription("CountLoc"));
+            CountView = Count.GetScheduleData(App.AppSqlCon).AsDataView();
             EmptyCount = CountView.Cast<object>().Count() == 0;
-            CountView.Refresh();
+            OnPropertyChanged(nameof(CountView));
         }
         public void ViewLoaded(IAsyncResult r)
         {
@@ -151,21 +147,15 @@ namespace SFW.CycleCount
         {
             try
             {
-                var _oldItem = CountView.CurrentItem;
-                CountView = CollectionViewSource.GetDefaultView(Count.GetScheduleData(App.AppSqlCon));
-                CountView.GroupDescriptions.Add(new PropertyGroupDescription("CountLoc"));
+                var _oldItem = SelectedCount;
+                CountView = Count.GetScheduleData(App.AppSqlCon).AsDataView();
+                SelectedCount = _oldItem != null
+                    ? _oldItem
+                    : null;
+                SearchFilter = !string.IsNullOrEmpty(SearchFilter)
+                    ? SearchFilter
+                    : string.Empty;
                 OnPropertyChanged(nameof(CountView));
-                if (_oldItem != null && ((DataView)CountView.SourceCollection).Table.AsEnumerable().Any(r => r.Field<string>("CountID") == ((DataRowView)_oldItem).Row.Field<string>("CountID")))
-                {
-                    var schedList = ((DataView)CountView.SourceCollection).Table.AsEnumerable().ToList();
-                    var listIndex = schedList.FindIndex(r => r.Field<string>("CountID") == ((DataRowView)_oldItem).Row.Field<string>("CountID"));
-                    CountView.MoveCurrentToPosition(listIndex);
-                }
-                CountView.Refresh();
-                if (!string.IsNullOrEmpty(SearchFilter))
-                {
-                    SearchFilter = SearchFilter;
-                }
             }
             catch (Exception)
             { }
@@ -179,22 +169,19 @@ namespace SFW.CycleCount
         {
             try
             {
-                var _oldItem = CountView.CurrentItem;
+                var _oldItem = SelectedCount;
                 var _schedData = Count.GetScheduleData(App.AppSqlCon);
                 _schedData.Rows.Remove(_schedData.Select($"CountID == '{filter}'")[0]);
                 _schedData.AcceptChanges();
-                CountView = CollectionViewSource.GetDefaultView(_schedData);
-                CountView.GroupDescriptions.Add(new PropertyGroupDescription("CountLoc"));
-                OnPropertyChanged(nameof(CountView));
-                CountView.Refresh();
-                if (!string.IsNullOrEmpty(SearchFilter))
-                {
-                    SearchFilter = SearchFilter;
-                }
-                if (((DataView)CountView.SourceCollection).Count == 0)
+                CountView = _schedData.AsDataView();
+                SearchFilter = !string.IsNullOrEmpty(SearchFilter)
+                     ? SearchFilter
+                     : string.Empty;
+                if (CountView.Count == 0)
                 {
                     Controls.WorkSpaceDock.UpdateChildDock(3, 1, new Form_ViewModel());
                 }
+                OnPropertyChanged(nameof(CountView));
             }
             catch (Exception)
             { }

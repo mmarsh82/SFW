@@ -11,7 +11,12 @@ namespace SFW.Converters
 
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (parameter != null && parameter.ToString().Contains("Ncr"))
+            if (parameter != null && parameter.ToString()[0] == 'L')
+            {
+                var _shift = parameter.ToString()[1].ToString();
+                return _shift == value.ToString() ? Visibility.Visible : Visibility.Collapsed;
+            }
+            else if (parameter != null && parameter.ToString().Contains("Ncr"))
             {
                 var _temp = int.TryParse(value.ToString(), out int i) ? i : 0;
                 switch (parameter.ToString())

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SFW.Model;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.DirectoryServices;
@@ -132,6 +133,18 @@ namespace SFW
             {
                 _canLabor = value;
                 StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(CanLabor)));
+            }
+        }
+
+        private static bool _laborAdmin;
+        public static bool LaborAdmin
+        {
+            get
+            { return _laborAdmin; }
+            private set
+            {
+                _laborAdmin = value;
+                StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(LaborAdmin)));
             }
         }
 
@@ -339,6 +352,18 @@ namespace SFW
             }
         }
 
+        private static IList<CrewMember> _reports;
+        public static IList<CrewMember> DirectReports
+        {
+            get
+            { return _reports; }
+            set
+            {
+                _reports = value;
+                StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(DirectReports)));
+            }
+        }
+
         public static bool IsNamedUser { get; set; }
 
         public static event EventHandler<PropertyChangedEventArgs> StaticPropertyChanged;
@@ -369,7 +394,7 @@ namespace SFW
             {
                 if (_aGroups.Count(o => o.Contains("SFW-Admin")) > 0)
                 {
-                    CanTrain = CanSchedule = IsSupervisor = IsInventoryControl = IsAccountsReceivable = IsAdmin = HasSalesOrderModule = IsQuality = IsEngineer = CanSplit = CanDeviate = HasNotice = Planner = true;
+                    CanTrain = CanSchedule = IsSupervisor = IsInventoryControl = IsAccountsReceivable = IsAdmin = HasSalesOrderModule = IsQuality = IsEngineer = CanSplit = CanDeviate = HasNotice = Planner = LaborAdmin = true;
                     BasicUser = false;
                 }
                 else
@@ -386,12 +411,26 @@ namespace SFW
                     CanSplit = _aGroups.Count(o => o.Contains("SFW-Adjust")) > 0;
                     CanDeviate = _aGroups.Count(o => o.Contains("SFW-Deviate")) > 0;
                     Planner = _aGroups.Count(o => o.Contains("SFW-Planner")) > 0;
+                    LaborAdmin = _aGroups.Count(o => o.Contains("SFW-LaborAdmin")) > 0;
                     BasicUser = false;
                 }
             }
             else
             {
                 BasicUser = true;
+            }
+            DirectReports = new List<CrewMember>();
+            if (IsSupervisor)
+            {
+                var _reports = user.GetDirectReports();
+                foreach (var _report in _reports)
+                {
+                    DirectReports.Add(new CrewMember(_report.Key, _report.Value));
+                }
+            }
+            else
+            {
+                DirectReports = new List<CrewMember>();
             }
             IsLoggedIn = true;
             CanWip = true;
@@ -642,6 +681,7 @@ namespace SFW
             IsEngineer = false;
             IsQuality = HasNotice = false;
             Planner = false;
+            LaborAdmin = false;
             Controls.WorkSpaceDock.RefreshMainDock();
             MainWindowViewModel.UpdateProperties(false);
         }

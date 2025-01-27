@@ -76,13 +76,13 @@
                     <RowDefinition x:Name="Row3" Height="10"/>
                     <RowDefinition x:Name="Row4" Height="30"/>
                     <RowDefinition x:Name="Row5" Height="10"/>
-                    <RowDefinition x:Name="Row6" Height="30"/>
+                    <RowDefinition x:Name="Row6" Height="35"/>
                     <RowDefinition x:Name="Row7" Height="10"/>
-                    <RowDefinition x:Name="Row8" Height="30"/>
+                    <RowDefinition x:Name="Row8" Height="35"/>
                     <RowDefinition x:Name="Row9" Height="10"/>
-                    <RowDefinition x:Name="Row10" Height="30"/>
+                    <RowDefinition x:Name="Row10" Height="35" />
                     <RowDefinition x:Name="Row11" Height="10"/>
-                    <RowDefinition x:Name="Row12" Height="30" />
+                    <RowDefinition x:Name="Row12" Height="35" />
                     <RowDefinition x:Name="Row13" Height="10"/>
                     <RowDefinition x:Name="Row14" Height="*"/>
                     <RowDefinition x:Name="Row15" Height="10"/>
@@ -116,14 +116,8 @@
                             FontSize="16"
                             Command="{StaticResource AddPhoto}"
                             CommandParameter="{Binding DataContext, ElementName=NcrFormUC}"
-                            Style="{DynamicResource MenuButtonStyle}">
-                        <Button.Visibility>
-                            <MultiBinding Converter="{StaticResource BoolToVisConverter}">
-                                <Binding Path="(main:CurrentUser.IsQuality)"/>
-                                <Binding Path="NcrObject.NcrId"/>
-                            </MultiBinding>
-                        </Button.Visibility>
-                    </Button>
+                            Visibility="{Binding Path=(main:CurrentUser.IsQuality), Converter={StaticResource BoolToVisConverter}}"
+                            Style="{DynamicResource MenuButtonStyle}"/>
 
                     <Button Content="Cancel"
                             FontSize="16"
@@ -204,6 +198,13 @@
                                FontWeight="Bold"
                                VerticalAlignment="Center"
                                Foreground="{Binding SelectedDisposition.Status, Converter={StaticResource StatusToColorConverter}}"
+                               Margin="70,0,0,0"/>
+
+                    <TextBlock Text="Escape"
+                               FontSize="20"
+                               FontWeight="Bold"
+                               VerticalAlignment="Center"
+                               Visibility="{Binding NcrObject.IsEscape, Converter={StaticResource BoolToVisConverter}}"
                                Margin="70,0,0,0"/>
 
                 </StackPanel>
@@ -310,7 +311,7 @@
                     <TextBlock Text="Operation:"
                                FontSize="24"
                                FontWeight="Bold"
-                               Margin="50,0,0,0"
+                               Margin="30,0,0,0"
                                TextDecorations="Underline"
                                Foreground="#FF135185"/>
 
@@ -344,6 +345,17 @@
                             </MultiBinding>
                         </TextBox.Visibility>
                     </TextBox>
+
+                    <TextBlock Text="Work Center:"
+                               FontSize="24"
+                               FontWeight="Bold"
+                               Margin="30,0,0,0"
+                               TextDecorations="UnderLine"
+                               Foreground="#FF135185"/>
+
+                    <TextBlock Text="{Binding NcrObject.FoundWorkCenter.MachineName}"
+                               FontSize="24"
+                               Margin="10,0,0,0"/>
 
                 </StackPanel>
 
@@ -457,77 +469,9 @@
                 <!--#region Grid.Row 9  (Used as a spacer)-->
                 <!--#endregion-->
 
-                <!--#region Grid.Row 10 Machine Information-->
+                <!--#region Grid.Row 10 Loss Information-->
 
                 <StackPanel Grid.Row="10" Orientation="Horizontal"
-                            Visibility="{Binding NcrObject.IsValidOrder, Converter={StaticResource BoolToVisConverter}}">
-
-                    <TextBlock Text="Found:"
-                               FontSize="24"
-                               FontWeight="Bold"
-                               TextDecorations="UnderLine"
-                               Foreground="#FF135185"/>
-
-                    <TextBlock Text="{Binding NcrObject.FoundWorkCenter.MachineName}"
-                               FontSize="24"
-                               Margin="10,0,0,0"/>
-
-                    <CheckBox x:Name="IsEscape"
-                              IsChecked="{Binding NcrRevision.IsEscape}"
-                              FontSize="24"
-                              Margin="30,0,0,0"
-                              Foreground="#FF135185"
-                              IsEnabled="{Binding Path=(main:CurrentUser.IsQuality)}"
-                              Style="{DynamicResource SliderCheckBox}">
-                        <CheckBox.Content>
-                            <TextBlock Text="Escape:"
-                                       TextDecorations="Underline"/>
-                        </CheckBox.Content>
-                    </CheckBox>
-
-                    <TextBlock Text="Origin:"
-                               FontSize="24"
-                               FontWeight="Bold"
-                               Margin="30,0,0,0"
-                               TextDecorations="Underline"
-                               Visibility="{Binding IsChecked, ElementName=IsEscape, Converter={StaticResource BoolToVisConverter}}"
-                               Foreground="#FF135185"/>
-
-                    <TextBlock Text="{Binding SelectedOriginMachine.MachineName}"
-                               FontSize="24"
-                               Margin="10,0,0,0"
-                               Visibility="{Binding Path=(main:CurrentUser.IsQuality), Converter={StaticResource BoolToVisConverter}}"/>
-
-                    <ComboBox x:Name="OriginMachine"
-                              ItemsSource="{Binding MachineCollection, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                              SelectedValue="{Binding SelectedOriginMachine, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                              DisplayMemberPath="MachineName"
-                              FontSize="18"
-                              FontWeight="Bold"
-                              Background="LightGray"
-                              IsEditable="True"
-                              Width="150"
-                              TabIndex="5"
-                              Margin="5,0,0,0"
-                              Style="{DynamicResource RequiredComboBox}">
-                        <ComboBox.Visibility>
-                            <MultiBinding Converter="{StaticResource BoolToVisConverter}">
-                                <Binding Path="IsChecked" ElementName="IsEscape"/>
-                                <Binding Path="(main:CurrentUser.IsQuality)"/>
-                            </MultiBinding>
-                        </ComboBox.Visibility>
-                    </ComboBox>
-
-                </StackPanel>
-
-                <!--#endregion-->
-
-                <!--#region Grid.Row 11  (Used as a spacer)-->
-                <!--#endregion-->
-
-                <!--#region Grid.Row 12 Loss Information-->
-
-                <StackPanel Grid.Row="12" Orientation="Horizontal"
                             Visibility="{Binding NcrObject.IsValidOrder, Converter={StaticResource BoolToVisConverter}}">
 
                     <TextBlock Text="Potential Loss:"
@@ -589,10 +533,21 @@
                                Foreground="Crimson"
                                Margin="10,0,0,0"/>
 
+                </StackPanel>
+
+                <!--#endregion-->
+
+                <!--#region Grid.Row 11  (Used as a spacer)-->
+                <!--#endregion-->
+
+                <!--#region Grid.Row 12 Disposition and Closing action-->
+
+                <StackPanel Grid.Row="12" Orientation="Horizontal"
+                            Visibility="{Binding NcrObject.IsValidOrder, Converter={StaticResource BoolToVisConverter}}">
+
                     <TextBlock Text="Disposition:"
                                FontSize="24"
                                FontWeight="Bold"
-                               Margin="30,0,0,0"
                                TextDecorations="Underline"
                                Foreground="#FF135185"/>
 
@@ -613,6 +568,31 @@
                               Visibility="{Binding Path=(main:CurrentUser.IsQuality), Converter={StaticResource BoolToVisConverter}}"
                               Style="{DynamicResource RequiredComboBox}"/>
 
+                    <TextBlock Text="Closing Action:"
+                               FontSize="24"
+                               FontWeight="Bold"
+                               Margin="30,0,0,0"
+                               TextDecorations="Underline"
+                               Visibility="Collapsed"
+                               Foreground="#FF135185"/>
+
+                    <TextBlock Text="Test"
+                               FontSize="24"
+                               Margin="10,0,0,0"
+                               Visibility="Collapsed"/>
+
+                    <ComboBox x:Name="Action"
+                              ItemsSource="{Binding DispositionCollection, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                              SelectedValue="{Binding SelectedDisposition, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                              DisplayMemberPath="Description"
+                              FontSize="18"
+                              FontWeight="Bold"
+                              Width="200"
+                              TabIndex="7"
+                              Margin="5,0,0,0"
+                              Visibility="Collapsed"
+                              Style="{DynamicResource RequiredComboBox}"/>
+
                 </StackPanel>
 
                 <!--#endregion-->
@@ -620,7 +600,7 @@
                 <!--#region Grid.Row 13  (Used as a spacer)-->
                 <!--#endregion-->
 
-                <!--#region Grid.Row 14 NCR Notes-->
+                <!--#region Grid.Row 14 NCR Notes and Lot information-->
 
                 <Grid Grid.Row="14"
                       Visibility="{Binding NcrObject.IsValidOrder, Converter={StaticResource BoolToVisConverter}}">

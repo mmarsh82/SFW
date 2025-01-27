@@ -150,7 +150,7 @@
                 <MenuItem Header="Planning Schedule"
                           Command="{StaticResource ViewLoadICommand}"
                           CommandParameter="11"
-                          Visibility="{Binding Path=(local:CurrentUser.HasNotice), Converter={StaticResource BoolToVisConverter}}"/>
+                          Visibility="{Binding Path=(local:CurrentUser.CanSchedule), Converter={StaticResource BoolToVisConverter}}"/>
             </MenuItem>
             <MenuItem Header="Tools">
                 <MenuItem Header="Part Information"

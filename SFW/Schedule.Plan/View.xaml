@@ -22,6 +22,13 @@
         <cvtr:BoolToBackgroundColor x:Key="BoolToBGConverter"/>
         <cvtr:IntToBool x:Key="IntToBoolConverter"/>
         <cvtr:DisplayToolTip x:Key="DisplayToolTip"/>
+        <cvtr:WorkCenterNameConverter x:Key="MachineNameConverter"/>
+        <CollectionViewSource x:Key="PlanningSource" Source="{Binding PlanningView}">
+            <CollectionViewSource.GroupDescriptions>
+                <PropertyGroupDescription PropertyName="MachineNumber"
+                                  Converter="{StaticResource MachineNameConverter}"/>
+            </CollectionViewSource.GroupDescriptions>
+        </CollectionViewSource>
 
         <ContextMenu x:Key="rowMenu">
             <MenuItem Header="Work Order State"
@@ -181,7 +188,7 @@
 
         <DataGrid x:Name="WorkCenterSchedule"
                   Grid.Row="1"
-                  ItemsSource="{Binding ScheduleView, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                  ItemsSource="{Binding Source={StaticResource PlanningSource}}"
                   SelectedItem="{Binding SelectedWorkOrder, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                   HorizontalAlignment="Left"
                   HeadersVisibility="None"

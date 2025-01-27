@@ -1,15 +1,12 @@
 ﻿using M2kClient;
 using SFW.Commands;
-using SFW.Converters;
 using SFW.Helpers;
 using SFW.Model;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
 using System.Linq;
 using System.Windows;
-using System.Windows.Data;
 using System.Windows.Input;
 
 //Created by Michael Marsh 4-21-18
@@ -21,7 +18,7 @@ namespace SFW.Schedule.Plan
         #region Properties
 
         public string[] ScheduleViewFilter;
-        public ICollectionView PlanningView { get; set; }
+        public DataView PlanningView { get; set; }
 
         private DataRowView _selectedWO;
         public DataRowView SelectedWorkOrder
@@ -51,7 +48,7 @@ namespace SFW.Schedule.Plan
                 { }
             }
         }
-        private object _oldSelectedWO;
+        private DataRowView _oldSelectedWO;
 
         private bool _isLoading;
         public bool IsLoading
@@ -67,7 +64,7 @@ namespace SFW.Schedule.Plan
             set
             {
                 _sFilter = value == "" ? null : value;
-                var _filter = string.IsNullOrEmpty(value) ? "" : ((DataView)PlanningView.SourceCollection).Table.SearchRowFilter(value);
+                var _filter = string.IsNullOrEmpty(value) ? "" : PlanningView.Table.SearchRowFilter(value);
                 ScheduleFilter(_filter, 0);
                 OnPropertyChanged(nameof(SearchFilter));
             }
@@ -117,9 +114,7 @@ namespace SFW.Schedule.Plan
         public delegate void LoadDelegate(string s);
         public LoadDelegate LoadAsyncDelegate { get; private set; }
         public LoadDelegate FilterAsyncDelegate { get; private set; }
-        public static IAsyncResult LoadAsyncComplete { get; set; }
-
-        public static event EventHandler<PropertyChangedEventArgs> StaticPropertyChanged;
+        public IAsyncResult LoadAsyncComplete { get; set; }
 
         private RelayCommand _stateChange;
         private RelayCommand _priChange;
@@ -139,24 +134,6 @@ namespace SFW.Schedule.Plan
             ScheduleViewFilter = new string[7];
             ScheduleFilter($"[Site] = {App.SiteNumber}", 6);
             ClosedFilter = false;
-        }
-
-        /// <summary>
-        /// Schedule ViewModel constructor for loading in a specific workcenter
-        /// </summary>
-        /// <param name="machineNumber">Machine Number to load into the schedule</param>
-        public ViewModel(string machineNumber)
-        {
-            try
-            {
-                LoadAsyncDelegate = new LoadDelegate(ViewLoading);
-                FilterAsyncDelegate = new LoadDelegate(FilterView);
-                LoadAsyncComplete = LoadAsyncDelegate.BeginInvoke(machineNumber, new AsyncCallback(ViewLoaded), null);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Schedule\n{ex.Message}", "Unhandled Exception", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
         }
 
         /// <summary>
@@ -185,8 +162,8 @@ namespace SFW.Schedule.Plan
                 var _tempList = new List<DataView>();
                 if (PlanningView != null)
                 {
-                    ((DataView)PlanningView.SourceCollection).RowFilter = _filterStr;
-                    PlanningView.Refresh();
+                    PlanningView.RowFilter = _filterStr;
+                    OnPropertyChanged(nameof(PlanningView));
                 }
             }
             else
@@ -203,16 +180,13 @@ namespace SFW.Schedule.Plan
             if (ScheduleViewFilter != null)
             {
                 ScheduleViewFilter = new string[7];
-                if (PlanningView != null && PlanningView.SourceCollection != null && ((DataView)PlanningView.SourceCollection).RowFilter != null)
+                if (PlanningView != null && PlanningView!= null && PlanningView.RowFilter != null)
                 {
-                    ((DataView)PlanningView.SourceCollection).RowFilter = "";
+                    PlanningView.RowFilter = "";
                 }
                 ScheduleFilter("[Status] <> 'C'", 5);
                 ScheduleFilter($"[Site] = {App.SiteNumber}", 6);
-                if (PlanningView != null)
-                {
-                    PlanningView.Refresh();
-                }
+                OnPropertyChanged(nameof(PlanningView));
             }
         }
 
@@ -254,29 +228,25 @@ namespace SFW.Schedule.Plan
                 var _oldfilter = string.Empty;
                 if (PlanningView != null && CurrentUser.IsLoggedIn)
                 {
-                    _oldfilter = ((DataView)PlanningView.SourceCollection).RowFilter;
+                    _oldfilter = PlanningView.RowFilter;
                 }
-                PlanningView = CollectionViewSource.GetDefaultView(ModelBase.MasterDataSet.Tables["Master"]);
+                PlanningView = ModelBase.MasterDataSet.Tables["Master"].AsDataView();
                 ScheduleFilter(UserConfig.BuildMachineFilter(), 1);
                 ScheduleFilter(UserConfig.BuildPriorityFilter(), 3);
-                PlanningView.GroupDescriptions.Add(new PropertyGroupDescription("MachineNumber", new WorkCenterNameConverter()));
                 if (_oldSelectedWO != null)
                 {
-                    if (((DataView)PlanningView.SourceCollection).Table.AsEnumerable().Any(row => row.Field<string>("WorkOrderID") == ((DataRowView)_oldSelectedWO).Row.Field<string>("WorkOrderID")))
+                    if (PlanningView.Table.AsEnumerable().Any(row => row.Field<string>("WorkOrderID") == _oldSelectedWO.Row.Field<string>("WorkOrderID")))
                     {
-                        var _index = PlanningView.IndexOf(_oldSelectedWO, "WorkOrderID");
-                        PlanningView.MoveCurrentToPosition(_index);
-                        SelectedWorkOrder = (DataRowView)_oldSelectedWO;
+                        SelectedWorkOrder = _oldSelectedWO;
                     }
                     else
                     {
-                        PlanningView.MoveCurrentToPosition(-1);
                         SelectedWorkOrder = null;
                     }
                 }
                 if (!string.IsNullOrEmpty(_oldfilter))
                 {
-                    ((DataView)PlanningView.SourceCollection).RowFilter = _oldfilter;
+                    PlanningView.RowFilter = _oldfilter;
                 }
                 if (!string.IsNullOrEmpty(SearchFilter))
                 {
@@ -302,10 +272,10 @@ namespace SFW.Schedule.Plan
                 if (!IsLoading)
                 {
                     RefreshTimer.IsRefreshing = IsLoading = Refresh = true;
-                    MainWindowViewModel.DisplayAction = App.LoadedModule == Enumerations.UsersControls.Schedule;
-                    _oldSelectedWO = PlanningView.CurrentItem;
+                    MainWindowViewModel.DisplayAction = App.LoadedModule == Enumerations.UsersControls.Plan;
+                    _oldSelectedWO = SelectedWorkOrder;
                     SelectedWorkOrder = null;
-                    LoadAsyncComplete = LoadAsyncDelegate.BeginInvoke(((DataView)PlanningView.SourceCollection).RowFilter, new AsyncCallback(ViewLoaded), null);
+                    LoadAsyncComplete = LoadAsyncDelegate.BeginInvoke(PlanningView.RowFilter, new AsyncCallback(ViewLoaded), null);
                 }
             }
             catch (Exception ex)

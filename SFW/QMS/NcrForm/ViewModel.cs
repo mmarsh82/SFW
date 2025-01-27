@@ -1,7 +1,6 @@
 ﻿using SFW.Helpers;
 using SFW.Model;
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
@@ -77,21 +76,6 @@ namespace SFW.QMS.NcrForm
                     NcrRevision.Disposition = value;
                 }
                 OnPropertyChanged(nameof(SelectedDisposition));
-                OnPropertyChanged(nameof(NcrRevision));
-            }
-        }
-
-        public ObservableCollection<Machine> MachineCollection { get; set; }
-        public Machine SelectedOriginMachine
-        {
-            get { return NcrRevision.OriginWorkCenter; }
-            set
-            {
-                if (NcrRevision != null)
-                {
-                    NcrRevision.OriginWorkCenter = value;
-                }
-                OnPropertyChanged(nameof(SelectedOriginMachine));
                 OnPropertyChanged(nameof(NcrRevision));
             }
         }
@@ -184,19 +168,15 @@ namespace SFW.QMS.NcrForm
             {
                 if (NcrReasonCollection == null)
                 {
-                    NcrReasonCollection = Ncr.DefectReason.GetDefectReasonCollection(App.AppSqlCon);
+                    NcrReasonCollection = Ncr.DefectReason.GetDefectReasonCollection();
                 }
                 if (NcrTypeCollection == null)
                 {
-                    NcrTypeCollection = Ncr.DefectType.GetDefectTypeCollection(App.AppSqlCon);
+                    NcrTypeCollection = Ncr.DefectType.GetDefectTypeCollection();
                 }
                 if (DispositionCollection == null)
                 {
-                    DispositionCollection = Ncr.Disposition.GetDispositionCollection(App.AppSqlCon);
-                }
-                if (MachineCollection == null)
-                {
-                    MachineCollection = new ObservableCollection<Machine>(Machine.GetMachineList(false, false, CurrentUser.Facility));
+                    DispositionCollection = Ncr.Disposition.GetDispositionCollection();
                 }
                 if (CrewCollection == null)
                 {
@@ -218,12 +198,11 @@ namespace SFW.QMS.NcrForm
                 NcrObject = new Ncr(workOrder, new CrewMember(CurrentUser.FirstName, CurrentUser.LastName));
                 NcrRevision = NcrObject.RevisionList[0];
                 ActionType = "Submit";
-                MachineCollection = new ObservableCollection<Machine>(Machine.GetMachineList(false, false, NcrObject.Site));
                 CrewCollection = CrewMember.GetCrewCollection(NcrObject.Site);
                 LoadedWorkOrder = workOrder;
-                NcrReasonCollection = Ncr.DefectReason.GetDefectReasonCollection(App.AppSqlCon);
-                NcrTypeCollection = Ncr.DefectType.GetDefectTypeCollection(App.AppSqlCon);
-                DispositionCollection = Ncr.Disposition.GetDispositionCollection(App.AppSqlCon);
+                NcrReasonCollection = Ncr.DefectReason.GetDefectReasonCollection();
+                NcrTypeCollection = Ncr.DefectType.GetDefectTypeCollection();
+                DispositionCollection = Ncr.Disposition.GetDispositionCollection();
             }
             catch (Exception ex)
             {
@@ -250,32 +229,30 @@ namespace SFW.QMS.NcrForm
                 NcrObject = ncr;
                 NcrRevision = ncr.RevisionList.FirstOrDefault(o => o.RevisionId == revId);
                 ActionType = "Update";
-                MachineCollection = new ObservableCollection<Machine>(Machine.GetMachineList(false, false, NcrObject.Site));
-                SelectedOriginMachine = MachineCollection.FirstOrDefault(o => o.MachineNumber == NcrRevision.OriginWorkCenter.MachineNumber);
                 CrewCollection = CrewMember.GetCrewCollection(NcrObject.Site);
                 NcrObject.Reporter = CrewCollection.FirstOrDefault(o => o.IdNumber == NcrObject.Reporter.IdNumber);
                 ViewPotentialLoss = NcrRevision.PotentialLoss.ToString();
-                NcrReasonCollection = Ncr.DefectReason.GetDefectReasonCollection(App.AppSqlCon);
+                NcrReasonCollection = Ncr.DefectReason.GetDefectReasonCollection();
                 SelectedReason = NcrReasonCollection.FirstOrDefault(o => o.Id == NcrRevision.DefectReason.Id);
-                NcrTypeCollection = Ncr.DefectType.GetDefectTypeCollection(App.AppSqlCon);
+                NcrTypeCollection = Ncr.DefectType.GetDefectTypeCollection();
                 SelectedType = NcrTypeCollection.FirstOrDefault(o => o.Id == NcrRevision.DefectType.Id);
-                DispositionCollection = Ncr.Disposition.GetDispositionCollection(App.AppSqlCon);
+                DispositionCollection = Ncr.Disposition.GetDispositionCollection();
                 SelectedDisposition = DispositionCollection.FirstOrDefault(o => o.Id == NcrRevision.Disposition.Id);
                 using (BackgroundWorker bw = new BackgroundWorker())
                 {
                     try
                     {
                         bw.DoWork += new DoWorkEventHandler(
-                            delegate (object sender, DoWorkEventArgs e)
+                        delegate (object sender, DoWorkEventArgs e)
+                        {
+                            var _actuals = Ncr.GetActuals(NcrObject.NcrId, App.AppSqlCon);
+                            if (_actuals.Count > 0)
                             {
-                                var _actuals = Ncr.GetActuals(NcrObject.NcrId, App.AppSqlCon);
-                                if (_actuals.Count > 0)
-                                {
-                                    NcrRevision.ActualLoss = _actuals.FirstOrDefault().Key;
-                                    NcrRevision.ActualCost = _actuals.FirstOrDefault().Value;
-                                    OnPropertyChanged(nameof(NcrRevision));
-                                }
-                            });
+                                NcrRevision.ActualLoss = _actuals.FirstOrDefault().Key;
+                                NcrRevision.ActualCost = _actuals.FirstOrDefault().Value;
+                                OnPropertyChanged(nameof(NcrRevision));
+                            }
+                        });
                         bw.RunWorkerAsync();
                     }
                     catch (Exception)
@@ -297,8 +274,8 @@ namespace SFW.QMS.NcrForm
         public bool ValidateNewSubmission()
         {
             var validObj = NcrObject.IsValidOrder && !string.IsNullOrEmpty(NcrObject.Reporter?.Name);
-            var validRev = !string.IsNullOrEmpty(NcrRevision.Disposition?.Description) 
-                && ((NcrRevision.IsEscape && !string.IsNullOrEmpty(NcrRevision.OriginWorkCenter?.MachineName) || !NcrRevision.IsEscape))
+            var validRev = !string.IsNullOrEmpty(NcrRevision.Disposition?.Description)
+                && !NcrObject.IsEscape || (NcrObject.IsEscape && NcrObject.Part.IsLotTrace && NcrObject.LotList.Count(o => o.Validated) > 0)
                 && !string.IsNullOrEmpty(NcrRevision.DefectReason?.Description) && !string.IsNullOrEmpty(NcrRevision.DefectType?.Description)
                 && !string.IsNullOrEmpty(NcrRevision.Description);
             var validLot = true;
@@ -338,7 +315,6 @@ namespace SFW.QMS.NcrForm
                 NcrRevision.Submitter = new CrewMember(CurrentUser.FirstName, CurrentUser.LastName);
                 NcrRevision.Submit(NcrObject.NcrId, newRevId, App.AppSqlCon);
                 NcrObject.SubmitLots(App.AppSqlCon);
-                NcrObject.SubmitPhotoPath(App.AppSqlCon);
             }
             
             if (!RefreshTimer.Status)

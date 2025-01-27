@@ -133,13 +133,19 @@ namespace SFW.Model
                     _tempDS.Tables.Add(SalesOrder.GetScheduleData(site, ModelSqlCon));
                     _tempDS.Tables[_tempDS.Tables.Count - 1].TableName = "SalesMaster";
 
-                    _tempDS.Tables.Add(CrewMember.GetCrewLaborTable(site, ModelSqlCon));
-                    _tempDS.Tables[_tempDS.Tables.Count - 1].TableName = "CrewLabor";
-
                     if (site == 1)
                     {
                         _tempDS.Tables.Add(Ncr.GetNoticeTable(site, ModelSqlCon));
                         _tempDS.Tables[_tempDS.Tables.Count - 1].TableName = "NcrNotice";
+
+                        _tempDS.Tables.Add(Ncr.DefectType.GetDefectTypeTable(ModelSqlCon));
+                        _tempDS.Tables[_tempDS.Tables.Count - 1].TableName = "NcrType";
+
+                        _tempDS.Tables.Add(Ncr.Disposition.GetDispositionTable(ModelSqlCon));
+                        _tempDS.Tables[_tempDS.Tables.Count - 1].TableName = "NcrDispo";
+
+                        _tempDS.Tables.Add(Ncr.DefectReason.GetDefectReasonTable(ModelSqlCon));
+                        _tempDS.Tables[_tempDS.Tables.Count - 1].TableName = "NcrReason";
                     }
 
                     MasterDataSet = _tempDS;

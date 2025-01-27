@@ -10,6 +10,7 @@ namespace SFW.QMS.NcrNotice
         public View()
         {
             InitializeComponent();
+            DataContext = new ViewModel();
         }
     }
 }

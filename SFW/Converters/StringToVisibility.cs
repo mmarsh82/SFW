@@ -2,6 +2,7 @@
 using System.Windows;
 using System.Windows.Data;
 using System.Linq;
+using DocumentFormat.OpenXml.Office.CustomXsn;
 
 //Created by Michael Marsh 5-1-18
 
@@ -15,30 +16,37 @@ namespace SFW.Converters
         {
             if (parameter != null)
             {
-                var _val = parameter.ToString();
-                if (_val.Contains("*"))
+                if (parameter.ToString() == "NCR")
                 {
-                    return _val.Replace("*", "") == value.ToString() ? Visibility.Visible : Visibility.Collapsed;
+                    return value?.ToString() == "Open" ? Visibility.Visible : Visibility.Collapsed;
                 }
-                if (string.IsNullOrEmpty(_val))
+                else
                 {
-                    return string.IsNullOrEmpty(value.ToString()) ? Visibility.Collapsed : Visibility.Visible;
-                }
-                switch (_val)
-                {
-                    case "i":
-                        return string.IsNullOrEmpty(value?.ToString()) && !MainWindowViewModel.DisplayAction ? Visibility.Visible : Visibility.Collapsed;
-                    case "Hide":
-                        return string.IsNullOrEmpty(value?.ToString()) ? Visibility.Hidden : Visibility.Visible;
-                    case "Status":
-                        return value?.ToString() == "O" && !CurrentUser.IsEngineer ? Visibility.Collapsed : Visibility.Visible;
-                    case "Sched_Shift":
-                    case "Sched_Priority":
-                        return value?.ToString() == "999" ? Visibility.Collapsed : Visibility.Visible;
-                    case "N":
-                        return value != null && !string.IsNullOrEmpty(value.ToString()) && value.ToString()[value.ToString().Length - 1] == 'N' ? Visibility.Visible : Visibility.Collapsed;
-                    default:
-                        return value.ToString() == parameter.ToString().Replace('~', ' ').Trim() ? Visibility.Visible : Visibility.Collapsed;
+                    var _val = parameter.ToString();
+                    if (_val.Contains("*"))
+                    {
+                        return _val.Replace("*", "") == value.ToString() ? Visibility.Visible : Visibility.Collapsed;
+                    }
+                    if (string.IsNullOrEmpty(_val))
+                    {
+                        return string.IsNullOrEmpty(value.ToString()) ? Visibility.Collapsed : Visibility.Visible;
+                    }
+                    switch (_val)
+                    {
+                        case "i":
+                            return string.IsNullOrEmpty(value?.ToString()) && !MainWindowViewModel.DisplayAction ? Visibility.Visible : Visibility.Collapsed;
+                        case "Hide":
+                            return string.IsNullOrEmpty(value?.ToString()) ? Visibility.Hidden : Visibility.Visible;
+                        case "Status":
+                            return value?.ToString() == "O" && !CurrentUser.IsEngineer ? Visibility.Collapsed : Visibility.Visible;
+                        case "Sched_Shift":
+                        case "Sched_Priority":
+                            return value?.ToString() == "999" ? Visibility.Collapsed : Visibility.Visible;
+                        case "N":
+                            return value != null && !string.IsNullOrEmpty(value.ToString()) && value.ToString()[value.ToString().Length - 1] == 'N' ? Visibility.Visible : Visibility.Collapsed;
+                        default:
+                            return value.ToString() == parameter.ToString().Replace('~', ' ').Trim() ? Visibility.Visible : Visibility.Collapsed;
+                    }
                 }
             }
             else

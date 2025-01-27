@@ -108,11 +108,9 @@ namespace SFW.Controls
                 }
 
                 //Add the Scheduling Plan View
-                /*PlanDock.Children.Insert(0, new Schedule.Plan.View());
+                PlanDock.Children.Insert(0, new Schedule.Plan.View());
                 PlanDock.Children.Insert(1, new ShopRoute.View { DataContext = new ShopRoute.ViewModel() });
-                MainDock.Children.Insert(11, PlanDock);*/
-
-                MainDock.Children.Insert(11, new UserControl());
+                MainDock.Children.Insert(11, PlanDock);
 
                 SwitchView(App.SiteNumber, null, false);
                 RefreshTimer.IsRefreshing = false;
