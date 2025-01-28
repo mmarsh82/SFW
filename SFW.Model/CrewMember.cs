@@ -320,7 +320,8 @@ namespace SFW.Model
         /// </summary>
         /// <param name="firstName">Crew member first name</param>
         /// <param name="lastName">Crew member last name</param>
-        public CrewMember(string firstName, string lastName)
+        /// <param name="loadLabor">Load the labor fields for the crew member</param>
+        public CrewMember(string firstName, string lastName, bool loadLabor)
         {
             var _rows = MasterDataSet.Tables["CREW"].Select($"[FirstName] = '{firstName}' AND [LastName] = '{lastName}'");
             if (_rows.Length > 0)
@@ -329,10 +330,13 @@ namespace SFW.Model
                 Name = _rows.FirstOrDefault().Field<string>("DisplayName");
                 IsDirect = _rows.FirstOrDefault().Field<int>("IsDirect") == 1;
                 Shift = _rows.FirstOrDefault().Field<int>("Shift");
-                ShiftStart = _rows.FirstOrDefault().Field<string>("ShiftStart");
-                ShiftEnd = _rows.FirstOrDefault().Field<string>("ShiftEnd");
                 Facility = $"0{_rows.FirstOrDefault().Field<int>("Site")}";
-                InTime = string.Empty;
+                if (loadLabor)
+                {
+                    ShiftStart = _rows.FirstOrDefault().Field<string>("ShiftStart");
+                    ShiftEnd = _rows.FirstOrDefault().Field<string>("ShiftEnd");
+                    InTime = string.Empty;
+                }
                 if (IsDirect)
                 {
                     IsWorking = true;
@@ -388,7 +392,7 @@ namespace SFW.Model
         /// <param name="date">Date to get the data from</param>
         /// <param name="sqlCon">Sql Connection to use</param>
         /// <returns>List of staff labor</returns>
-        public static List<CrewMember> GetCrewLaborCollection(string manager, DateTime date, SqlConnection sqlCon)
+        public static List<CrewMember> GetCrewLaborList(string manager, DateTime date, SqlConnection sqlCon)
         {
             var _rtnList = new List<CrewMember>();
             var _dateId = (date - Convert.ToDateTime("1967/12/31")).Days;
@@ -404,12 +408,14 @@ namespace SFW.Model
                         {
                             if (reader.HasRows)
                             {
-                                var _laborId = reader.SafeGetString("LaborID").Split('*');
                                 _rtnList.Add(new CrewMember {
-                                    IdNumber = _laborId[0]
-                                    , Name = reader.SafeGetString("DisplayName")
-                                    , Shift = reader.SafeGetInt32("Shift")
-                                    , Facility = _laborId[2]
+                                    IdNumber = reader.SafeGetString("UserID")
+                                    ,Name = reader.SafeGetString("DisplayName")
+                                    ,Shift = reader.SafeGetInt32("Shift")
+                                    ,Facility = reader.SafeGetString("FacilityID")
+                                    ,IsWorking = reader.SafeGetInt32("WorkHours") > 0
+                                    ,HoursWorked = reader.SafeGetInt32("WorkHours")
+                                    ,WorkCenter = new Machine(reader.SafeGetInt32("WorkCenter"))
                                 });
                             }   
                         }
@@ -470,16 +476,17 @@ namespace SFW.Model
         /// </summary>
         /// <param name="crewMembers">List of crew members objects</param>
         /// <param name="action">Type of SQL action to process</param>
+        /// <param name="managerId">Manager employee ID</param>
         /// <param name="sqlCon">Sql Connection to use</param>
         /// <returns>Error or success message</returns>
-        public static string PublishLabor(List<CrewMember> crewMembers, char action, SqlConnection sqlCon)
+        public static string PublishLabor(List<CrewMember> crewMembers, char action, string managerId, SqlConnection sqlCon)
         {
             var cmdString = string.Empty;
             var _dateId = (DateTime.Today - Convert.ToDateTime("1967/12/31")).Days;
             switch (action)
             {
                 case 'S':
-                    cmdString = "INSERT INTO dbo.[EM-CSTM_Working_Data] ([LaborID], [WorkHours], [Shift], [DisplayName], [WorkCenter]) VALUES (@p1, @p2, @p3, @p4, @p5)";
+                    cmdString = "INSERT INTO dbo.[EM-CSTM_Working_Data] ([LaborID], [WorkHours], [Shift], [DisplayName], [WorkCenter], [Manager]) VALUES (@p1, @p2, @p3, @p4, @p5, @p6)";
                     break;
                 case 'U':
                     cmdString = "UPDATE dbo.[EM-CSTM_Working_Data] SET [WorkHours] = @p1, [WorkCenter] = @p2 WHERE [LaborID] = @p3";
@@ -502,6 +509,7 @@ namespace SFW.Model
                                     sqlCommand.Parameters.AddWithValue("@p3", _crewMember.Shift);
                                     sqlCommand.Parameters.AddWithValue("@p4", _crewMember.Name);
                                     sqlCommand.Parameters.AddWithValue("@p5", _crewMember.WorkCenter.MachineNumber);
+                                    sqlCommand.Parameters.AddWithValue("@p5", managerId);
                                     break;
                                 case 'U':
                                     sqlCommand.Parameters.AddWithValue("@p1", _crewMember.HoursWorked);
@@ -605,6 +613,10 @@ namespace SFW.Model
         /// <returns>Time as a string</returns>
         public static string GetInTime(string crewId, string facCode, int dateId)
         {
+            if (WipReceipt.ErpCon == null)
+            {
+                return "24:00";
+            }
             try
             {
                 //var dateId = (DateTime.Today - Convert.ToDateTime("1967/12/31")).Days;

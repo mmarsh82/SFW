@@ -2,9 +2,9 @@
 using SFW.Model;
 using System;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Linq;
 using System.Windows;
+using System.Windows.Documents;
 using System.Windows.Input;
 
 namespace SFW.Tools
@@ -56,12 +56,18 @@ namespace SFW.Tools
                 {
                     if (CrewMember.IsPublished(ManagerId, value, App.AppSqlCon))
                     {
-                        CrewCollection = new ObservableCollection<CrewMember>(CrewMember.GetCrewLaborCollection(ManagerId, value, App.AppSqlCon));
+                        CrewCollection = new ObservableCollection<CrewMember>(CrewMember.GetCrewLaborList(ManagerId, value, App.AppSqlCon));
                         _actionType = 'U';
                     }
                     else
                     {
-                        CrewCollection = new ObservableCollection<CrewMember>(CurrentUser.DirectReports);
+                        CrewCollection = new ObservableCollection<CrewMember>();
+                        foreach (var _report in CurrentUser.DirectReports)
+                        {
+                            var _surName = _report.Value.Split(',')[0];
+                            var _giveName = _report.Value.Split(',')[1];
+                            CrewCollection.Add(new CrewMember(_giveName, _surName, true));
+                        }
                         _actionType = 'S';
                     }
                     NoData = CrewCollection.Count == 0;
@@ -105,10 +111,10 @@ namespace SFW.Tools
         /// </summary>
         public CrewList_ViewModel()
         {
-            var _tempCrewMember = new CrewMember(CurrentUser.FirstName, CurrentUser.LastName);
+            var _tempCrewMember = new CrewMember(CurrentUser.FirstName, CurrentUser.LastName, true);
             Shift = _tempCrewMember.Shift;
             ManagerId = _tempCrewMember.IdNumber;
-            CanEdit = Shift > 0 && Shift < 4 && CurrentUser.IsSupervisor;
+            CanEdit = CurrentUser.IsSupervisor && CurrentUser.DirectReports.Count > 0;
             _isLoading = false;
             SelectedDate = DateTime.Today;
             if (MachineCollection == null)
@@ -133,7 +139,7 @@ namespace SFW.Tools
 
         private void ActionCommandExecute(object parameter)
         {
-            var _msgText = CrewMember.PublishLabor(CrewCollection.ToList(), _actionType, App.AppSqlCon);
+            var _msgText = CrewMember.PublishLabor(CrewCollection.ToList(), _actionType, ManagerId, App.AppSqlCon);
             MessageBox.Show(_msgText, "Publishing Message", MessageBoxButton.OK, MessageBoxImage.Information);
             if (_msgText.Contains("Successfully"))
             {

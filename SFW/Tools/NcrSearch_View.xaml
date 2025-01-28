@@ -4,6 +4,11 @@
         xmlns:local="clr-namespace:SFW.Tools"
         x:Name="NcrSearch_Window"
         Title="NCR Search" Height="150" Width="200" WindowStyle="ToolWindow" Topmost="True">
+
+    <Window.InputBindings>
+        <KeyBinding Gesture="Enter" Command="{Binding SubmitICommand}"/>
+    </Window.InputBindings>
+    
     <Grid>
 
         <StackPanel Orientation="Vertical"

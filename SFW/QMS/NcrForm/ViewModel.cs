@@ -160,7 +160,7 @@ namespace SFW.QMS.NcrForm
             FromSchedule = false;
             if (NcrObject == null)
             {
-                NcrObject = new Ncr(new CrewMember(CurrentUser.FirstName, CurrentUser.LastName));
+                NcrObject = new Ncr(new CrewMember(CurrentUser.FirstName, CurrentUser.LastName, false));
                 NcrRevision = NcrObject.RevisionList.FirstOrDefault();
             }
             ActionType = "Submit";
@@ -195,7 +195,7 @@ namespace SFW.QMS.NcrForm
             {
                 FromSchedule = true;
                 IsNewNcr = true;
-                NcrObject = new Ncr(workOrder, new CrewMember(CurrentUser.FirstName, CurrentUser.LastName));
+                NcrObject = new Ncr(workOrder, new CrewMember(CurrentUser.FirstName, CurrentUser.LastName, false));
                 NcrRevision = NcrObject.RevisionList[0];
                 ActionType = "Submit";
                 CrewCollection = CrewMember.GetCrewCollection(NcrObject.Site);
@@ -312,7 +312,7 @@ namespace SFW.QMS.NcrForm
             {
                 var newRevId = NcrObject.RevisionList.Count + 1;
                 NcrRevision.SubmitDateTime = DateTime.Now;
-                NcrRevision.Submitter = new CrewMember(CurrentUser.FirstName, CurrentUser.LastName);
+                NcrRevision.Submitter = new CrewMember(CurrentUser.FirstName, CurrentUser.LastName, false);
                 NcrRevision.Submit(NcrObject.NcrId, newRevId, App.AppSqlCon);
                 NcrObject.SubmitLots(App.AppSqlCon);
             }

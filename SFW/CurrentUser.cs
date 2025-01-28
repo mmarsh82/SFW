@@ -352,8 +352,8 @@ namespace SFW
             }
         }
 
-        private static IList<CrewMember> _reports;
-        public static IList<CrewMember> DirectReports
+        private static IReadOnlyDictionary<string, string> _reports;
+        public static IReadOnlyDictionary<string, string> DirectReports
         {
             get
             { return _reports; }
@@ -383,61 +383,56 @@ namespace SFW
         /// <param name="user">User Principal for the active directory</param>
         public CurrentUser(PrincipalContext context, UserPrincipal user)
         {
-            var _aGroups = user.GetAuthorizationGroups().Where(o => o.Name.Contains("SFW-")).Select(o => o.Name).ToList();
-            DomainName = context.ConnectedServer;
-            DomainUserName = user.SamAccountName;
-            DisplayName = user.DisplayName;
-            Email = user.EmailAddress;
-            Site = user.DistinguishedName.Contains("wak1") ? "WCCO" : "CSI";
-            Facility = user.DistinguishedName.Contains("wak1") ? 1 : 2;
-            if (_aGroups.Count() > 0)
+            try
             {
-                if (_aGroups.Count(o => o.Contains("SFW-Admin")) > 0)
+                var _aGroups = user.GetAuthorizationGroups().Where(o => o.Name.Contains("SFW-")).Select(o => o.Name).ToList();
+                DomainName = context.ConnectedServer;
+                DomainUserName = user.SamAccountName;
+                DisplayName = user.DisplayName;
+                Email = user.EmailAddress;
+                Site = user.DistinguishedName.Contains("wak1") ? "WCCO" : "CSI";
+                Facility = user.DistinguishedName.Contains("wak1") ? 1 : 2;
+                if (_aGroups.Count() > 0)
                 {
-                    CanTrain = CanSchedule = IsSupervisor = IsInventoryControl = IsAccountsReceivable = IsAdmin = HasSalesOrderModule = IsQuality = IsEngineer = CanSplit = CanDeviate = HasNotice = Planner = LaborAdmin = true;
-                    BasicUser = false;
+                    if (_aGroups.Count(o => o.Contains("SFW-Admin")) > 0)
+                    {
+                        CanTrain = CanSchedule = IsSupervisor = IsInventoryControl = IsAccountsReceivable = IsAdmin = HasSalesOrderModule = IsQuality = IsEngineer = CanSplit = CanDeviate = HasNotice = Planner = LaborAdmin = true;
+                        BasicUser = false;
+                    }
+                    else
+                    {
+                        CanSchedule = _aGroups.Count(o => o.Contains("SFW-Scheduler")) > 0;
+                        IsSupervisor = _aGroups.Count(o => o.Contains("SFW-Supervisor")) > 0;
+                        IsInventoryControl = _aGroups.Count(o => o.Contains("SFW-Inventory")) > 0;
+                        IsAccountsReceivable = _aGroups.Count(o => o.Contains("SFW-AR")) > 0;
+                        HasSalesOrderModule = _aGroups.Count(o => o.Contains("SFW-Sales")) > 0;
+                        CanTrain = _aGroups.Count(o => o.Contains("SFW-Train")) > 0;
+                        IsQuality = _aGroups.Count(o => o.Contains("SFW-Quality")) > 0;
+                        HasNotice = _aGroups.Count(o => o.Contains("SFW-Quality")) > 0 || _aGroups.Count(o => o.Contains("SFW-QNotice")) > 0;
+                        IsEngineer = _aGroups.Count(o => o.Contains("SFW-Engineer")) > 0;
+                        CanSplit = _aGroups.Count(o => o.Contains("SFW-Adjust")) > 0;
+                        CanDeviate = _aGroups.Count(o => o.Contains("SFW-Deviate")) > 0;
+                        Planner = _aGroups.Count(o => o.Contains("SFW-Planner")) > 0;
+                        LaborAdmin = _aGroups.Count(o => o.Contains("SFW-LaborAdmin")) > 0;
+                        BasicUser = false;
+                    }
                 }
                 else
                 {
-                    CanSchedule = _aGroups.Count(o => o.Contains("SFW-Scheduler")) > 0;
-                    IsSupervisor = _aGroups.Count(o => o.Contains("SFW-Supervisor")) > 0;
-                    IsInventoryControl = _aGroups.Count(o => o.Contains("SFW-Inventory")) > 0;
-                    IsAccountsReceivable = _aGroups.Count(o => o.Contains("SFW-AR")) > 0;
-                    HasSalesOrderModule = _aGroups.Count(o => o.Contains("SFW-Sales")) > 0;
-                    CanTrain = _aGroups.Count(o => o.Contains("SFW-Train")) > 0;
-                    IsQuality = _aGroups.Count(o => o.Contains("SFW-Quality")) > 0;
-                    HasNotice = _aGroups.Count(o => o.Contains("SFW-Quality")) > 0 || _aGroups.Count(o => o.Contains("SFW-QNotice")) > 0;
-                    IsEngineer = _aGroups.Count(o => o.Contains("SFW-Engineer")) > 0;
-                    CanSplit = _aGroups.Count(o => o.Contains("SFW-Adjust")) > 0;
-                    CanDeviate = _aGroups.Count(o => o.Contains("SFW-Deviate")) > 0;
-                    Planner = _aGroups.Count(o => o.Contains("SFW-Planner")) > 0;
-                    LaborAdmin = _aGroups.Count(o => o.Contains("SFW-LaborAdmin")) > 0;
-                    BasicUser = false;
+                    BasicUser = true;
                 }
+                DirectReports = IsSupervisor ? user.GetDirectReports() : new Dictionary<string, string>();
+                IsLoggedIn = true;
+                CanWip = true;
+                CanLabor = App.SiteNumber == 2 || IsAdmin;
+                UserIDNbr = user.EmployeeId;
+                FirstName = user.GivenName;
+                LastName = user.Surname;
             }
-            else
+            catch (Exception)
             {
-                BasicUser = true;
+
             }
-            DirectReports = new List<CrewMember>();
-            if (IsSupervisor)
-            {
-                var _reports = user.GetDirectReports();
-                foreach (var _report in _reports)
-                {
-                    DirectReports.Add(new CrewMember(_report.Key, _report.Value));
-                }
-            }
-            else
-            {
-                DirectReports = new List<CrewMember>();
-            }
-            IsLoggedIn = true;
-            CanWip = true;
-            CanLabor = App.SiteNumber == 2 || IsAdmin;
-            UserIDNbr = user.EmployeeId;
-            FirstName = user.GivenName;
-            LastName = user.Surname;
         }
 
         /// <summary>

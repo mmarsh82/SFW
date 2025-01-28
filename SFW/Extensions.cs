@@ -175,14 +175,22 @@ namespace SFW
         public static IReadOnlyDictionary<string, string> GetDirectReports(this UserPrincipal userPrincipal)
         {
             var _rtnDict = new Dictionary<string, string>();
-            var _propColl = ((DirectoryEntry)userPrincipal.GetUnderlyingObject()).Properties["DirectReports"].Cast<string>();
-            _propColl = _propColl.Where(dn => !string.IsNullOrEmpty(dn));
-            foreach (var _directReport in _propColl)
+            try
             {
-                var _reportPrincipal = UserPrincipal.FindByIdentity(userPrincipal.Context, _directReport);
-                _rtnDict.Add(_reportPrincipal.GivenName, _reportPrincipal.Surname);
+                var _propColl = ((DirectoryEntry)userPrincipal.GetUnderlyingObject()).Properties["DirectReports"].Cast<string>();
+                _propColl = _propColl.Where(dn => !string.IsNullOrEmpty(dn));
+                foreach (var _directReport in _propColl)
+                {
+                    var _reportPrincipal = UserPrincipal.FindByIdentity(userPrincipal.Context, _directReport);
+                    _rtnDict.Add(_reportPrincipal.EmployeeId, $"{_reportPrincipal.Surname},{_reportPrincipal.GivenName}");
+                }
+                return _rtnDict;
             }
-            return _rtnDict;
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Unhandled Exception");
+                return _rtnDict;
+            }
         }
     }
 }

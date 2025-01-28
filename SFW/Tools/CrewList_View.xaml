@@ -58,13 +58,12 @@
                       VerticalScrollBarVisibility="Auto">
 
             <ItemsControl Name="CrewMembers"
-                          ItemsSource="{Binding Path=CrewList}"
+                          ItemsSource="{Binding Path=CrewCollection}"
                           Margin="10,0,0,0"
                           FontSize="18"
                           Cursor="Hand"
                           Background="Transparent"
                           Foreground="Black"
-                          
                           Focusable="False">
 
                 <ItemsControl.ItemsPanel>
@@ -120,7 +119,7 @@
                                           FontSize="18"
                                           FontWeight="Bold"
                                           IsTabStop="False"
-                                          IsEnabled="{Binding CanEdit}"
+                                          IsEnabled="{Binding DataContext.CanEdit, ElementName=CrewMgt_Window}"
                                           VerticalAlignment="Center"/>
 
                                 <TextBlock Grid.Column="5"
@@ -132,7 +131,7 @@
                                     <TextBlock.Visibility>
                                         <MultiBinding Converter="{StaticResource BoolToVisConverter}">
                                             <Binding Path="IsWorking"/>
-                                            <Binding Path="CanEdit"/>
+                                            <Binding Path="DataContext.CanEdit" ElementName="CrewMgt_Window"/>
                                         </MultiBinding>
                                     </TextBlock.Visibility>
                                 </TextBlock>
@@ -144,7 +143,7 @@
                                     <TextBlock.Visibility>
                                         <MultiBinding Converter="{StaticResource BoolToVisConverter}">
                                             <Binding Path="IsWorking"/>
-                                            <Binding Path="CanEdit" Converter="{StaticResource BoolInverterConverter}"/>
+                                            <Binding Path="DataContext.CanEdit" ElementName="CrewMgt_Window" Converter="{StaticResource BoolInverterConverter}"/>
                                         </MultiBinding>
                                     </TextBlock.Visibility>
                                 </TextBlock>
@@ -158,7 +157,7 @@
                                     <TextBox.Visibility>
                                         <MultiBinding Converter="{StaticResource BoolToVisConverter}">
                                             <Binding Path="IsWorking"/>
-                                            <Binding Path="CanEdit"/>
+                                            <Binding Path="DataContext.CanEdit" ElementName="CrewMgt_Window"/>
                                         </MultiBinding>
                                     </TextBox.Visibility>
                                 </TextBox>
@@ -170,7 +169,7 @@
                                     <TextBlock.Visibility>
                                         <MultiBinding Converter="{StaticResource BoolToVisConverter}">
                                             <Binding Path="IsWorking"/>
-                                            <Binding Path="CanEdit" Converter="{StaticResource BoolInverterConverter}"/>
+                                            <Binding Path="DataContext.CanEdit" ElementName="CrewMgt_Window" Converter="{StaticResource BoolInverterConverter}" ConverterParameter="i"/>
                                         </MultiBinding>
                                     </TextBlock.Visibility>
                                 </TextBlock>
@@ -190,7 +189,7 @@
                                     <ComboBox.Visibility>
                                         <MultiBinding Converter="{StaticResource BoolToVisConverter}">
                                             <Binding Path="IsWorking"/>
-                                            <Binding Path="CanEdit"/>
+                                            <Binding Path="DataContext.CanEdit" ElementName="CrewMgt_Window"/>
                                         </MultiBinding>
                                     </ComboBox.Visibility>
                                 </ComboBox>
