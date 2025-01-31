@@ -20,6 +20,11 @@
         <cvtr:StringToVisibility x:Key="StringToVisConverter" />
         <cvtr:ValueToHeight x:Key="ValueToHeightConverter"/>
         <cvtr:MultiValueParameter x:Key="MultiValParamConverter"/>
+        <CollectionViewSource x:Key="SalesSource" Source="{Binding SalesView}">
+            <CollectionViewSource.GroupDescriptions>
+                <PropertyGroupDescription PropertyName="FullCustName"/>
+            </CollectionViewSource.GroupDescriptions>
+        </CollectionViewSource>
 
         <ContextMenu x:Key="rowMenu">
             <MenuItem Header="Link Work Order"
@@ -187,7 +192,7 @@
 
         <DataGrid x:Name="SalesSchedule"
                   Grid.Row="2"
-                  ItemsSource="{Binding SalesScheduleView, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                  ItemsSource="{Binding Source={StaticResource SalesSource}}"
                   SelectedItem="{Binding SelectedSalesOrder, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                   HorizontalAlignment="Left"
                   HeadersVisibility="None"

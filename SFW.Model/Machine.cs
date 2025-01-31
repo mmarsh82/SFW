@@ -158,6 +158,54 @@ ORDER BY
         }
 
         /// <summary>
+        /// Retrieve a DataTable with all the data relevent to a schedule
+        /// </summary>
+        /// <param name="machOrder">Dictionary containing the order property for the machines, based on the user config</param>
+        /// <param name="site">Facility to load</param>
+        /// <param name="sqlCon">Sql Connection to use</param>
+        /// <returns>DataTable with the schedule data results</returns>
+        public static DataTable GetPlannerData(IReadOnlyDictionary<string, int> machOrder, int site, SqlConnection sqlCon)
+        {
+            var _conString = @"SELECT * FROM dbo.[SFW_PlannerView] ORDER BY MachineOrder, MachineNumber, WO_Priority, Sched_Shift, Sched_Priority, WO_SchedStartDate, WorkOrderID ASC";
+            var _tempTable = new DataTable();
+            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
+            {
+                try
+                {
+                    using (SqlDataAdapter adapter = new SqlDataAdapter($"USE {sqlCon.Database}; {_conString}", sqlCon))
+                    {
+                        adapter.SelectCommand.Parameters.AddWithValue("p1", site);
+                        adapter.Fill(_tempTable);
+                        foreach (var _keyValPair in machOrder)
+                        {
+                            DataRow[] _rows = _tempTable.Select($"MachineNumber={_keyValPair.Key}");
+                            foreach (DataRow _row in _rows)
+                            {
+                                var _index = _tempTable.Rows.IndexOf(_row);
+                                _tempTable.Rows[_index].SetField("MachineOrder", _keyValPair.Value);
+                            }
+                        }
+                        _tempTable.DefaultView.Sort = "MachineOrder ASC";
+                        _tempTable = _tempTable.DefaultView.ToTable();
+                        return _tempTable;
+                    }
+                }
+                catch (SqlException sqlEx)
+                {
+                    throw new Exception(sqlEx.Message);
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception(ex.Message);
+                }
+            }
+            else
+            {
+                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
+            }
+        }
+
+        /// <summary>
         /// Get a table containing all of the Machines
         /// </summary>
         /// <param name="site">Facility to load</param>

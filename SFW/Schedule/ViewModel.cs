@@ -240,7 +240,7 @@ namespace SFW.Schedule
                 IsLoading = true;
                 if (Refresh)
                 {
-                    ModelBase.BuildMasterDataSet(UserConfig.GetIROD(), App.SiteNumber, App.AppSqlCon);
+                    ModelBase.BuildMasterDataSet(UserConfig.GetIROD(), App.SiteNumber, CurrentUser.CanSchedule, App.AppSqlCon);
                 }
             }
             catch(Exception ex)

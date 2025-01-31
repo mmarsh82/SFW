@@ -27,6 +27,7 @@
                 <cvtr:ValueToHeight x:Key="ValueToHeightConverter"/>
                 <cvtr:MultiValueParameter x:Key="MultiValConverter"/>
                 <cvtr:NegativeIntToBool x:Key="NegIntToBoolConverter" />
+                <cvtr:BoolInverter x:Key="BoolInvertConverter"/>
                 <cmd:ViewLoad x:Key="ViewLoadCommand" />
                 <cmd:M2kLookQuery x:Key="ShowQuery"/>
                 <cmd:PartSearch x:Key="PartSearchICommand"/>
@@ -326,7 +327,8 @@
                         <ColumnDefinition Width="300"/>
                     </Grid.ColumnDefinitions>
 
-                    <Grid Grid.Column="0">
+                    <Grid Grid.Column="0"
+                          Visibility="{Binding BomOnly, Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="30"/>
                             <RowDefinition Height="30"/>
@@ -625,7 +627,8 @@
                         <ColumnDefinition Width="*" MaxWidth="550"/>
                     </Grid.ColumnDefinitions>
 
-                    <StackPanel Grid.Column="0" Orientation="Vertical" MaxWidth="550">
+                    <StackPanel Grid.Column="0" Orientation="Vertical" MaxWidth="550"
+                                Visibility="{Binding BomOnly, Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}">
 
                         <TextBox Text="Work Order Notes"
                                  FontSize="18"
@@ -860,6 +863,8 @@
 
                         <TabItem Header="Picklist Parts"
                                  FontSize="18"
+                                 Visibility="{Binding ShopOrder.Picklist.Count, Converter={StaticResource CountToVisConverter}}"
+                                 IsSelected="{Binding BomOnly, Converter={StaticResource BoolInvertConverter}}"
                                  Style="{DynamicResource ModernTabItem}">
 
                             <Grid>
@@ -1097,6 +1102,7 @@
 
                         <TabItem Header="Bill of Material (BOM)"
                                  FontSize="18"
+                                 IsSelected="{Binding BomOnly}"
                                  Style="{DynamicResource ModernTabItem}">
 
                             <DataGrid x:Name="dgBom"

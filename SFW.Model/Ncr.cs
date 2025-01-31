@@ -633,9 +633,12 @@ namespace SFW.Model
                         delegate (object sender, DoWorkEventArgs e)
                         {
                             PartCollection = int.TryParse(OrderSeqId, out int i) ? Sku.GetSkuCollection(OrderId, i) : Sku.GetSkuCollection(OrderId, 10);
+                            OnPropertyChanged(nameof(PartCollection));
                             LotList = GetNcrLotList(id, ModelSqlCon);
                             LotList.ListChanged += LotList_Changed;
+                            OnPropertyChanged(nameof(LotList));
                             PhotoCollection = new ObservableCollection<string>(GetNcrPhotoList(id, ModelSqlCon));
+                            OnPropertyChanged(nameof(PhotoCollection));
                         });
                     bw.RunWorkerAsync();
                 }

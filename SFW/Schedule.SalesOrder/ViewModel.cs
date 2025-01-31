@@ -12,8 +12,8 @@ namespace SFW.Schedule.SalesOrder
     {
         #region Properties
 
-        public static string[] SalesTableFilter;
-        public static ICollectionView SalesScheduleView { get; set; }
+        public string[] SalesTableFilter;
+        public DataView SalesScheduleView { get; set; }
 
         private DataRowView _selectedSO;
         public DataRowView SelectedSalesOrder
@@ -42,7 +42,7 @@ namespace SFW.Schedule.SalesOrder
             get { return _sFilter; }
             set
             {
-                var _fltr = !string.IsNullOrEmpty(value) ? $"{((DataView)SalesScheduleView.SourceCollection).Table.SearchRowFilter(value)}" : "";
+                var _fltr = !string.IsNullOrEmpty(value) ? $"{SalesScheduleView.Table.SearchRowFilter(value)}" : "";
                 FilterSchedule(_fltr, 0);
                 _sFilter = value == "" ? null : value;
                 OnPropertyChanged(nameof(SearchFilter));
@@ -118,14 +118,13 @@ namespace SFW.Schedule.SalesOrder
                     }
                     else
                     {
-                        SalesScheduleView = CollectionViewSource.GetDefaultView(((DataView)SalesScheduleView.SourceCollection).Table.AsEnumerable()
+                        SalesScheduleView = SalesScheduleView.Table.AsEnumerable()
                             .GroupBy(r => r.Field<string>("SoNbr"))
                             .Select(g => g.First())
-                            .CopyToDataTable());
-                        SalesScheduleView.GroupDescriptions.Add(new PropertyGroupDescription("FullCustName"));
+                            .CopyToDataTable()
+                            .AsDataView();
                         SearchFilter = SearchFilter;
                         StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(SalesScheduleView)));
-                        SalesScheduleView.Refresh();
                     }
                 }
                 _inLoad = false;
@@ -197,8 +196,7 @@ namespace SFW.Schedule.SalesOrder
                 }
                 LoadAsyncDelegate = new LoadDelegate(ViewLoading);
                 FilterAsyncDelegate = new LoadDelegate(FilterView);
-                var _filter = "";
-                LoadAsyncComplete = LoadAsyncDelegate.BeginInvoke(_filter, new AsyncCallback(ViewLoaded), null);
+                LoadAsyncComplete = LoadAsyncDelegate.BeginInvoke("", new AsyncCallback(ViewLoaded), null);
                 if (CurrentUser.HasSalesOrderModule)
                 {
                     RefreshTimer.Add(RefreshSchedule);
@@ -221,7 +219,7 @@ namespace SFW.Schedule.SalesOrder
         /// </summary>
         /// <param name="filter">Filter string to use on the default view</param>
         /// <param name="index">Index of the filter string list you are adding to our changing</param>
-        public static void FilterSchedule(string filter, int index)
+        public void FilterSchedule(string filter, int index)
         {
             if (SalesScheduleView != null && !filter.Contains("Machine"))
             {
@@ -231,18 +229,8 @@ namespace SFW.Schedule.SalesOrder
                 {
                     _filterStr += string.IsNullOrEmpty(_filterStr) ? $"({s})" : $" AND ({s})";
                 }
-                ((DataView)SalesScheduleView.SourceCollection).RowFilter = _filterStr;
-                SalesScheduleView.Refresh();
+                SalesScheduleView.RowFilter = _filterStr;
             }
-        }
-
-        /// <summary>
-        /// Async filter the schedule view
-        /// </summary>
-        /// <param name="filter">Filter string to use on the default view</param>
-        public void FilterSchedule(string filter)
-        {
-            LoadAsyncComplete = FilterAsyncDelegate.BeginInvoke(filter, new AsyncCallback(ViewLoaded), null);
         }
 
         #region Loading Async Delegation Implementation
@@ -256,16 +244,12 @@ namespace SFW.Schedule.SalesOrder
         {
             try
             {
-                SalesScheduleView = CollectionViewSource.GetDefaultView(ModelBase.MasterDataSet.Tables["SalesMaster"]);
+                SalesScheduleView = ModelBase.MasterDataSet.Tables["SalesMaster"].AsDataView();
                 if (SalesScheduleView != null)
                 {
-                    if (SalesScheduleView.GroupDescriptions.Count() == 0)
-                    {
-                        SalesScheduleView.GroupDescriptions.Add(new PropertyGroupDescription("FullCustName"));
-                    }
                     if (!string.IsNullOrEmpty(filter))
                     {
-                        ((DataView)SalesScheduleView.SourceCollection).RowFilter = filter;
+                        SalesScheduleView.RowFilter = filter;
                         OnPropertyChanged(nameof(SalesScheduleView));
                     }
                     SelectedCredStatus = CreditStatusList[0];
@@ -292,17 +276,15 @@ namespace SFW.Schedule.SalesOrder
         {
             try
             {
-                var _drow = SalesScheduleView?.CurrentItem;
-                SalesScheduleView = CollectionViewSource.GetDefaultView(ModelBase.MasterDataSet.Tables["SalesMaster"]);
-                SalesScheduleView.GroupDescriptions.Add(new PropertyGroupDescription("FullCustName"));
-                if (_drow != null && ((DataView)SalesScheduleView.SourceCollection).Table.AsEnumerable().Any(r => r.Field<string>("ID") == ((DataRowView)_drow).Row.Field<string>("ID")))
+                var _drow = SelectedSalesOrder;
+                SalesScheduleView = ModelBase.MasterDataSet.Tables["SalesMaster"].AsDataView();
+                OnPropertyChanged(nameof(SalesScheduleView));
+                if (_drow != null && (SalesScheduleView.Table.AsEnumerable().Any(r => r.Field<string>("ID") == ((DataRowView)_drow).Row.Field<string>("ID"))))
                 {
-                    var _index = SalesScheduleView.IndexOf(_drow, "ID");
-                    SalesScheduleView.MoveCurrentToPosition(_index);
+                    SelectedSalesOrder = _drow;
                 }
                 else
                 {
-                    SalesScheduleView.MoveCurrentToPosition(-1);
                     SelectedSalesOrder = null;
                 }
                 SearchFilter = SearchFilter;

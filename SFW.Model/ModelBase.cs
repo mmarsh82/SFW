@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -66,9 +67,9 @@ namespace SFW.Model
         /// </summary>
         /// <param name="machOrder"></param>
         /// <param name="site"></param>
-        /// <param name="seeSales"></param>
+        /// <param name="plan"></param>
         /// <param name="sqlCon"></param>
-        public static IReadOnlyDictionary<bool, string> BuildMasterDataSet(IReadOnlyDictionary<string, int> machOrder, int site, SqlConnection sqlCon)
+        public static IReadOnlyDictionary<bool, string> BuildMasterDataSet(IReadOnlyDictionary<string, int> machOrder, int site, bool plan, SqlConnection sqlCon)
         {
             ModelSqlCon = sqlCon;
             var _rtnDict = new Dictionary<bool, string>();
@@ -81,24 +82,6 @@ namespace SFW.Model
                     //Load the Schedule Master table
                     _tempDS.Tables.Add(Machine.GetScheduleData(machOrder, site, ModelSqlCon));
                     _tempDS.Tables[_tempDS.Tables.Count - 1].TableName = "Master";
-
-                    //Loading Diamond number and tooling for Wahpeton site
-                    if (site == 1)
-                    {
-                        _tempDS.Tables.Add(Lot.GetDiamondTable(ModelSqlCon));
-                        _tempDS.Tables.Add(Tool.GetTools(ModelSqlCon));
-                        _tempDS.Tables.Add(Sku.GetInstructions(ModelSqlCon));
-                    }
-                    else
-                    {
-                        _tempDS.Tables.Add();
-                        _tempDS.Tables.Add();
-                        _tempDS.Tables.Add();
-                    }
-                    _tempDS.Tables[_tempDS.Tables.Count - 3].TableName = "Diamond";
-                    _tempDS.Tables[_tempDS.Tables.Count - 2].TableName = "TL";
-                    _tempDS.Tables[_tempDS.Tables.Count - 1].TableName = "WI";
-
 
                     _tempDS.Tables.Add(Component.GetComponentBomTable(site, ModelSqlCon));
                     _tempDS.Tables[_tempDS.Tables.Count - 1].TableName = "BOM";
@@ -146,6 +129,26 @@ namespace SFW.Model
 
                         _tempDS.Tables.Add(Ncr.DefectReason.GetDefectReasonTable(ModelSqlCon));
                         _tempDS.Tables[_tempDS.Tables.Count - 1].TableName = "NcrReason";
+
+                        _tempDS.Tables.Add(Lot.GetDiamondTable(ModelSqlCon));
+                        _tempDS.Tables[_tempDS.Tables.Count - 1].TableName = "Diamond";
+                        
+                        _tempDS.Tables.Add(Tool.GetTools(ModelSqlCon));
+                        _tempDS.Tables[_tempDS.Tables.Count - 1].TableName = "TL";
+                        
+                        _tempDS.Tables.Add(Sku.GetInstructions(ModelSqlCon));
+                        _tempDS.Tables[_tempDS.Tables.Count - 1].TableName = "WI";
+
+                        if (plan)
+                        {
+                            _tempDS.Tables.Add(Machine.GetPlannerData(machOrder, site, ModelSqlCon));
+                            _tempDS.Tables[_tempDS.Tables.Count - 1].TableName = "Plan";
+                        }
+                        else
+                        {
+                            _tempDS.Tables.Add();
+                            _tempDS.Tables[_tempDS.Tables.Count - 1].TableName = "Plan";
+                        }
                     }
 
                     MasterDataSet = _tempDS;

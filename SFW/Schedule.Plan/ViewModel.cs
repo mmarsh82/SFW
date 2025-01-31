@@ -3,7 +3,7 @@ using SFW.Commands;
 using SFW.Helpers;
 using SFW.Model;
 using System;
-using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Data;
 using System.Linq;
 using System.Windows;
@@ -17,7 +17,7 @@ namespace SFW.Schedule.Plan
     {
         #region Properties
 
-        public string[] ScheduleViewFilter;
+        public string[] PlanViewFilter;
         public DataView PlanningView { get; set; }
 
         private DataRowView _selectedWO;
@@ -65,7 +65,7 @@ namespace SFW.Schedule.Plan
             {
                 _sFilter = value == "" ? null : value;
                 var _filter = string.IsNullOrEmpty(value) ? "" : PlanningView.Table.SearchRowFilter(value);
-                ScheduleFilter(_filter, 0);
+                PlanFilter(_filter, 0);
                 OnPropertyChanged(nameof(SearchFilter));
             }
         }
@@ -77,7 +77,7 @@ namespace SFW.Schedule.Plan
             set
             {
                 var _filter = value ? "[Inspection] = 'Y'" : "";
-                ScheduleFilter(_filter, 4);
+                PlanFilter(_filter, 4);
                 _insp = value;
                 OnPropertyChanged(nameof(InspectionFilter));
             }
@@ -90,7 +90,7 @@ namespace SFW.Schedule.Plan
             set
             {
                 var _filter = value ? "[Status] = 'C'" : "[Status] <> 'C'";
-                ScheduleFilter(_filter, 5);
+                PlanFilter(_filter, 5);
                 _close = value;
                 OnPropertyChanged(nameof(ClosedFilter));
             }
@@ -103,9 +103,35 @@ namespace SFW.Schedule.Plan
             set
             {
                 var _filter = $"[Site] = {App.SiteNumber}";
-                ScheduleFilter(_filter, 6);
+                PlanFilter(_filter, 6);
                 _site = value;
                 OnPropertyChanged(nameof(SiteFilter));
+            }
+        }
+
+        public ObservableCollection<string> TypeCollection { get; set; }
+        private string _type;
+        public string SelectedType
+        {
+            get
+            { return _type; }
+            set
+            {
+                _type = value;
+                switch (value)
+                {
+                    case "All":
+                        PlanFilter("", 5);
+                        break;
+                    case "Work Order":
+                        PlanFilter("[WO_Type]<>'P'", 5);
+                        break;
+                    case "Plan":
+                        PlanFilter("[WO_Type]='P'", 5);
+                        break;
+                }
+                OnPropertyChanged(nameof(SelectedType));
+                OnPropertyChanged(nameof(PlanningView));
             }
         }
 
@@ -131,9 +157,10 @@ namespace SFW.Schedule.Plan
             FilterAsyncDelegate = new LoadDelegate(FilterView);
             LoadAsyncComplete = LoadAsyncDelegate.BeginInvoke(App.ViewFilter[App.SiteNumber], new AsyncCallback(ViewLoaded), null);
             RefreshTimer.Add(RefreshSchedule);
-            ScheduleViewFilter = new string[7];
-            ScheduleFilter($"[Site] = {App.SiteNumber}", 6);
+            PlanViewFilter = new string[7];
             ClosedFilter = false;
+            TypeCollection = new ObservableCollection<string> { "All", "Work Order", "Plan" };
+            SelectedType = TypeCollection.FirstOrDefault(o => o == "All");
         }
 
         /// <summary>
@@ -144,23 +171,21 @@ namespace SFW.Schedule.Plan
         /// 2 = Work Center Group Filter
         /// 3 = Work Order Priority Filter
         /// 4 = Inspection Filter
-        /// 5 = Closed Filter
-        /// 6 = Site Filter
+        /// 5 = Type Filter
         /// </summary>
         /// <param name="filter">Filter string to use on the default view</param>
         /// <param name="index">Index of the filter string list you are adding to our changing</param>
-        public void ScheduleFilter(string filter, int index)
+        public void PlanFilter(string filter, int index)
         {
-            if (ScheduleViewFilter != null)
+            if (PlanViewFilter != null)
             {
-                ScheduleViewFilter[index] = filter;
+                PlanViewFilter[index] = filter;
                 var _filterStr = string.Empty;
-                foreach (var s in ScheduleViewFilter.Where(o => !string.IsNullOrEmpty(o)))
+                foreach (var s in PlanViewFilter.Where(o => !string.IsNullOrEmpty(o)))
                 {
                     _filterStr += string.IsNullOrEmpty(_filterStr) ? $"({s})" : $" AND ({s})";
                 }
-                var _tempList = new List<DataView>();
-                if (PlanningView != null)
+                if (PlanningView != null && PlanningView.Table.Rows.Count > 0)
                 {
                     PlanningView.RowFilter = _filterStr;
                     OnPropertyChanged(nameof(PlanningView));
@@ -168,7 +193,7 @@ namespace SFW.Schedule.Plan
             }
             else
             {
-                ScheduleViewFilter = new string[6];
+                PlanViewFilter = new string[6];
             }
         }
 
@@ -177,15 +202,15 @@ namespace SFW.Schedule.Plan
         /// </summary>
         public void ClearFilter()
         {
-            if (ScheduleViewFilter != null)
+            if (PlanViewFilter != null)
             {
-                ScheduleViewFilter = new string[7];
+                PlanViewFilter = new string[7];
                 if (PlanningView != null && PlanningView!= null && PlanningView.RowFilter != null)
                 {
                     PlanningView.RowFilter = "";
                 }
-                ScheduleFilter("[Status] <> 'C'", 5);
-                ScheduleFilter($"[Site] = {App.SiteNumber}", 6);
+                PlanFilter("[Status] <> 'C'", 5);
+                PlanFilter($"[Site] = {App.SiteNumber}", 6);
                 OnPropertyChanged(nameof(PlanningView));
             }
         }
@@ -211,28 +236,14 @@ namespace SFW.Schedule.Plan
         {
             try
             {
-                IsLoading = true;
-            }
-            catch(Exception ex)
-            {
-                MessageBox.Show(ex.Message, "Unhandled Exception", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-        }
-
-        public void ViewLoaded(IAsyncResult r)
-        {
-            try
-            {
-                RefreshTimer.IsRefreshing = IsLoading = Refresh = false;
-                MainWindowViewModel.DisplayAction = false;
                 var _oldfilter = string.Empty;
                 if (PlanningView != null && CurrentUser.IsLoggedIn)
                 {
                     _oldfilter = PlanningView.RowFilter;
                 }
-                PlanningView = ModelBase.MasterDataSet.Tables["Master"].AsDataView();
-                ScheduleFilter(UserConfig.BuildMachineFilter(), 1);
-                ScheduleFilter(UserConfig.BuildPriorityFilter(), 3);
+                PlanningView = ModelBase.MasterDataSet.Tables["Plan"].AsDataView();
+                PlanFilter(UserConfig.BuildMachineFilter(), 1);
+                PlanFilter(UserConfig.BuildPriorityFilter(), 3);
                 if (_oldSelectedWO != null)
                 {
                     if (PlanningView.Table.AsEnumerable().Any(row => row.Field<string>("WorkOrderID") == _oldSelectedWO.Row.Field<string>("WorkOrderID")))
@@ -254,10 +265,16 @@ namespace SFW.Schedule.Plan
                 }
                 OnPropertyChanged(nameof(PlanningView));
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 MessageBox.Show(ex.Message, "Unhandled Exception", MessageBoxButton.OK, MessageBoxImage.Error);
             }
+        }
+
+        public void ViewLoaded(IAsyncResult r)
+        {
+            IsLoading = false;
+            OnPropertyChanged(nameof(PlanningView));
         }
 
         #endregion
@@ -271,7 +288,6 @@ namespace SFW.Schedule.Plan
             {
                 if (!IsLoading)
                 {
-                    RefreshTimer.IsRefreshing = IsLoading = Refresh = true;
                     MainWindowViewModel.DisplayAction = App.LoadedModule == Enumerations.UsersControls.Plan;
                     _oldSelectedWO = SelectedWorkOrder;
                     SelectedWorkOrder = null;

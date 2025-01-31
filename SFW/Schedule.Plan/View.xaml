@@ -26,7 +26,7 @@
         <CollectionViewSource x:Key="PlanningSource" Source="{Binding PlanningView}">
             <CollectionViewSource.GroupDescriptions>
                 <PropertyGroupDescription PropertyName="MachineNumber"
-                                  Converter="{StaticResource MachineNameConverter}"/>
+                                          Converter="{StaticResource MachineNameConverter}"/>
             </CollectionViewSource.GroupDescriptions>
         </CollectionViewSource>
 
@@ -156,18 +156,23 @@
                         Orientation="Horizontal"
                         HorizontalAlignment="Right">
 
-                <CheckBox IsChecked="{Binding ClosedFilter}"
-                          VerticalAlignment="Center"
-                          HorizontalAlignment="Right"
+                <TextBlock Text="Type:"
+                           FontSize="18"
+                           FontWeight="Bold"
+                           TextDecorations="Underline"
+                           Margin="10,0,0,0"
+                           VerticalAlignment="Center" />
+
+                <ComboBox x:Name="TypeFilter"
+                          ItemsSource="{Binding TypeCollection, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                          SelectedItem="{Binding SelectedType}"
                           FontSize="18"
-                          Margin="0,0,10,0"
-                          ToolTip="Filter to closed work orders."
-                          Style="{DynamicResource SliderCheckBox}">
-                    <CheckBox.Content>
-                        <TextBlock Text="Closed:"
-                                   TextDecorations="Underline"/>
-                    </CheckBox.Content>
-                </CheckBox>
+                          FontWeight="Bold"
+                          Background="LightGray"
+                          Width="Auto"
+                          MinWidth="100"
+                          Margin="5,5,20,5"
+                          Style="{DynamicResource RequiredComboBox}"/>
 
                 <CheckBox IsChecked="{Binding InspectionFilter}"
                           VerticalAlignment="Center"
@@ -178,7 +183,7 @@
                           Style="{DynamicResource SliderCheckBox}">
                     <CheckBox.Content>
                         <TextBlock Text="Inspection:"
-                               TextDecorations="Underline"/>
+                                   TextDecorations="Underline"/>
                     </CheckBox.Content>
                 </CheckBox>
 
@@ -197,8 +202,7 @@
                   IsReadOnly="True"
                   SelectionMode="Single"
                   VirtualizingPanel.IsVirtualizingWhenGrouping="True"
-                  ScrollViewer.CanContentScroll="True"
-                  Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}">
+                  ScrollViewer.CanContentScroll="True">
 
             <DataGrid.Columns>
                 <DataGridTemplateColumn>
@@ -443,7 +447,7 @@
                             </Setter>
                         </MultiDataTrigger>
 
-                        <DataTrigger Binding="{Binding WO_Priority}" Value="W">
+                        <DataTrigger Binding="{Binding WO_Type}" Value="P">
                             <Setter Property="Background">
                                 <Setter.Value>
                                     <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
@@ -535,6 +539,15 @@
                                 <Condition Binding="{Binding WO_Type}" Value="R"/>
                             </MultiDataTrigger.Conditions>
                             <Setter Property="Background" Value="LightBlue"/>
+                            <Setter Property="Foreground" Value="Black"/>
+                            <Setter Property="BorderBrush" Value="RoyalBlue" />
+                        </MultiDataTrigger>
+                        <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                                <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsSelected}" Value="True"/>
+                                <Condition Binding="{Binding WO_Type}" Value="P"/>
+                            </MultiDataTrigger.Conditions>
+                            <Setter Property="Background" Value="DarkOrange"/>
                             <Setter Property="Foreground" Value="Black"/>
                             <Setter Property="BorderBrush" Value="RoyalBlue" />
                         </MultiDataTrigger>

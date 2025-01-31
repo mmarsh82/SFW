@@ -150,6 +150,18 @@ namespace SFW.ShopRoute
             }
         }
 
+        private bool _bomOnly;
+        public bool BomOnly
+        {
+            get
+            { return _bomOnly; }
+            set
+            {
+                _bomOnly = value;
+                OnPropertyChanged(nameof(BomOnly));
+            }
+        }
+
         private RelayCommand _noteChange;
         private RelayCommand _loadReport;
 
@@ -177,6 +189,7 @@ namespace SFW.ShopRoute
             NoLotResults = NoDedicateResults = true;
             LotListText = "Select a Part";
             NcrList = new List<string>();
+            BomOnly = ShopOrder.TaskType == "P";
             using (BackgroundWorker bw = new BackgroundWorker())
             {
                 try
@@ -198,7 +211,7 @@ namespace SFW.ShopRoute
                             }
 
                             //Getting the work order notes and the shop floor notes
-                            ShopOrderNotes = WorkOrder.GetNotes("WN", false, ShopOrder.OrderNumber);
+                            ShopOrderNotes = ShopOrder.TaskType != "P" ? WorkOrder.GetNotes("WN", false, ShopOrder.OrderNumber) : string.Empty;
                             ShopOrder.ShopNotes = WorkOrder.GetNotes("SN", true, ShopOrder.OrderNumber, $"{ShopOrder.SkuNumber}|0{ShopOrder.Facility}");
 
                             //Getting the sales order internal comments
@@ -212,7 +225,9 @@ namespace SFW.ShopRoute
                                 ? Tool.GetToolList(ShopOrder.SkuNumber, Machine.GetMachineNumber(ShopOrder.Machine), CurrentUser.Facility)
                                 : Tool.GetToolList(ShopOrder.SkuNumber, int.Parse(ShopOrder.Routing), CurrentUser.Facility);
                             ShopOrder.Bom = Model.Component.GetComponentBomList(ShopOrder.SkuNumber, ShopOrder.Seq);
-                            ShopOrder.Picklist = Model.Component.GetComponentPickList(ShopOrder.OrderNumber, ShopOrder.Seq, ShopOrder.StartQty - ShopOrder.CurrentQty, ShopOrder.Machine);
+                            ShopOrder.Picklist = ShopOrder.TaskType != "P"
+                                ? Model.Component.GetComponentPickList(ShopOrder.OrderNumber, ShopOrder.Seq, ShopOrder.StartQty - ShopOrder.CurrentQty, ShopOrder.Machine)
+                                :new List<Model.Component>();
                             IsMultiLoading = false;
                             if (App.SiteNumber == 1)
                             {

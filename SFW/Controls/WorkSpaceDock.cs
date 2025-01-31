@@ -1,7 +1,6 @@
 ﻿using SFW.Queries;
 using System;
 using System.ComponentModel;
-using System.Security.Policy;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -211,6 +210,10 @@ namespace SFW.Controls
                 if (CurrentUser.IsQuality)
                 {
                     ((QMS.NcrNotice.View)NcrDock.Children[0]).DataContext = new QMS.NcrNotice.ViewModel();
+                }
+                if (CurrentUser.CanSchedule)
+                {
+                    ((Schedule.Plan.View)PlanDock.Children[0]).DataContext = new Schedule.Plan.ViewModel();
                 }
             }
             else
