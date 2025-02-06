@@ -6,12 +6,6 @@
              xmlns:main="clr-namespace:SFW"
              x:Name="ShopRouteUserControl">
 
-    <UserControl.Resources>
-        <ContextMenu x:Key="rowMenu">
-            
-        </ContextMenu>
-    </UserControl.Resources>
-    
     <ScrollViewer x:Name="MainScroll" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" Margin="0,0,0,20" VerticalAlignment="Top">
         <Grid AllowDrop="{Binding Path=(main:CurrentUser.CanDeviate)}" Drop="Deviation_Drop">
 
@@ -328,7 +322,7 @@
                     </Grid.ColumnDefinitions>
 
                     <Grid Grid.Column="0"
-                          Visibility="{Binding BomOnly, Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}">
+                          Visibility="{Binding IsPlan, Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="30"/>
                             <RowDefinition Height="30"/>
@@ -628,7 +622,7 @@
                     </Grid.ColumnDefinitions>
 
                     <StackPanel Grid.Column="0" Orientation="Vertical" MaxWidth="550"
-                                Visibility="{Binding BomOnly, Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}">
+                                Visibility="{Binding IsPlan, Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}">
 
                         <TextBox Text="Work Order Notes"
                                  FontSize="18"
@@ -1034,12 +1028,6 @@
                                                                 Binding="{Binding Location}" />
                                         </DataGrid.Columns>
 
-                                        <DataGrid.RowStyle>
-                                            <Style TargetType="{x:Type DataGridRow}">
-                                                <Setter Property="ContextMenu" Value="{StaticResource rowMenu}"/>
-                                            </Style>
-                                        </DataGrid.RowStyle>
-                                        
                                     </DataGrid>
 
                                 </Grid>
@@ -1105,75 +1093,317 @@
                                  IsSelected="{Binding BomOnly}"
                                  Style="{DynamicResource ModernTabItem}">
 
-                            <DataGrid x:Name="dgBom"
-                                      ItemsSource="{Binding ShopOrder.Bom}"
-                                      IsReadOnly="True"
-                                      Focusable="False"
-                                      FontSize="18"
-                                      FontWeight="Bold"
-                                      AlternatingRowBackground="LightGray"
-                                      SelectionMode="Single"
-                                      RowDetailsVisibilityMode="Visible"
-                                      AutoGenerateColumns="False"
-                                      RowHeaderWidth="0"
-                                      HorizontalAlignment="Left"
-                                      VerticalAlignment="Top"
-                                      VerticalScrollBarVisibility="Auto"
-                                      HorizontalScrollBarVisibility="Hidden"
-                                      ColumnHeaderStyle="{DynamicResource ModernColumnHeader}">
+                            <Grid>
 
-                                <DataGrid.Resources>
-                                    <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}"
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="*"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+
+                                <!--#region Bill of Material Grid-->
+
+                                <DataGrid x:Name="dgBom"
+                                          ItemsSource="{Binding ShopOrder.Bom}"
+                                          SelectedItem="{Binding SelectedILotItem, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                          IsReadOnly="True"
+                                          Focusable="False"
+                                          FontSize="18"
+                                          FontWeight="Bold"
+                                          AlternatingRowBackground="LightGray"
+                                          SelectionMode="Single"
+                                          RowDetailsVisibilityMode="Visible"
+                                          AutoGenerateColumns="False"
+                                          RowHeaderWidth="0"
+                                          HorizontalAlignment="Left"
+                                          VerticalAlignment="Top"
+                                          VerticalScrollBarVisibility="Auto"
+                                          HorizontalScrollBarVisibility="Hidden"
+                                          ColumnHeaderStyle="{DynamicResource ModernColumnHeader}">
+
+                                    <DataGrid.Resources>
+                                        <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}"
                                                          Color="CadetBlue"/>
-                                </DataGrid.Resources>
+                                    </DataGrid.Resources>
 
-                                <DataGrid.Columns>
-                                    <DataGridTemplateColumn Header="            Part Number ">
-                                        <DataGridTemplateColumn.CellTemplate>
-                                            <DataTemplate>
-                                                <StackPanel Orientation="Horizontal">
-                                                    <Button Command="{StaticResource PartSearchICommand}"
+                                    <DataGrid.Columns>
+                                        <DataGridTemplateColumn Header="            Part Number ">
+                                            <DataGridTemplateColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <Button Command="{StaticResource PartSearchICommand}"
                                                                 Height="20"
                                                                 Width="40"
                                                                 Background="Transparent"
                                                                 BorderThickness="0"
                                                                 Style="{DynamicResource ResourceKey=DefaultButton}">
-                                                        <Image Source="/SFW;component/Icons/PartSearch.ico" />
-                                                        <Button.CommandParameter>
-                                                            <MultiBinding Converter="{StaticResource PartSearchConverter}">
-                                                                <Binding Path="CompNumber" />
-                                                                <Binding Path="CompMasterPrint" />
-                                                            </MultiBinding>
-                                                        </Button.CommandParameter>
-                                                    </Button>
-                                                    <Button Command="{StaticResource ViewLoadCommand}"
+                                                            <Image Source="/SFW;component/Icons/PartSearch.ico" />
+                                                            <Button.CommandParameter>
+                                                                <MultiBinding Converter="{StaticResource PartSearchConverter}">
+                                                                    <Binding Path="CompNumber" />
+                                                                    <Binding Path="CompMasterPrint" />
+                                                                </MultiBinding>
+                                                            </Button.CommandParameter>
+                                                        </Button>
+                                                        <Button Command="{StaticResource ViewLoadCommand}"
                                                                 CommandParameter="{Binding CompNumber}"
                                                                 Height="20"
                                                                 Width="40"
                                                                 Background="Transparent"
                                                                 BorderThickness="0"
                                                                 Style="{DynamicResource DefaultButton}">
-                                                        <Image Source="/SFW;component/Icons/Search.ico" />
-                                                    </Button>
-                                                    <TextBlock Text="{Binding CompNumber}"
-                                                               Margin="20,0,5,0"/>
-                                                </StackPanel>
-                                            </DataTemplate>
-                                        </DataGridTemplateColumn.CellTemplate>
-                                    </DataGridTemplateColumn>
-                                    <DataGridTextColumn Header=" Description"
-                                                    Binding="{Binding CompDescription}" />
-                                    <DataGridTextColumn Header=" Assembly ">
-                                        <DataGridTextColumn.Binding>
-                                            <MultiBinding StringFormat="{}{0}  {1}">
-                                                <Binding Path="AssemblyQty" />
-                                                <Binding Path="CompUom" />
-                                            </MultiBinding>
-                                        </DataGridTextColumn.Binding>
-                                    </DataGridTextColumn>
-                                </DataGrid.Columns>
+                                                            <Image Source="/SFW;component/Icons/Search.ico" />
+                                                        </Button>
+                                                        <TextBlock Text="{Binding CompNumber}"
+                                                                   Margin="20,0,5,0"/>
+                                                    </StackPanel>
+                                                </DataTemplate>
+                                            </DataGridTemplateColumn.CellTemplate>
+                                        </DataGridTemplateColumn>
+                                        <DataGridTextColumn Header=" Description"
+                                                            Binding="{Binding CompDescription}" />
+                                        <DataGridTextColumn Header=" Assembly ">
+                                            <DataGridTextColumn.Binding>
+                                                <MultiBinding StringFormat="{}{0}  {1}">
+                                                    <Binding Path="AssemblyQty" />
+                                                    <Binding Path="CompUom" />
+                                                </MultiBinding>
+                                            </DataGridTextColumn.Binding>
+                                        </DataGridTextColumn>
+                                    </DataGrid.Columns>
 
-                            </DataGrid>
+                                </DataGrid>
+
+                                <!--#endregion-->
+
+                                <!--#region Bill of Material Lot Datagrid -->
+
+                                <Grid Grid.Column="1" Grid.RowSpan="2"
+                                      Margin="10,0,0,0">
+
+                                    <TextBlock Text="{Binding LotListText}"
+                                               FontSize="24"
+                                               FontWeight="Bold"
+                                               Foreground="Black"
+                                               HorizontalAlignment="Center"
+                                               VerticalAlignment="Center"
+                                               Visibility="{Binding LotList.Count, Converter={StaticResource CountToVisConverter}}"/>
+
+                                    <DataGrid ItemsSource="{Binding ILotResultsList}"
+                                              Visibility="{Binding NoLotResults, ConverterParameter=i, Converter={StaticResource BoolToVisConverter}}"
+                                              HorizontalAlignment="Left"
+                                              VerticalAlignment="Top"
+                                              FontSize="18"
+                                              FontWeight="Bold"
+                                              RowHeaderWidth="0"
+                                              AlternatingRowBackground="LightGray"
+                                              AutoGenerateColumns="False"
+                                              IsReadOnly="True"
+                                              MaxHeight="355"
+                                              ColumnHeaderStyle="{DynamicResource ModernColumnHeader}">
+                                        <DataGrid.Columns>
+                                            <DataGridTextColumn Header=" Lot Number  "
+                                                                Binding="{Binding LotNumber}" />
+                                            <DataGridTextColumn Header=" On Hand "
+                                                                Binding="{Binding Onhand}">
+                                                <DataGridTextColumn.CellStyle>
+                                                    <Style TargetType="{x:Type DataGridCell}">
+                                                        <Setter Property="Foreground"
+                                                                Value="Black" />
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding Onhand, Converter={StaticResource NegIntToBoolConverter}}"
+                                                                         Value="true">
+                                                                <Setter Property="Foreground"
+                                                                        Value="Crimson" />
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </DataGridTextColumn.CellStyle>
+                                            </DataGridTextColumn>
+                                            <DataGridTextColumn Header=" Location "
+                                                                Binding="{Binding Location}" />
+                                        </DataGrid.Columns>
+
+                                    </DataGrid>
+
+                                </Grid>
+
+                                <!--#endregion-->
+
+                                <!--#region Bill of Material Dedicate Datagrid-->
+
+                                <DataGrid Grid.Column="0" Grid.Row="1"
+                                          ItemsSource="{Binding IDedicateLotResultsList}"
+                                          Visibility="{Binding NoDedicateResults, ConverterParameter=i, Converter={StaticResource BoolToVisConverter}}"
+                                          HorizontalAlignment="Center"
+                                          VerticalAlignment="Top"
+                                          FontSize="18"
+                                          RowHeaderWidth="0"
+                                          Margin="0,10,0,0"
+                                          FontWeight="Bold"
+                                          AlternatingRowBackground="LightGray"
+                                          AutoGenerateColumns="False"
+                                          IsReadOnly="True"
+                                          ColumnHeaderStyle="{DynamicResource ModernColumnHeader}">
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn Header=" Lot Number "
+                                                            Binding="{Binding LotNumber}" />
+                                        <DataGridTextColumn Header=" Dedicated ">
+                                            <DataGridTextColumn.Binding>
+                                                <MultiBinding StringFormat="{}{0}  {1}">
+                                                    <Binding Path="Onhand" />
+                                                    <Binding Path="Uom" />
+                                                </MultiBinding>
+                                            </DataGridTextColumn.Binding>
+                                            <DataGridTextColumn.CellStyle>
+                                                <Style TargetType="{x:Type DataGridCell}">
+                                                    <Setter Property="Foreground"
+                                                            Value="Black" />
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding Onhand, Converter={StaticResource NegIntToBoolConverter}}"
+                                                                     Value="true">
+                                                            <Setter Property="Foreground"
+                                                                    Value="Crimson" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </DataGridTextColumn.CellStyle>
+                                        </DataGridTextColumn>
+                                        <DataGridTextColumn Header=" Location "
+                                                            Binding="{Binding Location}" />
+                                    </DataGrid.Columns>
+                                </DataGrid>
+
+                                <!--#endregion-->
+
+                            </Grid>
+
+                        </TabItem>
+
+                        <!--#endregion-->
+
+                        <!--#region Activity Tab-->
+
+                        <TabItem Header="Activity"
+                                 FontSize="18"
+                                 Visibility="{Binding Path=(main:CurrentUser.CanSchedule), Converter={StaticResource BoolToVisConverter}}"
+                                 IsSelected="{Binding ActSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{DynamicResource ModernTabItem}">
+
+                            <Grid>
+
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="40"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+
+                                <ComboBox x:Name="PartFilter"
+                                          Grid.Row="0"
+                                          ItemsSource="{Binding CompCollection, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                          SelectedItem="{Binding SelectedComp}"
+                                          FontSize="18"
+                                          FontWeight="Bold"
+                                          Background="LightGray"
+                                          Width="200"
+                                          HorizontalAlignment="Left"
+                                          Margin="5"
+                                          Style="{DynamicResource RequiredComboBox}"/>
+                                
+                                <DataGrid x:Name="dgAct"
+                                          Grid.Row="1"
+                                          ItemsSource="{Binding ActivityTable}"
+                                          IsReadOnly="True"
+                                          Focusable="False"
+                                          FontSize="18"
+                                          FontWeight="Bold"
+                                          MaxHeight="355"
+                                          AlternatingRowBackground="LightGray"
+                                          SelectionMode="Single"
+                                          RowDetailsVisibilityMode="Visible"
+                                          AutoGenerateColumns="False"
+                                          RowHeaderWidth="0"
+                                          HorizontalAlignment="Left"
+                                          VerticalAlignment="Top"
+                                          VerticalScrollBarVisibility="Auto"
+                                          HorizontalScrollBarVisibility="Hidden"
+                                          ColumnHeaderStyle="{DynamicResource ModernColumnHeader}">
+
+                                    <DataGrid.Resources>
+                                        <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}"
+                                                         Color="CadetBlue"/>
+                                    </DataGrid.Resources>
+
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn Header="Date"
+                                                            Width="120"
+                                                            Binding="{Binding DueDate, StringFormat=d}"/>
+
+                                        <DataGridTextColumn Header="Type"
+                                                            Width="75"
+                                                            Binding="{Binding Type}"/>
+
+                                        <DataGridTextColumn Header="Reference"
+                                                            Width="500"
+                                                            Binding="{Binding Reference}">
+                                            <DataGridTextColumn.CellStyle>
+                                                <Style TargetType="DataGridCell">
+                                                    <Setter Property="TextBlock.TextAlignment" Value="Left"/>
+                                                </Style>
+                                            </DataGridTextColumn.CellStyle>
+                                        </DataGridTextColumn>
+
+                                        <DataGridTextColumn Header="Quantity"
+                                                            Width="100"
+                                                            Binding="{Binding Quantity}">
+                                            <DataGridTextColumn.CellStyle>
+                                                <Style TargetType="{x:Type DataGridCell}">
+                                                    <Setter Property="Foreground" Value="Black" />
+                                                    <Setter Property="TextBlock.TextAlignment" Value="Center"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding Quantity, Converter={StaticResource NegIntToBoolConverter}}"
+                                                                     Value="true">
+                                                            <Setter Property="Foreground"
+                                                                    Value="Crimson" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </DataGridTextColumn.CellStyle>
+                                        </DataGridTextColumn>
+
+                                        <DataGridTextColumn Header="Balance"
+                                                            Width="100"
+                                                            Binding="{Binding Balance}">
+                                            <DataGridTextColumn.CellStyle>
+                                                <Style TargetType="{x:Type DataGridCell}">
+                                                    <Setter Property="Foreground" Value="Black" />
+                                                    <Setter Property="TextBlock.TextAlignment" Value="Center"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding Balance, Converter={StaticResource NegIntToBoolConverter}}"
+                                                                     Value="true">
+                                                            <Setter Property="Foreground"
+                                                                    Value="Crimson" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </DataGridTextColumn.CellStyle>
+                                        </DataGridTextColumn>
+
+                                    </DataGrid.Columns>
+
+                                    <DataGrid.CellStyle>
+                                        <Style TargetType="DataGridCell">
+                                            <Setter Property="TextBlock.TextAlignment" Value="Center"/>
+                                        </Style>
+                                    </DataGrid.CellStyle>
+
+                                </DataGrid>
+
+
+                            </Grid>
 
                         </TabItem>
 

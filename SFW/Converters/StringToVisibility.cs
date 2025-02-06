@@ -16,6 +16,14 @@ namespace SFW.Converters
         {
             if (parameter != null)
             {
+                if (parameter.ToString() == "Plan")
+                {
+                    return value.ToString() == "P" ? Visibility.Visible : Visibility.Collapsed;
+                }
+                if(parameter.ToString() == "Order")
+                {
+                    return value.ToString() == "P" ? Visibility.Collapsed : Visibility.Visible;
+                }
                 if (parameter.ToString() == "NCR")
                 {
                     return value?.ToString() == "Open" ? Visibility.Visible : Visibility.Collapsed;

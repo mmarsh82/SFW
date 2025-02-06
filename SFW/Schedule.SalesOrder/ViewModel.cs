@@ -1,10 +1,8 @@
 ﻿using SFW.Model;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
 using System.Linq;
-using System.Windows.Data;
 
 namespace SFW.Schedule.SalesOrder
 {
@@ -21,10 +19,15 @@ namespace SFW.Schedule.SalesOrder
             get { return _selectedSO; }
             set
             {
+                if (_oldSelection != null)
+                {
+                    value = _oldSelection;
+                    _oldSelection = null;
+                }
                 _selectedSO = value;
                 if(value != null)
                 {
-                    var _sku = new Model.Sku(value.Row.Field<string>("PartNbr"), 'S', App.SiteNumber, true);
+                    var _sku = new Sku(value.Row.Field<string>("PartNbr"), 'S', App.SiteNumber, true);
                     var _soObj = new Model.SalesOrder(value.Row);
                     Controls.WorkSpaceDock.UpdateChildDock(8, 1, new ShopRoute.SalesOrder.ViewModel(_soObj, _sku));
                 }
@@ -32,9 +35,11 @@ namespace SFW.Schedule.SalesOrder
                 {
                     Controls.WorkSpaceDock.UpdateChildDock(8, 1, new ShopRoute.SalesOrder.ViewModel());
                 }
+                ((View)Controls.WorkSpaceDock.SalesDock.Children[0]).SalesSchedule.SelectedItem = SelectedSalesOrder;
                 OnPropertyChanged(nameof(SelectedSalesOrder));
             }
         }
+        private DataRowView _oldSelection;
 
         private string _sFilter;
         public string SearchFilter
@@ -124,7 +129,7 @@ namespace SFW.Schedule.SalesOrder
                             .CopyToDataTable()
                             .AsDataView();
                         SearchFilter = SearchFilter;
-                        StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(SalesScheduleView)));
+                        OnPropertyChanged(nameof(SalesScheduleView));
                     }
                 }
                 _inLoad = false;
@@ -162,7 +167,12 @@ namespace SFW.Schedule.SalesOrder
         }
         public string IsScheduleContent { get { return IsSchedule ? "New:" : "Open:"; } }
 
-        public static event EventHandler<PropertyChangedEventArgs> StaticPropertyChanged;
+        private bool _isLoading;
+        public bool IsLoading
+        {
+            get { return _isLoading; }
+            set { _isLoading = value; OnPropertyChanged(nameof(IsLoading)); }
+        }
 
         public delegate void LoadDelegate(string s);
         public LoadDelegate LoadAsyncDelegate { get; private set; }
@@ -244,27 +254,35 @@ namespace SFW.Schedule.SalesOrder
         {
             try
             {
-                SalesScheduleView = ModelBase.MasterDataSet.Tables["SalesMaster"].AsDataView();
-                if (SalesScheduleView != null)
+                if (!IsLoading)
                 {
-                    if (!string.IsNullOrEmpty(filter))
+                    IsLoading = true;
+                    SalesScheduleView = ModelBase.MasterDataSet.Tables["SalesMaster"].AsDataView();
+                    if (SalesScheduleView != null)
                     {
-                        SalesScheduleView.RowFilter = filter;
-                        OnPropertyChanged(nameof(SalesScheduleView));
+                        if (!string.IsNullOrEmpty(filter))
+                        {
+                            SalesScheduleView.RowFilter = filter;
+                        }
+                        else
+                        {
+                            SelectedCredStatus = CreditStatusList[0];
+                            IsSchedule = false;
+                            ScheduleType = true;
+                        }
                     }
-                    SelectedCredStatus = CreditStatusList[0];
-                    IsSchedule = false;
-                    ScheduleType = true;
                 }
             }
             catch (Exception ex)
             {
-                System.Windows.MessageBox.Show(ex.Message, "Unhandled Exception", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
+                System.Windows.MessageBox.Show(ex.Message, "Sales Order Unhandled Exception", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
             }
         }
         public void ViewLoaded(IAsyncResult r)
         {
-
+            IsLoading = false;
+            OnPropertyChanged(nameof(SelectedSalesOrder));
+            OnPropertyChanged(nameof(SalesScheduleView));
         }
 
         #endregion
@@ -274,25 +292,12 @@ namespace SFW.Schedule.SalesOrder
         /// </summary>
         public void RefreshSchedule()
         {
-            try
+            if (!IsLoading)
             {
-                var _drow = SelectedSalesOrder;
-                SalesScheduleView = ModelBase.MasterDataSet.Tables["SalesMaster"].AsDataView();
-                OnPropertyChanged(nameof(SalesScheduleView));
-                if (_drow != null && (SalesScheduleView.Table.AsEnumerable().Any(r => r.Field<string>("ID") == ((DataRowView)_drow).Row.Field<string>("ID"))))
-                {
-                    SelectedSalesOrder = _drow;
-                }
-                else
-                {
-                    SelectedSalesOrder = null;
-                }
-                SearchFilter = SearchFilter;
-                StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(SalesScheduleView)));
-            }
-            catch (Exception)
-            {
-
+                MainWindowViewModel.DisplayAction = App.LoadedModule == Enumerations.UsersControls.SalesOrder;
+                _oldSelection = SelectedSalesOrder;
+                var _filter = SalesScheduleView != null ? SalesScheduleView.RowFilter : string.Empty;
+                LoadAsyncComplete = LoadAsyncDelegate.BeginInvoke(_filter, new AsyncCallback(ViewLoaded), null);
             }
         }
     }

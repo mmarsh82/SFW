@@ -74,17 +74,17 @@ namespace SFW.Model
 	,ISNULL(wp.[Date_Orig_Comp], '1999-01-01') as OriginalDueDate
 	,ISNULL(wp.[Orig_Start_Date], '1999-01-01') as OriginalStartDate
 	,ISNULL(CAST(ROUND(wpo.Mach_Load_Hrs_Rem, 1) AS float), 0) AS RunTime
-	,CASE WHEN wpo.[Due_Date] < GETDATE()
+	,CASE WHEN CAST(wpo.[Due_Date] as date) < CAST(GETDATE() as date)
 		THEN 1
 		ELSE 0
 	END AS IsLate
-	,CASE WHEN wpo.[Date_Start] < GETDATE() AND wp.[Qty_To_Start] = wpo.[Qty_Avail]
+	,CASE WHEN CAST(wpo.[Date_Start] as date) < CAST(GETDATE() as date) AND wp.[Qty_To_Start] = wpo.[Qty_Avail]
 		THEN 1
 		ELSE 0
 	END AS IsStartLate
 	,ISNULL(wp.Wo_Type, 'S') AS WO_Type
 	,wp.Qty_To_Start AS WO_StartQty
-	,SUBSTRING(wp.So_Reference, 0, LEN(wp.So_Reference) - 1) AS WO_SalesRef
+	,SUBSTRING(wp.So_Reference, 0, LEN(wp.So_Reference) - LEN(CHARINDEX('*',REVERSE(wp.[So_Reference])))) AS WO_SalesRef
 	,CAST(ISNULL(wp.[User_Def_10], '999') as int) AS Sched_Shift
 	,CAST(ISNULL(wp.[User_Def_9], '999') as int) AS Sched_Priority
 	,ISNULL(wp.Bom_Rev_Date, '1999-01-01') AS InternalRev
@@ -104,7 +104,7 @@ namespace SFW.Model
 	,(SELECT Cust_Part_Nbr FROM dbo.[SOD-INIT] AS ac WHERE (ID = SUBSTRING(wp.So_Reference, 0, LEN(wp.So_Reference) - 1))) AS Cust_Part_Nbr
 	,CAST(ISNULL((SELECT Ln_Bal_Qty FROM dbo.[SOD-INIT] AS ad WHERE (ID = SUBSTRING(wp.So_Reference, 0, LEN(wp.So_Reference) - 1))), 0) AS int) AS Ln_Bal_Qty
 	,CAST(wc.[Fac_Code] as int) as 'Site'
-	,CASE WHEN wp.[Date_Sch_Comp] > wp.[Date_Orig_Comp] THEN 1 ELSE 0 END as 'IsPastDue'
+	,CASE WHEN CAST(wp.[Date_Sch_Comp] as date) > CAST(wp.[Date_Orig_Comp] as date) THEN 1 ELSE 0 END as 'IsPastDue'
 FROM
 	dbo.[WC-INIT] AS wc
 LEFT JOIN

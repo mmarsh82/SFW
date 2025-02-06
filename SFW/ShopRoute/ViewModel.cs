@@ -4,7 +4,9 @@ using SFW.Model;
 using SFW.Reports;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Data;
 using System.Linq;
 using System.Windows;
 using System.Windows.Input;
@@ -133,6 +135,20 @@ namespace SFW.ShopRoute
             }
         }
 
+        public ObservableCollection<string> CompCollection { get; set; }
+        private string _compSel;
+        public string SelectedComp
+        {
+            get { return _compSel; }
+            set
+            {
+                _compSel = value;
+                ActivityTable = Sku.GetActivityTable(value, App.AppSqlCon).AsDataView();
+                OnPropertyChanged(nameof(ActivityTable));
+                OnPropertyChanged(nameof(SelectedComp));
+            }
+        }
+
         public bool HasFirstPiece
         {
             get
@@ -150,6 +166,18 @@ namespace SFW.ShopRoute
             }
         }
 
+        private bool _isPlan;
+        public bool IsPlan
+        {
+            get
+            { return _isPlan; }
+            set
+            {
+                _isPlan = value;
+                OnPropertyChanged(nameof(IsPlan));
+            }
+        }
+
         private bool _bomOnly;
         public bool BomOnly
         {
@@ -161,6 +189,8 @@ namespace SFW.ShopRoute
                 OnPropertyChanged(nameof(BomOnly));
             }
         }
+
+        public DataView ActivityTable { get; set; }
 
         private RelayCommand _noteChange;
         private RelayCommand _loadReport;
@@ -189,7 +219,7 @@ namespace SFW.ShopRoute
             NoLotResults = NoDedicateResults = true;
             LotListText = "Select a Part";
             NcrList = new List<string>();
-            BomOnly = ShopOrder.TaskType == "P";
+            IsPlan = BomOnly = ShopOrder.TaskType == "P";
             using (BackgroundWorker bw = new BackgroundWorker())
             {
                 try
@@ -232,6 +262,12 @@ namespace SFW.ShopRoute
                             if (App.SiteNumber == 1)
                             {
                                 NcrList = Ncr.GetNcrList(ShopOrder.OrderNumber);
+                            }
+                            if (CurrentUser.CanSchedule)
+                            {
+                                CompCollection = Model.Component.GetComponentBomCollection(ShopOrder.SkuNumber, ShopOrder.Seq);
+                                SelectedComp = CompCollection != null ? CompCollection.FirstOrDefault(o => o == ShopOrder.SkuNumber) : null;
+                                OnPropertyChanged(nameof(CompCollection));
                             }
                             OnPropertyChanged(nameof(IsMultiLoading));
                             OnPropertyChanged(nameof(ShopOrder));

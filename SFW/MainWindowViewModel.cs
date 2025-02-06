@@ -41,6 +41,7 @@ namespace SFW
                     }
                     var _mNbr = Machine.GetMachineNumber(value);
                     Schedule.ViewModel.ScheduleFilter(value == "All" ? "" : $"MachineNumber = '{_mNbr}'", 1);
+                    Schedule.Plan.ViewModel.PlanFilter(value == "All" ? "" : $"MachineNumber = '{_mNbr}'", 1);
                     IsChanging = false;
                 }
                 mach = value;
@@ -65,6 +66,7 @@ namespace SFW
                 {
                     IsChanging = true;
                     Schedule.ViewModel.ScheduleFilter(value == "All" ? "" : $"[MachineGroup] = '{value}'", 2);
+                    Schedule.Plan.ViewModel.PlanFilter(value == "All" ? "" : $"[MachineGroup] = '{value}'", 2);
                     SelectedMachine = MachineList.FirstOrDefault(o => o == "All");
                     IsChanging = false;
                 }

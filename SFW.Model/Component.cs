@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Data;
 using System.Data.SqlClient;
@@ -214,6 +215,31 @@ namespace SFW.Model
                 }
             }
             return _tempList;
+        }
+
+        /// <summary>
+        /// Retrieve a collection of components for a Sku
+        /// </summary>
+        /// <param name="partNbr">Sku ID Number</param>
+        /// <param name="woSeq">Work order sequence</param>
+        /// <returns>Collection component numbers/descriptions related to a Bill of material</returns>
+        public static ObservableCollection<string> GetComponentBomCollection(string partNbr, string woSeq)
+        {
+            var _tempCol = new ObservableCollection<string> { partNbr };
+            var _rows = MasterDataSet.Tables["BOM"].Select($"[ParentSkuID] = '{partNbr}' AND [Routing] = '{woSeq}'");
+            if (_rows.Length == 0 && woSeq != "10")
+            {
+                woSeq = "10";
+                _rows = MasterDataSet.Tables["BOM"].Select($"[ParentSkuID] = '{partNbr}' AND [Routing] = '{woSeq}'");
+            }
+            if (_rows.Length > 0)
+            {
+                foreach (var _row in _rows)
+                {
+                    _tempCol.Add(_row.Field<string>("ChildSkuID"));
+                }
+            }
+            return _tempCol;
         }
 
         /// <summary>

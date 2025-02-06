@@ -4,6 +4,7 @@ using SFW.Helpers;
 using SFW.Model;
 using System;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Data;
 using System.Linq;
 using System.Windows;
@@ -17,8 +18,8 @@ namespace SFW.Schedule.Plan
     {
         #region Properties
 
-        public string[] PlanViewFilter;
-        public DataView PlanningView { get; set; }
+        public static string[] PlanViewFilter;
+        public static DataView PlanningView { get; set; }
 
         private DataRowView _selectedWO;
         public DataRowView SelectedWorkOrder
@@ -83,32 +84,6 @@ namespace SFW.Schedule.Plan
             }
         }
 
-        private bool _close;
-        public bool ClosedFilter
-        {
-            get { return _close; }
-            set
-            {
-                var _filter = value ? "[Status] = 'C'" : "[Status] <> 'C'";
-                PlanFilter(_filter, 5);
-                _close = value;
-                OnPropertyChanged(nameof(ClosedFilter));
-            }
-        }
-
-        private bool _site;
-        public bool SiteFilter
-        {
-            get { return _site; }
-            set
-            {
-                var _filter = $"[Site] = {App.SiteNumber}";
-                PlanFilter(_filter, 6);
-                _site = value;
-                OnPropertyChanged(nameof(SiteFilter));
-            }
-        }
-
         public ObservableCollection<string> TypeCollection { get; set; }
         private string _type;
         public string SelectedType
@@ -131,11 +106,48 @@ namespace SFW.Schedule.Plan
                         break;
                 }
                 OnPropertyChanged(nameof(SelectedType));
-                OnPropertyChanged(nameof(PlanningView));
+                StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(PlanningView)));
             }
         }
 
-        private bool Refresh { get; set; }
+        private DateTime _date;
+        public DateTime SelectedDate
+        {
+            get
+            { return _date; }
+            set
+            {
+                _date = value;
+                PlanFilter($"[WO_DueDate] <= '{value}'", 6);
+                OnPropertyChanged(nameof(SelectedDate));
+                StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(PlanningView)));
+            }
+        }
+
+        public ObservableCollection<string> PlannerCollection { get; set; }
+        private string _planner;
+        public string SelectedPlanner
+        {
+            get
+            { return _planner; }
+            set
+            {
+                _planner = value;
+                switch (value)
+                {
+                    case "All":
+                        PlanFilter("", 7);
+                        break;
+                    default:
+                        PlanFilter($"[PlannerName]='{value}'", 7);
+                        break;
+                }
+                OnPropertyChanged(nameof(SelectedPlanner));
+                StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(PlanningView)));
+            }
+        }
+
+        public static event EventHandler<PropertyChangedEventArgs> StaticPropertyChanged;
 
         public delegate void LoadDelegate(string s);
         public LoadDelegate LoadAsyncDelegate { get; private set; }
@@ -152,15 +164,19 @@ namespace SFW.Schedule.Plan
         /// </summary>
         public ViewModel()
         {
-            Refresh = false;
-            LoadAsyncDelegate = new LoadDelegate(ViewLoading);
-            FilterAsyncDelegate = new LoadDelegate(FilterView);
-            LoadAsyncComplete = LoadAsyncDelegate.BeginInvoke(App.ViewFilter[App.SiteNumber], new AsyncCallback(ViewLoaded), null);
-            RefreshTimer.Add(RefreshSchedule);
-            PlanViewFilter = new string[7];
-            ClosedFilter = false;
-            TypeCollection = new ObservableCollection<string> { "All", "Work Order", "Plan" };
-            SelectedType = TypeCollection.FirstOrDefault(o => o == "All");
+            if (App.SiteNumber == 1)
+            {
+                LoadAsyncDelegate = new LoadDelegate(ViewLoading);
+                FilterAsyncDelegate = new LoadDelegate(FilterView);
+                LoadAsyncComplete = LoadAsyncDelegate.BeginInvoke(App.ViewFilter[App.SiteNumber], new AsyncCallback(ViewLoaded), null);
+                RefreshTimer.Add(RefreshSchedule);
+                PlanViewFilter = new string[8];
+                TypeCollection = new ObservableCollection<string> { "All", "Work Order", "Plan" };
+                SelectedType = TypeCollection.FirstOrDefault(o => o == "All");
+                SelectedDate = DateTime.Today.AddMonths(1);
+                PlannerCollection = Sku.GetPlannerCollection();
+                SelectedPlanner = PlannerCollection.FirstOrDefault(o => o == "All");
+            }
         }
 
         /// <summary>
@@ -172,10 +188,12 @@ namespace SFW.Schedule.Plan
         /// 3 = Work Order Priority Filter
         /// 4 = Inspection Filter
         /// 5 = Type Filter
+        /// 6 = Date Filter
+        /// 7 = Planner Filter
         /// </summary>
         /// <param name="filter">Filter string to use on the default view</param>
         /// <param name="index">Index of the filter string list you are adding to our changing</param>
-        public void PlanFilter(string filter, int index)
+        public static void PlanFilter(string filter, int index)
         {
             if (PlanViewFilter != null)
             {
@@ -188,7 +206,7 @@ namespace SFW.Schedule.Plan
                 if (PlanningView != null && PlanningView.Table.Rows.Count > 0)
                 {
                     PlanningView.RowFilter = _filterStr;
-                    OnPropertyChanged(nameof(PlanningView));
+                    StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(PlanningView)));
                 }
             }
             else
@@ -211,7 +229,7 @@ namespace SFW.Schedule.Plan
                 }
                 PlanFilter("[Status] <> 'C'", 5);
                 PlanFilter($"[Site] = {App.SiteNumber}", 6);
-                OnPropertyChanged(nameof(PlanningView));
+                StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(PlanningView)));
             }
         }
 
@@ -267,14 +285,19 @@ namespace SFW.Schedule.Plan
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message, "Unhandled Exception", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show(ex.Message, "Planning Unhandled Exception", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
         public void ViewLoaded(IAsyncResult r)
         {
             IsLoading = false;
-            OnPropertyChanged(nameof(PlanningView));
+            if (PlannerCollection != null && PlannerCollection.Count == 1)
+            {
+                PlannerCollection = Sku.GetPlannerCollection();
+                OnPropertyChanged(nameof(PlannerCollection));
+            }
+            StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(PlanningView)));
         }
 
         #endregion

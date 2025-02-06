@@ -57,7 +57,7 @@ namespace SFW.Model
         {
             var _site = 1;
             var _sku = skuId;
-            if (skuId.Contains("|"))
+            if (skuId != null && skuId.Contains("|"))
             {
                 var splitId = skuId.Split('|');
                 _sku = splitId[0];
@@ -267,7 +267,7 @@ namespace SFW.Model
                     using (SqlCommand cmd = new SqlCommand($"USE {ModelSqlCon.Database}; SELECT wp.[Part_Wo_Desc] FROM [dbo].[WP-INIT] wp WHERE wp.[Wp_Nbr] = @p1", ModelSqlCon))
                     {
                         cmd.Parameters.AddWithValue("p1", workOrder);
-                        _skuCol.Add(new Sku(cmd.ExecuteScalar().ToString()));
+                        _skuCol.Add(new Sku(cmd.ExecuteScalar()?.ToString()));
                     }
                     using (SqlCommand cmd = new SqlCommand($"USE {ModelSqlCon.Database}; SELECT CONCAT([ChildSkuID], '|0', [Site]) 'ProductId' FROM [dbo].[SFW_Picklist] WHERE [WorkOrderID] = @p1 AND [Routing] = @p2", ModelSqlCon))
                     {
@@ -298,6 +298,58 @@ namespace SFW.Model
             else
             {
                 throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
+            }
+        }
+
+        /// <summary>
+        /// Load a datatable with all the activity information
+        /// </summary>
+        /// <param name="skuId">Sku ID</param>
+        /// <param name="sqlCon">Sql Connection to use</param>
+        /// <returns>A table of activity information</returns>
+        public static DataTable GetActivityTable(string skuId, SqlConnection sqlCon)
+        {
+            using (DataTable _dt = new DataTable())
+            {
+                if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
+                {
+                    try
+                    {
+                        using (SqlDataAdapter adapter = new SqlDataAdapter($@"USE {sqlCon.Database}; SELECT * FROM [dbo].[SFW_Activity] WHERE [ProductID] = @p1 ORDER BY [DueDate]", sqlCon))
+                        {
+                            adapter.SelectCommand.Parameters.AddWithValue("p1", skuId.Contains("|") ? skuId : $"{skuId}|01");
+                            adapter.Fill(_dt);
+                        }
+                        var _bal = 0;
+                        using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database}; SELECT SUM([Oh_Qty_By_Loc]) FROM [dbo].[IPL-INIT_Location_Data] WHERE [ID1] = @p1 AND [Loc_Pick_Avail_Flag] = 'Y'", sqlCon))
+                        {
+                            cmd.Parameters.AddWithValue("p1", skuId.Contains("|") ? skuId : $"{skuId}|01");
+                            _bal = int.TryParse(cmd.ExecuteScalar().ToString(), out int i) ? i : 0;
+                        }
+                        _dt.Columns.Add("Balance", typeof(int));
+                        foreach (DataRow _row in _dt.Rows)
+                        {
+                            _row.BeginEdit();
+                            _bal += _row.Field<int>("Quantity");
+                            _row["Balance"] = _bal;
+                            _row.EndEdit();
+                        }
+
+                        return _dt;
+                    }
+                    catch (SqlException sqlEx)
+                    {
+                        return _dt;
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new Exception(ex.Message);
+                    }
+                }
+                else
+                {
+                    throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
+                }
             }
         }
 
@@ -762,6 +814,31 @@ namespace SFW.Model
                 return !string.IsNullOrEmpty(_class) || _class == "T";
             }
             return false;
+        }
+
+        /// <summary>
+        /// Get a collection of planners
+        /// </summary>
+        /// <returns></returns>
+        public static ObservableCollection<string> GetPlannerCollection()
+        {
+            try
+            {
+                var _rtnCol = new ObservableCollection<string> { "All" };
+                if (MasterDataSet.Tables["Plan"].Rows.Count > 0)
+                {
+                    var _results = MasterDataSet.Tables["Plan"].AsDataView().ToTable(true, "PlannerName");
+                    foreach (DataRow _result in _results.Rows)
+                    {
+                        _rtnCol.Add(_result.Field<string>("PlannerName"));
+                    }
+                }
+                return _rtnCol;
+            }
+            catch
+            {
+                return new ObservableCollection<string> { "All" };
+            }
         }
     }
 }

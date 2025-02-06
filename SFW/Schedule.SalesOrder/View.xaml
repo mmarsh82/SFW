@@ -20,7 +20,7 @@
         <cvtr:StringToVisibility x:Key="StringToVisConverter" />
         <cvtr:ValueToHeight x:Key="ValueToHeightConverter"/>
         <cvtr:MultiValueParameter x:Key="MultiValParamConverter"/>
-        <CollectionViewSource x:Key="SalesSource" Source="{Binding SalesView}">
+        <CollectionViewSource x:Key="SalesSource" Source="{Binding SalesScheduleView}">
             <CollectionViewSource.GroupDescriptions>
                 <PropertyGroupDescription PropertyName="FullCustName"/>
             </CollectionViewSource.GroupDescriptions>
@@ -143,7 +143,8 @@
                        TextDecorations="Underline"
                        Margin="10,0,0,0"
                        VerticalAlignment="Center" />
-            <ComboBox ItemsSource="{Binding OrderTypeList}"
+            <ComboBox x:Name="OrderType"
+                      ItemsSource="{Binding OrderTypeList}"
                       SelectedItem="{Binding SelectedType, NotifyOnSourceUpdated=True, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
                       Width="60"
                       FontSize="14"
@@ -193,7 +194,7 @@
         <DataGrid x:Name="SalesSchedule"
                   Grid.Row="2"
                   ItemsSource="{Binding Source={StaticResource SalesSource}}"
-                  SelectedItem="{Binding SelectedSalesOrder, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                  CurrentItem="{Binding SelectedSalesOrder, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                   HorizontalAlignment="Left"
                   HeadersVisibility="None"
                   AutoGenerateColumns="False"
