@@ -73,25 +73,15 @@ namespace SFW.Helpers
         /// <summary>
         /// Create a PDF travel card of the object
         /// </summary>
-        /// <param name="formType">Type of form to create 0 = Portrait, 1 = Landscape</param>
+        /// <param name="formType">Type of form that is created</param>
+        /// <param name="filePath">Path to the standard travel card</param>
         /// <returns>Successful Creation will return true, with file name.  Failed creation will return false with the error message</returns>
-        public static IReadOnlyDictionary<bool, string> CreatePDF(FormType formType)
+        public static IReadOnlyDictionary<bool, string> CreatePDF(FormType formType, string filePath)
         {
             //TODO:Need to write the parts of this into the global config
             try
             {
-                switch (formType)
-                {
-                    case FormType.Portrait:
-                        FilePath = "\\\\waxfs001\\WAXG-Wahpeton\\PublishedDocuments\\FORM5125 - Travel Card.pdf";
-                        break;
-                    case FormType.Landscape:
-                        FilePath = "\\\\waxfs001\\WAXG-Wahpeton\\PublishedDocuments\\FORM5127 - Reference Travel Card.pdf";
-                        break;
-                    case FormType.CoC:
-                        FilePath = "\\\\waxfs001\\WAXG-SFW\\CSI Travel Card.pdf";
-                        break;
-                }
+                FilePath = filePath;
                 var _folder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
                 var _fileName = string.IsNullOrEmpty(LotNbr) ? $"{PartNbr}{DateTime.Now:MMyyHHmm}" : $"{LotNbr.Replace("-","")}{DateTime.Now:MMyyHHmm}";
                 var _documentPath = $"{_folder}\\SFW\\TravelCard\\{_fileName}.pdf";
@@ -198,11 +188,13 @@ namespace SFW.Helpers
         /// <summary>
         /// Print a Travel Card for any Sku object
         /// </summary>
-        public static void Display(FormType formType)
+        /// <param name="formType">Type of form to create</param>
+        /// <param name="filePath">Path to the standard travel document</param>
+        public static void Display(FormType formType, string filePath)
         {
             try
             {
-                var _response = CreatePDF(formType);
+                var _response = CreatePDF(formType, filePath);
                 if (_response.ContainsKey(true))
                 {
                     _response.TryGetValue(true, out string _documentPath);
@@ -225,11 +217,12 @@ namespace SFW.Helpers
         /// Print any travel card in the form of a pdf
         /// </summary>
         ///<param name="formType"></param>
-        public static string PrintPDF(FormType formType)
+        ///<param name="filePath">Path to the standard file</param>
+        public static string PrintPDF(FormType formType, string filePath)
         {
             try
             {
-                var _response = CreatePDF(formType);
+                var _response = CreatePDF(formType, filePath);
                 if (_response.ContainsKey(true))
                 {
                     _response.TryGetValue(true, out string _documentPath);

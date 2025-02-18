@@ -162,18 +162,27 @@ namespace SFW.Model
                         }
                         else
                         {
-                            _time = string.IsNullOrEmpty(_time) ? GetShiftStartTime(IdNumber) : _time;
-                            if (DateTime.Now.TimeOfDay < TimeSpan.Parse(_time))
+                            try
+                            {
+                                _time = string.IsNullOrEmpty(_time) ? GetShiftStartTime(IdNumber) : _time;
+                                if (DateTime.Now.TimeOfDay < TimeSpan.Parse(_time))
+                                {
+                                    _time = string.Empty;
+                                    ErrorMessage = "Must manually enter time.";
+                                    _clockLoaded = false;
+                                }
+                                else
+                                {
+                                    _clockLoaded = true;
+                                }
+                                _inTime = value = _time;
+                            }
+                            catch
                             {
                                 _time = string.Empty;
                                 ErrorMessage = "Must manually enter time.";
                                 _clockLoaded = false;
                             }
-                            else
-                            {
-                                _clockLoaded = true;
-                            }
-                            _inTime = value = _time;
                         }
                         OnPropertyChanged(nameof(InTime));
                         OnPropertyChanged(nameof(ErrorMessage));
@@ -395,28 +404,96 @@ namespace SFW.Model
         public static List<CrewMember> GetCrewLaborList(string manager, DateTime date, SqlConnection sqlCon)
         {
             var _rtnList = new List<CrewMember>();
-            var _dateId = (date - Convert.ToDateTime("1967/12/31")).Days;
             if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
             {
                 try
                 {
-                    using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database}; SELECT * FROM [dbo].[SFW_StaffLabor] WHERE [Manager] = @p1 AND [LaborID] LIKE @p2", sqlCon))
+                    using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database}; SELECT * FROM [dbo].[SFW_StaffLabor] WHERE [Manager] = @p1 AND [DateChanged] = @p2", sqlCon))
                     {
                         cmd.Parameters.AddWithValue("p1", manager);
-                        cmd.Parameters.AddWithValue("p2", $"%*{date}*%");
+                        cmd.Parameters.AddWithValue("p2", date.ToString("yyyy-MM-dd"));
                         using (SqlDataReader reader = cmd.ExecuteReader())
                         {
                             if (reader.HasRows)
                             {
-                                _rtnList.Add(new CrewMember {
+                                while(reader.Read())
+                                {
+                                    var _tempMach = reader.SafeGetInt32("WorkCenter") == 0
+                                        ? null
+                                        : new Machine(reader.SafeGetInt32("WorkCenter"));
+                                    var _tempCrew = new CrewMember {
                                     IdNumber = reader.SafeGetString("UserID")
-                                    ,Name = reader.SafeGetString("DisplayName")
-                                    ,Shift = reader.SafeGetInt32("Shift")
-                                    ,Facility = reader.SafeGetString("FacilityID")
-                                    ,IsWorking = reader.SafeGetInt32("WorkHours") > 0
-                                    ,HoursWorked = reader.SafeGetInt32("WorkHours")
-                                    ,WorkCenter = new Machine(reader.SafeGetInt32("WorkCenter"))
-                                });
+                                    , Name = reader.SafeGetString("DisplayName")
+                                    , Shift = reader.SafeGetInt32("Shift")
+                                    , Facility = reader.SafeGetString("FacilityID")
+                                    , IsWorking = reader.SafeGetInt32("WorkHours") > 0
+                                    , HoursWorked = reader.SafeGetInt32("WorkHours")
+                                    , WorkCenter = _tempMach };
+                                    if (!string.IsNullOrEmpty(_tempCrew.Name))
+                                    {
+                                        _rtnList.Add(_tempCrew);
+                                    }
+                                }
+                            }   
+                        }
+                    }
+                    return _rtnList;
+                }
+                catch (SqlException sqlEx)
+                {
+                    throw new Exception(sqlEx.Message);
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception(ex.Message);
+                }
+            }
+            else
+            {
+                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
+            }
+        }
+
+        /// <summary>
+        /// Get a table of all the staff labor for crew management
+        /// </summary>
+        /// <param name="Shift">Employee shift</param>
+        /// <param name="date">Date to get the data from</param>
+        /// <param name="sqlCon">Sql Connection to use</param>
+        /// <returns>List of staff labor</returns>
+        public static List<CrewMember> GetCrewLaborList(int shift, DateTime date, SqlConnection sqlCon)
+        {
+            var _rtnList = new List<CrewMember>();
+            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
+            {
+                try
+                {
+                    using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database}; SELECT * FROM [dbo].[SFW_StaffLabor] WHERE [Shift] = @p1 AND [DateChanged] = @p2", sqlCon))
+                    {
+                        cmd.Parameters.AddWithValue("p1", shift);
+                        cmd.Parameters.AddWithValue("p2", date.ToString("yyyy-MM-dd"));
+                        using (SqlDataReader reader = cmd.ExecuteReader())
+                        {
+                            if (reader.HasRows)
+                            {
+                                while(reader.Read())
+                                {
+                                    var _tempMach = reader.SafeGetInt32("WorkCenter") == 0
+                                        ? null
+                                        : new Machine(reader.SafeGetInt32("WorkCenter"));
+                                    var _tempCrew = new CrewMember {
+                                    IdNumber = reader.SafeGetString("UserID")
+                                    , Name = reader.SafeGetString("DisplayName")
+                                    , Shift = reader.SafeGetInt32("Shift")
+                                    , Facility = reader.SafeGetString("FacilityID")
+                                    , IsWorking = reader.SafeGetInt32("WorkHours") > 0
+                                    , HoursWorked = reader.SafeGetInt32("WorkHours")
+                                    , WorkCenter = _tempMach };
+                                    if (!string.IsNullOrEmpty(_tempCrew.Name))
+                                    {
+                                        _rtnList.Add(_tempCrew);
+                                    }
+                                }
                             }   
                         }
                     }
@@ -501,19 +578,22 @@ namespace SFW.Model
                         foreach (var _crewMember in crewMembers)
                         {
                             sqlCommand.Parameters.Clear();
+                            var _workCenter = _crewMember.WorkCenter != null && !string.IsNullOrEmpty(_crewMember.WorkCenter.MachineNumber)
+                                    ? _crewMember.WorkCenter.MachineNumber
+                                    : "";
                             switch (action)
                             {
                                 case 'S':
-                                    sqlCommand.Parameters.AddWithValue("@p1", $"{_crewMember.IdNumber}*{_dateId}*0{_crewMember.Facility}");
+                                    sqlCommand.Parameters.AddWithValue("@p1", $"{_crewMember.IdNumber}*{_dateId}*{_crewMember.Facility}");
                                     sqlCommand.Parameters.AddWithValue("@p2", _crewMember.HoursWorked);
                                     sqlCommand.Parameters.AddWithValue("@p3", _crewMember.Shift);
                                     sqlCommand.Parameters.AddWithValue("@p4", _crewMember.Name);
-                                    sqlCommand.Parameters.AddWithValue("@p5", _crewMember.WorkCenter.MachineNumber);
-                                    sqlCommand.Parameters.AddWithValue("@p5", managerId);
+                                    sqlCommand.Parameters.AddWithValue("@p5", _workCenter);
+                                    sqlCommand.Parameters.AddWithValue("@p6", managerId);
                                     break;
                                 case 'U':
                                     sqlCommand.Parameters.AddWithValue("@p1", _crewMember.HoursWorked);
-                                    sqlCommand.Parameters.AddWithValue("@p2", _crewMember.WorkCenter.MachineNumber);
+                                    sqlCommand.Parameters.AddWithValue("@p2", _workCenter);
                                     sqlCommand.Parameters.AddWithValue("@p3", $"{_crewMember.IdNumber}*{_dateId}*{_crewMember.Facility}");
                                     break;
                             }

@@ -1,5 +1,4 @@
-﻿using SFW.Model;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.DirectoryServices;
@@ -193,6 +192,18 @@ namespace SFW
             {
                 _isSuper = value;
                 StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(IsSupervisor)));
+            }
+        }
+
+        private static bool _isManager;
+        public static bool IsManager
+        {
+            get
+            { return _isManager; }
+            private set
+            {
+                _isManager = value;
+                StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(IsManager)));
             }
         }
 
@@ -396,13 +407,14 @@ namespace SFW
                 {
                     if (_aGroups.Count(o => o.Contains("SFW-Admin")) > 0)
                     {
-                        CanTrain = CanSchedule = IsSupervisor = IsInventoryControl = IsAccountsReceivable = IsAdmin = HasSalesOrderModule = IsQuality = IsEngineer = CanSplit = CanDeviate = HasNotice = Planner = LaborAdmin = true;
+                        CanTrain = CanSchedule = IsSupervisor = IsManager = IsInventoryControl = IsAccountsReceivable = IsAdmin = HasSalesOrderModule = IsQuality = IsEngineer = CanSplit = CanDeviate = HasNotice = Planner = LaborAdmin = true;
                         BasicUser = false;
                     }
                     else
                     {
                         CanSchedule = _aGroups.Count(o => o.Contains("SFW-Scheduler")) > 0;
                         IsSupervisor = _aGroups.Count(o => o.Contains("SFW-Supervisor")) > 0;
+                        IsManager = _aGroups.Count(o => o.Contains("SFW-Manager")) > 0;
                         IsInventoryControl = _aGroups.Count(o => o.Contains("SFW-Inventory")) > 0;
                         IsAccountsReceivable = _aGroups.Count(o => o.Contains("SFW-AR")) > 0;
                         HasSalesOrderModule = _aGroups.Count(o => o.Contains("SFW-Sales")) > 0;
@@ -667,7 +679,7 @@ namespace SFW
             CanWip = false;
             IsAdmin = false;
             IsInventoryControl = false;
-            IsSupervisor = false;
+            IsSupervisor = IsManager = false;
             UserIDNbr = string.Empty;
             IsAccountsReceivable = false;
             HasSalesOrderModule = false;

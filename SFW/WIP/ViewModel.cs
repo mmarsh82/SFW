@@ -681,10 +681,10 @@ namespace SFW.WIP
                     switch (parameter.ToString())
                     {
                         case "T":
-                            TravelCard.PrintPDF(FormType.Portrait);
+                            TravelCard.PrintPDF(FormType.Portrait, App.GlobalConfig.FirstOrDefault(o => o.Site == App.Facility).MaterialCard);
                             break;
                         case "R":
-                            TravelCard.PrintPDF(FormType.Landscape);
+                            TravelCard.PrintPDF(FormType.Landscape, App.GlobalConfig.FirstOrDefault(o => o.Site == App.Facility).ReferenceCard);
                             break;
                     }
                 }
@@ -719,7 +719,7 @@ namespace SFW.WIP
                         CompoundPart,
                         CompoundLot
                         );
-                    TravelCard.Display(FormType.CoC);
+                    TravelCard.Display(FormType.CoC, App.GlobalConfig.FirstOrDefault(o => o.Site == "CSI").MaterialCard);
                 }
             }
             else
@@ -754,10 +754,10 @@ namespace SFW.WIP
                         switch (parameter.ToString())
                         {
                             case "T":
-                                TravelCard.PrintPDF(FormType.Portrait);
+                                TravelCard.PrintPDF(FormType.Portrait, App.GlobalConfig.FirstOrDefault(o => o.Site == App.Facility).MaterialCard);
                                 break;
                             case "R":
-                                TravelCard.PrintPDF(FormType.Landscape);
+                                TravelCard.PrintPDF(FormType.Landscape, App.GlobalConfig.FirstOrDefault(o => o.Site == App.Facility).ReferenceCard);
                                 break;
                         }
                     }
@@ -775,7 +775,7 @@ namespace SFW.WIP
                         int.TryParse(Weight.ToString(), out int i) ? i : 0,
                         WipRecord.Submitter
                         );
-                    TravelCard.Display(FormType.CoC);
+                    TravelCard.Display(FormType.CoC, App.GlobalConfig.FirstOrDefault(o => o.Site == "CSI").MaterialCard);
                 }
             }
         }

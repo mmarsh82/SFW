@@ -185,7 +185,7 @@
                                           Width="150"
                                           TabIndex="5"
                                           Margin="5,0,0,0"
-                                          Style="{DynamicResource RequiredComboBox}">
+                                          Style="{DynamicResource OptionalComboBox}">
                                     <ComboBox.Visibility>
                                         <MultiBinding Converter="{StaticResource BoolToVisConverter}">
                                             <Binding Path="IsWorking"/>
@@ -215,6 +215,48 @@
                    Foreground="Crimson"
                    FontWeight="Bold"
                    FontSize="18" />
+
+        <StackPanel Grid.Row="2"
+                    Orientation="Horizontal"
+                    VerticalAlignment="Center"
+                    HorizontalAlignment="Center"
+                    Visibility="{Binding CanView, Converter={StaticResource BoolToVisConverter}}">
+
+            <Button Grid.Row="2"
+                    Width="40"
+                    Margin="5"
+                    Content="1"
+                    FontSize="18"
+                    VerticalAlignment="Center"
+                    HorizontalAlignment="Right"
+                    Command="{Binding ShiftViewICommand}"
+                    CommandParameter="1"
+                    Style="{DynamicResource DefaultButton}"/>
+
+            <Button Grid.Row="2"
+                    Width="40"
+                    Margin="5"
+                    Content="2"
+                    FontSize="18"
+                    VerticalAlignment="Center"
+                    HorizontalAlignment="Right"
+                    Command="{Binding ShiftViewICommand}"
+                    CommandParameter="2"
+                    Style="{DynamicResource DefaultButton}"/>
+
+            <Button Grid.Row="2"
+                    Width="40"
+                    Margin="5"
+                    Content="3"
+                    FontSize="18"
+                    VerticalAlignment="Center"
+                    HorizontalAlignment="Right"
+                    Command="{Binding ShiftViewICommand}"
+                    CommandParameter="3"
+                    Style="{DynamicResource DefaultButton}"/>
+
+        </StackPanel>
+        
 
         <Button Grid.Row="2"
                 Content="Publish"

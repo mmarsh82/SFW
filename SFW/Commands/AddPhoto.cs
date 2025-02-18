@@ -4,6 +4,7 @@ using SFW.Model;
 using System;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Input;
 
@@ -17,10 +18,21 @@ namespace SFW.Commands
         {
             try
             {
-                var _ncrId = ((QMS.NcrForm.ViewModel)parameter).NcrObject != null ? ((QMS.NcrForm.ViewModel)parameter).NcrObject.NcrId : 0;
-                if (parameter != null)
+                var _ncrId = 0;
+                var _folderPath = "";
+                var _isNew = ((QMS.NcrForm.ViewModel)parameter).NcrObject.NcrId == 0;
+                if (((QMS.NcrForm.ViewModel)parameter).NcrObject != null)
                 {
-                    var _folderPath = $"\\\\waxfs001\\WAXG-SFW\\QMS Pictures\\";
+                    _ncrId = ((QMS.NcrForm.ViewModel)parameter).NcrObject.NcrId > 0 
+                        ? ((QMS.NcrForm.ViewModel)parameter).NcrObject.NcrId 
+                        : ((QMS.NcrForm.ViewModel)parameter).NcrObject.TempId;
+
+                    _folderPath = ((QMS.NcrForm.ViewModel)parameter).NcrObject.NcrId > 0
+                        ? "\\\\waxfs001\\WAXG-SFW\\QMS Pictures\\"
+                        : "\\\\waxfs001\\WAXG-SFW\\QMS Pictures\\Temp\\";
+                }
+                if (parameter != null && _ncrId > 0)
+                {
                     var _fileCount = Directory.GetFiles(_folderPath, $"{_ncrId}-*", SearchOption.TopDirectoryOnly).Count();
                     OpenFileDialog ofd = new OpenFileDialog();
                     ofd.DefaultExt = ".jpg";
@@ -28,8 +40,8 @@ namespace SFW.Commands
                     var _result = ofd.ShowDialog();
                     if (_result == true)
                     {
-                        File.Move(ofd.FileName, $"{_folderPath}{_ncrId}-{_fileCount + 1}.jpg");
-                        if (_ncrId > 0)
+                        File.Copy(ofd.FileName, $"{_folderPath}{_ncrId}-{_fileCount + 1}.jpg");
+                        if (!_isNew)
                         {
                             Ncr.SubmitPhotoPath(_ncrId, $"{_ncrId}-{_fileCount + 1}.jpg", App.AppSqlCon);
                         }

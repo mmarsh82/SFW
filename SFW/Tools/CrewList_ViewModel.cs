@@ -4,7 +4,6 @@ using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
-using System.Windows.Documents;
 using System.Windows.Input;
 
 namespace SFW.Tools
@@ -52,7 +51,16 @@ namespace SFW.Tools
             { return _date; }
             set
             {
-                if (_date != value)
+                if (CanView)
+                {
+                    Shift = Shift == 0 ? 1 : Shift;
+                    OnPropertyChanged(nameof(Shift));
+                    CrewCollection = new ObservableCollection<CrewMember>(CrewMember.GetCrewLaborList(Shift, value, App.AppSqlCon));
+                    NoData = CrewCollection.Count == 0;
+                    OnPropertyChanged(nameof(NoData));
+                    OnPropertyChanged(nameof(CrewCollection));
+                }
+                else if (_date != value)
                 {
                     if (CrewMember.IsPublished(ManagerId, value, App.AppSqlCon))
                     {
@@ -66,14 +74,18 @@ namespace SFW.Tools
                         {
                             var _surName = _report.Value.Split(',')[0];
                             var _giveName = _report.Value.Split(',')[1];
-                            CrewCollection.Add(new CrewMember(_giveName, _surName, true));
+                            var _tempCrew = new CrewMember(_giveName, _surName, true);
+                            if (!string.IsNullOrEmpty(_tempCrew.Name))
+                            {
+                                CrewCollection.Add(new CrewMember(_giveName, _surName, true));
+                            }
                         }
                         _actionType = 'S';
                     }
                     NoData = CrewCollection.Count == 0;
                     Published = !NoData && _actionType != 'S';
-                    _date = value;
                 }
+                _date = value;
                 OnPropertyChanged(nameof(SelectedDate));
             }
         }
@@ -90,6 +102,18 @@ namespace SFW.Tools
             }
         }
 
+        private bool _view;
+        public bool CanView
+        {
+            get
+            { return _view; }
+            set
+            {
+                _view = value;
+                OnPropertyChanged(nameof(CanView));
+            }
+        }
+
         private bool _publish;
         public bool Published
         {
@@ -103,6 +127,7 @@ namespace SFW.Tools
         }
 
         private RelayCommand _submitICommand;
+        private RelayCommand _viewICommand;
 
         #endregion
 
@@ -115,6 +140,7 @@ namespace SFW.Tools
             Shift = _tempCrewMember.Shift;
             ManagerId = _tempCrewMember.IdNumber;
             CanEdit = CurrentUser.IsSupervisor && CurrentUser.DirectReports.Count > 0;
+            CanView = CurrentUser.IsManager;
             _isLoading = false;
             SelectedDate = DateTime.Today;
             if (MachineCollection == null)
@@ -123,7 +149,7 @@ namespace SFW.Tools
             }
         }
 
-        #region Submit Command ICommand
+        #region Submit ICommand
 
         public ICommand SubmitICommand
         {
@@ -148,6 +174,36 @@ namespace SFW.Tools
             }
         }
         private bool ActionCommandCanExecute(object parameter) => true;
+
+        #endregion
+
+        #region Shift View ICommand
+
+        public ICommand ShiftViewICommand
+        {
+            get
+            {
+                if (_viewICommand == null)
+                {
+                    _viewICommand = new RelayCommand(ViewCommandExecute, ViewCommandCanExecute);
+                }
+                return _viewICommand;
+            }
+        }
+
+        private void ViewCommandExecute(object parameter)
+        {
+            if (int.TryParse(parameter.ToString(), out int i))
+            {
+                CrewCollection = new ObservableCollection<CrewMember>(CrewMember.GetCrewLaborList(i, SelectedDate, App.AppSqlCon));
+                NoData = CrewCollection.Count == 0;
+                Shift = i;
+                OnPropertyChanged(nameof(Shift));
+                OnPropertyChanged(nameof(NoData));
+                OnPropertyChanged(nameof(CrewCollection));
+            }
+        }
+        private bool ViewCommandCanExecute(object parameter) => true;
 
         #endregion
 

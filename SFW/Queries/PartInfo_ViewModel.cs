@@ -424,10 +424,10 @@ namespace SFW.Queries
                 switch (parameter.ToString())
                 {
                     case "T":
-                        TravelCard.Display(FormType.Portrait);
+                        TravelCard.Display(FormType.Portrait, App.GlobalConfig.FirstOrDefault(o => o.Site == App.Facility).MaterialCard);
                         break;
                     case "R":
-                        TravelCard.Display(FormType.Landscape);
+                        TravelCard.Display(FormType.Landscape, App.GlobalConfig.FirstOrDefault(o => o.Site == App.Facility).ReferenceCard);
                         break;
                 }
             }
@@ -450,7 +450,7 @@ namespace SFW.Queries
                         0,
                         submitter: CurrentUser.DisplayName
                         );
-                        TravelCard.Display(FormType.CoC);
+                        TravelCard.Display(FormType.CoC, App.GlobalConfig.FirstOrDefault(o => o.Site == "CSI").MaterialCard);
                         break;
                 }
             }

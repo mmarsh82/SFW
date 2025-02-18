@@ -177,6 +177,10 @@
                                         <TextBlock Text="{Binding DispositionDescription}" Margin="0,0,5,0"/>
                                     </StackPanel>
                                 </Grid>
+                                <Grid>
+                                    <TextBlock Text="{Binding DefectReasonDescription}" HorizontalAlignment="Left" Margin="5,0,0,0"/>
+                                    <TextBlock Text="{Binding DefectTypeDescription}" HorizontalAlignment="Right" Margin="5,0,0,0"/>
+                                </Grid>
                             </StackPanel>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>

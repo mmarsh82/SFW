@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Data;
 using System.Data.SqlClient;
+using System.IO;
 using System.Linq;
 
 namespace SFW.Model
@@ -461,6 +462,7 @@ namespace SFW.Model
                 OnPropertyChanged(nameof(NcrId));
             }
         }
+        public int TempId;
 
         private string _orderId;
         public string OrderId 
@@ -603,6 +605,7 @@ namespace SFW.Model
             RevisionList = new List<Revision>{ new Revision(submitter) };
             OrderId = string.Empty;
             Site = int.TryParse(submitter.Facility, out int i) ? i : 1;
+            TempId = int.TryParse(DateTime.Now.ToString("HHmmss"), out int id) ? id : 123456;
         }
 
         /// <summary>
@@ -661,6 +664,25 @@ namespace SFW.Model
             IsValidOrder = true;
             RevisionList = new List<Revision> { new Revision(submitter) };
             Site = workOrder.Facility;
+            TempId = int.TryParse(DateTime.Now.ToString("HHmmss"), out int id) ? id : 123456;
+        }
+
+        /// <summary>
+        /// Ncr Overridden Constructor
+        /// </summary>
+        public Ncr(Ncr ncrObj)
+        {
+            NcrId = ncrObj.NcrId;
+            OrderId = ncrObj.OrderId;
+            OrderSeqId = ncrObj.OrderSeqId;
+            IsValidOrder = true;
+            Part = PartCollection.FirstOrDefault(o => o.SkuNumber == ncrObj.Part.SkuNumber);
+            LotList = ncrObj.LotList;
+            Reporter = ncrObj.Reporter;
+            ProductValue = ncrObj.ProductValue;
+            Site = ncrObj.Site;
+            RevisionList = ncrObj.RevisionList;
+            TempId = int.TryParse(DateTime.Now.ToString("HHmmss"), out int id) ? id : 123456;
         }
 
         #region Data Access
@@ -917,7 +939,7 @@ namespace SFW.Model
             {
                 using (SqlCommand cmd = new SqlCommand($@"SELECT SUM(Quantity) as 'Quantity', SUM(ScrapCost) as 'ScrapCost' FROM [dbo].[SFW_ScrapCost] WHERE [NcrId] = @p1", sqlCon))
                 {
-                    cmd.Parameters.AddWithValue("p1", ncrId);
+                    cmd.Parameters.AddWithValue("p1", ncrId.ToString());
                     using (SqlDataReader reader = cmd.ExecuteReader())
                     {
                         if (reader.HasRows)
@@ -982,7 +1004,7 @@ namespace SFW.Model
             {
                 foreach (var _row in _rows)
                 {
-                    _rtnList.Add(_row.SafeGetField<int>("NcrId").ToString());
+                    _rtnList.Add($"{_row.SafeGetField<int>("NcrId")} {_row.SafeGetField<string>("DefectTypeDescription")}");
                 }
             }
             return _rtnList;
@@ -1053,7 +1075,7 @@ namespace SFW.Model
                 }
                 if (ncrObject.PhotoCollection != null && ncrObject.PhotoCollection.Count > 0)
                 {
-                    ncrObject.SubmitPhotoPath(sqlCon);
+                    ncrObject.SubmitPhotoPath(true, sqlCon);
                 }
                 return _idNumber;
             }
@@ -1141,12 +1163,13 @@ namespace SFW.Model
         /// Submit NCR photo path
         /// </summary>
         /// <param name="ncrObj">QIR Object</param>
+        /// <param name="newNcr">Validation that it is coming from a new NCR</param>
         /// <param name="sqlCon">Sql Connection to use</param>
-        public static void SubmitPhotoPath(this Ncr ncrObj, SqlConnection sqlCon)
+        public static void SubmitPhotoPath(this Ncr ncrObj, bool newNcr, SqlConnection sqlCon)
         {
             try
             {
-                var _folderPath = $"\\\\waxfs001\\WAXG-SFW\\QMS Pictures\\";
+                var _folderPath = newNcr ? $"\\\\waxfs001\\WAXG-SFW\\QMS Pictures\\Temp\\" : $"\\\\waxfs001\\WAXG-SFW\\QMS Pictures\\";
                 foreach (var fullPathPhoto in ncrObj.PhotoCollection)
                 {
                     var _photo = fullPathPhoto.Replace(_folderPath, "");
@@ -1155,6 +1178,11 @@ namespace SFW.Model
                         cmd.Parameters.AddWithValue("p1", ncrObj.NcrId);
                         cmd.Parameters.AddWithValue("p2", _photo);
                         cmd.ExecuteNonQuery();
+                    }
+                    if (newNcr)
+                    {
+                        File.Move(fullPathPhoto, $"\\\\waxfs001\\WAXG-SFW\\QMS Pictures\\{_photo}");
+                        ncrObj.PhotoCollection[ncrObj.PhotoCollection.IndexOf(fullPathPhoto)] = "";
                     }
                 }
             }

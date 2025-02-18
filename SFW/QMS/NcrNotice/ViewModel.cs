@@ -27,11 +27,10 @@ namespace SFW.QMS.NcrNotice
                 try
                 {
                     _selectedNcr = value;
-                    WorkSpaceDock.UpdateChildDock(9, 1, new NcrForm.View { DataContext = new NcrForm.ViewModel(false) });
                     if (value != null)
                     {
                         var _ncr = new Ncr(value.Row.Field<int>("NcrId"));
-                        WorkSpaceDock.UpdateChildDock(9, 1, new NcrForm.View { DataContext = new NcrForm.ViewModel(_ncr, SelectedNcr.Row.Field<int>("NcrRevisionId")) });
+                        WorkSpaceDock.UpdateChildDock(9, 1, new NcrForm.ViewModel(_ncr, SelectedNcr.Row.Field<int>("NcrRevisionId")));
                     }
                     OnPropertyChanged(nameof(SelectedNcr));
                 }
@@ -192,7 +191,7 @@ namespace SFW.QMS.NcrNotice
         private void NewNcrExecute(object parameter)
         {
             RefreshTimer.Stop();
-            WorkSpaceDock.UpdateChildDock(9, 1, new NcrForm.View { DataContext = new NcrForm.ViewModel(true) });
+            WorkSpaceDock.UpdateChildDock(9, 1, new NcrForm.View { DataContext = new NcrForm.ViewModel(null, false, true) });
         }
 
         #endregion

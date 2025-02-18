@@ -159,7 +159,7 @@ namespace SFW.Controls
                     break;
                 case 9:
                     _tempDock = NcrDock;
-                    UpdateChildDock(9, 1, new QMS.NcrForm.View { DataContext = new QMS.NcrForm.ViewModel(false) });
+                    UpdateChildDock(9, 1, new QMS.NcrForm.View { DataContext = new QMS.NcrForm.ViewModel(null, false, false) });
                     break;
             }
             if (refreshDock)

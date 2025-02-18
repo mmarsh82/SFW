@@ -25,6 +25,8 @@ namespace SFW
         public string WorkOrderWeb { get; set; }
         public string SalesOrderWeb { get; set; }
         public static string ConfigFilePath { get; set; }
+        public string MaterialCard { get; set; }
+        public string ReferenceCard { get; set; }
 
         public static string _zLock;
         public static string ZoneLock
@@ -236,6 +238,8 @@ namespace SFW
                                                 ,TrimSetup = reader.GetAttribute("TrimSetup")
                                                 ,ExtSetup = reader.GetAttribute("ExtruderSetup")
                                                 ,WI = reader.GetAttribute("WI")
+                                                ,MaterialCard = reader.GetAttribute("MaterialCard")
+                                                ,ReferenceCard = reader.GetAttribute("ReferenceCard")
                                             });
                                             break;
                                         case "CSI":
@@ -245,6 +249,7 @@ namespace SFW
                                                 ,PartPrint = reader.GetAttribute("PartPrint")
                                                 ,PressSetup = reader.GetAttribute("Setup")
                                                 ,WI = reader.GetAttribute("WI")
+                                                ,MaterialCard = reader.GetAttribute("MaterialCard")
                                             });
                                             break;
                                         case "Locks":

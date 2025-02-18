@@ -93,36 +93,22 @@
 
                 <StackPanel Grid.Row="0"
                             Orientation="Horizontal">
-                    
-                    <Button Content="{Binding ActionType}"
-                            FontSize="16"
-                            Visibility="{Binding Path=(main:CurrentUser.IsQuality), Converter={StaticResource BoolToVisConverter}}"
-                            Command="{Binding ActionICommand}"
-                            Style="{DynamicResource MenuButtonStyle}" />
 
-                    <Button Content="Add Link"
-                            FontSize="16"
-                            Command="{StaticResource ViewLoadCommand}"
-                            Style="{DynamicResource MenuButtonStyle}">
-                        <Button.Visibility>
-                            <MultiBinding Converter="{StaticResource BoolToVisConverter}">
-                                <Binding Path="(main:CurrentUser.IsQuality)"/>
-                                <Binding Path="NcrObject.NcrId"/>
-                            </MultiBinding>
-                        </Button.Visibility>
-                    </Button>
-
-                    <Button Content="Add Photo"
-                            FontSize="16"
-                            Command="{StaticResource AddPhoto}"
-                            CommandParameter="{Binding DataContext, ElementName=NcrFormUC}"
-                            Visibility="{Binding Path=(main:CurrentUser.IsQuality), Converter={StaticResource BoolToVisConverter}}"
-                            Style="{DynamicResource MenuButtonStyle}"/>
-
-                    <Button Content="Cancel"
-                            FontSize="16"
+                    <Button Background="Transparent"
+                            BorderThickness="0"
+                            Width="90"
                             Command="{Binding CancelICommand}"
-                            Style="{DynamicResource MenuButtonStyle}">
+                            CommandParameter="-1">
+                        <Button.Content>
+                            <StackPanel Orientation="Horizontal">
+                                <Image Source="/SFW;component/Icons/BackArrow.ico" />
+                                <TextBlock Text="Back"
+                                           VerticalAlignment="Center"
+                                           FontSize="16"
+                                           FontWeight="Bold"
+                                           Foreground="Crimson" />
+                            </StackPanel>
+                        </Button.Content>
                         <Button.Visibility>
                             <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="NCR">
                                 <Binding Source="Button"/>
@@ -131,6 +117,19 @@
                             </MultiBinding>
                         </Button.Visibility>
                     </Button>
+
+                    <Button Content="{Binding ActionType}"
+                            FontSize="16"
+                            Visibility="{Binding Path=(main:CurrentUser.IsQuality), Converter={StaticResource BoolToVisConverter}}"
+                            Command="{Binding ActionICommand}"
+                            Style="{DynamicResource MenuButtonStyle}" />
+
+                    <Button Content="Add Photo"
+                            FontSize="16"
+                            Command="{StaticResource AddPhoto}"
+                            CommandParameter="{Binding DataContext, ElementName=NcrFormUC}"
+                            Visibility="{Binding Path=(main:CurrentUser.IsQuality), Converter={StaticResource BoolToVisConverter}}"
+                            Style="{DynamicResource MenuButtonStyle}"/>
 
                     <Menu Style="{DynamicResource ModernMenu}"
                           Visibility="{Binding NcrObject.RevisionList.Count, Converter={StaticResource CountToVisConverter}, ConverterParameter=ncr}">
@@ -162,6 +161,19 @@
                     <Button Content="Void"
                             FontSize="16"
                             Command="{Binding VoidICommand}"
+                            Style="{DynamicResource MenuButtonStyle}">
+                        <Button.Visibility>
+                            <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="NCR">
+                                <Binding Source="Void"/>
+                                <Binding Path="IsNewNcr"/>
+                                <Binding Path="(main:CurrentUser.IsQuality)"/>
+                            </MultiBinding>
+                        </Button.Visibility>
+                    </Button>
+
+                    <Button Content="Clone"
+                            FontSize="16"
+                            Command="{Binding CloneICommand}"
                             Style="{DynamicResource MenuButtonStyle}">
                         <Button.Visibility>
                             <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="NCR">

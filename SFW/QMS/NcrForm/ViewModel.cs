@@ -1,4 +1,5 @@
-﻿using SFW.Helpers;
+﻿using SFW.Controls;
+using SFW.Helpers;
 using SFW.Model;
 using System;
 using System.Collections.ObjectModel;
@@ -148,19 +149,25 @@ namespace SFW.QMS.NcrForm
         RelayCommand _xPic;
         RelayCommand _chgRev;
         RelayCommand _void;
+        RelayCommand _clone;
 
         #endregion
 
         /// <summary>
         /// ViewModel Default Constructor
         /// </summary>
-        public ViewModel(bool isNew)
+        public ViewModel(Ncr ncrObj, bool fromSched, bool isNew)
         {
             IsNewNcr = isNew;
-            FromSchedule = false;
+            FromSchedule = fromSched;
             if (NcrObject == null)
             {
                 NcrObject = new Ncr(new CrewMember(CurrentUser.FirstName, CurrentUser.LastName, false));
+                NcrRevision = NcrObject.RevisionList.FirstOrDefault();
+            }
+            else
+            {
+                NcrObject = new Ncr(ncrObj);
                 NcrRevision = NcrObject.RevisionList.FirstOrDefault();
             }
             ActionType = "Submit";
@@ -275,7 +282,7 @@ namespace SFW.QMS.NcrForm
         {
             var validObj = NcrObject.IsValidOrder && !string.IsNullOrEmpty(NcrObject.Reporter?.Name);
             var validRev = !string.IsNullOrEmpty(NcrRevision.Disposition?.Description)
-                && !NcrObject.IsEscape || (NcrObject.IsEscape && NcrObject.Part.IsLotTrace && NcrObject.LotList.Count(o => o.Validated) > 0)
+                && !NcrObject.IsEscape || (NcrObject.IsEscape && ((NcrObject.Part.IsLotTrace && NcrObject.LotList.Count(o => o.Validated) > 0) || !NcrObject.Part.IsLotTrace))
                 && !string.IsNullOrEmpty(NcrRevision.DefectReason?.Description) && !string.IsNullOrEmpty(NcrRevision.DefectType?.Description)
                 && !string.IsNullOrEmpty(NcrRevision.Description);
             var validLot = true;
@@ -307,6 +314,7 @@ namespace SFW.QMS.NcrForm
                 NcrObject.NcrId = NcrObject.Submit(App.AppSqlCon);
                 ActionType = "Update";
                 IsNewNcr = false;
+
             }
             else
             {
@@ -432,7 +440,10 @@ namespace SFW.QMS.NcrForm
         private void RemovePhotoExecute(object parameter)
         {
             NcrObject.PhotoCollection.Remove(parameter.ToString());
-            Ncr.DeletePhotoPath(NcrObject.NcrId, parameter.ToString(), App.AppSqlCon);
+            if (NcrObject.NcrId > 0)
+            {
+                Ncr.DeletePhotoPath(NcrObject.NcrId, parameter.ToString(), App.AppSqlCon);
+            }
         }
 
         #endregion
@@ -493,6 +504,39 @@ namespace SFW.QMS.NcrForm
 
         #endregion
 
+        #region Clone NCR ICommand
+
+        public ICommand CloneICommand
+        {
+            get
+            {
+                if (_clone == null)
+                {
+                    _clone = new RelayCommand(CloneExecute);
+                }
+                return _clone;
+            }
+        }
+
+        private void CloneExecute(object parameter)
+        {
+            /*
+            NcrObject.NcrId = 0;
+            NcrObject.RevisionList.Clear();
+            NcrRevision.RevisionId = 1;
+            NcrObject.RevisionList.Add(NcrRevision);
+            if(FromSchedule)
+            {
+                WorkSpaceDock.UpdateChildDock(1, 1, new ViewModel(NcrObject, true, true));
+            }
+            else
+            {
+                WorkSpaceDock.UpdateChildDock(9, 1, new ViewModel(NcrObject, false, true));
+            }
+            */
+        }
+
+        #endregion
 
     }
 }

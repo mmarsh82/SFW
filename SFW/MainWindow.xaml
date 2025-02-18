@@ -115,7 +115,7 @@
                 </MenuItem>
             </MenuItem>
             <MenuItem Header="View">
-                <MenuItem Header="Refresh Schedule"
+                <MenuItem Header="Refresh"
                           Command="{StaticResource ViewLoadICommand}"
                           CommandParameter="-2"
                           InputGestureText="F5"/>
