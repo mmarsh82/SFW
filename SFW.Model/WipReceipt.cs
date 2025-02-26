@@ -319,7 +319,7 @@ namespace SFW.Model
                 CrewList.ListChanged += CrewList_ListChanged;
                 CrewList[0].IdNumber = CrewMember.GetCrewID(subFName, subLName);
             }
-            IsLotTracable = Sku.IsLotTracable(workOrder.SkuNumber);
+            IsLotTracable = Sku.IsLotTracable(workOrder.SkuNumber, facCode);
             IsScrap = Complete.N;
             ScrapList = new BindingList<Scrap>();
             IsReclaim = Complete.N;

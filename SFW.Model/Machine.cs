@@ -337,6 +337,20 @@ ORDER BY
         }
 
         /// <summary>
+        /// Get a machines shift capacity
+        /// </summary>
+        /// <param name="machName">Name of machine</param>
+        /// <returns>machine shift capacity as a string</returns>
+        public static string GetMachineShift(string machName)
+        {
+            if (machName.Contains('('))
+            {
+                machName = machName.Split('(')[1].Replace(')', ' ').Trim();
+            }
+            return MasterDataSet.Tables["WC"].Select($"[WorkCenterID] = '{machName}'")[0].Field<int>("Shifts").ToString();
+        }
+
+        /// <summary>
         /// Retrieve a List of strings of each of the groups assigned to the machines
         /// </summary>
         /// <param name="incAll">Include all in the top of the list</param>

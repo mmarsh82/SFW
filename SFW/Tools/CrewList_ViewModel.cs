@@ -165,9 +165,9 @@ namespace SFW.Tools
 
         private void ActionCommandExecute(object parameter)
         {
-            var _msgText = CrewMember.PublishLabor(CrewCollection.ToList(), _actionType, ManagerId, App.AppSqlCon);
-            MessageBox.Show(_msgText, "Publishing Message", MessageBoxButton.OK, MessageBoxImage.Information);
-            if (_msgText.Contains("Successfully"))
+            var _response = CrewMember.PublishLabor(CrewCollection.ToList(), _actionType, ManagerId, SelectedDate, App.AppSqlCon);
+            MessageBox.Show(_response.FirstOrDefault().Value, "Publishing Message", MessageBoxButton.OK, MessageBoxImage.Information);
+            if (_response.FirstOrDefault().Key)
             {
                 _actionType = 'U';
                 Published = true;

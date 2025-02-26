@@ -29,8 +29,8 @@
     <ProductName>Shop Floor Workbench</ProductName>
     <PublisherName>Michael Marsh</PublisherName>
     <SuiteName>ContiTech</SuiteName>
-    <ApplicationRevision>674</ApplicationRevision>
-    <ApplicationVersion>2.0.102.674</ApplicationVersion>
+    <ApplicationRevision>695</ApplicationRevision>
+    <ApplicationVersion>2.0.105.695</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <CreateDesktopShortcut>true</CreateDesktopShortcut>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -139,6 +139,7 @@
     <Compile Include="Commands\TrimmingInformation.cs" />
     <Compile Include="Commands\UnplanScrap.cs" />
     <Compile Include="Commands\WorkInstructions.cs" />
+    <Compile Include="Converters\MachineShift.cs" />
     <Compile Include="Converters\SelectedRevision.cs" />
     <Compile Include="Converters\BoolInverter.cs" />
     <Compile Include="Converters\BoolToBackgroundColor.cs" />

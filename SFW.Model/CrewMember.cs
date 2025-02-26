@@ -554,12 +554,14 @@ namespace SFW.Model
         /// <param name="crewMembers">List of crew members objects</param>
         /// <param name="action">Type of SQL action to process</param>
         /// <param name="managerId">Manager employee ID</param>
+        /// <param name="publishDate">Date to use in the publishing</param>
         /// <param name="sqlCon">Sql Connection to use</param>
         /// <returns>Error or success message</returns>
-        public static string PublishLabor(List<CrewMember> crewMembers, char action, string managerId, SqlConnection sqlCon)
+        public static IReadOnlyDictionary<bool, string> PublishLabor(List<CrewMember> crewMembers, char action, string managerId, DateTime publishDate, SqlConnection sqlCon)
         {
+            var _rtnDict = new Dictionary<bool, string>();
             var cmdString = string.Empty;
-            var _dateId = (DateTime.Today - Convert.ToDateTime("1967/12/31")).Days;
+            var _dateId = (publishDate - Convert.ToDateTime("1967/12/31")).Days;
             switch (action)
             {
                 case 'S':
@@ -600,20 +602,24 @@ namespace SFW.Model
                             sqlCommand.ExecuteNonQuery();
                         }
                     }
-                    return "Submission has completed successfully.";
+                    _rtnDict.Add(true, "Submission has completed successfully.");
+                    return _rtnDict;
                 }
                 catch (SqlException sqlEx)
                 {
-                    return sqlEx.Message;
+                    _rtnDict.Add(false, sqlEx.Message);
+                    return _rtnDict;
                 }
                 catch (Exception ex)
                 {
-                    return ex.Message;
+                    _rtnDict.Add(false, ex.Message);
+                    return _rtnDict;
                 }
             }
             else
             {
-                return "A connection could not be made to pull accurate data, please contact your administrator";
+                _rtnDict.Add(false, "A connection could not be made to pull accurate data, please contact your administrator");
+                return _rtnDict;
             }
         }
 

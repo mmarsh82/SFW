@@ -526,7 +526,7 @@ namespace SFW.Model
             {
                 _part = value;
                 ProductValue = Sku.GetPartValue(value.SkuNumber);
-                if (Sku.IsLotTracable(value.SkuNumber) && (LotList == null || LotList.Count == 0))
+                if (Sku.IsLotTracable(value.SkuNumber, value.Facility) && (LotList == null || LotList.Count == 0))
                 {
                     LotList = new BindingList<Lot>();
                     LotList.ListChanged += LotList_Changed;

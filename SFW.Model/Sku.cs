@@ -68,7 +68,7 @@ namespace SFW.Model
             SkuDescription = skuRow.Field<string>("Description");
             Uom = skuRow.Field<string>("Uom");
             Facility = _site;
-            IsLotTrace = IsLotTracable(skuId);
+            IsLotTrace = IsLotTracable(skuId, _site);
             Value = GetPartValue(skuId);
         }
 
@@ -536,14 +536,15 @@ namespace SFW.Model
         /// Check to see if a Sku number is lot tracable
         /// </summary>
         /// <param name="partNbr">Sku Number</param>
+        /// <param name="site">Site to search against</param>
         /// <returns>lot tracability as bool</returns>
-        public static bool IsLotTracable(string partNbr)
+        public static bool IsLotTracable(string partNbr, int site)
         {
             if (partNbr.Contains('|'))
             {
                 partNbr = partNbr.Split('|')[0];
             }
-            return MasterDataSet.Tables["SKU"].Select($"[SkuID] = '{partNbr}' AND [Status] = 'A'").FirstOrDefault().Field<string>("LotTraceable") == "T";
+            return MasterDataSet.Tables["SKU"].Select($"[SkuID] = '{partNbr}' AND [Status] = 'A' AND [Site] = {site}").FirstOrDefault().Field<string>("LotTraceable") == "T";
         }
 
         /// <summary>

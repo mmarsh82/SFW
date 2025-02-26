@@ -23,6 +23,7 @@
         <cvtr:IntToBool x:Key="IntToBoolConverter"/>
         <cvtr:DisplayToolTip x:Key="DisplayToolTip"/>
         <cvtr:WorkCenterNameConverter x:Key="MachineNameConverter"/>
+        <cvtr:MachineShift x:Key="MachineShiftCapacity"/>
         <CollectionViewSource x:Key="PlanningSource" Source="{Binding PlanningView}">
             <CollectionViewSource.GroupDescriptions>
                 <PropertyGroupDescription PropertyName="MachineNumber"
@@ -635,8 +636,22 @@
                                                 <bhvr:ExpanderState GroupName="{Binding Name}"/>
                                             </i:Interaction.Behaviors>
                                             <Expander.Header>
-                                                <Grid Width="250">
-                                                    <TextBlock x:Name="ExpanderName" HorizontalAlignment="Left" FontWeight="Bold" Foreground="WhiteSmoke" FontSize="24" Text="{Binding Name, StringFormat=d}"/>
+                                                <Grid Width="740">
+                                                    <TextBlock x:Name="ExpanderName" HorizontalAlignment="Left" FontWeight="Bold" Foreground="WhiteSmoke" FontSize="24" Text="{Binding Name}"/>
+                                                    <StackPanel Orientation="Horizontal"
+                                                                VerticalAlignment="Center"
+                                                                HorizontalAlignment="Right">
+                                                        <TextBlock FontWeight="Bold"
+                                                                   Foreground="WhiteSmoke"
+                                                                   FontSize="24"
+                                                                   TextDecorations="Underline"
+                                                                   Text="Shift Capacity:"/>
+                                                        <TextBlock FontWeight="Bold"
+                                                                   Foreground="WhiteSmoke"
+                                                                   FontSize="24"
+                                                                   Margin="10,0,0,0"
+                                                                   Text="{Binding Name, Converter={StaticResource MachineShiftCapacity}}"/>
+                                                    </StackPanel>
                                                 </Grid>
                                             </Expander.Header>
                                             <ItemsPresenter/>
