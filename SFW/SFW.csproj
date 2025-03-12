@@ -29,8 +29,8 @@
     <ProductName>Shop Floor Workbench</ProductName>
     <PublisherName>Michael Marsh</PublisherName>
     <SuiteName>ContiTech</SuiteName>
-    <ApplicationRevision>695</ApplicationRevision>
-    <ApplicationVersion>2.0.105.695</ApplicationVersion>
+    <ApplicationRevision>715</ApplicationRevision>
+    <ApplicationVersion>2.0.106.715</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <CreateDesktopShortcut>true</CreateDesktopShortcut>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -165,6 +165,7 @@
     <Compile Include="Converters\ValueToImage.cs" />
     <Compile Include="Converters\ValueToMargin.cs" />
     <Compile Include="Converters\WoPriorityToBool.cs" />
+    <Compile Include="Converters\ContainerName.cs" />
     <Compile Include="CurrentUser.cs" />
     <Compile Include="CycleCount\Form_View.xaml.cs">
       <DependentUpon>Form_View.xaml</DependentUpon>
@@ -191,10 +192,10 @@
       <DependentUpon>View.xaml</DependentUpon>
     </Compile>
     <Compile Include="QMS\NcrNotice\ViewModel.cs" />
-    <Compile Include="Queries\Container_View.xaml.cs">
-      <DependentUpon>Container_View.xaml</DependentUpon>
+    <Compile Include="Containerization\ProductView.xaml.cs">
+      <DependentUpon>ProductView.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Queries\Container_ViewModel.cs" />
+    <Compile Include="Containerization\ProductViewModel.cs" />
     <Compile Include="Queries\PartLabel_View.xaml.cs">
       <DependentUpon>PartLabel_View.xaml</DependentUpon>
     </Compile>
@@ -350,7 +351,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Queries\Container_View.xaml">
+    <Page Include="Containerization\ProductView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

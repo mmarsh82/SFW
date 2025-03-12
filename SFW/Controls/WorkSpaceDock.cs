@@ -98,7 +98,7 @@ namespace SFW.Controls
                     MainDock.Children.Insert(9, NcrDock);
 
                     //Add the Container Detail View to [6]
-                    MainDock.Children.Insert(10, new Container_View());
+                    MainDock.Children.Insert(10, new Containerization.ProductView() { DataContext = new Containerization.ProductViewModel() });
                 }
                 else
                 {

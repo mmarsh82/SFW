@@ -1,0 +1,378 @@
+﻿<UserControl x:Class="SFW.Containerization.ProductView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
+             xmlns:bhvr="clr-namespace:SFW.Behaviors"
+             xmlns:cmd="clr-namespace:SFW.Commands"
+             xmlns:local="clr-namespace:SFW"
+             xmlns:cvtr="clr-namespace:SFW.Converters">
+    
+    <UserControl.Resources>
+        <cmd:ViewLoad x:Key="ViewLoadCommand"/>
+        <cvtr:BoolToBackgroundColor x:Key="BoolToBGConverter"/>
+        <cvtr:ContainerNameConverter x:Key="ContainerGroupConverter"/>
+        <cvtr:StringToVisibility x:Key="StringToVisConverter"/>
+        <cvtr:BoolToVisibility x:Key="BoolToVisConverter"/>
+        <cvtr:NegativeIntToBool x:Key="NegIntToBoolConverter"/>
+        <cvtr:MultiValueParameter x:Key="MultiValConverter" />
+        <cmd:M2kLookQuery x:Key="LookQueryCommand" />
+
+        <ContextMenu x:Key="rowMenu">
+            <MenuItem Header="Remove"
+                      FontSize="16"
+                      Command="{Binding DataContext.RemoveICommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type DataGrid}}}"
+                      CommandParameter="{Binding}"/>
+        </ContextMenu>
+
+        <CollectionViewSource x:Key="ContainerSource" Source="{Binding ContainerView}">
+            <CollectionViewSource.GroupDescriptions>
+                <PropertyGroupDescription PropertyName="ContainerID"
+                                          Converter="{StaticResource ContainerGroupConverter}"/>
+            </CollectionViewSource.GroupDescriptions>
+        </CollectionViewSource>
+
+    </UserControl.Resources>
+
+    <Grid Background="LightGray">
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="40" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="600"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        
+        <!--#region Container Header -->
+
+        <Grid Grid.Row="0" Grid.Column="0">
+
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Grid.Column="0"
+                        Orientation="Horizontal"
+                        HorizontalAlignment="Left">
+
+                <Button Background="Transparent"
+                        BorderThickness="0"
+                        Command="{StaticResource ViewLoadCommand}"
+                        CommandParameter="-1">
+                    <Button.Content>
+                        <StackPanel Orientation="Horizontal">
+                            <Image Source="/SFW;component/Icons/BackArrow.ico" />
+                            <TextBlock Text="Back"
+                                       VerticalAlignment="Center"
+                                       FontSize="16"
+                                       FontWeight="Bold"
+                                       Foreground="Crimson" />
+                        </StackPanel>
+                    </Button.Content>
+                </Button>
+
+                <TextBlock Text="Search:"
+                           FontSize="18"
+                           FontWeight="Bold"
+                           TextDecorations="Underline"
+                           Margin="10,0,0,0"
+                           VerticalAlignment="Center" />
+
+                <TextBox x:Name="SearchTextBox"
+                         Text="{Binding SearchFilter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                         MinWidth="150"
+                         FontSize="18"
+                         Margin="5"
+                         Style="{DynamicResource OptionalTextBox}" />
+
+            </StackPanel>
+
+            <StackPanel Grid.Column="1"
+                        Orientation="Horizontal"
+                        HorizontalAlignment="Right">
+
+                <Button Background="Transparent"
+                        BorderThickness="0"
+                        Command="{Binding NewContainerICommand}"
+                        Margin="10,0,0,0">
+                    <Button.Content>
+                        <StackPanel Orientation="Horizontal">
+                            <Image Source="/SFW;component/Icons/Add.ico" />
+                        </StackPanel>
+                    </Button.Content>
+                </Button>
+                
+            </StackPanel>
+
+        </Grid>
+        
+        <!--#endregion-->
+        
+        <!--#region Container View-->
+
+        <DataGrid x:Name="ContainerCollection"
+                  Grid.Row="1"
+                  ItemsSource="{Binding Source={StaticResource ContainerSource}}"
+                  SelectedItem="{Binding SelectedProduct, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                  HorizontalAlignment="Left"
+                  HeadersVisibility="None"
+                  AutoGenerateColumns="False"
+                  CanUserAddRows="False"
+                  IsReadOnly="True"
+                  SelectionMode="Single"
+                  VirtualizingPanel.IsVirtualizingWhenGrouping="True"
+                  ScrollViewer.CanContentScroll="True">
+
+            <DataGrid.Columns>
+                <DataGridTemplateColumn>
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <Grid Width="575">
+
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="30"/>
+                                    <RowDefinition Height="30"/>
+                                </Grid.RowDefinitions>
+
+                                <StackPanel Grid.Row="0"
+                                            Orientation="Horizontal"
+                                            VerticalAlignment="Center"
+                                            HorizontalAlignment="Left">
+
+                                    <TextBlock Text="{Binding ProductId}"
+                                               FontSize="24"
+                                               Margin="5,0,0,0"
+                                               FontWeight="Bold"/>
+
+                                    <TextBlock Text="{Binding ProductDescription}"
+                                               FontSize="24"
+                                               Margin="10,0,0,0"
+                                               FontWeight="Bold"/>
+                                </StackPanel>
+
+                                <StackPanel Grid.Row="1"
+                                            Orientation="Horizontal"
+                                            VerticalAlignment="Center"
+                                            HorizontalAlignment="Left">
+
+                                    <TextBlock Text="{Binding LotId}"
+                                               Margin="5,0,0,0"
+                                               FontSize="24"
+                                               FontWeight="Bold"/>
+
+                                </StackPanel>
+
+                                <StackPanel Grid.Row="1"
+                                            Orientation="Horizontal"
+                                            VerticalAlignment="Center"
+                                            HorizontalAlignment="Right">
+
+                                    <TextBlock Text="{Binding Quantity}"
+                                               Margin="0,0,5,0"
+                                               FontSize="24"
+                                               FontWeight="Bold"/>
+
+                                </StackPanel>
+
+                            </Grid>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+            </DataGrid.Columns>
+
+            <DataGrid.RowStyle>
+                <Style TargetType="{x:Type DataGridRow}">
+                    <Setter Property="FontWeight" Value="Bold"/>
+                    <Setter Property="FontSize" Value="18"/>
+                    <Setter Property="ContextMenu" Value="{StaticResource rowMenu}"/>
+                    <Style.Triggers>
+                        <!--Lot Traceable Products-->
+                        <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                                <Condition Binding="{Binding LotTraceable}" Value="T"/>
+                            </MultiDataTrigger.Conditions>
+                            <Setter Property="Background">
+                                <Setter.Value>
+                                    <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                                        <GradientStop Color="White" Offset="0"/>
+                                        <GradientStop Color="CornflowerBlue" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </Setter.Value>
+                            </Setter>
+                        </MultiDataTrigger>
+                        <!--Non-Lot Traceable Products-->
+                        <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                                <Condition Binding="{Binding LotTraceable}" Value="N"/>
+                            </MultiDataTrigger.Conditions>
+                            <Setter Property="Background">
+                                <Setter.Value>
+                                    <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                                        <GradientStop Color="White" Offset="0"/>
+                                        <GradientStop Color="DarkOrange" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </Setter.Value>
+                            </Setter>
+                        </MultiDataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </DataGrid.RowStyle>
+
+            <DataGrid.CellStyle>
+                <Style TargetType="{x:Type DataGridCell}">
+                    <Style.Resources>
+                        <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightBrushKey}" Color="Transparent"/>
+                    </Style.Resources>
+                    <Style.Triggers>
+                        <!--Lot Traceable Products-->
+                        <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                                <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsSelected}" Value="True"/>
+                                <Condition Binding="{Binding LotTraceable}" Value="T"/>
+                            </MultiDataTrigger.Conditions>
+                            <Setter Property="Background" Value="LightBlue"/>
+                            <Setter Property="Foreground" Value="Black"/>
+                            <Setter Property="BorderBrush" Value="RoyalBlue" />
+                        </MultiDataTrigger>
+                        <!--Non-Lot Traceable Products-->
+                        <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                                <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsSelected}" Value="True"/>
+                                <Condition Binding="{Binding LotTraceable}" Value="N"/>
+                            </MultiDataTrigger.Conditions>
+                            <Setter Property="Background" Value="Bisque"/>
+                            <Setter Property="Foreground" Value="Black"/>
+                            <Setter Property="BorderBrush" Value="RoyalBlue" />
+                        </MultiDataTrigger>
+
+                    </Style.Triggers>
+                </Style>
+            </DataGrid.CellStyle>
+
+            <DataGrid.GroupStyle>
+                <GroupStyle>
+                    <GroupStyle.ContainerStyle>
+                        <Style TargetType="{x:Type GroupItem}">
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="{x:Type GroupItem}">
+                                        <Expander BorderBrush="Black" IsExpanded="True" Background="#FF135185" Foreground="Black" BorderThickness="1" >
+                                            <i:Interaction.Behaviors>
+                                                <bhvr:ExpanderState GroupName="{Binding Name}"/>
+                                            </i:Interaction.Behaviors>
+                                            <Expander.Header>
+                                                <Grid Width="400">
+                                                    <TextBlock x:Name="ExpanderName" HorizontalAlignment="Left" FontWeight="Bold" Foreground="WhiteSmoke" FontSize="24" Text="{Binding Name}"/>
+                                                </Grid>
+                                            </Expander.Header>
+                                            <ItemsPresenter/>
+                                        </Expander>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </GroupStyle.ContainerStyle>
+                </GroupStyle>
+            </DataGrid.GroupStyle>
+
+        </DataGrid>
+        
+        <!--#endregion-->
+        
+        <!--#region Conatiner Data-->
+
+        <Control Grid.Column="1" Grid.RowSpan="2"
+                 Visibility="{Binding Loading, Converter={StaticResource BoolToVisConverter}}"
+                 Style="{DynamicResource BusyAnimationStyle}" />
+
+
+        <DataGrid x:Name="IthResultsDataGrid"
+                  Grid.Row="1" Grid.Column="1"
+                  ItemsSource="{Binding IthResultsTable}"
+                  Visibility="{Binding ShowResults, Converter={StaticResource BoolToVisConverter}}"
+                  HorizontalAlignment="Left"
+                  VerticalAlignment="Top"
+                  FontSize="16"
+                  FontWeight="Bold"
+                  AlternatingRowBackground="LightSteelBlue"
+                  AutoGenerateColumns="False"
+                  IsReadOnly="True"
+                  Margin="10,0,20,0">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Date and Time"
+                                    Binding="{Binding TranDateTime, StringFormat=MM/dd/yyyy       HH:mm}" />
+                <DataGridTextColumn Header="User"
+                                    Binding="{Binding Submitter}" />
+                <DataGridTextColumn Header="Type"
+                                    Binding="{Binding TranType}"
+                                    Width="200" />
+                <DataGridTextColumn Header="Code"
+                                    Binding="{Binding TranCode}" />
+                <DataGridTextColumn Header="Lot Number"
+                                    Binding="{Binding LotNumber}" />
+                <DataGridTextColumn Header="Location"
+                                    Binding="{Binding TranLoc}" />
+                <DataGridTextColumn Header="Qty"
+                                    Binding="{Binding TranQty}">
+                    <DataGridTextColumn.CellStyle>
+                        <Style TargetType="{x:Type DataGridCell}">
+                            <Setter Property="Foreground"
+                                    Value="Black" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding TranQty, Converter={StaticResource NegIntToBoolConverter}}"
+                                             Value="true">
+                                    <Setter Property="Foreground"
+                                            Value="Crimson" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </DataGridTextColumn.CellStyle>
+                </DataGridTextColumn>
+                <DataGridTemplateColumn Header="Work Order">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <Button x:Name="WO"
+                                    Content="{Binding WorkOrder}"
+                                    Command="{StaticResource LookQueryCommand}"
+                                    Style="{DynamicResource DefaultButton}"
+                                    Visibility="{Binding Content, Converter={StaticResource StringToVisConverter}, RelativeSource={RelativeSource Self}}">
+                                <Button.CommandParameter>
+                                    <MultiBinding Converter="{StaticResource MultiValConverter}">
+                                        <Binding Path="Name" RelativeSource="{RelativeSource Self}"/>
+                                        <Binding Path="Content" RelativeSource="{RelativeSource Self}"/>
+                                    </MultiBinding>
+                                </Button.CommandParameter>
+                            </Button>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn Header="Sales Order">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <Button x:Name="SO"
+                                    Content="{Binding SalesOrder}"
+                                    Command="{StaticResource LookQueryCommand}"
+                                    Style="{DynamicResource DefaultButton}"
+                                    Visibility="{Binding Content, Converter={StaticResource StringToVisConverter}, RelativeSource={RelativeSource Self}}">
+                                <Button.CommandParameter>
+                                    <MultiBinding Converter="{StaticResource MultiValConverter}">
+                                        <Binding Path="Name" RelativeSource="{RelativeSource Self}"/>
+                                        <Binding Path="Content" RelativeSource="{RelativeSource Self}"/>
+                                    </MultiBinding>
+                                </Button.CommandParameter>
+                            </Button>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTextColumn Header="Reference"
+                                    Binding="{Binding Reference}" />
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <!--#endregion-->
+        
+    </Grid>
+</UserControl>

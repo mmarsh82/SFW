@@ -974,12 +974,17 @@ namespace SFW.Model
                 {
                     if (!string.IsNullOrEmpty(((BindingList<Lot>)sender)[e.NewIndex].LotNumber))
                     {
-                        var _isValid = Lot.IsValid($"{((BindingList<Lot>)sender)[e.NewIndex].LotNumber}|P|01", ModelSqlCon);
+                        var _lot = ((BindingList<Lot>)sender)[e.NewIndex].LotNumber.Contains("|")
+                            ? ((BindingList<Lot>)sender)[e.NewIndex].LotNumber.Split('|')[0]
+                            : ((BindingList<Lot>)sender)[e.NewIndex].LotNumber;
+                        var _isValid = Lot.IsValid($"{_lot}|P|01", ModelSqlCon);
                         if (_isValid)
                         {
                             ((BindingList<Lot>)sender)[e.NewIndex].Validated = _isValid;
                             LotChanging = true;
-                            ((BindingList<Lot>)sender)[e.NewIndex].LotNumber += "|P|01";
+                            ((BindingList<Lot>)sender)[e.NewIndex].LotNumber += ((BindingList<Lot>)sender)[e.NewIndex].LotNumber.Contains("|")
+                                ? ""
+                                : "|P|01";
                         }
                         else
                         {

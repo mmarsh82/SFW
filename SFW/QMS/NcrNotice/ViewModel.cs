@@ -87,6 +87,7 @@ namespace SFW.QMS.NcrNotice
         }
 
         RelayCommand _newNcr;
+        RelayCommand _exportNcr;
 
         public delegate void LoadDelegate(string s);
         public LoadDelegate LoadAsyncDelegate { get; private set; }
@@ -192,6 +193,27 @@ namespace SFW.QMS.NcrNotice
         {
             RefreshTimer.Stop();
             WorkSpaceDock.UpdateChildDock(9, 1, new NcrForm.View { DataContext = new NcrForm.ViewModel(null, false, true) });
+        }
+
+        #endregion
+
+        #region Export NCR Metrics ICommand
+
+        public ICommand ExportNcrICommand
+        {
+            get
+            {
+                if (_exportNcr == null)
+                {
+                    _exportNcr = new RelayCommand(ExportNcrExecute);
+                }
+                return _exportNcr;
+            }
+        }
+
+        private void ExportNcrExecute(object parameter)
+        {
+            ExcelWriter.ExportData(NoticeView.Table);
         }
 
         #endregion

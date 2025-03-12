@@ -120,6 +120,9 @@ namespace SFW.Commands
                             MessageBox.Show("The work load is currently refreshing.");
                         }
                         break;
+                    case 10:
+                        _viewModel = new Containerization.ProductViewModel();
+                        break;
                 }
                 if(_view != -2)
                 {

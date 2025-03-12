@@ -520,8 +520,8 @@ namespace SFW.QMS.NcrForm
 
         private void CloneExecute(object parameter)
         {
-            /*
             NcrObject.NcrId = 0;
+            NcrObject.TempId = int.Parse(DateTime.Now.ToString("MMddmmss"));
             NcrObject.RevisionList.Clear();
             NcrRevision.RevisionId = 1;
             NcrObject.RevisionList.Add(NcrRevision);
@@ -533,7 +533,10 @@ namespace SFW.QMS.NcrForm
             {
                 WorkSpaceDock.UpdateChildDock(9, 1, new ViewModel(NcrObject, false, true));
             }
-            */
+            foreach (var _photo in NcrObject.PhotoCollection)
+            {
+
+            }
         }
 
         #endregion

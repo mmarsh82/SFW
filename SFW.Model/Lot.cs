@@ -243,6 +243,60 @@ namespace SFW.Model
         }
 
         /// <summary>
+        /// Get a DataTable of historical transactions of lots based on part number
+        /// </summary>
+        /// <param name="partNbr">Part Number</param>
+        /// <param name="lotId">Lot number</param>
+        /// <param name="site">Site Number</param>
+        /// <param name="sqlCon">Sql Connection to use</param>
+        /// <returns>DataTable of historical lot transactions</returns>
+        public static DataTable GetLotHistoryTable(string partNbr, string lotId, int site, SqlConnection sqlCon)
+        {
+            partNbr = partNbr.Contains("|") ? partNbr.Split('|')[0] : partNbr;
+            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
+            {
+                try
+                {
+                    using (DataTable dt = new DataTable())
+                    {
+                        if (!string.IsNullOrEmpty(partNbr))
+                        {
+                            var _where = site == 0
+                                ? "WHERE [PartNbr] = @p1 AND [LotNumber] = @p2"
+                                : "WHERE [PartNbr] = @p1 AND [LotNumber] = @p2 AND [SiteNumber] = @p3";
+                            using (SqlDataAdapter adapter = new SqlDataAdapter($@"USE {sqlCon.Database};
+                                                                                SELECT 
+                                                                                    *
+                                                                                FROM
+                                                                                    [dbo].[SFW_LotHistory]
+                                                                                {_where}
+                                                                                ORDER BY
+                                                                                    [TranDateTime] DESC", sqlCon))
+                            {
+                                adapter.SelectCommand.Parameters.AddWithValue("p1", partNbr);
+                                adapter.SelectCommand.Parameters.AddWithValue("p2", lotId);
+                                if (site > 0)
+                                {
+                                    adapter.SelectCommand.Parameters.AddWithValue("p3", site);
+                                }
+                                adapter.Fill(dt);
+                            }
+                        }
+                        return dt;
+                    }
+                }
+                catch (Exception)
+                {
+                    return new DataTable();
+                }
+            }
+            else
+            {
+                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
+            }
+        }
+
+        /// <summary>
         /// Get any QIR's associated with a given lot number
         /// </summary>
         /// <param name="lotNbr">Lot Number</param>

@@ -2,10 +2,13 @@
 using DocumentFormat.OpenXml.Spreadsheet;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.IO;
 using System.IO.Packaging;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading;
+using System.Windows.Forms;
 
 namespace SFW.Helpers
 {
@@ -149,4 +152,107 @@ namespace SFW.Helpers
             }
         }
     }
+
+    public class ExcelWriter
+    {
+        /// <summary>
+        /// Convert a datatable to an excel sheet
+        /// </summary>
+        /// <param name="dataTable">Datatable to export</param>
+        /// <returns>Pass or Fail as bool</returns>
+        public static bool ExportData(DataTable dataTable)
+        {
+            var _sfd = new SaveFileDialog();
+            _sfd.Filter = "MS Excel|*.xlsx";
+            _sfd.Title = "Save the NCR excel data";
+            _sfd.FileName = $"NcrExport_{DateTime.Today.ToString("ddMMMyyyy")}";
+            var _result = _sfd.ShowDialog();
+            if (!string.IsNullOrEmpty(_sfd.FileName) && _result != DialogResult.Cancel)
+            {
+                try
+                {
+                    //Create the Excel document
+                    using (var _stream = _sfd.OpenFile())
+                    {
+                        using (var _ssDoc = SpreadsheetDocument.Create(_stream, DocumentFormat.OpenXml.SpreadsheetDocumentType.Workbook))
+                        {
+                            try
+                            {
+                                //Create a workbook with in the new Excel document
+                                var _wbPart = _ssDoc.AddWorkbookPart();
+                                _wbPart.Workbook = new Workbook();
+
+                                //Add a worksheet to the workbook for the data dump
+                                var _wsPart = _wbPart.AddNewPart<WorksheetPart>();
+                                var _wsData = new SheetData();
+                                _wsPart.Worksheet = new Worksheet(_wsData);
+                                var _sheets = _ssDoc.WorkbookPart.Workbook.AppendChild(new Sheets());
+                                var _sheet = new Sheet() { Id = _ssDoc.WorkbookPart.GetIdOfPart(_wsPart), SheetId = 1, Name = "NcrExport" };
+                                _sheets.Append(_sheet);
+
+                                //Build header row with the column names
+                                var _originColumns = new Dictionary<string, CellValues>();
+                                var _headerRow = new Row();
+                                foreach (DataColumn _col in dataTable.Columns)
+                                {
+                                    _originColumns.Add(_col.ColumnName, Extensions.TypeToCellType(_col.DataType));
+                                    var _headerCell = new Cell() { DataType = CellValues.InlineString, InlineString = new InlineString() { Text = new Text(_col.ColumnName) } };
+                                    _headerRow.AppendChild(_headerCell);
+                                }
+                                _wsData.AppendChild(_headerRow);
+
+                                //Run through all the rows and populate the data in the worksheet
+                                foreach (DataRow _row in dataTable.Rows)
+                                {
+                                    var _newRow = new Row();
+                                    foreach (var _hdrCol in _originColumns)
+                                    {
+                                        var _newCell = new Cell() { DataType = _hdrCol.Value };
+                                        if (_hdrCol.Value == CellValues.InlineString)
+                                        {
+                                            _newCell.InlineString = new InlineString() { Text = new Text(_row[_hdrCol.Key].ToString()) };
+                                        }
+                                        else
+                                        {
+                                            _newCell.CellValue = new CellValue(_row[_hdrCol.Key].ToString());
+                                        }
+                                        _newRow.AppendChild(_newCell);
+                                    }
+                                    _wsData.AppendChild(_newRow);
+                                }
+                                _wbPart.Workbook.Save();
+                            }
+                            catch
+                            {
+                                _ssDoc.Close();
+                                _ssDoc.Dispose();
+                                _stream.Close();
+                                _stream.Dispose();
+                                Thread.Sleep(2000);
+                                File.Delete(_sfd.FileName);
+                                return false;
+                            }
+                        }
+                    }
+                }
+                catch
+                {
+                    return false;
+                }
+                return true;
+            }
+            return false;
+        }
+    }
+
+    public static class Extensions
+    {
+        public static CellValues TypeToCellType(this Type dataType)
+        {
+            return dataType == typeof(int) || dataType == typeof(decimal) || dataType == typeof(bool) || dataType == typeof(short)
+                ? CellValues.Number
+                : CellValues.InlineString;
+        }
+    }
+
 }

@@ -88,6 +88,16 @@
                         Orientation="Horizontal"
                         HorizontalAlignment="Right">
 
+                <Button Command="{Binding ExportNcrICommand}"
+                        Margin="5,5,20,5"
+                        BorderThickness="0"
+                        Background="Transparent"
+                        IsTabStop="False"
+                        Visibility="{Binding Path=(main:CurrentUser.IsQuality), Converter={StaticResource BoolToVisConverter}}"
+                        Style="{DynamicResource ResourceKey=DefaultButton}">
+                    <Image Source="/SFW;component/Icons/admin.ico"/>
+                </Button>
+
                 <CheckBox IsChecked="{Binding ClosedFilter}"
                           VerticalAlignment="Center"
                           HorizontalAlignment="Right"
