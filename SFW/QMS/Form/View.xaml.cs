@@ -6,7 +6,7 @@ using System.Windows.Controls;
 using System.IO;
 using SFW.Model;
 
-namespace SFW.QMS.NcrForm
+namespace SFW.QMS.Form
 {
     /// <summary>
     /// Interaction logic for NCRForm.xaml
@@ -31,19 +31,19 @@ namespace SFW.QMS.NcrForm
                     var _fileExt = Path.GetExtension(_oldPath);
                     if (CurrentUser.IsQuality && _fileExt.ToUpper() == ".JPG")
                     {
-                        var _ncr = ((ViewModel)DataContext).NcrObject.NcrId > 0
-                            ? ((ViewModel)DataContext).NcrObject.NcrId
-                            : ((ViewModel)DataContext).NcrObject.TempId;
-                        var _folderPath = ((ViewModel)DataContext).NcrObject.NcrId > 0
+                        var _frm = ((ViewModel)DataContext).FormObject.FormId > 0
+                            ? ((ViewModel)DataContext).FormObject.FormId
+                            : ((ViewModel)DataContext).FormObject.TempId;
+                        var _folderPath = ((ViewModel)DataContext).FormObject.FormId > 0
                             ? $"\\\\waxfs001\\WAXG-SFW\\QMS Pictures\\"
                             : $"\\\\waxfs001\\WAXG-SFW\\QMS Pictures\\Temp\\";
-                        var _fileCount = Directory.GetFiles(_folderPath, $"{_ncr}-*", SearchOption.TopDirectoryOnly).Count();
-                        var _newPath = $"{_folderPath}{_ncr}-{_fileCount + 1}{_fileExt}";
+                        var _fileCount = Directory.GetFiles(_folderPath, $"{_frm}-*", SearchOption.TopDirectoryOnly).Count();
+                        var _newPath = $"{_folderPath}{_frm}-{_fileCount + 1}{_fileExt}";
                         File.Copy(_oldPath, _newPath);
-                        ((ViewModel)DataContext).NcrObject.PhotoCollection.Add($"{_folderPath}{_ncr}-{_fileCount + 1}{_fileExt}");
-                        if (((ViewModel)DataContext).NcrObject.NcrId > 0)
+                        ((ViewModel)DataContext).FormObject.PhotoCollection.Add($"{_folderPath}{_frm}-{_fileCount + 1}{_fileExt}");
+                        if (((ViewModel)DataContext).FormObject.FormId > 0)
                         {
-                            Ncr.SubmitPhotoPath(((ViewModel)DataContext).NcrObject.NcrId, $"{_ncr}-{_fileCount + 1}{_fileExt}", App.AppSqlCon);
+                            Model.QmsForm.SubmitPhotoPath(((ViewModel)DataContext).FormObject.FormId, $"{_frm}-{_fileCount + 1}{_fileExt}", App.AppSqlCon);
                         }
                     }
                 }

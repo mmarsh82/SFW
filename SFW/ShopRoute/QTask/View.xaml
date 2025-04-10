@@ -26,13 +26,14 @@
 
             <Grid.RowDefinitions>
                 <RowDefinition Height="40"/>
+                <RowDefinition Height="40"/>
                 <RowDefinition Height="300"/>
                 <RowDefinition Height="200"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
-            <Grid Grid.RowSpan="5"
+            <Grid Grid.RowSpan="6"
               HorizontalAlignment="Stretch"
               VerticalAlignment="Stretch"
               Background="{DynamicResource LineShadeFull}"
@@ -103,13 +104,33 @@
             </StackPanel>
 
             <!--#endregion-->
+            
+            <!--#region Grid.Row 1 Routing -->
 
-            <!--#region Grid.Row 1 Inspection Warning-->
+            <StackPanel Grid.Row="1"
+                        Orientation="Horizontal">
 
-            <DockPanel Grid.Row="1"
+                <TextBlock Text="Routing:"
+                           FontSize="30"
+                           FontWeight="Bold"
+                           Margin="10,0,0,0"
+                           TextDecorations="UnderLine"/>
+
+                <TextBlock Text="{Binding ShopOrder.Routing}"
+                           FontSize="30"
+                           FontWeight="Bold"
+                           Margin="10,0,30,0" />
+
+            </StackPanel>
+
+            <!--#endregion-->
+
+            <!--#region Grid.Row 2 Inspection Warning-->
+
+            <DockPanel Grid.Row="2"
                    VerticalAlignment="Center">
 
-                <TextBlock Grid.Row="1"
+                <TextBlock Grid.Row="2"
                        DockPanel.Dock="Top"
                        Text="Requires Special Attention"
                        TextDecorations="Underline"
@@ -118,7 +139,7 @@
                        Foreground="Black" 
                        HorizontalAlignment="Center"/>
 
-                <TextBlock Grid.Row="1"
+                <TextBlock Grid.Row="2"
                        DockPanel.Dock="Bottom"
                        Text="See Shop Floor Notes"
                        TextDecorations="Underline"
@@ -131,9 +152,9 @@
 
             <!--#endregion-->
 
-            <!--#region Grid.Row 2  Notes-->
+            <!--#region Grid.Row 3  Notes-->
 
-            <Grid Grid.Row="2" Margin="10,0,10,0">
+            <Grid Grid.Row="3" Margin="10,0,10,0">
 
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" MaxWidth="550"/>
@@ -226,9 +247,9 @@
 
             <!--#endregion-->
 
-            <!--#region Grid.Row 3  Tab Control for Work order PickList and BOM-->
+            <!--#region Grid.Row 4  Tab Control for Work order PickList and BOM-->
 
-            <Grid Grid.Row="3">
+            <Grid Grid.Row="4">
 
                 <Control Background="Transparent"
                              VerticalAlignment="Center"

@@ -72,12 +72,10 @@ namespace SFW.Tools
                         CrewCollection = new ObservableCollection<CrewMember>();
                         foreach (var _report in CurrentUser.DirectReports)
                         {
-                            var _surName = _report.Value.Split(',')[0];
-                            var _giveName = _report.Value.Split(',')[1];
-                            var _tempCrew = new CrewMember(_giveName, _surName, true);
+                            var _tempCrew = new CrewMember(_report.Key, true);
                             if (!string.IsNullOrEmpty(_tempCrew.Name))
                             {
-                                CrewCollection.Add(new CrewMember(_giveName, _surName, true));
+                                CrewCollection.Add(_tempCrew);
                             }
                         }
                         _actionType = 'S';
@@ -136,9 +134,9 @@ namespace SFW.Tools
         /// </summary>
         public CrewList_ViewModel()
         {
-            var _tempCrewMember = new CrewMember(CurrentUser.FirstName, CurrentUser.LastName, true);
+            var _tempCrewMember = new CrewMember(CurrentUser.ErpId, true);
             Shift = _tempCrewMember.Shift;
-            ManagerId = _tempCrewMember.IdNumber;
+            ManagerId = _tempCrewMember.ErpId;
             CanEdit = CurrentUser.IsSupervisor && CurrentUser.DirectReports.Count > 0;
             CanView = CurrentUser.IsManager;
             _isLoading = false;

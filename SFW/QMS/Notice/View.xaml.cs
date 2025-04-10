@@ -1,6 +1,6 @@
 ﻿using System.Windows.Controls;
 
-namespace SFW.QMS.NcrNotice
+namespace SFW.QMS.Notice
 {
     /// <summary>
     /// Interaction logic for NCRNoticeView.xaml

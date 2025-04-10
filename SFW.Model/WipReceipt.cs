@@ -294,18 +294,17 @@ namespace SFW.Model
         /// <summary>
         /// Wip Receipt Constructor
         /// </summary>
-        /// <param name="subFName">Currently logged in user First Name</param>
-        /// <param name="subLName">Currently logged in user Last Name</param>
+        /// <param name="submitter">The crew member that is submitting the wip</param>
         /// <param name="facCode">Currently logged in user facility code</param>
         /// <param name="workOrder">Work order object to process</param>
         /// <param name="erpCon">ERP connection</param>
-        public WipReceipt(string subFName, string subLName, int facCode, WorkOrder workOrder, string[] erpCon)
+        public WipReceipt(CrewMember submitter, int facCode, WorkOrder workOrder, string[] erpCon)
         {
             if (ErpCon == null)
             {
                 ErpCon = erpCon;
             }
-            Submitter = $"{subFName} {subLName}";
+            Submitter = submitter.Name;
             Facility = $"0{facCode}";
             SeqComplete = Complete.N;
             WipLot = new Lot();
@@ -314,10 +313,9 @@ namespace SFW.Model
             HasCrew = true;
             if (HasCrew)
             {
-                CrewList = new BindingList<CrewMember>();
+                CrewList = new BindingList<CrewMember> { submitter };
                 CrewList.AddNew();
                 CrewList.ListChanged += CrewList_ListChanged;
-                CrewList[0].IdNumber = CrewMember.GetCrewID(subFName, subLName);
             }
             IsLotTracable = Sku.IsLotTracable(workOrder.SkuNumber, facCode);
             IsScrap = Complete.N;
@@ -337,12 +335,12 @@ namespace SFW.Model
         /// <param name="e">Change info</param>
         private void CrewList_ListChanged(object sender, ListChangedEventArgs e)
         {
-            if (e.ListChangedType == ListChangedType.ItemChanged && e.PropertyDescriptor?.DisplayName == "IdNumber" && !IsLoading)
+            if (e.ListChangedType == ListChangedType.ItemChanged && e.PropertyDescriptor?.DisplayName == "ErpId" && !IsLoading)
             {
-                if (CrewMember.IsCrewIDValid(((BindingList<CrewMember>)sender)[e.NewIndex].IdNumber) && ((BindingList<CrewMember>)sender).Count(o => o.IdNumber == ((BindingList<CrewMember>)sender)[e.NewIndex].IdNumber) == 1)
+                if (CrewMember.IsCrewErpIdValid(((BindingList<CrewMember>)sender)[e.NewIndex].ErpId) && ((BindingList<CrewMember>)sender).Count(o => o.ErpId == ((BindingList<CrewMember>)sender)[e.NewIndex].ErpId) == 1)
                 {
                     IsLoading = true;
-                    var _tempCrew = new CrewMember(((BindingList<CrewMember>)sender)[e.NewIndex].IdNumber, true);
+                    var _tempCrew = new CrewMember(((BindingList<CrewMember>)sender)[e.NewIndex].ErpId, true);
                     ((BindingList<CrewMember>)sender)[e.NewIndex].Facility = _tempCrew.Facility;
                     ((BindingList<CrewMember>)sender)[e.NewIndex].ClockTran = _tempCrew.ClockTran;
                     ((BindingList<CrewMember>)sender)[e.NewIndex].IsDirect = _tempCrew.IsDirect;

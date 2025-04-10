@@ -1,11 +1,11 @@
-﻿<UserControl x:Class="SFW.QMS.NcrForm.View"
+﻿<UserControl x:Class="SFW.QMS.Form.View"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:cmd="clr-namespace:SFW.Commands"
              xmlns:cvtr="clr-namespace:SFW.Converters"
              xmlns:main="clr-namespace:SFW"
-             xmlns:local="clr-namespace:SFW.QMS.NcrForm"
-             x:Name="NcrFormUC"
+             xmlns:local="clr-namespace:SFW.QMS.Form"
+             x:Name="QmsFormUC"
              AllowDrop="True"
              DragDrop.Drop="Photo_Drop"
              DragDrop.DragOver="Photo_DragOver"
@@ -28,6 +28,7 @@
                 <cvtr:NegativeIntToBool x:Key="NegIntToBoolConverter" />
                 <cvtr:StatusToColor x:Key="StatusToColorConverter"/>
                 <cvtr:StringToImageSource x:Key="StringToImageConverter"/>
+                <cvtr:FormTypeToVisibility x:Key="TypeToVisConverter"/>
                 <cmd:ViewLoad x:Key="ViewLoadCommand" />
                 <cmd:PartSearch x:Key="PartSearchICommand"/>
                 <cmd:AddPhoto x:Key="AddPhoto"/>
@@ -47,15 +48,15 @@
                 </TextBlock.RenderTransform>
             </TextBlock>
 
-            <TextBlock Text="Select a NCR"
-                   FontSize="32"
-                   FontWeight="Bold"
-                   HorizontalAlignment="Center"
-                   VerticalAlignment="Center">
+            <TextBlock Text="{Binding FormRevision.Type, StringFormat=Select a {0}}"
+                       FontSize="32"
+                       FontWeight="Bold"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center">
                 <TextBlock.Visibility>
-                    <MultiBinding Converter="{StaticResource IntToVisConverter}" ConverterParameter="NcrHeader">
-                        <Binding Path="NcrObject.NcrId"/>
-                        <Binding Path="IsNewNcr"/>
+                    <MultiBinding Converter="{StaticResource IntToVisConverter}" ConverterParameter="QmsHeader">
+                        <Binding Path="FormObject.FormId"/>
+                        <Binding Path="IsNewForm"/>
                     </MultiBinding>
                 </TextBlock.Visibility>
             </TextBlock>
@@ -63,9 +64,9 @@
             <Grid x:Name="MainGrid"
                   Margin="10,0,10,0">
                 <Grid.Visibility>
-                    <MultiBinding Converter="{StaticResource IntToVisConverter}" ConverterParameter="NcrDetail">
-                        <Binding Path="NcrObject.NcrId"/>
-                        <Binding Path="IsNewNcr"/>
+                    <MultiBinding Converter="{StaticResource IntToVisConverter}" ConverterParameter="QmsDetail">
+                        <Binding Path="FormObject.FormId"/>
+                        <Binding Path="IsNewForm"/>
                     </MultiBinding>
                 </Grid.Visibility>
 
@@ -127,14 +128,14 @@
                     <Button Content="Add Photo"
                             FontSize="16"
                             Command="{StaticResource AddPhoto}"
-                            CommandParameter="{Binding DataContext, ElementName=NcrFormUC}"
+                            CommandParameter="{Binding DataContext, ElementName=QmsFormUC}"
                             Visibility="{Binding Path=(main:CurrentUser.IsQuality), Converter={StaticResource BoolToVisConverter}}"
                             Style="{DynamicResource MenuButtonStyle}"/>
 
                     <Menu Style="{DynamicResource ModernMenu}"
-                          Visibility="{Binding NcrObject.RevisionList.Count, Converter={StaticResource CountToVisConverter}, ConverterParameter=ncr}">
+                          Visibility="{Binding FormObject.RevisionList.Count, Converter={StaticResource CountToVisConverter}, ConverterParameter=ncr}">
                         <MenuItem Header="   Revisions"
-                                  ItemsSource="{Binding NcrObject.RevisionList, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                  ItemsSource="{Binding FormObject.RevisionList, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                   DisplayMemberPath="RevisionId"
                                   FontSize="16"
                                   Width="110"
@@ -146,7 +147,7 @@
                                         <cvtr:SelectedRevision x:Key="SelectedRevConverter"/>
                                     </Style.Resources>
                                     <Setter Property="Command"
-                                            Value="{Binding DataContext.ChangeRevICommand, ElementName=NcrFormUC}" />
+                                            Value="{Binding DataContext.ChangeRevICommand, ElementName=QmsFormUC}" />
                                     <Setter Property="CommandParameter"
                                             Value="{Binding RevisionId}" />
                                     <Setter Property="Foreground"
@@ -188,19 +189,19 @@
 
                 <!--#endregion-->
 
-                <!--#region Grid.Row 1  NCR Header-->
+                <!--#region Grid.Row 1  QMS Form Header-->
 
                 <StackPanel Grid.Row="1" Orientation="Horizontal"
                             HorizontalAlignment="Left" VerticalAlignment="Center"
-                            Visibility="{Binding IsNewNcr, Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}">
+                            Visibility="{Binding IsNewForm, Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}">
 
-                    <TextBlock Text="NCR Number:"
+                    <TextBlock Text="{Binding FormRevision.RevFormType, StringFormat={}{0} Number:}"
                                FontSize="32"
                                FontWeight="Bold"
                                Foreground="#FF135185"
                                TextDecorations="Underline"/>
 
-                    <TextBlock Text="{Binding NcrObject.NcrId}"
+                    <TextBlock Text="{Binding FormObject.FormId}"
                                FontSize="32"
                                FontWeight="Bold"
                                Margin="10,0,0,0" />
@@ -216,13 +217,13 @@
                                FontSize="20"
                                FontWeight="Bold"
                                VerticalAlignment="Center"
-                               Visibility="{Binding NcrObject.IsEscape, Converter={StaticResource BoolToVisConverter}}"
+                               Visibility="{Binding FormObject.IsEscape, Converter={StaticResource BoolToVisConverter}}"
                                Margin="70,0,0,0"/>
 
                 </StackPanel>
 
                 <TextBlock Grid.Row="1"
-                           Text="{Binding NcrRevision.SubmitDateTime, StringFormat=MM-dd-yyyy HH:mm}"
+                           Text="{Binding FormRevision.SubmitDateTime, StringFormat=MM-dd-yyyy HH:mm}"
                            VerticalAlignment="Center"
                            HorizontalAlignment="Right"
                            FontSize="20"
@@ -231,7 +232,7 @@
 
                 <!--#endregion-->
 
-                <!--#region Grid.Row 2 NCR Submission Header-->
+                <!--#region Grid.Row 2 QMS Form Submission Header-->
 
                 <StackPanel Grid.Row="2"
                             Orientation="Horizontal">
@@ -242,7 +243,7 @@
                                TextDecorations="UnderLine"
                                Foreground="#FF135185" />
 
-                    <TextBlock Text="{Binding NcrRevision.Submitter.Name}"
+                    <TextBlock Text="{Binding FormRevision.Submitter.Name}"
                                FontSize="20"
                                Margin="10,0,30,0" />
 
@@ -253,14 +254,14 @@
                                Foreground="#FF135185"
                                Margin="30,0,0,0"/>
 
-                    <TextBlock Text="{Binding NcrObject.Reporter.Name}"
+                    <TextBlock Text="{Binding FormObject.Reporter.Name}"
                                FontSize="20"
-                               Visibility="{Binding IsNewNcr, Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}"
+                               Visibility="{Binding IsNewForm, Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}"
                                Margin="10,0,0,0"/>
 
                     <ComboBox x:Name="ReporterName"
                               ItemsSource="{Binding CrewCollection, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                              SelectedValue="{Binding NcrObject.Reporter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                              SelectedValue="{Binding FormObject.Reporter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                               DisplayMemberPath="Name"
                               FontSize="18"
                               FontWeight="Bold"
@@ -269,7 +270,7 @@
                               Width="Auto"
                               MinWidth="100"
                               Margin="5,0,0,0"
-                              Visibility="{Binding IsNewNcr, Converter={StaticResource BoolToVisConverter}}"
+                              Visibility="{Binding IsNewForm, Converter={StaticResource BoolToVisConverter}}"
                               Style="{DynamicResource RequiredComboBox}"/>
 
                 </StackPanel>
@@ -289,20 +290,20 @@
                                TextDecorations="UnderLine"
                                Foreground="#FF135185"/>
 
-                    <TextBlock Text="{Binding NcrObject.OrderId}"
+                    <TextBlock Text="{Binding FormObject.OrderId}"
                                FontSize="24"
                                Margin="10,0,0,0">
                         <TextBlock.Visibility>
                             <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="NCR">
                                 <Binding Source="Block"/>
                                 <Binding Path="FromSchedule"/>
-                                <Binding Path="IsNewNcr"/>
+                                <Binding Path="IsNewForm"/>
                             </MultiBinding>
                         </TextBlock.Visibility>
                     </TextBlock>
 
                     <TextBox x:Name="OrderId"
-                             Text="{Binding NcrObject.OrderId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                             Text="{Binding FormObject.OrderId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                              FontSize="18"
                              FontWeight="Bold"
                              Background="LightGray"
@@ -315,7 +316,7 @@
                             <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="NCR">
                                 <Binding Source="Box"/>
                                 <Binding Path="FromSchedule"/>
-                                <Binding Path="IsNewNcr"/>
+                                <Binding Path="IsNewForm"/>
                             </MultiBinding>
                         </TextBox.Visibility>
                     </TextBox>
@@ -327,20 +328,20 @@
                                TextDecorations="Underline"
                                Foreground="#FF135185"/>
 
-                    <TextBlock Text="{Binding NcrObject.OrderSeqId}"
+                    <TextBlock Text="{Binding FormObject.OrderSeqId}"
                                FontSize="24"
                                Margin="10,0,0,0">
                         <TextBlock.Visibility>
                             <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="NCR">
                                 <Binding Source="Block"/>
                                 <Binding Path="FromSchedule"/>
-                                <Binding Path="IsNewNcr"/>
+                                <Binding Path="IsNewForm"/>
                             </MultiBinding>
                         </TextBlock.Visibility>
                     </TextBlock>
 
                     <TextBox x:Name="OrderSeqId"
-                             Text="{Binding NcrObject.OrderSeqId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                             Text="{Binding FormObject.OrderSeqId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                              FontSize="18"
                              Margin="10,0,0,0"
                              FontWeight="Bold"
@@ -353,7 +354,7 @@
                             <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="NCR">
                                 <Binding Source="Box"/>
                                 <Binding Path="FromSchedule"/>
-                                <Binding Path="IsNewNcr"/>
+                                <Binding Path="IsNewForm"/>
                             </MultiBinding>
                         </TextBox.Visibility>
                     </TextBox>
@@ -365,7 +366,7 @@
                                TextDecorations="UnderLine"
                                Foreground="#FF135185"/>
 
-                    <TextBlock Text="{Binding NcrObject.FoundWorkCenter.MachineName}"
+                    <TextBlock Text="{Binding FormObject.FoundWorkCenter.MachineName}"
                                FontSize="24"
                                Margin="10,0,0,0"/>
 
@@ -379,7 +380,7 @@
                 <!--#region Grid.Row 6  Part Data-->
 
                 <StackPanel Grid.Row="6" Orientation="Horizontal"
-                            Visibility="{Binding NcrObject.IsValidOrder, Converter={StaticResource BoolToVisConverter}}">
+                            Visibility="{Binding FormObject.IsValidOrder, Converter={StaticResource BoolToVisConverter}}">
 
                     <TextBlock Text="Part:"
                                FontSize="24"
@@ -387,14 +388,14 @@
                                TextDecorations="UnderLine"
                                Foreground="#FF135185"/>
 
-                    <TextBlock Text="{Binding NcrObject.Part.SkuNumber}"
+                    <TextBlock Text="{Binding FormObject.Part.SkuNumber}"
                                FontSize="24"
-                               Visibility="{Binding IsNewNcr, Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}"
+                               Visibility="{Binding IsNewForm, Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}"
                                Margin="10,0,0,0"/>
 
                     <ComboBox x:Name="ProductCollection"
-                              ItemsSource="{Binding NcrObject.PartCollection, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                              SelectedValue="{Binding NcrObject.Part, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                              ItemsSource="{Binding FormObject.PartCollection, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                              SelectedValue="{Binding FormObject.Part, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                               DisplayMemberPath="SkuNumber"
                               FontSize="18"
                               FontWeight="Bold"
@@ -402,10 +403,10 @@
                               Width="150"
                               TabIndex="2"
                               Margin="5,0,0,0"
-                              Visibility="{Binding IsNewNcr, Converter={StaticResource BoolToVisConverter}}"
+                              Visibility="{Binding IsNewForm, Converter={StaticResource BoolToVisConverter}}"
                               Style="{DynamicResource RequiredComboBox}"/>
 
-                    <TextBlock Text="{Binding NcrObject.Part.SkuDescription}"
+                    <TextBlock Text="{Binding FormObject.Part.SkuDescription}"
                                FontSize="24"
                                Visibility="Visible"
                                Margin="10,0,0,0" />
@@ -420,7 +421,7 @@
                 <!--#region Grid.Row 8 Defect Information-->
 
                 <StackPanel Grid.Row="8" Orientation="Horizontal"
-                            Visibility="{Binding NcrObject.IsValidOrder, Converter={StaticResource BoolToVisConverter}}">
+                            Visibility="{Binding FormObject.IsValidOrder, Converter={StaticResource BoolToVisConverter}}">
 
                     <TextBlock Text="Reason:"
                                FontSize="24"
@@ -434,7 +435,7 @@
                                Margin="10,0,0,0" />
 
                     <ComboBox x:Name="DefectReason"
-                              ItemsSource="{Binding NcrReasonCollection, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                              ItemsSource="{Binding DefectReasonCollection, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                               SelectedValue="{Binding SelectedReason, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                               Visibility="{Binding Path=(main:CurrentUser.IsQuality), Converter={StaticResource BoolToVisConverter}}"
                               DisplayMemberPath="Description"
@@ -460,7 +461,7 @@
                                Margin="10,0,0,0" />
 
                     <ComboBox x:Name="DefectType"
-                              ItemsSource="{Binding NcrTypeCollection, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                              ItemsSource="{Binding DefectTypeCollection, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                               SelectedValue="{Binding SelectedType, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                               Visibility="{Binding Path=(main:CurrentUser.IsQuality), Converter={StaticResource BoolToVisConverter}}"
                               DisplayMemberPath="Description"
@@ -484,7 +485,7 @@
                 <!--#region Grid.Row 10 Loss Information-->
 
                 <StackPanel Grid.Row="10" Orientation="Horizontal"
-                            Visibility="{Binding NcrObject.IsValidOrder, Converter={StaticResource BoolToVisConverter}}">
+                            Visibility="{Binding FormObject.IsValidOrder, Converter={StaticResource BoolToVisConverter}}">
 
                     <TextBlock Text="Potential Loss:"
                                FontSize="24"
@@ -510,13 +511,13 @@
                              Visibility="{Binding Path=(main:CurrentUser.IsQuality), Converter={StaticResource BoolToVisConverter}}"
                              Style="{DynamicResource RequiredTextBox}" />
 
-                    <TextBlock Text="{Binding NcrObject.Part.Uom}"
+                    <TextBlock Text="{Binding FormObject.Part.Uom}"
                                FontSize="24"
                                Margin="5,0,0,0"/>
 
-                    <TextBlock Text="{Binding NcrRevision.PotentialValue, StringFormat=c}"
+                    <TextBlock Text="{Binding FormRevision.PotentialValue, StringFormat=c}"
                                FontSize="24"
-                               Visibility="{Binding NcrRevision.PotentialLoss, Converter={StaticResource IntToVisConverter}, ConverterParameter=n0}"
+                               Visibility="{Binding FormRevision.PotentialLoss, Converter={StaticResource IntToVisConverter}, ConverterParameter=n0}"
                                Margin="15,0,0,0"/>
 
                     <TextBlock Text="Actual Loss:"
@@ -524,24 +525,24 @@
                                FontWeight="Bold"
                                Margin="30,0,0,0"
                                TextDecorations="Underline"
-                               Visibility="{Binding NcrRevision.ActualLoss, Converter={StaticResource IntToVisConverter}, ConverterParameter=n0}"
+                               Visibility="{Binding FormRevision.ActualLoss, Converter={StaticResource IntToVisConverter}, ConverterParameter=n0}"
                                Foreground="#FF135185"/>
 
-                    <TextBlock Text="{Binding NcrRevision.ActualLoss}"
+                    <TextBlock Text="{Binding FormRevision.ActualLoss}"
                                FontSize="24"
-                               Visibility="{Binding NcrRevision.ActualLoss, Converter={StaticResource IntToVisConverter}, ConverterParameter=n0}"
+                               Visibility="{Binding FormRevision.ActualLoss, Converter={StaticResource IntToVisConverter}, ConverterParameter=n0}"
                                Foreground="Crimson"
                                Margin="10,0,0,0"/>
 
-                    <TextBlock Text="{Binding NcrObject.Part.Uom}"
+                    <TextBlock Text="{Binding FormObject.Part.Uom}"
                                FontSize="24"
                                Margin="5,0,0,0"
-                               Visibility="{Binding NcrRevision.ActualLoss, Converter={StaticResource IntToVisConverter}, ConverterParameter=n0}"
+                               Visibility="{Binding FormRevision.ActualLoss, Converter={StaticResource IntToVisConverter}, ConverterParameter=n0}"
                                Foreground="Crimson"/>
 
-                    <TextBlock Text="{Binding NcrRevision.ActualCost, StringFormat=c}"
+                    <TextBlock Text="{Binding FormRevision.ActualCost, StringFormat=c}"
                                FontSize="24"
-                               Visibility="{Binding NcrRevision.ActualLoss, Converter={StaticResource IntToVisConverter}, ConverterParameter=n0}"
+                               Visibility="{Binding FormRevision.ActualLoss, Converter={StaticResource IntToVisConverter}, ConverterParameter=n0}"
                                Foreground="Crimson"
                                Margin="10,0,0,0"/>
 
@@ -552,10 +553,10 @@
                 <!--#region Grid.Row 11  (Used as a spacer)-->
                 <!--#endregion-->
 
-                <!--#region Grid.Row 12 Disposition and Closing action-->
+                <!--#region Grid.Row 12 Disposition, supplier, and closing action -->
 
                 <StackPanel Grid.Row="12" Orientation="Horizontal"
-                            Visibility="{Binding NcrObject.IsValidOrder, Converter={StaticResource BoolToVisConverter}}">
+                            Visibility="{Binding FormObject.IsValidOrder, Converter={StaticResource BoolToVisConverter}}">
 
                     <TextBlock Text="Disposition:"
                                FontSize="24"
@@ -579,6 +580,43 @@
                               Margin="5,0,0,0"
                               Visibility="{Binding Path=(main:CurrentUser.IsQuality), Converter={StaticResource BoolToVisConverter}}"
                               Style="{DynamicResource RequiredComboBox}"/>
+
+                    <TextBlock Text="Supplier:"
+                               FontSize="24"
+                               FontWeight="Bold"
+                               Margin="10,0,0,0"
+                               TextDecorations="Underline"
+                               Visibility="Collapsed"
+                               Foreground="#FF135185"/>
+
+                    <TextBlock Text="{Binding SelectedSupplier}"
+                               FontSize="24"
+                               Margin="10,0,0,0">
+                        <TextBlock.Visibility>
+                            <MultiBinding Converter="{StaticResource TypeToVisConverter}" ConverterParameter="SCAR*i">
+                                <Binding Path="FormRevision.Type"/>
+                                <Binding Path="(main:CurrentUser.IsQuality)"/>
+                            </MultiBinding>
+                        </TextBlock.Visibility>
+                    </TextBlock>
+
+                    <ComboBox x:Name="Supplier"
+                              ItemsSource="{Binding SupplierCollection, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                              SelectedValue="{Binding SelectedSupplier, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                              DisplayMemberPath="Description"
+                              FontSize="18"
+                              FontWeight="Bold"
+                              Width="200"
+                              TabIndex="7"
+                              Margin="5,0,0,0"
+                              Style="{DynamicResource RequiredComboBox}">
+                        <ComboBox.Visibility>
+                            <MultiBinding Converter="{StaticResource TypeToVisConverter}" ConverterParameter="SCAR">
+                                <Binding Path="FormRevision.Type"/>
+                                <Binding Path="(main:CurrentUser.IsQuality)"/>
+                            </MultiBinding>
+                        </ComboBox.Visibility>
+                    </ComboBox>
 
                     <TextBlock Text="Closing Action:"
                                FontSize="24"
@@ -612,10 +650,10 @@
                 <!--#region Grid.Row 13  (Used as a spacer)-->
                 <!--#endregion-->
 
-                <!--#region Grid.Row 14 NCR Notes and Lot information-->
+                <!--#region Grid.Row 14 QMS Form Notes and Lot information-->
 
                 <Grid Grid.Row="14"
-                      Visibility="{Binding NcrObject.IsValidOrder, Converter={StaticResource BoolToVisConverter}}">
+                      Visibility="{Binding FormObject.IsValidOrder, Converter={StaticResource BoolToVisConverter}}">
 
                     <Grid.RowDefinitions>
                         <RowDefinition Height="30"/>
@@ -637,7 +675,7 @@
 
                     <TextBox x:Name="NcrNotes"
                              Grid.Column="0" Grid.Row="1"
-                             Text="{Binding NcrRevision.Description, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                             Text="{Binding FormRevision.Description, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                              ScrollViewer.VerticalScrollBarVisibility="Auto"
                              MinWidth="300"
                              MaxWidth="580"
@@ -659,7 +697,7 @@
                                Fill="#FF135185"
                                HorizontalAlignment="Stretch"
                                VerticalAlignment="Stretch"
-                               Visibility="{Binding NcrObject.Part.IsLotTrace, Converter={StaticResource BoolToVisConverter}}"/>
+                               Visibility="{Binding FormObject.Part.IsLotTrace, Converter={StaticResource BoolToVisConverter}}"/>
 
                     <TextBlock Grid.Column="1" Grid.Row="0"
                                HorizontalAlignment="Center"
@@ -668,7 +706,7 @@
                                FontWeight="Bold"
                                FontSize="20"
                                Foreground="WhiteSmoke"
-                               Visibility="{Binding NcrObject.Part.IsLotTrace, Converter={StaticResource BoolToVisConverter}}"/>
+                               Visibility="{Binding FormObject.Part.IsLotTrace, Converter={StaticResource BoolToVisConverter}}"/>
 
                     <Button Grid.Column="1" Grid.Row="0"
                             Command="{Binding AddLotICommand}"
@@ -691,14 +729,14 @@
 
                     <ItemsControl Name="LotNumbers"
                                   Grid.Column="1" Grid.Row="1"
-                                  ItemsSource="{Binding Path=NcrObject.LotList}"
+                                  ItemsSource="{Binding Path=FormObject.LotList}"
                                   Margin="10,0,0,0"
                                   FontSize="18"
                                   Cursor="Hand"
                                   Background="Transparent"
                                   Foreground="Black"
                                   Focusable="False"
-                                  Visibility="{Binding NcrObject.Part.IsLotTrace, Converter={StaticResource BoolToVisConverter}}">
+                                  Visibility="{Binding FormObject.Part.IsLotTrace, Converter={StaticResource BoolToVisConverter}}">
 
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
@@ -776,7 +814,7 @@
 
                 <DataGrid x:Name="NcrPhotos"
                           Grid.Row="16"
-                          ItemsSource="{Binding NcrObject.PhotoCollection, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                          ItemsSource="{Binding FormObject.PhotoCollection, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                           HorizontalAlignment="Left"
                           HeadersVisibility="None"
                           AutoGenerateColumns="False"
@@ -800,7 +838,7 @@
                                                    MaxHeight="500">
                                             </Image>
                                             <Button Grid.Column="1"
-                                                    Command="{Binding DataContext.RemovePhotoICommand, ElementName=NcrFormUC}"
+                                                    Command="{Binding DataContext.RemovePhotoICommand, ElementName=QmsFormUC}"
                                                     CommandParameter="{Binding}"
                                                     Background="Transparent"
                                                     BorderThickness="0"

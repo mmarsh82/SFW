@@ -29,8 +29,8 @@
     <ProductName>Shop Floor Workbench</ProductName>
     <PublisherName>Michael Marsh</PublisherName>
     <SuiteName>ContiTech</SuiteName>
-    <ApplicationRevision>715</ApplicationRevision>
-    <ApplicationVersion>2.0.106.715</ApplicationVersion>
+    <ApplicationRevision>768</ApplicationRevision>
+    <ApplicationVersion>2.0.107.768</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <CreateDesktopShortcut>true</CreateDesktopShortcut>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -161,6 +161,7 @@
     <Compile Include="Converters\StatusToColor.cs" />
     <Compile Include="Converters\StringConcat.cs" />
     <Compile Include="Converters\StringToBool.cs" />
+    <Compile Include="Converters\FormTypeToVisibility.cs" />
     <Compile Include="Converters\ValueToHeight.cs" />
     <Compile Include="Converters\ValueToImage.cs" />
     <Compile Include="Converters\ValueToMargin.cs" />
@@ -184,14 +185,14 @@
       <DependentUpon>View.xaml</DependentUpon>
     </Compile>
     <Compile Include="Labor\ViewModel.cs" />
-    <Compile Include="QMS\NcrForm\View.xaml.cs">
+    <Compile Include="QMS\Form\View.xaml.cs">
       <DependentUpon>View.xaml</DependentUpon>
     </Compile>
-    <Compile Include="QMS\NcrForm\ViewModel.cs" />
-    <Compile Include="QMS\NcrNotice\View.xaml.cs">
+    <Compile Include="QMS\Form\ViewModel.cs" />
+    <Compile Include="QMS\Notice\View.xaml.cs">
       <DependentUpon>View.xaml</DependentUpon>
     </Compile>
-    <Compile Include="QMS\NcrNotice\ViewModel.cs" />
+    <Compile Include="QMS\Notice\ViewModel.cs" />
     <Compile Include="Containerization\ProductView.xaml.cs">
       <DependentUpon>ProductView.xaml</DependentUpon>
     </Compile>
@@ -343,11 +344,11 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="QMS\NcrForm\View.xaml">
+    <Page Include="QMS\Form\View.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="QMS\NcrNotice\View.xaml">
+    <Page Include="QMS\Notice\View.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Windows;
 using System.Windows.Media;
+using static SFW.Commands.DevTesting;
 
 namespace SFW
 {
@@ -182,7 +183,7 @@ namespace SFW
                 foreach (var _directReport in _propColl)
                 {
                     var _reportPrincipal = UserPrincipal.FindByIdentity(userPrincipal.Context, _directReport);
-                    _rtnDict.Add(_reportPrincipal.EmployeeId, $"{_reportPrincipal.Surname},{_reportPrincipal.GivenName}");
+                    _rtnDict.Add(((DirectoryEntry)_reportPrincipal.GetUnderlyingObject()).Properties["global-ExtensionAttribute1"]?.Value.ToString(), $"{_reportPrincipal.Surname},{_reportPrincipal.GivenName}");
                 }
                 return _rtnDict;
             }

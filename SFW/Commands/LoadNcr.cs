@@ -18,15 +18,15 @@ namespace SFW.Commands
         {
             if (int.TryParse(parameter.ToString(), out int i))
             {
-                var _ncr = new Ncr(i);
+                var _ncr = new QmsForm(i);
                 var _rev = _ncr.RevisionList.Count();
-                WorkSpaceDock.UpdateChildDock(1, 1, new QMS.NcrForm.View { DataContext = new QMS.NcrForm.ViewModel(_ncr, _rev, true) });
+                WorkSpaceDock.UpdateChildDock(1, 1, new QMS.Form.View { DataContext = new QMS.Form.ViewModel(_ncr, _rev, true) });
             }
             else if (int.TryParse(parameter.ToString().Split(' ')[0], out int n))
             {
-                var _ncr = new Ncr(n);
+                var _ncr = new QmsForm(n);
                 var _rev = _ncr.RevisionList.Count();
-                WorkSpaceDock.UpdateChildDock(1, 1, new QMS.NcrForm.View { DataContext = new QMS.NcrForm.ViewModel(_ncr, _rev, true) });
+                WorkSpaceDock.UpdateChildDock(1, 1, new QMS.Form.View { DataContext = new QMS.Form.ViewModel(_ncr, _rev, true) });
             }
         }
 

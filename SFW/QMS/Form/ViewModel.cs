@@ -8,89 +8,104 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Input;
 
-namespace SFW.QMS.NcrForm
+namespace SFW.QMS.Form
 {
     public class ViewModel : ViewModelBase
     {
         #region Properties
 
-        private Ncr _ncr;
-        public Ncr NcrObject
+        private QmsForm _form;
+        public QmsForm FormObject
         {
-            get { return _ncr; }
+            get { return _form; }
             set
             {
-                _ncr = value;
-                OnPropertyChanged(nameof(NcrObject));
+                _form = value;
+                OnPropertyChanged(nameof(FormObject));
             }
         }
 
-        private Ncr.Revision _ncrRev;
-        public Ncr.Revision NcrRevision
+        private QmsForm.Revision _frmRev;
+        public QmsForm.Revision FormRevision
         {
-            get { return _ncrRev; }
+            get { return _frmRev; }
             set
             {
-                _ncrRev = value;
-                OnPropertyChanged(nameof(NcrRevision));
+                _frmRev = value;
+                OnPropertyChanged(nameof(FormRevision));
             }
         }
 
-        public ObservableCollection<Ncr.DefectReason> NcrReasonCollection { get; set; }
-        public Ncr.DefectReason SelectedReason
+        public ObservableCollection<QmsForm.DefectReason> DefectReasonCollection { get; set; }
+        public QmsForm.DefectReason SelectedReason
         {
-            get { return NcrRevision.DefectReason; }
+            get { return FormRevision.DefectReason; }
             set
             {
-                if (NcrRevision != null)
+                if (FormRevision != null)
                 {
-                    NcrRevision.DefectReason = value;
+                    FormRevision.DefectReason = value;
                 }
                 OnPropertyChanged(nameof(SelectedReason));
-                OnPropertyChanged(nameof(NcrRevision));
+                OnPropertyChanged(nameof(FormRevision));
             }
         }
 
-        public ObservableCollection<Ncr.DefectType> NcrTypeCollection { get; set; }
-        public Ncr.DefectType SelectedType
+        public ObservableCollection<QmsForm.DefectType> DefectTypeCollection { get; set; }
+        public QmsForm.DefectType SelectedType
         {
-            get { return NcrRevision.DefectType; }
+            get { return FormRevision.DefectType; }
             set
             {
-                if (NcrRevision != null)
+                if (FormRevision != null)
                 {
-                    NcrRevision.DefectType = value;
+                    FormRevision.DefectType = value;
                 }
                 OnPropertyChanged(nameof(SelectedType));
-                OnPropertyChanged(nameof(NcrRevision));
+                OnPropertyChanged(nameof(FormRevision));
             }
         }
 
-        public ObservableCollection<Ncr.Disposition> DispositionCollection { get; set; }
-        public Ncr.Disposition SelectedDisposition
+        public ObservableCollection<QmsForm.Disposition> DispositionCollection { get; set; }
+        public QmsForm.Disposition SelectedDisposition
         {
-            get { return NcrRevision.Disposition; }
+            get { return FormRevision.Disposition; }
             set
             {
-                if (NcrRevision != null)
+                if (FormRevision != null)
                 {
-                    NcrRevision.Disposition = value;
+                    FormRevision.Disposition = value;
                 }
                 OnPropertyChanged(nameof(SelectedDisposition));
-                OnPropertyChanged(nameof(NcrRevision));
+                OnPropertyChanged(nameof(FormRevision));
+            }
+        }
+
+        public ObservableCollection<Supplier> SupplierCollection { get; set; }
+        public Supplier SelectedSupplier
+        {
+            get { return FormRevision.FormSupplier; }
+            set
+            {
+                if (FormRevision != null)
+                {
+                    FormRevision.FormSupplier = value;
+                }
+                OnPropertyChanged(nameof(SelectedSupplier));
+                OnPropertyChanged(nameof(FormRevision));
             }
         }
 
         public ObservableCollection<CrewMember> CrewCollection { get; set; }
 
         private bool _isNew;
-        public bool IsNewNcr
+        public bool IsNewForm
         {
             get { return _isNew; }
             set
             {
                 _isNew = value;
-                OnPropertyChanged(nameof(IsNewNcr));
+                OnPropertyChanged(nameof(IsNewForm));
             }
         }
 
@@ -117,8 +132,8 @@ namespace SFW.QMS.NcrForm
                     _pLoss = i;
                     if (i > 0)
                     {
-                        NcrRevision.PotentialLoss = i;
-                        NcrRevision.PotentialValue = i * NcrObject.ProductValue;
+                        FormRevision.PotentialLoss = i;
+                        FormRevision.PotentialValue = i * FormObject.ProductValue;
                     }
                 }
                 else
@@ -156,38 +171,42 @@ namespace SFW.QMS.NcrForm
         /// <summary>
         /// ViewModel Default Constructor
         /// </summary>
-        public ViewModel(Ncr ncrObj, bool fromSched, bool isNew)
+        public ViewModel(QmsForm frmObj, bool fromSched, bool isNew, QmsForm.FormType frmType)
         {
-            IsNewNcr = isNew;
+            IsNewForm = isNew;
             FromSchedule = fromSched;
-            if (NcrObject == null)
+            if (FormObject == null)
             {
-                NcrObject = new Ncr(new CrewMember(CurrentUser.FirstName, CurrentUser.LastName, false));
-                NcrRevision = NcrObject.RevisionList.FirstOrDefault();
+                FormObject = new QmsForm(new CrewMember(CurrentUser.ErpId, false), frmType);
+                FormRevision = FormObject.RevisionList.FirstOrDefault();
             }
             else
             {
-                NcrObject = new Ncr(ncrObj);
-                NcrRevision = NcrObject.RevisionList.FirstOrDefault();
+                FormObject = new QmsForm(frmObj);
+                FormRevision = FormObject.RevisionList.FirstOrDefault();
             }
             ActionType = "Submit";
-            if (IsNewNcr)
+            if (IsNewForm)
             {
-                if (NcrReasonCollection == null)
+                if (DefectReasonCollection == null)
                 {
-                    NcrReasonCollection = Ncr.DefectReason.GetDefectReasonCollection();
+                    DefectReasonCollection = QmsForm.DefectReason.GetDefectReasonCollection();
                 }
-                if (NcrTypeCollection == null)
+                if (DefectTypeCollection == null)
                 {
-                    NcrTypeCollection = Ncr.DefectType.GetDefectTypeCollection();
+                    DefectTypeCollection = QmsForm.DefectType.GetDefectTypeCollection();
                 }
                 if (DispositionCollection == null)
                 {
-                    DispositionCollection = Ncr.Disposition.GetDispositionCollection();
+                    DispositionCollection = Model.QmsForm.Disposition.GetDispositionCollection();
                 }
                 if (CrewCollection == null)
                 {
                     CrewCollection = CrewMember.GetCrewCollection(CurrentUser.Facility);
+                }
+                if (SupplierCollection == null)
+                {
+                    SupplierCollection = new ObservableCollection<Supplier>(Supplier.GetSupplierList());
                 }
             }
         }
@@ -196,20 +215,22 @@ namespace SFW.QMS.NcrForm
         /// ViewModel Constructor for creating new Ncr on a work order
         /// </summary>
         /// <param name="WorkOrder">WorkOrder Object</param>
-        public ViewModel(WorkOrder workOrder)
+        /// <param name="frmType">Form type to create</param>
+        public ViewModel(WorkOrder workOrder, QmsForm.FormType frmType)
         {
             try
             {
                 FromSchedule = true;
-                IsNewNcr = true;
-                NcrObject = new Ncr(workOrder, new CrewMember(CurrentUser.FirstName, CurrentUser.LastName, false));
-                NcrRevision = NcrObject.RevisionList[0];
+                IsNewForm = true;
+                FormObject = new QmsForm(workOrder, new CrewMember(CurrentUser.ErpId, false), frmType);
+                FormRevision = FormObject.RevisionList[0];
                 ActionType = "Submit";
-                CrewCollection = CrewMember.GetCrewCollection(NcrObject.Site);
+                CrewCollection = CrewMember.GetCrewCollection(FormObject.Site);
                 LoadedWorkOrder = workOrder;
-                NcrReasonCollection = Ncr.DefectReason.GetDefectReasonCollection();
-                NcrTypeCollection = Ncr.DefectType.GetDefectTypeCollection();
-                DispositionCollection = Ncr.Disposition.GetDispositionCollection();
+                DefectReasonCollection = QmsForm.DefectReason.GetDefectReasonCollection();
+                DefectTypeCollection = QmsForm.DefectType.GetDefectTypeCollection();
+                DispositionCollection = QmsForm.Disposition.GetDispositionCollection();
+                SupplierCollection = new ObservableCollection<Supplier>(Supplier.GetSupplierList());
             }
             catch (Exception ex)
             {
@@ -220,31 +241,36 @@ namespace SFW.QMS.NcrForm
         /// <summary>
         /// ViewModel Constructor for Ncr's from an existing Ncr
         /// </summary>
-        /// <param name="ncr">Ncr Object</param>
-        /// <param name="revId">Ncr Revision ID to load</param>
+        /// <param name="frm">Form Object</param>
+        /// <param name="revId">Form Revision ID to load</param>
         /// <param name="fromSched">Optional: Load from schedule</param>
-        public ViewModel(Ncr ncr, int revId, bool fromSched = false)
+        public ViewModel(QmsForm frm, int revId, bool fromSched = false)
         {
             try
             {
-                IsNewNcr = false;
+                IsNewForm = false;
                 FromSchedule = fromSched;
                 if (FromSchedule)
                 {
-                    LoadedWorkOrder = new WorkOrder(ncr.OrderId);
+                    LoadedWorkOrder = new WorkOrder(frm.OrderId);
                 }
-                NcrObject = ncr;
-                NcrRevision = ncr.RevisionList.FirstOrDefault(o => o.RevisionId == revId);
+                FormObject = frm;
+                FormRevision = frm.RevisionList.FirstOrDefault(o => o.RevisionId == revId);
                 ActionType = "Update";
-                CrewCollection = CrewMember.GetCrewCollection(NcrObject.Site);
-                NcrObject.Reporter = CrewCollection.FirstOrDefault(o => o.IdNumber == NcrObject.Reporter.IdNumber);
-                ViewPotentialLoss = NcrRevision.PotentialLoss.ToString();
-                NcrReasonCollection = Ncr.DefectReason.GetDefectReasonCollection();
-                SelectedReason = NcrReasonCollection.FirstOrDefault(o => o.Id == NcrRevision.DefectReason.Id);
-                NcrTypeCollection = Ncr.DefectType.GetDefectTypeCollection();
-                SelectedType = NcrTypeCollection.FirstOrDefault(o => o.Id == NcrRevision.DefectType.Id);
-                DispositionCollection = Ncr.Disposition.GetDispositionCollection();
-                SelectedDisposition = DispositionCollection.FirstOrDefault(o => o.Id == NcrRevision.Disposition.Id);
+                CrewCollection = CrewMember.GetCrewCollection(FormObject.Site);
+                FormObject.Reporter = CrewCollection.FirstOrDefault(o => o.ErpId == FormObject.Reporter.ErpId);
+                ViewPotentialLoss = FormRevision.PotentialLoss.ToString();
+                DefectReasonCollection = QmsForm.DefectReason.GetDefectReasonCollection();
+                SelectedReason = DefectReasonCollection.FirstOrDefault(o => o.Id == FormRevision.DefectReason.Id);
+                DefectTypeCollection = QmsForm.DefectType.GetDefectTypeCollection();
+                SelectedType = DefectTypeCollection.FirstOrDefault(o => o.Id == FormRevision.DefectType.Id);
+                DispositionCollection = QmsForm.Disposition.GetDispositionCollection();
+                SelectedDisposition = DispositionCollection.FirstOrDefault(o => o.Id == FormRevision.Disposition.Id);
+                SupplierCollection = new ObservableCollection<Supplier>(Supplier.GetSupplierList());
+                if (FormRevision.FormSupplier != null)
+                {
+                    SelectedSupplier = SupplierCollection.FirstOrDefault(o => o.SupplierId == FormRevision.FormSupplier.SupplierId);
+                }
                 using (BackgroundWorker bw = new BackgroundWorker())
                 {
                     try
@@ -252,12 +278,12 @@ namespace SFW.QMS.NcrForm
                         bw.DoWork += new DoWorkEventHandler(
                         delegate (object sender, DoWorkEventArgs e)
                         {
-                            var _actuals = Ncr.GetActuals(NcrObject.NcrId, App.AppSqlCon);
+                            var _actuals = QmsForm.GetActuals(FormObject.FormId, App.AppSqlCon);
                             if (_actuals.Count > 0)
                             {
-                                NcrRevision.ActualLoss = _actuals.FirstOrDefault().Key;
-                                NcrRevision.ActualCost = _actuals.FirstOrDefault().Value;
-                                OnPropertyChanged(nameof(NcrRevision));
+                                FormRevision.ActualLoss = _actuals.FirstOrDefault().Key;
+                                FormRevision.ActualCost = _actuals.FirstOrDefault().Value;
+                                OnPropertyChanged(nameof(FormRevision));
                             }
                         });
                         bw.RunWorkerAsync();
@@ -280,15 +306,15 @@ namespace SFW.QMS.NcrForm
         /// <returns>Validatity as bool</returns>
         public bool ValidateNewSubmission()
         {
-            var validObj = NcrObject.IsValidOrder && !string.IsNullOrEmpty(NcrObject.Reporter?.Name);
-            var validRev = !string.IsNullOrEmpty(NcrRevision.Disposition?.Description)
-                && !NcrObject.IsEscape || (NcrObject.IsEscape && ((NcrObject.Part.IsLotTrace && NcrObject.LotList.Count(o => o.Validated) > 0) || !NcrObject.Part.IsLotTrace))
-                && !string.IsNullOrEmpty(NcrRevision.DefectReason?.Description) && !string.IsNullOrEmpty(NcrRevision.DefectType?.Description)
-                && !string.IsNullOrEmpty(NcrRevision.Description);
+            var validObj = FormObject.IsValidOrder && !string.IsNullOrEmpty(FormObject.Reporter?.Name);
+            var validRev = !string.IsNullOrEmpty(FormRevision.Disposition?.Description)
+                && !FormObject.IsEscape || (FormObject.IsEscape && ((FormObject.Part.IsLotTrace && FormObject.LotList.Count(o => o.Validated) > 0) || !FormObject.Part.IsLotTrace))
+                && !string.IsNullOrEmpty(FormRevision.DefectReason?.Description) && !string.IsNullOrEmpty(FormRevision.DefectType?.Description)
+                && !string.IsNullOrEmpty(FormRevision.Description);
             var validLot = true;
-            if (NcrObject.Part != null && NcrObject.LotList != null && NcrObject.Part.IsLotTrace && NcrObject.LotList.Count(o => o.Validated) > 0)
+            if (FormObject.Part != null && FormObject.LotList != null && FormObject.Part.IsLotTrace && FormObject.LotList.Count(o => o.Validated) > 0)
             {
-                validLot = NcrObject.LotList.Where(o => o.Validated).Count() == NcrObject.LotList.Count();
+                validLot = FormObject.LotList.Where(o => o.Validated).Count() == FormObject.LotList.Count();
             }
             return validObj && validRev && validLot;
         }
@@ -309,20 +335,20 @@ namespace SFW.QMS.NcrForm
 
         private void ActionExecute(object parameter)
         {
-            if (IsNewNcr)
+            if (IsNewForm)
             {
-                NcrObject.NcrId = NcrObject.Submit(App.AppSqlCon);
+                FormObject.FormId = FormObject.Submit(App.AppSqlCon);
                 ActionType = "Update";
-                IsNewNcr = false;
+                IsNewForm = false;
 
             }
             else
             {
-                var newRevId = NcrObject.RevisionList.Count + 1;
-                NcrRevision.SubmitDateTime = DateTime.Now;
-                NcrRevision.Submitter = new CrewMember(CurrentUser.FirstName, CurrentUser.LastName, false);
-                NcrRevision.Submit(NcrObject.NcrId, newRevId, App.AppSqlCon);
-                NcrObject.SubmitLots(App.AppSqlCon);
+                var newRevId = FormObject.RevisionList.Count + 1;
+                FormRevision.SubmitDateTime = DateTime.Now;
+                FormRevision.Submitter = new CrewMember(CurrentUser.ErpId, false);
+                FormRevision.Submit(FormObject.FormId, newRevId, App.AppSqlCon);
+                FormObject.SubmitLots(App.AppSqlCon);
             }
             
             if (!RefreshTimer.Status)
@@ -331,7 +357,7 @@ namespace SFW.QMS.NcrForm
                 RefreshTimer.RefreshTimerTick();
             }
         }
-        private bool ActionCanExecute(object parameter) => IsNewNcr ? ValidateNewSubmission() : true;
+        private bool ActionCanExecute(object parameter) => IsNewForm ? ValidateNewSubmission() : true;
 
         #endregion
 
@@ -353,11 +379,11 @@ namespace SFW.QMS.NcrForm
         {
             if (parameter == null)
             {
-                NcrObject.LotList.Remove(NcrObject.LotList.LastOrDefault());
+                FormObject.LotList.Remove(FormObject.LotList.LastOrDefault());
             }
             else
             {
-                NcrObject.LotList.Remove(NcrObject.LotList.FirstOrDefault(o => o.LotNumber == parameter.ToString()));
+                FormObject.LotList.Remove(FormObject.LotList.FirstOrDefault(o => o.LotNumber == parameter.ToString()));
             }
         }
 
@@ -379,7 +405,7 @@ namespace SFW.QMS.NcrForm
 
         private void AddLotExecute(object parameter)
         {
-            NcrObject.LotList.Add(new Lot());
+            FormObject.LotList.Add(new Lot());
         }
 
         #endregion
@@ -402,8 +428,8 @@ namespace SFW.QMS.NcrForm
         {
             if(FromSchedule)
             {
-                Controls.WorkSpaceDock.SchedDock.Children.RemoveAt(1);
-                Controls.WorkSpaceDock.SchedDock.Children.Insert(1, new ShopRoute.View { DataContext = new ShopRoute.ViewModel(LoadedWorkOrder) });
+                WorkSpaceDock.SchedDock.Children.RemoveAt(1);
+                WorkSpaceDock.SchedDock.Children.Insert(1, new ShopRoute.View { DataContext = new ShopRoute.ViewModel(LoadedWorkOrder) });
                 if (!RefreshTimer.Status)
                 {
                     RefreshTimer.Start();
@@ -411,9 +437,9 @@ namespace SFW.QMS.NcrForm
             }
             else
             {
-                Controls.WorkSpaceDock.NcrDock.Children.RemoveAt(1);
-                var _ncr = new Ncr(Ncr.GetLastNcrId());
-                Controls.WorkSpaceDock.NcrDock.Children.Insert(1, new View { DataContext = new ViewModel(_ncr, _ncr.RevisionList.Count()) });
+                WorkSpaceDock.QmsFormDock.Children.RemoveAt(1);
+                var _ncr = new Model.QmsForm(Model.QmsForm.GetLastNcrId());
+                WorkSpaceDock.QmsFormDock.Children.Insert(1, new View { DataContext = new ViewModel(_ncr, _ncr.RevisionList.Count()) });
                 if (!RefreshTimer.Status)
                 {
                     RefreshTimer.Start();
@@ -439,10 +465,10 @@ namespace SFW.QMS.NcrForm
 
         private void RemovePhotoExecute(object parameter)
         {
-            NcrObject.PhotoCollection.Remove(parameter.ToString());
-            if (NcrObject.NcrId > 0)
+            FormObject.PhotoCollection.Remove(parameter.ToString());
+            if (FormObject.FormId > 0)
             {
-                Ncr.DeletePhotoPath(NcrObject.NcrId, parameter.ToString(), App.AppSqlCon);
+                Model.QmsForm.DeletePhotoPath(FormObject.FormId, parameter.ToString(), App.AppSqlCon);
             }
         }
 
@@ -466,13 +492,13 @@ namespace SFW.QMS.NcrForm
         {
             if (int.TryParse(parameter.ToString(), out int i))
             {
-                foreach (var _rev in NcrObject.RevisionList)
+                foreach (var _rev in FormObject.RevisionList)
                 {
                     _rev.Current = false;
                 }
-                NcrObject.RevisionList.FirstOrDefault(o => o.RevisionId == i).Current = true;
-                NcrRevision = NcrObject.RevisionList.FirstOrDefault(o => o.RevisionId == i);
-                OnPropertyChanged(nameof(NcrRevision));
+                FormObject.RevisionList.FirstOrDefault(o => o.RevisionId == i).Current = true;
+                FormRevision = FormObject.RevisionList.FirstOrDefault(o => o.RevisionId == i);
+                OnPropertyChanged(nameof(FormRevision));
             }
         }
 
@@ -497,8 +523,8 @@ namespace SFW.QMS.NcrForm
             var _result = MessageBox.Show("Are you sure you want to void this NCR?\nOnce Voided only IT can bring it back.", "Void NCR", MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No);
             if (_result == MessageBoxResult.Yes)
             {
-                NcrRevision.Disposition = new Ncr.Disposition(7, "Void", "Voided");
-                NcrRevision.Submit(NcrObject.NcrId, NcrObject.RevisionList.Count() + 1, App.AppSqlCon);
+                FormRevision.Disposition = new Model.QmsForm.Disposition(7, "Void", "Voided");
+                FormRevision.Submit(FormObject.FormId, FormObject.RevisionList.Count() + 1, App.AppSqlCon);
             }
         }
 
@@ -520,20 +546,20 @@ namespace SFW.QMS.NcrForm
 
         private void CloneExecute(object parameter)
         {
-            NcrObject.NcrId = 0;
-            NcrObject.TempId = int.Parse(DateTime.Now.ToString("MMddmmss"));
-            NcrObject.RevisionList.Clear();
-            NcrRevision.RevisionId = 1;
-            NcrObject.RevisionList.Add(NcrRevision);
+            FormObject.FormId = 0;
+            FormObject.TempId = int.Parse(DateTime.Now.ToString("MMddmmss"));
+            FormObject.RevisionList.Clear();
+            FormRevision.RevisionId = 1;
+            FormObject.RevisionList.Add(FormRevision);
             if(FromSchedule)
             {
-                WorkSpaceDock.UpdateChildDock(1, 1, new ViewModel(NcrObject, true, true));
+                WorkSpaceDock.UpdateChildDock(1, 1, new ViewModel(FormObject, true, true, FormRevision.RevFormType));
             }
             else
             {
-                WorkSpaceDock.UpdateChildDock(9, 1, new ViewModel(NcrObject, false, true));
+                WorkSpaceDock.UpdateChildDock(9, 1, new ViewModel(FormObject, false, true, FormRevision.RevFormType));
             }
-            foreach (var _photo in NcrObject.PhotoCollection)
+            foreach (var _photo in FormObject.PhotoCollection)
             {
 
             }

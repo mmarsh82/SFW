@@ -93,10 +93,13 @@ namespace SFW.Model
         /// <param name="lotNbr">Lot Number</param>
         public Lot(string lotNbr)
         {
-            var _rows = MasterDataSet.Tables["LOT"].Select($"[LotID] = '{lotNbr}' AND [WorkOrderID] != ''");
-            foreach (var _row in _rows)
+            if (!string.IsNullOrEmpty(lotNbr))
             {
-                Dedication.Add(_row.Field<string>("WorkOrderID"), _row.Field<int>("OnHand"));
+                var _rows = MasterDataSet.Tables["LOT"].Select($"[LotID] = '{lotNbr}' AND [WorkOrderID] != ''");
+                foreach (var _row in _rows)
+                {
+                    Dedication.Add(_row.Field<string>("WorkOrderID"), _row.Field<int>("OnHand"));
+                }
             }
         }
 
@@ -252,19 +255,21 @@ namespace SFW.Model
         /// <returns>DataTable of historical lot transactions</returns>
         public static DataTable GetLotHistoryTable(string partNbr, string lotId, int site, SqlConnection sqlCon)
         {
-            partNbr = partNbr.Contains("|") ? partNbr.Split('|')[0] : partNbr;
-            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
+            if (!string.IsNullOrEmpty(partNbr))
             {
-                try
+                partNbr = partNbr.Contains("|") ? partNbr.Split('|')[0] : partNbr;
+                if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
                 {
-                    using (DataTable dt = new DataTable())
+                    try
                     {
-                        if (!string.IsNullOrEmpty(partNbr))
+                        using (DataTable dt = new DataTable())
                         {
-                            var _where = site == 0
-                                ? "WHERE [PartNbr] = @p1 AND [LotNumber] = @p2"
-                                : "WHERE [PartNbr] = @p1 AND [LotNumber] = @p2 AND [SiteNumber] = @p3";
-                            using (SqlDataAdapter adapter = new SqlDataAdapter($@"USE {sqlCon.Database};
+                            if (!string.IsNullOrEmpty(partNbr))
+                            {
+                                var _where = site == 0
+                                    ? "WHERE [PartNbr] = @p1 AND [LotNumber] = @p2"
+                                    : "WHERE [PartNbr] = @p1 AND [LotNumber] = @p2 AND [SiteNumber] = @p3";
+                                using (SqlDataAdapter adapter = new SqlDataAdapter($@"USE {sqlCon.Database};
                                                                                 SELECT 
                                                                                     *
                                                                                 FROM
@@ -272,28 +277,30 @@ namespace SFW.Model
                                                                                 {_where}
                                                                                 ORDER BY
                                                                                     [TranDateTime] DESC", sqlCon))
-                            {
-                                adapter.SelectCommand.Parameters.AddWithValue("p1", partNbr);
-                                adapter.SelectCommand.Parameters.AddWithValue("p2", lotId);
-                                if (site > 0)
                                 {
-                                    adapter.SelectCommand.Parameters.AddWithValue("p3", site);
+                                    adapter.SelectCommand.Parameters.AddWithValue("p1", partNbr);
+                                    adapter.SelectCommand.Parameters.AddWithValue("p2", lotId);
+                                    if (site > 0)
+                                    {
+                                        adapter.SelectCommand.Parameters.AddWithValue("p3", site);
+                                    }
+                                    adapter.Fill(dt);
                                 }
-                                adapter.Fill(dt);
                             }
+                            return dt;
                         }
-                        return dt;
+                    }
+                    catch (Exception)
+                    {
+                        return new DataTable();
                     }
                 }
-                catch (Exception)
+                else
                 {
-                    return new DataTable();
+                    throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
                 }
             }
-            else
-            {
-                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
-            }
+            return null;
         }
 
         /// <summary>

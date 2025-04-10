@@ -1,6 +1,7 @@
 ﻿using SFW.Commands;
 using SFW.Controls;
 using SFW.Helpers;
+using System.Windows;
 using System.Windows.Input;
 
 namespace SFW.Tools
@@ -48,7 +49,7 @@ namespace SFW.Tools
         {
             if (int.TryParse(UserEntry, out int i))
             {
-                if (Model.Ncr.IsValid(i))
+                if (Model.QmsForm.IsValid(i))
                 {
                     if (App.LoadedModule != Enumerations.UsersControls.Schedule)
                     {
@@ -56,6 +57,11 @@ namespace SFW.Tools
                     }
                     new LoadNcr().Execute(UserEntry);
                     App.CloseWindow<NcrSearch_View>();
+                }
+                else
+                {
+                    MessageBox.Show("The NCR number you entered does not exist.", "Invalid NCR", MessageBoxButton.OK);
+                    UserEntry = string.Empty;
                 }
             }
         }

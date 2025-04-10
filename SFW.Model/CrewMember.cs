@@ -13,11 +13,18 @@ namespace SFW.Model
     {
         #region Properties
 
-        private string _idNbr;
-        public string IdNumber
+        private string _erpId;
+        public string ErpId
         {
-            get { return _idNbr; }
-            set { _idNbr = value; OnPropertyChanged(nameof(IdNumber)); }
+            get { return _erpId; }
+            set { _erpId = value; OnPropertyChanged(nameof(ErpId)); }
+        }
+
+        private int _sapId;
+        public int SapId
+        {
+            get { return _sapId; }
+            set { _sapId = value; OnPropertyChanged(nameof(SapId)); }
         }
 
         private string _name;
@@ -88,12 +95,12 @@ namespace SFW.Model
                 {
                     System.Threading.Tasks.Task.Run(() =>
                     {
-                        if (!string.IsNullOrEmpty(Facility) && IsCrewIDValid(IdNumber))
+                        if (!string.IsNullOrEmpty(Facility) && IsCrewErpIdValid(ErpId))
                         {
-                            Facility = GetFacility(IdNumber);
+                            Facility = GetFacility(ErpId);
                         }
                         var dateId = (DateTime.Today - Convert.ToDateTime("1967/12/31")).Days;
-                        var _time = GetInTime(IdNumber, Facility, dateId);
+                        var _time = GetInTime(ErpId, Facility, dateId);
                         if (_time.Contains("ERR"))
                         {
                             _inTime = string.Empty;
@@ -105,17 +112,17 @@ namespace SFW.Model
                             if (string.IsNullOrEmpty(_time))
                             {
                                 dateId = (DateTime.Today.AddDays(-1) - Convert.ToDateTime("1967/12/31")).Days;
-                                _time = GetInTime(IdNumber, Facility, dateId);
+                                _time = GetInTime(ErpId, Facility, dateId);
                                 if (string.IsNullOrEmpty(_time))
                                 {
-                                    _time = GetShiftStartTime(IdNumber);
+                                    _time = GetShiftStartTime(ErpId);
                                     _clockLoaded = true;
                                 }
                                 else
                                 {
                                     if(TimeSpan.Parse(_time) < TimeSpan.Parse("21:00") && DateTime.Now.TimeOfDay > TimeSpan.Parse("21:00"))
                                     {
-                                        _time = GetShiftStartTime(IdNumber);
+                                        _time = GetShiftStartTime(ErpId);
                                         _clockLoaded = true;
                                     }
                                 }
@@ -124,7 +131,7 @@ namespace SFW.Model
                             {
                                 if (TimeSpan.Parse(_time) < TimeSpan.Parse("21:00") && DateTime.Now.TimeOfDay > TimeSpan.Parse("21:00"))
                                 {
-                                    _time = GetShiftStartTime(IdNumber);
+                                    _time = GetShiftStartTime(ErpId);
                                     _clockLoaded = true;
                                 }
                             }
@@ -135,17 +142,17 @@ namespace SFW.Model
                             if (string.IsNullOrEmpty(_time))
                             {
                                 dateId = (DateTime.Today.AddDays(-1) - Convert.ToDateTime("1967/12/31")).Days;
-                                _time = GetInTime(IdNumber, Facility, dateId);
+                                _time = GetInTime(ErpId, Facility, dateId);
                                 if (string.IsNullOrEmpty(_time))
                                 {
-                                    _time = GetShiftStartTime(IdNumber);
+                                    _time = GetShiftStartTime(ErpId);
                                     _clockLoaded = true;
                                 }
                                 else
                                 {
                                     if (TimeSpan.Parse(_time) < TimeSpan.Parse("14:00") && DateTime.Now.TimeOfDay > TimeSpan.Parse("14:00"))
                                     {
-                                        _time = GetShiftStartTime(IdNumber);
+                                        _time = GetShiftStartTime(ErpId);
                                         _clockLoaded = true;
                                     }
                                 }
@@ -154,7 +161,7 @@ namespace SFW.Model
                             {
                                 if (TimeSpan.Parse(_time) < TimeSpan.Parse("14:00") && DateTime.Now.TimeOfDay > TimeSpan.Parse("14:00"))
                                 {
-                                    _time = GetShiftStartTime(IdNumber);
+                                    _time = GetShiftStartTime(ErpId);
                                     _clockLoaded = true;
                                 }
                             }
@@ -164,7 +171,7 @@ namespace SFW.Model
                         {
                             try
                             {
-                                _time = string.IsNullOrEmpty(_time) ? GetShiftStartTime(IdNumber) : _time;
+                                _time = string.IsNullOrEmpty(_time) ? GetShiftStartTime(ErpId) : _time;
                                 if (DateTime.Now.TimeOfDay < TimeSpan.Parse(_time))
                                 {
                                     _time = string.Empty;
@@ -275,7 +282,7 @@ namespace SFW.Model
 
         public string LaborId
         {
-            get { return $"{IdNumber}*{(DateTime.Today - Convert.ToDateTime("1967/12/31")).Days}*0{Facility}"; }
+            get { return $"{ErpId}*{(DateTime.Today - Convert.ToDateTime("1967/12/31")).Days}*0{Facility}"; }
         }
 
         #endregion
@@ -299,14 +306,14 @@ namespace SFW.Model
         /// Overridden Constructor
         /// Load a crewmember object based on an employee ID
         /// </summary>
-        /// <param name="idNbr">Crew member ID Number</param>
+        /// <param name="sapId">Crew member ID Number</param>
         /// <param name="loadLabor">Load the labor fields for the crew member</param>
-        public CrewMember(string idNbr, bool loadLabor)
+        public CrewMember(int sapId, bool loadLabor)
         {
-            var _rows = MasterDataSet.Tables["CREW"].Select($"[EmployeeID] = '{idNbr}'");
-            if (_rows.Length > 0)
+            var _rows = MasterDataSet.Tables["CREW"].Select($"[SapEmployeeID] = '{sapId}'");
+            if (_rows.Count() > 0)
             {
-                IdNumber = idNbr;
+                ErpId = _rows.FirstOrDefault().Field<string>("EmployeeId");
                 Name = _rows.FirstOrDefault().Field<string>("DisplayName");
                 if (loadLabor)
                 {
@@ -314,43 +321,90 @@ namespace SFW.Model
                     Shift = _rows.FirstOrDefault().Field<int>("Shift");
                     ShiftStart = _rows.FirstOrDefault().Field<string>("ShiftStart");
                     ShiftEnd = _rows.FirstOrDefault().Field<string>("ShiftEnd");
+                    InTime = string.Empty;
                     Facility = $"0{_rows.FirstOrDefault().Field<int>("Site")}";
+                    SapId = int.TryParse(_rows.FirstOrDefault().Field<string>("SapEmployeeID"), out int i) ? i : 0;
                     ErrorMessage = string.Empty;
                     _clockLoaded = false;
+                    if (IsDirect)
+                    {
+                        IsWorking = true;
+                        HoursWorked = 8;
+                        WorkCenter = new Machine();
+                    }
                 }
             }
         }
 
         /// <summary>
         /// Overridden Constructor
-        /// Load a crewmember object based on an employee name
-        /// WARNING this will not work if the name is spelled incorrectly
-        /// Best to just include all crew member ID's in the active directory
+        /// Load a crewmember object based on an employee ID
         /// </summary>
-        /// <param name="firstName">Crew member first name</param>
-        /// <param name="lastName">Crew member last name</param>
+        /// <param name="erpId">Crew member ID Number</param>
         /// <param name="loadLabor">Load the labor fields for the crew member</param>
-        public CrewMember(string firstName, string lastName, bool loadLabor)
+        public CrewMember(string erpId, bool loadLabor)
         {
-            var _rows = MasterDataSet.Tables["CREW"].Select($"[FirstName] = '{firstName}' AND [LastName] = '{lastName}'");
-            if (_rows.Length > 0)
+            var _rows = MasterDataSet.Tables["CREW"].Select($"[EmployeeID] = '{erpId}'");
+            if (_rows.Count() > 0)
             {
-                IdNumber = _rows.FirstOrDefault().Field<string>("EmployeeID");
+                ErpId = erpId;
                 Name = _rows.FirstOrDefault().Field<string>("DisplayName");
-                IsDirect = _rows.FirstOrDefault().Field<int>("IsDirect") == 1;
-                Shift = _rows.FirstOrDefault().Field<int>("Shift");
-                Facility = $"0{_rows.FirstOrDefault().Field<int>("Site")}";
                 if (loadLabor)
                 {
+                    IsDirect = _rows.FirstOrDefault().Field<int>("IsDirect") == 1;
+                    Shift = _rows.FirstOrDefault().Field<int>("Shift");
                     ShiftStart = _rows.FirstOrDefault().Field<string>("ShiftStart");
                     ShiftEnd = _rows.FirstOrDefault().Field<string>("ShiftEnd");
                     InTime = string.Empty;
+                    Facility = $"0{_rows.FirstOrDefault().Field<int>("Site")}";
+                    SapId = int.TryParse(_rows.FirstOrDefault().Field<string>("SapEmployeeID"), out int i) ? i : 0;
+                    ErrorMessage = string.Empty;
+                    _clockLoaded = false;
+                    if (IsDirect)
+                    {
+                        IsWorking = true;
+                        HoursWorked = 8;
+                        WorkCenter = new Machine();
+                    }
                 }
-                if (IsDirect)
+            }
+        }
+
+        /// <summary>
+        /// Overridden Constructor
+        /// Load a crewmember object based on an employee ID
+        /// </summary>
+        /// <param name="erpId">Crew member ID Number</param>
+        /// <param name="firstName">Crew member first name</param>
+        /// <param name="lastName">Crew member last name</param>
+        /// <param name="loadLabor">Load the labor fields for the crew member</param>
+        public CrewMember(string erpId, string firstName, string lastName, bool loadLabor)
+        {
+            var _rows = MasterDataSet.Tables["CREW"].Select($"[EmployeeID] = '{erpId}'");
+            if (_rows.Count() == 0)
+            {
+                _rows = MasterDataSet.Tables["CREW"].Select($"[FirstName] = '{firstName}' AND [LastName] = '{lastName}'");
+            }
+            if (_rows.Length > 0)
+            {
+                ErpId = erpId;
+                Name = _rows.FirstOrDefault().Field<string>("DisplayName");
+                if (loadLabor)
                 {
-                    IsWorking = true;
-                    HoursWorked = 8;
-                    WorkCenter = new Machine();
+                    IsDirect = _rows.FirstOrDefault().Field<int>("IsDirect") == 1;
+                    Shift = _rows.FirstOrDefault().Field<int>("Shift");
+                    ShiftStart = _rows.FirstOrDefault().Field<string>("ShiftStart");
+                    ShiftEnd = _rows.FirstOrDefault().Field<string>("ShiftEnd");
+                    InTime = string.Empty;
+                    Facility = $"0{_rows.FirstOrDefault().Field<int>("Site")}";
+                    ErrorMessage = string.Empty;
+                    _clockLoaded = false;
+                    if (IsDirect)
+                    {
+                        IsWorking = true;
+                        HoursWorked = 8;
+                        WorkCenter = new Machine();
+                    }
                 }
             }
         }
@@ -422,7 +476,7 @@ namespace SFW.Model
                                         ? null
                                         : new Machine(reader.SafeGetInt32("WorkCenter"));
                                     var _tempCrew = new CrewMember {
-                                    IdNumber = reader.SafeGetString("UserID")
+                                    ErpId = reader.SafeGetString("UserID")
                                     , Name = reader.SafeGetString("DisplayName")
                                     , Shift = reader.SafeGetInt32("Shift")
                                     , Facility = reader.SafeGetString("FacilityID")
@@ -482,7 +536,7 @@ namespace SFW.Model
                                         ? null
                                         : new Machine(reader.SafeGetInt32("WorkCenter"));
                                     var _tempCrew = new CrewMember {
-                                    IdNumber = reader.SafeGetString("UserID")
+                                    ErpId = reader.SafeGetString("UserID")
                                     , Name = reader.SafeGetString("DisplayName")
                                     , Shift = reader.SafeGetInt32("Shift")
                                     , Facility = reader.SafeGetString("FacilityID")
@@ -586,7 +640,7 @@ namespace SFW.Model
                             switch (action)
                             {
                                 case 'S':
-                                    sqlCommand.Parameters.AddWithValue("@p1", $"{_crewMember.IdNumber}*{_dateId}*{_crewMember.Facility}");
+                                    sqlCommand.Parameters.AddWithValue("@p1", $"{_crewMember.ErpId}*{_dateId}*{_crewMember.Facility}");
                                     sqlCommand.Parameters.AddWithValue("@p2", _crewMember.HoursWorked);
                                     sqlCommand.Parameters.AddWithValue("@p3", _crewMember.Shift);
                                     sqlCommand.Parameters.AddWithValue("@p4", _crewMember.Name);
@@ -596,7 +650,7 @@ namespace SFW.Model
                                 case 'U':
                                     sqlCommand.Parameters.AddWithValue("@p1", _crewMember.HoursWorked);
                                     sqlCommand.Parameters.AddWithValue("@p2", _workCenter);
-                                    sqlCommand.Parameters.AddWithValue("@p3", $"{_crewMember.IdNumber}*{_dateId}*{_crewMember.Facility}");
+                                    sqlCommand.Parameters.AddWithValue("@p3", $"{_crewMember.ErpId}*{_dateId}*{_crewMember.Facility}");
                                     break;
                             }
                             sqlCommand.ExecuteNonQuery();
@@ -628,11 +682,21 @@ namespace SFW.Model
         /// <summary>
         /// Checks to see if a crew ID number is valid
         /// </summary>
-        /// <param name="idNbr">Crew member ID</param>
+        /// <param name="erpId">Crew member ID</param>
         /// <returns>Crew member existance in the database</returns>
-        public static bool IsCrewIDValid(string idNbr)
+        public static bool IsCrewErpIdValid(string erpId)
         {
-            return MasterDataSet.Tables["CREW"].Select($"[EmployeeID] = '{idNbr}'").Length > 0;
+            return MasterDataSet.Tables["CREW"].Select($"[EmployeeID] = '{erpId}'").Length > 0;
+        }
+
+        /// <summary>
+        /// Gets the crew ID based on the crew members first and last name
+        /// </summary>
+        /// <param name="erpId">ERP Id to search</param>
+        /// <returns>Crew member existance in the database</returns>
+        public static string GetCrewErpID(int sapId)
+        {
+            return MasterDataSet?.Tables["CREW"].Select($"[SapEmployeeID] = '{sapId}'").FirstOrDefault().SafeGetField<string>("EmployeeID");
         }
 
         /// <summary>
@@ -641,7 +705,7 @@ namespace SFW.Model
         /// <param name="firstName">Crew member first name</param>
         /// <param name="lastName">Crew member last name</param>
         /// <returns>Crew member existance in the database</returns>
-        public static string GetCrewID(string firstName, string lastName)
+        public static string GetCrewErpID(string firstName, string lastName)
         {
             return MasterDataSet.Tables["CREW"].Select($"[FirstName] = '{firstName}' AND [LastName] LIKE '{lastName}%'").FirstOrDefault().SafeGetField<string>("EmployeeID");
         }
@@ -790,7 +854,7 @@ namespace SFW.Model
             {
                _crewCol.Add(new CrewMember
                     {
-                        IdNumber = _row.Field<string>("EmployeeID")
+                        ErpId = _row.Field<string>("EmployeeID")
                         ,Name = _row.Field<string>("DisplayName")
                         ,Shift = _row.Field<int>("Shift")
                         ,Facility = _row.Field<int>("Site").ToString()

@@ -55,21 +55,24 @@ namespace SFW.Model
         /// </summary>
         public Sku(string skuId)
         {
-            var _site = 1;
-            var _sku = skuId;
-            if (skuId != null && skuId.Contains("|"))
+            if (!string.IsNullOrEmpty(skuId))
             {
-                var splitId = skuId.Split('|');
-                _sku = splitId[0];
-                _site = int.TryParse(splitId[1], out int i) ? i : 1;
+                var _site = 1;
+                var _sku = skuId;
+                if (skuId != null && skuId.Contains("|"))
+                {
+                    var splitId = skuId.Split('|');
+                    _sku = splitId[0];
+                    _site = int.TryParse(splitId[1], out int i) ? i : 1;
+                }
+                var skuRow = MasterDataSet.Tables["SKU"].Select($"[SkuID] = '{_sku}' AND [Site] = {_site}").FirstOrDefault();
+                SkuNumber = skuId;
+                SkuDescription = skuRow.Field<string>("Description");
+                Uom = skuRow.Field<string>("Uom");
+                Facility = _site;
+                IsLotTrace = IsLotTracable(skuId, _site);
+                Value = GetPartValue(skuId);
             }
-            var skuRow = MasterDataSet.Tables["SKU"].Select($"[SkuID] = '{_sku}' AND [Site] = {_site}").FirstOrDefault();
-            SkuNumber = skuId;
-            SkuDescription = skuRow.Field<string>("Description");
-            Uom = skuRow.Field<string>("Uom");
-            Facility = _site;
-            IsLotTrace = IsLotTracable(skuId, _site);
-            Value = GetPartValue(skuId);
         }
 
         #region Data Access
@@ -445,6 +448,10 @@ namespace SFW.Model
             {
                 { new Sku(partNbr, 'S', int.Parse(site), true), 0 }
             };
+            var _test = MasterDataSet.Tables["PS"].Select($"[Part] = {partNbr}|0{site} AND [Status] = 'A'");
+
+
+
             _returnList.First().Key.Location = "1";
             var _levelCount = 0;
             var _query = string.Empty;

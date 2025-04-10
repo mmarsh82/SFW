@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -118,16 +117,16 @@ namespace SFW.Model
 
                     if (site == 1)
                     {
-                        _tempDS.Tables.Add(Ncr.GetNoticeTable(site, ModelSqlCon));
+                        _tempDS.Tables.Add(QmsForm.GetNoticeTable(site, ModelSqlCon));
                         _tempDS.Tables[_tempDS.Tables.Count - 1].TableName = "NcrNotice";
 
-                        _tempDS.Tables.Add(Ncr.DefectType.GetDefectTypeTable(ModelSqlCon));
+                        _tempDS.Tables.Add(QmsForm.DefectType.GetDefectTypeTable(ModelSqlCon));
                         _tempDS.Tables[_tempDS.Tables.Count - 1].TableName = "NcrType";
 
-                        _tempDS.Tables.Add(Ncr.Disposition.GetDispositionTable(ModelSqlCon));
+                        _tempDS.Tables.Add(QmsForm.Disposition.GetDispositionTable(ModelSqlCon));
                         _tempDS.Tables[_tempDS.Tables.Count - 1].TableName = "NcrDispo";
 
-                        _tempDS.Tables.Add(Ncr.DefectReason.GetDefectReasonTable(ModelSqlCon));
+                        _tempDS.Tables.Add(QmsForm.DefectReason.GetDefectReasonTable(ModelSqlCon));
                         _tempDS.Tables[_tempDS.Tables.Count - 1].TableName = "NcrReason";
 
                         _tempDS.Tables.Add(Lot.GetDiamondTable(ModelSqlCon));
@@ -149,6 +148,9 @@ namespace SFW.Model
                             _tempDS.Tables.Add();
                             _tempDS.Tables[_tempDS.Tables.Count - 1].TableName = "Plan";
                         }
+
+                        _tempDS.Tables.Add(Supplier.GetSupplierTable(ModelSqlCon));
+                        _tempDS.Tables[_tempDS.Tables.Count - 1].TableName = "Supplier";
                     }
 
                     MasterDataSet = _tempDS;

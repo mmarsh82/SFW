@@ -143,7 +143,7 @@
                           Command="{StaticResource ViewLoadICommand}"
                           CommandParameter="3"
                           Visibility="{Binding Path=(local:CurrentUser.IsInventoryControl), Converter={StaticResource BoolToVisConverter}}"/>
-                <MenuItem Header="Quality NCRs"
+                <MenuItem Header="QMS Notice"
                           Command="{StaticResource ViewLoadICommand}"
                           CommandParameter="9"
                           Visibility="{Binding Path=(local:CurrentUser.HasNotice), Converter={StaticResource BoolToVisConverter}}"/>
@@ -159,6 +159,7 @@
                           InputGestureText="Alt+I"/>
                 <MenuItem Header="Container Information"
                           Command="{StaticResource ViewLoadICommand}"
+                          Visibility="{Binding Path=(local:CurrentUser.IsInventoryControl), Converter={StaticResource BoolToVisConverter}}"
                           CommandParameter="10"
                           InputGestureText="Alt+C"/>
                 <MenuItem Header="Print Label"
@@ -263,7 +264,8 @@
             <Menu VerticalAlignment="Center"
                   Visibility="{Binding Path=(local:CurrentUser.IsLoggedIn), Converter={StaticResource BoolToVisConverter}}">
                 <MenuItem Header="{Binding Path=(local:CurrentUser.DisplayName)}">
-                    <MenuItem Header="{Binding Path=(local:CurrentUser.UserIDNbr)}" HeaderStringFormat="ID Number: {0}"/>
+                    <MenuItem Header="{Binding Path=(local:CurrentUser.ErpId)}" HeaderStringFormat="ERP ID: {0}"/>
+                    <MenuItem Header="{Binding Path=(local:CurrentUser.SapId)}" HeaderStringFormat="SAP ID: {0}"/>
                     <MenuItem Header="{Binding Path=(local:CurrentUser.DomainUserName)}" HeaderStringFormat="User Name: {0}"/>
                     <MenuItem Header="{Binding Path=(local:CurrentUser.DomainName)}" HeaderStringFormat="Connected Server: {0}"/>
                     <MenuItem Header="{Binding Path=(local:CurrentUser.FirstName)}" HeaderStringFormat="First Name: {0}" Background="Crimson" FontWeight="Bold"/>

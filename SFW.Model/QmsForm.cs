@@ -9,8 +9,14 @@ using System.Linq;
 
 namespace SFW.Model
 {
-    public class Ncr : ModelBase
+    public class QmsForm : ModelBase
     {
+        public enum FormType
+        {
+            NCR = 0,
+            SCAR = 1
+        }
+
         public class ClosingAction
         {
             #region Properties
@@ -418,16 +424,31 @@ namespace SFW.Model
                 }
             }
 
+            private FormType _ftype;
+            public FormType RevFormType
+            {
+                get
+                { return _ftype; }
+                set
+                {
+                    _ftype = value;
+                    OnPropertyChanged(nameof(RevFormType));
+                }
+            }
+
+            public Supplier FormSupplier { get; set; }
+
             #endregion
 
             /// <summary>
             /// NCR revisions default constructor
             /// </summary>
-            public Revision(CrewMember submitter)
+            public Revision(CrewMember submitter, FormType type)
             {
                 RevisionId = 1;
                 Submitter = submitter;
                 SubmitDateTime = DateTime.Now;
+                RevFormType = type;
             }
 
             /// <summary>
@@ -446,20 +467,21 @@ namespace SFW.Model
                 Disposition = new Disposition(ncrDataRow.Field<int>("DispositionId"), ncrDataRow.Field<string>("DispositionDescription"), ncrDataRow.Field<string>("LinkedStatus"));
                 Description = ncrDataRow.Field<string>("Description");
                 Current = ncrDataRow.Field<int>("RevisionFilter") == RevisionId;
+                RevFormType = Enum.TryParse(ncrDataRow.Field<string>("Description"), out FormType ft) ? ft : FormType.NCR;
             }
         }
 
         #region Properties
 
-        private int _ncrId;
-        public int NcrId
+        private int _frmId;
+        public int FormId
         {
             get
-            { return _ncrId; }
+            { return _frmId; }
             set
             {
-                _ncrId = value;
-                OnPropertyChanged(nameof(NcrId));
+                _frmId = value;
+                OnPropertyChanged(nameof(FormId));
             }
         }
         public int TempId;
@@ -600,9 +622,9 @@ namespace SFW.Model
         /// <summary>
         /// Ncr Default Constructor
         /// </summary>
-        public Ncr(CrewMember submitter)
+        public QmsForm(CrewMember submitter, FormType frmType)
         {
-            RevisionList = new List<Revision>{ new Revision(submitter) };
+            RevisionList = new List<Revision>{ new Revision(submitter, frmType) };
             OrderId = string.Empty;
             Site = int.TryParse(submitter.Facility, out int i) ? i : 1;
             TempId = int.TryParse(DateTime.Now.ToString("HHmmss"), out int id) ? id : 123456;
@@ -612,10 +634,10 @@ namespace SFW.Model
         /// Ncr Overridden Constructor
         /// <param name="id">NCR Id to load</param>
         /// </summary>
-        public Ncr(int id)
+        public QmsForm(int id)
         {
             var ncrDataRows = MasterDataSet.Tables["NcrNotice"].Select($"[NcrId] = '{id}'", "[NcrRevisionId] DESC");
-            NcrId = id;
+            FormId = id;
             OrderId = ncrDataRows[0].Field<string>("WorkOrderId");
             OrderSeqId = ncrDataRows[0].Field<int>("WorkOrderSeqId").ToString();
             Part = new Sku(ncrDataRows[0].Field<string>("PartId"));
@@ -657,12 +679,13 @@ namespace SFW.Model
         /// </summary>
         /// <param name="workOrder">WorkOrder object</param>
         /// <param name="submitter">Current User</param>
-        public Ncr(WorkOrder workOrder, CrewMember submitter)
+        /// <param name="frmType">Type of form to create</param>
+        public QmsForm(WorkOrder workOrder, CrewMember submitter, FormType frmType)
         {
             OrderId = workOrder.OrderNumber;
             OrderSeqId = workOrder.Seq;
             IsValidOrder = true;
-            RevisionList = new List<Revision> { new Revision(submitter) };
+            RevisionList = new List<Revision> { new Revision(submitter, frmType) };
             Site = workOrder.Facility;
             TempId = int.TryParse(DateTime.Now.ToString("HHmmss"), out int id) ? id : 123456;
         }
@@ -670,18 +693,18 @@ namespace SFW.Model
         /// <summary>
         /// Ncr Overridden Constructor
         /// </summary>
-        public Ncr(Ncr ncrObj)
+        public QmsForm(QmsForm frmObj)
         {
-            NcrId = ncrObj.NcrId;
-            OrderId = ncrObj.OrderId;
-            OrderSeqId = ncrObj.OrderSeqId;
+            FormId = frmObj.FormId;
+            OrderId = frmObj.OrderId;
+            OrderSeqId = frmObj.OrderSeqId;
             IsValidOrder = true;
-            Part = PartCollection.FirstOrDefault(o => o.SkuNumber == ncrObj.Part.SkuNumber);
-            LotList = ncrObj.LotList;
-            Reporter = ncrObj.Reporter;
-            ProductValue = ncrObj.ProductValue;
-            Site = ncrObj.Site;
-            RevisionList = ncrObj.RevisionList;
+            Part = PartCollection.FirstOrDefault(o => o.SkuNumber == frmObj.Part.SkuNumber);
+            LotList = frmObj.LotList;
+            Reporter = frmObj.Reporter;
+            ProductValue = frmObj.ProductValue;
+            Site = frmObj.Site;
+            RevisionList = frmObj.RevisionList;
             TempId = int.TryParse(DateTime.Now.ToString("HHmmss"), out int id) ? id : 123456;
         }
 
@@ -1053,7 +1076,7 @@ namespace SFW.Model
         /// <param name="ncrObject">QIR Object</param>
         /// <param name="sqlCon">Sql Connection to use</param>
         /// <returns>Last inserted NCR ID</returns>
-        public static int Submit(this Ncr ncrObject, SqlConnection sqlCon)
+        public static int Submit(this QmsForm ncrObject, SqlConnection sqlCon)
         {
             var _idNumber = 0;
             try
@@ -1066,12 +1089,12 @@ namespace SFW.Model
                     cmd.Parameters.AddWithValue("p2", ncrObject.OrderSeqId);
                     cmd.Parameters.AddWithValue("p3", ncrObject.Part.SkuNumber);
                     cmd.Parameters.AddWithValue("p4", ncrObject.FoundWorkCenter.MachineNumber);
-                    cmd.Parameters.AddWithValue("p5", ncrObject.Reporter.IdNumber);
+                    cmd.Parameters.AddWithValue("p5", ncrObject.Reporter.ErpId);
                     cmd.Parameters.AddWithValue("p6", ncrObject.ProductValue);
                     cmd.Parameters.AddWithValue("p7", ncrObject.Site);
                     cmd.Parameters.AddWithValue("p8", ncrObject.IsEscape ? 1 : 0);
                     _idNumber = Convert.ToInt32(cmd.ExecuteScalar());
-                    ncrObject.NcrId = _idNumber;
+                    ncrObject.FormId = _idNumber;
                 }
                 ncrObject.RevisionList.Last().Submit(_idNumber, 1, sqlCon);
                 if (ncrObject.Part.IsLotTrace && ncrObject.LotList.Count(o => !string.IsNullOrEmpty(o.LotNumber)) > 0)
@@ -1097,7 +1120,7 @@ namespace SFW.Model
         /// <param name="ncrId">NCR ID</param>
         /// <param name="ncrRevId">NCR Revision ID</param>
         /// <param name="sqlCon">Sql Connection to use</param>
-        public static void Submit(this Ncr.Revision ncrRev, int ncrId, int ncrRevId, SqlConnection sqlCon)
+        public static void Submit(this QmsForm.Revision ncrRev, int ncrId, int ncrRevId, SqlConnection sqlCon)
         {
             try
             {
@@ -1106,7 +1129,7 @@ namespace SFW.Model
                 {
                     cmd.Parameters.AddWithValue("p1", ncrId);
                     cmd.Parameters.AddWithValue("p2", ncrRevId);
-                    cmd.Parameters.AddWithValue("p3", ncrRev.Submitter.IdNumber);
+                    cmd.Parameters.AddWithValue("p3", ncrRev.Submitter.ErpId);
                     cmd.Parameters.AddWithValue("p4", ncrRev.SubmitDateTime.ToString("yyyy-MM-dd HH:mm"));
                     cmd.Parameters.AddWithValue("p5", ncrRev.DefectReason.Id);
                     cmd.Parameters.AddWithValue("p6", ncrRev.DefectType.Id);
@@ -1128,18 +1151,18 @@ namespace SFW.Model
         /// <param name="ncrObj">QIR Object</param>
         /// <param name="sqlCon">Sql Connection to use</param>
         /// <returns>Last inserted NCR ID</returns>
-        public static void SubmitLots(this Ncr ncrObj, SqlConnection sqlCon)
+        public static void SubmitLots(this QmsForm ncrObj, SqlConnection sqlCon)
         {
             try
             {
-                var _oldLotList = Ncr.GetNcrLotList(ncrObj.NcrId, sqlCon);
+                var _oldLotList = QmsForm.GetNcrLotList(ncrObj.FormId, sqlCon);
                 foreach (var lot in ncrObj.LotList.Where(o => o.Validated))
                 {
                     if (_oldLotList.Count(o => o.LotNumber == lot.LotNumber) == 0)
                     {
                         using (SqlCommand cmd = new SqlCommand($@"INSERT INTO [dbo].[NCR-CSTM_LotInfo] ([NcrId], [LotId]) Values(@p1, @p2)", sqlCon))
                         {
-                            cmd.Parameters.AddWithValue("p1", ncrObj.NcrId);
+                            cmd.Parameters.AddWithValue("p1", ncrObj.FormId);
                             cmd.Parameters.AddWithValue("p2", lot.LotNumber);
                             cmd.ExecuteNonQuery();
                         }
@@ -1151,7 +1174,7 @@ namespace SFW.Model
                     {
                         using (SqlCommand cmd = new SqlCommand($@"DELETE FROM [dbo].[NCR-CSTM_LotInfo] WHERE [NcrId] = @p1 AND [LotId] = @p2", sqlCon))
                         {
-                            cmd.Parameters.AddWithValue("p1", ncrObj.NcrId);
+                            cmd.Parameters.AddWithValue("p1", ncrObj.FormId);
                             cmd.Parameters.AddWithValue("p2", oldLot.LotNumber);
                             cmd.ExecuteNonQuery();
                         }
@@ -1167,27 +1190,27 @@ namespace SFW.Model
         /// <summary>
         /// Submit NCR photo path
         /// </summary>
-        /// <param name="ncrObj">QIR Object</param>
-        /// <param name="newNcr">Validation that it is coming from a new NCR</param>
+        /// <param name="frmObj">QMS Form Object</param>
+        /// <param name="newFrm">Validation that it is coming from a new QMS Form</param>
         /// <param name="sqlCon">Sql Connection to use</param>
-        public static void SubmitPhotoPath(this Ncr ncrObj, bool newNcr, SqlConnection sqlCon)
+        public static void SubmitPhotoPath(this QmsForm frmObj, bool newFrm, SqlConnection sqlCon)
         {
             try
             {
-                var _folderPath = newNcr ? $"\\\\waxfs001\\WAXG-SFW\\QMS Pictures\\Temp\\" : $"\\\\waxfs001\\WAXG-SFW\\QMS Pictures\\";
-                foreach (var fullPathPhoto in ncrObj.PhotoCollection)
+                var _folderPath = newFrm ? $"\\\\waxfs001\\WAXG-SFW\\QMS Pictures\\Temp\\" : $"\\\\waxfs001\\WAXG-SFW\\QMS Pictures\\";
+                foreach (var fullPathPhoto in frmObj.PhotoCollection)
                 {
                     var _photo = fullPathPhoto.Replace(_folderPath, "");
                     using (SqlCommand cmd = new SqlCommand($@"INSERT INTO [dbo].[NCR-CSTM_PhotoPath] ([NcrId], [PhotoPath]) Values(@p1, @p2)", sqlCon))
                     {
-                        cmd.Parameters.AddWithValue("p1", ncrObj.NcrId);
+                        cmd.Parameters.AddWithValue("p1", frmObj.FormId);
                         cmd.Parameters.AddWithValue("p2", _photo);
                         cmd.ExecuteNonQuery();
                     }
-                    if (newNcr)
+                    if (newFrm)
                     {
                         File.Move(fullPathPhoto, $"\\\\waxfs001\\WAXG-SFW\\QMS Pictures\\{_photo}");
-                        ncrObj.PhotoCollection[ncrObj.PhotoCollection.IndexOf(fullPathPhoto)] = "";
+                        frmObj.PhotoCollection[frmObj.PhotoCollection.IndexOf(fullPathPhoto)] = "";
                     }
                 }
             }

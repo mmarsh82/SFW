@@ -17,7 +17,7 @@ namespace SFW.Controls
         public static DockPanel PurchaseDock { get; set; }
         public static DockPanel CountDock { get; set; }
         public static DockPanel SalesDock { get; set; }
-        public static DockPanel NcrDock { get; set; }
+        public static DockPanel QmsFormDock { get; set; }
         public static DockPanel PlanDock { get; set; }
         public static int Module => (int)App.LoadedModule;
 
@@ -41,7 +41,7 @@ namespace SFW.Controls
                 PurchaseDock = new DockPanel();
                 CountDock = new DockPanel();
                 SalesDock = new DockPanel();
-                NcrDock = new DockPanel();
+                QmsFormDock = new DockPanel();
                 PlanDock = new DockPanel();
 
                 //Add the Part Info View to [0]
@@ -93,9 +93,9 @@ namespace SFW.Controls
                 if (App.SiteNumber == 1)
                 {
                     //Add the Quality NCR Notice View to [9]
-                    NcrDock.Children.Insert(0, new QMS.NcrNotice.View());
-                    NcrDock.Children.Insert(1, new QMS.NcrForm.View() { DataContext = new QMS.NcrForm.View() });
-                    MainDock.Children.Insert(9, NcrDock);
+                    QmsFormDock.Children.Insert(0, new QMS.Notice.View());
+                    QmsFormDock.Children.Insert(1, new QMS.Form.View() { DataContext = new QMS.Form.View() });
+                    MainDock.Children.Insert(9, QmsFormDock);
 
                     //Add the Container Detail View to [6]
                     MainDock.Children.Insert(10, new Containerization.ProductView() { DataContext = new Containerization.ProductViewModel() });
@@ -158,8 +158,15 @@ namespace SFW.Controls
                     _tempDock = SalesDock;
                     break;
                 case 9:
-                    _tempDock = NcrDock;
-                    UpdateChildDock(9, 1, new QMS.NcrForm.View { DataContext = new QMS.NcrForm.ViewModel(null, false, false) });
+                    _tempDock = QmsFormDock;
+                    if (dataContext == null)
+                    {
+                        UpdateChildDock(9, 1, new QMS.Form.View { DataContext = new QMS.Form.ViewModel(null, false, false, Model.QmsForm.FormType.NCR) });
+                    }
+                    else
+                    {
+                        UpdateChildDock(9, 1, new QMS.Form.View { DataContext = dataContext });
+                    }
                     break;
             }
             if (refreshDock)
@@ -176,7 +183,7 @@ namespace SFW.Controls
             else if (dataContext != null && index == 1)
             {
                 SchedDock.Children.RemoveAt(1);
-                SchedDock.Children.Insert(1, new QMS.NcrForm.View { DataContext = dataContext });
+                SchedDock.Children.Insert(1, new QMS.Form.View { DataContext = dataContext });
                 RefreshTimer.Stop();
             }
             else if (dataContext != null)
@@ -209,7 +216,7 @@ namespace SFW.Controls
                 }
                 if (CurrentUser.IsQuality)
                 {
-                    ((QMS.NcrNotice.View)NcrDock.Children[0]).DataContext = new QMS.NcrNotice.ViewModel();
+                    ((QMS.Notice.View)QmsFormDock.Children[0]).DataContext = new QMS.Notice.ViewModel();
                 }
                 if (CurrentUser.CanSchedule)
                 {

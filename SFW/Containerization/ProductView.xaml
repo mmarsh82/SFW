@@ -5,7 +5,8 @@
              xmlns:bhvr="clr-namespace:SFW.Behaviors"
              xmlns:cmd="clr-namespace:SFW.Commands"
              xmlns:local="clr-namespace:SFW"
-             xmlns:cvtr="clr-namespace:SFW.Converters">
+             xmlns:cvtr="clr-namespace:SFW.Converters"
+             Name="ContainerFormUC">
     
     <UserControl.Resources>
         <cmd:ViewLoad x:Key="ViewLoadCommand"/>
@@ -38,6 +39,7 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="40" />
             <RowDefinition Height="*" />
+            <RowDefinition Height="265" />
         </Grid.RowDefinitions>
 
         <Grid.ColumnDefinitions>
@@ -96,15 +98,25 @@
 
                 <Button Background="Transparent"
                         BorderThickness="0"
-                        Command="{Binding NewContainerICommand}"
-                        Margin="10,0,0,0">
+                        Command="{Binding AddContainerICommand}">
                     <Button.Content>
                         <StackPanel Orientation="Horizontal">
                             <Image Source="/SFW;component/Icons/Add.ico" />
                         </StackPanel>
                     </Button.Content>
                 </Button>
-                
+
+                <Button Background="Transparent"
+                        BorderThickness="0"
+                        Command="{Binding RefreshICommand}"
+                        Margin="10,0,0,0">
+                    <Button.Content>
+                        <StackPanel Orientation="Horizontal">
+                            <Image Source="/Icons/Refresh.ico" />
+                        </StackPanel>
+                    </Button.Content>
+                </Button>
+
             </StackPanel>
 
         </Grid>
@@ -114,7 +126,7 @@
         <!--#region Container View-->
 
         <DataGrid x:Name="ContainerCollection"
-                  Grid.Row="1"
+                  Grid.Row="1" Grid.RowSpan="2"
                   ItemsSource="{Binding Source={StaticResource ContainerSource}}"
                   SelectedItem="{Binding SelectedProduct, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                   HorizontalAlignment="Left"
@@ -282,25 +294,91 @@
         
         <!--#endregion-->
         
+        <!--#region Command Array -->
+
+        <StackPanel Grid.Row="0" Grid.Column="1"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Left">
+
+            <Button Background="Transparent"
+                    BorderThickness="0"
+                    Width="90"
+                    Visibility="{Binding IsNew, Converter={StaticResource BoolToVisConverter}}"
+                    Command="{Binding CancelICommand}">
+                <Button.Content>
+                    <StackPanel Orientation="Horizontal">
+                        <Image Source="/SFW;component/Icons/BackArrow.ico" />
+                        <TextBlock Text="Back"
+                                   VerticalAlignment="Center"
+                                   FontSize="16"
+                                   FontWeight="Bold"
+                                   Foreground="Crimson" />
+                    </StackPanel>
+                </Button.Content>
+            </Button>
+
+            <Button Content="Submit"
+                    FontSize="16"
+                    Command="{Binding SubmitICommand}"
+                    Style="{DynamicResource MenuButtonStyle}"
+                    Visibility="{Binding IsNew, Converter={StaticResource BoolToVisConverter}}"/>
+
+            <Button Content="Print"
+                    FontSize="16"
+                    Command="{Binding PrintICommand}"
+                    Visibility="{Binding AddContainer, Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}"
+                    Style="{DynamicResource MenuButtonStyle}" />
+            
+            <Button Content="Delete Container"
+                    FontSize="16"
+                    Width="140"
+                    Command="{Binding DeleteICommand}"
+                    Visibility="{Binding AddContainer, Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}"
+                    Style="{DynamicResource MenuButtonStyle}" />
+
+        </StackPanel>
+        
+        <!--#endregion-->
+
         <!--#region Conatiner Data-->
 
-        <Control Grid.Column="1" Grid.RowSpan="2"
-                 Visibility="{Binding Loading, Converter={StaticResource BoolToVisConverter}}"
+        <Control Grid.Column="1" Grid.Row="2" Grid.RowSpan="2"
+                 Background="LightGray"
+                 Visibility="{Binding ShowResults, Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}"
                  Style="{DynamicResource BusyAnimationStyle}" />
 
+        <TextBlock Grid.Column="1" Grid.Row="2" Grid.RowSpan="2"
+                   VerticalAlignment="Center"
+                   HorizontalAlignment="Center"
+                   Text="No Results"
+                   Foreground="Crimson"
+                   FontSize="40"
+                   FontWeight="Bold">
+            <TextBlock.Visibility>
+                <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="1*0">
+                    <Binding Path="ResultsCount"/>
+                    <Binding Path="IsNew"/>
+                </MultiBinding>
+            </TextBlock.Visibility>
+        </TextBlock>
 
         <DataGrid x:Name="IthResultsDataGrid"
-                  Grid.Row="1" Grid.Column="1"
+                  Grid.Row="2" Grid.Column="1"
                   ItemsSource="{Binding IthResultsTable}"
-                  Visibility="{Binding ShowResults, Converter={StaticResource BoolToVisConverter}}"
                   HorizontalAlignment="Left"
-                  VerticalAlignment="Top"
+                  VerticalAlignment="Bottom"
                   FontSize="16"
                   FontWeight="Bold"
                   AlternatingRowBackground="LightSteelBlue"
                   AutoGenerateColumns="False"
                   IsReadOnly="True"
                   Margin="10,0,20,0">
+            <DataGrid.Visibility>
+                <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="1*0">
+                    <Binding Path="ShowResults"/>
+                    <Binding Path="ResultsCount"/>
+                </MultiBinding>
+            </DataGrid.Visibility>
             <DataGrid.Columns>
                 <DataGridTextColumn Header="Date and Time"
                                     Binding="{Binding TranDateTime, StringFormat=MM/dd/yyyy       HH:mm}" />
@@ -371,6 +449,390 @@
                                     Binding="{Binding Reference}" />
             </DataGrid.Columns>
         </DataGrid>
+
+        <!--#endregion-->
+        
+        <!--#region Container Form Data -->
+
+        <Grid Grid.Row="1" Grid.Column="1">
+
+            <Grid.RowDefinitions>
+                <RowDefinition x:Name="Row0" Height="50"/>
+                <RowDefinition x:Name="Row1" Height="30"/>
+                <RowDefinition x:Name="Row2" Height="10"/>
+                <RowDefinition x:Name="Row3" Height="30"/>
+                <RowDefinition x:Name="Row4" Height="*"/>
+            </Grid.RowDefinitions>
+
+            <!--#region Container ID -->
+
+            <Grid Grid.Row="0">
+
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="300"/>
+                    <ColumnDefinition Width="30"/>
+                    <ColumnDefinition Width="20"/>
+                    <ColumnDefinition Width="40"/>
+                    <ColumnDefinition Width="150"/>
+                    <ColumnDefinition Width="150"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Column="0"
+                           Text="Container Number:"
+                           FontSize="32"
+                           FontWeight="Bold"
+                           Foreground="#FF135185"
+                           TextDecorations="Underline"
+                           Visibility="{Binding ContainerObject.ContainerId, Converter={StaticResource StringToVisConverter}}"/>
+
+                <TextBlock Grid.Column="1"
+                           Text="{Binding ContainerObject.ContainerId}"
+                           FontSize="32"
+                           VerticalAlignment="Center"
+                           FontWeight="Bold"
+                           Visibility="{Binding ContainerObject.ContainerId, Converter={StaticResource StringToVisConverter}}"/>
+
+                <Image Grid.Column="3"
+                       Source="/SFW;component/Icons/Warning.ico"
+                       Width="30"
+                       Height="30"
+                       Visibility="{Binding ContainerObject.ValidLocation, Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}"/>
+
+                <Button Grid.Column="3"
+                        Command="{Binding DataContext.CommitICommand}"
+                        CommandParameter="LocationChange"
+                        Width="22"
+                        Height="22"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        Style="{DynamicResource DefaultButton}">
+                    <Button.Content>
+                        <Image Source="/SFW;component/Icons/Accept.ico" />
+                    </Button.Content>
+                    <Button.Visibility>
+                        <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="0*1">
+                            <Binding Path="IsNew"/>
+                            <Binding Path="ContainerObject.LocationChange"/>
+                        </MultiBinding>
+                    </Button.Visibility>
+                </Button>
+
+                <TextBlock Grid.Column="4"
+                           Text="Location:"
+                           FontSize="32"
+                           FontWeight="Bold"
+                           Foreground="#FF135185"
+                           TextDecorations="Underline"/>
+
+                <TextBox Grid.Column="5"
+                         Text="{Binding ContainerObject.Location, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                         FontSize="32"
+                         VerticalAlignment="Center"
+                         HorizontalAlignment="Left"
+                         MinWidth="75"
+                         MaxWidth="130"
+                         CharacterCasing="Upper"/>
+
+            </Grid>
+
+            <!--#endregion-->
+
+            <!--#region Creator Info -->
+
+            <StackPanel Grid.Row="1"
+                        Orientation="Horizontal">
+
+                <TextBlock Text="Creator:"
+                           FontSize="20"
+                           FontWeight="Bold"
+                           TextDecorations="UnderLine"
+                           Foreground="#FF135185" />
+
+                <TextBlock Text="{Binding ContainerObject.UserId}"
+                           FontSize="20"
+                           Margin="10,0,30,0" />
+
+                <TextBlock Text="Last Revision:"
+                           FontSize="20"
+                           FontWeight="Bold"
+                           TextDecorations="UnderLine"
+                           Foreground="#FF135185" />
+
+                <TextBlock Text="{Binding ContainerObject.RevisionDateTime}"
+                           FontSize="20"
+                           Margin="10,0,30,0" />
+
+            </StackPanel>
+
+            <!--#endregion-->
+
+            <!--#region Product Header -->
+
+            <Rectangle Grid.Row="3"
+                       Fill="#FF135185"
+                       HorizontalAlignment="Stretch"
+                       VerticalAlignment="Stretch"/>
+
+            <TextBlock Grid.Row="3"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center"
+                       Text="Container Products"
+                       FontWeight="Bold"
+                       FontSize="20"
+                       Foreground="WhiteSmoke"/>
+
+            <Button Grid.Row="3"
+                    Command="{Binding AddProductICommand}"
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Center"
+                    Margin="10,1,0,4"
+                    Background="Transparent"
+                    BorderThickness="0"
+                    Style="{DynamicResource DefaultButton}">
+                <Button.Content>
+                    <Image Source="/SFW;component/Icons/Add.ico" />
+                </Button.Content>
+            </Button>
+
+            <!--#endregion-->
+
+            <!--#region Product Data -->
+
+            <ScrollViewer Grid.Row="4"
+                          VerticalScrollBarVisibility="Auto">
+                <ItemsControl Name="Products"
+                              Grid.Row="4"
+                              ItemsSource="{Binding ContainerObject.ProductCollection}"
+                              Margin="10,0,0,0"
+                              FontSize="18"
+                              Cursor="Hand"
+                              Background="Transparent"
+                              Foreground="Black"
+                              Focusable="False">
+
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <VirtualizingStackPanel IsItemsHost="True"
+                                                Orientation="Vertical" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+
+                            <Grid>
+
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="20"/>
+                                    <ColumnDefinition Width="120"/>
+                                    <ColumnDefinition Width="130"/>
+                                    <ColumnDefinition Width="300"/>
+                                    <ColumnDefinition Width="20"/>
+                                    <ColumnDefinition Width="85"/>
+                                    <ColumnDefinition Width="70"/>
+                                    <ColumnDefinition Width="115"/>
+                                    <ColumnDefinition Width="100"/>
+                                    <ColumnDefinition Width="20"/>
+                                    <ColumnDefinition Width="50"/>
+                                    <ColumnDefinition Width="90"/>
+                                    <ColumnDefinition Width="40"/>
+                                    <ColumnDefinition Width="40"/>
+                                </Grid.ColumnDefinitions>
+
+                                <Image Grid.Column="0"
+                                       Source="/SFW;component/Icons/Warning.ico"
+                                       Width="20"
+                                       Height="20"
+                                       Visibility="{Binding Validated, Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}"/>
+
+                                <TextBlock Grid.Column="1"
+                                           Text="Part Number:"
+                                           TextDecorations="Underline"
+                                           FontWeight="Bold"
+                                           Foreground="#FF135185"
+                                           Visibility="{Binding Validated, Converter={StaticResource BoolToVisConverter}}"/>
+
+                                <TextBlock Grid.Column="1"
+                                           Text="Product ID:"
+                                           TextDecorations="Underline"
+                                           FontWeight="Bold"
+                                           Foreground="#FF135185"
+                                           Visibility="{Binding Validated, Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}"/>
+
+                                <TextBlock Grid.Column="2"
+                                           Text="{Binding ProductId}"
+                                           Visibility="{Binding Validated, Converter={StaticResource BoolToVisConverter}}"/>
+
+                                <TextBox Grid.Column="2"
+                                         Text="{Binding ProductInput, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                         FontSize="16"
+                                         Width="120"
+                                         Margin="2"
+                                         CharacterCasing="Upper"
+                                         Visibility="{Binding Validated, Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}"/>
+
+                                <TextBlock Grid.Column="3"
+                                       Text="{Binding ProductDescription}"/>
+
+                                <Image Grid.Column="4"
+                                       Source="/SFW;component/Icons/Warning.ico"
+                                       Width="20"
+                                       Height="20">
+                                    <Image.Visibility>
+                                        <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="1*0">
+                                            <Binding Path="Validated"/>
+                                            <Binding Path="ValidQuantity"/>
+                                        </MultiBinding>
+                                    </Image.Visibility>
+                                </Image>
+
+                                <TextBlock Grid.Column="5"
+                                           Text="Quantity:"
+                                           TextDecorations="Underline"
+                                           FontWeight="Bold"
+                                           Foreground="#FF135185"
+                                           Visibility="{Binding Validated, Converter={StaticResource BoolToVisConverter}}"/>
+
+                                <TextBox Grid.Column="6"
+                                         Text="{Binding QuantityInput, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                         FontSize="16"
+                                         Width="50"
+                                         CharacterCasing="Upper"
+                                         HorizontalAlignment="Left"
+                                         Margin="1">
+                                    <TextBox.Visibility>
+                                        <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="1*0">
+                                            <Binding Path="Validated"/>
+                                            <Binding Path="LotTraceable"/>
+                                        </MultiBinding>
+                                    </TextBox.Visibility>
+                                </TextBox>
+
+                                <TextBlock Grid.Column="6"
+                                       Visibility="{Binding LotTraceable, Converter={StaticResource BoolToVisConverter}}"
+                                       Text="{Binding Quantity}"/>
+
+                                <TextBlock Grid.Column="7"
+                                       Text="Lot Number:"
+                                       TextDecorations="Underline"
+                                       FontWeight="Bold"
+                                       Foreground="#FF135185"
+                                       Visibility="{Binding LotTraceable, Converter={StaticResource BoolToVisConverter}}"/>
+
+                                <TextBlock Grid.Column="8"
+                                       Text="{Binding LotId}"
+                                       Visibility="{Binding LotTraceable, Converter={StaticResource BoolToVisConverter}}"/>
+
+                                <Image Grid.Column="9"
+                                   Source="/SFW;component/Icons/Warning.ico"
+                                   Width="20"
+                                   Height="20">
+                                    <Image.Visibility>
+                                        <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="0*0*1">
+                                            <Binding Path="LotTraceable"/>
+                                            <Binding Path="ValidLocation"/>
+                                            <Binding Path="Validated"/>
+                                        </MultiBinding>
+                                    </Image.Visibility>
+                                </Image>
+
+                                <TextBlock Grid.Column="10"
+                                       Text="From:"
+                                       TextDecorations="Underline"
+                                       FontWeight="Bold"
+                                       Foreground="#FF135185">
+                                    <TextBlock.Visibility>
+                                        <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="0*1*1">
+                                            <Binding Path="LotTraceable"/>
+                                            <Binding Path="NewProduct"/>
+                                            <Binding Path="Validated"/>
+                                        </MultiBinding>
+                                    </TextBlock.Visibility>
+                                </TextBlock>
+
+                                <TextBox Grid.Column="11"
+                                     Text="{Binding LocationInput, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                     FontSize="16"
+                                     Width="70"
+                                     CharacterCasing="Upper"
+                                     HorizontalAlignment="Left"
+                                     Margin="5,1,1,1">
+                                    <TextBox.Visibility>
+                                        <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="0*1*1">
+                                            <Binding Path="LotTraceable"/>
+                                            <Binding Path="NewProduct"/>
+                                            <Binding Path="Validated"/>
+                                        </MultiBinding>
+                                    </TextBox.Visibility>
+                                </TextBox>
+
+                                <Button Grid.Column="12"
+                                        Command="{Binding DataContext.CommitICommand, ElementName=ContainerFormUC}"
+                                        CommandParameter="{Binding}"
+                                        Width="22"
+                                        Height="22"
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        Margin="10,0 0 0"
+                                        Style="{DynamicResource DefaultButton}">
+                                    <Button.Content>
+                                        <Image Source="/SFW;component/Icons/Accept.ico" />
+                                    </Button.Content>
+                                    <Button.Visibility>
+                                        <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="1*1">
+                                            <Binding Path="ValidQuantity"/>
+                                            <Binding Path="QuantityChange"/>
+                                        </MultiBinding>
+                                    </Button.Visibility>
+                                </Button>
+
+                                <Button Grid.Column="12"
+                                        Command="{Binding DataContext.CommitICommand, ElementName=ContainerFormUC}"
+                                        CommandParameter="{Binding}"
+                                        Width="22"
+                                        Height="22"
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        Margin="10,0 0 0"
+                                        Style="{DynamicResource DefaultButton}">
+                                    <Button.Content>
+                                        <Image Source="/SFW;component/Icons/Accept.ico" />
+                                    </Button.Content>
+                                    <Button.Visibility>
+                                        <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="1*1*1">
+                                            <Binding Path="Validated"/>
+                                            <Binding Path="LotTraceable"/>
+                                            <Binding Path="NewProduct"/>
+                                        </MultiBinding>
+                                    </Button.Visibility>
+                                </Button>
+
+                                <Button Grid.Column="13"
+                                        Command="{Binding DataContext.RemoveICommand, ElementName=ContainerFormUC}"
+                                        CommandParameter="{Binding}"
+                                        Width="22"
+                                        Height="22"
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        Margin="10,0 0 0"
+                                        Visibility="{Binding Validated, Converter={StaticResource BoolToVisConverter}}"
+                                        Style="{DynamicResource DefaultButton}">
+                                    <Button.Content>
+                                        <Image Source="/SFW;component/Icons/Remove.ico" />
+                                    </Button.Content>
+                                </Button>
+
+                            </Grid>
+
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+
+                </ItemsControl>
+            </ScrollViewer>
+
+            <!--#endregion-->
+
+        </Grid>
 
         <!--#endregion-->
         

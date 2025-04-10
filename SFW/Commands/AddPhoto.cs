@@ -20,14 +20,14 @@ namespace SFW.Commands
             {
                 var _ncrId = 0;
                 var _folderPath = "";
-                var _isNew = ((QMS.NcrForm.ViewModel)parameter).NcrObject.NcrId == 0;
-                if (((QMS.NcrForm.ViewModel)parameter).NcrObject != null)
+                var _isNew = ((QMS.Form.ViewModel)parameter).FormObject.FormId == 0;
+                if (((QMS.Form.ViewModel)parameter).FormObject != null)
                 {
-                    _ncrId = ((QMS.NcrForm.ViewModel)parameter).NcrObject.NcrId > 0 
-                        ? ((QMS.NcrForm.ViewModel)parameter).NcrObject.NcrId 
-                        : ((QMS.NcrForm.ViewModel)parameter).NcrObject.TempId;
+                    _ncrId = ((QMS.Form.ViewModel)parameter).FormObject.FormId > 0 
+                        ? ((QMS.Form.ViewModel)parameter).FormObject.FormId 
+                        : ((QMS.Form.ViewModel)parameter).FormObject.TempId;
 
-                    _folderPath = ((QMS.NcrForm.ViewModel)parameter).NcrObject.NcrId > 0
+                    _folderPath = ((QMS.Form.ViewModel)parameter).FormObject.FormId > 0
                         ? "\\\\waxfs001\\WAXG-SFW\\QMS Pictures\\"
                         : "\\\\waxfs001\\WAXG-SFW\\QMS Pictures\\Temp\\";
                 }
@@ -43,16 +43,16 @@ namespace SFW.Commands
                         File.Copy(ofd.FileName, $"{_folderPath}{_ncrId}-{_fileCount + 1}.jpg");
                         if (!_isNew)
                         {
-                            Ncr.SubmitPhotoPath(_ncrId, $"{_ncrId}-{_fileCount + 1}.jpg", App.AppSqlCon);
+                            QmsForm.SubmitPhotoPath(_ncrId, $"{_ncrId}-{_fileCount + 1}.jpg", App.AppSqlCon);
                         }
-                        ((QMS.NcrForm.ViewModel)parameter).NcrObject.PhotoCollection.Add($"{_folderPath}{_ncrId}-{_fileCount + 1}.jpg");
-                        if (((QMS.NcrForm.ViewModel)parameter).FromSchedule)
+                        ((QMS.Form.ViewModel)parameter).FormObject.PhotoCollection.Add($"{_folderPath}{_ncrId}-{_fileCount + 1}.jpg");
+                        if (((QMS.Form.ViewModel)parameter).FromSchedule)
                         {
-                            ((QMS.NcrForm.View)WorkSpaceDock.SchedDock.Children[1]).DataContext = ((QMS.NcrForm.ViewModel)parameter);
+                            ((QMS.Form.View)WorkSpaceDock.SchedDock.Children[1]).DataContext = ((QMS.Form.ViewModel)parameter);
                         }
                         else
                         {
-                            ((QMS.NcrForm.View)WorkSpaceDock.NcrDock.Children[1]).DataContext = ((QMS.NcrForm.ViewModel)parameter);
+                            ((QMS.Form.View)WorkSpaceDock.QmsFormDock.Children[1]).DataContext = ((QMS.Form.ViewModel)parameter);
                         }
                     }
                 }

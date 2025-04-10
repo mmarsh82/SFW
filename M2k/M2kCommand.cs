@@ -266,9 +266,7 @@ namespace M2kClient
                         {
                             uSubRout.SetArg(0, "");
                             uSubRout.Call();
-                            //TODO:relace static with dynamic code
-                            var _m2kArg = $"{DateTime.Today:yMM}{uSubRout.GetArg(0)}".TrimStart('2');
-                            _subResult.Add(true, _m2kArg);
+                            _subResult.Add(true, uSubRout.GetArg(0));
                             UniObjects.CloseSession(uSession);
                             return _subResult;
                         }
@@ -535,9 +533,9 @@ namespace M2kClient
 
                     if (!string.IsNullOrEmpty(s.LotNumber) && int.TryParse(s.Reference, out int iRef))
                     {
-                        if (Ncr.IsValid(iRef) && wipRecord.WipWorkOrder.Facility == 1)
+                        if (QmsForm.IsValid(iRef) && wipRecord.WipWorkOrder.Facility == 1)
                         {
-                            Ncr.SubmitLot(iRef, s.LotNumber);
+                            QmsForm.SubmitLot(iRef, s.LotNumber);
                         }
                     }
                 }
@@ -556,10 +554,6 @@ namespace M2kClient
                         var _issue = new Issue(wipRecord.Submitter, wipRecord.Facility, c.CompNumber, wipRecord.WipWorkOrder.OrderNumber, "II", new List<Transaction>(), 'R', _tWip.CFlag);
                         foreach (var w in c.WipInfo.Where(o => !string.IsNullOrEmpty(o.LotNbr)))
                         {
-                            if (w.ScrapList != null && w.ScrapList.Count > 0)
-                            {
-                                w.LotQty += w.ScrapList.Sum(o => Convert.ToInt32(o.Quantity));
-                            }
                             _issue.TranList.Add(new Transaction { Location = w.RcptLoc, LotNumber = w.LotNbr, Quantity = Convert.ToInt32(w.LotQty) });
                         }
                         if (c.WipInfo.Sum(o => o.BaseQty) > 0)
@@ -597,7 +591,7 @@ namespace M2kClient
                     var _wipQty = wipRecord.IsMulti ? Convert.ToInt32(wipRecord.WipQty * wipRecord.RollQty) : Convert.ToInt32(wipRecord.WipQty);
                     foreach (var c in wipRecord.CrewList.Where(o => !string.IsNullOrEmpty(o.Name) && o.IsDirect))
                     {
-                        var _pl = PostLabor("SFW WIP", c.IdNumber, c.Shift, wipRecord.WipWorkOrder.OrderNumber, wipRecord.WipWorkOrder.Routing, _wipQty, machID, wipRecord.Facility, _crew, c, connection);
+                        var _pl = PostLabor("SFW WIP", c.ErpId, c.Shift, wipRecord.WipWorkOrder.OrderNumber, wipRecord.WipWorkOrder.Routing, _wipQty, machID, wipRecord.Facility, _crew, c, connection);
                         if (_pl.Any(o => o.Key == 1))
                         {
                             System.Windows.MessageBox.Show($"Unable to process Labor\nPlease contact IT immediately!\n\n{_pl[1]}", "M2k Labor file error", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SFW.Model;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.DirectoryServices;
@@ -315,15 +316,27 @@ namespace SFW
             }
         }
 
-        private static string _uID;
-        public static string UserIDNbr
+        private static string _erp;
+        public static string ErpId
         {
             get
-            { return _uID; }
+            { return _erp; }
             private set
             {
-                _uID = value;
-                StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(UserIDNbr)));
+                _erp = value;
+                StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(ErpId)));
+            }
+        }
+
+        private static int _sap;
+        public static int SapId
+        {
+            get
+            { return _sap; }
+            private set
+            {
+                _sap = value;
+                StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(SapId)));
             }
         }
 
@@ -437,7 +450,8 @@ namespace SFW
                 IsLoggedIn = true;
                 CanWip = true;
                 CanLabor = App.SiteNumber == 2 || IsAdmin;
-                UserIDNbr = user.EmployeeId;
+                SapId = int.TryParse(((DirectoryEntry)user.GetUnderlyingObject()).Properties["global-ExtensionAttribute1"]?.Value.ToString(), out int i) ? i : 0;
+                ErpId = CrewMember.GetCrewErpID(SapId);
                 FirstName = user.GivenName;
                 LastName = user.Surname;
             }
@@ -680,7 +694,8 @@ namespace SFW
             IsAdmin = false;
             IsInventoryControl = false;
             IsSupervisor = IsManager = false;
-            UserIDNbr = string.Empty;
+            ErpId = string.Empty;
+            SapId = 0;
             IsAccountsReceivable = false;
             HasSalesOrderModule = false;
             CanTrain = false;

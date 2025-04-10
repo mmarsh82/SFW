@@ -9,7 +9,7 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Input;
 
-namespace SFW.QMS.NcrNotice
+namespace SFW.QMS.Notice
 {
     public class ViewModel : ViewModelBase
     {
@@ -29,8 +29,8 @@ namespace SFW.QMS.NcrNotice
                     _selectedNcr = value;
                     if (value != null)
                     {
-                        var _ncr = new Ncr(value.Row.Field<int>("NcrId"));
-                        WorkSpaceDock.UpdateChildDock(9, 1, new NcrForm.ViewModel(_ncr, SelectedNcr.Row.Field<int>("NcrRevisionId")));
+                        var _ncr = new Model.QmsForm(value.Row.Field<int>("NcrId"));
+                        WorkSpaceDock.UpdateChildDock(9, 1, new Form.ViewModel(_ncr, SelectedNcr.Row.Field<int>("NcrRevisionId")));
                     }
                     OnPropertyChanged(nameof(SelectedNcr));
                 }
@@ -38,7 +38,6 @@ namespace SFW.QMS.NcrNotice
                 { }
             }
         }
-        private DataRowView _oldSelectedNcr;
 
         private bool _isLoading;
         public bool IsLoading
@@ -73,6 +72,24 @@ namespace SFW.QMS.NcrNotice
             }
         }
 
+        private bool _frmType;
+        public bool FormTypeFilter
+        {
+            get { return _frmType; }
+            set
+            {
+                var _filter = value ? "[FormType] = 'NCR'" : "[FormType] = 'SCAR'";
+                NoticeFilter(_filter, 3);
+                _frmType = value;
+                OnPropertyChanged(nameof(FormTypeFilter));
+                OnPropertyChanged(nameof(FormType));
+            }
+        }
+        public string FormType
+        {
+            get { return FormTypeFilter ? "NCR" : "SCAR"; }
+        }
+
         private bool _site;
         public bool SiteFilter
         {
@@ -86,8 +103,8 @@ namespace SFW.QMS.NcrNotice
             }
         }
 
-        RelayCommand _newNcr;
-        RelayCommand _exportNcr;
+        RelayCommand _newFrm;
+        RelayCommand _exportQms;
 
         public delegate void LoadDelegate(string s);
         public LoadDelegate LoadAsyncDelegate { get; private set; }
@@ -105,6 +122,7 @@ namespace SFW.QMS.NcrNotice
             NoticeViewFilter = new string[7];
             NoticeFilter($"[Site] = {App.SiteNumber}", 2);
             ClosedFilter = false;
+            FormTypeFilter = true;
             LoadAsyncDelegate = new LoadDelegate(ViewLoading);
             FilterAsyncDelegate = new LoadDelegate(FilterView);
             LoadAsyncComplete = LoadAsyncDelegate.BeginInvoke(App.ViewFilter[App.SiteNumber], new AsyncCallback(ViewLoaded), null);
@@ -117,6 +135,7 @@ namespace SFW.QMS.NcrNotice
         /// 0 = Search Filter
         /// 1 = Closed Filter
         /// 2 = Site Filter
+        /// 3 = Form Type Filter
         /// </summary>
         /// <param name="filter">Filter string to use on the default view</param>
         /// <param name="index">Index of the filter string list you are adding to our changing</param>
@@ -175,43 +194,44 @@ namespace SFW.QMS.NcrNotice
             }
         }
 
-        #region New NCR input ICommand
+        #region New Form input ICommand
 
-        public ICommand NewNcrICommand
+        public ICommand NewFormICommand
         {
             get
             {
-                if (_newNcr == null)
+                if (_newFrm == null)
                 {
-                    _newNcr = new RelayCommand(NewNcrExecute);
+                    _newFrm = new RelayCommand(NewFromExecute);
                 }
-                return _newNcr;
+                return _newFrm;
             }
         }
 
-        private void NewNcrExecute(object parameter)
+        private void NewFromExecute(object parameter)
         {
             RefreshTimer.Stop();
-            WorkSpaceDock.UpdateChildDock(9, 1, new NcrForm.View { DataContext = new NcrForm.ViewModel(null, false, true) });
+            var _frmType = Enum.TryParse(FormType, out QmsForm.FormType _ft) ? _ft : QmsForm.FormType.NCR;
+            WorkSpaceDock.UpdateChildDock(9, 1, new Form.View { DataContext = new Form.ViewModel(null, false, true, _frmType) });
         }
 
         #endregion
 
-        #region Export NCR Metrics ICommand
+        #region Export QMS Metrics ICommand
 
-        public ICommand ExportNcrICommand
+        public ICommand ExportQmsICommand
         {
             get
             {
-                if (_exportNcr == null)
+                if (_exportQms == null)
                 {
-                    _exportNcr = new RelayCommand(ExportNcrExecute);
+                    _exportQms = new RelayCommand(ExportQmsExecute);
                 }
-                return _exportNcr;
+                return _exportQms;
             }
         }
 
-        private void ExportNcrExecute(object parameter)
+        private void ExportQmsExecute(object parameter)
         {
             ExcelWriter.ExportData(NoticeView.Table);
         }
@@ -239,15 +259,26 @@ namespace SFW.QMS.NcrNotice
         {
             try
             {
-                NoticeView = new Ncr.Notice().Table.AsDataView();
+                NoticeView = new Model.QmsForm.Notice().Table.AsDataView();
                 var _oldfilter = string.Empty;
                 if (NoticeView != null && CurrentUser.IsLoggedIn)
                 {
                     _oldfilter = NoticeView.RowFilter;
                 }
-                SelectedNcr = _oldSelectedNcr != null && NoticeView.Table.AsEnumerable().Any(row => row.Field<int>("NcrId") == _oldSelectedNcr.Row.Field<int>("NcrId"))
-                    ? _oldSelectedNcr
-                    : null;
+                if (SelectedNcr != null)
+                {
+                    var _targetId = SelectedNcr.Row.SafeGetField<int>("NcrId").ToString();
+                    var _index = NoticeView.Cast<DataRowView>().Select((row, idx) => new { row, idx }).FirstOrDefault(o => o.row["NcrId"].ToString() == _targetId)?.idx ?? -1;
+                    if (_index == -1)
+                    {
+                        SelectedNcr = NoticeView[0];
+                    }
+                    else
+                    {
+                        SelectedNcr = null;
+                        SelectedNcr = NoticeView[_index];
+                    }
+                }
                 NoticeView.RowFilter = !string.IsNullOrEmpty(_oldfilter)
                     ? _oldfilter
                     : NoticeFilter();
@@ -283,10 +314,6 @@ namespace SFW.QMS.NcrNotice
                 {
                     RefreshTimer.IsRefreshing = IsLoading = true;
                     MainWindowViewModel.DisplayAction = App.LoadedModule == Enumerations.UsersControls.Quality;
-                    _oldSelectedNcr = SelectedNcr != null
-                        ? SelectedNcr
-                        : null;
-                    SelectedNcr = null;
                     LoadAsyncComplete = LoadAsyncDelegate.BeginInvoke(NoticeView.RowFilter, new AsyncCallback(ViewLoaded), null);
                 }
             }

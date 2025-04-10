@@ -49,7 +49,6 @@ namespace SFW.Schedule.Plan
                 { }
             }
         }
-        private DataRowView _oldSelectedWO;
 
         private bool _isLoading;
         public bool IsLoading
@@ -262,15 +261,18 @@ namespace SFW.Schedule.Plan
                 PlanningView = ModelBase.MasterDataSet.Tables["Plan"].AsDataView();
                 PlanFilter(UserConfig.BuildMachineFilter(), 1);
                 PlanFilter(UserConfig.BuildPriorityFilter(), 3);
-                if (_oldSelectedWO != null)
+                if(SelectedWorkOrder != null)
                 {
-                    if (PlanningView.Table.AsEnumerable().Any(row => row.Field<string>("WorkOrderID") == _oldSelectedWO.Row.Field<string>("WorkOrderID")))
+                    var _targetId = SelectedWorkOrder.Row.SafeGetField<int>("WorkOrderID").ToString();
+                    var _index = PlanningView.Cast<DataRowView>().Select((row, idx) => new { row, idx }).FirstOrDefault(o => o.row["WorkOrderID"].ToString() == _targetId)?.idx ?? -1;
+                    if (_index == -1)
                     {
-                        SelectedWorkOrder = _oldSelectedWO;
+                        SelectedWorkOrder = PlanningView[0];
                     }
                     else
                     {
                         SelectedWorkOrder = null;
+                        SelectedWorkOrder = PlanningView[_index];
                     }
                 }
                 if (!string.IsNullOrEmpty(_oldfilter))
@@ -312,8 +314,6 @@ namespace SFW.Schedule.Plan
                 if (!IsLoading)
                 {
                     MainWindowViewModel.DisplayAction = App.LoadedModule == Enumerations.UsersControls.Plan;
-                    _oldSelectedWO = SelectedWorkOrder;
-                    SelectedWorkOrder = null;
                     LoadAsyncComplete = LoadAsyncDelegate.BeginInvoke(PlanningView.RowFilter, new AsyncCallback(ViewLoaded), null);
                 }
             }

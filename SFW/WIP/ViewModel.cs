@@ -343,7 +343,7 @@ namespace SFW.WIP
                 pl.WipInfo.Add(new CompWipInfo(!string.IsNullOrEmpty(pl.BackflushLoc) ,pl.CompNumber, pl.CompUom, App.SiteNumber, woObject.OrderNumber));
                 pl.WipInfo.Last().ScrapList.ListChanged += ScrapList_ListChanged;
             }
-            WipRecord = new WipReceipt(CurrentUser.FirstName, CurrentUser.LastName, App.SiteNumber, woObject, erpCon);
+            WipRecord = new WipReceipt(new CrewMember(CurrentUser.SapId, false), App.SiteNumber, woObject, erpCon);
             LotList = new List<string>();
             IsSubmitted = false;
             IsLotValid = IsLocationValid = IsLocationEditable = true;
@@ -381,11 +381,11 @@ namespace SFW.WIP
                                     _validScrap = int.TryParse(s.Reference, out int lref);
                                     if (string.IsNullOrEmpty(w.LotNbr) && _validScrap)
                                     {
-                                        _validScrap = Lot.IsValidQIR(s.Reference, WipRecord.WipWorkOrder.OrderNumber, "", w.PartNbr, App.AppSqlCon) || Ncr.IsValid(lref);
+                                        _validScrap = Lot.IsValidQIR(s.Reference, WipRecord.WipWorkOrder.OrderNumber, "", w.PartNbr, App.AppSqlCon) || QmsForm.IsValid(lref);
                                     }
                                     else
                                     {
-                                        _validScrap = Lot.IsValidQIR(s.Reference, WipRecord.WipWorkOrder.OrderNumber, w.LotNbr, w.PartNbr, App.AppSqlCon) || Ncr.IsValid(lref);
+                                        _validScrap = Lot.IsValidQIR(s.Reference, WipRecord.WipWorkOrder.OrderNumber, w.LotNbr, w.PartNbr, App.AppSqlCon) || QmsForm.IsValid(lref);
                                     }
                                 }
                                 else
@@ -569,8 +569,8 @@ namespace SFW.WIP
                                     {
                                         var _ncrId = int.TryParse(s.Reference, out int nRef) ? nRef : 0;
                                         _scrapValid = (WipRecord.IsLotTracable || string.IsNullOrEmpty(WipLot))
-                                            ? Lot.IsValidQIR(s.Reference, WipRecord.WipWorkOrder.OrderNumber, "", WipRecord.WipWorkOrder.SkuNumber, App.AppSqlCon) || Ncr.IsValid(nRef)
-                                            : Lot.IsValidQIR(s.Reference, WipRecord.WipWorkOrder.OrderNumber, WipLot, WipRecord.WipWorkOrder.SkuNumber, App.AppSqlCon) || Ncr.IsValid(nRef);
+                                            ? Lot.IsValidQIR(s.Reference, WipRecord.WipWorkOrder.OrderNumber, "", WipRecord.WipWorkOrder.SkuNumber, App.AppSqlCon) || QmsForm.IsValid(nRef)
+                                            : Lot.IsValidQIR(s.Reference, WipRecord.WipWorkOrder.OrderNumber, WipLot, WipRecord.WipWorkOrder.SkuNumber, App.AppSqlCon) || QmsForm.IsValid(nRef);
                                     }
                                 }
                             }
@@ -871,7 +871,7 @@ namespace SFW.WIP
 
         private void RemoveCrewExecute(object parameter)
         {
-            WipRecord.CrewList.Remove(WipRecord.CrewList.FirstOrDefault(c => c.IdNumber.ToString() == parameter.ToString()));
+            WipRecord.CrewList.Remove(WipRecord.CrewList.FirstOrDefault(c => c.ErpId.ToString() == parameter.ToString()));
         }
         private bool RemoveCrewCanExecute(object parameter) => parameter != null && !string.IsNullOrEmpty(parameter.ToString());
 

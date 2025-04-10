@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Globalization;
+using System.Linq;
+using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Data;
 
@@ -44,6 +46,22 @@ namespace SFW.Converters
 
         public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
         {
+            if (parameter?.ToString().Contains('*') == true && values.Count() > 1)
+            {
+                var _counter = 0;
+                var _rtnBool = true;
+                foreach (var _arg in parameter.ToString().Split('*'))
+                {
+                    var _intVal = int.TryParse(_arg, out int i) ? i > 0 : false;
+                    _rtnBool = bool.TryParse(values[_counter].ToString(), out bool b) ? _intVal == b : false;
+                    if (!_rtnBool)
+                    {
+                        return Visibility.Collapsed;
+                    }
+                    _counter++;
+                }
+                return Visibility.Visible;
+            }
             if (parameter?.ToString() == "NCR")
             {
                 var _type = values[0];

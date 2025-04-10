@@ -261,7 +261,7 @@ namespace SFW.ShopRoute
                             IsMultiLoading = false;
                             if (App.SiteNumber == 1)
                             {
-                                NcrList = Ncr.GetNcrList(ShopOrder.OrderNumber);
+                                NcrList = QmsForm.GetNcrList(ShopOrder.OrderNumber);
                             }
                             if (CurrentUser.CanSchedule)
                             {

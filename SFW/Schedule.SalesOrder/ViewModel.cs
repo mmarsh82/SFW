@@ -19,11 +19,6 @@ namespace SFW.Schedule.SalesOrder
             get { return _selectedSO; }
             set
             {
-                if (_oldSelection != null)
-                {
-                    value = _oldSelection;
-                    _oldSelection = null;
-                }
                 _selectedSO = value;
                 if(value != null)
                 {
@@ -39,7 +34,6 @@ namespace SFW.Schedule.SalesOrder
                 OnPropertyChanged(nameof(SelectedSalesOrder));
             }
         }
-        private DataRowView _oldSelection;
 
         private string _sFilter;
         public string SearchFilter
@@ -270,6 +264,20 @@ namespace SFW.Schedule.SalesOrder
                             IsSchedule = false;
                             ScheduleType = true;
                         }
+                        if (SelectedSalesOrder != null)
+                        {
+                            var _targetId = SelectedSalesOrder.Row.SafeGetField<int>("ID").ToString();
+                            var _index = SalesScheduleView.Cast<DataRowView>().Select((row, idx) => new { row, idx }).FirstOrDefault(o => o.row["ID"].ToString() == _targetId)?.idx ?? -1;
+                            if (_index == -1)
+                            {
+                                SelectedSalesOrder = SalesScheduleView[0];
+                            }
+                            else
+                            {
+                                SelectedSalesOrder = null;
+                                SelectedSalesOrder = SalesScheduleView[_index];
+                            }
+                        }
                     }
                 }
             }
@@ -295,7 +303,6 @@ namespace SFW.Schedule.SalesOrder
             if (!IsLoading)
             {
                 MainWindowViewModel.DisplayAction = App.LoadedModule == Enumerations.UsersControls.SalesOrder;
-                _oldSelection = SelectedSalesOrder;
                 var _filter = SalesScheduleView != null ? SalesScheduleView.RowFilter : string.Empty;
                 LoadAsyncComplete = LoadAsyncDelegate.BeginInvoke(_filter, new AsyncCallback(ViewLoaded), null);
             }

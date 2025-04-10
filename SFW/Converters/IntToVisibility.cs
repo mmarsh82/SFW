@@ -21,9 +21,9 @@ namespace SFW.Converters
                 var _temp = int.TryParse(value.ToString(), out int i) ? i : 0;
                 switch (parameter.ToString())
                 {
-                    case "NcrHeader":
+                    case "QmsHeader":
                         return _temp == 0 ? Visibility.Visible : Visibility.Collapsed;
-                    case "NcrDetail":
+                    case "QmsDetail":
                         return _temp == 0 ? Visibility.Hidden : Visibility.Visible;
 
                 }
