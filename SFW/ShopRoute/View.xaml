@@ -993,6 +993,8 @@
                                                 </MultiBinding>
                                             </DataGridTextColumn.Binding>
                                         </DataGridTextColumn>
+                                        <DataGridTextColumn Header=" Scrap Factor "
+                                                            Binding="{Binding ScrapFactor, StringFormat={}{0:P}}" />
                                     </DataGrid.Columns>
 
                                 </DataGrid>

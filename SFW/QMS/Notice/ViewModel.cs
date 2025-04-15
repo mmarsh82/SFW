@@ -27,9 +27,9 @@ namespace SFW.QMS.Notice
                 try
                 {
                     _selectedNcr = value;
-                    if (value != null)
+                    if (value != null && App.LoadedModule == Enumerations.UsersControls.Quality)
                     {
-                        var _ncr = new Model.QmsForm(value.Row.Field<int>("NcrId"));
+                        var _ncr = new QmsForm(value.Row.Field<int>("NcrId"));
                         WorkSpaceDock.UpdateChildDock(9, 1, new Form.ViewModel(_ncr, SelectedNcr.Row.Field<int>("NcrRevisionId")));
                     }
                     OnPropertyChanged(nameof(SelectedNcr));

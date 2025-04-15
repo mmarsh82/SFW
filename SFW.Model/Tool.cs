@@ -96,31 +96,34 @@ namespace SFW.Model
         /// <returns>A list of tool's associated with the Sku</returns>
         public static List<Tool> GetToolList(string skuNbr, int seq, int facCode)
         {
+            var _tempList = new List<Tool>();
             try
             {
-                var _tempList = new List<Tool>();
-                var _rows = MasterDataSet.Tables["TL"].Select($"[ID] = '{skuNbr}|0{facCode}*{seq}'");
-                if (_rows.Length > 0)
+                if (MasterDataSet.Tables.Contains("TL"))
                 {
-                    foreach (var _row in _rows)
+                    var _rows = MasterDataSet.Tables["TL"].Select($"[ID] = '{skuNbr}|0{facCode}*{seq}'");
+                    if (_rows.Length > 0)
                     {
-                        _tempList.Add(new Tool
+                        foreach (var _row in _rows)
                         {
-                            ID = _row.Field<string>("ID")
-                            ,
-                            SkuID = _row.Field<string>("SkuID")
-                            ,
-                            ToolID = _row.Field<string>("ToolID")
-                            ,
-                            MachineID = _row.Field<string>("MachineID")
-                        });
+                            _tempList.Add(new Tool
+                            {
+                                ID = _row.Field<string>("ID")
+                                ,
+                                SkuID = _row.Field<string>("SkuID")
+                                ,
+                                ToolID = _row.Field<string>("ToolID")
+                                ,
+                                MachineID = _row.Field<string>("MachineID")
+                            });
+                        }
                     }
                 }
                 return _tempList;
             }
             catch
             {
-                return null;
+                return _tempList;
             }
         }
 

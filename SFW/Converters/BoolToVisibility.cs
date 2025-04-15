@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -61,6 +62,18 @@ namespace SFW.Converters
                     _counter++;
                 }
                 return Visibility.Visible;
+            }
+            if (parameter?.ToString().Contains('|') == true && values.Count() > 1)
+            {
+                var _counter = 0;
+                var _rtnList = new List<bool>();
+                foreach (var _arg in parameter.ToString().Split('|'))
+                {
+                    var _intVal = int.TryParse(_arg, out int i) ? i > 0 : false;
+                    _rtnList.Add(bool.TryParse(values[_counter].ToString(), out bool b) ? _intVal == b : false);
+                    _counter++;
+                }
+                return _rtnList.Count(o => o) > 0 ? Visibility.Visible : Visibility.Collapsed;
             }
             if (parameter?.ToString() == "NCR")
             {

@@ -30,8 +30,7 @@ namespace SFW.Schedule.Plan
                 try
                 {
                     _selectedWO = value;
-                    Controls.WorkSpaceDock.UpdateChildDock(11, 1, new ShopRoute.View { DataContext = new ShopRoute.ViewModel() });
-                    if (value != null)
+                    if (value != null && App.LoadedModule == Enumerations.UsersControls.Plan)
                     {
                         var _wo = new WorkOrder(value.Row);
                         if (_wo.Inspection)
@@ -253,37 +252,39 @@ namespace SFW.Schedule.Plan
         {
             try
             {
-                var _oldfilter = string.Empty;
-                if (PlanningView != null && CurrentUser.IsLoggedIn)
+                if (ModelBase.MasterDataSet.Tables.Contains("Plan"))
                 {
-                    _oldfilter = PlanningView.RowFilter;
-                }
-                PlanningView = ModelBase.MasterDataSet.Tables["Plan"].AsDataView();
-                PlanFilter(UserConfig.BuildMachineFilter(), 1);
-                PlanFilter(UserConfig.BuildPriorityFilter(), 3);
-                if(SelectedWorkOrder != null)
-                {
-                    var _targetId = SelectedWorkOrder.Row.SafeGetField<int>("WorkOrderID").ToString();
-                    var _index = PlanningView.Cast<DataRowView>().Select((row, idx) => new { row, idx }).FirstOrDefault(o => o.row["WorkOrderID"].ToString() == _targetId)?.idx ?? -1;
-                    if (_index == -1)
+                    var _oldfilter = string.Empty;
+                    if (PlanningView != null && CurrentUser.IsLoggedIn)
                     {
-                        SelectedWorkOrder = PlanningView[0];
+                        _oldfilter = PlanningView.RowFilter;
                     }
-                    else
+                    PlanningView = ModelBase.MasterDataSet.Tables["Plan"].AsDataView();
+                    PlanFilter(UserConfig.BuildMachineFilter(), 1);
+                    PlanFilter(UserConfig.BuildPriorityFilter(), 3);
+                    if (SelectedWorkOrder != null)
                     {
-                        SelectedWorkOrder = null;
-                        SelectedWorkOrder = PlanningView[_index];
+                        var _targetId = SelectedWorkOrder.Row.SafeGetField<string>("WorkOrderID");
+                        var _index = PlanningView.Cast<DataRowView>().Select((row, idx) => new { row, idx }).FirstOrDefault(o => o.row["WorkOrderID"].ToString() == _targetId)?.idx ?? -1;
+                        if (_index == -1)
+                        {
+                            SelectedWorkOrder = PlanningView[0];
+                        }
+                        else
+                        {
+                            SelectedWorkOrder = PlanningView[_index];
+                        }
                     }
+                    if (!string.IsNullOrEmpty(_oldfilter))
+                    {
+                        PlanningView.RowFilter = _oldfilter;
+                    }
+                    if (!string.IsNullOrEmpty(SearchFilter))
+                    {
+                        SearchFilter = SearchFilter;
+                    }
+                    OnPropertyChanged(nameof(PlanningView));
                 }
-                if (!string.IsNullOrEmpty(_oldfilter))
-                {
-                    PlanningView.RowFilter = _oldfilter;
-                }
-                if (!string.IsNullOrEmpty(SearchFilter))
-                {
-                    SearchFilter = SearchFilter;
-                }
-                OnPropertyChanged(nameof(PlanningView));
             }
             catch (Exception ex)
             {

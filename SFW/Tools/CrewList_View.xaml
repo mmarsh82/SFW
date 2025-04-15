@@ -220,7 +220,7 @@
                     Orientation="Horizontal"
                     VerticalAlignment="Center"
                     HorizontalAlignment="Center"
-                    Visibility="{Binding CanView, Converter={StaticResource BoolToVisConverter}}">
+                    Visibility="{Binding CanEdit, Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}">
 
             <Button Grid.Row="2"
                     Width="40"

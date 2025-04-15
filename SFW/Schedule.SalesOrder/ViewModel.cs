@@ -1,6 +1,7 @@
 ﻿using SFW.Model;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Data;
 using System.Linq;
 
@@ -11,7 +12,7 @@ namespace SFW.Schedule.SalesOrder
         #region Properties
 
         public string[] SalesTableFilter;
-        public DataView SalesScheduleView { get; set; }
+        public static DataView SalesScheduleView { get; set; }
 
         private DataRowView _selectedSO;
         public DataRowView SelectedSalesOrder
@@ -19,19 +20,20 @@ namespace SFW.Schedule.SalesOrder
             get { return _selectedSO; }
             set
             {
-                _selectedSO = value;
-                if(value != null)
+                try
                 {
-                    var _sku = new Sku(value.Row.Field<string>("PartNbr"), 'S', App.SiteNumber, true);
-                    var _soObj = new Model.SalesOrder(value.Row);
-                    Controls.WorkSpaceDock.UpdateChildDock(8, 1, new ShopRoute.SalesOrder.ViewModel(_soObj, _sku));
+
+                    _selectedSO = value;
+                    if (value != null && App.LoadedModule == Enumerations.UsersControls.SalesOrder)
+                    {
+                        var _sku = new Sku(value.Row.Field<string>("PartNbr"), 'S', App.SiteNumber, true);
+                        var _soObj = new Model.SalesOrder(value.Row);
+                        Controls.WorkSpaceDock.UpdateChildDock(8, 1, new ShopRoute.SalesOrder.ViewModel(_soObj, _sku));
+                    }
+                    OnPropertyChanged(nameof(SelectedSalesOrder));
                 }
-                else
-                {
-                    Controls.WorkSpaceDock.UpdateChildDock(8, 1, new ShopRoute.SalesOrder.ViewModel());
-                }
-                ((View)Controls.WorkSpaceDock.SalesDock.Children[0]).SalesSchedule.SelectedItem = SelectedSalesOrder;
-                OnPropertyChanged(nameof(SelectedSalesOrder));
+                catch (Exception)
+                { }
             }
         }
 
@@ -168,6 +170,8 @@ namespace SFW.Schedule.SalesOrder
             set { _isLoading = value; OnPropertyChanged(nameof(IsLoading)); }
         }
 
+        public static event EventHandler<PropertyChangedEventArgs> StaticPropertyChanged;
+
         public delegate void LoadDelegate(string s);
         public LoadDelegate LoadAsyncDelegate { get; private set; }
         public LoadDelegate FilterAsyncDelegate { get; private set; }
@@ -191,20 +195,17 @@ namespace SFW.Schedule.SalesOrder
                 if (CreditStatusList == null)
                 {
                     CreditStatusList = new List<string>
-                {
-                    "Any"
-                    ,"A"
-                    ,"H"
-                    ,"W"
-                };
+                    {
+                        "Any"
+                        ,"A"
+                        ,"H"
+                        ,"W"
+                    };
                 }
                 LoadAsyncDelegate = new LoadDelegate(ViewLoading);
                 FilterAsyncDelegate = new LoadDelegate(FilterView);
                 LoadAsyncComplete = LoadAsyncDelegate.BeginInvoke("", new AsyncCallback(ViewLoaded), null);
-                if (CurrentUser.HasSalesOrderModule)
-                {
-                    RefreshTimer.Add(RefreshSchedule);
-                }
+                RefreshTimer.Add(RefreshSchedule);
                 _inLoad = true;
             }
         }
@@ -233,7 +234,11 @@ namespace SFW.Schedule.SalesOrder
                 {
                     _filterStr += string.IsNullOrEmpty(_filterStr) ? $"({s})" : $" AND ({s})";
                 }
-                SalesScheduleView.RowFilter = _filterStr;
+                if (SalesScheduleView != null && SalesScheduleView.Table.Rows.Count > 0)
+                {
+                    SalesScheduleView.RowFilter = _filterStr;
+                    StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(SalesScheduleView)));
+                }
             }
         }
 
@@ -267,16 +272,8 @@ namespace SFW.Schedule.SalesOrder
                         if (SelectedSalesOrder != null)
                         {
                             var _targetId = SelectedSalesOrder.Row.SafeGetField<int>("ID").ToString();
-                            var _index = SalesScheduleView.Cast<DataRowView>().Select((row, idx) => new { row, idx }).FirstOrDefault(o => o.row["ID"].ToString() == _targetId)?.idx ?? -1;
-                            if (_index == -1)
-                            {
-                                SelectedSalesOrder = SalesScheduleView[0];
-                            }
-                            else
-                            {
-                                SelectedSalesOrder = null;
-                                SelectedSalesOrder = SalesScheduleView[_index];
-                            }
+                            var _index = SalesScheduleView.Cast<DataRowView>().Select((row, idx) => new { row, idx }).FirstOrDefault(o => o.row["ID"].ToString() == _targetId)?.idx ?? 0;
+                            SelectedSalesOrder = SalesScheduleView[_index];
                         }
                     }
                 }
@@ -289,8 +286,7 @@ namespace SFW.Schedule.SalesOrder
         public void ViewLoaded(IAsyncResult r)
         {
             IsLoading = false;
-            OnPropertyChanged(nameof(SelectedSalesOrder));
-            OnPropertyChanged(nameof(SalesScheduleView));
+            StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(SalesScheduleView)));
         }
 
         #endregion

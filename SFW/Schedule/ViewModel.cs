@@ -32,8 +32,7 @@ namespace SFW.Schedule
                 try
                 {
                     _selectedWO = value;
-                    Controls.WorkSpaceDock.UpdateChildDock(1, 1, new ShopRoute.View { DataContext = new ShopRoute.ViewModel() });
-                    if (value != null)
+                    if (value != null && App.LoadedModule == Enumerations.UsersControls.Schedule)
                     {
                         var _wo = new WorkOrder(value.Row);
                         if (_wo.Inspection)

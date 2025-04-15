@@ -443,8 +443,8 @@ namespace SFW.Model
                     return string.Empty;
                 }
                 var _search = $"[ParentLot] = '{lotNbr}'";
-                var _dList = MasterDataSet.Tables["Diamond"].Select(_search);
-                while (!string.IsNullOrEmpty(_search))
+                var _dList = MasterDataSet.Tables.Contains("Diamond") ? MasterDataSet.Tables["Diamond"].Select(_search) : new DataRow[0];
+                while (!string.IsNullOrEmpty(_search) && _dList.Length > 0)
                 {
                     _dList = _dList == null ? MasterDataSet.Tables["Diamond"].Select(_search) : _dList;
                     if (_dList.Length > 0)

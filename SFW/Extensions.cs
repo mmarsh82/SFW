@@ -173,9 +173,9 @@ namespace SFW
         /// </summary>
         /// <param name="userPrincipal">User Principal Object</param>
         /// <returns>List of direct reports</returns>
-        public static IReadOnlyDictionary<string, string> GetDirectReports(this UserPrincipal userPrincipal)
+        public static IReadOnlyDictionary<int, string> GetDirectReports(this UserPrincipal userPrincipal)
         {
-            var _rtnDict = new Dictionary<string, string>();
+            var _rtnDict = new Dictionary<int, string>();
             try
             {
                 var _propColl = ((DirectoryEntry)userPrincipal.GetUnderlyingObject()).Properties["DirectReports"].Cast<string>();
@@ -183,7 +183,8 @@ namespace SFW
                 foreach (var _directReport in _propColl)
                 {
                     var _reportPrincipal = UserPrincipal.FindByIdentity(userPrincipal.Context, _directReport);
-                    _rtnDict.Add(((DirectoryEntry)_reportPrincipal.GetUnderlyingObject()).Properties["global-ExtensionAttribute1"]?.Value.ToString(), $"{_reportPrincipal.Surname},{_reportPrincipal.GivenName}");
+                    var _empId = int.TryParse(((DirectoryEntry)_reportPrincipal.GetUnderlyingObject()).Properties["global-ExtensionAttribute1"]?.Value.ToString(), out int i) ? i : 0;
+                    _rtnDict.Add(_empId, $"{_reportPrincipal.Surname},{_reportPrincipal.GivenName}");
                 }
                 return _rtnDict;
             }

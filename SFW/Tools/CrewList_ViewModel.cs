@@ -17,7 +17,6 @@ namespace SFW.Tools
 
         public bool NoData { get; set; }
 
-        private bool _isLoading { get; set; }
         private char _actionType { get; set; }
 
         private int _shift;
@@ -51,7 +50,7 @@ namespace SFW.Tools
             { return _date; }
             set
             {
-                if (CanView)
+                if (!CanEdit)
                 {
                     Shift = Shift == 0 ? 1 : Shift;
                     OnPropertyChanged(nameof(Shift));
@@ -100,18 +99,6 @@ namespace SFW.Tools
             }
         }
 
-        private bool _view;
-        public bool CanView
-        {
-            get
-            { return _view; }
-            set
-            {
-                _view = value;
-                OnPropertyChanged(nameof(CanView));
-            }
-        }
-
         private bool _publish;
         public bool Published
         {
@@ -138,8 +125,6 @@ namespace SFW.Tools
             Shift = _tempCrewMember.Shift;
             ManagerId = _tempCrewMember.ErpId;
             CanEdit = CurrentUser.IsSupervisor && CurrentUser.DirectReports.Count > 0;
-            CanView = CurrentUser.IsManager;
-            _isLoading = false;
             SelectedDate = DateTime.Today;
             if (MachineCollection == null)
             {

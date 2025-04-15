@@ -324,7 +324,10 @@ namespace SFW.Model
                 if (Table == null)
                 {
                     Table = new DataTable();
-                    Table = MasterDataSet.Tables["NcrNotice"].Select("[NcrRevisionId] = [RevisionFilter]").CopyToDataTable();
+                    if (MasterDataSet.Tables.Contains("NcrNotice"))
+                    {
+                        Table = MasterDataSet.Tables["NcrNotice"].Select("[NcrRevisionId] = [RevisionFilter]").CopyToDataTable();
+                    }
                 }
             }
         }

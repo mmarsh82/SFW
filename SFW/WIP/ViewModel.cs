@@ -31,7 +31,7 @@ namespace SFW.WIP
                         foreach (var c in WipRecord.WipWorkOrder.Picklist.Where(o => o.IsLotTrace))
                         {
                             c.WipInfo.Clear();
-                            c.WipInfo.Add(new CompWipInfo(!string.IsNullOrEmpty(c.BackflushLoc), c.CompNumber, c.CompUom, App.SiteNumber, WipRecord.WipWorkOrder.OrderNumber));
+                            c.WipInfo.Add(new CompWipInfo(!string.IsNullOrEmpty(c.BackflushLoc), c.CompNumber, c.CompUom, App.SiteNumber, WipRecord.WipWorkOrder.OrderNumber, WipRecord.WipWorkOrder.Seq));
                         }
                     }
                     else if (WipRecord.WipQty != _wipStr)
@@ -340,10 +340,10 @@ namespace SFW.WIP
                     pl.WipInfo = new BindingList<CompWipInfo>();
                     pl.WipInfo.ListChanged += Model.Component.WipInfo_ListChanged;
                 }
-                pl.WipInfo.Add(new CompWipInfo(!string.IsNullOrEmpty(pl.BackflushLoc) ,pl.CompNumber, pl.CompUom, App.SiteNumber, woObject.OrderNumber));
+                pl.WipInfo.Add(new CompWipInfo(!string.IsNullOrEmpty(pl.BackflushLoc) ,pl.CompNumber, pl.CompUom, App.SiteNumber, woObject.OrderNumber, woObject.Seq));
                 pl.WipInfo.Last().ScrapList.ListChanged += ScrapList_ListChanged;
             }
-            WipRecord = new WipReceipt(new CrewMember(CurrentUser.SapId, false), App.SiteNumber, woObject, erpCon);
+            WipRecord = new WipReceipt(new CrewMember(CurrentUser.ErpId, true), App.SiteNumber, woObject, erpCon);
             LotList = new List<string>();
             IsSubmitted = false;
             IsLotValid = IsLocationValid = IsLocationEditable = true;

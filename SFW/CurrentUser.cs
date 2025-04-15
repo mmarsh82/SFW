@@ -136,18 +136,6 @@ namespace SFW
             }
         }
 
-        private static bool _laborAdmin;
-        public static bool LaborAdmin
-        {
-            get
-            { return _laborAdmin; }
-            private set
-            {
-                _laborAdmin = value;
-                StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(LaborAdmin)));
-            }
-        }
-
         private static bool _canTrain;
         public static bool CanTrain
         {
@@ -376,8 +364,8 @@ namespace SFW
             }
         }
 
-        private static IReadOnlyDictionary<string, string> _reports;
-        public static IReadOnlyDictionary<string, string> DirectReports
+        private static IReadOnlyDictionary<int, string> _reports;
+        public static IReadOnlyDictionary<int, string> DirectReports
         {
             get
             { return _reports; }
@@ -420,7 +408,7 @@ namespace SFW
                 {
                     if (_aGroups.Count(o => o.Contains("SFW-Admin")) > 0)
                     {
-                        CanTrain = CanSchedule = IsSupervisor = IsManager = IsInventoryControl = IsAccountsReceivable = IsAdmin = HasSalesOrderModule = IsQuality = IsEngineer = CanSplit = CanDeviate = HasNotice = Planner = LaborAdmin = true;
+                        CanTrain = CanSchedule = IsSupervisor = IsManager = IsInventoryControl = IsAccountsReceivable = IsAdmin = HasSalesOrderModule = IsQuality = IsEngineer = CanSplit = CanDeviate = HasNotice = Planner = true;
                         BasicUser = false;
                     }
                     else
@@ -438,7 +426,7 @@ namespace SFW
                         CanSplit = _aGroups.Count(o => o.Contains("SFW-Adjust")) > 0;
                         CanDeviate = _aGroups.Count(o => o.Contains("SFW-Deviate")) > 0;
                         Planner = _aGroups.Count(o => o.Contains("SFW-Planner")) > 0;
-                        LaborAdmin = _aGroups.Count(o => o.Contains("SFW-LaborAdmin")) > 0;
+                        IsManager = _aGroups.Count(o => o.Contains("SFW-Manager")) > 0;
                         BasicUser = false;
                     }
                 }
@@ -446,7 +434,7 @@ namespace SFW
                 {
                     BasicUser = true;
                 }
-                DirectReports = IsSupervisor ? user.GetDirectReports() : new Dictionary<string, string>();
+                DirectReports = IsSupervisor ? user.GetDirectReports() : new Dictionary<int, string>();
                 IsLoggedIn = true;
                 CanWip = true;
                 CanLabor = App.SiteNumber == 2 || IsAdmin;
@@ -703,7 +691,7 @@ namespace SFW
             IsEngineer = false;
             IsQuality = HasNotice = false;
             Planner = false;
-            LaborAdmin = false;
+            IsManager = false;
             Controls.WorkSpaceDock.RefreshMainDock();
             MainWindowViewModel.UpdateProperties(false);
         }

@@ -194,18 +194,15 @@
         <DataGrid x:Name="SalesSchedule"
                   Grid.Row="2"
                   ItemsSource="{Binding Source={StaticResource SalesSource}}"
-                  CurrentItem="{Binding SelectedSalesOrder, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                  SelectedItem="{Binding SelectedSalesOrder, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                   HorizontalAlignment="Left"
                   HeadersVisibility="None"
                   AutoGenerateColumns="False"
                   CanUserAddRows="False"
                   IsReadOnly="True"
                   SelectionMode="Single"
-                  EnableRowVirtualization="True"
-                  IsSynchronizedWithCurrentItem="True"
-                  VirtualizingStackPanel.VirtualizationMode ="Recycling"
-                  VirtualizingStackPanel.IsVirtualizing="True"
-                  VirtualizingPanel.IsVirtualizingWhenGrouping="True">
+                  VirtualizingPanel.IsVirtualizingWhenGrouping="True"
+                  ScrollViewer.CanContentScroll="True">
 
             <DataGrid.Columns>
                 <DataGridTemplateColumn>

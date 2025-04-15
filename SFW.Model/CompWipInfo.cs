@@ -52,6 +52,7 @@ namespace SFW.Model
         public int OnHandQty { get; set; }
         public int Facility { get; set; }
         public string WorkOrderNumber { get; set; }
+        public string WorkOrderSequence { get; set; }
 
         private int ohCalc;
         public int OnHandCalc
@@ -85,6 +86,8 @@ namespace SFW.Model
             get { return baseLot; }
             set { baseLot = value; OnPropertyChanged(nameof(BaseLot)); }
         }
+
+        public double ScrapFactor { get; set; }
 
         public BindingList<WipReceipt.Scrap> ScrapList { get; set; }
 
@@ -131,7 +134,9 @@ namespace SFW.Model
         /// <param name="partNbr">Part Number of the component</param>
         /// <param name="uom">Part Unit of Measure of the component</param>
         /// <param name="facility">Default facility code</param>
-        public CompWipInfo(bool hasBFLoc, string partNbr, string uom, int facility, string workOrderNumber)
+        /// <param name="workOrderNumber">Work order number</param>
+        /// <param name="seq">Work order routing or sequence</param>
+        public CompWipInfo(bool hasBFLoc, string partNbr, string uom, int facility, string workOrderNumber, string seq)
         {
             IsBackFlush = hasBFLoc;
             PartNbr = partNbr;
@@ -142,6 +147,8 @@ namespace SFW.Model
             IsValidLot = false;
             Facility = facility;
             WorkOrderNumber = workOrderNumber;
+            WorkOrderSequence = seq;
+            ScrapFactor = Component.GetScrapFactor(partNbr, workOrderNumber, seq); 
         }
     }
 }

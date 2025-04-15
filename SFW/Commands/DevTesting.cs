@@ -30,7 +30,7 @@ namespace SFW.Commands
             var _tempList = new List<User>();
             try
             {
-                using (PrincipalContext _context = new PrincipalContext(ContextType.Domain, "TIRETECH2", "OU=Users01,OU=Users,OU=wak1,OU=us,OU=lda,DC=tiretech2,DC=contiwan,DC=com"))
+                using (PrincipalContext _context = new PrincipalContext(ContextType.Domain, "TIRETECH2", "OU=Users01,OU=Users,OU=arx1,OU=us,OU=lda,DC=tiretech2,DC=contiwan,DC=com"))
                 {
                     using (PrincipalSearcher _search = new PrincipalSearcher(new UserPrincipal(_context)))
                     {

@@ -18,7 +18,7 @@ namespace SFW.CycleCount
             set
             {
                 _selCnt = value;
-                if (value != null)
+                if (value != null && App.LoadedModule == Enumerations.UsersControls.CycleCount)
                 {
                     var _cnt = new Count(value.Row);
                     Controls.WorkSpaceDock.UpdateChildDock(3, 1, new Form_ViewModel(_cnt));

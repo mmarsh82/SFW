@@ -30,6 +30,7 @@ namespace SFW.Model
         public static bool WipInfoUpdating { get; set; }
         public static bool FromOtherChange { get; set; }
         public int IssueTotal { get; set; }
+        public double ScrapFactor { get; set; }
 
         #endregion
 
@@ -171,8 +172,9 @@ namespace SFW.Model
                         ,PullLocation = Machine.GetPullLocation(machineName)
                         ,Facility = _row.Field<int>("Site")
                         ,IssueTotal = _row.Field<int>("IssueTotal")
+                        ,ScrapFactor = double.TryParse(_row.Field<decimal>("ScrapFactor").ToString(), out double d) ? d : 0
                         ,WipInfo = _row.Field<string>("LotTrace") == "T" 
-                            ? new BindingList<CompWipInfo>() { new CompWipInfo(!string.IsNullOrEmpty(_row.Field<string>("Backflush")), _row.Field<string>("ChildSkuID"), _row.Field<string>("Uom"), _row.Field<int>("Site"), woNbr) }
+                            ? new BindingList<CompWipInfo>() { new CompWipInfo(!string.IsNullOrEmpty(_row.Field<string>("Backflush")), _row.Field<string>("ChildSkuID"), _row.Field<string>("Uom"), _row.Field<int>("Site"), woNbr, woSeq) }
                             : null
                     });
                     if (_tempList.Last().WipInfo != null)
@@ -215,6 +217,18 @@ namespace SFW.Model
                 }
             }
             return _tempList;
+        }
+
+        /// <summary>
+        /// Retrieve the scrap factor of a picklist component
+        /// </summary>
+        /// <param name="compNbr">Sku ID Number</param>
+        /// <param name="woNbr">Work order number</param>
+        /// <param name="woSeq">Work order sequence</param>
+        /// <returns>List of Component objects related to a Bill of material</returns>
+        public static double GetScrapFactor(string compNbr, string woNbr, string woSeq)
+        {
+            return double.TryParse(MasterDataSet.Tables["PL"].Select($"[ChildSkuID] = '{compNbr}' AND [Routing] = '{woSeq}' AND [WorkOrderID] = '{woNbr}'").FirstOrDefault().Field<decimal>("ScrapFactor").ToString(), out double d) ? d : 0;
         }
 
         /// <summary>
@@ -271,7 +285,7 @@ namespace SFW.Model
                         ((BindingList<CompWipInfo>)sender)[e.NewIndex].OnHandCalc = 0;
                         if (((BindingList<CompWipInfo>)sender).Count() == ((BindingList<CompWipInfo>)sender).Count(o => o.IsValidLot))
                         {
-                            ((BindingList<CompWipInfo>)sender).Add(new CompWipInfo(_tempItem.IsBackFlush, _tempItem.PartNbr, _tempItem.Uom, _tempItem.Facility, _tempItem.WorkOrderNumber) { BaseQty = _tempItem.BaseQty });
+                            ((BindingList<CompWipInfo>)sender).Add(new CompWipInfo(_tempItem.IsBackFlush, _tempItem.PartNbr, _tempItem.Uom, _tempItem.Facility, _tempItem.WorkOrderNumber, _tempItem.WorkOrderSequence) { BaseQty = _tempItem.BaseQty });
                             if (((BindingList<CompWipInfo>)sender).Count(o => o.IsValidLot) > 1)
                             {
                                 ((BindingList<CompWipInfo>)sender)[0].ScrapList.ResetBindings();

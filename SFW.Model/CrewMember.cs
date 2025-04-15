@@ -310,7 +310,7 @@ namespace SFW.Model
         /// <param name="loadLabor">Load the labor fields for the crew member</param>
         public CrewMember(int sapId, bool loadLabor)
         {
-            var _rows = MasterDataSet.Tables["CREW"].Select($"[SapEmployeeID] = '{sapId}'");
+            var _rows = MasterDataSet.Tables["CREW"].Select($"[SapEmployeeID] = {sapId}");
             if (_rows.Count() > 0)
             {
                 ErpId = _rows.FirstOrDefault().Field<string>("EmployeeId");
@@ -321,9 +321,8 @@ namespace SFW.Model
                     Shift = _rows.FirstOrDefault().Field<int>("Shift");
                     ShiftStart = _rows.FirstOrDefault().Field<string>("ShiftStart");
                     ShiftEnd = _rows.FirstOrDefault().Field<string>("ShiftEnd");
-                    InTime = string.Empty;
                     Facility = $"0{_rows.FirstOrDefault().Field<int>("Site")}";
-                    SapId = int.TryParse(_rows.FirstOrDefault().Field<string>("SapEmployeeID"), out int i) ? i : 0;
+                    SapId = _rows.FirstOrDefault().Field<int>("SapEmployeeID");
                     ErrorMessage = string.Empty;
                     _clockLoaded = false;
                     if (IsDirect)
@@ -357,7 +356,7 @@ namespace SFW.Model
                     ShiftEnd = _rows.FirstOrDefault().Field<string>("ShiftEnd");
                     InTime = string.Empty;
                     Facility = $"0{_rows.FirstOrDefault().Field<int>("Site")}";
-                    SapId = int.TryParse(_rows.FirstOrDefault().Field<string>("SapEmployeeID"), out int i) ? i : 0;
+                    SapId = _rows.FirstOrDefault().Field<int>("SapEmployeeID");
                     ErrorMessage = string.Empty;
                     _clockLoaded = false;
                     if (IsDirect)

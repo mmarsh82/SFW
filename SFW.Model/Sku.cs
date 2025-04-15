@@ -448,10 +448,6 @@ namespace SFW.Model
             {
                 { new Sku(partNbr, 'S', int.Parse(site), true), 0 }
             };
-            var _test = MasterDataSet.Tables["PS"].Select($"[Part] = {partNbr}|0{site} AND [Status] = 'A'");
-
-
-
             _returnList.First().Key.Location = "1";
             var _levelCount = 0;
             var _query = string.Empty;
@@ -833,7 +829,7 @@ namespace SFW.Model
             try
             {
                 var _rtnCol = new ObservableCollection<string> { "All" };
-                if (MasterDataSet.Tables["Plan"].Rows.Count > 0)
+                if (MasterDataSet.Tables.Contains("Plan") && MasterDataSet.Tables["Plan"].Rows.Count > 0)
                 {
                     var _results = MasterDataSet.Tables["Plan"].AsDataView().ToTable(true, "PlannerName");
                     foreach (DataRow _result in _results.Rows)

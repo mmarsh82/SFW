@@ -561,9 +561,9 @@ namespace SFW.Model
             {
                 try
                 {
-                    using (SqlCommand cmd = new SqlCommand($@"DELETE FROM [Nexus_Train].dbo.[ContainerHeader] WHERE [ContainerID] = @p1;
-DELETE FROM [Nexus_Train].dbo.[ContainerDetail] WHERE [ContainerID] = @p1;
-DELETE FROM [Nexus_Train].dbo.[ContainerDetailLot] WHERE [ContainerID] = @p1;", sqlCon))
+                    using (SqlCommand cmd = new SqlCommand($@"DELETE FROM [Nexus_Main].dbo.[ContainerHeader] WHERE [ContainerID] = @p1;
+DELETE FROM [Nexus_Main].dbo.[ContainerDetail] WHERE [ContainerID] = @p1;
+DELETE FROM [Nexus_Main].dbo.[ContainerDetailLot] WHERE [ContainerID] = @p1;", sqlCon))
                     {
                         cmd.Parameters.AddWithValue("p1", containerId);
                         return cmd.ExecuteNonQuery() > 0;
@@ -599,7 +599,7 @@ DELETE FROM [Nexus_Train].dbo.[ContainerDetailLot] WHERE [ContainerID] = @p1;", 
                 {
                     if (!string.IsNullOrEmpty(location))
                     {
-                        using (SqlCommand cmd = new SqlCommand($@"UPDATE [Nexus_Train].dbo.[ContainerHeader] SET [LastUserID]=@p1, [LastEditDate]=@p2, [XrefID]=@p3, [ContainerLocation]=@p3 WHERE [ContainerID]=@p4", sqlCon))
+                        using (SqlCommand cmd = new SqlCommand($@"UPDATE [Nexus_Main].dbo.[ContainerHeader] SET [LastUserID]=@p1, [LastEditDate]=@p2, [XrefID]=@p3, [ContainerLocation]=@p3 WHERE [ContainerID]=@p4", sqlCon))
                         {
                             cmd.Parameters.AddWithValue("p1", userId);
                             cmd.Parameters.AddWithValue("p2", DateTime.Now.ToString("yyyy-MM-dd HH:mm"));
@@ -610,7 +610,7 @@ DELETE FROM [Nexus_Train].dbo.[ContainerDetailLot] WHERE [ContainerID] = @p1;", 
                     }
                     else
                     {
-                        using (SqlCommand cmd = new SqlCommand($@"UPDATE [Nexus_Train].dbo.[ContainerHeader] SET [LastUserID]=@p1, [LastEditDate]=@p2 WHERE [ContainerID]=@p3", sqlCon))
+                        using (SqlCommand cmd = new SqlCommand($@"UPDATE [Nexus_Main].dbo.[ContainerHeader] SET [LastUserID]=@p1, [LastEditDate]=@p2 WHERE [ContainerID]=@p3", sqlCon))
                         {
                             cmd.Parameters.AddWithValue("p1", userId);
                             cmd.Parameters.AddWithValue("p2", DateTime.Now.ToString("yyyy-MM-dd HH:mm"));
@@ -657,8 +657,8 @@ DELETE FROM [Nexus_Train].dbo.[ContainerDetailLot] WHERE [ContainerID] = @p1;", 
                         try
                         {
                             using (SqlCommand cmd = new SqlCommand($@"DECLARE @newId int
-SELECT @newId = MAX([ContainerID])+1 FROM [Nexus_Train].[dbo].[ContainerHeader]
-INSERT INTO [Nexus_Train].[dbo].[ContainerHeader]
+SELECT @newId = MAX([ContainerID])+1 FROM [Nexus_Main].[dbo].[ContainerHeader]
+INSERT INTO [Nexus_Main].[dbo].[ContainerHeader]
 	([ContainerID], [ContainerType], [ContainerStatus], [LastUserID], [LastEditDate], [XrefID], [ContainerWeight], [XrefType], [ContainerHeight], [ContainerLocation])
 VALUES
 	(@newId, 'PALLET', 'PACK', @p1, @p2, @p3, 0, 'INT', 0, @p3)
@@ -724,7 +724,7 @@ SELECT @newId", sqlCon))
                     {
                         //Get the row ID from the lot table to use in the container detail table
                         var _rowId = 0;
-                        using (SqlCommand cmd = new SqlCommand($"SELECT cl.[ContainerRowID] FROM [Nexus_Train].dbo.[ContainerDetailLot] cl WHERE cl.[ContainerID] = @p1 AND cl.[LotNumber] = @p2;", sqlCon))
+                        using (SqlCommand cmd = new SqlCommand($"SELECT cl.[ContainerRowID] FROM [Nexus_Main].dbo.[ContainerDetailLot] cl WHERE cl.[ContainerID] = @p1 AND cl.[LotNumber] = @p2;", sqlCon))
                         {
                             cmd.Parameters.AddWithValue("p1", product.ParentId);
                             cmd.Parameters.AddWithValue("p2", product.LotId);
@@ -735,8 +735,8 @@ SELECT @newId", sqlCon))
                         {
                             //Get the quantity that will be left over after the update, if the value is 0 then delete the records from both the detail and lot tables
                             var _newQty = 0;
-                            using (SqlCommand cmd = new SqlCommand($@"SELECT SUM(cd.[Qty_Stock] - cl.[LotQty]) FROM [Nexus_Train].dbo.[ContainerDetail] cd 
-	RIGHT JOIN [Nexus_Train].dbo.[ContainerDetailLot] cl ON cl.[ContainerID] = cd.[ContainerID]
+                            using (SqlCommand cmd = new SqlCommand($@"SELECT SUM(cd.[Qty_Stock] - cl.[LotQty]) FROM [Nexus_Main].dbo.[ContainerDetail] cd 
+	RIGHT JOIN [Nexus_Main].dbo.[ContainerDetailLot] cl ON cl.[ContainerID] = cd.[ContainerID]
 	WHERE cl.[ContainerID] = @p1 AND cl.[LotNumber] = @p2 AND cd.[ContainerRow] = @p3", sqlCon))
                             {
                                 cmd.Parameters.AddWithValue("p1", product.ParentId);
@@ -746,8 +746,8 @@ SELECT @newId", sqlCon))
                             }
                             if (_newQty > 0)
                             {
-                                using (SqlCommand cmd = new SqlCommand($@"UPDATE [Nexus_Train].dbo.[ContainerDetail] SET [Qty_Stock] = @p1 WHERE [ContainerID] = @p2 AND [ContainerRow] = @p3
-DELETE FROM [Nexus_Train].dbo.[ContainerDetailLot] WHERE [ContainerID] = @p2 AND [ContainerRowID] = @p3 AND [LotNumber] = @p4", sqlCon))
+                                using (SqlCommand cmd = new SqlCommand($@"UPDATE [Nexus_Main].dbo.[ContainerDetail] SET [Qty_Stock] = @p1 WHERE [ContainerID] = @p2 AND [ContainerRow] = @p3
+DELETE FROM [Nexus_Main].dbo.[ContainerDetailLot] WHERE [ContainerID] = @p2 AND [ContainerRowID] = @p3 AND [LotNumber] = @p4", sqlCon))
                                 {
                                     cmd.Parameters.AddWithValue("p1", _newQty);
                                     cmd.Parameters.AddWithValue("p2", product.ParentId);
@@ -758,8 +758,8 @@ DELETE FROM [Nexus_Train].dbo.[ContainerDetailLot] WHERE [ContainerID] = @p2 AND
                             }
                             else
                             {
-                                using (SqlCommand cmd = new SqlCommand($@"DELETE FROM [Nexus_Train].dbo.[ContainerDetail] WHERE [ContainerID] = @p1 AND [ContainerRow] = @p2
-DELETE FROM [Nexus_Train].dbo.[ContainerDetailLot] WHERE [ContainerID] = @p1 AND [ContainerRowID] = @p2 AND [LotNumber] = @p3", sqlCon))
+                                using (SqlCommand cmd = new SqlCommand($@"DELETE FROM [Nexus_Main].dbo.[ContainerDetail] WHERE [ContainerID] = @p1 AND [ContainerRow] = @p2
+DELETE FROM [Nexus_Main].dbo.[ContainerDetailLot] WHERE [ContainerID] = @p1 AND [ContainerRowID] = @p2 AND [LotNumber] = @p3", sqlCon))
                                 {
                                     cmd.Parameters.AddWithValue("p1", product.ParentId);
                                     cmd.Parameters.AddWithValue("p2", _rowId);
@@ -775,7 +775,7 @@ DELETE FROM [Nexus_Train].dbo.[ContainerDetailLot] WHERE [ContainerID] = @p1 AND
                     }
                     else
                     {
-                        using (SqlCommand cmd = new SqlCommand($@"DELETE FROM [Nexus_Train].dbo.[ContainerDetail] WHERE [ContainerID] = @p1 AND [ItemNumber] = @p2", sqlCon))
+                        using (SqlCommand cmd = new SqlCommand($@"DELETE FROM [Nexus_Main].dbo.[ContainerDetail] WHERE [ContainerID] = @p1 AND [ItemNumber] = @p2", sqlCon))
                         {
                             cmd.Parameters.AddWithValue("p1", product.ParentId);
                             cmd.Parameters.AddWithValue("p2", product.ProductId);
@@ -815,7 +815,7 @@ DELETE FROM [Nexus_Train].dbo.[ContainerDetailLot] WHERE [ContainerID] = @p1 AND
                     if (product.LotTraceable)
                     {
                         var _exists = false;
-                        using (SqlCommand cmd = new SqlCommand($@"SELECT CASE WHEN COUNT([ContainerRow]) > 0 THEN 1 ELSE 0 END FROM [Nexus_Train].dbo.[ContainerDetail] WHERE [ContainerID] = @p1 AND [ItemNumber] = @p2", sqlCon))
+                        using (SqlCommand cmd = new SqlCommand($@"SELECT CASE WHEN COUNT([ContainerRow]) > 0 THEN 1 ELSE 0 END FROM [Nexus_Main].dbo.[ContainerDetail] WHERE [ContainerID] = @p1 AND [ItemNumber] = @p2", sqlCon))
                         {
                             cmd.Parameters.AddWithValue("p1", product.ParentId);
                             cmd.Parameters.AddWithValue("p2", product.ProductId);
@@ -824,9 +824,9 @@ DELETE FROM [Nexus_Train].dbo.[ContainerDetailLot] WHERE [ContainerID] = @p1 AND
                         if (_exists)
                         {
                             using (SqlCommand cmd = new SqlCommand($@"DECLARE @rowId int
-SELECT @rowId = [ContainerRow] FROM [Nexus_Train].dbo.[ContainerDetail] WHERE [ContainerID] = @p1 AND [ItemNumber] = @p2
-UPDATE [Nexus_Train].dbo.[ContainerDetail] SET [Qty_Stock] = [Qty_Stock]+@p3 WHERE [ContainerID] = @p1 AND [ItemNumber] = @p2
-INSERT INTO [Nexus_Train].dbo.[ContainerDetailLot] ([ContainerID], [ContainerRowID], [LotNumber], [LotQty]) VALUES(@p1, @rowId, @p4, @p3)", sqlCon))
+SELECT @rowId = [ContainerRow] FROM [Nexus_Main].dbo.[ContainerDetail] WHERE [ContainerID] = @p1 AND [ItemNumber] = @p2
+UPDATE [Nexus_Main].dbo.[ContainerDetail] SET [Qty_Stock] = [Qty_Stock]+@p3 WHERE [ContainerID] = @p1 AND [ItemNumber] = @p2
+INSERT INTO [Nexus_Main].dbo.[ContainerDetailLot] ([ContainerID], [ContainerRowID], [LotNumber], [LotQty]) VALUES(@p1, @rowId, @p4, @p3)", sqlCon))
                             {
                                 cmd.Parameters.AddWithValue("p1", product.ParentId);
                                 cmd.Parameters.AddWithValue("p2", product.ProductId);
@@ -838,9 +838,9 @@ INSERT INTO [Nexus_Train].dbo.[ContainerDetailLot] ([ContainerID], [ContainerRow
                         else
                         {
                             using (SqlCommand cmd = new SqlCommand($@"DECLARE @rowId int
-SELECT @rowId = CASE WHEN COUNT([ContainerRow]) = 0 THEN 1 ELSE MAX([ContainerRow])+1 END FROM [Nexus_Train].dbo.[ContainerDetail] WHERE [ContainerID] = @p1
-INSERT INTO [Nexus_Train].dbo.[ContainerDetail] ([ContainerID], [ContainerRow], [ItemNumber], [Qty_Stock]) VALUES(@p1,@rowId,@p2,@p3)
-INSERT INTO [Nexus_Train].dbo.[ContainerDetailLot] ([ContainerID], [ContainerRowID], [LotNumber], [LotQty]) VALUES(@p1, @rowId, @p4, @p3)", sqlCon))
+SELECT @rowId = CASE WHEN COUNT([ContainerRow]) = 0 THEN 1 ELSE MAX([ContainerRow])+1 END FROM [Nexus_Main].dbo.[ContainerDetail] WHERE [ContainerID] = @p1
+INSERT INTO [Nexus_Main].dbo.[ContainerDetail] ([ContainerID], [ContainerRow], [ItemNumber], [Qty_Stock]) VALUES(@p1,@rowId,@p2,@p3)
+INSERT INTO [Nexus_Main].dbo.[ContainerDetailLot] ([ContainerID], [ContainerRowID], [LotNumber], [LotQty]) VALUES(@p1, @rowId, @p4, @p3)", sqlCon))
                             {
                                 cmd.Parameters.AddWithValue("p1", product.ParentId);
                                 cmd.Parameters.AddWithValue("p2", product.ProductId);
@@ -853,8 +853,8 @@ INSERT INTO [Nexus_Train].dbo.[ContainerDetailLot] ([ContainerID], [ContainerRow
                     else
                     {
                         using (SqlCommand cmd = new SqlCommand($@"DECLARE @rowId int
-SELECT @rowId = CASE WHEN COUNT([ContainerRow]) = 0 THEN 1 ELSE MAX([ContainerRow])+1 END FROM [Nexus_Train].dbo.[ContainerDetail] WHERE [ContainerID] = @p1
-INSERT INTO [Nexus_Train].dbo.[ContainerDetail] ([ContainerID], [ContainerRow], [ItemNumber], [Qty_Stock]) VALUES (@p1,@rowId,@p2,@p3)", sqlCon))
+SELECT @rowId = CASE WHEN COUNT([ContainerRow]) = 0 THEN 1 ELSE MAX([ContainerRow])+1 END FROM [Nexus_Main].dbo.[ContainerDetail] WHERE [ContainerID] = @p1
+INSERT INTO [Nexus_Main].dbo.[ContainerDetail] ([ContainerID], [ContainerRow], [ItemNumber], [Qty_Stock]) VALUES (@p1,@rowId,@p2,@p3)", sqlCon))
                         {
                             cmd.Parameters.AddWithValue("p1", product.ParentId);
                             cmd.Parameters.AddWithValue("p2", product.ProductId);
@@ -897,7 +897,7 @@ INSERT INTO [Nexus_Train].dbo.[ContainerDetail] ([ContainerID], [ContainerRow], 
             {
                 try
                 {
-                    using (SqlCommand cmd = new SqlCommand($@"UPDATE [Nexus_Train].dbo.[ContainerDetail] SET [Qty_Stock]=@p1 WHERE [ItemNumber]=@p2", sqlCon))
+                    using (SqlCommand cmd = new SqlCommand($@"UPDATE [Nexus_Main].dbo.[ContainerDetail] SET [Qty_Stock]=@p1 WHERE [ItemNumber]=@p2", sqlCon))
                     {
                         cmd.Parameters.AddWithValue("p1", product.QuantityInput);
                         cmd.Parameters.AddWithValue("p2", product.ProductId);
