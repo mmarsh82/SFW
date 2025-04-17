@@ -114,7 +114,7 @@
                     </MenuItem.Icon>
                 </MenuItem>
             </MenuItem>
-            <MenuItem Header="View">
+            <MenuItem Header="Views">
                 <MenuItem Header="Refresh"
                           Command="{StaticResource ViewLoadICommand}"
                           CommandParameter="-2"
@@ -147,21 +147,21 @@
                           Command="{StaticResource ViewLoadICommand}"
                           CommandParameter="9"
                           Visibility="{Binding Path=(local:CurrentUser.HasNotice), Converter={StaticResource BoolToVisConverter}}"/>
-                <MenuItem Header="Planning Schedule"
+                <MenuItem Header="Planning"
                           Command="{StaticResource ViewLoadICommand}"
                           CommandParameter="11"
                           Visibility="{Binding Path=(local:CurrentUser.CanSchedule), Converter={StaticResource BoolToVisConverter}}"/>
+                <MenuItem Header="Containers"
+                          Command="{StaticResource ViewLoadICommand}"
+                          Visibility="{Binding Path=(local:CurrentUser.IsInventoryControl), Converter={StaticResource BoolToVisConverter}}"
+                          CommandParameter="10"
+                          InputGestureText="Alt+C"/>
             </MenuItem>
             <MenuItem Header="Tools">
                 <MenuItem Header="Part Information"
                           Command="{StaticResource ViewLoadICommand}"
                           CommandParameter="0"
                           InputGestureText="Alt+I"/>
-                <MenuItem Header="Container Information"
-                          Command="{StaticResource ViewLoadICommand}"
-                          Visibility="{Binding Path=(local:CurrentUser.IsInventoryControl), Converter={StaticResource BoolToVisConverter}}"
-                          CommandParameter="10"
-                          InputGestureText="Alt+C"/>
                 <MenuItem Header="Print Label"
                           Command="{StaticResource ShowWindowICommand}"
                           CommandParameter="SFW.Queries.PartLabel_View"
@@ -178,10 +178,18 @@
                           Command="{StaticResource ShowWindowICommand}"
                           CommandParameter="SFW.Tools.NcrSearch_View"
                           InputGestureText="Alt+N"/>
-                <MenuItem Header="Priority Management"
-                          Visibility="{Binding Path=(local:CurrentUser.CanSchedule), Converter={StaticResource BoolToVisConverter}}"
-                          Command="{StaticResource ShowWindowICommand}"
-                          CommandParameter="SFW.Tools.PriorityList_View"/>
+
+            </MenuItem>
+
+            <MenuItem Header="Management">
+                <MenuItem.Visibility>
+                    <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="1|1|1">
+                        <Binding Path="(local:CurrentUser.IsSupervisor)"/>
+                        <Binding Path="(local:CurrentUser.IsManager)"/>
+                        <Binding Path="(local:CurrentUser.CanSchedule)"/>
+                    </MultiBinding>
+                </MenuItem.Visibility>
+
                 <MenuItem Header="Crew Management"
                           Command="{StaticResource ShowWindowICommand}"
                           CommandParameter="SFW.Tools.CrewList_View">
@@ -191,11 +199,16 @@
                             <Binding Path="(local:CurrentUser.IsManager)"/>
                         </MultiBinding>
                     </MenuItem.Visibility>
-                    
                 </MenuItem>
 
+                <MenuItem Header="Priority Management"
+                          Visibility="{Binding Path=(local:CurrentUser.CanSchedule), Converter={StaticResource BoolToVisConverter}}"
+                          Command="{StaticResource ShowWindowICommand}"
+                          CommandParameter="SFW.Tools.PriorityList_View"/>
 
             </MenuItem>
+            
+            
             <MenuItem Header="Help"
                       Visibility="{Binding Path=(ctrl:WorkSpaceDock.Module), Converter={StaticResource IntToVisConverter}, ConverterParameter=1}">
                 <MenuItem Header="Color Legend">
@@ -234,10 +247,10 @@
                           Command="{StaticResource LogInICommand}"
                           CommandParameter="reset"
                           InputGestureText=""/>
-                <MenuItem Header="Modify App"
+                <MenuItem Header="Modify Application"
                           Command="{StaticResource ViewLoadICommand}"
                           CommandParameter="4"/>
-                <MenuItem Header="Dev Testing"
+                <MenuItem Header="Developer Command"
                           Command="{StaticResource TestICommand}"/>
             </MenuItem>
         </Menu>

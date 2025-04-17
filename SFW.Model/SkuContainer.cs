@@ -657,7 +657,7 @@ DELETE FROM [Nexus_Main].dbo.[ContainerDetailLot] WHERE [ContainerID] = @p1;", s
                         try
                         {
                             using (SqlCommand cmd = new SqlCommand($@"DECLARE @newId int
-SELECT @newId = MAX([ContainerID])+1 FROM [Nexus_Main].[dbo].[ContainerHeader]
+SELECT @newId = CASE WHEN MAX([ContainerID]) IS NULL THEN 1 ELSE MAX([ContainerID])+1 END FROM [Nexus_Main].[dbo].[ContainerHeader]
 INSERT INTO [Nexus_Main].[dbo].[ContainerHeader]
 	([ContainerID], [ContainerType], [ContainerStatus], [LastUserID], [LastEditDate], [XrefID], [ContainerWeight], [XrefType], [ContainerHeight], [ContainerLocation])
 VALUES

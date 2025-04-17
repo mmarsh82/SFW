@@ -29,6 +29,13 @@
         public int Quantity { get; set; }
 
         /// <summary>
+        /// Field 27A
+        /// Using in conjunction with the quantity to send in the right quantity for the initial issue
+        /// This field is not documented in the ERP ADI process
+        /// </summary>
+        public double ScrapFactor { get; set; }
+
+        /// <summary>
         /// Field 70
         /// </summary>
         public string IssueLoc { get; set; }

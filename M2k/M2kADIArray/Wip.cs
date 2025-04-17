@@ -142,6 +142,14 @@ namespace M2kClient.M2kADIArray
                 var _backFlush = c.BackflushLoc;
                 foreach(var w in c.WipInfo.Where(o => !string.IsNullOrEmpty(o.LotNbr)))
                 {
+                    //Calculating scrap factor
+                    if (w.ScrapFactor > 0 && w.LotQty != null && w.LotQty > 0)
+                    {
+                        var _qty = double.TryParse(w.LotQty.ToString(), out double d) ? d : 0.00;
+                        w.LotQty = (int)Math.Round(_qty * (1 + w.ScrapFactor), 0, MidpointRounding.AwayFromZero);
+                    }
+
+                    //Creating the object for submission
                     ComponentInfoList.Add(new CompInfo
                     {
                         Lot = w.LotNbr,

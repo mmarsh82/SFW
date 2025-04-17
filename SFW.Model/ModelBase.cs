@@ -66,9 +66,8 @@ namespace SFW.Model
         /// </summary>
         /// <param name="machOrder"></param>
         /// <param name="site"></param>
-        /// <param name="plan"></param>
         /// <param name="sqlCon"></param>
-        public static IReadOnlyDictionary<bool, string> BuildMasterDataSet(IReadOnlyDictionary<string, int> machOrder, int site, bool plan, SqlConnection sqlCon)
+        public static IReadOnlyDictionary<bool, string> BuildMasterDataSet(IReadOnlyDictionary<string, int> machOrder, int site, SqlConnection sqlCon)
         {
             ModelSqlCon = sqlCon;
             var _rtnDict = new Dictionary<bool, string>();
@@ -138,16 +137,8 @@ namespace SFW.Model
                         _tempDS.Tables.Add(Sku.GetInstructions(ModelSqlCon));
                         _tempDS.Tables[_tempDS.Tables.Count - 1].TableName = "WI";
 
-                        if (plan)
-                        {
-                            _tempDS.Tables.Add(Machine.GetPlannerData(machOrder, site, ModelSqlCon));
-                            _tempDS.Tables[_tempDS.Tables.Count - 1].TableName = "Plan";
-                        }
-                        else
-                        {
-                            _tempDS.Tables.Add();
-                            _tempDS.Tables[_tempDS.Tables.Count - 1].TableName = "Plan";
-                        }
+                        _tempDS.Tables.Add(Machine.GetPlannerData(machOrder, site, ModelSqlCon));
+                        _tempDS.Tables[_tempDS.Tables.Count - 1].TableName = "Plan";
 
                         _tempDS.Tables.Add(Supplier.GetSupplierTable(ModelSqlCon));
                         _tempDS.Tables[_tempDS.Tables.Count - 1].TableName = "Supplier";

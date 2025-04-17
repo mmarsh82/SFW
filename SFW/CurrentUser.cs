@@ -434,12 +434,12 @@ namespace SFW
                 {
                     BasicUser = true;
                 }
-                DirectReports = IsSupervisor ? user.GetDirectReports() : new Dictionary<int, string>();
+                DirectReports = IsSupervisor && App.SiteNumber == 1 ? user.GetDirectReports() : new Dictionary<int, string>();
                 IsLoggedIn = true;
                 CanWip = true;
                 CanLabor = App.SiteNumber == 2 || IsAdmin;
                 SapId = int.TryParse(((DirectoryEntry)user.GetUnderlyingObject()).Properties["global-ExtensionAttribute1"]?.Value.ToString(), out int i) ? i : 0;
-                ErpId = CrewMember.GetCrewErpID(SapId);
+                ErpId = ModelBase.MasterDataSet == null || !ModelBase.MasterDataSet.Tables.Contains("CREW") ? CrewMember.GetCrewErpID(SapId, App.AppSqlCon) : CrewMember.GetCrewErpID(SapId);
                 FirstName = user.GivenName;
                 LastName = user.Surname;
             }

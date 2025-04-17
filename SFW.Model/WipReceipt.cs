@@ -311,12 +311,9 @@ namespace SFW.Model
             WipWorkOrder = workOrder;
             WipWorkOrder.CrewSize = Sku.GetCrewSize(WipWorkOrder.SkuNumber);
             HasCrew = true;
-            if (HasCrew)
-            {
-                CrewList = new BindingList<CrewMember> { submitter };
-                CrewList.AddNew();
-                CrewList.ListChanged += CrewList_ListChanged;
-            }
+            CrewList = new BindingList<CrewMember> { submitter };
+            CrewList.AddNew();
+            CrewList.ListChanged += CrewList_ListChanged;
             IsLotTracable = Sku.IsLotTracable(workOrder.SkuNumber, facCode);
             IsScrap = Complete.N;
             ScrapList = new BindingList<Scrap>();
@@ -350,6 +347,7 @@ namespace SFW.Model
                     ((BindingList<CrewMember>)sender)[e.NewIndex].ShiftStart = _tempCrew.ShiftStart;
                     ((BindingList<CrewMember>)sender)[e.NewIndex].InTime = _tempCrew.InTime;
                     ((BindingList<CrewMember>)sender)[e.NewIndex].ErrorMessage = _tempCrew.ErrorMessage;
+                    ((BindingList<CrewMember>)sender)[e.NewIndex].SapId = _tempCrew.SapId;
                     if (((BindingList<CrewMember>)sender).Count() == ((BindingList<CrewMember>)sender).Count(o => !string.IsNullOrEmpty(o.Name)))
                     {
                         ((BindingList<CrewMember>)sender).AddNew();

@@ -602,6 +602,39 @@ namespace SFW.Model
         }
 
         /// <summary>
+        /// Gets the ERP ID from the database
+        /// </summary>
+        /// <param name="sapId">Facility to load</param>
+        /// <param name="sqlCon">Sql Connection to use</param>
+        /// <returns>ERP ID as string</returns>
+        public static string GetCrewErpID(int sapId, SqlConnection sqlCon)
+        {
+            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
+            {
+                try
+                {
+                    using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database}; SELECT [EmployeeID] FROM [dbo].[SFW_Staff] WHERE [SapEmployeeID] = @p1", sqlCon))
+                    {
+                        cmd.Parameters.AddWithValue("p1", sapId);
+                        return cmd.ExecuteScalar().ToString();
+                    }
+                }
+                catch (SqlException sqlEx)
+                {
+                    throw new Exception(sqlEx.Message);
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception(ex.Message);
+                }
+            }
+            else
+            {
+                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
+            }
+        }
+
+        /// <summary>
         /// Insertion and updating of crew expected labor into a custom SQL table
         /// </summary>
         /// <param name="crewMembers">List of crew members objects</param>

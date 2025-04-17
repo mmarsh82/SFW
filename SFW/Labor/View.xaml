@@ -85,7 +85,7 @@
                                        TextDecorations="Underline"
                                        FontWeight="Bold" />
 
-                            <TextBox Text="{Binding IdNumber, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                            <TextBox Text="{Binding ErpId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                          FontSize="16"
                                          Width="100"
                                          CharacterCasing="Upper"

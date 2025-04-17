@@ -125,10 +125,6 @@ namespace SFW
                 SplashMessage = "Customizing your experience.";
                 Site = "CONTI_MAIN";
                 GlobalConfig = AppGlobal.Load($"{AppFilePath}GlobalConfig.xml");
-                if (!CurrentUser.IsLoggedIn)
-                {
-                    CurrentUser.LogIn();
-                }
                 DefualtWorkCenter = UserConfig.GetUserConfigList();
                 SplashMessage = "Connecting to your data.";
                 if (AppSqlCon != null)
@@ -148,11 +144,15 @@ namespace SFW
                     ,{ 2, "" }
                 };
                 SplashMessage = "Getting your schedule ready.  This may take a few moments.";
-                var _load = Model.ModelBase.BuildMasterDataSet(UserConfig.GetIROD(), SiteNumber, CurrentUser.CanSchedule, AppSqlCon);
+                var _load = Model.ModelBase.BuildMasterDataSet(UserConfig.GetIROD(), SiteNumber, AppSqlCon);
                 if (_load.ContainsKey(true))
                 {
                     var _msg = _load.TryGetValue(true, out string s) ? s : string.Empty;
                     MessageBox.Show(s, "Unhandled Exception", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+                if (!CurrentUser.IsLoggedIn)
+                {
+                    CurrentUser.LogIn();
                 }
             }
             catch(Exception ex)

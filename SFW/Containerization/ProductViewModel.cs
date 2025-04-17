@@ -81,6 +81,7 @@ namespace SFW.Containerization
                 }
                 _selProduct = value;
                 OnPropertyChanged(nameof(SelectedProduct));
+                OnPropertyChanged(nameof(ShowProduct));
             }
         }
 
@@ -113,6 +114,9 @@ namespace SFW.Containerization
 
         public SkuContainer ContainerObject { get; set; }
 
+        public bool HasContainers { get { return ContainerView.Count > 0; } }
+        public bool ShowProduct { get { return HasContainers || SelectedProduct != null || IsNew; } }
+
         RelayCommand _refresh;
         RelayCommand _addCon;
         RelayCommand _addPrt;
@@ -133,6 +137,8 @@ namespace SFW.Containerization
             ContainerView = SkuContainer.GetContainerData(App.AppSqlCon).AsDataView();
             IsNew = false;
             ViewFilter = new string[2];
+            OnPropertyChanged(nameof(HasContainers));
+            OnPropertyChanged(nameof(ShowProduct));
         }
 
         /// <summary>
@@ -231,11 +237,15 @@ namespace SFW.Containerization
         private void RefreshExecute(object parameter)
         {
             ContainerView = SkuContainer.GetContainerData(App.AppSqlCon).AsDataView();
-            var _index = ContainerView.Table.Rows.IndexOf(SelectedProduct.Row);
+            var _index = SelectedProduct != null ? ContainerView.Table.Rows.IndexOf(SelectedProduct.Row) : -1;
             SelectedProduct = null;
-            SelectedProduct = _index == -1 ? ContainerView[0] : ContainerView?[_index];
+            if (ContainerView.Count > 0)
+            {
+                SelectedProduct = _index == -1 ? ContainerView[0] : ContainerView?[_index];
+            }
             OnPropertyChanged(nameof(ContainerView));
             NoticeFilter(SearchFilter, 0);
+            OnPropertyChanged(nameof(HasContainers));
         }
 
         #endregion
@@ -262,6 +272,8 @@ namespace SFW.Containerization
             IsNew = true;
             ContainerObject = new SkuContainer(CurrentUser.DisplayName);
             OnPropertyChanged(nameof(ContainerObject));
+            OnPropertyChanged(nameof(HasContainers));
+            OnPropertyChanged(nameof(ShowProduct));
         }
 
         #endregion
@@ -400,6 +412,7 @@ namespace SFW.Containerization
             ShowResults = true;
             IsNew = false;            
             SelectedProduct = ContainerView != null && ContainerView.Count > 0 ? ContainerView[5] : null;
+            OnPropertyChanged(nameof(HasContainers));
         }
 
         #endregion
