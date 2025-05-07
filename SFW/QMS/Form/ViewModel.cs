@@ -3,7 +3,6 @@ using SFW.Helpers;
 using SFW.Model;
 using System;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Linq;
 using System.Windows;
 using System.Windows.Input;
@@ -36,7 +35,7 @@ namespace SFW.QMS.Form
             }
         }
 
-        public ObservableCollection<QmsForm.DefectReason> DefectReasonCollection { get; set; }
+        public ObservableCollection<QmsForm.DefectReason> ReasonCollection { get; set; }
         public QmsForm.DefectReason SelectedReason
         {
             get { return FormRevision.DefectReason; }
@@ -48,21 +47,99 @@ namespace SFW.QMS.Form
                 }
                 OnPropertyChanged(nameof(SelectedReason));
                 OnPropertyChanged(nameof(FormRevision));
+                OnPropertyChanged(nameof(ShowSupplier));
+                OnPropertyChanged(nameof(ShowSupplierCollection));
+                OnPropertyChanged(nameof(SupplierCollection));
+                OnPropertyChanged(nameof(ShowReason));
+                OnPropertyChanged(nameof(ShowReasonCollection));
+                OnPropertyChanged(nameof(ReasonCollection));
+                OnPropertyChanged(nameof(ShowType));
+                OnPropertyChanged(nameof(ShowTypeCollection));
+                OnPropertyChanged(nameof(TypeCollection));
             }
         }
+        public bool ShowReason { get { return ReasonCollection != null; } }
+        public bool ShowReasonCollection { get { return CurrentUser.IsQuality && ReasonCollection?.Count > 1; } }
 
-        public ObservableCollection<QmsForm.DefectType> DefectTypeCollection { get; set; }
+        public ObservableCollection<QmsForm.DefectType> TypeCollection { get; set; }
         public QmsForm.DefectType SelectedType
         {
             get { return FormRevision.DefectType; }
             set
             {
-                if (FormRevision != null)
+                if (FormRevision != null && value != null)
                 {
                     FormRevision.DefectType = value;
+                    FormRevision.RevFormType = value.QmsFormType;
+                    if (value.QmsFormType == QmsForm.FormType.SCAR)
+                    {
+                        SupplierCollection = new ObservableCollection<Supplier>(Supplier.GetSupplierList(true));
+                        SelectedSupplier = SupplierCollection[0];
+                    }
+                    else
+                    {
+                        SupplierCollection = new ObservableCollection<Supplier>();
+                        SelectedSupplier = null;
+                        ReasonCollection = QmsForm.DefectReason.GetDefectReasonCollection(value.Id, FormRevision.DefectSubType.Id);
+                        if (ReasonCollection.Count == 1)
+                        {
+                            SelectedReason = ReasonCollection[0];
+                        }
+                    }
                 }
                 OnPropertyChanged(nameof(SelectedType));
                 OnPropertyChanged(nameof(FormRevision));
+                OnPropertyChanged(nameof(ShowSupplier));
+                OnPropertyChanged(nameof(ShowSupplierCollection));
+                OnPropertyChanged(nameof(SupplierCollection));
+                OnPropertyChanged(nameof(ShowReason));
+                OnPropertyChanged(nameof(ShowReasonCollection));
+                OnPropertyChanged(nameof(ReasonCollection));
+                OnPropertyChanged(nameof(ShowType));
+                OnPropertyChanged(nameof(ShowTypeCollection));
+                OnPropertyChanged(nameof(TypeCollection));
+            }
+        }
+        public bool ShowType { get { return TypeCollection != null; } }
+        public bool ShowTypeCollection { get { return CurrentUser.IsQuality && TypeCollection?.Count > 1; } }
+
+        public ObservableCollection<QmsForm.DefectSubType> DefectCollection { get; set; }
+        public QmsForm.DefectSubType SelectedDefect
+        {
+            get { return FormRevision.DefectSubType; }
+            set
+            {
+                if (FormRevision != null)
+                {
+                    FormRevision.DefectSubType = value;
+                }
+                if (value != null)
+                {
+                    TypeCollection = QmsForm.DefectType.GetDefectTypeCollection(value.Id);
+                    if (TypeCollection?.Count == 1)
+                    {
+                        SelectedType = TypeCollection[0];
+                    }
+                    else
+                    {
+                        ReasonCollection = null;
+                        SelectedReason = null;
+                        SupplierCollection = new ObservableCollection<Supplier>();
+                        SelectedSupplier = null;
+                        FormRevision.RevFormType = QmsForm.FormType.NCR;
+                    }
+                }
+                OnPropertyChanged(nameof(SelectedDefect));
+                OnPropertyChanged(nameof(FormRevision));
+                OnPropertyChanged(nameof(ShowSupplier));
+                OnPropertyChanged(nameof(ShowSupplierCollection));
+                OnPropertyChanged(nameof(SupplierCollection));
+                OnPropertyChanged(nameof(ShowReason));
+                OnPropertyChanged(nameof(ShowReasonCollection));
+                OnPropertyChanged(nameof(ReasonCollection));
+                OnPropertyChanged(nameof(ShowType));
+                OnPropertyChanged(nameof(ShowTypeCollection));
+                OnPropertyChanged(nameof(TypeCollection));
             }
         }
 
@@ -90,11 +167,27 @@ namespace SFW.QMS.Form
                 if (FormRevision != null)
                 {
                     FormRevision.FormSupplier = value;
+                    if (value != null)
+                    {
+                        ReasonCollection = QmsForm.DefectReason.GetDefectReasonCollection(FormRevision.FormSupplier.Classification);
+                        SelectedReason = ReasonCollection[0];
+                    }
                 }
                 OnPropertyChanged(nameof(SelectedSupplier));
                 OnPropertyChanged(nameof(FormRevision));
+                OnPropertyChanged(nameof(ShowSupplier));
+                OnPropertyChanged(nameof(ShowSupplierCollection));
+                OnPropertyChanged(nameof(SupplierCollection));
+                OnPropertyChanged(nameof(ShowReason));
+                OnPropertyChanged(nameof(ShowReasonCollection));
+                OnPropertyChanged(nameof(ReasonCollection));
+                OnPropertyChanged(nameof(ShowType));
+                OnPropertyChanged(nameof(ShowTypeCollection));
+                OnPropertyChanged(nameof(TypeCollection));
             }
         }
+        public bool ShowSupplier { get { return FormRevision?.RevFormType == QmsForm.FormType.SCAR; } }
+        public bool ShowSupplierCollection { get { return CurrentUser.IsQuality && FormRevision?.RevFormType == QmsForm.FormType.SCAR; } }
 
         public ObservableCollection<CrewMember> CrewCollection { get; set; }
 
@@ -120,30 +213,6 @@ namespace SFW.QMS.Form
             }
         }
 
-        private int? _pLoss;
-        public string ViewPotentialLoss
-        {
-            get
-            { return _pLoss.ToString(); }
-            set
-            {
-                if (int.TryParse(value, out int i))
-                {
-                    _pLoss = i;
-                    if (i > 0)
-                    {
-                        FormRevision.PotentialLoss = i;
-                        FormRevision.PotentialValue = i * FormObject.ProductValue;
-                    }
-                }
-                else
-                {
-                    _pLoss = null;
-                }
-                OnPropertyChanged(nameof(ViewPotentialLoss));
-            }
-        }
-
         private bool _fromSched;
         public bool FromSchedule
         {
@@ -164,7 +233,6 @@ namespace SFW.QMS.Form
         RelayCommand _xPic;
         RelayCommand _chgRev;
         RelayCommand _void;
-        RelayCommand _clone;
 
         #endregion
 
@@ -188,13 +256,17 @@ namespace SFW.QMS.Form
             ActionType = "Submit";
             if (IsNewForm)
             {
-                if (DefectReasonCollection == null)
+                if (ReasonCollection == null)
                 {
-                    DefectReasonCollection = QmsForm.DefectReason.GetDefectReasonCollection();
+                    ReasonCollection = QmsForm.DefectReason.GetDefectReasonCollection();
                 }
-                if (DefectTypeCollection == null)
+                if (DefectCollection == null)
                 {
-                    DefectTypeCollection = QmsForm.DefectType.GetDefectTypeCollection();
+                    DefectCollection = QmsForm.DefectSubType.GetCollection();
+                }
+                if (TypeCollection == null)
+                {
+                    TypeCollection = QmsForm.DefectType.GetDefectTypeCollection();
                 }
                 if (DispositionCollection == null)
                 {
@@ -206,7 +278,7 @@ namespace SFW.QMS.Form
                 }
                 if (SupplierCollection == null)
                 {
-                    SupplierCollection = new ObservableCollection<Supplier>(Supplier.GetSupplierList());
+                    SupplierCollection = new ObservableCollection<Supplier>(Supplier.GetSupplierList(true));
                 }
             }
         }
@@ -227,10 +299,8 @@ namespace SFW.QMS.Form
                 ActionType = "Submit";
                 CrewCollection = CrewMember.GetCrewCollection(FormObject.Site);
                 LoadedWorkOrder = workOrder;
-                DefectReasonCollection = QmsForm.DefectReason.GetDefectReasonCollection();
-                DefectTypeCollection = QmsForm.DefectType.GetDefectTypeCollection();
+                DefectCollection = QmsForm.DefectSubType.GetCollection();
                 DispositionCollection = QmsForm.Disposition.GetDispositionCollection();
-                SupplierCollection = new ObservableCollection<Supplier>(Supplier.GetSupplierList());
             }
             catch (Exception ex)
             {
@@ -259,39 +329,16 @@ namespace SFW.QMS.Form
                 ActionType = "Update";
                 CrewCollection = CrewMember.GetCrewCollection(FormObject.Site);
                 FormObject.Reporter = CrewCollection.FirstOrDefault(o => o.ErpId == FormObject.Reporter.ErpId);
-                ViewPotentialLoss = FormRevision.PotentialLoss.ToString();
-                DefectReasonCollection = QmsForm.DefectReason.GetDefectReasonCollection();
-                SelectedReason = DefectReasonCollection.FirstOrDefault(o => o.Id == FormRevision.DefectReason.Id);
-                DefectTypeCollection = QmsForm.DefectType.GetDefectTypeCollection();
-                SelectedType = DefectTypeCollection.FirstOrDefault(o => o.Id == FormRevision.DefectType.Id);
+                DefectCollection = QmsForm.DefectSubType.GetCollection();
+                SelectedDefect = DefectCollection.FirstOrDefault(o => o.Id == FormRevision.DefectSubType.Id);
+                SelectedType = TypeCollection.FirstOrDefault(o => o.Id == FormRevision.DefectType.Id);
+                SelectedReason = ReasonCollection.FirstOrDefault(o => o.Id == FormRevision.DefectReason?.Id);
                 DispositionCollection = QmsForm.Disposition.GetDispositionCollection();
                 SelectedDisposition = DispositionCollection.FirstOrDefault(o => o.Id == FormRevision.Disposition.Id);
-                SupplierCollection = new ObservableCollection<Supplier>(Supplier.GetSupplierList());
-                if (FormRevision.FormSupplier != null)
+                if (FormRevision.RevFormType == QmsForm.FormType.SCAR)
                 {
-                    SelectedSupplier = SupplierCollection.FirstOrDefault(o => o.SupplierId == FormRevision.FormSupplier.SupplierId);
-                }
-                using (BackgroundWorker bw = new BackgroundWorker())
-                {
-                    try
-                    {
-                        bw.DoWork += new DoWorkEventHandler(
-                        delegate (object sender, DoWorkEventArgs e)
-                        {
-                            var _actuals = QmsForm.GetActuals(FormObject.FormId, App.AppSqlCon);
-                            if (_actuals.Count > 0)
-                            {
-                                FormRevision.ActualLoss = _actuals.FirstOrDefault().Key;
-                                FormRevision.ActualCost = _actuals.FirstOrDefault().Value;
-                                OnPropertyChanged(nameof(FormRevision));
-                            }
-                        });
-                        bw.RunWorkerAsync();
-                    }
-                    catch (Exception)
-                    {
-
-                    }
+                    SupplierCollection = new ObservableCollection<Supplier>(Supplier.GetSupplierList(true));
+                    SelectedSupplier = SupplierCollection.FirstOrDefault(o => o.Id == FormRevision.FormSupplier.Id);
                 }
             }
             catch (Exception ex)
@@ -525,43 +572,6 @@ namespace SFW.QMS.Form
             {
                 FormRevision.Disposition = new Model.QmsForm.Disposition(7, "Void", "Voided");
                 FormRevision.Submit(FormObject.FormId, FormObject.RevisionList.Count() + 1, App.AppSqlCon);
-            }
-        }
-
-        #endregion
-
-        #region Clone NCR ICommand
-
-        public ICommand CloneICommand
-        {
-            get
-            {
-                if (_clone == null)
-                {
-                    _clone = new RelayCommand(CloneExecute);
-                }
-                return _clone;
-            }
-        }
-
-        private void CloneExecute(object parameter)
-        {
-            FormObject.FormId = 0;
-            FormObject.TempId = int.Parse(DateTime.Now.ToString("MMddmmss"));
-            FormObject.RevisionList.Clear();
-            FormRevision.RevisionId = 1;
-            FormObject.RevisionList.Add(FormRevision);
-            if(FromSchedule)
-            {
-                WorkSpaceDock.UpdateChildDock(1, 1, new ViewModel(FormObject, true, true, FormRevision.RevFormType));
-            }
-            else
-            {
-                WorkSpaceDock.UpdateChildDock(9, 1, new ViewModel(FormObject, false, true, FormRevision.RevFormType));
-            }
-            foreach (var _photo in FormObject.PhotoCollection)
-            {
-
             }
         }
 

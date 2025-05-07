@@ -8,28 +8,14 @@ namespace SFW.Model
 {
     public class Supplier : ModelBase
     {
-        public class Contact
-        {
-            #region Properties
-
-            public int ContactId { get; set; }
-            public string FullName { get; set; }
-            public string email { get; set; }
-
-            #endregion
-
-            /// <summary>
-            /// Default constructor
-            /// </summary>
-            public Contact()
-            { }
-        }
-
         #region Properties
 
-        public int SupplierId { get; set; }
+        public int Id { get; set; }
         public string Name { get; set; }
-        public List<Contact> ContactList { get; set; }
+        public int ContactId { get; set; }
+        public string ContactName { get; set; }
+        public string ContactEmail { get; set; }
+        public char Classification { get; set; }
 
         #endregion
 
@@ -38,6 +24,32 @@ namespace SFW.Model
         /// </summary>
         public Supplier()
         { }
+
+        /// <summary>
+        /// Overloaded constructor
+        /// </summary>
+        public Supplier(int id)
+        {
+            if (id > 0)
+            {
+                var _row = MasterDataSet.Tables["Supplier"].Select($"[SupplierId] = '{id}'").FirstOrDefault();
+                Id = id;
+                Name = _row.SafeGetField<string>("SupplierName");
+                ContactId = _row.SafeGetField<int>("ContactId");
+                ContactName = _row.SafeGetField<string>("ContactFullName");
+                ContactEmail = _row.SafeGetField<string>("ContactEmail");
+                Classification = _row.SafeGetField<string>("Type").FirstOrDefault();
+            }
+            else
+            {
+                Id = 0;
+                Name = "None";
+                ContactId = 0;
+                ContactName = "Contact Empty";
+                ContactEmail = "Not on file";
+                Classification = 'N';
+            }
+        }
 
         #region Data access
 
@@ -81,41 +93,34 @@ namespace SFW.Model
         /// <summary>
         /// Load a list of suppliers
         /// </summary>
+        /// <param name="addAll">Add an all to the beginning of the list</param>
         /// <returns>A list of suppliers</returns>
-        public static List<Supplier> GetSupplierList()
+        public static List<Supplier> GetSupplierList(bool addNone)
         {
             var _rtnList = new List<Supplier>();
+            if (addNone)
+            {
+                _rtnList.Add(new Supplier
+                {
+                    Id = 0
+                    ,Name = "None"
+                    ,ContactId = 0
+                    ,ContactName = "Contact Empty"
+                    ,ContactEmail = "Not on file"
+                    ,Classification = 'N'
+                });
+            }
             foreach (DataRow _row in MasterDataSet.Tables["Supplier"].Rows)
             {
-                var _supId = _row.SafeGetField<int>("SupplierId");
-                var _conId = _row.SafeGetField<int>("ContactId");
-                if (_rtnList.Count(o => o.SupplierId == _supId) > 0)
+                _rtnList.Add(new Supplier
                 {
-                    if (_conId > 0)
-                    {
-                        _rtnList.FirstOrDefault(o => o.SupplierId == _supId).ContactList.Add(new Contact
-                        {
-                            ContactId = _conId
-                            ,FullName = _row.SafeGetField<string>("ContactFullName")
-                            ,email = _row.SafeGetField<string>("ContactEmail")
-                        });
-                    }
-                }
-                else
-                {
-                    _rtnList.Add(new Supplier
-                    {
-                        SupplierId = _supId
-                        ,Name = _row.SafeGetField<string>("SupplierName")
-                        ,ContactList = new List<Contact>()
-                    });
-                    _rtnList.Last().ContactList.Add(new Contact
-                    {
-                        ContactId = _conId
-                        ,FullName = _row.SafeGetField<string>("ContactFullName")
-                        ,email = _row.SafeGetField<string>("ContactEmail")
-                    });
-                }
+                    Id = _row.SafeGetField<int>("SupplierId")
+                    ,Name = _row.SafeGetField<string>("SupplierName")
+                    ,ContactId = _row.SafeGetField<int>("ContactId")
+                    ,ContactName = _row.SafeGetField<string>("ContactFullName")
+                    ,ContactEmail = _row.SafeGetField<string>("ContactEmail")
+                    ,Classification = _row.SafeGetField<string>("Type").FirstOrDefault()
+                });
             }
             return _rtnList;
         }

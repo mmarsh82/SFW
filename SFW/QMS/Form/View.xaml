@@ -172,24 +172,37 @@
                         </Button.Visibility>
                     </Button>
 
-                    <Button Content="Clone"
-                            FontSize="16"
-                            Command="{Binding CloneICommand}"
-                            Style="{DynamicResource MenuButtonStyle}">
-                        <Button.Visibility>
-                            <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="NCR">
-                                <Binding Source="Void"/>
-                                <Binding Path="IsNewNcr"/>
-                                <Binding Path="(main:CurrentUser.IsQuality)"/>
-                            </MultiBinding>
-                        </Button.Visibility>
-                    </Button>
-
                 </StackPanel>
 
                 <!--#endregion-->
 
                 <!--#region Grid.Row 1  QMS Form Header-->
+
+                <StackPanel Grid.Row="1" Orientation="Horizontal"
+                            HorizontalAlignment="Left" VerticalAlignment="Center"
+                            Visibility="{Binding IsNewForm, Converter={StaticResource BoolToVisConverter}}">
+
+                    <TextBlock Text="{Binding FormRevision.RevFormType, StringFormat=New {0}}"
+                               FontSize="32"
+                               FontWeight="Bold"
+                               Foreground="#FF135185"
+                               TextDecorations="Underline"/>
+
+                    <TextBlock Text="{Binding SelectedDisposition.Status}"
+                               FontSize="20"
+                               FontWeight="Bold"
+                               VerticalAlignment="Center"
+                               Foreground="{Binding SelectedDisposition.Status, Converter={StaticResource StatusToColorConverter}}"
+                               Margin="70,0,0,0"/>
+
+                    <TextBlock Text="Escape"
+                               FontSize="20"
+                               FontWeight="Bold"
+                               VerticalAlignment="Center"
+                               Visibility="{Binding FormObject.IsEscape, Converter={StaticResource BoolToVisConverter}}"
+                               Margin="70,0,0,0"/>
+
+                </StackPanel>
 
                 <StackPanel Grid.Row="1" Orientation="Horizontal"
                             HorizontalAlignment="Left" VerticalAlignment="Center"
@@ -268,7 +281,7 @@
                               Background="LightGray"
                               IsEditable="True"
                               Width="Auto"
-                              MinWidth="100"
+                              MinWidth="150"
                               Margin="5,0,0,0"
                               Visibility="{Binding IsNewForm, Converter={StaticResource BoolToVisConverter}}"
                               Style="{DynamicResource RequiredComboBox}"/>
@@ -418,33 +431,34 @@
                 <!--#region Grid.Row 7  (Used as a spacer)-->
                 <!--#endregion-->
 
-                <!--#region Grid.Row 8 Defect Information-->
+                <!--#region Grid.Row 8 Defect and Type-->
 
                 <StackPanel Grid.Row="8" Orientation="Horizontal"
                             Visibility="{Binding FormObject.IsValidOrder, Converter={StaticResource BoolToVisConverter}}">
 
-                    <TextBlock Text="Reason:"
+                    <TextBlock Text="Defect:"
                                FontSize="24"
                                FontWeight="Bold"
-                               TextDecorations="UnderLine"
+                               TextDecorations="Underline"
                                Foreground="#FF135185"/>
 
-                    <TextBlock Text="{Binding SelectedReason.Description}"
+                    <TextBlock Text="{Binding SelectedDefect.Description}"
                                Visibility="{Binding Path=(main:CurrentUser.IsQuality), Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}"
                                FontSize="24"
                                Margin="10,0,0,0" />
 
-                    <ComboBox x:Name="DefectReason"
-                              ItemsSource="{Binding DefectReasonCollection, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                              SelectedValue="{Binding SelectedReason, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                    <ComboBox x:Name="cb_Defect"
+                              ItemsSource="{Binding DefectCollection, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                              SelectedValue="{Binding SelectedDefect, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                               Visibility="{Binding Path=(main:CurrentUser.IsQuality), Converter={StaticResource BoolToVisConverter}}"
                               DisplayMemberPath="Description"
                               FontSize="18"
                               FontWeight="Bold"
                               Background="LightGray"
                               Width="Auto"
-                              MinWidth="100"
-                              TabIndex="3"
+                              IsEditable="True"
+                              MinWidth="180"
+                              TabIndex="4"
                               Margin="5,0,0,0"
                               Style="{DynamicResource RequiredComboBox}"/>
 
@@ -453,24 +467,25 @@
                                FontWeight="Bold"
                                Margin="50,0,0,0"
                                TextDecorations="Underline"
+                               Visibility="{Binding ShowType, Converter={StaticResource BoolToVisConverter}}"
                                Foreground="#FF135185"/>
 
                     <TextBlock Text="{Binding SelectedType.Description}"
-                               Visibility="{Binding Path=(main:CurrentUser.IsQuality), Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}"
+                               Visibility="{Binding ShowTypeCollection, Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}"
                                FontSize="24"
                                Margin="10,0,0,0" />
 
-                    <ComboBox x:Name="DefectType"
-                              ItemsSource="{Binding DefectTypeCollection, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                    <ComboBox x:Name="cb_Type"
+                              ItemsSource="{Binding TypeCollection, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                               SelectedValue="{Binding SelectedType, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                              Visibility="{Binding Path=(main:CurrentUser.IsQuality), Converter={StaticResource BoolToVisConverter}}"
+                              Visibility="{Binding ShowTypeCollection, Converter={StaticResource BoolToVisConverter}}"
                               DisplayMemberPath="Description"
                               FontSize="18"
                               FontWeight="Bold"
                               Background="LightGray"
                               Width="Auto"
                               IsEditable="True"
-                              MinWidth="100"
+                              MinWidth="180"
                               TabIndex="4"
                               Margin="5,0,0,0"
                               Style="{DynamicResource RequiredComboBox}"/>
@@ -482,69 +497,61 @@
                 <!--#region Grid.Row 9  (Used as a spacer)-->
                 <!--#endregion-->
 
-                <!--#region Grid.Row 10 Loss Information-->
+                <!--#region Grid.Row 10 Reason and Loss Information-->
 
                 <StackPanel Grid.Row="10" Orientation="Horizontal"
                             Visibility="{Binding FormObject.IsValidOrder, Converter={StaticResource BoolToVisConverter}}">
 
-                    <TextBlock Text="Potential Loss:"
+                    <TextBlock Text="Reason:"
                                FontSize="24"
                                FontWeight="Bold"
                                TextDecorations="UnderLine"
+                               Visibility="{Binding ShowReason, Converter={StaticResource BoolToVisConverter}}"
                                Foreground="#FF135185"/>
 
-                    <TextBlock Text="{Binding ViewPotentialLoss}"
+                    <TextBlock Text="{Binding SelectedReason.Description}"
+                               Visibility="{Binding ShowReasonCollection, Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}"
                                FontSize="24"
-                               Margin="10,0,0,0"
-                               Visibility="{Binding Path=(main:CurrentUser.IsQuality), Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}"/>
+                               Margin="10,0,0,0" />
 
-                    <TextBox x:Name="PotentialLoss"
-                             Text="{Binding ViewPotentialLoss, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                             FontSize="22"
-                             FontWeight="Bold"
-                             Background="LightGray"
-                             Width="75"
-                             VerticalAlignment="Center"
-                             MaxLength="10"
-                             TabIndex="6"
-                             Margin="5,0,0,0"
-                             Visibility="{Binding Path=(main:CurrentUser.IsQuality), Converter={StaticResource BoolToVisConverter}}"
-                             Style="{DynamicResource RequiredTextBox}" />
+                    <ComboBox x:Name="cb_Reason"
+                              ItemsSource="{Binding ReasonCollection, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                              SelectedValue="{Binding SelectedReason, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                              Visibility="{Binding ShowReasonCollection, Converter={StaticResource BoolToVisConverter}}"
+                              DisplayMemberPath="Description"
+                              FontSize="18"
+                              FontWeight="Bold"
+                              Background="LightGray"
+                              Width="Auto"
+                              MinWidth="200"
+                              TabIndex="3"
+                              Margin="5,0,0,0"
+                              Style="{DynamicResource OptionalComboBox}"/>
 
-                    <TextBlock Text="{Binding FormObject.Part.Uom}"
-                               FontSize="24"
-                               Margin="5,0,0,0"/>
-
-                    <TextBlock Text="{Binding FormRevision.PotentialValue, StringFormat=c}"
-                               FontSize="24"
-                               Visibility="{Binding FormRevision.PotentialLoss, Converter={StaticResource IntToVisConverter}, ConverterParameter=n0}"
-                               Margin="15,0,0,0"/>
-
-                    <TextBlock Text="Actual Loss:"
+                    <TextBlock Text="Supplier:"
                                FontSize="24"
                                FontWeight="Bold"
-                               Margin="30,0,0,0"
+                               Margin="50,0,0,0"
                                TextDecorations="Underline"
-                               Visibility="{Binding FormRevision.ActualLoss, Converter={StaticResource IntToVisConverter}, ConverterParameter=n0}"
+                               Visibility="{Binding ShowSupplier, Converter={StaticResource BoolToVisConverter}}"
                                Foreground="#FF135185"/>
 
-                    <TextBlock Text="{Binding FormRevision.ActualLoss}"
+                    <TextBlock Text="{Binding SelectedSupplier.Name}"
                                FontSize="24"
-                               Visibility="{Binding FormRevision.ActualLoss, Converter={StaticResource IntToVisConverter}, ConverterParameter=n0}"
-                               Foreground="Crimson"
+                               Visibility="{Binding ShowSupplierCollection, Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}"
                                Margin="10,0,0,0"/>
 
-                    <TextBlock Text="{Binding FormObject.Part.Uom}"
-                               FontSize="24"
-                               Margin="5,0,0,0"
-                               Visibility="{Binding FormRevision.ActualLoss, Converter={StaticResource IntToVisConverter}, ConverterParameter=n0}"
-                               Foreground="Crimson"/>
-
-                    <TextBlock Text="{Binding FormRevision.ActualCost, StringFormat=c}"
-                               FontSize="24"
-                               Visibility="{Binding FormRevision.ActualLoss, Converter={StaticResource IntToVisConverter}, ConverterParameter=n0}"
-                               Foreground="Crimson"
-                               Margin="10,0,0,0"/>
+                    <ComboBox x:Name="Supplier"
+                              ItemsSource="{Binding SupplierCollection, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                              SelectedValue="{Binding SelectedSupplier, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                              DisplayMemberPath="Name"
+                              FontSize="18"
+                              FontWeight="Bold"
+                              MinWidth="200"
+                              TabIndex="7"
+                              Margin="5,0,0,0"
+                              Visibility="{Binding ShowSupplierCollection, Converter={StaticResource BoolToVisConverter}}"
+                              Style="{DynamicResource RequiredComboBox}"/>
 
                 </StackPanel>
 
@@ -553,7 +560,7 @@
                 <!--#region Grid.Row 11  (Used as a spacer)-->
                 <!--#endregion-->
 
-                <!--#region Grid.Row 12 Disposition, supplier, and closing action -->
+                <!--#region Grid.Row 12 Disposition, scrap cost and closing action -->
 
                 <StackPanel Grid.Row="12" Orientation="Horizontal"
                             Visibility="{Binding FormObject.IsValidOrder, Converter={StaticResource BoolToVisConverter}}">
@@ -581,42 +588,31 @@
                               Visibility="{Binding Path=(main:CurrentUser.IsQuality), Converter={StaticResource BoolToVisConverter}}"
                               Style="{DynamicResource RequiredComboBox}"/>
 
-                    <TextBlock Text="Supplier:"
+                    <TextBlock Text="Actual Loss:"
                                FontSize="24"
                                FontWeight="Bold"
-                               Margin="10,0,0,0"
+                               Margin="30,0,0,0"
                                TextDecorations="Underline"
-                               Visibility="Collapsed"
+                               Visibility="{Binding FormRevision.ActualLoss, Converter={StaticResource IntToVisConverter}, ConverterParameter=n0}"
                                Foreground="#FF135185"/>
 
-                    <TextBlock Text="{Binding SelectedSupplier}"
+                    <TextBlock Text="{Binding FormRevision.ActualLoss}"
                                FontSize="24"
-                               Margin="10,0,0,0">
-                        <TextBlock.Visibility>
-                            <MultiBinding Converter="{StaticResource TypeToVisConverter}" ConverterParameter="SCAR*i">
-                                <Binding Path="FormRevision.Type"/>
-                                <Binding Path="(main:CurrentUser.IsQuality)"/>
-                            </MultiBinding>
-                        </TextBlock.Visibility>
-                    </TextBlock>
+                               Visibility="{Binding FormRevision.ActualLoss, Converter={StaticResource IntToVisConverter}, ConverterParameter=n0}"
+                               Foreground="Crimson"
+                               Margin="10,0,0,0"/>
 
-                    <ComboBox x:Name="Supplier"
-                              ItemsSource="{Binding SupplierCollection, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                              SelectedValue="{Binding SelectedSupplier, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                              DisplayMemberPath="Description"
-                              FontSize="18"
-                              FontWeight="Bold"
-                              Width="200"
-                              TabIndex="7"
-                              Margin="5,0,0,0"
-                              Style="{DynamicResource RequiredComboBox}">
-                        <ComboBox.Visibility>
-                            <MultiBinding Converter="{StaticResource TypeToVisConverter}" ConverterParameter="SCAR">
-                                <Binding Path="FormRevision.Type"/>
-                                <Binding Path="(main:CurrentUser.IsQuality)"/>
-                            </MultiBinding>
-                        </ComboBox.Visibility>
-                    </ComboBox>
+                    <TextBlock Text="{Binding FormObject.Part.Uom}"
+                               FontSize="24"
+                               Margin="5,0,0,0"
+                               Visibility="{Binding FormRevision.ActualLoss, Converter={StaticResource IntToVisConverter}, ConverterParameter=n0}"
+                               Foreground="Crimson"/>
+
+                    <TextBlock Text="{Binding FormRevision.ActualCost, StringFormat=c}"
+                               FontSize="24"
+                               Visibility="{Binding FormRevision.ActualLoss, Converter={StaticResource IntToVisConverter}, ConverterParameter=n0}"
+                               Foreground="Crimson"
+                               Margin="10,0,0,0"/>
 
                     <TextBlock Text="Closing Action:"
                                FontSize="24"
@@ -720,7 +716,7 @@
                             <Image Source="/SFW;component/Icons/Add.ico" />
                         </Button.Content>
                         <Button.Visibility>
-                            <MultiBinding Converter="{StaticResource BoolToVisConverter}">
+                            <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="1*1">
                                 <Binding Path="(main:CurrentUser.IsQuality)"/>
                                 <Binding Path="NcrObject.Part.IsLotTrace"/>
                             </MultiBinding>

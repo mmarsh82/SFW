@@ -75,6 +75,8 @@ namespace SFW
             RefreshDispatchTimer = new DispatcherTimer();
             RefreshDispatchTimer.Tick += new EventHandler(RefreshTimerTick);
             RefreshDispatchTimer.Interval = increment;
+            RefreshDispatchTimer.Dispatcher.Thread.SetApartmentState(System.Threading.ApartmentState.STA);
+            RefreshDispatchTimer.Dispatcher.Thread.IsBackground = true;
             RefreshDispatchTimer.Start();
             RefreshTimeSpan = increment;
             StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(Status)));

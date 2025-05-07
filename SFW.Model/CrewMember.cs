@@ -799,6 +799,10 @@ namespace SFW.Model
             {
                 return "24:00";
             }
+            if (string.IsNullOrEmpty(facCode))
+            {
+                facCode = GetFacility(crewId);
+            }
             try
             {
                 //var dateId = (DateTime.Today - Convert.ToDateTime("1967/12/31")).Days;

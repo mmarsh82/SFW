@@ -647,7 +647,7 @@ namespace SFW.WIP
         {
             var _wQty = TQty == null || TQty == 0 ? Convert.ToInt32(WipRecord.WipQty) : Convert.ToInt32(TQty);
             var _diamond = string.Empty;
-            var _qir = 0;
+
             //Printing the travel card logic
             if (LotList == null || LotList.Count == 0)
             {
@@ -667,7 +667,7 @@ namespace SFW.WIP
                         _diamond = DiamondEntry.Show();
                         App.GetWindow<View>().Topmost = true;
                     }
-                    _qir = WipRecord.IsLotTracable ? Lot.GetAssociatedQIR(WipRecord.WipLot.LotNumber, App.AppSqlCon) : 0;
+                    var _ncr = WipRecord.IsLotTracable ? QmsForm.GetNcrId("", App.AppSqlCon) : QmsForm.GetNcrId(WipRecord.WipWorkOrder.OrderNumber);
                     TravelCard.Create("", "technology#1",
                         WipRecord.WipWorkOrder.SkuNumber,
                         WipRecord.IsLotTracable ? WipRecord.WipLot.LotNumber : "",
@@ -675,7 +675,7 @@ namespace SFW.WIP
                         _diamond,
                         _wQty,
                         WipRecord.WipWorkOrder.Uom,
-                        _qir,
+                        _ncr,
                         deviation:WipRecord.WipWorkOrder.IsDeviated
                         );
                     switch (parameter.ToString())
@@ -713,7 +713,7 @@ namespace SFW.WIP
                         "",
                         _wQty,
                         WipRecord.WipWorkOrder.Uom,
-                        0,
+                        "",
                         int.TryParse(Weight.ToString(), out int i) ? i : 0,
                         WipRecord.Submitter,
                         CompoundPart,
@@ -742,6 +742,7 @@ namespace SFW.WIP
                     }
                     foreach (var _lot in LotList)
                     {
+                        var _ncr = QmsForm.GetNcrId(_lot, App.AppSqlCon);
                         TravelCard.Create("", "technology#1",
                             WipRecord.WipWorkOrder.SkuNumber,
                             _lot,
@@ -749,7 +750,7 @@ namespace SFW.WIP
                             _diamond,
                             _wQty,
                             WipRecord.WipWorkOrder.Uom,
-                            Lot.GetAssociatedQIR(_lot, App.AppSqlCon),
+                            _ncr,
                             deviation:WipRecord.WipWorkOrder.IsDeviated);
                         switch (parameter.ToString())
                         {
@@ -771,7 +772,7 @@ namespace SFW.WIP
                         "",
                         _wQty,
                         WipRecord.WipWorkOrder.Uom,
-                        0,
+                        "",
                         int.TryParse(Weight.ToString(), out int i) ? i : 0,
                         WipRecord.Submitter
                         );

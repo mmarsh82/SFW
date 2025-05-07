@@ -42,7 +42,7 @@ namespace SFW.Model
                     {
                         try
                         {
-                            using (SqlDataAdapter adapter = new SqlDataAdapter($@"SELECT * FROM [dbo].[NCR-CSTM_Disposition] WHERE [DispositionId] <> 7", sqlCon))
+                            using (SqlDataAdapter adapter = new SqlDataAdapter($@"SELECT * FROM [dbo].[DEFECT-CSTM_Disposition] WHERE [ID] <> 7", sqlCon))
                             {
                                 adapter.Fill(_dt);
                             }
@@ -117,7 +117,7 @@ namespace SFW.Model
                     {
                         try
                         {
-                            using (SqlDataAdapter adapter = new SqlDataAdapter($@"SELECT * FROM [dbo].[NCR-CSTM_Disposition] WHERE [DispositionId] <> 7", sqlCon))
+                            using (SqlDataAdapter adapter = new SqlDataAdapter($@"SELECT * FROM [dbo].[DEFECT-CSTM_Disposition] WHERE [ID] <> 7", sqlCon))
                             {
                                 adapter.Fill(_dt);
                             }
@@ -159,20 +159,21 @@ namespace SFW.Model
             public static ObservableCollection<Disposition> GetDispositionCollection()
             {
                 var _rtnColl = new ObservableCollection<Disposition>();
-                foreach (DataRow _row in MasterDataSet.Tables["NcrDispo"].Rows)
+                foreach (DataRow _row in MasterDataSet.Tables["DefectDisposition"].Rows)
                 {
-                    _rtnColl.Add(new Disposition(_row.SafeGetField<int>("DispositionId"), _row.SafeGetField<string>("DispositionDescription"), _row.SafeGetField<string>("LinkedStatus")));
+                    _rtnColl.Add(new Disposition(_row.SafeGetField<int>("ID"), _row.SafeGetField<string>("Description"), _row.SafeGetField<string>("FormStatus")));
                 }
                 return _rtnColl;
             }
         }
 
-        public class DefectType
+        public class DefectSubType
         {
             #region Properties
 
             public int Id { get; set; }
             public string Description { get; set; }
+            public string ToolTip { get; set; }
 
             #endregion
 
@@ -183,7 +184,7 @@ namespace SFW.Model
             /// </summary>
             /// <param name="sqlCon">Sql Connection to use</param>
             /// <returns>An ObservableCollection of NCR defect types</returns>
-            public static DataTable GetDefectTypeTable(SqlConnection sqlCon)
+            public static DataTable GetTable(SqlConnection sqlCon)
             {
                 using (var _dt = new DataTable())
                 {
@@ -191,7 +192,7 @@ namespace SFW.Model
                     {
                         try
                         {
-                            using (SqlDataAdapter adapter = new SqlDataAdapter($@"SELECT * FROM [dbo].[NCR-CSTM_DefectType]", sqlCon))
+                            using (SqlDataAdapter adapter = new SqlDataAdapter($@"SELECT * FROM [dbo].[DEFECT-CSTM_SubType]", sqlCon))
                             {
                                 adapter.Fill(_dt);
                             }
@@ -218,10 +219,88 @@ namespace SFW.Model
             /// <summary>
             /// Default Constructor
             /// </summary>
-            public DefectType(int dType, string dDescrip)
+            public DefectSubType(int dType, string dDescrip, string toolTip)
             {
                 Id = dType;
                 Description = dDescrip;
+                ToolTip = toolTip;
+            }
+
+            /// <summary>
+            /// Load an observable collection with all the NCR defect type information
+            /// </summary>
+            /// <returns>An ObservableCollection of NCR defect types</returns>
+            public static ObservableCollection<DefectSubType> GetCollection()
+            {
+                var _rtnColl = new ObservableCollection<DefectSubType>();
+                foreach (DataRow _row in MasterDataSet.Tables["DefectSubType"].Rows)
+                {
+                    if (_rtnColl.Count(o => o.Id == _row.SafeGetField<int>("ID")) == 0)
+                    {
+                        _rtnColl.Add(new DefectSubType(_row.SafeGetField<int>("ID"), _row.SafeGetField<string>("Description"), _row.SafeGetField<string>("ToolTip")));
+                    }
+                }
+                return _rtnColl;
+            }
+        }
+
+        public class DefectType
+        {
+            #region Properties
+
+            public int Id { get; set; }
+            public string Description { get; set; }
+            public FormType QmsFormType { get; set; }
+
+            #endregion
+
+            #region Data Access
+
+            /// <summary>
+            /// Load a table with all the NCR defect type information
+            /// </summary>
+            /// <param name="sqlCon">Sql Connection to use</param>
+            /// <returns>An ObservableCollection of NCR defect types</returns>
+            public static DataTable GetDefectTypeTable(SqlConnection sqlCon)
+            {
+                using (var _dt = new DataTable())
+                {
+                    if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
+                    {
+                        try
+                        {
+                            using (SqlDataAdapter adapter = new SqlDataAdapter($@"SELECT * FROM [dbo].[DEFECT-CSTM_Type]", sqlCon))
+                            {
+                                adapter.Fill(_dt);
+                            }
+                            return _dt;
+                        }
+                        catch (SqlException)
+                        {
+                            return _dt;
+                        }
+                        catch (Exception ex)
+                        {
+                            throw new Exception(ex.Message);
+                        }
+                    }
+                    else
+                    {
+                        throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
+                    }
+                }
+            }
+
+            #endregion
+
+            /// <summary>
+            /// Default Constructor
+            /// </summary>
+            public DefectType(int dType, string dDescrip, FormType formType)
+            {
+                Id = dType;
+                Description = dDescrip;
+                QmsFormType = formType;
             }
 
             /// <summary>
@@ -231,9 +310,29 @@ namespace SFW.Model
             public static ObservableCollection<DefectType> GetDefectTypeCollection()
             {
                 var _rtnColl = new ObservableCollection<DefectType>();
-                foreach (DataRow _row in MasterDataSet.Tables["NcrType"].Rows)
+                foreach (DataRow _row in MasterDataSet.Tables["DefectType"].Rows)
                 {
-                    _rtnColl.Add(new DefectType(_row.SafeGetField<int>("DefectTypeId"), _row.SafeGetField<string>("DefectTypeDescription")));
+                    _rtnColl.Add(new DefectType(_row.SafeGetField<int>("ID"), _row.SafeGetField<string>("Description"), Enum.TryParse(_row.SafeGetField<string>("FormType"), out FormType ft) ? ft : FormType.NCR));
+                }
+                return _rtnColl;
+            }
+
+            /// <summary>
+            /// Load an observable collection with all the NCR defect type information
+            /// </summary>
+            /// <returns>An ObservableCollection of NCR defect types</returns>
+            public static ObservableCollection<DefectType> GetDefectTypeCollection(int subTypeId)
+            {
+                var _rtnColl = new ObservableCollection<DefectType>();
+                foreach (DataRow _cRow in MasterDataSet.Tables["CategoryFilter"].Select($"[SubTypeId] = {subTypeId}"))
+                {
+                    foreach (DataRow _tRow in MasterDataSet.Tables["DefectType"].Select($"[ID]={_cRow.SafeGetField<int>("TypeId")}"))
+                    {
+                        if (_rtnColl.Count(o => o.Id == _tRow.SafeGetField<int>("ID")) == 0)
+                        {
+                            _rtnColl.Add(new DefectType(_tRow.SafeGetField<int>("ID"), _tRow.SafeGetField<string>("Description"), Enum.TryParse(_tRow.SafeGetField<string>("FormType"), out FormType ft) ? ft : FormType.NCR));
+                        }
+                    }
                 }
                 return _rtnColl;
             }
@@ -243,7 +342,7 @@ namespace SFW.Model
         {
             #region Properties
 
-            public string Id { get; set; }
+            public int Id { get; set; }
             public string Description { get; set; }
 
             #endregion
@@ -263,7 +362,7 @@ namespace SFW.Model
                     {
                         try
                         {
-                            using (SqlDataAdapter adapter = new SqlDataAdapter($@"SELECT tmar.[Reason_Code] as 'DefectReasonId', tmar.[Reason_Description] as 'DefectReasonDescription' FROM [dbo].[TM-INIT_Adjust_Reasons] tmar WHERE tmar.[Reason_Code] LIKE 'Q%'", sqlCon))
+                            using (SqlDataAdapter adapter = new SqlDataAdapter($@"SELECT * FROM [dbo].[DEFECT-CSTM_Reason]", sqlCon))
                             {
                                 adapter.Fill(_dt);
                             }
@@ -290,7 +389,7 @@ namespace SFW.Model
             /// <summary>
             /// Default Constructor
             /// </summary>
-            public DefectReason(string dReason, string dDescrip)
+            public DefectReason(int dReason, string dDescrip)
             {
                 Id = dReason;
                 Description = dDescrip;
@@ -303,10 +402,43 @@ namespace SFW.Model
             public static ObservableCollection<DefectReason> GetDefectReasonCollection()
             {
                 var _rtnColl = new ObservableCollection<DefectReason>();
-                foreach (DataRow _row in MasterDataSet.Tables["NcrReason"].Rows)
+                foreach (DataRow _row in MasterDataSet.Tables["DefectReason"].Rows)
                 {
-                    _rtnColl.Add(new DefectReason(_row.SafeGetField<string>("DefectReasonId"), _row.SafeGetField<string>("DefectReasonDescription")));
+                    _rtnColl.Add(new DefectReason(_row.SafeGetField<int>("ID"), _row.SafeGetField<string>("Description")));
                 }
+                return _rtnColl;
+            }
+
+            /// <summary>
+            /// Load an observable collection with all the NCR defect reason information
+            /// </summary>
+            /// <returns>An ObservableCollection of NCR reason types</returns>
+            public static ObservableCollection<DefectReason> GetDefectReasonCollection(int typeId, int subTypeId)
+            {
+                var _rtnColl = new ObservableCollection<DefectReason>();
+                foreach (DataRow _cRow in MasterDataSet.Tables["CategoryFilter"].Select($"[TypeId] = {typeId} AND [SubTypeId] = {subTypeId}"))
+                {
+                    foreach (DataRow _row in MasterDataSet.Tables["DefectReason"].Select($"[ID]={_cRow.SafeGetField<int>("ReasonId")}"))
+                    {
+                        if (_rtnColl.Count(o => o.Id == _row.SafeGetField<int>("ID")) == 0)
+                        {
+                            _rtnColl.Add(new DefectReason(_row.SafeGetField<int>("ID"), _row.SafeGetField<string>("Description")));
+                        }
+                    }
+                }
+                return _rtnColl;
+            }
+
+            /// <summary>
+            /// Load an observable collection with all the NCR defect reason information
+            /// </summary>
+            /// <returns>An ObservableCollection of NCR reason types</returns>
+            public static ObservableCollection<DefectReason> GetDefectReasonCollection(char supplierCategory)
+            {
+                var _rtnColl = new ObservableCollection<DefectReason>();
+                var _reason = supplierCategory == 'E' ? 2 : 3;
+                var _row = MasterDataSet.Tables["DefectReason"].Select($"[ID] = {_reason}").FirstOrDefault();
+                _rtnColl.Add(new DefectReason(_row.SafeGetField<int>("ID"), _row.SafeGetField<string>("Description")));
                 return _rtnColl;
             }
         }
@@ -323,11 +455,9 @@ namespace SFW.Model
             {
                 if (Table == null)
                 {
-                    Table = new DataTable();
-                    if (MasterDataSet.Tables.Contains("NcrNotice"))
-                    {
-                        Table = MasterDataSet.Tables["NcrNotice"].Select("[NcrRevisionId] = [RevisionFilter]").CopyToDataTable();
-                    }
+                    Table = MasterDataSet.Tables.Contains("QmsNotice")
+                        ? MasterDataSet.Tables["QmsNotice"].Select("[NcrRevisionId] = [RevisionFilter]").CopyToDataTable()
+                        : new DataTable();
                 }
             }
         }
@@ -363,30 +493,7 @@ namespace SFW.Model
             }
             public DefectReason DefectReason { get; set; }
             public DefectType DefectType { get; set; }
-
-            private int _potLoss;
-            public int PotentialLoss
-            {
-                get
-                { return _potLoss; }
-                set
-                {
-                    _potLoss = value;
-                    OnPropertyChanged(nameof(PotentialLoss));
-                }
-            }
-
-            private double _potVal;
-            public double PotentialValue
-            {
-                get
-                { return _potVal; }
-                set
-                {
-                    _potVal = value;
-                    OnPropertyChanged(nameof(PotentialValue));
-                }
-            }
+            public DefectSubType DefectSubType { get; set; }
 
             private int _actLoss;
             public int ActualLoss
@@ -463,14 +570,16 @@ namespace SFW.Model
                 RevisionId = ncrDataRow.Field<int>("NcrRevisionId");
                 Submitter = new CrewMember(ncrDataRow.Field<string>("SubmitterId"), false);
                 SubmitDateTime = ncrDataRow.Field<DateTime>("RevisionDateTime");
-                DefectReason = new DefectReason(ncrDataRow.Field<string>("DefectReason"), ncrDataRow.Field<string>("DefectReasonDescription"));
-                DefectType = new DefectType(ncrDataRow.Field<int>("DefectType"), ncrDataRow.Field<string>("DefectTypeDescription"));
-                PotentialLoss = ncrDataRow.Field<int>("PotentialLoss");
-                PotentialValue = ncrDataRow.Field<int>("PotentialLoss") * prodVal;
-                Disposition = new Disposition(ncrDataRow.Field<int>("DispositionId"), ncrDataRow.Field<string>("DispositionDescription"), ncrDataRow.Field<string>("LinkedStatus"));
+                RevFormType = Enum.TryParse(ncrDataRow.Field<string>("FormType"), out FormType ft) ? ft : FormType.NCR;
+                DefectReason = new DefectReason(ncrDataRow.Field<int>("ReasonId"), ncrDataRow.Field<string>("ReasonDescription"));
+                DefectSubType = new DefectSubType(ncrDataRow.Field<int>("SubTypeId"), ncrDataRow.Field<string>("SubTypeDescription"), "");
+                DefectType = new DefectType(ncrDataRow.Field<int>("TypeId"), ncrDataRow.Field<string>("TypeDescription"), RevFormType);
+                Disposition = new Disposition(ncrDataRow.Field<int>("DispositionId"), ncrDataRow.Field<string>("DispositionDescription"), ncrDataRow.Field<string>("FormStatus"));
+                FormSupplier = new Supplier(ncrDataRow.Field<int>("SupplierId"));
                 Description = ncrDataRow.Field<string>("Description");
                 Current = ncrDataRow.Field<int>("RevisionFilter") == RevisionId;
-                RevFormType = Enum.TryParse(ncrDataRow.Field<string>("Description"), out FormType ft) ? ft : FormType.NCR;
+                ActualCost = ncrDataRow.SafeGetField<double>("ScrapCost");
+                ActualLoss = ncrDataRow.SafeGetField<int>("ScrapQuantity");
             }
         }
 
@@ -639,7 +748,7 @@ namespace SFW.Model
         /// </summary>
         public QmsForm(int id)
         {
-            var ncrDataRows = MasterDataSet.Tables["NcrNotice"].Select($"[NcrId] = '{id}'", "[NcrRevisionId] DESC");
+            var ncrDataRows = MasterDataSet.Tables["QmsNotice"].Select($"[NcrId] = '{id}'", "[NcrRevisionId] DESC");
             FormId = id;
             OrderId = ncrDataRows[0].Field<string>("WorkOrderId");
             OrderSeqId = ncrDataRows[0].Field<int>("WorkOrderSeqId").ToString();
@@ -732,6 +841,77 @@ namespace SFW.Model
                             adapter.SelectCommand.Parameters.AddWithValue("p1", site);
                             adapter.Fill(_dt);
                         }
+                        using (DataTable _sdt = new DataTable())
+                        {
+                            using (SqlDataAdapter adapter = new SqlDataAdapter($@"SELECT
+	CASE WHEN ISNUMERIC([NcrId]) = 0
+		THEN REPLACE(UPPER([NcrId]), 'NCR', '')
+		ELSE [NcrId] end as 'NcrId'
+	,SUM([Quantity]) as 'Quantity'
+	,CAST(ROUND(SUM([ScrapCost]),3) as numeric(12,3)) as 'Cost'
+FROM
+	[dbo].[SFW_ScrapCost]
+WHERE
+	[NcrId] IS NOT NULL AND [NcrId] <> ''
+GROUP BY
+	[NcrId]", sqlCon))
+                            {
+                                adapter.Fill(_sdt);
+                            }
+                            _dt.Columns.Add(new DataColumn("ScrapQuantity", typeof(int)));
+                            _dt.Columns.Add(new DataColumn("ScrapCost", typeof(double)));
+                            foreach (DataRow _row in _sdt.Rows)
+                            {
+                                var _id = int.TryParse(_row.ItemArray[0].ToString(), out int i) ? i : 0;
+                                var _qty = int.TryParse(_row.ItemArray[1].ToString(), out i) ? i : 0;
+                                var _cost = double.TryParse(_row.ItemArray[2].ToString(), out double d) ? d : 0.0;
+                                if (_id > 0 && _qty > 0 && _cost > 0)
+                                {
+                                    var _dtRows = _dt.Select($"[NcrId] = {_id}");
+                                    foreach (var _dtRow in _dtRows)
+                                    {
+                                        var _index = _dt.Rows.IndexOf(_dtRow);
+                                        _dt.Rows[_index].SetField("ScrapQuantity", _qty);
+                                        _dt.Rows[_index].SetField("ScrapCost", _cost);
+                                    }
+                                }
+                            }
+                        }
+                        return _dt;
+                    }
+                    catch (SqlException)
+                    {
+                        return _dt;
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new Exception(ex.Message);
+                    }
+                }
+                else
+                {
+                    throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
+                }
+            }
+        }
+
+        /// <summary>
+        /// Load a datatable with all the QMS form automation information
+        /// </summary>
+        /// <param name="sqlCon">Sql Connection to use</param>
+        /// <returns>A table of form automation information</returns>
+        public static DataTable GetCategoryLinkTable(SqlConnection sqlCon)
+        {
+            using (DataTable _dt = new DataTable())
+            {
+                if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
+                {
+                    try
+                    {
+                        using (SqlDataAdapter adapter = new SqlDataAdapter($"SELECT * FROM [dbo].[DEFECT-CSTM_CategoryLinks]", sqlCon))
+                        {
+                            adapter.Fill(_dt);
+                        }
                         return _dt;
                     }
                     catch (SqlException)
@@ -763,9 +943,9 @@ namespace SFW.Model
             {
                 try
                 {
-                    using (SqlCommand cmd = new SqlCommand($"SELECT * FROM [dbo].[NCR-CSTM_LotInfo] ncrLot WHERE ncrLot.[NcrId] = @p1", sqlCon))
+                    using (SqlCommand cmd = new SqlCommand($"SELECT * FROM [dbo].[SFW_DefectLotLink] ncrLot WHERE ncrLot.[NcrId] = @p1 AND ncrLot.[LotId] <> ''", sqlCon))
                     {
-                        cmd.Parameters.AddWithValue("p1", ncrId);
+                        cmd.Parameters.AddWithValue("p1", ncrId.ToString());
                         using (SqlDataReader reader = cmd.ExecuteReader())
                         {
                             if (reader.HasRows)
@@ -778,6 +958,57 @@ namespace SFW.Model
                         }
                     }
                     return _rtnList;
+                }
+                catch (SqlException)
+                {
+                    return null;
+                }
+                catch (Exception)
+                {
+                    return null;
+                }
+            }
+            else
+            {
+                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
+            }
+        }
+
+        /// <summary>
+        /// Load a list with all the NCR lot information
+        /// </summary>
+        /// <param name="ncrId">Ncr object ID</param>
+        /// <param name="sqlCon">Sql Connection to use</param>
+        /// <returns>A table of NCR Notice information</returns>
+        public static string GetNcrId(string lotId, SqlConnection sqlCon)
+        {
+            var _rtnVal = string.Empty;
+            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
+            {
+                try
+                {
+                    using (SqlCommand cmd = new SqlCommand($"SELECT [NcrId] FROM [dbo].[SFW_DefectLotLink] ncrLot WHERE ncrLot.[LotId] = @p1", sqlCon))
+                    {
+                        cmd.Parameters.AddWithValue("p1", lotId);
+                        using (SqlDataReader reader = cmd.ExecuteReader())
+                        {
+                            if (reader.HasRows)
+                            {
+                                while (reader.Read())
+                                {
+                                    if (string.IsNullOrEmpty(_rtnVal))
+                                    {
+                                        _rtnVal = reader.SafeGetString("NcrId");
+                                    }
+                                    else
+                                    {
+                                        _rtnVal += $", {reader.SafeGetString("NcrId")}";
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    return _rtnVal;
                 }
                 catch (SqlException)
                 {
@@ -836,38 +1067,6 @@ namespace SFW.Model
             else
             {
                 throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
-            }
-        }
-
-        /// <summary>
-        /// Submit Lot numbers to an NCR
-        /// </summary>
-        /// <param name="ncrId">NCR object ID</param>
-        /// <param name="lotId">Lot ID</param>
-        public static void SubmitLot(int ncrId, string lotId)
-        {
-            if (!lotId.Contains("|"))
-            {
-                lotId += $"{lotId}|P|01";
-            }
-            try
-            {
-                using (SqlCommand cmd = new SqlCommand($@"SELECT COUNT([NcrId]) FROM [dbo].[NCR-CSTM_LotInfo] WHERE [NcrId] = )", ModelSqlCon))
-                {
-                    cmd.Parameters.AddWithValue("p1", ncrId);
-                    cmd.Parameters.AddWithValue("p2", lotId);
-                    cmd.ExecuteNonQuery();
-                }
-                using (SqlCommand cmd = new SqlCommand($@"INSERT INTO [dbo].[NCR-CSTM_LotInfo] ([NcrId], [LotId]) Values(@p1, @p2)", ModelSqlCon))
-                {
-                    cmd.Parameters.AddWithValue("p1", ncrId);
-                    cmd.Parameters.AddWithValue("p2", lotId);
-                    cmd.ExecuteNonQuery();
-                }
-            }
-            catch (Exception)
-            {
-
             }
         }
 
@@ -953,38 +1152,6 @@ namespace SFW.Model
             }
         }
 
-        /// <summary>
-        /// Get NCR actual loss and actual cost
-        /// </summary>
-        /// <param name="ncrId">NCR ID</param>
-        /// <param name="sqlCon">Sql Connection to use</param>
-        public static IReadOnlyDictionary<int, double> GetActuals(int ncrId, SqlConnection sqlCon)
-        {
-            var _rtnDict = new Dictionary<int, double>();
-            try
-            {
-                using (SqlCommand cmd = new SqlCommand($@"SELECT SUM(Quantity) as 'Quantity', SUM(ScrapCost) as 'ScrapCost' FROM [dbo].[SFW_ScrapCost] WHERE [NcrId] = @p1", sqlCon))
-                {
-                    cmd.Parameters.AddWithValue("p1", ncrId.ToString());
-                    using (SqlDataReader reader = cmd.ExecuteReader())
-                    {
-                        if (reader.HasRows)
-                        {
-                            while(reader.Read())
-                            {
-                                _rtnDict.Add(reader.SafeGetInt32("Quantity"), reader.SafeGetDouble("ScrapCost"));
-                            }
-                        }
-                    }
-                }
-                return _rtnDict;
-            }
-            catch (Exception)
-            {
-                return _rtnDict;
-            }
-        }
-
         #endregion
 
         /// <summary>
@@ -1030,15 +1197,37 @@ namespace SFW.Model
         public static IList<string> GetNcrList(string orderId)
         {
             var _rtnList = new List<string>();
-            var _rows = MasterDataSet.Tables["NcrNotice"].Select($"[WorkOrderId] = '{orderId}' AND [NcrRevisionId] = [RevisionFilter]");
+            var _rows = MasterDataSet.Tables["QmsNotice"].Select($"[WorkOrderId] = '{orderId}' AND [NcrRevisionId] = [RevisionFilter]");
             if (_rows.Count() > 0)
             {
                 foreach (var _row in _rows)
                 {
-                    _rtnList.Add($"{_row.SafeGetField<int>("NcrId")} {_row.SafeGetField<string>("DefectTypeDescription")}");
+                    _rtnList.Add($"{_row.SafeGetField<int>("NcrId")} {_row.SafeGetField<string>("TypeDescription")}");
                 }
             }
             return _rtnList;
+        }
+
+        /// <summary>
+        /// Get NCR ID that exist on a work order
+        /// </summary>
+        /// <param name="orderId">Work Order ID</param>
+        /// <returns>NCR IDs' as string</returns>
+        public static string GetNcrId(string orderId)
+        {
+            var _rtnVal = string.Empty;
+            foreach (var _row in MasterDataSet.Tables["QmsNotice"].Select($"[WorkOrderId] = '{orderId}' AND [NcrRevisionId] = [RevisionFilter]"))
+            {
+                if (string.IsNullOrEmpty(_rtnVal))
+                {
+                    _rtnVal = _row.SafeGetField<int>("NcrId").ToString();
+                }
+                else
+                {
+                    _rtnVal += $", {_row.SafeGetField<int>("NcrId")}";
+                }
+            }
+            return _rtnVal;
         }
 
         /// <summary>
@@ -1058,7 +1247,7 @@ namespace SFW.Model
         /// <returns>pass flag as bool</returns>
         public static bool IsValid(int ncrId)
         {
-            return MasterDataSet.Tables["NcrNotice"].Select($"[NcrId] = '{ncrId}' AND [NcrRevisionId] = [RevisionFilter]").Count() > 0;
+            return MasterDataSet.Tables["QmsNotice"].Select($"[NcrId] = '{ncrId}' AND [NcrRevisionId] = [RevisionFilter]").Count() > 0;
         }
 
         /// <summary>
@@ -1084,9 +1273,9 @@ namespace SFW.Model
             var _idNumber = 0;
             try
             {
-                using (SqlCommand cmd = new SqlCommand($@"INSERT INTO [dbo].[NCR-CSTM] ([WorkOrderId], [WorkOrderSeqId], [PartId], [FoundWorkCenterId], [ReporterId], [ProductValue], [Site], [IsEscape])
+                using (SqlCommand cmd = new SqlCommand($@"INSERT INTO [dbo].[DEFECT-CSTM] ([WorkOrderId], [WorkOrderSeqId], [PartId], [FoundWorkCenterId], [ReporterId], [ProductValue], [Site], [IsEscape])
                                                         Values(@p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8);
-                                                        SELECT [NcrId] FROM [dbo].[NCR-CSTM] WHERE [NcrId] = @@IDENTITY;", sqlCon))
+                                                        SELECT [NcrId] FROM [dbo].[DEFECT-CSTM] WHERE [NcrId] = @@IDENTITY;", sqlCon))
                 {
                     cmd.Parameters.AddWithValue("p1", ncrObject.OrderId);
                     cmd.Parameters.AddWithValue("p2", ncrObject.OrderSeqId);
@@ -1127,18 +1316,19 @@ namespace SFW.Model
         {
             try
             {
-                using (SqlCommand cmd = new SqlCommand($@"INSERT INTO [dbo].[NCR-CSTM_Revisions] ([NcrId], [NcrRevisionId], [SubmitterId], [RevisionDateTime], [DefectReason], [DefectType], [PotentialLoss], [DispositionId], [Description])
-                                                        Values(@p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9);", sqlCon))
+                using (SqlCommand cmd = new SqlCommand($@"INSERT INTO [dbo].[DEFECT-CSTM_Revisions] ([NcrId], [NcrRevisionId], [SubmitterId], [RevisionDateTime], [ReasonId], [SubTypeId], [TypeId], [DispositionId], [SupplierId], [Description])
+                                                        Values(@p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, @p10);", sqlCon))
                 {
                     cmd.Parameters.AddWithValue("p1", ncrId);
                     cmd.Parameters.AddWithValue("p2", ncrRevId);
                     cmd.Parameters.AddWithValue("p3", ncrRev.Submitter.ErpId);
                     cmd.Parameters.AddWithValue("p4", ncrRev.SubmitDateTime.ToString("yyyy-MM-dd HH:mm"));
                     cmd.Parameters.AddWithValue("p5", ncrRev.DefectReason.Id);
-                    cmd.Parameters.AddWithValue("p6", ncrRev.DefectType.Id);
-                    cmd.Parameters.AddWithValue("p7", ncrRev.PotentialLoss);
+                    cmd.Parameters.AddWithValue("p6", ncrRev.DefectSubType.Id);
+                    cmd.Parameters.AddWithValue("p7", ncrRev.DefectType.Id);
                     cmd.Parameters.AddWithValue("p8", ncrRev.Disposition.Id);
-                    cmd.Parameters.AddWithValue("p9", ncrRev.Description);
+                    cmd.Parameters.AddWithValue("p9", ncrRev.FormSupplier != null ? ncrRev.FormSupplier.Id : 0);
+                    cmd.Parameters.AddWithValue("p10", ncrRev.Description);
                     cmd.ExecuteNonQuery();
                 }
             }
@@ -1163,7 +1353,7 @@ namespace SFW.Model
                 {
                     if (_oldLotList.Count(o => o.LotNumber == lot.LotNumber) == 0)
                     {
-                        using (SqlCommand cmd = new SqlCommand($@"INSERT INTO [dbo].[NCR-CSTM_LotInfo] ([NcrId], [LotId]) Values(@p1, @p2)", sqlCon))
+                        using (SqlCommand cmd = new SqlCommand($@"INSERT INTO [dbo].[DEFECT-CSTM_EscapeLot] ([NcrId], [LotId]) Values(@p1, @p2)", sqlCon))
                         {
                             cmd.Parameters.AddWithValue("p1", ncrObj.FormId);
                             cmd.Parameters.AddWithValue("p2", lot.LotNumber);
@@ -1175,7 +1365,7 @@ namespace SFW.Model
                 {
                     if (ncrObj.LotList.Count(o => o.LotNumber == oldLot.LotNumber) == 0)
                     {
-                        using (SqlCommand cmd = new SqlCommand($@"DELETE FROM [dbo].[NCR-CSTM_LotInfo] WHERE [NcrId] = @p1 AND [LotId] = @p2", sqlCon))
+                        using (SqlCommand cmd = new SqlCommand($@"DELETE FROM [dbo].[DEFECT-CSTM_EscapeLot] WHERE [NcrId] = @p1 AND [LotId] = @p2", sqlCon))
                         {
                             cmd.Parameters.AddWithValue("p1", ncrObj.FormId);
                             cmd.Parameters.AddWithValue("p2", oldLot.LotNumber);

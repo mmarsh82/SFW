@@ -81,7 +81,7 @@
                     <Button Content="Wip Receipt"
                             FontSize="16"
                             Width="110"
-                            IsEnabled="{Binding Path=(main:CurrentUser.CanWip)}"
+                            IsEnabled="{Binding WipActive}"
                             Command="{StaticResource WipCommand}"
                             CommandParameter="{Binding ShopOrder}"
                             Visibility="{Binding Path=(main:CurrentUser.CanWip), Converter={StaticResource BoolToVisConverter}}"
@@ -160,37 +160,19 @@
                             Command="{Binding ReportICommand}"
                             CommandParameter="2"
                             Style="{DynamicResource MenuButtonStyle}" />
-                    <Menu Style="{DynamicResource ModernMenu}"
-                          Visibility="{Binding Path=(main:CurrentUser.IsQuality), Converter={StaticResource BoolToVisConverter}}">
-                        <MenuItem Header="Record Defect"
-                                  FontSize="16"
-                                  Width="120"
-                                  Height="39"
-                                  Style="{DynamicResource ModernMenuItem}">
-                            <MenuItem Header="NCR"
-                                      Command="{StaticResource ViewLoadCommand}">
-                                <MenuItem.CommandParameter>
-                                    <MultiBinding Converter="{StaticResource StringCombineConverter}" ConverterParameter="NCR">
-                                        <Binding Path="ShopOrder.OrderNumber"/>
-                                    </MultiBinding>
-                                </MenuItem.CommandParameter>
-                            </MenuItem>
-                            <MenuItem Header="SCAR"
-                                      Command="{StaticResource ViewLoadCommand}">
-                                <MenuItem.CommandParameter>
-                                    <MultiBinding Converter="{StaticResource StringCombineConverter}" ConverterParameter="SCAR">
-                                        <Binding Path="ShopOrder.OrderNumber"/>
-                                    </MultiBinding>
-                                </MenuItem.CommandParameter>
-                            </MenuItem>
-                            <MenuItem.ItemContainerStyle>
-                                <Style TargetType="MenuItem">
-                                    <Setter Property="Foreground"
-                                            Value="Black"/>
-                                </Style>
-                            </MenuItem.ItemContainerStyle>
-                        </MenuItem>
-                    </Menu>
+                    <Button Content="Record Defect"
+                            FontSize="16"
+                            Width="120"
+                            Height="39"
+                            Visibility="{Binding Path=(main:CurrentUser.IsQuality), Converter={StaticResource BoolToVisConverter}}"
+                            Command="{StaticResource ViewLoadCommand}"
+                            Style="{DynamicResource MenuButtonStyle}">
+                        <Button.CommandParameter>
+                            <MultiBinding Converter="{StaticResource StringCombineConverter}" ConverterParameter="NCR">
+                                <Binding Path="ShopOrder.OrderNumber"/>
+                            </MultiBinding>
+                        </Button.CommandParameter>
+                    </Button>
                     <Menu Style="{DynamicResource ModernMenu}"
                           Visibility="{Binding NcrList.Count, Converter={StaticResource CountToVisConverter}}">
                         <MenuItem Header="View Defects"

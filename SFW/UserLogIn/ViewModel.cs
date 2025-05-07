@@ -1,4 +1,7 @@
 ﻿using SFW.Helpers;
+using System.ComponentModel;
+using System.Linq;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 
@@ -45,16 +48,33 @@ namespace SFW.UserLogIn
 
         private string _error;
         public string Error
-
         {
             get
             { return _error; }
             set
             {
                 _error = value;
+
                 OnPropertyChanged(nameof(Error));
             }
         }
+
+        private bool _working;
+        public bool LogInThreadIsWorking
+        {
+            get
+            { return _working; }
+            set
+            {
+                _working = value;
+                OnPropertyChanged(nameof(LogInThreadIsWorking));
+            }
+        }
+        private object _bgParam;
+
+        public CurrentUser.ValidUser User;
+
+        public BackgroundWorker LogInThread;
 
         public RelayCommand _loginCommand;
 
@@ -70,6 +90,11 @@ namespace SFW.UserLogIn
             UserName = string.Empty;
             ViewType = false;
             ForceReset = false;
+            User = new CurrentUser.ValidUser();
+            LogInThread = new BackgroundWorker();
+            LogInThread.DoWork += LogInThread_DoWork;
+            LogInThread.RunWorkerCompleted += LogInThread_RunWorkerCompleted;
+            LogInThreadIsWorking = false;
         }
 
         /// <summary>
@@ -84,6 +109,69 @@ namespace SFW.UserLogIn
             }
             ViewType = vType;
             ForceReset = false;
+            LogInThread = new BackgroundWorker();
+            LogInThread.DoWork += LogInThread_DoWork;
+            LogInThread.RunWorkerCompleted += LogInThread_RunWorkerCompleted;
+            LogInThreadIsWorking = false;
+        }
+
+        private void LogInThread_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            if (_bgParam != null)
+            {
+                ((PasswordBox[])_bgParam)[0].Password = null;
+                _bgParam = null;
+            }
+            if (User.Validated)
+            {
+                new CurrentUser(User);
+                Application.Current.Windows.OfType<Window>().FirstOrDefault(o => o.Name == "LogIn_Window").Close();
+            }
+            LogInThreadIsWorking = false;
+        }
+
+        /// <summary>
+        /// The thread for background log in
+        /// </summary>
+        /// <param name="sender">Calling method</param>
+        /// <param name="e">Log in command parameter</param>
+        private void LogInThread_DoWork(object sender, DoWorkEventArgs e)
+        {
+            if (ViewType)
+            {
+                if (e.Argument != null && e.Argument.GetType() == typeof(PasswordBox[]))
+                {
+                    Error = CurrentUser.UpdatePassword(UserName, ((PasswordBox[])e.Argument)[0].Password, ((PasswordBox[])e.Argument)[1].Password);
+                    if (string.IsNullOrEmpty(Error))
+                    {
+                        if (ForceReset)
+                        {
+                            var _result = CurrentUser.LogIn(UserName, ((PasswordBox[])e.Argument)[0].Password);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                User = CurrentUser.ValidateCredentials(UserName, ((PasswordBox[])e.Argument)[0].Password);
+                if (User.Validated)
+                {
+                    Error = string.Empty;
+                }
+                else
+                {
+                    if (User.ErrorKey == 1)
+                    {
+                        Error = User.ErrorMessage;
+                        ViewType = true;
+                        ForceReset = true;
+                    }
+                    else
+                    {
+                        Error = User.ErrorMessage;
+                    }
+                }
+            }
         }
 
         #region Log In ICommand
@@ -106,60 +194,10 @@ namespace SFW.UserLogIn
         /// <param name="parameter">Will contain a secure password object</param>
         public void LogInExecute(object parameter)
         {
-            if (ViewType)
-            {
-                if (parameter != null && parameter.GetType() == typeof(PasswordBox[]))
-                {
-                    Error = CurrentUser.UpdatePassword(UserName, ((PasswordBox[])parameter)[0].Password, ((PasswordBox[])parameter)[1].Password);
-                    if (string.IsNullOrEmpty(Error))
-                    {
-                        if (ForceReset)
-                        {
-                            var _result = CurrentUser.LogIn(UserName, ((PasswordBox[])parameter)[0].Password);
-                        }
-                        foreach (System.Windows.Window w in System.Windows.Application.Current.Windows)
-                        {
-                            if (w.Title == "Password Reset")
-                            {
-                                w.Close();
-                            }
-                        }
-                    }
-                }
-            }
-            else
-            {
-                var _result = CurrentUser.LogIn(UserName, ((PasswordBox[])parameter)[0].Password);
-                if (!_result.ContainsKey(0) && _result.TryGetValue(1, out string s))
-                {
-                    Error = s;
-                    //TODO: add in the viewmodel change representation
-                    ViewType = true;
-                    ForceReset = true;
-                    //CurrentUser.UpdatePassword(UserName, ((PasswordBox)parameter).Password, NewPwd);
-                }
-                else if (!_result.ContainsKey(0))
-                {
-                    foreach (var v in _result)
-                    {
-                        Error = v.Value;
-                    }
-                    ((PasswordBox[])parameter)[0].Password = null;
-                }
-                else
-                {
-                    if (CurrentUser.IsLoggedIn)
-                    {
-                        foreach (System.Windows.Window w in System.Windows.Application.Current.Windows)
-                        {
-                            if (w.Title == "User Log In")
-                            {
-                                w.Close();
-                            }
-                        }
-                    }
-                }
-            }
+            LogInThreadIsWorking = true;
+            Error = string.Empty;
+            _bgParam = parameter;
+            LogInThread.RunWorkerAsync(parameter);
         }
 
         public bool LogInCanExecute(object parameter)
@@ -194,8 +232,8 @@ namespace SFW.UserLogIn
         public override void OnDispose(bool disposing)
         {
             if (disposing)
-            {               
-                
+            {
+                LogInThread.Dispose();
             }
         }
     }

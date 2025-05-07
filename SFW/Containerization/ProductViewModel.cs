@@ -45,7 +45,7 @@ namespace SFW.Containerization
                 if (_selProduct == null || value != _selProduct)
                 {
                     ShowResults = false;
-                    IsNew = false;
+                    NewContainer = false;
                     using (BackgroundWorker bw = new BackgroundWorker())
                     {
                         try
@@ -101,21 +101,21 @@ namespace SFW.Containerization
         }
 
         private bool _new;
-        public bool IsNew
+        public bool NewContainer
         {
             get
             { return _new; }
             set
             {
                 _new = value;
-                OnPropertyChanged(nameof(IsNew));
+                OnPropertyChanged(nameof(NewContainer));
             }
         }
 
         public SkuContainer ContainerObject { get; set; }
 
         public bool HasContainers { get { return ContainerView.Count > 0; } }
-        public bool ShowProduct { get { return HasContainers || SelectedProduct != null || IsNew; } }
+        public bool ShowProduct { get { return HasContainers || SelectedProduct != null || NewContainer; } }
 
         RelayCommand _refresh;
         RelayCommand _addCon;
@@ -135,7 +135,7 @@ namespace SFW.Containerization
         public ProductViewModel()
         {
             ContainerView = SkuContainer.GetContainerData(App.AppSqlCon).AsDataView();
-            IsNew = false;
+            NewContainer = false;
             ViewFilter = new string[2];
             OnPropertyChanged(nameof(HasContainers));
             OnPropertyChanged(nameof(ShowProduct));
@@ -237,7 +237,12 @@ namespace SFW.Containerization
         private void RefreshExecute(object parameter)
         {
             ContainerView = SkuContainer.GetContainerData(App.AppSqlCon).AsDataView();
-            var _index = SelectedProduct != null ? ContainerView.Table.Rows.IndexOf(SelectedProduct.Row) : -1;
+            var _contId = SelectedProduct.Row.SafeGetField<string>("ContainerID");
+            var _partId = SelectedProduct.Row.SafeGetField<string>("ProductId");
+            var _lotId = SelectedProduct.Row.SafeGetField<string>("LotId");
+            var _index = string.IsNullOrEmpty(_lotId)
+                ? ContainerView.Cast<DataRowView>().Select((row, idx) => new { row, idx }).FirstOrDefault(o => o.row["ContainerID"].ToString() == _contId && o.row["ProductId"].ToString() == _partId)?.idx ?? 0
+                : ContainerView.Cast<DataRowView>().Select((row, idx) => new { row, idx }).FirstOrDefault(o => o.row["ContainerID"].ToString() == _contId && o.row["ProductId"].ToString() == _partId && o.row["LotId"].ToString() == _lotId)?.idx ?? 0;
             SelectedProduct = null;
             if (ContainerView.Count > 0)
             {
@@ -269,7 +274,7 @@ namespace SFW.Containerization
             ShowResults = true;
             IthResultsTable = new DataTable();
             OnPropertyChanged(nameof(ResultsCount));
-            IsNew = true;
+            NewContainer = true;
             ContainerObject = new SkuContainer(CurrentUser.DisplayName);
             OnPropertyChanged(nameof(ContainerObject));
             OnPropertyChanged(nameof(HasContainers));
@@ -410,7 +415,7 @@ namespace SFW.Containerization
         private void CancelExecute(object parameter)
         {
             ShowResults = true;
-            IsNew = false;            
+            NewContainer = false;            
             SelectedProduct = ContainerView != null && ContainerView.Count > 0 ? ContainerView[5] : null;
             OnPropertyChanged(nameof(HasContainers));
         }

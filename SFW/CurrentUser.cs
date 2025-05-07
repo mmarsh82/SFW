@@ -14,6 +14,60 @@ namespace SFW
     /// </summary>
     public class CurrentUser
     {
+        public class ValidUser
+        {
+            #region Properties
+
+            public bool Validated;
+            public int ErrorKey;
+            public string ErrorMessage;
+            public List<string> Groups;
+            public string DomainName;
+            public string DomainUserName;
+            public string DisplayName;
+            public string Email;
+            public string Site;
+            public int Facility;
+            public IReadOnlyDictionary<int, string> DirectReports;
+            public int SapId;
+            public string ErpId;
+            public string GivenName;
+            public string SurName;
+
+            #endregion
+
+            public ValidUser()
+            { }
+
+            /// <summary>
+            /// Current User overloaded constructor
+            /// </summary>
+            /// <param name="context">Domain principal context</param>
+            /// <param name="user">User Principal for the active directory</param>
+            public ValidUser(PrincipalContext context, UserPrincipal user)
+            {
+                try
+                {
+                    Groups = user.GetAuthorizationGroups().Where(o => o.Name.Contains("SFW-")).Select(o => o.Name).ToList();
+                    DomainName = context.ConnectedServer;
+                    DomainUserName = user.SamAccountName;
+                    DisplayName = user.DisplayName;
+                    Email = user.EmailAddress;
+                    Site = user.DistinguishedName.Contains("wak1") ? "WCCO" : "CSI";
+                    Facility = user.DistinguishedName.Contains("wak1") ? 1 : 2;
+                    DirectReports = IsSupervisor && App.SiteNumber == 1 ? user.GetDirectReports() : new Dictionary<int, string>();
+                    SapId = int.TryParse(((DirectoryEntry)user.GetUnderlyingObject()).Properties["global-ExtensionAttribute1"]?.Value.ToString(), out int i) ? i : 0;
+                    ErpId = ModelBase.MasterDataSet == null || !ModelBase.MasterDataSet.Tables.Contains("CREW") ? CrewMember.GetCrewErpID(SapId, App.AppSqlCon) : CrewMember.GetCrewErpID(SapId);
+                    GivenName = user.GivenName;
+                    SurName = user.Surname;
+                }
+                catch (Exception)
+                {
+
+                }
+            }
+        }
+
         #region Properties
 
         private static string _dUserName;
@@ -391,6 +445,65 @@ namespace SFW
         /// <summary>
         /// Current User overloaded constructor
         /// </summary>
+        /// <param name="user">Valid user object</param>
+        public CurrentUser(ValidUser user)
+        {
+            try
+            {
+                DomainName = user.DomainName;
+                DomainUserName = user.DomainUserName;
+                DisplayName = user.DisplayName;
+                Email = user.Email;
+                Site = user.Site;
+                Facility = user.Facility;
+                if (user.Groups.Count() > 0)
+                {
+                    if (user.Groups.Count(o => o.Contains("SFW-Admin")) > 0)
+                    {
+                        CanTrain = CanSchedule = IsSupervisor = IsManager = IsInventoryControl = IsAccountsReceivable = IsAdmin = HasSalesOrderModule = IsQuality = IsEngineer = CanSplit = CanDeviate = HasNotice = Planner = true;
+                        BasicUser = false;
+                    }
+                    else
+                    {
+                        CanSchedule = user.Groups.Count(o => o.Contains("SFW-Scheduler")) > 0;
+                        IsSupervisor = user.Groups.Count(o => o.Contains("SFW-Supervisor")) > 0;
+                        IsManager = user.Groups.Count(o => o.Contains("SFW-Manager")) > 0;
+                        IsInventoryControl = user.Groups.Count(o => o.Contains("SFW-Inventory")) > 0;
+                        IsAccountsReceivable = user.Groups.Count(o => o.Contains("SFW-AR")) > 0;
+                        HasSalesOrderModule = user.Groups.Count(o => o.Contains("SFW-Sales")) > 0;
+                        CanTrain = user.Groups.Count(o => o.Contains("SFW-Train")) > 0;
+                        IsQuality = user.Groups.Count(o => o.Contains("SFW-Quality")) > 0;
+                        HasNotice = user.Groups.Count(o => o.Contains("SFW-Quality")) > 0 || user.Groups.Count(o => o.Contains("SFW-QNotice")) > 0;
+                        IsEngineer = user.Groups.Count(o => o.Contains("SFW-Engineer")) > 0;
+                        CanSplit = user.Groups.Count(o => o.Contains("SFW-Adjust")) > 0;
+                        CanDeviate = user.Groups.Count(o => o.Contains("SFW-Deviate")) > 0;
+                        Planner = user.Groups.Count(o => o.Contains("SFW-Planner")) > 0;
+                        IsManager = user.Groups.Count(o => o.Contains("SFW-Manager")) > 0;
+                        BasicUser = false;
+                    }
+                }
+                else
+                {
+                    BasicUser = true;
+                }
+                DirectReports = user.DirectReports;
+                IsLoggedIn = true;
+                CanWip = true;
+                CanLabor = App.SiteNumber == 2 || IsAdmin;
+                SapId = user.SapId;
+                ErpId = user.ErpId;
+                FirstName = user.GivenName;
+                LastName = user.SurName;
+            }
+            catch (Exception)
+            {
+
+            }
+        }
+
+        /// <summary>
+        /// Current User overloaded constructor
+        /// </summary>
         /// <param name="context">Domain principal context</param>
         /// <param name="user">User Principal for the active directory</param>
         public CurrentUser(PrincipalContext context, UserPrincipal user)
@@ -714,6 +827,69 @@ namespace SFW
                         }
                     }
                 }
+            }
+        }
+
+        /// <summary>
+        /// Check to see if the user exists in the current domain and the credentials are valid
+        /// </summary>
+        /// <param name="userName">Domain user name</param>
+        /// <param name="password">User password</param>
+        /// <returns>Pass/Fail check as a boolean</returns>
+        public static ValidUser ValidateCredentials(string userName, string password)
+        {
+            var _user = new ValidUser() { Validated = false, ErrorKey = 0, ErrorMessage = string.Empty };
+            try
+            {
+                using (PrincipalContext pContext = GetPrincipal(userName))
+                {
+                    using (UserPrincipal uPrincipal = UserPrincipal.FindByIdentity(pContext, userName))
+                    {
+                        if (uPrincipal != null && uPrincipal.DisplayName.Contains("_FA"))
+                        {
+                            _user.ErrorKey = 5;
+                            _user.ErrorMessage = "Service accounts are denied.";
+                            return _user;
+                        }
+                        using (DirectoryEntry dEntry = uPrincipal.GetUnderlyingObject() as DirectoryEntry)
+                        {
+                            var _expireDate = !uPrincipal.PasswordNeverExpires ? Convert.ToDateTime(dEntry.InvokeGet("PasswordExpirationDate")) : DateTime.Today.AddDays(1);
+                            if (_expireDate <= DateTime.Today && _expireDate != new DateTime(1970, 1, 1))
+                            {
+                                _user.ErrorKey = 1;
+                                _user.ErrorMessage = "Expired Password.";
+                            }
+                            else if (uPrincipal.IsAccountLockedOut())
+                            {
+                                _user.ErrorKey = 2;
+                                _user.ErrorMessage = "Your account is currently locked out.\nPlease contact IT for assistance.";
+                            }
+                            else if (uPrincipal.Enabled == false)
+                            {
+                                _user.ErrorKey = 3;
+                                _user.ErrorMessage = "Your account is currently disabled.\nPlease contact IT for assistance.";
+                            }
+                            else if (!pContext.ValidateCredentials(userName, password, ContextOptions.Negotiate))
+                            {
+                                _user.ErrorKey = 4;
+                                _user.ErrorMessage = "Invalid credentials.\nPlease check your user name and password and try again.\nIf you feel you have reached this message in error,\nplease contact IT for further assistance.";
+                            }
+                            if (string.IsNullOrEmpty(_user.ErrorMessage))
+                            {
+                                _user = new ValidUser(pContext, uPrincipal);
+                                _user.Validated = true;
+
+                            }
+                            return _user;
+                        }
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                _user.ErrorKey = -1;
+                _user.ErrorMessage = "Your account does not exist on the domain.\nPlease contact IT for assistance.";
+                return _user;
             }
         }
 

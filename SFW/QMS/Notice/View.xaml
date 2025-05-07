@@ -88,7 +88,7 @@
                         Orientation="Horizontal"
                         HorizontalAlignment="Right">
 
-                <Button Command="{Binding ExportNcrICommand}"
+                <Button Command="{Binding ExportQmsICommand}"
                         Margin="5,5,20,5"
                         BorderThickness="0"
                         Background="Transparent"
@@ -126,7 +126,7 @@
 
                 <Button Background="Transparent"
                         BorderThickness="0"
-                        Command="{Binding NewNcrICommand}"
+                        Command="{Binding NewFormICommand}"
                         Visibility="{Binding Path=(main:CurrentUser.IsQuality), Converter={StaticResource BoolToVisConverter}}"
                         Margin="10,0,0,0">
                     <Button.Content>
@@ -168,11 +168,12 @@
                                         <TextBlock Text="{Binding NcrId}" FontSize="24" VerticalAlignment="Center" FontWeight="Bold"/>
                                         <TextBlock Text="Revision:" Margin="20,0,0,0" VerticalAlignment="Center" TextDecorations="Underline"/>
                                         <TextBlock Text="{Binding NcrRevisionId}" VerticalAlignment="Center" Margin="5,0,0,0"/>
+                                        <TextBlock Text="{Binding RevisionDateTime, StringFormat=d}" VerticalAlignment="Center" Margin="30,0,0,0"/>
                                     </StackPanel>
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                                         <TextBlock Text="{Binding PartId}" VerticalAlignment="Center"/>
                                         <TextBlock Text="{Binding ProductDescription}" Margin="10,0,10,0" VerticalAlignment="Center"/>
-                                        <TextBlock Text="{Binding PotentialCost, StringFormat=C}" Margin="30,0,10,0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="{Binding ScrapCost, StringFormat=C}" Margin="30,0,10,0" VerticalAlignment="Center"/>
                                         <Button Command="{StaticResource PartSearchCommand}"
                                                 Margin="0,0,10,0"
                                                 Height="30"
@@ -190,8 +191,7 @@
                                 </Grid>
                                 <Grid>
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
-                                        <TextBlock Text="{Binding RevisionDateTime, StringFormat=d}" Margin="5,0,0,0"/>
-                                        <TextBlock Text="Work Order:" Margin="20,0,0,0" TextDecorations="Underline"/>
+                                        <TextBlock Text="Work Order:" Margin="5,0,0,0" TextDecorations="Underline"/>
                                         <TextBlock Text="{Binding WorkOrderId}" Margin="5,0,0,0"/>
                                         <TextBlock Text="Found:" Margin="20,0,0,0" TextDecorations="Underline"/>
                                         <TextBlock Text="{Binding FoundWorkCenterName}" Margin="5,0,0,0"/>
@@ -201,8 +201,16 @@
                                     </StackPanel>
                                 </Grid>
                                 <Grid>
-                                    <TextBlock Text="{Binding DefectReasonDescription}" HorizontalAlignment="Left" Margin="5,0,0,0"/>
-                                    <TextBlock Text="{Binding DefectTypeDescription}" HorizontalAlignment="Right" Margin="5,0,0,0"/>
+
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    
+                                    <TextBlock Grid.Column="0" Text="{Binding ReasonDescription}" HorizontalAlignment="Left" Margin="5,0,0,0"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding TypeDescription}" HorizontalAlignment="Center"/>
+                                    <TextBlock Grid.Column="2" Text="{Binding SubTypeDescription}" HorizontalAlignment="Right"/>
                                 </Grid>
                             </StackPanel>
                         </DataTemplate>
@@ -215,9 +223,9 @@
                     <Setter Property="FontWeight" Value="Bold"/>
                     <Setter Property="FontSize" Value="18"/>
 
-                    <!--Open NCRs-->
                     <Style.Triggers>
-                        <DataTrigger Binding="{Binding LinkedStatus}" Value="Open">
+                        <!--Open NCRs-->
+                        <DataTrigger Binding="{Binding FormStatus}" Value="Open">
                             <Setter Property="Background">
                                 <Setter.Value>
                                     <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
@@ -228,12 +236,23 @@
                             </Setter>
                         </DataTrigger>
                         <!--Closed NCRs-->
-                        <DataTrigger Binding="{Binding LinkedStatus}" Value="Closed">
+                        <DataTrigger Binding="{Binding FormStatus}" Value="Closed">
                             <Setter Property="Background">
                                 <Setter.Value>
                                     <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
                                         <GradientStop Color="White" Offset="0"/>
                                         <GradientStop Color="#FF29D129" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </Setter.Value>
+                            </Setter>
+                        </DataTrigger>
+                        <!--Pending NCRs-->
+                        <DataTrigger Binding="{Binding FormStatus}" Value="Pending">
+                            <Setter Property="Background">
+                                <Setter.Value>
+                                    <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                                        <GradientStop Color="White" Offset="0"/>
+                                        <GradientStop Color="Orange" Offset="1"/>
                                     </LinearGradientBrush>
                                 </Setter.Value>
                             </Setter>
@@ -253,7 +272,7 @@
                         <MultiDataTrigger>
                             <MultiDataTrigger.Conditions>
                                 <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsSelected}" Value="True"/>
-                                <Condition Binding="{Binding LinkedStatus}" Value="Open"/>
+                                <Condition Binding="{Binding FormStatus}" Value="Open"/>
                             </MultiDataTrigger.Conditions>
                             <Setter Property="Background" Value="LightCoral"/>
                             <Setter Property="Foreground" Value="Black"/>
@@ -263,9 +282,19 @@
                         <MultiDataTrigger>
                             <MultiDataTrigger.Conditions>
                                 <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsSelected}" Value="True"/>
-                                <Condition Binding="{Binding LinkedStatus}" Value="Closed"/>
+                                <Condition Binding="{Binding FormStatus}" Value="Closed"/>
                             </MultiDataTrigger.Conditions>
                             <Setter Property="Background" Value="DarkSeaGreen"/>
+                            <Setter Property="Foreground" Value="Black"/>
+                            <Setter Property="BorderBrush" Value="RoyalBlue" />
+                        </MultiDataTrigger>
+
+                        <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                                <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsSelected}" Value="True"/>
+                                <Condition Binding="{Binding FormStatus}" Value="Pending"/>
+                            </MultiDataTrigger.Conditions>
+                            <Setter Property="Background" Value="Bisque"/>
                             <Setter Property="Foreground" Value="Black"/>
                             <Setter Property="BorderBrush" Value="RoyalBlue" />
                         </MultiDataTrigger>

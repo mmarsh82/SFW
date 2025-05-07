@@ -1,6 +1,7 @@
 ﻿using SFW.Queries;
 using System;
 using System.ComponentModel;
+using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -199,19 +200,19 @@ namespace SFW.Controls
             {
                 if (CurrentUser.HasSalesOrderModule)
                 {
-                    ((Schedule.SalesOrder.View)SalesDock.Children[0]).DataContext = new Schedule.SalesOrder.ViewModel();
+                    Application.Current.Dispatcher.Invoke(new Action(delegate { ((Schedule.SalesOrder.View)SalesDock.Children[0]).DataContext = new Schedule.SalesOrder.ViewModel(); }));
                 }
                 if (CurrentUser.IsInventoryControl)
                 {
-                    ((CycleCount.Sched_View)CountDock.Children[0]).DataContext = new CycleCount.Sched_ViewModel();
+                    Application.Current.Dispatcher.Invoke(new Action(delegate { ((CycleCount.Sched_View)CountDock.Children[0]).DataContext = new CycleCount.Sched_ViewModel(); }));
                 }
                 if (CurrentUser.IsQuality)
                 {
-                    ((QMS.Notice.View)QmsFormDock.Children[0]).DataContext = new QMS.Notice.ViewModel();
+                    Application.Current.Dispatcher.Invoke(new Action(delegate { ((QMS.Notice.View)QmsFormDock.Children[0]).DataContext = new QMS.Notice.ViewModel(); }));
                 }
                 if (CurrentUser.CanSchedule)
                 {
-                    ((Schedule.Plan.View)PlanDock.Children[0]).DataContext = new Schedule.Plan.ViewModel();
+                    Application.Current.Dispatcher.Invoke(new Action(delegate { ((Schedule.Plan.View)PlanDock.Children[0]).DataContext = new Schedule.Plan.ViewModel(); }));
                 }
             }
             else
@@ -231,15 +232,8 @@ namespace SFW.Controls
         {
             if (MainDock.Children[parentUCIndex].GetType() == typeof(DockPanel))
             {
-                try
-                {
-                    ((UserControl)((DockPanel)MainDock.Children[parentUCIndex]).Children[childUCIndex]).DataContext = null;
-                    ((UserControl)((DockPanel)MainDock.Children[parentUCIndex]).Children[childUCIndex]).DataContext = viewModel;
-                }
-                catch
-                {
-
-                }
+                ((UserControl)((DockPanel)MainDock.Children[parentUCIndex]).Children[childUCIndex]).DataContext = null;
+                ((UserControl)((DockPanel)MainDock.Children[parentUCIndex]).Children[childUCIndex]).DataContext = viewModel;
             }
         }
 
@@ -253,15 +247,29 @@ namespace SFW.Controls
         {
             if (MainDock.Children[parentUCIndex].GetType() == typeof(DockPanel))
             {
-                try
-                {
-                    ((DockPanel)MainDock.Children[parentUCIndex]).Children.RemoveAt(childUCIndex);
-                    ((DockPanel)MainDock.Children[parentUCIndex]).Children.Insert(childUCIndex, userCtrl);
+                ((DockPanel)MainDock.Children[parentUCIndex]).Children.RemoveAt(childUCIndex);
+                ((DockPanel)MainDock.Children[parentUCIndex]).Children.Insert(childUCIndex, userCtrl);
+            }
+        }
 
-                }
-                catch
+        /// <summary>
+        /// Update a child component of an internal work space dockpanel
+        /// </summary>
+        /// <param name="parentUCIndex">Parent UserControl Index</param>
+        /// <param name="filterId">Filter Index</param>
+        /// <param name="filter">Filter text to apply</param>
+        public static void UpdateChildDockMachineFilter(int parentUCIndex, int filterId, string filter)
+        {
+            if (MainDock?.Children[parentUCIndex].GetType() == typeof(DockPanel) && App.SiteNumber == 1)
+            {
+                switch (parentUCIndex)
                 {
-
+                    case 11:
+                        ((Schedule.Plan.ViewModel)((Schedule.Plan.View)((DockPanel)MainDock.Children[parentUCIndex]).Children[0]).DataContext).PlanFilter(filter, filterId);
+                        break;
+                    case 9:
+                        ((QMS.Notice.ViewModel)((QMS.Notice.View)((DockPanel)MainDock.Children[parentUCIndex]).Children[0]).DataContext).NoticeFilter(filter, filterId);
+                        break;
                 }
             }
         }

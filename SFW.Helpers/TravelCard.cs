@@ -30,7 +30,7 @@ namespace SFW.Helpers
         public static string DiamondNbr { get; set; }
         public static int Quantity { get; set; }
         public static string Uom { get; set; }
-        public static int QirNbr { get; set; }
+        public static string Ncr { get; set; }
         public static int Weight { get; set; }
         public static string Submitter { get; set; }
         public static bool Deviation { get; set; }
@@ -50,9 +50,9 @@ namespace SFW.Helpers
         /// <param name="dmdNbr"></param>
         /// <param name="qty"></param>
         /// <param name="uom"></param>
-        /// <param name="qirNbr"></param>
+        /// <param name="ncr"></param>
         /// <param name="weight"></param>
-        public static void Create(string filePath, string password, string partNbr, string lotNbr, string desc, string dmdNbr, int qty, string uom, int qirNbr, int weight = 0, string submitter = "", string[] cPart = null, string[] clot = null, bool deviation = false)
+        public static void Create(string filePath, string password, string partNbr, string lotNbr, string desc, string dmdNbr, int qty, string uom, string ncr, int weight = 0, string submitter = "", string[] cPart = null, string[] clot = null, bool deviation = false)
         {
             FilePath = filePath;
             Password = password;
@@ -62,7 +62,7 @@ namespace SFW.Helpers
             DiamondNbr = dmdNbr;
             Quantity = qty;
             Uom = uom;
-            QirNbr = qirNbr;
+            Ncr = ncr;
             Weight = weight;
             Deviation = deviation;
             Submitter = submitter;
@@ -110,11 +110,9 @@ namespace SFW.Helpers
                             }
                             pdfField.SetField("Qty", Quantity.ToString());
                             pdfField.SetField("UOM", Uom);
-                            if (QirNbr > 0)
+                            if (!string.IsNullOrEmpty(Ncr))
                             {
-                                pdfField.SetField("QIR", QirNbr.ToString());
-                                pdfField.SetField("QIR Bar", $"*{QirNbr}*");
-                                pdfField.SetField("QIR Bar Sm", $"*{QirNbr}*");
+                                pdfField.SetField("QIR", Ncr);
                             }
                             if (Deviation)
                             {
@@ -137,10 +135,9 @@ namespace SFW.Helpers
                                 pdfField.SetField("D/N", DiamondNbr);
                             }
                             pdfField.SetField("Qty", $"{Quantity} {Uom}");
-                            if (QirNbr > 0)
+                            if (!string.IsNullOrEmpty(Ncr))
                             {
-                                pdfField.SetField("QIR", QirNbr.ToString());
-                                pdfField.SetField("QIRBar", QirNbr.ToString());
+                                pdfField.SetField("QIR", Ncr);
                             }
                             if (Deviation)
                             {

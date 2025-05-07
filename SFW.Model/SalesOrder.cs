@@ -171,78 +171,8 @@ namespace SFW.Model
                 {
                     try
                     {
-                        using (SqlDataAdapter adapter = new SqlDataAdapter($@"USE {sqlCon.Database};
-SELECT
-	sod.[ID]
-	,soh.[So_Nbr] as 'SoNbr'
-	,CAST(SUBSTRING(sod.[ID], CHARINDEX('*', sod.[ID], 0) + 1, LEN(sod.[ID])) as int) as 'LineNbr'
-	,sod.[Part_Wo_Gl] as 'PartNbr'
-	,CAST(sod.[Ln_Bal_Qty] as int) as 'BalQty'
-	,CAST(sod.[Ln_Del_Qty] as int) as 'BaseQty'
-	,sod.[Um_Base] as 'Uom'
-	,ISNULL(sod.[D_esc] ,(SELECT im.[Description] FROM [dbo].[IM-INIT] im WHERE (im.[Part_Number] = sod.[Part_Wo_Gl]))) as 'Description'
-	,soh.[Cust_Nbr] as 'CustNbr'
-	,cm.[Name] as 'CustName'
-	,CASE WHEN soh.[Ship_To_Addr1] LIKE '%M1' AND soh.[Ship_To_Name] LIKE 'MacDon%'
-		THEN CONCAT(CONCAT(CONCAT((SELECT cm2.[Name] FROM [dbo].[CM-INIT] cm2 WHERE cm2.[Cust_Nbr] = soh.[Cust_Nbr]), ' ('), soh.[Cust_Nbr]), ') M1')
-		WHEN soh.[Ship_To_Addr1] LIKE '%S1' AND soh.[Ship_To_Name] LIKE 'MacDon%'
-		THEN CONCAT(CONCAT(CONCAT((SELECT cm2.[Name] FROM [dbo].[CM-INIT] cm2 WHERE cm2.[Cust_Nbr] = soh.[Cust_Nbr]), ' ('), soh.[Cust_Nbr]), ') S1')
-		ELSE CONCAT(CONCAT(CONCAT((SELECT cm2.[Name] FROM [dbo].[CM-INIT] cm2 WHERE cm2.[Cust_Nbr] = soh.[Cust_Nbr]), ' ('), soh.[Cust_Nbr]), ')') END as 'FullCustName'
-	,ISNULL(sod.[Cust_Part_Nbr], '') as 'CustPartNbr'
-	,RTRIM(soh.[Credit_Code]) as 'CredStatus'
-	,ISNULL(soh.[Credit_Chk], '') as 'CredApprover'
-	,CAST(ISNULL(soh.[Credit_Date], '1999-01-01') as date) as 'CredDate'
-	,CASE WHEN soh.[Ord_Type] = 'FSE' OR soh.[Ord_Type] LIKE '%DE'
-		THEN 'EOP'
-		ELSE ISNULL(soh.[Ord_Type], 'STD') END as 'Type'
-	,CAST(CASE WHEN soh.[Jump_Reason] IS NULL
-		THEN 0
-		ELSE 1 END as int) as 'IsExpedited'
-	,soh.[Ship_To_Name] as 'ShipName'
-	,soh.[Ship_To_Addr1] as 'ShipAddr1'
-	,ISNULL(soh.[Ship_To_Addr2], '') as 'ShipAddr2'
-	,soh.[Ship_To_City] as 'ShipCity'
-	,ISNULL(soh.[Ship_To_State], '') as 'ShipState'
-	,soh.[Ship_To_Zip] as 'ShipZip'
-	,ISNULL(soh.[Ship_To_Country], 'US') as 'ShipCountry'
-	,CAST(soh.[Date_Added] as date) as 'DateAdded'
-	,CAST(soh.[Delivery_Date] as date) as 'DelDate'
-	,CAST(ISNULL(soh.[Requested_Date], soh.[Delivery_Date]) as date) as 'ReqDate'
-	,CAST(soh.[Commit_Ship_Date] as date) as 'ShipDate'
-	,ISNULL(cm.[Load_Pattern], '') as 'LoadPattern'
-	,CASE WHEN soh.[Ord_Type] = 'DAI'
-			AND ipl.[Qty_On_Hand] >= ssd.[Quantity]
-		THEN 0
-		ELSE 1 END as 'MTO'
-	,CASE WHEN CAST(sod.[Ln_Del_Qty] AS int) - CAST(sod.[Ln_Bal_Qty] AS int) = 0
-		THEN 0
-		ELSE 1 END as 'IsBackOrder'
-	,ISNULL(cm.[Ar_Credit_Limit], 0) as 'AR_Limit'
-	,ISNULL(cm.[Balance], 0) as 'AR_Bal'
-	,cm.[Ship_Bal] as 'AR_SBal'
-	,ISNULL(cm.[Alloc_Bal], 0) as 'AR_ABal'
-	,ISNULL(cm.[Ar_Credit_Limit] - (cm.[Balance] + cm.[Ship_Bal] + cm.[Alloc_Bal]), 0.00) as 'AR_Credit'
-	,soh.[Order_Bal_Ext_Price] as 'AR_OrdBal'
-	,CASE WHEN ipl.[Qty_On_Hand] >= sod.[Ln_Bal_Qty]
-		THEN 1
-		ELSE 0 END as 'HasStock'
-	,CAST(sod.[Facility_Code] AS int) as 'Site'
-FROM
-	dbo.[SOH-INIT] AS soh
-LEFT JOIN
-	dbo.[SOD-INIT] AS sod ON sod.[ID] LIKE CONCAT(soh.[So_Nbr], '*%')
-LEFT JOIN
-	dbo.[CM-INIT] AS cm ON cm.[Cust_Nbr] = soh.[Cust_Nbr]
-LEFT JOIN
-	dbo.[IPL-INIT] ipl ON ipl.[Part_Nbr] = sod.[Part_Wo_Gl]
-LEFT JOIN
-	dbo.[SFW_SalesDemand] ssd on ssd.[ProductID] = sod.[Part_Wo_Gl]
-WHERE
-	soh.[Order_Status] IS NULL AND sod.[Comp] = 'O' AND sod.[Part_Wo_Gl] IS NOT NULL AND ISNULL(sod.[D_esc] ,(SELECT im.[Description] FROM [dbo].[IM-INIT] im WHERE (im.[Part_Number] = sod.[Part_Wo_Gl]))) NOT LIKE '%PALLET%' AND sod.[Facility_Code] = @p1
-ORDER BY
-	soh.[Commit_Ship_Date], sod.[ID] ASC", sqlCon))
+                        using (SqlDataAdapter adapter = new SqlDataAdapter("SELECT * FROM [dbo].[SFW_SalesSchedule] ORDER BY [ShipDate], [ID] ASC", sqlCon))
                         {
-                            adapter.SelectCommand.Parameters.AddWithValue("p1", site);
                             adapter.Fill(_tempTable);
                             return _tempTable.AsEnumerable()
                                 .GroupBy(r => r.Field<string>("ID"))
@@ -250,7 +180,7 @@ ORDER BY
                                 .CopyToDataTable();
                         }
                     }
-                    catch (SqlException sqlEx)
+                    catch (SqlException)
                     {
                         return _tempTable;
                     }
@@ -346,11 +276,14 @@ ORDER BY
         public static IList<string> GetOrderTypeList()
         {
             var _rtnList = new List<string>();
-            foreach (DataRow _row in MasterDataSet.Tables["SalesMaster"].DefaultView.ToTable(true, "Type").Rows)
+            if (MasterDataSet.Tables["SalesMaster"].Columns.Contains("Type"))
             {
-                if (!string.IsNullOrEmpty(_row.Field<string>("Type")))
+                foreach (DataRow _row in MasterDataSet.Tables["SalesMaster"].DefaultView.ToTable(true, "Type").Rows)
                 {
-                    _rtnList.Add(_row.Field<string>("Type"));
+                    if (!string.IsNullOrEmpty(_row.Field<string>("Type")))
+                    {
+                        _rtnList.Add(_row.Field<string>("Type"));
+                    }
                 }
             }
             return _rtnList;
@@ -385,73 +318,6 @@ ORDER BY
             return (from c in _rtnList
                    orderby c.LineNumber
                    select c).ToList();
-            /*if (!string.IsNullOrEmpty(soNbr))
-            {
-                var _condString = string.Empty;
-                foreach (int i in lineNbr)
-                {
-                    _condString += i != 0 ? $" AND a.[ID] != CONCAT('{soNbr}', '*', '{i}')" : "";
-                }
-                var _rtnList = new List<SalesOrder>();
-                if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
-                {
-                    try
-                    {
-                        using (SqlCommand _cmd = new SqlCommand(@"SELECT
-	                                                                SUBSTRING(a.[ID], CHARINDEX('*', a.[ID],0) + 1, LEN(a.[ID])) as 'LineNbr'
-	                                                                ,a.[Part_Wo_Gl] as 'PartNbr'
-	                                                                ,(SELECT aa.[Description] FROM [dbo].[IM-INIT] aa WHERE aa.[Part_Number] = a.[Part_Wo_Gl]) as 'PartDesc'
-	                                                                ,a.[Ln_Bal_Qty] as 'BalQty'
-	                                                                ,a.[Ln_Del_Qty] as 'BaseQty'
-	                                                                ,a.[Um_Base] as 'Uom'
-                                                                    ,CASE WHEN CAST(ISNULL((SELECT SUM(aa.[Oh_Qty_By_Loc]) FROM [dbo].[IPL-INIT_Location_Data] aa WHERE aa.[ID1] = a.[Part_Wo_Gl] 
-		                                                                AND aa.[Loc_Pick_Avail_Flag] = 'Y'), 0) as int) >= CAST(a.[Ln_Bal_Qty] as int)
-		                                                                THEN 0
-		                                                                ELSE 1
-	                                                                END as 'IsBackOrder'
-                                                                FROM [dbo].[SOD-INIT] a
-                                                                WHERE a.[ID] LIKE CONCAT(@p1, '*%')", sqlCon))
-                        {
-                            if (!string.IsNullOrEmpty(_condString))
-                            {
-                                _cmd.CommandText += _condString;
-                            }
-                            _cmd.CommandText += " ORDER BY a.[ID] ASC";
-                            _cmd.Parameters.AddWithValue("p1", soNbr);
-                            using (SqlDataReader reader = _cmd.ExecuteReader())
-                            {
-                                while (reader.Read())
-                                {
-                                    _rtnList.Add(new SalesOrder
-                                    {
-                                        LineBalQuantity = reader.SafeGetInt32("BalQty")
-                                        ,LineDesc = reader.SafeGetString("PartDesc")
-                                        ,LineNumber = reader.SafeGetInt32("LineNbr")
-                                        ,PartNumber = reader.SafeGetString("PartNbr")
-                                        ,LineBaseQuantity = reader.SafeGetInt32("BaseQty")
-                                        ,LineNotes = reader.SafeGetString("Uom")
-                                        ,IsStagged = reader.SafeGetInt32("IsBackOrder") == 1
-                                    });
-                                }
-                            }
-                        }
-                        return _rtnList;
-                    }
-                    catch (SqlException sqlEx)
-                    {
-                        throw sqlEx;
-                    }
-                    catch (Exception ex)
-                    {
-                        throw new Exception(ex.Message);
-                    }
-                }
-                else
-                {
-                    throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
-                }
-            }
-            return null;*/
         }
     }
 }

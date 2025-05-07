@@ -58,7 +58,7 @@
             <TextBlock.Visibility>
                 <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="0*0">
                     <Binding Path="HasContainers"/>
-                    <Binding Path="IsNew"/>
+                    <Binding Path="NewContainer"/>
                 </MultiBinding>
             </TextBlock.Visibility>
         </TextBlock>
@@ -322,7 +322,7 @@
             <Button Background="Transparent"
                     BorderThickness="0"
                     Width="90"
-                    Visibility="{Binding IsNew, Converter={StaticResource BoolToVisConverter}}"
+                    Visibility="{Binding NewContainer, Converter={StaticResource BoolToVisConverter}}"
                     Command="{Binding CancelICommand}">
                 <Button.Content>
                     <StackPanel Orientation="Horizontal">
@@ -340,7 +340,7 @@
                     FontSize="16"
                     Command="{Binding SubmitICommand}"
                     Style="{DynamicResource MenuButtonStyle}"
-                    Visibility="{Binding IsNew, Converter={StaticResource BoolToVisConverter}}"/>
+                    Visibility="{Binding NewContainer, Converter={StaticResource BoolToVisConverter}}"/>
 
             <Button Content="Print"
                     FontSize="16"
@@ -348,7 +348,7 @@
                     Style="{DynamicResource MenuButtonStyle}">
                 <Button.Visibility>
                     <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="0*1">
-                        <Binding Path="IsNew"/>
+                        <Binding Path="NewContainer"/>
                         <Binding Path="HasContainers"/>
                     </MultiBinding>
                 </Button.Visibility>
@@ -361,7 +361,7 @@
                     Style="{DynamicResource MenuButtonStyle}">
                 <Button.Visibility>
                     <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="0*1">
-                        <Binding Path="IsNew"/>
+                        <Binding Path="NewContainer"/>
                         <Binding Path="HasContainers"/>
                     </MultiBinding>
                 </Button.Visibility>
@@ -394,7 +394,7 @@
             <TextBlock.Visibility>
                 <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="1*0*1">
                     <Binding Path="ResultsCount"/>
-                    <Binding Path="IsNew"/>
+                    <Binding Path="NewContainer"/>
                     <Binding Path="HasContainers"/>
                 </MultiBinding>
             </TextBlock.Visibility>
@@ -538,7 +538,7 @@
                        Visibility="{Binding ContainerObject.ValidLocation, Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}"/>
 
                 <Button Grid.Column="3"
-                        Command="{Binding DataContext.CommitICommand}"
+                        Command="{Binding CommitICommand}"
                         CommandParameter="LocationChange"
                         Width="22"
                         Height="22"
@@ -550,7 +550,7 @@
                     </Button.Content>
                     <Button.Visibility>
                         <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="0*1">
-                            <Binding Path="IsNew"/>
+                            <Binding Path="NewContainer"/>
                             <Binding Path="ContainerObject.LocationChange"/>
                         </MultiBinding>
                     </Button.Visibility>
@@ -818,9 +818,11 @@
                                         <Image Source="/SFW;component/Icons/Accept.ico" />
                                     </Button.Content>
                                     <Button.Visibility>
-                                        <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="1*1">
+                                        <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="1*1*1*0">
                                             <Binding Path="ValidQuantity"/>
-                                            <Binding Path="QuantityChange"/>
+                                            <Binding Path="ValidLocation"/>
+                                            <Binding Path="NewProduct"/>
+                                            <Binding Path="NewContainer"/>
                                         </MultiBinding>
                                     </Button.Visibility>
                                 </Button>
@@ -842,7 +844,7 @@
                                             <Binding Path="Validated"/>
                                             <Binding Path="LotTraceable"/>
                                             <Binding Path="NewProduct"/>
-                                            <Binding Path="IsNew"/>
+                                            <Binding Path="NewContainer"/>
                                         </MultiBinding>
                                     </Button.Visibility>
                                 </Button>

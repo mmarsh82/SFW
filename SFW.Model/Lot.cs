@@ -444,30 +444,33 @@ namespace SFW.Model
                 }
                 var _search = $"[ParentLot] = '{lotNbr}'";
                 var _dList = MasterDataSet.Tables.Contains("Diamond") ? MasterDataSet.Tables["Diamond"].Select(_search) : new DataRow[0];
-                while (!string.IsNullOrEmpty(_search) && _dList.Length > 0)
+                if (_dList.Length > 0)
                 {
-                    _dList = _dList == null ? MasterDataSet.Tables["Diamond"].Select(_search) : _dList;
-                    if (_dList.Length > 0)
+                    while (!string.IsNullOrEmpty(_search))
                     {
-                        _search = string.Empty;
-                        foreach (var _row in _dList)
+                        _dList = _dList == null ? MasterDataSet.Tables["Diamond"].Select(_search) : _dList;
+                        if (_dList.Length > 0)
                         {
-                            if (_row.Field<string>("IsDiamond") == "Y")
+                            _search = string.Empty;
+                            foreach (var _row in _dList)
                             {
-                                return _row.Field<string>("ChildLot");
+                                if (_row.Field<string>("IsDiamond") == "Y")
+                                {
+                                    return _row.Field<string>("ChildLot");
+                                }
+                                else
+                                {
+                                    _search += string.IsNullOrEmpty(_search)
+                                        ? $"[ParentLot] = '{_row.Field<string>("ChildLot")}'"
+                                        : $" OR [ParentLot] = '{_row.Field<string>("ChildLot")}'";
+                                }
                             }
-                            else
-                            {
-                                _search += string.IsNullOrEmpty(_search)
-                                    ? $"[ParentLot] = '{_row.Field<string>("ChildLot")}'"
-                                    : $" OR [ParentLot] = '{_row.Field<string>("ChildLot")}'";
-                            }
+                            _dList = null;
                         }
-                        _dList = null;
-                    }
-                    else
-                    {
-                        return "error";
+                        else
+                        {
+                            return "error";
+                        }
                     }
                 }
                 return "error";

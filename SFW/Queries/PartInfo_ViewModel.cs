@@ -411,7 +411,7 @@ namespace SFW.Queries
                 {
                     _dmd = DiamondEntry.Show();
                 }
-                var _qir = UseLot ? Lot.GetAssociatedQIR(_lot, App.AppSqlCon) : 0;
+                var _ncr = UseLot ? QmsForm.GetNcrId(_lot, App.AppSqlCon) : "";
                 TravelCard.Create("", "technology#1",
                     Part.SkuNumber,
                     _lot,
@@ -419,7 +419,7 @@ namespace SFW.Queries
                     _dmd,
                     Convert.ToInt32(QuantityInput),
                     Part.Uom,
-                    _qir
+                    _ncr
                     );
                 switch (parameter.ToString())
                 {
@@ -447,7 +447,7 @@ namespace SFW.Queries
                         "",
                         Convert.ToInt32(QuantityInput),
                         Part.Uom,
-                        0,
+                        "",
                         submitter: CurrentUser.DisplayName
                         );
                         TravelCard.Display(FormType.CoC, App.GlobalConfig.FirstOrDefault(o => o.Site == "CSI").MaterialCard);

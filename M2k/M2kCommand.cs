@@ -485,7 +485,7 @@ namespace M2kClient
             #region Scrap Adjustment
 
             var _scrapWip = string.Empty;
-            /* Coming soon
+            /*TODO:
             //Scrapping product by wipping to inspection location
             foreach (var s in wipRecord.ScrapList.Where(o => int.TryParse(o.Quantity, out int i) && i > 0))
             {
@@ -530,14 +530,6 @@ namespace M2kClient
                         s.FacilityCode,
                         connection,
                         s.LotNumber);
-
-                    if (!string.IsNullOrEmpty(s.LotNumber) && int.TryParse(s.Reference, out int iRef))
-                    {
-                        if (QmsForm.IsValid(iRef) && wipRecord.WipWorkOrder.Facility == 1)
-                        {
-                            QmsForm.SubmitLot(iRef, s.LotNumber);
-                        }
-                    }
                 }
             }
 

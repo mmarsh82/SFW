@@ -1,5 +1,6 @@
 ﻿using M2kClient;
 using Microsoft.Win32;
+using SFW.Model;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -143,8 +144,8 @@ namespace SFW
                     { 1, "" }
                     ,{ 2, "" }
                 };
-                SplashMessage = "Getting your schedule ready.  This may take a few moments.";
-                var _load = Model.ModelBase.BuildMasterDataSet(UserConfig.GetIROD(), SiteNumber, AppSqlCon);
+                SplashMessage = $"Getting your schedule ready.  This may take a few moments.";
+                var _load = ModelBase.BuildMasterDataSet(UserConfig.GetIROD(), SiteNumber, AppSqlCon);
                 if (_load.ContainsKey(true))
                 {
                     var _msg = _load.TryGetValue(true, out string s) ? s : string.Empty;

@@ -152,7 +152,7 @@ namespace SFW.ShopRoute
         public bool HasFirstPiece
         {
             get
-            { return ShopOrder.MachineGroup == "PRESS"; }
+            { return ShopOrder?.MachineGroup == "PRESS"; }
         }
 
         private IList<string> _ncrList;
@@ -189,6 +189,7 @@ namespace SFW.ShopRoute
                 OnPropertyChanged(nameof(BomOnly));
             }
         }
+        public bool WipActive { get { return CurrentUser.CanWip && ShopOrder?.Picklist?.Count > 0; } }
 
         public DataView ActivityTable { get; set; }
 
@@ -214,6 +215,10 @@ namespace SFW.ShopRoute
         /// <param name="workOrder">Work Order Object</param>
         public ViewModel(WorkOrder workOrder)
         {
+            if (workOrder.OrderID == null)
+            {
+                workOrder = new WorkOrder(ModelBase.MasterDataSet.Tables["Master"].Rows[0]);
+            }
             ShopOrder = workOrder;
             IsMultiLoading = true;
             NoLotResults = NoDedicateResults = true;
@@ -257,7 +262,7 @@ namespace SFW.ShopRoute
                             ShopOrder.Bom = Model.Component.GetComponentBomList(ShopOrder.SkuNumber, ShopOrder.Seq);
                             ShopOrder.Picklist = ShopOrder.TaskType != "P"
                                 ? Model.Component.GetComponentPickList(ShopOrder.OrderNumber, ShopOrder.Seq, ShopOrder.StartQty - ShopOrder.CurrentQty, ShopOrder.Machine)
-                                :new List<Model.Component>();
+                                : new List<Model.Component>();
                             IsMultiLoading = false;
                             if (App.SiteNumber == 1)
                             {
@@ -271,12 +276,13 @@ namespace SFW.ShopRoute
                             }
                             OnPropertyChanged(nameof(IsMultiLoading));
                             OnPropertyChanged(nameof(ShopOrder));
+                            OnPropertyChanged(nameof(WipActive));
                         });
                     bw.RunWorkerAsync();
                 }
                 catch (Exception)
                 {
-                    
+
                 }
             }
         }

@@ -37,11 +37,11 @@ namespace SFW.Schedule
                         var _wo = new WorkOrder(value.Row);
                         if (_wo.Inspection)
                         {
-                            Controls.WorkSpaceDock.UpdateChildDock(1, 1, new ShopRoute.QTask.View { DataContext = new ShopRoute.QTask.ViewModel(_wo) });
+                            Application.Current.Dispatcher.Invoke(new Action(delegate { Controls.WorkSpaceDock.UpdateChildDock(1, 1, new ShopRoute.QTask.View { DataContext = new ShopRoute.QTask.ViewModel(_wo) }); }));
                         }
                         else
                         {
-                            Controls.WorkSpaceDock.UpdateChildDock(1, 1, new ShopRoute.View { DataContext = new ShopRoute.ViewModel(_wo) });
+                            Application.Current.Dispatcher.Invoke(new Action(delegate { Controls.WorkSpaceDock.UpdateChildDock(1, 1, new ShopRoute.View { DataContext = new ShopRoute.ViewModel(_wo) }); }));
                         }
                     }
                     OnPropertyChanged(nameof(SelectedWorkOrder));
@@ -185,7 +185,6 @@ namespace SFW.Schedule
                 if (ScheduleView != null)
                 {
                     ((DataView)ScheduleView.SourceCollection).RowFilter = _filterStr;
-                    ScheduleView.Refresh();
                 }
             }
             else
@@ -208,10 +207,6 @@ namespace SFW.Schedule
                 }
                 ScheduleFilter("[Status] <> 'C'", 5);
                 ScheduleFilter($"[Site] = {App.SiteNumber}", 6);
-                if (ScheduleView != null)
-                {
-                    ScheduleView.Refresh();
-                }
             }
         }
 
@@ -253,7 +248,10 @@ namespace SFW.Schedule
             try
             {
                 RefreshTimer.IsRefreshing = IsLoading = Refresh = false;
-                MainWindowViewModel.DisplayAction = false;
+                if (App.LoadedModule == Enumerations.UsersControls.Schedule)
+                {
+                    MainWindowViewModel.DisplayAction = false;
+                }
                 var _oldfilter = string.Empty;
                 if (ScheduleView != null && CurrentUser.IsLoggedIn)
                 {
@@ -305,7 +303,6 @@ namespace SFW.Schedule
                 if (!IsLoading)
                 {
                     RefreshTimer.IsRefreshing = IsLoading = Refresh = true;
-                    MainWindowViewModel.DisplayAction = App.LoadedModule == Enumerations.UsersControls.Schedule;
                     _oldSelectedWO = ScheduleView.CurrentItem;
                     SelectedWorkOrder = null;
                     LoadAsyncComplete = LoadAsyncDelegate.BeginInvoke(((DataView)ScheduleView.SourceCollection).RowFilter, new AsyncCallback(ViewLoaded), null);

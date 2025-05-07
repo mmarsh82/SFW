@@ -36,9 +36,9 @@ namespace SFW.Model
         {
             var _machineDataRow = MasterDataSet.Tables["WC"].Select($"[WorkCenterID] = '{machId}'").FirstOrDefault();
             MachineNumber = machId.ToString();
-            MachineName = _machineDataRow.Field<string>("Name");
-            MachineDescription = _machineDataRow.Field<string>("Description");
-            MachineGroup = _machineDataRow.Field<string>("Group");
+            MachineName = _machineDataRow?.Field<string>("Name");
+            MachineDescription = _machineDataRow?.Field<string>("Description");
+            MachineGroup = _machineDataRow?.Field<string>("Group");
         }
 
         #region Data Access

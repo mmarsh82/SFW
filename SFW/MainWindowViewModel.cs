@@ -41,7 +41,8 @@ namespace SFW
                     }
                     var _mNbr = Machine.GetMachineNumber(value);
                     Schedule.ViewModel.ScheduleFilter(value == "All" ? "" : $"MachineNumber = '{_mNbr}'", 1);
-                    Schedule.Plan.ViewModel.PlanFilter(value == "All" ? "" : $"MachineNumber = '{_mNbr}'", 1);
+                    WorkSpaceDock.UpdateChildDockMachineFilter(11, 1, value == "All" ? "" : $"[MachineNumber] = '{_mNbr}'");
+                    WorkSpaceDock.UpdateChildDockMachineFilter(9, 4, value == "All" ? "" : $"[FoundWorkCenterId] = '{_mNbr}'");
                     IsChanging = false;
                 }
                 mach = value;
@@ -66,7 +67,8 @@ namespace SFW
                 {
                     IsChanging = true;
                     Schedule.ViewModel.ScheduleFilter(value == "All" ? "" : $"[MachineGroup] = '{value}'", 2);
-                    Schedule.Plan.ViewModel.PlanFilter(value == "All" ? "" : $"[MachineGroup] = '{value}'", 2);
+                    WorkSpaceDock.UpdateChildDockMachineFilter(11, 2, value == "All" ? "" : $"[MachineGroup] = '{value}'");
+                    WorkSpaceDock.UpdateChildDockMachineFilter(9, 5, value == "All" ? "" : $"[FoundWorkCenterGroup] = '{value}'");
                     SelectedMachine = MachineList.FirstOrDefault(o => o == "All");
                     IsChanging = false;
                 }

@@ -190,7 +190,7 @@
                     </MultiBinding>
                 </MenuItem.Visibility>
 
-                <MenuItem Header="Crew Management"
+                <MenuItem Header="Shift Staffing"
                           Command="{StaticResource ShowWindowICommand}"
                           CommandParameter="SFW.Tools.CrewList_View">
                     <MenuItem.Visibility>
@@ -201,10 +201,16 @@
                     </MenuItem.Visibility>
                 </MenuItem>
 
-                <MenuItem Header="Priority Management"
+                <MenuItem Header="Work Order Priority"
                           Visibility="{Binding Path=(local:CurrentUser.CanSchedule), Converter={StaticResource BoolToVisConverter}}"
                           Command="{StaticResource ShowWindowICommand}"
                           CommandParameter="SFW.Tools.PriorityList_View"/>
+
+                <MenuItem Header="WIP Receipts"
+                          Visibility="Visible"/>
+
+                <MenuItem Header="Machine Reports"
+                          Visibility="Visible"/>
 
             </MenuItem>
             

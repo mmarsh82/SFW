@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Data.SqlClient;
+using System.Windows.Markup;
 
 //Created by Michael Marsh 4-19-18
 
@@ -117,16 +118,22 @@ namespace SFW.Model
                     if (site == 1)
                     {
                         _tempDS.Tables.Add(QmsForm.GetNoticeTable(site, ModelSqlCon));
-                        _tempDS.Tables[_tempDS.Tables.Count - 1].TableName = "NcrNotice";
+                        _tempDS.Tables[_tempDS.Tables.Count - 1].TableName = "QmsNotice";
+
+                        _tempDS.Tables.Add(QmsForm.DefectSubType.GetTable(ModelSqlCon));
+                        _tempDS.Tables[_tempDS.Tables.Count - 1].TableName = "DefectSubType";
 
                         _tempDS.Tables.Add(QmsForm.DefectType.GetDefectTypeTable(ModelSqlCon));
-                        _tempDS.Tables[_tempDS.Tables.Count - 1].TableName = "NcrType";
+                        _tempDS.Tables[_tempDS.Tables.Count - 1].TableName = "DefectType";
 
                         _tempDS.Tables.Add(QmsForm.Disposition.GetDispositionTable(ModelSqlCon));
-                        _tempDS.Tables[_tempDS.Tables.Count - 1].TableName = "NcrDispo";
+                        _tempDS.Tables[_tempDS.Tables.Count - 1].TableName = "DefectDisposition";
 
                         _tempDS.Tables.Add(QmsForm.DefectReason.GetDefectReasonTable(ModelSqlCon));
-                        _tempDS.Tables[_tempDS.Tables.Count - 1].TableName = "NcrReason";
+                        _tempDS.Tables[_tempDS.Tables.Count - 1].TableName = "DefectReason";
+
+                        _tempDS.Tables.Add(QmsForm.GetCategoryLinkTable(ModelSqlCon));
+                        _tempDS.Tables[_tempDS.Tables.Count - 1].TableName = "CategoryFilter";
 
                         _tempDS.Tables.Add(Lot.GetDiamondTable(ModelSqlCon));
                         _tempDS.Tables[_tempDS.Tables.Count - 1].TableName = "Diamond";
