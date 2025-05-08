@@ -37,6 +37,7 @@ namespace SFW.Schedule.SalesOrder
                 { }
             }
         }
+        public int SelectedIndex;
 
         private string _sFilter;
         public string SearchFilter
@@ -223,27 +224,29 @@ namespace SFW.Schedule.SalesOrder
         {
             try
             {
+                SelectedIndex = index < 0 ? 0 : index;
                 SalesScheduleView = ModelBase.MasterDataSet.Tables["SalesMaster"].AsDataView();
-                if (SalesScheduleView != null)
-                {
-                    SalesScheduleView.RowFilter = filter;
-                    SelectedSalesOrder = SalesScheduleView.Count >= index ? SalesScheduleView[index] : null;
-                }
-                if (OrderTypeList.Count == 1)
-                {
-                    OrderTypeList.Clear();
-                    OrderTypeList = Model.SalesOrder.GetOrderTypeList();
-                    OrderTypeList.Insert(0, "All");
-                    OnPropertyChanged(nameof(OrderTypeList));
-                }
+                SearchFilter = !string.IsNullOrEmpty(SearchFilter) ? SearchFilter : string.Empty;
+                SalesScheduleView.RowFilter = filter;
             }
-            catch
+            catch (Exception ex)
             {
-                
+                MessageBox.Show(ex.Message, "Sales Unhandled Exception", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
         public void ViewLoaded(IAsyncResult r)
         {
+            if (SalesScheduleView != null && SalesScheduleView.Count > 0)
+            {
+                SelectedSalesOrder = SalesScheduleView.Count >= SelectedIndex ? SalesScheduleView[SelectedIndex] : null;
+            }
+            if (OrderTypeList.Count == 1)
+            {
+                OrderTypeList.Clear();
+                OrderTypeList = Model.SalesOrder.GetOrderTypeList();
+                OrderTypeList.Insert(0, "All");
+                OnPropertyChanged(nameof(OrderTypeList));
+            }
             OnPropertyChanged(nameof(SalesScheduleView));
             if (App.LoadedModule == Enumerations.UsersControls.SalesOrder)
             {

@@ -38,6 +38,7 @@ namespace SFW.Schedule.Plan
                 OnPropertyChanged(nameof(SelectedWorkOrder));
             }
         }
+        public int SelectedIndex;
 
         private string _sFilter;
         public string SearchFilter
@@ -187,17 +188,12 @@ namespace SFW.Schedule.Plan
             {
                 if (ModelBase.MasterDataSet.Tables.Contains("Plan"))
                 {
+                    SelectedIndex = index < 0 ? 0 : index;
                     PlanningView = ModelBase.MasterDataSet.Tables["Plan"].AsDataView();
                     PlanFilter(UserConfig.BuildMachineFilter(), 1);
                     PlanFilter(UserConfig.BuildPriorityFilter(), 3);
-                    if (PlannerCollection != null && PlannerCollection.Count == 1)
-                    {
-                        PlannerCollection = Sku.GetPlannerCollection();
-                        OnPropertyChanged(nameof(PlannerCollection));
-                    }
                     SearchFilter = !string.IsNullOrEmpty(SearchFilter) ? SearchFilter : string.Empty;
                     PlanningView.RowFilter = filter;
-                    SelectedWorkOrder = PlanningView.Count >= index ? PlanningView[index] : null;
                 }
             }
             catch (Exception ex)
@@ -208,6 +204,15 @@ namespace SFW.Schedule.Plan
 
         public void ViewLoaded(IAsyncResult r)
         {
+            if (PlannerCollection != null && PlannerCollection.Count == 1)
+            {
+                PlannerCollection = Sku.GetPlannerCollection();
+                OnPropertyChanged(nameof(PlannerCollection));
+            }
+            if (PlanningView != null && PlanningView.Count > 0)
+            {
+                SelectedWorkOrder = PlanningView.Count >= SelectedIndex ? PlanningView[SelectedIndex] : PlanningView[0];
+            }
             OnPropertyChanged(nameof(PlanningView));
             if (App.LoadedModule == Enumerations.UsersControls.Plan)
             {

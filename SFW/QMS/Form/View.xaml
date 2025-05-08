@@ -164,9 +164,8 @@
                             Command="{Binding VoidICommand}"
                             Style="{DynamicResource MenuButtonStyle}">
                         <Button.Visibility>
-                            <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="NCR">
-                                <Binding Source="Void"/>
-                                <Binding Path="IsNewNcr"/>
+                            <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="0*1">
+                                <Binding Path="IsNewForm"/>
                                 <Binding Path="(main:CurrentUser.IsQuality)"/>
                             </MultiBinding>
                         </Button.Visibility>
@@ -483,8 +482,6 @@
                               FontSize="18"
                               FontWeight="Bold"
                               Background="LightGray"
-                              Width="Auto"
-                              IsEditable="True"
                               MinWidth="180"
                               TabIndex="4"
                               Margin="5,0,0,0"
@@ -522,7 +519,6 @@
                               FontSize="18"
                               FontWeight="Bold"
                               Background="LightGray"
-                              Width="Auto"
                               MinWidth="200"
                               TabIndex="3"
                               Margin="5,0,0,0"
@@ -548,6 +544,7 @@
                               FontSize="18"
                               FontWeight="Bold"
                               MinWidth="200"
+                              IsEditable="True"
                               TabIndex="7"
                               Margin="5,0,0,0"
                               Visibility="{Binding ShowSupplierCollection, Converter={StaticResource BoolToVisConverter}}"
@@ -718,7 +715,7 @@
                         <Button.Visibility>
                             <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="1*1">
                                 <Binding Path="(main:CurrentUser.IsQuality)"/>
-                                <Binding Path="NcrObject.Part.IsLotTrace"/>
+                                <Binding Path="FormObject.Part.IsLotTrace"/>
                             </MultiBinding>
                         </Button.Visibility>
                     </Button>

@@ -284,6 +284,7 @@ namespace SFW.Schedule
                     SearchFilter = SearchFilter;
                 }
                 StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(ScheduleView)));
+                Application.Current.Dispatcher.Invoke(new Action(delegate { ScheduleView.Refresh(); }));
             }
             catch(Exception ex)
             {

@@ -67,10 +67,9 @@ namespace SFW.Commands
                 var _viewModel = new object();
                 _viewModel = null;
                 var refreshView = _view == 1 || _view == 2;
-                if (parameter.ToString().Contains("NCR*") || parameter.ToString().Contains("SCAR*"))
+                if (parameter.ToString().Contains("NCR*"))
                 {
-                    var _frmType = Enum.TryParse(parameter.ToString().Split('*')[0], out QmsForm.FormType ft) ? ft : QmsForm.FormType.NCR;
-                    _viewModel = new QMS.Form.ViewModel(new WorkOrder(parameter.ToString().Split('*').Last()), _frmType);
+                    _viewModel = new QMS.Form.ViewModel(new WorkOrder(parameter.ToString().Split('*').Last()), QmsForm.FormType.NCR);
                     refreshView = false;
                 }
 

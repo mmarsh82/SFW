@@ -447,17 +447,21 @@ namespace SFW.Model
         {
             #region Properties
 
-            public DataTable Table { get; set; }
+            public DataView NoticeDataView { get; set; }
 
             #endregion
 
             public Notice()
             {
-                if (Table == null)
+                if (NoticeDataView == null)
                 {
-                    Table = MasterDataSet.Tables.Contains("QmsNotice")
-                        ? MasterDataSet.Tables["QmsNotice"].Select("[NcrRevisionId] = [RevisionFilter]").CopyToDataTable()
-                        : new DataTable();
+                    NoticeDataView = MasterDataSet.Tables.Contains("QmsNotice")
+                        ? MasterDataSet.Tables["QmsNotice"].Select("[NcrRevisionId] = [RevisionFilter]").CopyToDataTable().AsDataView()
+                        : new DataView();
+                    if (NoticeDataView.Table.Rows.Count > 0)
+                    {
+                        NoticeDataView.Sort = "RevisionDateTime DESC";
+                    }
                 }
             }
         }

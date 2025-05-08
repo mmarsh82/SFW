@@ -88,8 +88,6 @@ namespace SFW.Converters
                         return (_sched && _new) || (_sched && !_new) || (!_sched && !_new) ? Visibility.Visible : Visibility.Collapsed;
                     case "Button":
                         return _sched || _new ? Visibility.Visible : Visibility.Collapsed;
-                    case "Void":
-                        return !_sched && _new ? Visibility.Visible : Visibility.Collapsed;
                 }
                 return Visibility.Visible;
             }

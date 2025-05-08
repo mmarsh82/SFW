@@ -667,7 +667,7 @@ namespace SFW.WIP
                         _diamond = DiamondEntry.Show();
                         App.GetWindow<View>().Topmost = true;
                     }
-                    var _ncr = WipRecord.IsLotTracable ? QmsForm.GetNcrId("", App.AppSqlCon) : QmsForm.GetNcrId(WipRecord.WipWorkOrder.OrderNumber);
+                    var _ncr = WipRecord.IsLotTracable ? QmsForm.GetNcrId(WipRecord.WipLot.LotNumber, App.AppSqlCon) : QmsForm.GetNcrId(WipRecord.WipWorkOrder.OrderNumber);
                     TravelCard.Create("", "technology#1",
                         WipRecord.WipWorkOrder.SkuNumber,
                         WipRecord.IsLotTracable ? WipRecord.WipLot.LotNumber : "",

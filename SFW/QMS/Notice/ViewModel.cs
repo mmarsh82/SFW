@@ -1,13 +1,14 @@
 ﻿using SFW.Controls;
+using SFW.Converters;
 using SFW.Helpers;
 using SFW.Model;
 using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Data;
 using System.Linq;
 using System.Windows;
+using System.Windows.Data;
 using System.Windows.Input;
 
 namespace SFW.QMS.Notice
@@ -17,7 +18,7 @@ namespace SFW.QMS.Notice
         #region Properties
 
         public static string[] NoticeViewFilter;
-        public DataView NoticeView { get; set; }
+        public ICollectionView NoticeView { get; set; }
 
         private DataRowView _selectedNcr;
         public DataRowView SelectedNcr
@@ -27,8 +28,10 @@ namespace SFW.QMS.Notice
             {
                 try
                 {
+                    var _intial = App.SiteNumber == 1 && _selectedNcr == null;
                     _selectedNcr = value;
-                    if (value != null && App.LoadedModule == Enumerations.UsersControls.Quality)
+                    SelectedIndex = NoticeView.IndexOf(value, $"[NcrId] = {value.Row.SafeGetField<int>("NcrId")}");
+                    if ((value != null && App.LoadedModule == Enumerations.UsersControls.Quality) || _intial)
                     {
                         var _ncr = new QmsForm(value.Row.Field<int>("NcrId"));
                         var _action = new Action(delegate { WorkSpaceDock.UpdateChildDock(9, 1, new Form.ViewModel(_ncr, SelectedNcr.Row.Field<int>("NcrRevisionId"))); });
@@ -40,6 +43,7 @@ namespace SFW.QMS.Notice
                 { }
             }
         }
+        public int SelectedIndex;
 
         private string _sFilter;
         public string SearchFilter
@@ -48,7 +52,7 @@ namespace SFW.QMS.Notice
             set
             {
                 _sFilter = value == "" ? null : value;
-                var _filter = string.IsNullOrEmpty(value) ? "" : NoticeView.Table.SearchRowFilter(value);
+                var _filter = string.IsNullOrEmpty(value) ? "" : ((DataView)NoticeView.SourceCollection).Table.SearchRowFilter(value);
                 NoticeFilter(_filter, 0);
                 OnPropertyChanged(nameof(SearchFilter));
             }
@@ -101,10 +105,9 @@ namespace SFW.QMS.Notice
         RelayCommand _newFrm;
         RelayCommand _exportQms;
 
-        public delegate void LoadDelegate(string s, int i);
+        public delegate void LoadDelegate(string s, bool b);
         public LoadDelegate LoadAsyncDelegate { get; private set; }
-        public static IAsyncResult LoadAsyncComplete { get; set; }
-        public static event EventHandler<PropertyChangedEventArgs> StaticPropertyChanged;
+        public IAsyncResult LoadAsync { get; private set; }
 
         #endregion
 
@@ -113,14 +116,16 @@ namespace SFW.QMS.Notice
         /// </summary>
         public ViewModel()
         {
-            RefreshTimer.Add(RefreshNotice);
-            NoticeView = new DataView();
-            NoticeViewFilter = new string[7];
-            NoticeFilter($"[Site] = {App.SiteNumber}", 2);
-            ClosedFilter = false;
-            FormTypeFilter = true;
-            LoadAsyncDelegate = new LoadDelegate(ViewLoading);
-            LoadAsyncComplete = LoadAsyncDelegate.BeginInvoke(NoticeView.RowFilter, 0, new AsyncCallback(ViewLoaded), null);
+            if (ModelBase.MasterDataSet.Tables.Contains("QmsNotice"))
+            {
+                RefreshTimer.Add(RefreshNotice);
+                NoticeView = CollectionViewSource.GetDefaultView(new QmsForm.Notice().NoticeDataView);
+                NoticeViewFilter = new string[7];
+                ClosedFilter = false;
+                FormTypeFilter = true;
+                LoadAsyncDelegate = new LoadDelegate(ViewLoading);
+                LoadAsync = LoadAsyncDelegate.BeginInvoke(((DataView)NoticeView.SourceCollection).RowFilter, false, new AsyncCallback(ViewLoaded), null);
+            }
         }
 
         /// <summary>
@@ -148,7 +153,7 @@ namespace SFW.QMS.Notice
                 var _tempList = new List<DataView>();
                 if (NoticeView != null)
                 {
-                    NoticeView.RowFilter = _filterStr;
+                    ((DataView)NoticeView.SourceCollection).RowFilter = _filterStr;
                     OnPropertyChanged(nameof(NoticeView));
                 }
             }
@@ -197,32 +202,23 @@ namespace SFW.QMS.Notice
 
         private void ExportQmsExecute(object parameter)
         {
-            ExcelWriter.ExportData(NoticeView.Table);
+            ExcelWriter.ExportData(((DataView)NoticeView.SourceCollection).ToTable());
         }
 
         #endregion
 
         #region Loading Async Delegation Implementation
 
-        public void ViewLoading(string filter, int index)
+        public void ViewLoading(string filter, bool refresh)
         {
             try
             {
-                var _ncrId = NoticeView[index].Row.ItemArray[0];
-                NoticeView = new QmsForm.Notice().Table.AsDataView();
+                if (refresh)
+                {
+                    NoticeView = CollectionViewSource.GetDefaultView(new QmsForm.Notice().NoticeDataView);
+                }
                 SearchFilter = !string.IsNullOrEmpty(SearchFilter) ? SearchFilter : string.Empty;
-                NoticeView.RowFilter = filter;
-                if (NoticeView[index].Row.ItemArray[0] == _ncrId)
-                {
-                    SelectedNcr = NoticeView.Count >= index ? NoticeView[index] : null; SelectedNcr = NoticeView.Count >= index ? NoticeView[index] : null;
-                }
-                else
-                {
-                    NoticeView.Sort = "NcrId";
-                    index = NoticeView.Find(_ncrId);
-                    SelectedNcr = NoticeView.Count >= index ? NoticeView[index] : null;
-                }
-                NoticeView.Sort = "RevisionDateTime DESC";
+                ((DataView)NoticeView.SourceCollection).RowFilter = filter;
             }
             catch (Exception ex)
             {
@@ -232,6 +228,13 @@ namespace SFW.QMS.Notice
 
         public void ViewLoaded(IAsyncResult r)
         {
+            NoticeView.GroupDescriptions.Clear();
+            NoticeView.GroupDescriptions.Add(new PropertyGroupDescription("RevisionDateTime", new DateGroupConverter()));
+            if (NoticeView != null && ((DataView)NoticeView.SourceCollection).Count > 0)
+            {
+                var _temp = ((DataView)NoticeView.SourceCollection).Count >= SelectedIndex ? NoticeView.MoveCurrentToPosition(SelectedIndex) : NoticeView.MoveCurrentToFirst();
+                SelectedNcr = _temp ? (DataRowView)NoticeView.CurrentItem : null;
+            }
             OnPropertyChanged(nameof(NoticeView));
             if (App.LoadedModule == Enumerations.UsersControls.Quality)
             {
@@ -249,14 +252,8 @@ namespace SFW.QMS.Notice
             try
             {
                 MainWindowViewModel.DisplayAction = App.LoadedModule == Enumerations.UsersControls.Quality;
-                var _filter = NoticeView != null ? NoticeView.RowFilter : string.Empty;
-                var _index = 0;
-                if (SelectedNcr != null)
-                {
-                    var _targetId = SelectedNcr.Row.SafeGetField<int>("NcrId").ToString();
-                    _index = NoticeView.Cast<DataRowView>().Select((row, idx) => new { row, idx }).FirstOrDefault(o => o.row["NcrId"].ToString() == _targetId)?.idx ?? 0;
-                }
-                LoadAsyncComplete = LoadAsyncDelegate.BeginInvoke(_filter, _index, new AsyncCallback(ViewLoaded), null);
+                var _filter = NoticeView != null ? ((DataView)NoticeView.SourceCollection).RowFilter : string.Empty;
+                LoadAsync = LoadAsyncDelegate.BeginInvoke(_filter, true, new AsyncCallback(ViewLoaded), null);
             }
             catch (Exception ex)
             {

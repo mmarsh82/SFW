@@ -153,7 +153,7 @@ namespace SFW.Controls
                     _tempDock = QmsFormDock;
                     if (dataContext == null)
                     {
-                        UpdateChildDock(9, 1, new QMS.Form.View { DataContext = new QMS.Form.ViewModel(null, false, false, Model.QmsForm.FormType.NCR) });
+                        UpdateChildDock(9, 1, new QMS.Form.View { DataContext = ((QMS.Form.View)((DockPanel)MainDock.Children[9]).Children[1]).DataContext });
                     }
                     else
                     {
