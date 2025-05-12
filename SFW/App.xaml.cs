@@ -127,6 +127,7 @@ namespace SFW
                 Site = "CONTI_MAIN";
                 GlobalConfig = AppGlobal.Load($"{AppFilePath}GlobalConfig.xml");
                 DefualtWorkCenter = UserConfig.GetUserConfigList();
+                RefreshTimer.RefreshActionGroup = new List<Action>();
                 SplashMessage = "Connecting to your data.";
                 if (AppSqlCon != null)
                 {

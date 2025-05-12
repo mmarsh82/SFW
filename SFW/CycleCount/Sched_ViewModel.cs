@@ -99,7 +99,7 @@ namespace SFW.CycleCount
                 LoadAsyncComplete = LoadAsyncDelegate.BeginInvoke(_filter, new AsyncCallback(ViewLoaded), null);
                 if (CurrentUser.IsInventoryControl)
                 {
-                    RefreshTimer.Add(RefreshSchedule);
+                    RefreshTimer.RefreshActionGroup.Add(RefreshSchedule);
                 }
             }
         }

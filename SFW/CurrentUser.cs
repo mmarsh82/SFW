@@ -688,7 +688,7 @@ namespace SFW
                             else
                             {
                                 new CurrentUser(pContext, uPrincipal);
-                                Controls.WorkSpaceDock.RefreshMainDock();
+                                Controls.WorkSpaceDock.RefreshMainDock(true);
                                 MainWindowViewModel.UpdateProperties(false);
                             }
                             _result.Add(_resultKey, _resultVal);
@@ -805,7 +805,7 @@ namespace SFW
             IsQuality = HasNotice = false;
             Planner = false;
             IsManager = false;
-            Controls.WorkSpaceDock.RefreshMainDock();
+            Controls.WorkSpaceDock.RefreshMainDock(false);
             MainWindowViewModel.UpdateProperties(false);
         }
 

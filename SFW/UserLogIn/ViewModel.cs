@@ -1,4 +1,5 @@
-﻿using SFW.Helpers;
+﻿using SFW.Controls;
+using SFW.Helpers;
 using System.ComponentModel;
 using System.Linq;
 using System.Windows;
@@ -125,6 +126,7 @@ namespace SFW.UserLogIn
             if (User.Validated)
             {
                 new CurrentUser(User);
+                WorkSpaceDock.RefreshMainDock(true);
                 Application.Current.Windows.OfType<Window>().FirstOrDefault(o => o.Name == "LogIn_Window").Close();
             }
             LogInThreadIsWorking = false;

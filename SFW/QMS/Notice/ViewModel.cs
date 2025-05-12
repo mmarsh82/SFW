@@ -30,11 +30,12 @@ namespace SFW.QMS.Notice
                 {
                     var _intial = App.SiteNumber == 1 && _selectedNcr == null;
                     _selectedNcr = value;
-                    SelectedIndex = NoticeView.IndexOf(value, $"[NcrId] = {value.Row.SafeGetField<int>("NcrId")}");
                     if ((value != null && App.LoadedModule == Enumerations.UsersControls.Quality) || _intial)
                     {
+                        SelectedIndex = NoticeView.IndexOf(value, $"[NcrId] = {value.Row.SafeGetField<int>("NcrId")}");
                         var _ncr = new QmsForm(value.Row.Field<int>("NcrId"));
-                        var _action = new Action(delegate { WorkSpaceDock.UpdateChildDock(9, 1, new Form.ViewModel(_ncr, SelectedNcr.Row.Field<int>("NcrRevisionId"))); });
+                        var _test = SelectedNcr.Row.Field<int>("RevisionFilter");
+                        var _action = new Action(delegate { WorkSpaceDock.UpdateChildDock(9, 1, new Form.ViewModel(_ncr, SelectedNcr.Row.Field<int>("RevisionFilter"))); });
                         Application.Current.Dispatcher.Invoke(_action);
                     }
                     OnPropertyChanged(nameof(SelectedNcr));
@@ -118,7 +119,7 @@ namespace SFW.QMS.Notice
         {
             if (ModelBase.MasterDataSet.Tables.Contains("QmsNotice"))
             {
-                RefreshTimer.Add(RefreshNotice);
+                RefreshTimer.RefreshActionGroup.Add(RefreshNotice);
                 NoticeView = CollectionViewSource.GetDefaultView(new QmsForm.Notice().NoticeDataView);
                 NoticeViewFilter = new string[7];
                 ClosedFilter = false;
@@ -236,6 +237,7 @@ namespace SFW.QMS.Notice
                 SelectedNcr = _temp ? (DataRowView)NoticeView.CurrentItem : null;
             }
             OnPropertyChanged(nameof(NoticeView));
+            NoticeView.Refresh();
             if (App.LoadedModule == Enumerations.UsersControls.Quality)
             {
                 MainWindowViewModel.DisplayAction = false;

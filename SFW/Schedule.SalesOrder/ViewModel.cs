@@ -171,7 +171,7 @@ namespace SFW.Schedule.SalesOrder
             ScheduleType = true;
             if (App.SiteNumber == 1)
             {
-                RefreshTimer.Add(RefreshSchedule);
+                RefreshTimer.RefreshActionGroup.Add(RefreshSchedule);
                 SalesScheduleView = new DataView();
                 SalesTableFilter = new string[10];
                 OrderTypeList = Model.SalesOrder.GetOrderTypeList();

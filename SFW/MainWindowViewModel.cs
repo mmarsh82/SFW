@@ -127,7 +127,7 @@ namespace SFW
                 CanUpdate = false;
                 CanFilter = !App.IsFocused;
                 new WorkSpaceDock();
-                RefreshTimer.Add(MainUpdate);
+                RefreshTimer.RefreshActionGroup.Add(MainUpdate);
                 Initialization = false;
             }
             catch (Exception ex)

@@ -142,7 +142,7 @@ namespace SFW.Schedule.Plan
         {
             if (App.SiteNumber == 1)
             {
-                RefreshTimer.Add(RefreshSchedule);
+                RefreshTimer.RefreshActionGroup.Add(RefreshSchedule);
                 PlanningView = new DataView();
                 PlanViewFilter = new string[8];
                 TypeCollection = new ObservableCollection<string> { "All", "Work Order", "Plan" };

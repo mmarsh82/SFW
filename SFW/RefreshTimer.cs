@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Windows.Threading;
 
@@ -11,7 +12,7 @@ namespace SFW
         #region Properties
 
         public static DispatcherTimer RefreshDispatchTimer { get; private set; }
-        public static Action RefreshActionGroup { get; set; }
+        public static IList<Action> RefreshActionGroup { get; set; }
         public static TimeSpan RefreshTimeSpan { get; set; }
         public static bool Status => RefreshDispatchTimer.IsEnabled;
             
@@ -117,7 +118,10 @@ namespace SFW
             if (!IsRefreshing && _count == 1)
             {
                 MainWindowViewModel.DisplayAction = true;
-                RefreshActionGroup?.Invoke();
+                foreach (var _action in RefreshActionGroup)
+                {
+                    _action.Invoke();
+                }
             }
             if (UserIdleTimer.GetIdleTimeInfo().IdleTime.TotalMinutes >= 5 && !CurrentUser.IsNamedUser)
             {
@@ -147,7 +151,10 @@ namespace SFW
             if (!IsRefreshing)
             {
                 MainWindowViewModel.DisplayAction = true;
-                RefreshActionGroup?.Invoke();
+                foreach (var _action in RefreshActionGroup)
+                {
+                    _action.Invoke();
+                }
             }
             if (UserIdleTimer.GetIdleTimeInfo().IdleTime.TotalMinutes >= 5 && !CurrentUser.IsNamedUser)
             {
@@ -156,59 +163,6 @@ namespace SFW
             else if (CurrentUser.IsNamedUser)
             {
                 CurrentUser.RefreshLogIn();
-            }
-        }
-
-        /// <summary>
-        /// Checks the invocation list to see if it contains the method group
-        /// </summary>
-        /// <param name="action">Method group to search for</param>
-        /// <returns>True = invocation list contains method, False = action has not been added yet</returns>
-        public static bool ActionExists(Action action)
-        {
-            if (RefreshActionGroup == null)
-            {
-                return false;
-            }
-            foreach (Action _action in RefreshActionGroup.GetInvocationList())
-            {
-                if (_action.Method.Name.Equals(action.Method.Name))
-                {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        /// <summary>
-        /// Add an action to the refresh timer que
-        /// </summary>
-        /// <param name="action">Method or Action to add</param>
-        public static void Add(Action action)
-        {
-            RefreshActionGroup += action;
-        }
-
-        /// <summary>
-        /// Remove an action from the refresh timer que
-        /// </summary>
-        /// <param name="action">Method or Action to remove</param>
-        public static void Remove(Action action)
-        {
-            if (ActionExists(action))
-            {
-                RefreshActionGroup -= action;
-            }
-        }
-
-        /// <summary>
-        /// Clears all actions from the refresh timer que
-        /// </summary>
-        public static void Clear()
-        {
-            foreach (Action a in RefreshActionGroup.GetInvocationList())
-            {
-                RefreshActionGroup -= a;
             }
         }
     }

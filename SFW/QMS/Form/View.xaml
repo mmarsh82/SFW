@@ -423,6 +423,18 @@
                                Visibility="Visible"
                                Margin="10,0,0,0" />
 
+                    <TextBlock Text="Unit of Measure:"
+                               FontSize="24"
+                               Margin="50,0,0,0"
+                               FontWeight="Bold"
+                               TextDecorations="UnderLine"
+                               Foreground="#FF135185"/>
+
+                    <TextBlock Text="{Binding FormObject.Part.Uom}"
+                               FontSize="24"
+                               Visibility="Visible"
+                               Margin="10,0,0,0" />
+
                 </StackPanel>
 
                 <!--#endregion-->
@@ -695,7 +707,7 @@
                     <TextBlock Grid.Column="1" Grid.Row="0"
                                HorizontalAlignment="Center"
                                VerticalAlignment="Center"
-                               Text="Lot Numbers"
+                               Text="Affected Lots"
                                FontWeight="Bold"
                                FontSize="20"
                                Foreground="WhiteSmoke"
@@ -749,7 +761,7 @@
                                                Height="20"
                                                Visibility="{Binding Validated, Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}"/>
 
-                                        <TextBlock Text="Lot Number:"
+                                        <TextBlock Text="Lot:"
                                                    TextDecorations="Underline"
                                                    FontWeight="Bold"
                                                    Foreground="#FF135185"
@@ -757,7 +769,7 @@
 
                                         <TextBox Text="{Binding LotNumber, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                                  FontSize="16"
-                                                 Width="150"
+                                                 MinWidth="130"
                                                  CharacterCasing="Upper"
                                                  Margin="3"
                                                  Visibility="{Binding Path=(main:CurrentUser.IsQuality), Converter={StaticResource BoolToVisConverter}}"
@@ -770,6 +782,25 @@
                                                    Visibility="{Binding Path=(main:CurrentUser.IsQuality), Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}"
                                                    Margin="5,0,0,0"/>
 
+                                        <TextBlock Text="Scrap:"
+                                                   TextDecorations="Underline"
+                                                   FontWeight="Bold"
+                                                   Foreground="Crimson"
+                                                   Visibility="{Binding Onhand, Converter={StaticResource IntToVisConverter}, ConverterParameter=n0}"
+                                                   Margin="20,0,0,0"/>
+
+                                        <TextBlock Text="{Binding Onhand}"
+                                                   FontWeight="Bold"
+                                                   Foreground="Crimson"
+                                                   Visibility="{Binding Onhand, Converter={StaticResource IntToVisConverter}, ConverterParameter=n0}"
+                                                   Margin="5,0,0,0"/>
+
+                                        <TextBlock Text="{Binding Uom}"
+                                                   FontWeight="Bold"
+                                                   Foreground="Crimson"
+                                                   Visibility="{Binding Onhand, Converter={StaticResource IntToVisConverter}, ConverterParameter=n0}"
+                                                   Margin="5,0,0,0"/>
+
                                         <Button Command="{Binding DataContext.RemoveLotICommand, ElementName=NcrFormUC}"
                                                 CommandParameter="{Binding LotNumber}"
                                                 Width="22"
@@ -777,11 +808,16 @@
                                                 Background="Transparent"
                                                 BorderThickness="0"
                                                 Margin="10,0 0 0"
-                                                Visibility="{Binding Path=(main:CurrentUser.IsQuality), Converter={StaticResource BoolToVisConverter}}"
                                                 Style="{DynamicResource DefaultButton}">
                                             <Button.Content>
                                                 <Image Source="/SFW;component/Icons/Remove.ico" />
                                             </Button.Content>
+                                            <Button.Visibility>
+                                                <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="1*1">
+                                                    <Binding Path="(main:CurrentUser.IsQuality)"/>
+                                                    <Binding Path="Imported"/>
+                                                </MultiBinding>
+                                            </Button.Visibility>
                                         </Button>
 
                                     </StackPanel>

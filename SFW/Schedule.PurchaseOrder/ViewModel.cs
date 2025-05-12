@@ -202,7 +202,7 @@ namespace SFW.Schedule.PurchaseOrder
                 LoadAsyncComplete = LoadAsyncDelegate.BeginInvoke(_filter, new AsyncCallback(ViewLoaded), null);
                 if (CurrentUser.HasSalesOrderModule)
                 {
-                    RefreshTimer.Add(RefreshSchedule);
+                    RefreshTimer.RefreshActionGroup.Add(RefreshSchedule);
                 }
                 _inLoad = true;
             }

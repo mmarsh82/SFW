@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
+using System.Windows.Automation.Peers;
 
 //Created by Michael Marsh 4-25-18
 
@@ -75,6 +76,9 @@ namespace SFW.Model
                 OnPropertyChanged(nameof(Validated));
             }
         }
+
+        public bool Imported { get; set; }
+
         public DateTime ReceivedDate { get; set; }
 
         public ObservableCollection<string> LotCollection { get; set; }
@@ -107,10 +111,16 @@ namespace SFW.Model
         /// Lot Constructor for NCR population
         /// </summary>
         /// <param name="lotNbr">Lot Number</param>
+        /// <param name="scrap">Amount of scrap to add to the object</param>
+        /// <param name="uom">Unit of measure for this lot</param>
+        /// <param name="import">Import type for the lot number</param>
         /// <param name="valid">Validated</param>
-        public Lot(string lotNbr, bool valid)
+        public Lot(string lotNbr, int scrap, string uom, bool import, bool valid)
         {
             LotNumber = lotNbr;
+            Onhand = scrap;
+            Uom = uom;
+            Imported = import;
             Validated = valid;
         }
 

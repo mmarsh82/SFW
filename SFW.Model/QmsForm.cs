@@ -775,7 +775,7 @@ namespace SFW.Model
                         {
                             PartCollection = int.TryParse(OrderSeqId, out int i) ? Sku.GetSkuCollection(OrderId, i) : Sku.GetSkuCollection(OrderId, 10);
                             OnPropertyChanged(nameof(PartCollection));
-                            LotList = GetNcrLotList(id, ModelSqlCon);
+                            LotList = GetNcrLotList(id, Part.Uom, ModelSqlCon);
                             LotList.ListChanged += LotList_Changed;
                             OnPropertyChanged(nameof(LotList));
                             PhotoCollection = new ObservableCollection<string>(GetNcrPhotoList(id, ModelSqlCon));
@@ -940,14 +940,24 @@ GROUP BY
         /// <param name="ncrId">Ncr object ID</param>
         /// <param name="sqlCon">Sql Connection to use</param>
         /// <returns>A table of NCR Notice information</returns>
-        public static BindingList<Lot> GetNcrLotList(int ncrId, SqlConnection sqlCon)
+        public static BindingList<Lot> GetNcrLotList(int ncrId, string uom, SqlConnection sqlCon)
         {
             var _rtnList = new BindingList<Lot>();
             if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
             {
                 try
                 {
-                    using (SqlCommand cmd = new SqlCommand($"SELECT * FROM [dbo].[SFW_DefectLotLink] ncrLot WHERE ncrLot.[NcrId] = @p1 AND ncrLot.[LotId] <> ''", sqlCon))
+                    using (SqlCommand cmd = new SqlCommand($@"SELECT
+	ncrLot.[NcrId]
+	,ncrLot.[LotId]
+	,SUM(ncrLot.[Quantity]) as 'Scrap'
+	,ncrlot.[ImportType]
+FROM
+	[dbo].[SFW_DefectLotLink] ncrLot
+WHERE
+	ncrLot.[NcrId] = @p1 AND ncrLot.[LotId] <> ''
+GROUP BY
+	ncrLot.[NcrId], ncrLot.[LotId], ncrLot.[ImportType]", sqlCon))
                     {
                         cmd.Parameters.AddWithValue("p1", ncrId.ToString());
                         using (SqlDataReader reader = cmd.ExecuteReader())
@@ -956,7 +966,7 @@ GROUP BY
                             {
                                 while (reader.Read())
                                 {
-                                    _rtnList.Add(new Lot(reader.SafeGetString("LotId"), true));
+                                    _rtnList.Add(new Lot(reader.SafeGetString("LotId"), reader.SafeGetInt32("Scrap"), uom, reader.SafeGetString("ImportType") == "M",  true));
                                 }
                             }
                         }
@@ -970,6 +980,42 @@ GROUP BY
                 catch (Exception)
                 {
                     return null;
+                }
+            }
+            else
+            {
+                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
+            }
+        }
+
+        /// <summary>
+        /// Validated if a lot is attached to an NCR
+        /// </summary>
+        /// <param name="ncrId">Ncr object ID</param>
+        /// <param name="lotId">Lot object ID</param>
+        /// <param name="sqlCon">Sql Connection to use</param>
+        /// <returns>Pass or fail as bool</returns>
+        public static bool ValidNcrLot(int ncrId, string lotId, SqlConnection sqlCon)
+        {
+            var _rtnList = new BindingList<Lot>();
+            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
+            {
+                try
+                {
+                    using (SqlCommand cmd = new SqlCommand($@"SELECT COUNT(ncrLot.[NcrId]) FROM [dbo].[SFW_DefectLotLink] ncrLot WHERE ncrLot.[NcrId] = @p1 AND ncrLot.[LotId] = @p2", sqlCon))
+                    {
+                        cmd.Parameters.AddWithValue("p1", ncrId.ToString());
+                        cmd.Parameters.AddWithValue("p1", ncrId.ToString());
+                        return int.TryParse(cmd.ExecuteScalar().ToString(), out int i) && i > 0;
+                    }
+                }
+                catch (SqlException)
+                {
+                    return false;
+                }
+                catch (Exception)
+                {
+                    return false;
                 }
             }
             else
@@ -1251,7 +1297,31 @@ GROUP BY
         /// <returns>pass flag as bool</returns>
         public static bool IsValid(int ncrId)
         {
-            return MasterDataSet.Tables["QmsNotice"].Select($"[NcrId] = '{ncrId}' AND [NcrRevisionId] = [RevisionFilter]").Count() > 0;
+            return MasterDataSet.Tables["QmsNotice"].Select($"[NcrId] = '{ncrId}' AND AND [NcrRevisionId] = [RevisionFilter]").Count() > 0;
+        }
+
+        /// <summary>
+        /// Checks to see if it is a valid NCR
+        /// </summary>
+        /// <param name="ncrId">Ncr ID</param>
+        /// <returns>pass flag as bool</returns>
+        public static bool IsValid(int ncrId, string workOrder, string reference, char type)
+        {
+            switch (type)
+            {
+                case 'P':
+                    reference = reference.Contains("|") ? reference : $"{reference}|01";
+                    return MasterDataSet.Tables["QmsNotice"].Select($"[NcrId] = '{ncrId}' AND [PartId] = '{reference}' AND [WorkOrderId] = '{workOrder}'").Count() > 0;
+                case 'L':
+                    reference = reference.Contains("|") ? reference : $"{reference}|P|01";
+                    var _valid = MasterDataSet.Tables["QmsNotice"].Select($"[NcrId] = '{ncrId}' AND [WorkOrderId] = '{workOrder}'").Count() > 0;
+                    if (_valid)
+                    {
+                        return ValidNcrLot(ncrId, reference, ModelSqlCon);
+                    }
+                    return false;
+                default: return false;
+            }
         }
 
         /// <summary>
@@ -1352,7 +1422,7 @@ GROUP BY
         {
             try
             {
-                var _oldLotList = QmsForm.GetNcrLotList(ncrObj.FormId, sqlCon);
+                var _oldLotList = QmsForm.GetNcrLotList(ncrObj.FormId, ncrObj.Part.Uom, sqlCon);
                 foreach (var lot in ncrObj.LotList.Where(o => o.Validated))
                 {
                     if (_oldLotList.Count(o => o.LotNumber == lot.LotNumber) == 0)

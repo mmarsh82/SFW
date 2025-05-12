@@ -134,7 +134,7 @@ namespace SFW.Schedule
             LoadAsyncDelegate = new LoadDelegate(ViewLoading);
             FilterAsyncDelegate = new LoadDelegate(FilterView);
             LoadAsyncComplete = LoadAsyncDelegate.BeginInvoke(App.ViewFilter[App.SiteNumber], new AsyncCallback(ViewLoaded), null);
-            RefreshTimer.Add(RefreshSchedule);
+            RefreshTimer.RefreshActionGroup.Add(RefreshSchedule);
             ScheduleViewFilter = new string[7];
             ScheduleFilter($"[Site] = {App.SiteNumber}", 6);
             ClosedFilter = false;

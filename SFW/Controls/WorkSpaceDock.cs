@@ -194,9 +194,9 @@ namespace SFW.Controls
         /// <summary>
         /// Refresh the views in the MainDock
         /// </summary>
-        public static void RefreshMainDock()
+        public static void RefreshMainDock(bool timer)
         {
-            if (CurrentUser.IsLoggedIn)
+            if (CurrentUser.IsLoggedIn && !timer)
             {
                 if (CurrentUser.HasSalesOrderModule)
                 {
@@ -215,10 +215,29 @@ namespace SFW.Controls
                     Application.Current.Dispatcher.Invoke(new Action(delegate { ((Schedule.Plan.View)PlanDock.Children[0]).DataContext = new Schedule.Plan.ViewModel(); }));
                 }
             }
+            else if (CurrentUser.IsLoggedIn && timer)
+            {
+                if (CurrentUser.HasSalesOrderModule)
+                {
+                    RefreshTimer.RefreshActionGroup.Add(((Schedule.SalesOrder.ViewModel)((Schedule.SalesOrder.View)SalesDock.Children[0]).DataContext).RefreshSchedule);
+                }
+                if (CurrentUser.IsInventoryControl)
+                {
+                    RefreshTimer.RefreshActionGroup.Add(((CycleCount.Sched_ViewModel)((CycleCount.Sched_View)CountDock.Children[0]).DataContext).RefreshSchedule);
+                }
+                if (CurrentUser.IsQuality)
+                {
+                    RefreshTimer.RefreshActionGroup.Add(((QMS.Notice.ViewModel)((QMS.Notice.View)QmsFormDock.Children[0]).DataContext).RefreshNotice);
+                }
+                if (CurrentUser.CanSchedule)
+                {
+                    RefreshTimer.RefreshActionGroup.Add(((Schedule.Plan.ViewModel)((Schedule.Plan.View)PlanDock.Children[0]).DataContext).RefreshSchedule);
+                }
+            }
             else
             {
-                RefreshTimer.Clear();
-                RefreshTimer.Add(((Schedule.ViewModel)((Schedule.View)SchedDock.Children[0]).DataContext).RefreshSchedule);
+                RefreshTimer.RefreshActionGroup.Clear();
+                RefreshTimer.RefreshActionGroup.Add(((Schedule.ViewModel)((Schedule.View)SchedDock.Children[0]).DataContext).RefreshSchedule);
             }
         }
 

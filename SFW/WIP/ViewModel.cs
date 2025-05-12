@@ -381,11 +381,11 @@ namespace SFW.WIP
                                     _validScrap = int.TryParse(s.Reference, out int lref);
                                     if (string.IsNullOrEmpty(w.LotNbr) && _validScrap)
                                     {
-                                        _validScrap = Lot.IsValidQIR(s.Reference, WipRecord.WipWorkOrder.OrderNumber, "", w.PartNbr, App.AppSqlCon) || QmsForm.IsValid(lref);
+                                        _validScrap = Lot.IsValidQIR(s.Reference, WipRecord.WipWorkOrder.OrderNumber, "", w.PartNbr, App.AppSqlCon) || QmsForm.IsValid(lref, WipRecord.WipWorkOrder.OrderNumber, w.PartNbr, 'P');
                                     }
                                     else
                                     {
-                                        _validScrap = Lot.IsValidQIR(s.Reference, WipRecord.WipWorkOrder.OrderNumber, w.LotNbr, w.PartNbr, App.AppSqlCon) || QmsForm.IsValid(lref);
+                                        _validScrap = Lot.IsValidQIR(s.Reference, WipRecord.WipWorkOrder.OrderNumber, w.LotNbr, w.PartNbr, App.AppSqlCon) || QmsForm.IsValid(lref, WipRecord.WipWorkOrder.OrderNumber, w.LotNbr, 'L');
                                     }
                                 }
                                 else
@@ -401,7 +401,9 @@ namespace SFW.WIP
                     }
                     if (WipRecord.IsScrap == Model.Enumerations.Complete.Y && _validScrap)
                     {
-                        _validQty = Math.Round(Convert.ToDecimal(WipRecord.WipQty + WipRecord.ScrapList.Sum(o => Convert.ToInt32(o.Quantity))) * c.AssemblyQty, 0) == c.WipInfo.Where(o => !string.IsNullOrEmpty(o.LotNbr)).Sum(o => o.LotQty);
+
+                        _validQty = Math.Round(Convert.ToDecimal(WipRecord.WipQty + WipRecord.ScrapList
+                            .Sum(o => int.TryParse(o.Quantity, out int i) ? i : 0)) * c.AssemblyQty, 0) == c.WipInfo.Where(o => !string.IsNullOrEmpty(o.LotNbr)).Sum(o => o.LotQty);
                     }
                     else
                     {
@@ -569,8 +571,8 @@ namespace SFW.WIP
                                     {
                                         var _ncrId = int.TryParse(s.Reference, out int nRef) ? nRef : 0;
                                         _scrapValid = (WipRecord.IsLotTracable || string.IsNullOrEmpty(WipLot))
-                                            ? Lot.IsValidQIR(s.Reference, WipRecord.WipWorkOrder.OrderNumber, "", WipRecord.WipWorkOrder.SkuNumber, App.AppSqlCon) || QmsForm.IsValid(nRef)
-                                            : Lot.IsValidQIR(s.Reference, WipRecord.WipWorkOrder.OrderNumber, WipLot, WipRecord.WipWorkOrder.SkuNumber, App.AppSqlCon) || QmsForm.IsValid(nRef);
+                                            ? Lot.IsValidQIR(s.Reference, WipRecord.WipWorkOrder.OrderNumber, "", WipRecord.WipWorkOrder.SkuNumber, App.AppSqlCon) || QmsForm.IsValid(nRef, WipRecord.WipWorkOrder.OrderNumber, WipRecord.WipWorkOrder.SkuNumber, 'P')
+                                            : Lot.IsValidQIR(s.Reference, WipRecord.WipWorkOrder.OrderNumber, WipLot, WipRecord.WipWorkOrder.SkuNumber, App.AppSqlCon) || QmsForm.IsValid(nRef, WipRecord.WipWorkOrder.OrderNumber, WipLot, 'L');
                                     }
                                 }
                             }
