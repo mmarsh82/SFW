@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SFW.Model.Production;
+using System;
 using System.Data;
 using System.IO;
 using System.Linq;
@@ -31,11 +32,11 @@ namespace SFW.ShopRoute
                 }
                 File.Move(_oldPath, _newPath);
                 M2kClient.M2kCommand.EditRecord("WP", _woNbr, 47, "Y", M2kClient.UdArrayCommand.Replace, App.ErpCon);
-                var _row = Model.ModelBase.MasterDataSet.Tables["Master"].Select($"[WorkOrder] = '{_woNbr}'").FirstOrDefault();
-                var _index = Model.ModelBase.MasterDataSet.Tables["Master"].Rows.IndexOf(_row);
-                Model.ModelBase.MasterDataSet.Tables["Master"].Rows[_index].SetField("Deviation", "Y");
+                var _row = Model.ModelBase.MasterDataSet.Tables[typeof(WorkOrder).Name].Select($"[WorkOrder] = '{_woNbr}'").FirstOrDefault();
+                var _index = Model.ModelBase.MasterDataSet.Tables[typeof(WorkOrder).Name].Rows.IndexOf(_row);
+                Model.ModelBase.MasterDataSet.Tables[typeof(WorkOrder).Name].Rows[_index].SetField("Deviation", "Y");
             }
-            catch (UnauthorizedAccessException uae)
+            catch (UnauthorizedAccessException)
             {
                 MessageBox.Show("Deviation was denied.\nUnable to access the orginal file path.", "Access Denied", MessageBoxButton.OK, MessageBoxImage.Error);
                 return;

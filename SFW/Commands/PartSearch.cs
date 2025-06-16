@@ -1,5 +1,4 @@
-﻿using SFW.Converters;
-using SFW.Model;
+﻿using SFW.Model.Product;
 using System;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -14,7 +13,11 @@ namespace SFW.Commands
 {
     public class PartSearch : ICommand
     {
-        public event EventHandler CanExecuteChanged;
+        public event EventHandler CanExecuteChanged
+        {
+            add {  }
+            remove { }
+        }
 
         /// <summary>
         /// Part Search ICommand execution
@@ -54,10 +57,10 @@ namespace SFW.Commands
                 {
                     var _result = parameter.ToString().Split('|');
                     var _part = _result[0];
-                    var _fac = int.TryParse(_result[1], out int i) ? i == 1 ? "WCCO" : "CSI" : "WCCO";
+                    var _fac = int.TryParse(_result[1], out int i) ? i == 1 ? "Wahpeton" : "Arlington" : "Wahpeton";
                     if (!File.Exists($"{App.GlobalConfig.First(o => o.Site == _fac).PartPrint}{_part}.pdf"))
                     {
-                        _fac = i == 1 ? "CSI" : "WCCO";
+                        _fac = i == 1 ? "Arlington" : "Wahpeton";
                     }
                     Process.Start($"{App.GlobalConfig.First(o => o.Site == _fac.ToString()).PartPrint}{_part}.pdf");
                 }

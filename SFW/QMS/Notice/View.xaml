@@ -91,31 +91,17 @@
                     <Image Source="/SFW;component/Icons/admin.ico"/>
                 </Button>
 
-                <CheckBox IsChecked="{Binding FormTypeFilter}"
-                          VerticalAlignment="Center"
-                          HorizontalAlignment="Right"
+                <ComboBox x:Name="FormTypeFilter"
+                          ItemsSource="{Binding TypeDictionary}"
+                          SelectedValue="{Binding SelectedTypeFilter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                          DisplayMemberPath="Key"
                           FontSize="18"
-                          Margin="0,0,10,0"
-                          ToolTip="Filter closed and open status NCRs."
-                          Style="{DynamicResource SliderCheckBox}">
-                    <CheckBox.Content>
-                        <TextBlock Text="{Binding FormType}"
-                                   TextDecorations="Underline"/>
-                    </CheckBox.Content>
-                </CheckBox>
-
-                <CheckBox IsChecked="{Binding ClosedFilter}"
-                          VerticalAlignment="Center"
-                          HorizontalAlignment="Right"
-                          FontSize="18"
-                          Margin="0,0,10,0"
-                          ToolTip="Filter closed and open status NCRs."
-                          Style="{DynamicResource SliderCheckBox}">
-                    <CheckBox.Content>
-                        <TextBlock Text="Closed:"
-                                   TextDecorations="Underline"/>
-                    </CheckBox.Content>
-                </CheckBox>
+                          FontWeight="Bold"
+                          Background="LightGray"
+                          Width="Auto"
+                          MinWidth="150"
+                          Margin="5"
+                          Style="{DynamicResource OptionalComboBox}"/>
 
                 <Button Background="Transparent"
                         BorderThickness="0"
@@ -139,8 +125,8 @@
 
         <DataGrid x:Name="NcrNotice"
                   Grid.Row="1"
-                  ItemsSource="{Binding NoticeView}"
-                  SelectedItem="{Binding SelectedNcr, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                  ItemsSource="{Binding CollectionView}"
+                  IsSynchronizedWithCurrentItem="True"
                   HorizontalAlignment="Left"
                   HeadersVisibility="None"
                   AutoGenerateColumns="False"

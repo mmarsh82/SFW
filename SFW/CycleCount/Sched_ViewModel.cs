@@ -1,4 +1,4 @@
-﻿using SFW.Model;
+﻿using SFW.Model.InventoryControl;
 using System;
 using System.Data;
 using System.Linq;
@@ -20,7 +20,7 @@ namespace SFW.CycleCount
                 _selCnt = value;
                 if (value != null && App.LoadedModule == Enumerations.UsersControls.CycleCount)
                 {
-                    var _cnt = new Count(value.Row);
+                    var _cnt = new CountReceipt(value.Row);
                     Controls.WorkSpaceDock.UpdateChildDock(3, 1, new Form_ViewModel(_cnt));
                 }
                 OnPropertyChanged(nameof(SelectedCount));
@@ -99,7 +99,7 @@ namespace SFW.CycleCount
                 LoadAsyncComplete = LoadAsyncDelegate.BeginInvoke(_filter, new AsyncCallback(ViewLoaded), null);
                 if (CurrentUser.IsInventoryControl)
                 {
-                    RefreshTimer.RefreshActionGroup.Add(RefreshSchedule);
+                    ApplicationTimer.ActionList.Add(RefreshSchedule);
                 }
             }
         }
@@ -130,7 +130,7 @@ namespace SFW.CycleCount
 
         public void ViewLoading(string filter)
         {
-            CountView = Count.GetScheduleData(App.AppSqlCon).AsDataView();
+            CountView = new CountReceipt().GetTable(1, App.AppSqlCon).AsDataView();
             EmptyCount = CountView.Cast<object>().Count() == 0;
             OnPropertyChanged(nameof(CountView));
         }
@@ -148,7 +148,7 @@ namespace SFW.CycleCount
             try
             {
                 var _oldItem = SelectedCount;
-                CountView = Count.GetScheduleData(App.AppSqlCon).AsDataView();
+                CountView = new CountReceipt().GetTable(1, App.AppSqlCon).AsDataView();
                 SelectedCount = _oldItem != null
                     ? _oldItem
                     : null;
@@ -170,7 +170,7 @@ namespace SFW.CycleCount
             try
             {
                 var _oldItem = SelectedCount;
-                var _schedData = Count.GetScheduleData(App.AppSqlCon);
+                var _schedData = new CountReceipt().GetTable(1, App.AppSqlCon);
                 _schedData.Rows.Remove(_schedData.Select($"CountID == '{filter}'")[0]);
                 _schedData.AcceptChanges();
                 CountView = _schedData.AsDataView();

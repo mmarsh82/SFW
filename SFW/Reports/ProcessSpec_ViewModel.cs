@@ -1,4 +1,5 @@
 ﻿using SFW.Model;
+using SFW.Model.Production;
 
 namespace SFW.Reports
 {
@@ -28,26 +29,26 @@ namespace SFW.Reports
         public ProcessSpec_ViewModel(WorkOrder wo)
         {
             ShopOrder = wo;
-            SkuSpec = new UdefSku(wo.SkuNumber, wo.Seq, App.AppSqlCon);
-            foreach (var s in wo.Picklist)
+            SkuSpec = new UdefSku(wo.Product.SkuNumber, wo.Seq, App.AppSqlCon);
+            foreach (var s in wo.PickList)
             {
                 switch (s.InventoryType)
                 {
                     case "RC":
-                        Compound = s.CompNumber;
-                        CompoundDesc = s.CompDescription;
+                        Compound = s.ProductNumber;
+                        CompoundDesc = s.ProductDescription;
                         break;
                     case "FR":
-                        Fabric = s.CompNumber;
-                        FabricDesc = s.CompDescription;
+                        Fabric = s.ProductNumber;
+                        FabricDesc = s.ProductDescription;
                         break;
                     case "PO":
-                        Poly = s.CompNumber;
-                        PolyDesc = s.CompDescription;
+                        Poly = s.ProductNumber;
+                        PolyDesc = s.ProductDescription;
                         break;
                     case "CA":
-                        FrictionRoll = s.CompNumber;
-                        FrictionDesc = s.CompDescription;
+                        FrictionRoll = s.ProductNumber;
+                        FrictionDesc = s.ProductDescription;
                         break;
                 }
             }

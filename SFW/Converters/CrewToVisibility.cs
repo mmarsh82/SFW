@@ -13,7 +13,15 @@ namespace SFW.Converters
         {
             if (values[0] != DependencyProperty.UnsetValue && values[1] != DependencyProperty.UnsetValue)
             {
-                return System.Convert.ToBoolean(values[0]) && !string.IsNullOrEmpty(values[1]?.ToString()) ? Visibility.Visible : Visibility.Collapsed;
+                if (!string.IsNullOrEmpty(parameter?.ToString()))
+                {
+                    var _listId = int.TryParse(values[0].ToString(), out int i) ? i : -1;
+                    return _listId > 0 && !string.IsNullOrEmpty(values[1]?.ToString()) ? Visibility.Visible : Visibility.Collapsed;
+                }
+                else
+                {
+                    return System.Convert.ToBoolean(values[0]) && !string.IsNullOrEmpty(values[1]?.ToString()) ? Visibility.Visible : Visibility.Collapsed;
+                }
             }
             else
             {

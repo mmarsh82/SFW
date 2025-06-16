@@ -1,4 +1,4 @@
-﻿using SFW.Model;
+﻿using SFW.Model.Production;
 using SFW.Reports;
 using System;
 using System.Diagnostics;
@@ -9,7 +9,11 @@ namespace SFW.Commands
 {
     class SetUpInformation : ICommand
     {
-        public event EventHandler CanExecuteChanged;
+        public event EventHandler CanExecuteChanged
+        {
+            add {  }
+            remove { }
+        }
 
         /// <summary>
         /// Setup Information ICommand execution

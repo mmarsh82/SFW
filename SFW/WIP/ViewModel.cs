@@ -1,9 +1,10 @@
 ﻿using SFW.Commands;
 using SFW.Helpers;
 using SFW.Model;
+using SFW.Model.Production;
+using SFW.Model.Production.Wip;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
 using System.Linq;
 using System.Windows;
@@ -17,7 +18,7 @@ namespace SFW.WIP
     {
         #region Properties
 
-        public WipReceipt WipRecord { get; set; }
+        public Receipt WipRecord { get; set; }
         
         public string WipQuantity
         {
@@ -28,10 +29,10 @@ namespace SFW.WIP
                 {
                     if (_wipStr == 0 || value == null)
                     {
-                        foreach (var c in WipRecord.WipWorkOrder.Picklist.Where(o => o.IsLotTrace))
+                        foreach (var _comp in WipRecord.ComponentList.Where(o => o.LotTraceable))
                         {
-                            c.WipInfo.Clear();
-                            c.WipInfo.Add(new CompWipInfo(!string.IsNullOrEmpty(c.BackflushLoc), c.CompNumber, c.CompUom, App.SiteNumber, WipRecord.WipWorkOrder.OrderNumber, WipRecord.WipWorkOrder.Seq));
+                            _comp.LotList.Clear();
+                            _comp.LotList.Add(new Lot());
                         }
                     }
                     else if (WipRecord.WipQty != _wipStr)
@@ -40,19 +41,9 @@ namespace SFW.WIP
                         {
                             _wipStr = Convert.ToInt32(WipRecord.WipQty);
                         }
-                        foreach (var c in WipRecord.WipWorkOrder.Picklist)
-                        {
-                            var _qty = _wipStr;
-                            _qty *= WipRecord.IsMulti && int.TryParse(RollQuantity, out int iRoll) ? iRoll : 1;
-                            if (WipRecord.IsScrap == Model.Enumerations.Complete.Y)
-                            {
-                                if (WipRecord.ScrapList.Count(o => int.TryParse(o.Quantity, out int i) && i > 0) > 0)
-                                {
-                                    _qty += WipRecord.ScrapList.Where(o => int.TryParse(o.Quantity, out int i)).Sum(o => Convert.ToInt32(o.Quantity));
-                                }
-                            }
-                            c.UpdateWipInfo(_qty);
-                        }
+                        var _qty = _wipStr;
+                        _qty *= WipRecord.IsMulti && int.TryParse(RollQuantity, out int iRoll) ? iRoll : 1;
+                        WipRecord.ComponentList.Update(_qty);
                     }
                     WipRecord.WipQty = _wipStr;
                 }
@@ -75,10 +66,7 @@ namespace SFW.WIP
             {
                 if (!string.IsNullOrEmpty(value))
                 {
-                    IsLotValid = Lot.LotValidation(value, WipRecord.WipWorkOrder.SkuNumber);
-                    /*IsLotValid = WipRecord.WipWorkOrder.Operation == "10"
-                        ? Lot.LotValidation(value, WipRecord.WipWorkOrder.SkuNumber, WipRecord.WipWorkOrder.OrderNumber)
-                        : Lot.LotValidation(value, WipRecord.WipWorkOrder.SkuNumber);*/
+                    IsLotValid = Model.Product.Lot.IsValid(value, WipRecord.WipWorkOrder.Product.SkuNumber);
                 }
                 else
                 {
@@ -111,15 +99,15 @@ namespace SFW.WIP
             {
                 if (!string.IsNullOrEmpty(value) && string.IsNullOrEmpty(WipRecord.WipLot.LotNumber))
                 {
-                    IsLocationValid = Sku.IsValidLocation(value, App.SiteNumber);
+                    IsLocationValid = Location.Valid(value, App.SiteNumber);
                     IsLocationEditable = true;
                 }
                 else if (!string.IsNullOrEmpty(WipRecord.WipLot.LotNumber) && IsLotValid)
                 {
-                    var _loc = Lot.GetLotLocation(WipRecord.WipLot.LotNumber);
+                    var _loc = Model.Product.Lot.GetLocation(WipRecord.WipLot.LotNumber);
                     if (_loc == null)
                     {
-                        IsLocationValid = Sku.IsValidLocation(value, App.SiteNumber);
+                        IsLocationValid = Location.Valid(value, App.SiteNumber);
                         IsLocationEditable = true;
                     }
                     else
@@ -167,8 +155,7 @@ namespace SFW.WIP
                 WipRecord.IsScrap = value;
                 OnPropertyChanged(nameof(Scrap));
                 WipRecord.ScrapList.Clear();
-                WipRecord.ScrapList.Add(new WipReceipt.Scrap { ID = WipRecord.ScrapList.Count().ToString() });
-                WipRecord.ScrapList.ListChanged += ScrapList_ListChanged;
+                WipRecord.ScrapList.Add(new Scrap { ID = WipRecord.ScrapList.Count().ToString() });
                 WipQuantity = "-987654";
                 OnPropertyChanged(nameof(WipRecord));
             }
@@ -182,17 +169,17 @@ namespace SFW.WIP
             {
                 WipRecord.IsReclaim = value;
                 OnPropertyChanged(nameof(Reclaim)); OnPropertyChanged(nameof(WipRecord));
-                WipRecord.ReclaimObject = new WipReceipt.Reclaim();
-                if (WipRecord.WipWorkOrder.Picklist.Count(o => o.InventoryType == "RC") > 0)
+                WipRecord.ReclaimObject = new Reclaim();
+                if (WipRecord.WipWorkOrder.PickList.Count(o => o.InventoryType == "RC") > 0)
                 {
-                    WipRecord.ReclaimObject.Parent = WipRecord.WipWorkOrder.Picklist.Where(o => o.InventoryType == "RC").FirstOrDefault().CompNumber;
-                    WipRecord.ReclaimObject.ParentAssyQty = WipRecord.WipWorkOrder.Picklist.Where(o => o.InventoryType == "RC").FirstOrDefault().AssemblyQty;
+                    WipRecord.ReclaimObject.Parent = WipRecord.WipWorkOrder.PickList.Where(o => o.InventoryType == "RC").FirstOrDefault().ProductNumber;
+                    WipRecord.ReclaimObject.ParentAssyQty = WipRecord.WipWorkOrder.PickList.Where(o => o.InventoryType == "RC").FirstOrDefault().AssemblyQuantity;
                 }
-                else if (WipRecord.WipWorkOrder.Picklist.Count() == 1)
+                else if (WipRecord.WipWorkOrder.PickList.Count() == 1)
                 {
-                    var _tempComp = new Model.Component(WipRecord.WipWorkOrder.Picklist[0].CompNumber, "RC");
-                    WipRecord.ReclaimObject.Parent = _tempComp.CompNumber;
-                    WipRecord.ReclaimObject.ParentAssyQty = WipRecord.WipWorkOrder.Picklist[0].AssemblyQty * _tempComp.AssemblyQty;
+                    var _tempComp = new BillComponent(WipRecord.WipWorkOrder.PickList[0].ProductNumber, "RC");
+                    WipRecord.ReclaimObject.Parent = _tempComp.ProductNumber;
+                    WipRecord.ReclaimObject.ParentAssyQty = WipRecord.WipWorkOrder.PickList[0].AssemblyQuantity * _tempComp.AssemblyQuantity;
                 }
                 WipQuantity = "-987654";
                 OnPropertyChanged(nameof(WipRecord));
@@ -248,7 +235,7 @@ namespace SFW.WIP
 
         public bool IsLotTrace
         {
-            get { return WipRecord.IsLotTracable || WipRecord.WipWorkOrder.Picklist.Count(o => o.IsLotTrace) > 0; }
+            get { return WipRecord.IsLotTracable || WipRecord.WipWorkOrder.PickList.Count(o => o.IsLotTrace) > 0; }
         }
 
         private List<string> _lList;
@@ -298,8 +285,8 @@ namespace SFW.WIP
         {
             get
             {
-                return WipRecord.WipWorkOrder.Picklist.Count(o => o.InventoryType == "RC" || o.InventoryType == "CS") > 0 && App.SiteNumber == 2
-                    ? !WipRecord.WipWorkOrder.Picklist.FirstOrDefault(o => o.InventoryType == "RC" || o.InventoryType == "CS").IsLotTrace
+                return WipRecord.WipWorkOrder.PickList.Count(o => o.InventoryType == "RC" || o.InventoryType == "CS") > 0 && App.SiteNumber == 2
+                    ? !WipRecord.WipWorkOrder.PickList.FirstOrDefault(o => o.InventoryType == "RC" || o.InventoryType == "CS").IsLotTrace
                     : false;
             }
         }
@@ -310,10 +297,8 @@ namespace SFW.WIP
         RelayCommand _removeComp;
         RelayCommand _removeScrap;
         RelayCommand _removeCompScrap;
-        RelayCommand _removeReclaim;
         RelayCommand _addScrap;
         RelayCommand _addCompScrap;
-        RelayCommand _addReclaim;
         RelayCommand _printBarLbl;
         RelayCommand _wPrint;
 
@@ -324,26 +309,11 @@ namespace SFW.WIP
         /// </summary>
         public ViewModel(WorkOrder woObject)
         {
-            RefreshTimer.Stop();
+            ApplicationTimer.Pause();
             CompoundPart = new string[4];
             CompoundLot = new string[4];
             var erpCon = new string[5] { App.ErpCon.HostName, App.ErpCon.UserName, App.ErpCon.Password, App.ErpCon.UniAccount, App.ErpCon.UniService };
-            foreach (var pl in woObject.Picklist.Where(o => o.IsLotTrace))
-            {
-                if (pl.WipInfo != null)
-                {
-                    pl.WipInfo.Clear();
-                    pl.WipInfo.ListChanged += Model.Component.WipInfo_ListChanged;
-                }
-                else
-                {
-                    pl.WipInfo = new BindingList<CompWipInfo>();
-                    pl.WipInfo.ListChanged += Model.Component.WipInfo_ListChanged;
-                }
-                pl.WipInfo.Add(new CompWipInfo(!string.IsNullOrEmpty(pl.BackflushLoc) ,pl.CompNumber, pl.CompUom, App.SiteNumber, woObject.OrderNumber, woObject.Seq));
-                pl.WipInfo.Last().ScrapList.ListChanged += ScrapList_ListChanged;
-            }
-            WipRecord = new WipReceipt(new CrewMember(CurrentUser.ErpId, true), App.SiteNumber, woObject, erpCon);
+            WipRecord = new Receipt(new Model.Management.Employee(CurrentUser.ErpId, true), App.SiteNumber, woObject, erpCon);
             LotList = new List<string>();
             IsSubmitted = false;
             IsLotValid = IsLocationValid = IsLocationEditable = true;
@@ -357,64 +327,25 @@ namespace SFW.WIP
         {
             try
             {
-                var _validLoc = true;
-                var _validQty = true;
-                var _validScrap = false;
-                foreach (var c in WipRecord.WipWorkOrder.Picklist.Where(o => o.IsLotTrace))
+                foreach (var _comp in WipRecord.ComponentList.Where(o => o.LotTraceable))
                 {
-                    _validLoc = string.IsNullOrEmpty(c.BackflushLoc)
-                        ? c.WipInfo.Count(o => !string.IsNullOrEmpty(o.LotNbr)) == c.WipInfo.Count(o => !string.IsNullOrEmpty(o.RcptLoc))
-                        : c.WipInfo.Where(o => !o.IsValidLot && !string.IsNullOrEmpty(o.LotNbr)).Count() == 0;
-                    
-                    if (c.WipInfo.Count(o => o.IsScrap == Model.Enumerations.Complete.Y) > 0)
+                    if (_comp.LotList.Where(o => o.Valid).Sum(o => int.TryParse(o.Quantity, out int i) ? i : 0) != _comp.LotList.First().RequiredQuantity)
                     {
-                        foreach (var w in c.WipInfo.Where(o => o.IsScrap == Model.Enumerations.Complete.Y))
+                        return false;
+                    }
+                    if (CurrentUser.Facility == 1)
+                    {
+                        foreach (var _lot in _comp.LotList)
                         {
-                            if (w.ScrapList.Count() != w.ScrapList.Count(o => int.TryParse(o.Quantity, out int i)))
+                            if (_lot.HasScrap == Model.Enumerations.Complete.Y)
                             {
-                                return false;
-                            }
-                            foreach (var s in w.ScrapList.Where(o => int.TryParse(o.Quantity, out int i)))
-                            {
-                                if (Convert.ToInt32(s.Quantity) > 0)
-                                {
-                                    _validScrap = int.TryParse(s.Reference, out int lref);
-                                    if (string.IsNullOrEmpty(w.LotNbr) && _validScrap)
-                                    {
-                                        _validScrap = Lot.IsValidQIR(s.Reference, WipRecord.WipWorkOrder.OrderNumber, "", w.PartNbr, App.AppSqlCon) || QmsForm.IsValid(lref, WipRecord.WipWorkOrder.OrderNumber, w.PartNbr, 'P');
-                                    }
-                                    else
-                                    {
-                                        _validScrap = Lot.IsValidQIR(s.Reference, WipRecord.WipWorkOrder.OrderNumber, w.LotNbr, w.PartNbr, App.AppSqlCon) || QmsForm.IsValid(lref, WipRecord.WipWorkOrder.OrderNumber, w.LotNbr, 'L');
-                                    }
-                                }
-                                else
+                                if (_lot.ScrapCollection.Count(o => o.Valid) != _lot.ScrapCollection.Count())
                                 {
                                     return false;
                                 }
                             }
                         }
-                    }
-                    else
-                    {
-                        _validScrap = true;
-                    }
-                    if (WipRecord.IsScrap == Model.Enumerations.Complete.Y && _validScrap)
-                    {
-
-                        _validQty = Math.Round(Convert.ToDecimal(WipRecord.WipQty + WipRecord.ScrapList
-                            .Sum(o => int.TryParse(o.Quantity, out int i) ? i : 0)) * c.AssemblyQty, 0) == c.WipInfo.Where(o => !string.IsNullOrEmpty(o.LotNbr)).Sum(o => o.LotQty);
-                    }
-                    else
-                    {
-                        _validQty = Multi
-                            ? Math.Round(Convert.ToDecimal(WipRecord.WipQty) * c.AssemblyQty * Convert.ToDecimal(WipRecord.RollQty), 0) == c.WipInfo.Where(o => !string.IsNullOrEmpty(o.LotNbr)).Sum(o => o.LotQty)
-                            : Math.Round(Convert.ToDecimal(WipRecord.WipQty) * c.AssemblyQty, 0) == c.WipInfo.Where(o => !string.IsNullOrEmpty(o.LotNbr)).Sum(o => o.LotQty);
-                    }
-                    if (!_validLoc || !_validQty || !_validScrap)
-                    {
-                        return false;
-                    }
+                    }    
                 }
                 return true;
             }
@@ -424,37 +355,10 @@ namespace SFW.WIP
             }
             catch (Exception e)
             {
-                System.Windows.MessageBox.Show(e.Message);
+                MessageBox.Show(e.Message);
                 return false;
             }
         }
-
-        /// <summary>
-        /// Happens when an item is added or changed in the Scrap Binding List property
-        /// </summary>
-        /// <param name="sender">BindingList<WipReceipt.Scrap> list passed without changes</param>
-        /// <param name="e">Change info</param>
-        private void ScrapList_ListChanged(object sender, ListChangedEventArgs e)
-        {
-            if (e.ListChangedType == ListChangedType.ItemChanged && e.PropertyDescriptor.DisplayName == "Quantity")
-            {
-                WipQuantity = "-987654";
-            }
-            if(e.ListChangedType == ListChangedType.Reset)
-            {
-                if (WipRecord != null)
-                {
-                    foreach (var c in WipRecord.WipWorkOrder.Picklist.Where(o => o.IsLotTrace))
-                    {
-                        foreach (var s in c.WipInfo.Where(o => o.IsValidLot))
-                        {
-                            s.ScrapList.ListChanged += ScrapList_ListChanged;
-                        }
-                    }
-                }
-            }
-        }
-
 
         #region Process Wip ICommand
 
@@ -472,8 +376,8 @@ namespace SFW.WIP
 
         private void WipExecute(object parameter)
         {
-            var _preOnHand = !string.IsNullOrEmpty(WipRecord.WipLot.LotNumber) ? Lot.GetLotOnHandQuantity(WipRecord.WipLot.LotNumber, WipRecord.ReceiptLocation) : 0;
-            var _machID = WipRecord.CrewList?.Count > 0 ? Machine.GetMachineNumber(WipRecord.WipWorkOrder.Machine) : "";
+            var _preOnHand = !string.IsNullOrEmpty(WipRecord.WipLot.LotNumber) ? Model.Product.Lot.GetOnHandQuantity(WipRecord.WipLot.LotNumber, WipRecord.ReceiptLocation) : 0;
+            var _machID = WipRecord.CrewList?.Count > 0 ? Machine.GetNumber(WipRecord.WipWorkOrder.WorkCenter.MachineName) : "";
             var _wipProc = M2kClient.M2kCommand.ProductionWip(WipRecord, WipRecord.CrewList?.Count > 0, App.ErpCon, WipRecord.IsLotTracable, _machID);
             if (_wipProc != null && _wipProc.First().Key > 0)
             {
@@ -517,7 +421,7 @@ namespace SFW.WIP
                     #region Core Wip Validation
 
                     var _baseValid = false;
-                    var _locValid = !string.IsNullOrEmpty(WipRecord.ReceiptLocation) && Sku.IsValidLocation(WipRecord.ReceiptLocation, App.SiteNumber);
+                    var _locValid = !string.IsNullOrEmpty(WipRecord.ReceiptLocation) && Location.Valid(WipRecord.ReceiptLocation, App.SiteNumber);
                     if (WipRecord.WipQty > 0)
                     {
                         _baseValid = _locValid && (string.IsNullOrEmpty(WipRecord.WipLot.LotNumber) || IsLotValid) && ValidateComponents();
@@ -571,8 +475,8 @@ namespace SFW.WIP
                                     {
                                         var _ncrId = int.TryParse(s.Reference, out int nRef) ? nRef : 0;
                                         _scrapValid = (WipRecord.IsLotTracable || string.IsNullOrEmpty(WipLot))
-                                            ? Lot.IsValidQIR(s.Reference, WipRecord.WipWorkOrder.OrderNumber, "", WipRecord.WipWorkOrder.SkuNumber, App.AppSqlCon) || QmsForm.IsValid(nRef, WipRecord.WipWorkOrder.OrderNumber, WipRecord.WipWorkOrder.SkuNumber, 'P')
-                                            : Lot.IsValidQIR(s.Reference, WipRecord.WipWorkOrder.OrderNumber, WipLot, WipRecord.WipWorkOrder.SkuNumber, App.AppSqlCon) || QmsForm.IsValid(nRef, WipRecord.WipWorkOrder.OrderNumber, WipLot, 'L');
+                                            ? Model.Product.Lot.IsValidQIR(s.Reference, WipRecord.WipWorkOrder.OrderNumber, "", WipRecord.WipWorkOrder.Product.SkuNumber, App.AppSqlCon) || Model.Quality.QmsForm.IsValid(nRef, WipRecord.WipWorkOrder.OrderNumber, WipRecord.WipWorkOrder.Product.SkuNumber, 'P')
+                                            : Model.Product.Lot.IsValidQIR(s.Reference, WipRecord.WipWorkOrder.OrderNumber, WipLot, WipRecord.WipWorkOrder.Product.SkuNumber, App.AppSqlCon) || Model.Quality.QmsForm.IsValid(nRef, WipRecord.WipWorkOrder.OrderNumber, WipLot, 'L');
                                     }
                                 }
                             }
@@ -605,7 +509,7 @@ namespace SFW.WIP
                     }
                     else
                     {
-                        _laborValid = WipRecord.CrewList.Where(o => DateTime.TryParse(o.InTime, out var dt) && o.IsDirect).ToList().Count() == WipRecord.CrewList.Count(o => o.IsDirect);
+                        _laborValid = true;
                     }
 
                     #endregion
@@ -624,7 +528,7 @@ namespace SFW.WIP
             }
             catch (Exception e)
             {
-                System.Windows.MessageBox.Show(e.Message);
+                MessageBox.Show(e.Message);
                 return false;
             }
         }
@@ -655,28 +559,20 @@ namespace SFW.WIP
             {
                 if (App.SiteNumber == 1)
                 {
-                    foreach (var _rec in WipRecord.WipWorkOrder.Picklist.Where(o => o.IsLotTrace && o.InventoryType != "HM"))
-                    {
-                        if (_rec.WipInfo.Where(o => !string.IsNullOrEmpty(o.BaseLot)).Count() > 0)
-                        {
-                            _diamond = _rec.WipInfo.FirstOrDefault(o => !string.IsNullOrEmpty(o.BaseLot)).BaseLot;
-                            break;
-                        }
-                    }
                     if (_diamond == string.Empty && WipRecord.IsLotTracable)
                     {
                         App.GetWindow<View>().Topmost = false;
                         _diamond = DiamondEntry.Show();
                         App.GetWindow<View>().Topmost = true;
                     }
-                    var _ncr = WipRecord.IsLotTracable ? QmsForm.GetNcrId(WipRecord.WipLot.LotNumber, App.AppSqlCon) : QmsForm.GetNcrId(WipRecord.WipWorkOrder.OrderNumber);
+                    var _ncr = WipRecord.IsLotTracable ? Model.Quality.QmsForm.GetNcrId(WipRecord.WipLot.LotNumber, App.AppSqlCon) : Model.Quality.QmsForm.GetNcrId(WipRecord.WipWorkOrder.OrderNumber);
                     TravelCard.Create("", "technology#1",
-                        WipRecord.WipWorkOrder.SkuNumber,
+                        WipRecord.WipWorkOrder.Product.SkuNumber,
                         WipRecord.IsLotTracable ? WipRecord.WipLot.LotNumber : "",
-                        WipRecord.WipWorkOrder.SkuDescription,
+                        WipRecord.WipWorkOrder.Product.SkuDescription,
                         _diamond,
                         _wQty,
-                        WipRecord.WipWorkOrder.Uom,
+                        WipRecord.WipWorkOrder.Product.Uom,
                         _ncr,
                         deviation:WipRecord.WipWorkOrder.IsDeviated
                         );
@@ -692,50 +588,45 @@ namespace SFW.WIP
                 }
                 else
                 {
-                    if (WipRecord.WipWorkOrder.Picklist.Count(o => o.InventoryType == "RC") > 0)
+                    if (WipRecord.WipWorkOrder.PickList.Count(o => o.InventoryType == "RC") > 0)
                     {
-                        if (WipRecord.WipWorkOrder.Picklist.FirstOrDefault(o => o.InventoryType == "RC").IsLotTrace)
+                        if (WipRecord.WipWorkOrder.PickList.FirstOrDefault(o => o.InventoryType == "RC").IsLotTrace)
                         {
-                            foreach (var _part in WipRecord.WipWorkOrder.Picklist.Where(o => o.InventoryType == "RC" && o.IsLotTrace))
+                            foreach (var _part in WipRecord.WipWorkOrder.PickList.Where(o => o.InventoryType == "RC" && o.IsLotTrace))
                             {
                                 var _counter = 0;
-                                foreach (var _wip in _part.WipInfo.Where(o => o.IsValidLot))
+                                foreach (var _comp in WipRecord.ComponentList.Where(o => o.ProductNumber == _part.ProductNumber))
                                 {
-                                    CompoundPart[_counter] = _wip.PartNbr;
-                                    CompoundLot[_counter] = _wip.LotNbr;
-                                    _counter++;
+                                    foreach (var _lot in _comp.LotList.Where(o => o.Valid))
+                                    {
+                                        CompoundPart[_counter] = _comp.ProductNumber;
+                                        CompoundLot[_counter] = _lot.ID;
+                                        _counter++;
+                                    }
                                 }
                             }
                         }
                     }
                     TravelCard.Create("", "",
-                        WipRecord.WipWorkOrder.SkuNumber,
+                        WipRecord.WipWorkOrder.Product.SkuNumber,
                         WipRecord.IsLotTracable ? WipRecord.WipLot.LotNumber : "",
-                        WipRecord.WipWorkOrder.SkuDescription,
+                        WipRecord.WipWorkOrder.Product.SkuDescription,
                         "",
                         _wQty,
-                        WipRecord.WipWorkOrder.Uom,
+                        WipRecord.WipWorkOrder.Product.Uom,
                         "",
                         int.TryParse(Weight.ToString(), out int i) ? i : 0,
                         WipRecord.Submitter,
                         CompoundPart,
                         CompoundLot
                         );
-                    TravelCard.Display(FormType.CoC, App.GlobalConfig.FirstOrDefault(o => o.Site == "CSI").MaterialCard);
+                    TravelCard.Display(FormType.CoC, App.GlobalConfig.FirstOrDefault(o => o.Site == "Arlington").MaterialCard);
                 }
             }
             else
             {
                 if (App.SiteNumber == 1)
                 {
-                    foreach (var _rec in WipRecord.WipWorkOrder.Picklist.Where(o => o.IsLotTrace && o.InventoryType != "HM"))
-                    {
-                        if (_rec.WipInfo.Where(o => !string.IsNullOrEmpty(o.BaseLot)).Count() > 0)
-                        {
-                            _diamond = _rec.WipInfo.FirstOrDefault(o => !string.IsNullOrEmpty(o.BaseLot)).BaseLot;
-                            break;
-                        }
-                    }
                     if (_diamond == string.Empty && WipRecord.IsLotTracable)
                     {
                         App.GetWindow<View>().Topmost = false;
@@ -744,14 +635,14 @@ namespace SFW.WIP
                     }
                     foreach (var _lot in LotList)
                     {
-                        var _ncr = QmsForm.GetNcrId(_lot, App.AppSqlCon);
+                        var _ncr = Model.Quality.QmsForm.GetNcrId(_lot, App.AppSqlCon);
                         TravelCard.Create("", "technology#1",
-                            WipRecord.WipWorkOrder.SkuNumber,
+                            WipRecord.WipWorkOrder.Product.SkuNumber,
                             _lot,
-                            WipRecord.WipWorkOrder.SkuDescription,
+                            WipRecord.WipWorkOrder.Product.SkuDescription,
                             _diamond,
                             _wQty,
-                            WipRecord.WipWorkOrder.Uom,
+                            WipRecord.WipWorkOrder.Product.Uom,
                             _ncr,
                             deviation:WipRecord.WipWorkOrder.IsDeviated);
                         switch (parameter.ToString())
@@ -768,17 +659,17 @@ namespace SFW.WIP
                 else
                 {
                     TravelCard.Create("", "",
-                        WipRecord.WipWorkOrder.SkuNumber,
+                        WipRecord.WipWorkOrder.Product.SkuNumber,
                         WipRecord.IsLotTracable ? WipRecord.WipLot.LotNumber : "",
-                        WipRecord.WipWorkOrder.SkuDescription,
+                        WipRecord.WipWorkOrder.Product.SkuDescription,
                         "",
                         _wQty,
-                        WipRecord.WipWorkOrder.Uom,
+                        WipRecord.WipWorkOrder.Product.Uom,
                         "",
                         int.TryParse(Weight.ToString(), out int i) ? i : 0,
                         WipRecord.Submitter
                         );
-                    TravelCard.Display(FormType.CoC, App.GlobalConfig.FirstOrDefault(o => o.Site == "CSI").MaterialCard);
+                    TravelCard.Display(FormType.CoC, App.GlobalConfig.FirstOrDefault(o => o.Site == "Arlington").MaterialCard);
                 }
             }
         }
@@ -813,23 +704,23 @@ namespace SFW.WIP
         private void WipStickerPrintExecute(object parameter)
         {
             var _fabricLot = new string[4];
-            foreach (var _comp in WipRecord.WipWorkOrder.Picklist.Where(o => o.IsLotTrace))
+            foreach (var _comp in WipRecord.ComponentList.Where(o => o.LotTraceable))
             {
                 var _counter = 0;
-                foreach (var _compLot in _comp.WipInfo.Where(o => !string.IsNullOrEmpty(o.LotNbr)))
+                foreach (var _lot in _comp.LotList.Where(o => !string.IsNullOrEmpty(o.ID)))
                 {
-                    _fabricLot[_counter] = _compLot.LotNbr;
+                    _fabricLot[_counter] = _lot.ID;
                     _counter++;
                 }
             }
-            if (WipRecord.WipWorkOrder.Picklist.Count(o => (o.InventoryType == "RC" || o.InventoryType == "CS") && o.IsLotTrace) > 0)
+            foreach (var _part in WipRecord.WipWorkOrder.PickList.Where(o => (o.InventoryType == "RC" || o.InventoryType == "CS") && o.IsLotTrace))
             {
-                foreach (var _part in WipRecord.WipWorkOrder.Picklist.Where(o => (o.InventoryType == "RC" || o.InventoryType == "CS") && o.IsLotTrace))
+                var _counter = 0;
+                foreach (var _comp in WipRecord.ComponentList.Where(o => o.ProductNumber == _part.ProductNumber))
                 {
-                    var _counter = 0;
-                    foreach (var _wip in _part.WipInfo.Where(o => o.IsValidLot))
+                    foreach (var _lot in _comp.LotList.Where(o => o.Valid))
                     {
-                        CompoundLot[_counter] = _wip.LotNbr;
+                        CompoundLot[_counter] = _lot.ID;
                         _counter++;
                     }
                 }
@@ -837,9 +728,9 @@ namespace SFW.WIP
             var _sticker = new WipSticker(
                 WipRecord.WipWorkOrder.SalesOrder.CustomerName
                 , WipRecord.WipWorkOrder.SalesOrder.CustomerNumber
-                , WipRecord.WipWorkOrder.SkuNumber
-                , WipRecord.WipWorkOrder.SkuDescription
-                , WipRecord.WipWorkOrder.Uom
+                , WipRecord.WipWorkOrder.Product.SkuNumber
+                , WipRecord.WipWorkOrder.Product.SkuDescription
+                , WipRecord.WipWorkOrder.Product.Uom
                 , WipRecord.WipLot.LotNumber
                 , _fabricLot
                 , CompoundLot
@@ -866,7 +757,7 @@ namespace SFW.WIP
             {
                 if (_removeCrew == null)
                 {
-                    _removeCrew = new RelayCommand(RemoveCrewExecute, RemoveCrewCanExecute);
+                    _removeCrew = new RelayCommand(RemoveCrewExecute);
                 }
                 return _removeCrew;
             }
@@ -875,8 +766,11 @@ namespace SFW.WIP
         private void RemoveCrewExecute(object parameter)
         {
             WipRecord.CrewList.Remove(WipRecord.CrewList.FirstOrDefault(c => c.ErpId.ToString() == parameter.ToString()));
+            foreach (var _emp in WipRecord.CrewList)
+            {
+                _emp.ListId = WipRecord.CrewList.IndexOf(_emp);
+            }
         }
-        private bool RemoveCrewCanExecute(object parameter) => parameter != null && !string.IsNullOrEmpty(parameter.ToString());
 
         #endregion
 
@@ -896,7 +790,7 @@ namespace SFW.WIP
 
         private void RemoveScrapExecute(object parameter)
         {
-            var _scr = (WipReceipt.Scrap)parameter;
+            var _scr = (Scrap)parameter;
             WipRecord.ScrapList.Remove(WipRecord.ScrapList.FirstOrDefault(c => c.ID == _scr.ID));
             WipQuantity = "-987654";
         }
@@ -920,7 +814,7 @@ namespace SFW.WIP
 
         private void AddScrapExecute(object parameter)
         {
-            WipRecord.ScrapList.Add(new WipReceipt.Scrap { ID = WipRecord.ScrapList.Count().ToString() });
+            WipRecord.ScrapList.Add(new Scrap { ID = WipRecord.ScrapList.Count().ToString() });
             OnPropertyChanged(nameof(WipRecord));
         }
         private bool AddScrapCanExecute(object parameter) => parameter != null && !string.IsNullOrEmpty(parameter.ToString());
@@ -943,12 +837,24 @@ namespace SFW.WIP
 
         private void RemoveCompScrapExecute(object parameter)
         {
-            var _scrArray = ((WipReceipt.Scrap)parameter).ID.Split('*');
-            WipRecord.WipWorkOrder.Picklist.Where(o => o.CompNumber == _scrArray[1]).FirstOrDefault()
-                .WipInfo.Where(o => o.LotNbr == _scrArray[2]).FirstOrDefault().ScrapList.Remove(
-                WipRecord.WipWorkOrder.Picklist.Where(o => o.CompNumber == _scrArray[1]).FirstOrDefault()
-                .WipInfo.Where(o => o.LotNbr == _scrArray[2]).FirstOrDefault().ScrapList.FirstOrDefault(o => o.ID == ((WipReceipt.Scrap)parameter).ID));
-            OnPropertyChanged(nameof(WipRecord));
+            if (parameter.GetType() == typeof(Scrap))
+            {
+                var _scrapParam = (Scrap)parameter;
+                foreach (var _comp in WipRecord.ComponentList.Where(o => o.LotTraceable))
+                {
+                    if (_comp.LotList.Count(o => o.ID == _scrapParam.LotId) > 0)
+                    {
+                        var _scrapObj = _comp.LotList.FirstOrDefault(o => o.ID == _scrapParam.LotId).ScrapCollection.FirstOrDefault(o => o.ID == _scrapParam.ID);
+                        _comp.LotList.FirstOrDefault(o => o.ID == _scrapParam.LotId).ScrapCollection.Remove(_scrapObj);
+                        for (int i = 0; i < _comp.LotList.FirstOrDefault(o => o.ID == _scrapParam.LotId).ScrapCollection.Count(); i++)
+                        {
+                            _comp.LotList.FirstOrDefault(o => o.ID == _scrapParam.LotId).ScrapCollection[i].ID = i.ToString();
+                        }
+                        OnPropertyChanged(nameof(WipRecord));
+                        break;
+                    }
+                }
+            }
         }
         private bool RemoveCompScrapCanExecute(object parameter) => parameter != null && !string.IsNullOrEmpty(parameter.ToString());
 
@@ -970,11 +876,20 @@ namespace SFW.WIP
 
         private void AddCompScrapExecute(object parameter)
         {
-            var _scrArray = ((WipReceipt.Scrap)parameter).ID.Split('*');
-            var _newID = WipRecord.WipWorkOrder.Picklist.Where(o => o.CompNumber == _scrArray[1]).FirstOrDefault().WipInfo.Where(o => o.LotNbr == _scrArray[2]).FirstOrDefault().ScrapList.Count;
-            WipRecord.WipWorkOrder.Picklist.Where(o => o.CompNumber == _scrArray[1]).FirstOrDefault()
-                .WipInfo.Where(o => o.LotNbr == _scrArray[2]).FirstOrDefault().ScrapList.Add(new WipReceipt.Scrap { ID = $"{_newID}*{_scrArray[1]}*{_scrArray[2]}" });
-            OnPropertyChanged(nameof(WipRecord));
+            if (parameter.GetType() == typeof(Lot))
+            {
+                var _lot = (Lot)parameter;
+                foreach (var _comp in WipRecord.ComponentList.Where(o => o.LotTraceable))
+                {
+                    if (_comp.LotList.Count(o => o.ID == _lot.ID) > 0)
+                    {
+                        var _id = _comp.LotList.FirstOrDefault(o => o.ID == _lot.ID).ScrapCollection.Count();
+                        _comp.LotList.FirstOrDefault(o => o.ID == _lot.ID).ScrapCollection.Add(new Scrap(_id.ToString(), _lot.ID, WipRecord.WipWorkOrder.OrderNumber, WipRecord.WipWorkOrder.Product.SkuNumber));
+                        OnPropertyChanged(nameof(WipRecord));
+                        break;
+                    }
+                }
+            }
         }
         private bool AddCompScrapCanExecute(object parameter) => parameter != null && !string.IsNullOrEmpty(parameter.ToString());
 
@@ -996,17 +911,10 @@ namespace SFW.WIP
 
         private void RemoveCompExecute(object parameter)
         {
-            foreach (var c in WipRecord.WipWorkOrder.Picklist.Where(o => o.IsLotTrace))
+            foreach (var _comp in WipRecord.ComponentList.Where(o => o.LotTraceable))
             {
-                foreach (var w in c.WipInfo)
-                {
-                    if (w.LotNbr == parameter.ToString())
-                    {
-                        c.WipInfo.Remove(w);
-                        WipQuantity = "-987654";
-                        return;
-                    }
-                }
+                var _record = WipRecord.ComponentList.FirstOrDefault(o => o.ProductNumber == _comp.ProductNumber).LotList.FirstOrDefault(o => o.ID == parameter.ToString());
+                WipRecord.ComponentList.FirstOrDefault(o => o.ProductNumber == _comp.ProductNumber).LotList.Remove(_record);
             }
         }
         private bool RemoveCompCanExecute(object parameter) => parameter != null && !string.IsNullOrEmpty(parameter.ToString());
@@ -1029,18 +937,8 @@ namespace SFW.WIP
 
         private void PrintBarLblExecute(object parameter)
         {
-            var _diamond = "";
-            //Populating the diamond number based on the Picklist WIP information that was submitted
-            foreach (var w in WipRecord.WipWorkOrder.Picklist.Where(o => o.IsLotTrace && o.InventoryType != "HM" && o.InventoryType != "FR"))
-            {
-                foreach (var l in w.WipInfo.Where(o => o.IsValidLot))
-                {
-                    var _temp = Lot.GetDiamondNumber(l.LotNbr, App.SiteNumber);
-                    _diamond += _diamond == _temp ? "" : $"/{_temp}";
-                }
-            }
-            _diamond = _diamond.Trim('/');
-            new PrintBarLabels().Execute(_diamond);
+            var _dmd = DiamondEntry.Show();
+            new PrintBarLabels().Execute(_dmd);
         }
         private bool PrintBarLblCanExecute(object parameter) => true;
 
@@ -1058,11 +956,9 @@ namespace SFW.WIP
 
                 _wip = null;
                 LotList = null;
-                RefreshTimer.Start();
-                if (!RefreshTimer.IsRefreshing && IsSubmitted)
+                if (ApplicationTimer.Status == TimerState.Paused)
                 {
-                    RefreshTimer.RefreshTimerTick();
-                    RefreshTimer.Reset();
+                    ApplicationTimer.Resume();
                 }
             }
         }

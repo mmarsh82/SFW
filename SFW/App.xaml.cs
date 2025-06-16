@@ -32,7 +32,7 @@ namespace SFW
         }
         public static string Facility
         {
-            get { return SiteNumber == 1 ? "WCCO" : "CSI"; }
+            get { return SiteNumber == 1 ? "Wahpeton" : "Arlington"; }
         }
         public static int _siteNbr;
         public static int SiteNumber
@@ -62,6 +62,12 @@ namespace SFW
         {
             get { return _msg; }
             set { _msg = value; StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(SplashMessage))); }
+        }
+        public static string _dtl;
+        public static string SplashDetail
+        {
+            get { return _dtl; }
+            set { _dtl = value; StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(SplashDetail))); }
         }
         public static bool _inTrain;
         public static bool InTraining
@@ -124,16 +130,35 @@ namespace SFW
 
                 //Initialization of default application properties
                 SplashMessage = "Customizing your experience.";
-                Site = "CONTI_MAIN";
                 GlobalConfig = AppGlobal.Load($"{AppFilePath}GlobalConfig.xml");
                 DefualtWorkCenter = UserConfig.GetUserConfigList();
-                RefreshTimer.RefreshActionGroup = new List<Action>();
+                ApplicationTimer.Start();
                 SplashMessage = "Connecting to your data.";
                 if (AppSqlCon != null)
                 {
+                    SplashDetail = $"Opening connection.";
                     AppSqlCon.Open();
                     while (AppSqlCon.State != System.Data.ConnectionState.Open) { }
                     AppSqlCon.StateChange += SqlCon_StateChange;
+                    SplashDetail = $"Creating ModelBase connection.";
+                    ModelBase.ModelSqlCon = AppSqlCon;
+                    if (ModelBase.ModelSqlCon.State != System.Data.ConnectionState.Open)
+                    {
+                        SplashDetail = $"Opening ModelBase connection.";
+                        ModelBase.ModelSqlCon.Open();
+                        while (ModelBase.ModelSqlCon.State != System.Data.ConnectionState.Open) { }
+                    }
+                    ModelBase.ModelSqlCon.StateChange += SqlCon_StateChange;
+                }
+                SplashDetail = $"Obtaining user information.";
+                var _user = System.Security.Principal.WindowsIdentity.GetCurrent().Name;
+                SplashDetail = $"Trying to sign you in.";
+                CurrentUser.LogIn(_user);
+                if (CurrentUser.BasicUser)
+                {
+                    SplashDetail = $"Service account detected.";
+                    CurrentUser.Facility = SiteNumber;
+                    CurrentUser.Modules = CurrentUser.GetModulesList();
                 }
                 SplashMessage = "Making sure your errors are handled.";
                 Current.Exit += App_Exit;
@@ -146,20 +171,29 @@ namespace SFW
                     ,{ 2, "" }
                 };
                 SplashMessage = $"Getting your schedule ready.  This may take a few moments.";
-                var _load = ModelBase.BuildMasterDataSet(UserConfig.GetIROD(), SiteNumber, AppSqlCon);
-                if (_load.ContainsKey(true))
+                SplashDetail = "Module initialization.";
+                var _start = DateTime.Now;
+                ModelBase.LoadedModules = Module.GetModuleList(CurrentUser.Modules);
+                ModelBase.MasterDataSet = new System.Data.DataSet();
+                ModelBase.MasterDataSet.DataSetName = nameof(ModelBase.MasterDataSet);
+                ModelBase.ModelFacility = SiteNumber;
+                foreach (var _mod in ModelBase.LoadedModules)
                 {
-                    var _msg = _load.TryGetValue(true, out string s) ? s : string.Empty;
-                    MessageBox.Show(s, "Unhandled Exception", MessageBoxButton.OK, MessageBoxImage.Error);
+                    SplashDetail = $"Loading the {_mod.TableType.Name} table in the {_mod.Group} module.";
+                    ModelBase.MasterDataSet.Tables.Add(_mod.TableType.Name);
+                    ModelBase.MasterDataSet.LoadTable(_mod, CurrentUser.Facility, AppSqlCon);
                 }
-                if (!CurrentUser.IsLoggedIn)
-                {
-                    CurrentUser.LogIn();
-                }
+                SplashMessage = $"You're almost there, just polishing the view!";
+                SplashDetail = "Populating refresh times.";
+                ApplicationTimer.LastRefresh = DateTime.Now.ToString("MM-dd-yyyy HH:mm");
+                var _duration = DateTime.Now.Subtract(_start);
+                ApplicationTimer.LastDurationMinutes = _duration.Minutes;
+                ApplicationTimer.LastDurationSeconds = _duration.Seconds;
+                SplashDetail = "Initializing main workspace dock.";
             }
             catch(Exception ex)
             {
-                MessageBox.Show(ex.Message, "Unhandled Exception", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"Running {SplashDetail}\n{ex.Message}", "Unhandled Exception", MessageBoxButton.OK, MessageBoxImage.Error);
                 SplashMessage = string.Empty;
             }
             MainWindowViewModel.Initialization = true;
@@ -173,18 +207,18 @@ namespace SFW
         {
             base.OnStartup(e);
 
-            string[] startUpArgs = null;
+            string[] _startUpArgs;
             try
             {
-                startUpArgs = AppDomain.CurrentDomain.SetupInformation.ActivationArguments?.ActivationData ?? null;
+                _startUpArgs = AppDomain.CurrentDomain.SetupInformation.ActivationArguments?.ActivationData ?? null;
             }
             catch (NullReferenceException)
             {
-                startUpArgs = e.Args;
+                _startUpArgs = e.Args;
             }
-            if (startUpArgs != null)
+            if (_startUpArgs != null)
             {
-                foreach (string s in startUpArgs)
+                foreach (string s in _startUpArgs)
                 {
                     var arg = s.Split('_');
                     //All start up command line arguments are to be added in the below switch statement as cases
@@ -222,61 +256,16 @@ namespace SFW
             var count = 0;
             while ((AppSqlCon.State == System.Data.ConnectionState.Broken || AppSqlCon.State == System.Data.ConnectionState.Closed) && count <= 5)
             {
-                AppSqlCon.Open();
-            }
-        }
-
-        /// <summary>
-        /// SQLConnection Database change request
-        /// </summary>
-        /// <param name="dbName">Name of database to use</param>
-        /// <returns>bool value for connection status; True = Pass, False = Failure</returns>
-        public static bool DatabaseChange(string dbName)
-        {
-            try
-            { 
-                AppSqlCon.ChangeDatabase(dbName);
-                Site = dbName;
-                switch(dbName)
+                if (string.IsNullOrEmpty(AppSqlCon.ConnectionString))
                 {
-                    case "CSI_MAIN":
-                        SiteNumber = 2;
-                        ErpCon.DatabaseChange(Database.CONTI, SiteNumber);
-                        break;
-                    case "WCCO_MAIN":
-                        SiteNumber = 1;
-                        ErpCon.DatabaseChange(Database.CONTI, SiteNumber);
-                        break;
+                    AppGlobal.RefreshConnectionString();
                 }
-                return true;
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message);
-                return false;
-            }
-        }
-
-        /// <summary>
-        /// SQLConnection Database change request
-        /// </summary>
-        /// <param name="siteNbr">Site Number to switch</param>
-        /// <returns>bool value for connection status; True = Pass, False = Failure</returns>
-        public static bool DatabaseChange(int siteNbr)
-        {
-            var dbName = string.Empty;
-            try
-            {
-                SiteNumber = siteNbr;
-                ErpCon.DatabaseChange(Database.CONTI, siteNbr);
-                AppSqlCon.ChangeDatabase(dbName);
-                Site = dbName;
-                return true;
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message);
-                return false;
+                AppSqlCon.Open();
+                ModelBase.ModelSqlCon = AppSqlCon;
+                if (ModelBase.ModelSqlCon.State == System.Data.ConnectionState.Broken || ModelBase.ModelSqlCon.State == System.Data.ConnectionState.Closed)
+                {
+                    ModelBase.ModelSqlCon.Open();
+                }
             }
         }
 

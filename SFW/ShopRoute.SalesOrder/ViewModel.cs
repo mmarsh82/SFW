@@ -1,4 +1,5 @@
 ﻿using SFW.Helpers;
+using SFW.Model.Product;
 using System;
 using System.Windows;
 using System.Windows.Input;
@@ -9,8 +10,8 @@ namespace SFW.ShopRoute.SalesOrder
     {
         #region Properties
 
-        private Model.SalesOrder _order;
-        public Model.SalesOrder Order
+        private Model.Sales.SalesOrder _order;
+        public Model.Sales.SalesOrder Order
         {
             get { return _order; }
             set
@@ -18,7 +19,7 @@ namespace SFW.ShopRoute.SalesOrder
                 _order = value;
                 if (!string.IsNullOrEmpty(value.SalesNumber))
                 {
-                    Order.LineList = Model.SalesOrder.GetLineList(value.SalesNumber);
+                    Order.LineList = Model.Sales.SalesOrder.GetLineList(value.SalesNumber);
                 }
                 OnPropertyChanged(nameof(Order));
                 OnPropertyChanged(nameof(CanAccept));
@@ -27,8 +28,8 @@ namespace SFW.ShopRoute.SalesOrder
             }
         }
 
-        private Model.Sku _part;
-        public Model.Sku Part
+        private Sku _part;
+        public Sku Part
         {
             get { return _part; }
             set
@@ -53,7 +54,7 @@ namespace SFW.ShopRoute.SalesOrder
         {
             if (Order == null)
             {
-                Order = new Model.SalesOrder();
+                Order = new Model.Sales.SalesOrder();
             }
         }
 
@@ -62,7 +63,7 @@ namespace SFW.ShopRoute.SalesOrder
         /// </summary>
         /// <param name="salesOrder">Sales Order Object</param>
         /// <param name="part">Sku Object</param>
-        public ViewModel(Model.SalesOrder salesOrder, Model.Sku part)
+        public ViewModel(Model.Sales.SalesOrder salesOrder, Sku part)
         {
             Order = salesOrder;
             Part = part;

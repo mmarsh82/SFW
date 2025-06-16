@@ -24,7 +24,7 @@
                 <cmd:WorkInstructions x:Key="WorkInstICommand" />
             </Grid.Resources>
 
-            <TextBlock Text="Nothing Selected"
+            <TextBlock Text="           Nothing selected!&#x0a;Select a work order to review."
                        FontSize="32"
                        FontWeight="Bold"
                        HorizontalAlignment="Center"

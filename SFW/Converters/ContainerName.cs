@@ -1,4 +1,4 @@
-﻿using SFW.Model;
+﻿using SFW.Model.Product;
 using System;
 using System.Globalization;
 using System.Windows;

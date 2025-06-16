@@ -3,11 +3,9 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data.SqlClient;
 using System.IO;
-using System.Linq;
 using System.Security;
 using System.Windows;
 using System.Xml;
-using System.Xml.Linq;
 
 namespace SFW
 {
@@ -139,7 +137,7 @@ namespace SFW
                         writer.WriteComment("If you are incorparating a new file path you will need to contact the developer to add in the corresponding properties");
                         writer.WriteStartElement("SiteDocumentation");
 
-                        writer.WriteStartElement("WCCO");
+                        writer.WriteStartElement("Wahpeton");
                         writer.WriteAttributeString("PartPrint", "");
                         writer.WriteAttributeString("PressSetup", "");
                         writer.WriteAttributeString("SyscoSetup", "");
@@ -148,7 +146,7 @@ namespace SFW
                         writer.WriteAttributeString("WI", "");
                         writer.WriteEndElement();
 
-                        writer.WriteStartElement("CSI");
+                        writer.WriteStartElement("Arlington");
                         writer.WriteAttributeString("PartPrint", "");
                         writer.WriteAttributeString("Setup", "");
                         writer.WriteAttributeString("WI", "");
@@ -203,7 +201,7 @@ namespace SFW
                                     switch (reader.Name)
                                     {
                                         case "SFWApp":
-                                            App.AppLock = bool.TryParse(reader.GetAttribute("IsLocked"), out bool b) ? b : true;
+                                            App.AppLock = !bool.TryParse(reader.GetAttribute("IsLocked"), out bool b) || b;
                                             break;
                                         case "M2kConnection":
                                             App.ErpCon = new M2kClient.M2kConnection(reader.GetAttribute("Name"), reader.GetAttribute("ServiceUser"), reader.GetAttribute("ServicePass"), M2kClient.Database.CONTI, App.SiteNumber);
@@ -213,7 +211,7 @@ namespace SFW
                                             var _min = int.TryParse(reader.GetAttribute("Minutes"), out int m) ? m : 5;
                                             var _sec = int.TryParse(reader.GetAttribute("Seconds"), out int s) ? s : 0;
                                             var _mSec = int.TryParse(reader.GetAttribute("MilliSeconds"), out int mls) ? mls : 0;
-                                            RefreshTimer.Start(new TimeSpan(0, _hour, _min, _sec, _mSec));
+                                            ApplicationTimer.RefreshInterval = new TimeSpan(0, _hour, _min, _sec, _mSec);
                                             break;
                                         case "SqlConnection":
                                             var pass = new SecureString();
@@ -223,15 +221,17 @@ namespace SFW
                                             }
                                             pass.MakeReadOnly();
                                             var sqlCred = new SqlCredential(reader.GetAttribute("ServiceUser"), pass);
-                                            App.AppSqlCon = new SqlConnection($"Server={reader.GetAttribute("Name")};DataBase={App.Site};Connection Timeout={reader.GetAttribute("TimeOut")};MultipleActiveResultSets=True;Connection Lifetime=3;Max Pool Size=3;Pooling=true;", sqlCred);
-                                            App.AppSqlCon.StatisticsEnabled = true;
+                                            App.AppSqlCon = new SqlConnection($"Server={reader.GetAttribute("Name")};DataBase={App.Site};Connection Timeout={reader.GetAttribute("TimeOut")};MultipleActiveResultSets=True;Connection Lifetime=3;Max Pool Size=3;Pooling=true;", sqlCred)
+                                            {
+                                                StatisticsEnabled = true
+                                            };
                                             break;
                                         //SiteDocumentation Element is written below
                                         //Make sure any site added in the SiteDocumentation element exists in the main application site list
-                                        case "WCCO":
+                                        case "Wahpeton":
                                             _tempList.Add(new AppGlobal
                                             {
-                                                Site = "WCCO"
+                                                Site = "Wahpeton"
                                                 ,PartPrint = reader.GetAttribute("PartPrint")
                                                 ,PressSetup = reader.GetAttribute("PressSetup")
                                                 ,SyscoSetup = reader.GetAttribute("SyscoSetup")
@@ -242,10 +242,10 @@ namespace SFW
                                                 ,ReferenceCard = reader.GetAttribute("ReferenceCard")
                                             });
                                             break;
-                                        case "CSI":
+                                        case "Arlington":
                                             _tempList.Add(new AppGlobal
                                             {
-                                                Site = "CSI"
+                                                Site = "Arlington"
                                                 ,PartPrint = reader.GetAttribute("PartPrint")
                                                 ,PressSetup = reader.GetAttribute("Setup")
                                                 ,WI = reader.GetAttribute("WI")
@@ -254,7 +254,7 @@ namespace SFW
                                             break;
                                         case "Locks":
                                             ZoneLock = reader.GetAttribute("Location");
-                                            App.AppLock = int.TryParse(reader.GetAttribute("System"), out int _sys) ? _sys == 1 : false;
+                                            App.AppLock = int.TryParse(reader.GetAttribute("System"), out int _sys) && _sys == 1;
                                             break;
                                     }
                                 }
@@ -272,14 +272,17 @@ namespace SFW
         }
 
         /// <summary>
-        /// Refreshes all properties of the global config
+        /// Refreshes the AppSqlCon object
         /// </summary>
-        public static void RefreshAll()
+        public static void RefreshConnectionString()
         {
             try
             {
-                var _tempList = new List<AppGlobal>();
-                using (var rStream = new FileStream(ConfigFilePath, FileMode.Open))
+                if (!Exists(ConfigFilePath))
+                {
+                    Create(ConfigFilePath);
+                }
+                using (var rStream = new FileStream(ConfigFilePath, FileMode.Open, FileAccess.Read))
                 {
                     var rSettings = new XmlReaderSettings { IgnoreComments = true, IgnoreWhitespace = true };
                     using (var reader = XmlReader.Create(rStream, rSettings))
@@ -290,53 +293,19 @@ namespace SFW
                             {
                                 if (reader.NodeType == XmlNodeType.Element)
                                 {
-                                    switch (reader.Name)
+                                    if (reader.Name == "SqlConnection")
                                     {
-                                        case "RefreshRate":
-                                            var _hour = int.TryParse(reader.GetAttribute("Hours"), out int h) ? h : 0;
-                                            var _min = int.TryParse(reader.GetAttribute("Minutes"), out int m) ? m : 5;
-                                            var _sec = int.TryParse(reader.GetAttribute("Seconds"), out int s) ? s : 0;
-                                            var _mSec = int.TryParse(reader.GetAttribute("MilliSeconds"), out int mls) ? mls : 0;
-                                            RefreshTimer.Start(new TimeSpan(0, _hour, _min, _sec, _mSec));
-                                            break;
-                                        case "SqlConnection":
-                                            var pass = new SecureString();
-                                            foreach (var c in reader.GetAttribute("ServicePass"))
-                                            {
-                                                pass.AppendChar(c);
-                                            }
-                                            pass.MakeReadOnly();
-                                            var sqlCred = new SqlCredential(reader.GetAttribute("ServiceUser"), pass);
-                                            App.AppSqlCon = new SqlConnection($"Server={reader.GetAttribute("IP")};DataBase={App.Site};Connection Timeout={reader.GetAttribute("TimeOut")};MultipleActiveResultSets=True;Connection Lifetime=3;Max Pool Size=3;Pooling=true;", sqlCred);
-                                            App.AppSqlCon.StatisticsEnabled = true;
-                                            break;
-                                        //SiteDocumentation Element is written below
-                                        //Make sure any site added in the SiteDocumentation element exists in the main application site list
-                                        case "WCCO":
-                                            _tempList.Add(new AppGlobal
-                                            {
-                                                Site = "WCCO"
-                                                ,PartPrint = reader.GetAttribute("PartPrint")
-                                                ,PressSetup = reader.GetAttribute("PressSetup")
-                                                ,SyscoSetup = reader.GetAttribute("SyscoSetup")
-                                                ,TrimSetup = reader.GetAttribute("TrimSetup")
-                                                ,ExtSetup = reader.GetAttribute("ExtruderSetup")
-                                                ,WI = reader.GetAttribute("WI")
-                                            });
-                                            break;
-                                        case "CSI":
-                                            _tempList.Add(new AppGlobal
-                                            {
-                                                Site = "CSI"
-                                                ,PartPrint = reader.GetAttribute("PartPrint")
-                                                ,PressSetup = reader.GetAttribute("Setup")
-                                                ,WI = reader.GetAttribute("WI")
-                                            });
-                                            break;
-                                        case "ApplicationLocks":
-                                            ZoneLock =reader.GetAttribute("Location");
-                                            App.AppLock = int.TryParse(reader.GetAttribute("System"), out int _sys) ? _sys == 1 : false;
-                                            break;
+                                        var pass = new SecureString();
+                                        foreach (var c in reader.GetAttribute("ServicePass"))
+                                        {
+                                            pass.AppendChar(c);
+                                        }
+                                        pass.MakeReadOnly();
+                                        var sqlCred = new SqlCredential(reader.GetAttribute("ServiceUser"), pass);
+                                        App.AppSqlCon = new SqlConnection($"Server={reader.GetAttribute("Name")};DataBase={App.Site};Connection Timeout={reader.GetAttribute("TimeOut")};MultipleActiveResultSets=True;Connection Lifetime=3;Max Pool Size=3;Pooling=true;", sqlCred)
+                                        {
+                                            StatisticsEnabled = true
+                                        };
                                     }
                                 }
                             }
@@ -344,74 +313,9 @@ namespace SFW
                     }
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return;
-            }
-        }
-
-        /// <summary>
-        /// Refreshes the locks portion of the global config
-        /// </summary>
-        public static void RefreshLocks()
-        {
-            try
-            {
-                var _tempList = new List<AppGlobal>();
-                using (var rStream = new FileStream(ConfigFilePath, FileMode.Open))
-                {
-                    var rSettings = new XmlReaderSettings { IgnoreComments = true, IgnoreWhitespace = true };
-                    using (var reader = XmlReader.Create(rStream, rSettings))
-                    {
-                        while (reader.Read())
-                        {
-                            if (reader.HasAttributes)
-                            {
-                                if (reader.NodeType == XmlNodeType.Element)
-                                {
-                                    switch (reader.Name)
-                                    {
-                                        case "ApplicationLocks":
-                                            ZoneLock = reader.GetAttribute("Location");
-                                            App.AppLock = int.TryParse(reader.GetAttribute("System"), out int _sys) ? _sys == 1 : false;
-                                            break;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            catch (Exception)
-            {
-                return;
-            }
-        }
-
-        /// <summary>
-        /// Update an attribute value in the global config
-        /// </summary>
-        /// <param name="elementName">Name of the element</param>
-        /// <param name="attributeName">Name of the attribute you are changing</param>
-        /// <param name="newValue">New value for the attribute</param>
-        /// <returns>Pass - fail check on return of true or false</returns>
-        public static bool UpdateAttributeValue(string elementName, string attributeName, string newValue)
-        {
-            try
-            {
-                XDocument _configDoc = XDocument.Load(ConfigFilePath);
-                var _attribute = _configDoc.Elements("GlobalConfig").Elements(elementName).Attributes().Where(o => o.Name == attributeName).FirstOrDefault();
-                if (_attribute != null)
-                {
-                    _attribute.Value = newValue;
-                    _configDoc.Save(ConfigFilePath);
-                    return true;
-                }
-                return false;
-            }
-            catch (Exception)
-            {
-                return false;
+                MessageBox.Show(ex.Message);
             }
         }
     }

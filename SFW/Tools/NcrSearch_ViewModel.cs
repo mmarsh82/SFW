@@ -49,7 +49,7 @@ namespace SFW.Tools
         {
             if (int.TryParse(UserEntry, out int i))
             {
-                if (Model.QmsForm.IsValid(i))
+                if (Model.Quality.QmsForm.IsValid(i))
                 {
                     if (App.LoadedModule != Enumerations.UsersControls.Schedule)
                     {

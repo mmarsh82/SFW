@@ -1,11 +1,14 @@
-﻿using SFW.Model;
+﻿using SFW.Commands;
+using SFW.Controls;
+using SFW.Model;
+using SFW.Model.Management;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.DirectoryServices;
 using System.DirectoryServices.AccountManagement;
-using System.IO;
 using System.Linq;
+using System.Windows.Controls;
 
 namespace SFW
 {
@@ -48,16 +51,16 @@ namespace SFW
             {
                 try
                 {
-                    Groups = user.GetAuthorizationGroups().Where(o => o.Name.Contains("SFW-")).Select(o => o.Name).ToList();
+                    Groups = user.GetAuthorizationGroups().Where(o => o.Name.Contains("WAXSG-SFW-") || o.Name.Contains("ARXSG-SFW-")).Select(o => o.Name).ToList();
                     DomainName = context.ConnectedServer;
                     DomainUserName = user.SamAccountName;
                     DisplayName = user.DisplayName;
                     Email = user.EmailAddress;
-                    Site = user.DistinguishedName.Contains("wak1") ? "WCCO" : "CSI";
+                    Site = user.DistinguishedName.Contains("wak1") ? "Wahpeton" : "Arlington";
                     Facility = user.DistinguishedName.Contains("wak1") ? 1 : 2;
                     DirectReports = IsSupervisor && App.SiteNumber == 1 ? user.GetDirectReports() : new Dictionary<int, string>();
                     SapId = int.TryParse(((DirectoryEntry)user.GetUnderlyingObject()).Properties["global-ExtensionAttribute1"]?.Value.ToString(), out int i) ? i : 0;
-                    ErpId = ModelBase.MasterDataSet == null || !ModelBase.MasterDataSet.Tables.Contains("CREW") ? CrewMember.GetCrewErpID(SapId, App.AppSqlCon) : CrewMember.GetCrewErpID(SapId);
+                    ErpId = ModelBase.MasterDataSet == null || !ModelBase.MasterDataSet.Tables.Contains(typeof(Employee).Name) ? Employee.GetErpID(SapId, App.AppSqlCon) : Employee.GetErpID(SapId);
                     GivenName = user.GivenName;
                     SurName = user.Surname;
                 }
@@ -430,6 +433,18 @@ namespace SFW
             }
         }
 
+        private static List<ModuleType> _mods;
+        public static List<ModuleType> Modules
+        {
+            get
+            { return _mods; }
+            set
+            {
+                _mods = value;
+                StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(Modules)));
+            }
+        }
+
         public static bool IsNamedUser { get; set; }
 
         public static event EventHandler<PropertyChangedEventArgs> StaticPropertyChanged;
@@ -456,36 +471,8 @@ namespace SFW
                 Email = user.Email;
                 Site = user.Site;
                 Facility = user.Facility;
-                if (user.Groups.Count() > 0)
-                {
-                    if (user.Groups.Count(o => o.Contains("SFW-Admin")) > 0)
-                    {
-                        CanTrain = CanSchedule = IsSupervisor = IsManager = IsInventoryControl = IsAccountsReceivable = IsAdmin = HasSalesOrderModule = IsQuality = IsEngineer = CanSplit = CanDeviate = HasNotice = Planner = true;
-                        BasicUser = false;
-                    }
-                    else
-                    {
-                        CanSchedule = user.Groups.Count(o => o.Contains("SFW-Scheduler")) > 0;
-                        IsSupervisor = user.Groups.Count(o => o.Contains("SFW-Supervisor")) > 0;
-                        IsManager = user.Groups.Count(o => o.Contains("SFW-Manager")) > 0;
-                        IsInventoryControl = user.Groups.Count(o => o.Contains("SFW-Inventory")) > 0;
-                        IsAccountsReceivable = user.Groups.Count(o => o.Contains("SFW-AR")) > 0;
-                        HasSalesOrderModule = user.Groups.Count(o => o.Contains("SFW-Sales")) > 0;
-                        CanTrain = user.Groups.Count(o => o.Contains("SFW-Train")) > 0;
-                        IsQuality = user.Groups.Count(o => o.Contains("SFW-Quality")) > 0;
-                        HasNotice = user.Groups.Count(o => o.Contains("SFW-Quality")) > 0 || user.Groups.Count(o => o.Contains("SFW-QNotice")) > 0;
-                        IsEngineer = user.Groups.Count(o => o.Contains("SFW-Engineer")) > 0;
-                        CanSplit = user.Groups.Count(o => o.Contains("SFW-Adjust")) > 0;
-                        CanDeviate = user.Groups.Count(o => o.Contains("SFW-Deviate")) > 0;
-                        Planner = user.Groups.Count(o => o.Contains("SFW-Planner")) > 0;
-                        IsManager = user.Groups.Count(o => o.Contains("SFW-Manager")) > 0;
-                        BasicUser = false;
-                    }
-                }
-                else
-                {
-                    BasicUser = true;
-                }
+                App.IsFocused = BasicUser = AssignPermissions(user.Groups);
+                Modules = GetModulesList();
                 DirectReports = user.DirectReports;
                 IsLoggedIn = true;
                 CanWip = true;
@@ -494,6 +481,11 @@ namespace SFW
                 ErpId = user.ErpId;
                 FirstName = user.GivenName;
                 LastName = user.SurName;
+                MainWindowViewModel.UpdateProperties(false);
+                if (WorkSpaceDock.MainDock != null)
+                {
+                    ((Schedule.ViewModel)((Schedule.View)((DockPanel)WorkSpaceDock.MainDock.Children[1]).Children[0]).DataContext).ResetFilter();
+                }
             }
             catch (Exception)
             {
@@ -510,51 +502,27 @@ namespace SFW
         {
             try
             {
-                var _aGroups = user.GetAuthorizationGroups().Where(o => o.Name.Contains("SFW-")).Select(o => o.Name).ToList();
+                var _aGroups = user.GetAuthorizationGroups().Where(o => o.Name.Contains("WAXSG-SFW-") || o.Name.Contains("ARXSG-SFW-")).Select(o => o.Name).ToList();
+                App.IsFocused = BasicUser = AssignPermissions(_aGroups);
                 DomainName = context.ConnectedServer;
                 DomainUserName = user.SamAccountName;
                 DisplayName = user.DisplayName;
                 Email = user.EmailAddress;
-                Site = user.DistinguishedName.Contains("wak1") ? "WCCO" : "CSI";
+                Site = user.DistinguishedName.Contains("wak1") ? "Wahpeton" : "Arlington";
                 Facility = user.DistinguishedName.Contains("wak1") ? 1 : 2;
-                if (_aGroups.Count() > 0)
-                {
-                    if (_aGroups.Count(o => o.Contains("SFW-Admin")) > 0)
-                    {
-                        CanTrain = CanSchedule = IsSupervisor = IsManager = IsInventoryControl = IsAccountsReceivable = IsAdmin = HasSalesOrderModule = IsQuality = IsEngineer = CanSplit = CanDeviate = HasNotice = Planner = true;
-                        BasicUser = false;
-                    }
-                    else
-                    {
-                        CanSchedule = _aGroups.Count(o => o.Contains("SFW-Scheduler")) > 0;
-                        IsSupervisor = _aGroups.Count(o => o.Contains("SFW-Supervisor")) > 0;
-                        IsManager = _aGroups.Count(o => o.Contains("SFW-Manager")) > 0;
-                        IsInventoryControl = _aGroups.Count(o => o.Contains("SFW-Inventory")) > 0;
-                        IsAccountsReceivable = _aGroups.Count(o => o.Contains("SFW-AR")) > 0;
-                        HasSalesOrderModule = _aGroups.Count(o => o.Contains("SFW-Sales")) > 0;
-                        CanTrain = _aGroups.Count(o => o.Contains("SFW-Train")) > 0;
-                        IsQuality = _aGroups.Count(o => o.Contains("SFW-Quality")) > 0;
-                        HasNotice = _aGroups.Count(o => o.Contains("SFW-Quality")) > 0 || _aGroups.Count(o => o.Contains("SFW-QNotice")) > 0;
-                        IsEngineer = _aGroups.Count(o => o.Contains("SFW-Engineer")) > 0;
-                        CanSplit = _aGroups.Count(o => o.Contains("SFW-Adjust")) > 0;
-                        CanDeviate = _aGroups.Count(o => o.Contains("SFW-Deviate")) > 0;
-                        Planner = _aGroups.Count(o => o.Contains("SFW-Planner")) > 0;
-                        IsManager = _aGroups.Count(o => o.Contains("SFW-Manager")) > 0;
-                        BasicUser = false;
-                    }
-                }
-                else
-                {
-                    BasicUser = true;
-                }
+                Modules = GetModulesList();
                 DirectReports = IsSupervisor && App.SiteNumber == 1 ? user.GetDirectReports() : new Dictionary<int, string>();
                 IsLoggedIn = true;
                 CanWip = true;
                 CanLabor = App.SiteNumber == 2 || IsAdmin;
                 SapId = int.TryParse(((DirectoryEntry)user.GetUnderlyingObject()).Properties["global-ExtensionAttribute1"]?.Value.ToString(), out int i) ? i : 0;
-                ErpId = ModelBase.MasterDataSet == null || !ModelBase.MasterDataSet.Tables.Contains("CREW") ? CrewMember.GetCrewErpID(SapId, App.AppSqlCon) : CrewMember.GetCrewErpID(SapId);
+                ErpId = ModelBase.MasterDataSet == null || !ModelBase.MasterDataSet.Tables.Contains(typeof(Employee).Name) ? Employee.GetErpID(SapId, App.AppSqlCon) : Employee.GetErpID(SapId);
                 FirstName = user.GivenName;
                 LastName = user.Surname;
+                if (WorkSpaceDock.MainDock != null)
+                {
+                    ((Schedule.ViewModel)((Schedule.View)((DockPanel)WorkSpaceDock.MainDock.Children[1]).Children[0]).DataContext).ResetFilter();
+                }
             }
             catch (Exception)
             {
@@ -563,48 +531,75 @@ namespace SFW
         }
 
         /// <summary>
-        /// SSO log in for a user
+        /// Assign all application permissions to the current user based on AD groups
         /// </summary>
-        public static void LogIn()
+        /// <param name="groups">Signed in user principal</param>
+        /// <returns>Basic user status</returns>
+        public bool AssignPermissions(List<string> groups)
         {
-            if (!App.AppLock)
+            try
             {
-                try
+                if (groups.Count() > 0)
                 {
-                    var _user = string.Empty;
-                    if (File.Exists($"{Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)}\\SFW\\SSO.txt"))
+                    foreach (var _group in groups)
                     {
-                        _user = File.ReadAllText($"{Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)}\\SFW\\SSO.txt");
-                        File.Delete($"{Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)}\\SFW\\SSO.txt");
-                    }
-                    else
-                    {
-                        _user = System.Security.Principal.WindowsIdentity.GetCurrent().Name;
-                    }
-                    _user = _user.Contains("\\") ? _user.Split('\\')[1] : _user;
-                    using (PrincipalContext pContext = GetPrincipal(_user))
-                    {
-                        using (UserPrincipal uPrincipal = UserPrincipal.FindByIdentity(pContext, _user))
+                        var _permission = _group.Contains("WAX") ? _group.Replace("WAXSG-SFW-", "") : _group.Replace("ARXSG-SFW-", "");
+                        switch (_permission)
                         {
-                            if (uPrincipal != null && !uPrincipal.DisplayName.Contains("_FA"))
-                            {
-                                if (!string.IsNullOrEmpty(uPrincipal.EmployeeId))
-                                {
-                                    IsNamedUser = true;
-                                    new CurrentUser(pContext, uPrincipal);
-                                }
-                                else
-                                {
-                                    IsNamedUser = false;
-                                }
-                            }
+                            case "Admin":
+                                CanTrain = CanSchedule = IsSupervisor = IsManager = IsInventoryControl = IsAccountsReceivable = IsAdmin = HasSalesOrderModule = IsQuality = IsEngineer = CanSplit = CanDeviate = HasNotice = Planner = true;
+                                return false;
+                            case "Scheduler":
+                                CanSchedule = true;
+                                break;
+                            case "Supervisor":
+                                IsSupervisor = true;
+                                break;
+                            case "Manager":
+                                IsManager = true;
+                                break;
+                            case "Inventory":
+                                IsInventoryControl = true;
+                                break;
+                            case "AR":
+                                IsInventoryControl = true;
+                                break;
+                            case "Sales":
+                                HasSalesOrderModule = true;
+                                break;
+                            case "Train":
+                                HasSalesOrderModule = true;
+                                break;
+                            case "Quality":
+                                IsQuality = HasNotice = true;
+                                break;
+                            case "QNotice":
+                                HasNotice = true;
+                                break;
+                            case "Engineer":
+                                IsEngineer = true;
+                                break;
+                            case "Adjust":
+                                CanSplit = true;
+                                break;
+                            case "Deviate":
+                                CanDeviate = true;
+                                break;
+                            case "Planner":
+                                Planner = true;
+                                break;
                         }
                     }
+                    return false;
                 }
-                catch (Exception)
+                else
                 {
-
+                    return true;
                 }
+            }
+            catch
+            {
+                return true;
             }
         }
 
@@ -616,14 +611,17 @@ namespace SFW
         {
             using (PrincipalContext pContext = GetPrincipal(userName))
             {
-                using (UserPrincipal uPrincipal = UserPrincipal.FindByIdentity(pContext,userName))
+                if (pContext != null)
                 {
-                    if (!uPrincipal.DisplayName.Contains("_FA"))
+                    using (UserPrincipal uPrincipal = UserPrincipal.FindByIdentity(pContext, userName))
                     {
-                        if (uPrincipal.GetAuthorizationGroups().ToList().ConvertAll(o => o.Name).Exists(o => o.Contains("SFW-")))
+                        if (uPrincipal != null && !uPrincipal.DisplayName.Contains("_FA"))
                         {
                             new CurrentUser(pContext, uPrincipal);
-                            MainWindowViewModel.UpdateProperties(false);
+                        }
+                        else
+                        {
+                            App.IsFocused = BasicUser = true;
                         }
                     }
                 }
@@ -707,28 +705,6 @@ namespace SFW
         }
 
         /// <summary>
-        /// Check to see if the user exists in the current domain
-        /// </summary>
-        /// <param name="userName">Domain user name</param>
-        /// <returns>Pass/Fail check as a boolean</returns>
-        public static bool UserExist(string userName)
-        {
-            try
-            {
-                using (PrincipalContext pCon = GetPrincipal(userName))
-                {
-                    var _uPrincipal = UserPrincipal.FindByIdentity(pCon, userName);
-                    return (_uPrincipal != null && !_uPrincipal.DisplayName.Contains("_FA"));
-                }
-            }
-            catch(Exception)
-            {
-                return false;
-            }
-
-        }
-
-        /// <summary>
         /// Get the site associated with the currently logged in user
         /// </summary>
         /// <returns>Site as string</returns>
@@ -741,12 +717,12 @@ namespace SFW
                 {
                     if (uPrincipal.DistinguishedName.Contains("arx1"))
                     {
-                        Site = "CSI";
+                        Site = "Arlington";
                         return 2;
                     }
                     else if (uPrincipal.DistinguishedName.Contains("wak1"))
                     {
-                        Site = "WCCO";
+                        Site = "Wahpeton";
                         return 1;
                     }
                     else
@@ -754,29 +730,6 @@ namespace SFW
                         return -1;
                     }
                 }
-            }
-        }
-
-        /// <summary>
-        /// Set the site for the application to run
-        /// </summary>
-        /// <param name="siteNbr">Site number</param>
-        /// <returns>site number</returns>
-        public static int SetSite(int siteNbr)
-        {
-            if (siteNbr == 2)
-            {
-                Site = "CSI";
-                return 2;
-            }
-            else if (siteNbr == 1)
-            {
-                Site = "WCCO";
-                return 1;
-            }
-            else
-            {
-                return -1;
             }
         }
 
@@ -800,33 +753,21 @@ namespace SFW
             IsAccountsReceivable = false;
             HasSalesOrderModule = false;
             CanTrain = false;
-            BasicUser = true;
+            App.IsFocused = BasicUser = true;
             IsEngineer = false;
             IsQuality = HasNotice = false;
             Planner = false;
             IsManager = false;
-            Controls.WorkSpaceDock.RefreshMainDock(false);
+            Modules = GetModulesList();
+            ModelBase.LoadedModules = Module.GetModuleList(Modules);
+            ModelBase.ModelFacility = Facility;
+            WorkSpaceDock.RefreshMainDock(false);
             MainWindowViewModel.UpdateProperties(false);
-        }
-
-        /// <summary>
-        /// Refresh the current users log in, use this if permissions have been changed
-        /// </summary>
-        public static void RefreshLogIn()
-        {
-            if (IsLoggedIn)
+            ((Schedule.ViewModel)((Schedule.View)((DockPanel)WorkSpaceDock.MainDock.Children[1]).Children[0]).DataContext).ResetFilter();
+            if (App.LoadedModule != Enumerations.UsersControls.Schedule)
             {
-                using (PrincipalContext pContext = GetPrincipal(DomainUserName))
-                {
-                    using (UserPrincipal uPrincipal = UserPrincipal.FindByIdentity(pContext, DomainUserName))
-                    {
-                        if (!uPrincipal.DisplayName.Contains("_FA"))
-                        {
-                            new CurrentUser(pContext, uPrincipal);
-                            MainWindowViewModel.UpdateProperties(true);
-                        }
-                    }
-                }
+                new ViewLoad().Execute(App.SiteNumber);
+                App.LoadedModule = Enumerations.UsersControls.Schedule;
             }
         }
 
@@ -876,8 +817,10 @@ namespace SFW
                             }
                             if (string.IsNullOrEmpty(_user.ErrorMessage))
                             {
-                                _user = new ValidUser(pContext, uPrincipal);
-                                _user.Validated = true;
+                                _user = new ValidUser(pContext, uPrincipal)
+                                {
+                                    Validated = true
+                                };
 
                             }
                             return _user;
@@ -950,8 +893,59 @@ namespace SFW
             }
             else
             {
-                var _site = App.SiteNumber == 1 ? "wak1" : "arx1";
                 return new PrincipalContext(ContextType.Domain);
+            }
+        }
+
+        /// <summary>
+        /// Load the model master data set based on user permissions
+        /// </summary>
+        /// <returns></returns>
+        public static List<ModuleType> GetModulesList()
+        {
+            if (string.IsNullOrEmpty(DisplayName))
+            {
+                var _tempList = new List<ModuleType>
+                {
+                    ModuleType.Production
+                    ,ModuleType.Product
+                    ,ModuleType.Sales
+                    ,ModuleType.Management
+                };
+                if (App.SiteNumber == 1)
+                {
+                    _tempList.Add(ModuleType.Quality);
+                }
+                return _tempList;
+            }
+            else if (IsAdmin)
+            {
+                return Enum.GetValues(typeof(ModuleType)).Cast<ModuleType>().ToList();
+            }
+            else
+            {
+                var _tempList = new List<ModuleType>
+                {
+                    ModuleType.Production
+                    ,ModuleType.Product
+                    ,ModuleType.Sales
+                    ,ModuleType.Management
+                };
+                if (Facility == 1)
+                {
+                    _tempList.Add(ModuleType.Quality);
+                    if (CanSchedule || Planner)
+                    {
+                        _tempList.Add(ModuleType.SupplyChain);
+                    }
+                    if (IsInventoryControl)
+                    {
+                        _tempList.Add(ModuleType.Containers);
+                        _tempList.Add(ModuleType.InventoryControl);
+                        _tempList.Add(ModuleType.CycleCount);
+                    }
+                }
+                return _tempList;
             }
         }
     }

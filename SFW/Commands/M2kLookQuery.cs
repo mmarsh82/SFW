@@ -8,7 +8,11 @@ namespace SFW.Commands
 {
     public class M2kLookQuery : ICommand
     {
-        public event EventHandler CanExecuteChanged;
+        public event EventHandler CanExecuteChanged
+        {
+            add {  }
+            remove { }
+        }
 
         /// <summary>
         /// Manage 2000 Look queries ICommand execution
@@ -18,7 +22,7 @@ namespace SFW.Commands
         {
             try
             {
-                var _site = App.Site.Replace('_', '.');
+                var _site = "CONTI.MAIN";
                 if (parameter.ToString().Contains("*"))
                 {
                     var _parSplit = parameter.ToString().Split('*');

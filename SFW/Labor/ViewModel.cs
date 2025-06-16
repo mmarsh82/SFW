@@ -1,6 +1,6 @@
 ﻿using SFW.Helpers;
-using SFW.Model;
-using System;
+using SFW.Model.Production;
+using SFW.Model.Production.Wip;
 using System.Linq;
 using System.Windows.Input;
 
@@ -10,7 +10,7 @@ namespace SFW.Labor
     {
         #region Properties
 
-        public WipReceipt WipRecord { get; set; }
+        public Receipt WipRecord { get; set; }
 
         public string LaborQuantity
         {
@@ -47,9 +47,9 @@ namespace SFW.Labor
         /// <param name="woObject"></param>
         public ViewModel(WorkOrder woObject)
         {
-            RefreshTimer.Stop();
+            ApplicationTimer.Pause();
             var erpCon = new string[5] { App.ErpCon.HostName, App.ErpCon.UserName, App.ErpCon.Password, App.ErpCon.UniAccount, App.ErpCon.UniService };
-            WipRecord = new WipReceipt(new CrewMember(CurrentUser.ErpId, true), App.SiteNumber, woObject, erpCon);
+            WipRecord = new Receipt(new Model.Management.Employee(CurrentUser.ErpId, true), App.SiteNumber, woObject, erpCon);
         }
 
         #region Submit ICommand
@@ -69,7 +69,7 @@ namespace SFW.Labor
         private void SubmitExecute(object parameter)
         {
             var _qty = int.TryParse(WipRecord.WipQty.ToString(), out int i) ? i : 0;
-            var _machId = Machine.GetMachineNumber(WipRecord.WipWorkOrder.Machine);
+            var _machId = Machine.GetNumber(WipRecord.WipWorkOrder.WorkCenter.MachineName);
             var _crewSize = WipRecord.CrewList.Count(o => !string.IsNullOrEmpty(o.ErpId));
             foreach (var _crew in WipRecord.CrewList.Where(o => o.IsDirect))
             {
@@ -91,7 +91,6 @@ namespace SFW.Labor
         private bool SubmitCanExecute(object parameter)
         {
             return WipRecord.CrewList.Count(o => o.IsDirect) > 0
-                && WipRecord.CrewList.Count(o => o.IsDirect) == WipRecord.CrewList.Count(o => !string.IsNullOrEmpty(o.InTime))
                 && WipRecord.CrewList.Count(o => !string.IsNullOrEmpty(o.ErpId)) == WipRecord.CrewList.Count(o => !string.IsNullOrEmpty(o.Name))
                 && WipRecord.WipQty != null
                 && WipRecord.WipQty > 0;

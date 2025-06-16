@@ -1,6 +1,7 @@
 ﻿using M2kClient;
 using SFW.Helpers;
 using SFW.Model;
+using SFW.Model.Production;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -119,7 +120,7 @@ namespace SFW.Tools
         public PriorityList_ViewModel()
         {
             PriorityView = CollectionViewSource.GetDefaultView(ModelBase.MasterDataSet.Tables["Master"]);
-            MachineList = Machine.GetMachineNameList(false, App.SiteNumber);
+            MachineList = Machine.GetNameList(false, App.SiteNumber);
             IsWorkOrderValid = true;
             DisplayAction = false;
             PriorityViewFilter = new string[3];

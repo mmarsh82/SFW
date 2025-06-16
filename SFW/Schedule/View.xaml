@@ -24,8 +24,8 @@
 
         <ContextMenu x:Key="rowMenu">
             <MenuItem Header="Work Order State"
-                      FontSize="16"
-                      Visibility="{Binding Path=(local:CurrentUser.CanSchedule), Converter={StaticResource BoolToVisConverter}}">
+              FontSize="16"
+              Visibility="{Binding Path=(local:CurrentUser.CanSchedule), Converter={StaticResource BoolToVisConverter}}">
                 <MenuItem Header="Critical"
                           Background="#FFF3321F"
                           IsCheckable="True"
@@ -70,7 +70,7 @@
             <MenuItem Header="Deviate"
                       FontSize="16"
                       Command="{StaticResource DeviationICommand}"
-                      CommandParameter="{Binding DataContext.SelectedWorkOrder, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}">
+                      CommandParameter="{Binding}">
                 <MenuItem.Visibility>
                     <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="iDev">
                         <Binding Path="(local:CurrentUser.CanDeviate)"/>
@@ -81,7 +81,7 @@
             <MenuItem Header="Clear Deviation"
                       FontSize="16"
                       Command="{StaticResource DeviationICommand}"
-                      CommandParameter="{Binding DataContext.SelectedWorkOrder, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}">
+                      CommandParameter="{Binding}">
                 <MenuItem.Visibility>
                     <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="dev">
                         <Binding Path="(local:CurrentUser.CanSchedule)"/>
@@ -90,7 +90,7 @@
                 </MenuItem.Visibility>
             </MenuItem>
         </ContextMenu>
-        
+
     </UserControl.Resources>
 
     <Grid>
@@ -106,7 +106,7 @@
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
-            
+
             <StackPanel Grid.Column="0"
                         Orientation="Horizontal"
                         HorizontalAlignment="Left">
@@ -139,10 +139,8 @@
                           Margin="0,0,10,0"
                           ToolTip="Filter to closed work orders."
                           Style="{DynamicResource SliderCheckBox}">
-                    <CheckBox.Content>
-                        <TextBlock Text="Closed:"
+                    <TextBlock Text="Closed:"
                                    TextDecorations="Underline"/>
-                    </CheckBox.Content>
                 </CheckBox>
 
                 <CheckBox IsChecked="{Binding InspectionFilter}"
@@ -152,20 +150,18 @@
                           Margin="0,0,10,0"
                           ToolTip="Filter to only work orders with inspections."
                           Style="{DynamicResource SliderCheckBox}">
-                    <CheckBox.Content>
-                        <TextBlock Text="Inspection:"
+                    <TextBlock Text="Inspection:"
                                TextDecorations="Underline"/>
-                    </CheckBox.Content>
                 </CheckBox>
 
             </StackPanel>
 
         </Grid>
 
-        <DataGrid x:Name="WorkCenterSchedule"
+        <DataGrid x:Name="ScheduleCollection"
                   Grid.Row="1"
-                  ItemsSource="{Binding ScheduleView, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                  SelectedItem="{Binding SelectedWorkOrder, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                  ItemsSource="{Binding CollectionView}"
+                  IsSynchronizedWithCurrentItem="True"
                   HorizontalAlignment="Left"
                   HeadersVisibility="None"
                   AutoGenerateColumns="False"
@@ -174,7 +170,7 @@
                   SelectionMode="Single"
                   VirtualizingPanel.IsVirtualizingWhenGrouping="True"
                   ScrollViewer.CanContentScroll="True"
-                  Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}">
+                  Visibility="{Binding IsLoading, ConverterParameter=i, Converter={StaticResource BoolToVisConverter}}">
 
             <DataGrid.Columns>
                 <DataGridTemplateColumn>
@@ -197,26 +193,26 @@
                                                ToolTip="Work order is scheduled to complete past the original date required."
                                                Margin="10,0,0,0" Height="25" Width="25"/>
                                         <Image Source="/SFW;component/Icons/First.ico"
-                                               Visibility="{Binding Sched_Shift, Converter={StaticResource StringToVisConverter}, ConverterParameter=~1}"
+                                               Visibility="{Binding Sched_Shift, ConverterParameter=~1, Converter={StaticResource StringToVisConverter}}"
                                                ToolTip="Work order created for 1st shift."
                                                Margin="10,0,0,0" Height="25" Width="25"/>
                                         <Image Source="/SFW;component/Icons/Second.ico"
-                                               Visibility="{Binding Sched_Shift, Converter={StaticResource StringToVisConverter}, ConverterParameter=~2}"
+                                               Visibility="{Binding Sched_Shift, ConverterParameter=~2, Converter={StaticResource StringToVisConverter}}"
                                                ToolTip="Work order created for 2nd shift."
                                                Margin="10,0,0,0" Height="25" Width="25"/>
                                         <Image Source="/SFW;component/Icons/Third.ico"
-                                               Visibility="{Binding Sched_Shift, Converter={StaticResource StringToVisConverter}, ConverterParameter=~3}"
+                                               Visibility="{Binding Sched_Shift, ConverterParameter=~3, Converter={StaticResource StringToVisConverter}}"
                                                ToolTip="Work order created for 3rd shift."
                                                Margin="10,0,0,0" Height="25" Width="25"/>
                                         <TextBlock Text="Priority:"
                                                    TextDecorations="Underline"
                                                    Margin="20,0,0,0"
                                                    VerticalAlignment="Center"
-                                                   Visibility="{Binding Sched_Priority, Converter={StaticResource StringToVisConverter}, ConverterParameter=Sched_Priority}"/>
+                                                   Visibility="{Binding Sched_Priority, ConverterParameter=Sched_Priority, Converter={StaticResource StringToVisConverter}}"/>
                                         <TextBlock Text="{Binding Sched_Priority}"
                                                    Margin="5,0,0,0"
                                                    VerticalAlignment="Center"
-                                                   Visibility="{Binding Sched_Priority, Converter={StaticResource StringToVisConverter}, ConverterParameter=Sched_Priority}"/>
+                                                   Visibility="{Binding Sched_Priority, ConverterParameter=Sched_Priority, Converter={StaticResource StringToVisConverter}}"/>
                                     </StackPanel>
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                                         <TextBlock Text="{Binding SkuNumber}" VerticalAlignment="Center"/>
@@ -225,10 +221,9 @@
                                                 Margin="0,0,10,0"
                                                 Height="30"
                                                 IsTabStop="False"
-                                                Background="{Binding Deviation, Converter={StaticResource BoolToBGConverter}, ConverterParameter=Y}"
-                                                ToolTip="{Binding Deviation, Converter={StaticResource DisplayToolTip}, ConverterParameter=WO}"
+                                                Background="{Binding Deviation, ConverterParameter=Y, Converter={StaticResource BoolToBGConverter}}"
+                                                ToolTip="{Binding Deviation, ConverterParameter=WO, Converter={StaticResource DisplayToolTip}}"
                                                 Style="{DynamicResource ResourceKey=DefaultButton}">
-                                            <Image Source="/SFW;component/Icons/PartSearch.ico"/>
                                             <Button.CommandParameter>
                                                 <MultiBinding Converter="{StaticResource PartSearchConverter}">
                                                     <Binding Path="SkuNumber"/>
@@ -237,6 +232,7 @@
                                                     <Binding Path="WorkOrderID"/>
                                                 </MultiBinding>
                                             </Button.CommandParameter>
+                                            <Image Source="/SFW;component/Icons/PartSearch.ico"/>
                                         </Button>
                                     </StackPanel>
                                 </Grid>
@@ -247,7 +243,7 @@
                                         <TextBlock Text="Needed:" Margin="20,0,0,0" TextDecorations="Underline"/>
                                         <TextBlock Text="{Binding OriginalDueDate, StringFormat=d}" Margin="5,0,0,0"/>
                                         <TextBlock Text="Run:" Margin="20,0,0,0" TextDecorations="Underline"/>
-                                        <TextBlock Text="{Binding RunTime, StringFormat={}{0} hr}" Margin="5,0,0,0"/>
+                                        <TextBlock Text="{Binding RunTime, StringFormat=\{0\} hr}" Margin="5,0,0,0"/>
                                     </StackPanel>
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
                                         <TextBlock Text="Need" Margin="0,0,5,0">
@@ -309,7 +305,7 @@
                                     <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
                                         <GradientStop Color="Purple" Offset="0"/>
                                         <GradientStop Color="White" Offset=".25"/>
-                                        <GradientStop Color="GhostWhite" Offset="1"/>
+                                        <GradientStop Color="Wheat" Offset="1"/>
                                     </LinearGradientBrush>
                                 </Setter.Value>
                             </Setter>
@@ -323,7 +319,7 @@
                                 <Setter.Value>
                                     <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
                                         <GradientStop Color="White" Offset="0"/>
-                                        <GradientStop Color="GhostWhite" Offset="1"/>
+                                        <GradientStop Color="Wheat" Offset="1"/>
                                     </LinearGradientBrush>
                                 </Setter.Value>
                             </Setter>
@@ -470,7 +466,7 @@
                     <Style.Triggers>
                         <MultiDataTrigger>
                             <MultiDataTrigger.Conditions>
-                                <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsSelected}" Value="True"/>
+                                <Condition Binding="{Binding IsSelected, RelativeSource={RelativeSource Mode=Self}}" Value="True"/>
                                 <Condition Binding="{Binding WO_Priority}" Value="A"/>
                             </MultiDataTrigger.Conditions>
                             <Setter Property="Background" Value="LightCoral"/>
@@ -479,7 +475,7 @@
                         </MultiDataTrigger>
                         <MultiDataTrigger>
                             <MultiDataTrigger.Conditions>
-                                <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsSelected}" Value="True"/>
+                                <Condition Binding="{Binding IsSelected, RelativeSource={RelativeSource Mode=Self}}" Value="True"/>
                                 <Condition Binding="{Binding WO_Priority}" Value="B"/>
                                 <Condition Binding="{Binding WO_Type}" Value="S"/>
                             </MultiDataTrigger.Conditions>
@@ -489,7 +485,7 @@
                         </MultiDataTrigger>
                         <MultiDataTrigger>
                             <MultiDataTrigger.Conditions>
-                                <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsSelected}" Value="True"/>
+                                <Condition Binding="{Binding IsSelected, RelativeSource={RelativeSource Mode=Self}}" Value="True"/>
                                 <Condition Binding="{Binding WO_Priority}" Value="C"/>
                             </MultiDataTrigger.Conditions>
                             <Setter Property="Background" Value="Gray"/>
@@ -498,16 +494,15 @@
                         </MultiDataTrigger>
                         <MultiDataTrigger>
                             <MultiDataTrigger.Conditions>
-                                <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsSelected}" Value="True"/>
+                                <Condition Binding="{Binding IsSelected, RelativeSource={RelativeSource Mode=Self}}" Value="True"/>
                                 <Condition Binding="{Binding WO_Priority}" Value="D"/>
                             </MultiDataTrigger.Conditions>
                             <Setter Property="Background" Value="Beige"/>
                             <Setter Property="Foreground" Value="Black"/>
-                            <Setter Property="BorderBrush" Value="RoyalBlue" />
                         </MultiDataTrigger>
                         <MultiDataTrigger>
                             <MultiDataTrigger.Conditions>
-                                <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsSelected}" Value="True"/>
+                                <Condition Binding="{Binding IsSelected, RelativeSource={RelativeSource Mode=Self}}" Value="True"/>
                                 <Condition Binding="{Binding WO_Type}" Value="R"/>
                             </MultiDataTrigger.Conditions>
                             <Setter Property="Background" Value="LightBlue"/>

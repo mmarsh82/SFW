@@ -1,8 +1,7 @@
 ﻿using System;
+using System.Linq;
 using System.Windows;
 using System.Windows.Data;
-using System.Linq;
-using DocumentFormat.OpenXml.Office.CustomXsn;
 
 //Created by Michael Marsh 5-1-18
 
@@ -42,7 +41,7 @@ namespace SFW.Converters
                     switch (_val)
                     {
                         case "i":
-                            return string.IsNullOrEmpty(value?.ToString()) && !MainWindowViewModel.DisplayAction ? Visibility.Visible : Visibility.Collapsed;
+                            return string.IsNullOrEmpty(value?.ToString()) ? Visibility.Visible : Visibility.Collapsed;
                         case "Hide":
                             return string.IsNullOrEmpty(value?.ToString()) ? Visibility.Hidden : Visibility.Visible;
                         case "Status":

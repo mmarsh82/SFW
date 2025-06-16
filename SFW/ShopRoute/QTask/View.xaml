@@ -52,14 +52,14 @@
                 <Button Content="Trim Info"
                         FontSize="16"
                         Command="{StaticResource TrimSetupICommand}"
-                        CommandParameter="{Binding ShopOrder.SkuNumber}"
+                        CommandParameter="{Binding ShopOrder.Product.SkuNumber}"
                         Visibility="{Binding CanSeeTrim, Converter={StaticResource BoolToVisConverter}}"
                         Style="{DynamicResource MenuButtonStyle}" />
 
                 <Menu Style="{DynamicResource ModernMenu}"
-                          Visibility="{Binding ShopOrder.InstructionList.Count, Converter={StaticResource CountToVisConverter}}">
+                          Visibility="{Binding ShopOrder.Product.InstructionList.Count, Converter={StaticResource CountToVisConverter}}">
                     <MenuItem Header="Work&#10;Instructions"
-                              ItemsSource="{Binding ShopOrder.InstructionList}"
+                              ItemsSource="{Binding ShopOrder.Product.InstructionList}"
                               FontSize="14"
                               Width="110"
                               Height="39"
@@ -113,13 +113,27 @@
                 <TextBlock Text="Routing:"
                            FontSize="30"
                            FontWeight="Bold"
-                           Margin="10,0,0,0"
                            TextDecorations="UnderLine"/>
 
                 <TextBlock Text="{Binding ShopOrder.Routing}"
                            FontSize="30"
                            FontWeight="Bold"
                            Margin="10,0,30,0" />
+
+                <TextBlock Text="Operation:"
+                           FontSize="30"
+                           FontWeight="Bold"
+                           TextDecorations="UnderLine"/>
+
+                <TextBlock Text="{Binding ShopOrder.Product.Operation}"
+                           FontSize="30"
+                           FontWeight="Bold"
+                           Margin="10,0,0,0" />
+
+                <TextBlock Text="{Binding ShopOrder.OpDesc}"
+                           FontSize="30"
+                           FontWeight="Bold"
+                           Margin="10,0,0,0" />
 
             </StackPanel>
 
@@ -285,7 +299,7 @@
 
                             <DataGrid Grid.Column="0" Grid.Row="0"
                                           x:Name="dgPick"
-                                          ItemsSource="{Binding ShopOrder.Picklist}"
+                                          ItemsSource="{Binding ShopOrder.PickList}"
                                           SelectedItem="{Binding SelectedILotItem, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                           IsReadOnly="True"
                                           FontSize="18"
@@ -326,7 +340,7 @@
                                                         </Button.CommandParameter>
                                                     </Button>
                                                     <Button Command="{StaticResource ViewLoadCommand}"
-                                                                CommandParameter="{Binding CompNumber}"
+                                                                CommandParameter="{Binding ProductNumber}"
                                                                 Height="20"
                                                                 Width="40"
                                                                 Background="Transparent"
@@ -334,35 +348,35 @@
                                                                 Style="{DynamicResource DefaultButton}">
                                                         <Image Source="/SFW;component/Icons/Search.ico" />
                                                     </Button>
-                                                    <TextBlock Text="{Binding CompNumber}"
+                                                    <TextBlock Text="{Binding ProductNumber}"
                                                                    Margin="20,0,5,0"/>
                                                 </StackPanel>
                                             </DataTemplate>
                                         </DataGridTemplateColumn.CellTemplate>
                                     </DataGridTemplateColumn>
                                     <DataGridTextColumn Header=" Description"
-                                                            Binding="{Binding CompDescription}" />
+                                                            Binding="{Binding ProductDescription}" />
                                     <DataGridTextColumn Header=" Assembly ">
                                         <DataGridTextColumn.Binding>
                                             <MultiBinding StringFormat="{}{0}  {1}">
-                                                <Binding Path="AssemblyQty" />
-                                                <Binding Path="CompUom" />
+                                                <Binding Path="AssemblyQuantity" />
+                                                <Binding Path="ProductUom" />
                                             </MultiBinding>
                                         </DataGridTextColumn.Binding>
                                     </DataGridTextColumn>
                                     <DataGridTextColumn Header=" On Hand ">
                                         <DataGridTextColumn.Binding>
                                             <MultiBinding StringFormat="{}{0}  {1}">
-                                                <Binding Path="CurrentOnHand" />
-                                                <Binding Path="CompUom" />
+                                                <Binding Path="Stock" />
+                                                <Binding Path="ProductUom" />
                                             </MultiBinding>
                                         </DataGridTextColumn.Binding>
                                     </DataGridTextColumn>
                                     <DataGridTextColumn Header=" Required ">
                                         <DataGridTextColumn.Binding>
                                             <MultiBinding StringFormat="{}{0}  {1}">
-                                                <Binding Path="RequiredQty" />
-                                                <Binding Path="CompUom" />
+                                                <Binding Path="RequiredQuantity" />
+                                                <Binding Path="ProductUom" />
                                             </MultiBinding>
                                         </DataGridTextColumn.Binding>
                                     </DataGridTextColumn>
@@ -490,7 +504,7 @@
                                  Style="{DynamicResource ModernTabItem}">
 
                         <DataGrid x:Name="dgBom"
-                                      ItemsSource="{Binding ShopOrder.Bom}"
+                                      ItemsSource="{Binding ShopOrder.BillList}"
                                       IsReadOnly="True"
                                       FontSize="18"
                                       FontWeight="Bold"
@@ -520,13 +534,13 @@
                                                     <Image Source="/SFW;component/Icons/PartSearch.ico" />
                                                     <Button.CommandParameter>
                                                         <MultiBinding Converter="{StaticResource PartSearchConverter}">
-                                                            <Binding Path="CompNumber" />
-                                                            <Binding Path="CompMasterPrint" />
+                                                            <Binding Path="ProductNumber" />
+                                                            <Binding Path="ProductMasterPrint" />
                                                         </MultiBinding>
                                                     </Button.CommandParameter>
                                                 </Button>
                                                 <Button Command="{StaticResource ViewLoadCommand}"
-                                                                CommandParameter="{Binding CompNumber}"
+                                                                CommandParameter="{Binding ProductNumber}"
                                                                 Height="20"
                                                                 Width="40"
                                                                 Background="Transparent"
@@ -534,19 +548,19 @@
                                                                 Style="{DynamicResource DefaultButton}">
                                                     <Image Source="/SFW;component/Icons/Search.ico" />
                                                 </Button>
-                                                <TextBlock Text="{Binding CompNumber}"
+                                                <TextBlock Text="{Binding ProductNumber}"
                                                                Margin="20,0,5,0"/>
                                             </StackPanel>
                                         </DataTemplate>
                                     </DataGridTemplateColumn.CellTemplate>
                                 </DataGridTemplateColumn>
                                 <DataGridTextColumn Header=" Description"
-                                                    Binding="{Binding CompDescription}" />
+                                                    Binding="{Binding ProductDescription}" />
                                 <DataGridTextColumn Header=" Assembly ">
                                     <DataGridTextColumn.Binding>
                                         <MultiBinding StringFormat="{}{0}  {1}">
-                                            <Binding Path="AssemblyQty" />
-                                            <Binding Path="CompUom" />
+                                            <Binding Path="AssemblyQuantity" />
+                                            <Binding Path="ProductUom" />
                                         </MultiBinding>
                                     </DataGridTextColumn.Binding>
                                 </DataGridTextColumn>

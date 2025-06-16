@@ -19,7 +19,7 @@ namespace SFW.Admin
             set { mCon = value; OnPropertyChanged(nameof(MachineConfig)); }
         }
 
-        public ObservableCollection<Machine> MachineCollection { get; set; }
+        public ObservableCollection<Model.Production.Machine> MachineCollection { get; set; }
 
         RelayCommand _listCom;
 
@@ -30,8 +30,8 @@ namespace SFW.Admin
         /// </summary>
         public ViewModel()
         {
-            MachineCollection = new ObservableCollection<Machine>(Machine.GetMachineList(false, false, App.SiteNumber).OrderBy(o => o.MachineName));
-            MachineCollection.Insert(0, new Machine { MachineName = "" });
+            MachineCollection = new ObservableCollection<Model.Production.Machine>(Model.Production.Machine.GetList(false, false, App.SiteNumber).OrderBy(o => o.MachineName));
+            MachineCollection.Insert(0, new Model.Production.Machine { MachineName = "" });
             MachineConfig = new BindingList<UserConfig>(App.DefualtWorkCenter.Where(o => o.SiteNumber == App.SiteNumber).ToList());
             MachineConfig.ListChanged += MachineConfig_ListChanged;
         }

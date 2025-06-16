@@ -24,12 +24,6 @@
         <cvtr:DisplayToolTip x:Key="DisplayToolTip"/>
         <cvtr:WorkCenterNameConverter x:Key="MachineNameConverter"/>
         <cvtr:MachineShift x:Key="MachineShiftCapacity"/>
-        <CollectionViewSource x:Key="PlanningSource" Source="{Binding PlanningView}">
-            <CollectionViewSource.GroupDescriptions>
-                <PropertyGroupDescription PropertyName="MachineNumber"
-                                          Converter="{StaticResource MachineNameConverter}"/>
-            </CollectionViewSource.GroupDescriptions>
-        </CollectionViewSource>
 
         <ContextMenu x:Key="rowMenu">
             <MenuItem Header="Work Order State"
@@ -238,10 +232,10 @@
 
         </Grid>
 
-        <DataGrid x:Name="WorkCenterSchedule"
+        <DataGrid x:Name="PlannerCollection"
                   Grid.Row="2"
-                  ItemsSource="{Binding Source={StaticResource PlanningSource}}"
-                  SelectedItem="{Binding SelectedWorkOrder, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                  ItemsSource="{Binding CollectionView}"
+                  IsSynchronizedWithCurrentItem="True"
                   HorizontalAlignment="Left"
                   HeadersVisibility="None"
                   AutoGenerateColumns="False"

@@ -48,13 +48,14 @@
                 </TextBlock.RenderTransform>
             </TextBlock>
 
-            <TextBlock Text="{Binding FormRevision.Type, StringFormat=Select a {0}}"
+            <TextBlock Text="                Nothing selected!&#x0a;Select a NCR or SCAR form to review."
+                       Margin="0,300,0,0"
                        FontSize="32"
                        FontWeight="Bold"
                        HorizontalAlignment="Center"
                        VerticalAlignment="Center">
                 <TextBlock.Visibility>
-                    <MultiBinding Converter="{StaticResource IntToVisConverter}" ConverterParameter="QmsHeader">
+                    <MultiBinding Converter="{StaticResource IntToVisConverter}" ConverterParameter="EmptyForm">
                         <Binding Path="FormObject.FormId"/>
                         <Binding Path="IsNewForm"/>
                     </MultiBinding>
@@ -64,7 +65,7 @@
             <Grid x:Name="MainGrid"
                   Margin="10,0,10,0">
                 <Grid.Visibility>
-                    <MultiBinding Converter="{StaticResource IntToVisConverter}" ConverterParameter="QmsDetail">
+                    <MultiBinding Converter="{StaticResource IntToVisConverter}" ConverterParameter="SelectedForm">
                         <Binding Path="FormObject.FormId"/>
                         <Binding Path="IsNewForm"/>
                     </MultiBinding>
@@ -772,15 +773,27 @@
                                                  MinWidth="130"
                                                  CharacterCasing="Upper"
                                                  Margin="3"
-                                                 Visibility="{Binding Path=(main:CurrentUser.IsQuality), Converter={StaticResource BoolToVisConverter}}"
-                                                 Background="LightGray" />
+                                                 Background="LightGray">
+                                            <TextBox.Visibility>
+                                                <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="">
+                                                    <Binding Path="(main:CurrentUser.IsQuality)"/>
+                                                    <Binding Path="OnHand"/>
+                                                </MultiBinding>
+                                            </TextBox.Visibility>
+                                        </TextBox>
 
                                         <TextBlock Text="{Binding LotNumber}"
                                                    VerticalAlignment="Center"
                                                    FontSize="16"
                                                    FontWeight="Bold"
-                                                   Visibility="{Binding Path=(main:CurrentUser.IsQuality), Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}"
-                                                   Margin="5,0,0,0"/>
+                                                   Margin="5,0,0,0">
+                                            <TextBlock.Visibility>
+                                                <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="1*1">
+                                                    <Binding Path="(main:CurrentUser.IsQuality)"/>
+                                                    <Binding Path="OnHand"/>
+                                                </MultiBinding>
+                                            </TextBlock.Visibility>
+                                        </TextBlock>
 
                                         <TextBlock Text="Scrap:"
                                                    TextDecorations="Underline"

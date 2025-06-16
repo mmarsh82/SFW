@@ -1,6 +1,8 @@
 ﻿using SFW.Commands;
 using SFW.Helpers;
 using SFW.Model;
+using SFW.Model.Product;
+using SFW.Model.Production;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -36,7 +38,7 @@ namespace SFW.Queries
                         FilterText = value.LotNumber;
                         _lot = value.LotNumber;
                         FromLocation = value.Location;
-                        NonConReason = FromLocation.EndsWith("N") ? Lot.GetNCRNote(value.LotNumber) : string.Empty;
+                        NonConReason = FromLocation.EndsWith("N") ? Lot.GetQualityNote(value.LotNumber) : string.Empty;
                         QuantityInput = value.Onhand;
                     }
                     OnPropertyChanged(nameof(FilterText));
@@ -135,7 +137,7 @@ namespace SFW.Queries
                 OnPropertyChanged(nameof(IsNCR));
             }
         }
-        public bool IsToValid { get { return string.IsNullOrEmpty(ToLocation) || Sku.IsValidLocation(ToLocation, App.SiteNumber); } }
+        public bool IsToValid { get { return string.IsNullOrEmpty(ToLocation) || Location.Valid(ToLocation, App.SiteNumber); } }
         public int ToLocSize { get { return IsToValid ? 1 : 3; } }
         public bool IsNCR { get { return ToLocation.EndsWith("N") || FromLocation.EndsWith("N"); } }
 
@@ -227,8 +229,8 @@ namespace SFW.Queries
             IsLoading = false;
             ResultsAsyncDelegate = new ResultsDelegate(ResultsLoading);
             PreFilter = wo.OrderNumber;
-            UserInput = wo.SkuNumber;
-            SearchICommand.Execute(wo.SkuNumber);
+            UserInput = wo.Product.SkuNumber;
+            SearchICommand.Execute(wo.Product.SkuNumber);
             if (MoveHistory == null)
             {
                 MoveHistory = new ObservableCollection<Sku>();
@@ -244,14 +246,14 @@ namespace SFW.Queries
         {
             IsLoading = true;
             CanRefresh = false;
-            ILotResultsList = Lot.GetOnHandLotList(inputVal, true, Site);
+            ILotResultsList = Lot.GetOnHandList(inputVal, true, Site);
             NonLotPart = false;
             if (ILotResultsList.Count == 0)
             {
-                ILotResultsList = Lot.GetOnHandLotList(inputVal, false, Site);
+                ILotResultsList = Lot.GetOnHandList(inputVal, false, Site);
                 NonLotPart = true;
             }
-            IthResultsTable = Lot.GetLotHistoryTable(inputVal, Site == App.SiteNumber ? 0 : Site, App.AppSqlCon);
+            IthResultsTable = Lot.GetHistoryTable(inputVal, Site == App.SiteNumber ? 0 : Site, App.AppSqlCon);
         }
         public void ResultsLoaded(IAsyncResult r)
         {
@@ -308,7 +310,7 @@ namespace SFW.Queries
             if (parameter != null && parameter.ToString() == "r")
             {
                 UserInput = UseLot ? _lot : Part.SkuNumber;
-                ModelBase.MasterDataSet.RefreshTable(Tables.LOT, App.SiteNumber);
+                ModelBase.MasterDataSet.RefreshTable(typeof(Lot), new Lot().GetTable(App.SiteNumber, App.AppSqlCon));
             }
             NoLotResults = false;
             NoHistoryResults = false;
@@ -411,7 +413,7 @@ namespace SFW.Queries
                 {
                     _dmd = DiamondEntry.Show();
                 }
-                var _ncr = UseLot ? QmsForm.GetNcrId(_lot, App.AppSqlCon) : "";
+                var _ncr = UseLot ? Model.Quality.QmsForm.GetNcrId(_lot, App.AppSqlCon) : "";
                 TravelCard.Create("", "technology#1",
                     Part.SkuNumber,
                     _lot,
@@ -450,7 +452,7 @@ namespace SFW.Queries
                         "",
                         submitter: CurrentUser.DisplayName
                         );
-                        TravelCard.Display(FormType.CoC, App.GlobalConfig.FirstOrDefault(o => o.Site == "CSI").MaterialCard);
+                        TravelCard.Display(FormType.CoC, App.GlobalConfig.FirstOrDefault(o => o.Site == "Arlington").MaterialCard);
                         break;
                 }
             }

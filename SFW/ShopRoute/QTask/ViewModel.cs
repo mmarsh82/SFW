@@ -1,6 +1,7 @@
 ﻿using M2kClient;
 using SFW.Helpers;
-using SFW.Model;
+using SFW.Model.Production;
+using SFW.Model.Product;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -64,8 +65,8 @@ namespace SFW.ShopRoute.QTask
             set { _lotText = value; OnPropertyChanged(nameof(LotListText)); }
         }
 
-        private Model.Component _selItem;
-        public Model.Component SelectedILotItem
+        private PickComponent _selItem;
+        public PickComponent SelectedILotItem
         {
             get
             { return _selItem; }
@@ -73,10 +74,10 @@ namespace SFW.ShopRoute.QTask
             {
                 if (value != null)
                 {
-                    ILotResultsList = Lot.GetOnHandLotList(value.CompNumber, true, App.SiteNumber);
+                    ILotResultsList = Lot.GetOnHandList(value.ProductNumber, true, App.SiteNumber);
                     OnPropertyChanged(nameof(ILotResultsList));
                     NoLotResults = ILotResultsList.Count == 0 && (App.SiteNumber == 0 && CurrentUser.CanSchedule);
-                    IDedicateLotResultsList = Lot.GetDedicatedLotList(value.CompNumber, ShopOrder.OrderNumber);
+                    IDedicateLotResultsList = Lot.GetDedicatedList(value.ProductNumber, ShopOrder.OrderNumber);
                     OnPropertyChanged(nameof(IDedicateLotResultsList));
                     NoDedicateResults = IDedicateLotResultsList.Count == 0;
                     LotListText = NoDedicateResults && NoLotResults ? "No Onhand Material" : "";
@@ -120,22 +121,22 @@ namespace SFW.ShopRoute.QTask
                         delegate (object sender, DoWorkEventArgs e)
                         {
                             //Getting the Work order work instructions
-                            ShopOrder.InstructionList = Sku.GetInstructions(ShopOrder.SkuNumber, App.SiteNumber, App.GlobalConfig.First(o => o.Site == App.Facility).WI);
+                            ShopOrder.Product.InstructionList = SkuInstruction.GetList(ShopOrder.Product.SkuNumber, App.SiteNumber, App.GlobalConfig.First(o => o.Site == App.Facility).WI);
 
                             //Getting the work order notes and the shop floor notes
-                            ShopOrderNotes = WorkOrder.GetNotes("WN", false, ShopOrder.OrderNumber);
-                            ShopOrder.ShopNotes = WorkOrder.GetNotes("SN", true, ShopOrder.OrderNumber, $"{ShopOrder.SkuNumber}|0{ShopOrder.Facility}");
+                            ShopOrderNotes = WorkOrderNote.GetNotes("WN", false, ShopOrder.OrderNumber);
+                            ShopOrder.ShopNotes = WorkOrderNote.GetNotes("SN", true, ShopOrder.OrderNumber, $"{ShopOrder.Product.SkuNumber}|0{ShopOrder.Facility}");
 
                             //Getting the sales order internal comments
-                            ShopOrder.SalesOrder.InternalComments = Model.SalesOrder.GetNotes(ShopOrder.SalesOrder.SalesNumber, 'C');
+                            ShopOrder.SalesOrder.InternalComments = Model.Sales.SalesOrderNote.GetNote(ShopOrder.SalesOrder.SalesNumber, 'C');
 
                             //Get the setup up print if it exists
                             SetupFile = GetSetupFile();
 
                             //Bill of Material and picklist loading, needs to be done in the background due to the recursive search
-                            ShopOrder.ToolList = Tool.GetToolList(ShopOrder.SkuNumber, ShopOrder.Seq, CurrentUser.Facility);
-                            ShopOrder.Bom = Model.Component.GetComponentBomList(ShopOrder.SkuNumber, ShopOrder.Seq);
-                            ShopOrder.Picklist = Model.Component.GetComponentPickList(ShopOrder.OrderNumber, ShopOrder.Seq, ShopOrder.StartQty - ShopOrder.CurrentQty, ShopOrder.Machine);
+                            ShopOrder.ToolList = Tool.GetList(ShopOrder.Product.SkuNumber, ShopOrder.Seq, CurrentUser.Facility);
+                            ShopOrder.BillList = BillComponent.GetList(ShopOrder.Product.SkuNumber, ShopOrder.Seq);
+                            ShopOrder.PickList = PickComponent.GetList(ShopOrder.OrderNumber, ShopOrder.Seq, ShopOrder.StartQty - ShopOrder.CurrentQty, ShopOrder.WorkCenter.MachineName);
                             IsMultiLoading = false;
                             OnPropertyChanged(nameof(IsMultiLoading));
                             OnPropertyChanged(nameof(ShopOrder));
@@ -163,7 +164,7 @@ namespace SFW.ShopRoute.QTask
                     case 0:
                         try
                         {
-                            _filePath = $"{App.GlobalConfig.First(o => o.Site == App.Facility).PressSetup}{ShopOrder.SkuNumber}.pdf";
+                            _filePath = $"{App.GlobalConfig.First(o => o.Site == App.Facility).PressSetup}{ShopOrder.Product.SkuNumber}.pdf";
                             break;
                         }
                         catch (Exception)
@@ -173,11 +174,11 @@ namespace SFW.ShopRoute.QTask
                         }
                     case 1:
                         var _fileName = string.Empty;
-                        switch (ShopOrder.MachineGroup)
+                        switch (ShopOrder.WorkCenter.MachineGroup)
                         {
                             case "PRESS":
                             case "ENG":
-                                _fileName = ExcelReader.GetSetupPrintNumber(ShopOrder.SkuNumber, ShopOrder.Machine, App.GlobalConfig.First(o => o.Site == App.Facility).PressSetup, "Production");
+                                _fileName = ExcelReader.GetSetupPrintNumber(ShopOrder.Product.SkuNumber, ShopOrder.WorkCenter.MachineName, App.GlobalConfig.First(o => o.Site == App.Facility).PressSetup, "Production");
                                 if (!string.IsNullOrEmpty(_fileName) && !_fileName.Contains("ERR:"))
                                 {
                                     var _fileheader = string.Empty;
@@ -194,11 +195,11 @@ namespace SFW.ShopRoute.QTask
                                 }
                                 break;
                             case "FABE":
-                                _fileName = ExcelReader.GetSetupPrintNumber(ShopOrder.SkuNumber, ShopOrder.Machine, App.GlobalConfig.First(o => o.Site == App.Facility).SyscoSetup, "PRODUCTION");
+                                _fileName = ExcelReader.GetSetupPrintNumber(ShopOrder.Product.SkuNumber, ShopOrder.WorkCenter.MachineName, App.GlobalConfig.First(o => o.Site == App.Facility).SyscoSetup, "PRODUCTION");
                                 _filePath = $"{App.GlobalConfig.First(o => o.Site == App.Facility).PartPrint}{_fileName}.PDF";
                                 break;
                             case "EXT":
-                                _fileName = ExcelReader.GetSetupPrintNumber(ShopOrder.SkuNumber, ShopOrder.Machine, App.GlobalConfig.First(o => o.Site == App.Facility).ExtSetup, "PRODUCTION");
+                                _fileName = ExcelReader.GetSetupPrintNumber(ShopOrder.Product.SkuNumber, ShopOrder.WorkCenter.MachineName, App.GlobalConfig.First(o => o.Site == App.Facility).ExtSetup, "PRODUCTION");
                                 _filePath = $"{App.GlobalConfig.First(o => o.Site == App.Facility).PartPrint}{_fileName}.PDF";
                                 break;
                         }

@@ -1,5 +1,6 @@
 ﻿using SFW.Helpers;
 using SFW.Model;
+using SFW.Model.Product;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -56,11 +57,11 @@ namespace SFW.Containerization
                                     if (value != null)
                                     {
                                         var _id = int.TryParse(value.Row.ItemArray[0].ToString(), out int i) ? i : 0;
-                                        ContainerObject = SkuContainer.GetContainer(_id, App.AppSqlCon);
+                                        ContainerObject = Model.Product.SkuContainer.GetContainer(_id, App.AppSqlCon);
                                         OnPropertyChanged(nameof(ContainerObject));
                                         if (value.Row.SafeGetField<string>("LotTraceable").ToString() == "T")
                                         {
-                                            IthResultsTable = Lot.GetLotHistoryTable(value.Row.SafeGetField<string>("ProductId").ToString(), value.Row.SafeGetField<string>("LotId").ToString(), 1, App.AppSqlCon);
+                                            IthResultsTable = Model.Product.Lot.GetHistoryTable(value.Row.SafeGetField<string>("ProductId").ToString(), value.Row.SafeGetField<string>("LotId").ToString(), 1, App.AppSqlCon);
                                         }
                                         else
                                         {
@@ -112,7 +113,7 @@ namespace SFW.Containerization
             }
         }
 
-        public SkuContainer ContainerObject { get; set; }
+        public Model.Product.SkuContainer ContainerObject { get; set; }
 
         public bool HasContainers { get { return ContainerView.Count > 0; } }
         public bool ShowProduct { get { return HasContainers || SelectedProduct != null || NewContainer; } }
@@ -185,14 +186,14 @@ namespace SFW.Containerization
                     if (product.Submit(CurrentUser.DisplayName, App.AppSqlCon))
                     {
                         ContainerObject.ProductCollection.FirstOrDefault(o => o.ParentId == product.ParentId && o.LotId == product.LotId).NewProduct = false;
-                        var _loc = Lot.GetLotLocation(product.LotId);
+                        var _loc = Lot.GetLocation(product.LotId);
                         M2kClient.M2kCommand.InventoryMove(CurrentUser.DisplayName, product.ProductId.Split('|')[0], product.LotId, _sku.Uom, _loc, ContainerObject.Location, product.Quantity, $"Container {product.ParentId}", "01", App.ErpCon);
                     }
                 }
                 else
                 {
                     ContainerObject.ProductCollection.FirstOrDefault(o => o.ParentId == product.ParentId && o.LotId == product.LotId).NewProduct = false;
-                    var _loc = Lot.GetLotLocation(product.LotId);
+                    var _loc = Lot.GetLocation(product.LotId);
                     M2kClient.M2kCommand.InventoryMove(CurrentUser.DisplayName, product.ProductId.Split('|')[0], product.LotId, _sku.Uom, _loc, ContainerObject.Location, product.Quantity, $"Container {product.ParentId}", "01", App.ErpCon);
                 }
             }

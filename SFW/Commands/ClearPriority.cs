@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SFW.Model.Production;
+using System;
 using System.Data;
 using System.Linq;
 using System.Windows.Input;
@@ -7,7 +8,11 @@ namespace SFW.Commands
 {
     public class ClearPriority : ICommand
     {
-        public event EventHandler CanExecuteChanged;
+        public event EventHandler CanExecuteChanged
+        {
+            add {  }
+            remove { }
+        }
         public void Execute(object parameter)
         {
             if (parameter != null)
@@ -36,11 +41,11 @@ namespace SFW.Commands
                 {
                     if (_row == null)
                     {
-                        _row = Model.ModelBase.MasterDataSet.Tables["Master"].Select($"[WorkOrder] = '{parameter}'").FirstOrDefault();
+                        _row = Model.ModelBase.MasterDataSet.Tables[typeof(WorkOrder).Name].Select($"[WorkOrder] = '{parameter}'").FirstOrDefault();
                     }
-                    var _index = Model.ModelBase.MasterDataSet.Tables["Master"].Rows.IndexOf(_row);
-                    Model.ModelBase.MasterDataSet.Tables["Master"].Rows[_index].SetField("Sched_Shift", "999");
-                    Model.ModelBase.MasterDataSet.Tables["Master"].Rows[_index].SetField("Sched_Priority", "999");
+                    var _index = Model.ModelBase.MasterDataSet.Tables[typeof(WorkOrder).Name].Rows.IndexOf(_row);
+                    Model.ModelBase.MasterDataSet.Tables[typeof(WorkOrder).Name].Rows[_index].SetField("Sched_Shift", "999");
+                    Model.ModelBase.MasterDataSet.Tables[typeof(WorkOrder).Name].Rows[_index].SetField("Sched_Priority", "999");
                 }
             }
         }

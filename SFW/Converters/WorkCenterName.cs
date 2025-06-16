@@ -1,4 +1,4 @@
-﻿using SFW.Model;
+﻿using SFW.Model.Production;
 using System;
 using System.Globalization;
 using System.Windows;
@@ -17,7 +17,7 @@ namespace SFW.Converters
             try
             {
                 return value != null && value != DependencyProperty.UnsetValue
-                        ? $"{Machine.GetMachineName(value.ToString(), 'M')} ({value})"
+                        ? $"{Machine.GetName(value.ToString(), 'M')} ({value})"
                         : string.Empty;
             }
             catch

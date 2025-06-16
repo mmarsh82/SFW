@@ -1,5 +1,6 @@
 ﻿using SFW.Helpers;
-using SFW.Model;
+using SFW.Model.Production;
+using SFW.Model.Management;
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -13,7 +14,7 @@ namespace SFW.Tools
         #region Properties
 
         public ObservableCollection<Machine> MachineCollection { get; set; }
-        public ObservableCollection<CrewMember> CrewCollection { get; set; }
+        public ObservableCollection<Employee> CrewCollection { get; set; }
 
         public bool NoData { get; set; }
 
@@ -54,24 +55,24 @@ namespace SFW.Tools
                 {
                     Shift = Shift == 0 ? 1 : Shift;
                     OnPropertyChanged(nameof(Shift));
-                    CrewCollection = new ObservableCollection<CrewMember>(CrewMember.GetCrewLaborList(Shift, value, App.AppSqlCon));
+                    CrewCollection = new ObservableCollection<Employee>(Employee.GetLaborList(Shift, value, App.AppSqlCon));
                     NoData = CrewCollection.Count == 0;
                     OnPropertyChanged(nameof(NoData));
                     OnPropertyChanged(nameof(CrewCollection));
                 }
                 else if (_date != value)
                 {
-                    if (CrewMember.IsPublished(ManagerId, value, App.AppSqlCon))
+                    if (Employee.IsPublished(ManagerId, value, App.AppSqlCon))
                     {
-                        CrewCollection = new ObservableCollection<CrewMember>(CrewMember.GetCrewLaborList(ManagerId, value, App.AppSqlCon));
+                        CrewCollection = new ObservableCollection<Employee>(Employee.GetLaborList(ManagerId, value, App.AppSqlCon));
                         _actionType = 'U';
                     }
                     else
                     {
-                        CrewCollection = new ObservableCollection<CrewMember>();
+                        CrewCollection = new ObservableCollection<Employee>();
                         foreach (var _report in CurrentUser.DirectReports)
                         {
-                            var _tempCrew = new CrewMember(_report.Key, true);
+                            var _tempCrew = new Employee(_report.Key, true);
                             if (!string.IsNullOrEmpty(_tempCrew.Name))
                             {
                                 CrewCollection.Add(_tempCrew);
@@ -121,14 +122,14 @@ namespace SFW.Tools
         /// </summary>
         public CrewList_ViewModel()
         {
-            var _tempCrewMember = new CrewMember(CurrentUser.ErpId, true);
+            var _tempCrewMember = new Employee(CurrentUser.ErpId, true);
             Shift = _tempCrewMember.Shift;
             ManagerId = _tempCrewMember.ErpId;
             CanEdit = CurrentUser.IsSupervisor && CurrentUser.DirectReports.Count > 0;
             SelectedDate = DateTime.Today;
             if (MachineCollection == null)
             {
-                MachineCollection = new ObservableCollection<Machine>(Machine.GetMachineList(false, false, 1));
+                MachineCollection = new ObservableCollection<Machine>(Machine.GetList(false, false, 1));
             }
         }
 
@@ -148,7 +149,7 @@ namespace SFW.Tools
 
         private void ActionCommandExecute(object parameter)
         {
-            var _response = CrewMember.PublishLabor(CrewCollection.ToList(), _actionType, ManagerId, SelectedDate, App.AppSqlCon);
+            var _response = Employee.PublishLabor(CrewCollection.ToList(), _actionType, ManagerId, SelectedDate, App.AppSqlCon);
             MessageBox.Show(_response.FirstOrDefault().Value, "Publishing Message", MessageBoxButton.OK, MessageBoxImage.Information);
             if (_response.FirstOrDefault().Key)
             {
@@ -178,7 +179,7 @@ namespace SFW.Tools
         {
             if (int.TryParse(parameter.ToString(), out int i))
             {
-                CrewCollection = new ObservableCollection<CrewMember>(CrewMember.GetCrewLaborList(i, SelectedDate, App.AppSqlCon));
+                CrewCollection = new ObservableCollection<Employee>(Employee.GetLaborList(i, SelectedDate, App.AppSqlCon));
                 NoData = CrewCollection.Count == 0;
                 Shift = i;
                 OnPropertyChanged(nameof(Shift));

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using System.Windows;
 using System.Xml;
 
 namespace SFW
@@ -89,10 +90,6 @@ namespace SFW
                                         var _site = Convert.ToInt32(reader.Name.Substring(reader.Name.Length - 1));
                                         _uConf.Add(new UserConfig { SiteNumber = _site, MachineNumber = reader.GetAttribute("WC_Nbr"), Position = Convert.ToInt32(reader.GetAttribute("Position")) });
                                     }
-                                    else if (reader.Name == "Default_View")
-                                    {
-                                        App.IsFocused = bool.TryParse(reader.GetAttribute("Focus").ToString(), out bool b) && b;
-                                    }
                                 }
                             }
                         }
@@ -122,14 +119,6 @@ namespace SFW
                     using (var writer = XmlWriter.Create(wStream, wSettings))
                     {
                         writer.WriteStartElement("SFW_User_Config");
-
-                        writer.WriteComment("Default View");
-                        writer.WriteComment("Defines how the schedule is going to show work orders");
-                        writer.WriteComment("true will only show approved, false will show all work orders");
-
-                        writer.WriteStartElement("Default_View");
-                        writer.WriteAttributeString("Focus", "false");
-                        writer.WriteEndElement();
 
                         writer.WriteComment("Default Work Centers");
                         writer.WriteComment("Work center name and schedule position seperated by Site number");
@@ -284,20 +273,15 @@ namespace SFW
         /// <returns>DataTable filter string</returns>
         public static string BuildMachineFilter()
         {
-            var _filter = string.Empty;
-            if (App.DefualtWorkCenter?.Count(o => o.SiteNumber == App.SiteNumber) == 1 && !string.IsNullOrEmpty(App.DefualtWorkCenter.FirstOrDefault(o => o.SiteNumber == App.SiteNumber).MachineNumber))
+            var _rtnVal = string.Empty;
+            if (App.DefualtWorkCenter != null)
             {
-                _filter = $@"MachineNumber = '{App.DefualtWorkCenter.FirstOrDefault(o => o.SiteNumber == App.SiteNumber).MachineNumber}'";
-            }
-            else if (App.DefualtWorkCenter?.Count(o => o.SiteNumber == App.SiteNumber) > 1)
-            {
-                foreach (var m in App.DefualtWorkCenter.Where(o => o.SiteNumber == App.SiteNumber))
+                foreach (var m in App.DefualtWorkCenter.Where(o => o.SiteNumber == App.SiteNumber && !string.IsNullOrEmpty(o.MachineNumber)))
                 {
-                    _filter += string.IsNullOrEmpty(_filter) ? $"(MachineNumber = '{m.MachineNumber}'" : $" OR MachineNumber = '{m.MachineNumber}'";
+                    _rtnVal += string.IsNullOrEmpty(_rtnVal) ? $"MachineNumber = '{m.MachineNumber}'" : $" OR MachineNumber = '{m.MachineNumber}'";
                 }
-                _filter += ")";
             }
-            return _filter;
+            return _rtnVal;
         }
 
         /// <summary>
@@ -306,16 +290,7 @@ namespace SFW
         /// <returns>DataTable filter string</returns>
         public static string BuildPriorityFilter()
         {
-            var _filter = string.Empty;
-            if (App.IsFocused && string.IsNullOrEmpty(_filter))
-            {
-                _filter = "WO_Priority = 'A' OR WO_Priority = 'B'";
-            }
-            else if (App.IsFocused)
-            {
-                _filter += " AND (WO_Priority = 'A' OR WO_Priority = 'B')";
-            }
-            return _filter;
+            return App.IsFocused ? "WO_Priority = 'A' OR WO_Priority = 'B'" : "";
         }
     }
 }

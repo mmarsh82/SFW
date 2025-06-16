@@ -1,7 +1,8 @@
 ﻿using M2kClient;
 using SFW.Helpers;
 using SFW.Model;
-using SFW.Reports;
+using SFW.Model.Product;
+using SFW.Model.Production;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -59,7 +60,7 @@ namespace SFW.ShopRoute
             get
             { return machGroup; }
             set
-            { machGroup = string.IsNullOrEmpty(value) ? Machine.GetMachineGroup(ShopOrder.Machine, 'M') : value; OnPropertyChanged(nameof(MachineGroup)); }
+            { machGroup = string.IsNullOrEmpty(value) ? Machine.GetGroup(ShopOrder.WorkCenter?.MachineName, 'M') : value; OnPropertyChanged(nameof(MachineGroup)); }
         }
 
         private string _sFile;
@@ -108,8 +109,8 @@ namespace SFW.ShopRoute
             set { _lotText = value; OnPropertyChanged(nameof(LotListText)); }
         }
 
-        private Model.Component _selItem;
-        public Model.Component SelectedILotItem
+        private Model.Production.Component _selItem;
+        public Model.Production.Component SelectedILotItem
         {
             get
             { return _selItem; }
@@ -117,9 +118,9 @@ namespace SFW.ShopRoute
             {
                 if (value != null)
                 {
-                    ILotResultsList = Lot.GetOnHandLotList(value.CompNumber, true, App.SiteNumber);
+                    ILotResultsList = Lot.GetOnHandList(value.ProductNumber, true, App.SiteNumber);
                     NoLotResults = ILotResultsList.Count == 0;
-                    IDedicateLotResultsList = Lot.GetDedicatedLotList(value.CompNumber, ShopOrder.OrderNumber);
+                    IDedicateLotResultsList = Lot.GetDedicatedList(value.ProductNumber, ShopOrder.OrderNumber);
                     NoDedicateResults = IDedicateLotResultsList.Count == 0;
                     if (App.SiteNumber == 0 && NoDedicateResults)
                     {
@@ -152,7 +153,7 @@ namespace SFW.ShopRoute
         public bool HasFirstPiece
         {
             get
-            { return ShopOrder?.MachineGroup == "PRESS"; }
+            { return ShopOrder?.WorkCenter?.MachineGroup == "PRESS"; }
         }
 
         private IList<string> _ncrList;
@@ -189,12 +190,22 @@ namespace SFW.ShopRoute
                 OnPropertyChanged(nameof(BomOnly));
             }
         }
-        public bool WipActive { get { return CurrentUser.CanWip && ShopOrder?.Picklist?.Count > 0; } }
+
+        private bool _wipAct;
+        public bool WipActive
+        { 
+            get 
+            { return _wipAct; }
+            set
+            {
+                _wipAct = value;
+                OnPropertyChanged(nameof(WipActive));
+            }
+        }
 
         public DataView ActivityTable { get; set; }
 
         private RelayCommand _noteChange;
-        private RelayCommand _loadReport;
 
         #endregion
 
@@ -225,6 +236,7 @@ namespace SFW.ShopRoute
             LotListText = "Select a Part";
             NcrList = new List<string>();
             IsPlan = BomOnly = ShopOrder.TaskType == "P";
+            WipActive = false;
             using (BackgroundWorker bw = new BackgroundWorker())
             {
                 try
@@ -237,46 +249,49 @@ namespace SFW.ShopRoute
                             {
                                 try
                                 {
-                                    ShopOrder.InstructionList = Sku.GetInstructions(ShopOrder.SkuNumber, App.SiteNumber, App.GlobalConfig.First(o => o.Site == App.Facility).WI);
+                                    if (ShopOrder.Product.InstructionList != null)
+                                    {
+                                        ShopOrder.Product.InstructionList = SkuInstruction.GetList(ShopOrder.Product.SkuNumber, App.SiteNumber, App.GlobalConfig.First(o => o.Site == App.Facility).WI);
+                                    }
                                 }
                                 catch
                                 {
-                                    ShopOrder.InstructionList = new List<string>();
+                                    ShopOrder.Product.InstructionList = new List<string>();
                                 }
                             }
 
                             //Getting the work order notes and the shop floor notes
-                            ShopOrderNotes = ShopOrder.TaskType != "P" ? WorkOrder.GetNotes("WN", false, ShopOrder.OrderNumber) : string.Empty;
-                            ShopOrder.ShopNotes = WorkOrder.GetNotes("SN", true, ShopOrder.OrderNumber, $"{ShopOrder.SkuNumber}|0{ShopOrder.Facility}");
+                            ShopOrderNotes = ShopOrder.TaskType != "P" ? WorkOrderNote.GetNotes("WN", false, ShopOrder.OrderNumber) : string.Empty;
+                            ShopOrder.ShopNotes = WorkOrderNote.GetNotes("SN", true, ShopOrder.OrderNumber, $"{ShopOrder.Product.SkuNumber}|0{ShopOrder.Facility}");
 
                             //Getting the sales order internal comments
-                            ShopOrder.SalesOrder.InternalComments = Model.SalesOrder.GetNotes(ShopOrder.SalesOrder.SalesNumber, 'C');
+                            ShopOrder.SalesOrder.InternalComments = Model.Sales.SalesOrderNote.GetNote(ShopOrder.SalesOrder.SalesNumber, 'C');
 
                             //Get the setup up print if it exists
                             SetupFile = GetSetupFile();
 
                             //Bill of Material and picklist loading, needs to be done in the background due to the recursive search
                             ShopOrder.ToolList = ShopOrder.TaskType == "R"
-                                ? Tool.GetToolList(ShopOrder.SkuNumber, Machine.GetMachineNumber(ShopOrder.Machine), CurrentUser.Facility)
-                                : Tool.GetToolList(ShopOrder.SkuNumber, int.Parse(ShopOrder.Routing), CurrentUser.Facility);
-                            ShopOrder.Bom = Model.Component.GetComponentBomList(ShopOrder.SkuNumber, ShopOrder.Seq);
-                            ShopOrder.Picklist = ShopOrder.TaskType != "P"
-                                ? Model.Component.GetComponentPickList(ShopOrder.OrderNumber, ShopOrder.Seq, ShopOrder.StartQty - ShopOrder.CurrentQty, ShopOrder.Machine)
-                                : new List<Model.Component>();
+                                ? Tool.GetList(ShopOrder.Product.SkuNumber, Machine.GetNumber(ShopOrder.WorkCenter.MachineName), CurrentUser.Facility)
+                                : Tool.GetList(ShopOrder.Product.SkuNumber, int.Parse(ShopOrder.Routing), CurrentUser.Facility);
+                            ShopOrder.BillList = BillComponent.GetList(ShopOrder.Product.SkuNumber, ShopOrder.Seq);
+                            ShopOrder.PickList = ShopOrder.TaskType != "P"
+                                ? PickComponent.GetList(ShopOrder.OrderNumber, ShopOrder.Seq, ShopOrder.StartQty - ShopOrder.CurrentQty, ShopOrder.WorkCenter.MachineName)
+                                : new List<PickComponent>();
                             IsMultiLoading = false;
                             if (App.SiteNumber == 1)
                             {
-                                NcrList = QmsForm.GetNcrList(ShopOrder.OrderNumber);
+                                NcrList = Model.Quality.QmsForm.GetNcrList(ShopOrder.OrderNumber);
                             }
                             if (CurrentUser.CanSchedule)
                             {
-                                CompCollection = Model.Component.GetComponentBomCollection(ShopOrder.SkuNumber, ShopOrder.Seq);
-                                SelectedComp = CompCollection != null ? CompCollection.FirstOrDefault(o => o == ShopOrder.SkuNumber) : null;
+                                CompCollection = BillComponent.GetFullNameCollection(ShopOrder.Product.SkuNumber, ShopOrder.Seq);
+                                SelectedComp = CompCollection != null ? CompCollection.FirstOrDefault(o => o == ShopOrder.Product.SkuNumber) : null;
                                 OnPropertyChanged(nameof(CompCollection));
                             }
                             OnPropertyChanged(nameof(IsMultiLoading));
                             OnPropertyChanged(nameof(ShopOrder));
-                            OnPropertyChanged(nameof(WipActive));
+                            WipActive = true;
                         });
                     bw.RunWorkerAsync();
                 }
@@ -301,7 +316,7 @@ namespace SFW.ShopRoute
                     case 2:
                         try
                         {
-                            _filePath = $"{App.GlobalConfig.First(o => o.Site == App.Facility).PressSetup}{ShopOrder.SkuNumber}.pdf";
+                            _filePath = $"{App.GlobalConfig.First(o => o.Site == App.Facility).PressSetup}{ShopOrder.Product.SkuNumber}.pdf";
                             break;
                         }
                         catch (Exception)
@@ -311,12 +326,12 @@ namespace SFW.ShopRoute
                         }
                     case 1:
                         var _fileName = string.Empty;
-                        switch (ShopOrder.MachineGroup)
+                        switch (ShopOrder.WorkCenter.MachineGroup)
                         {
                             case "PRESS":
                             case "ENG":
                             case "ENDLSS":
-                                _fileName = ExcelReader.GetSetupPrintNumber(ShopOrder.SkuNumber, ShopOrder.Machine, App.GlobalConfig.First(o => o.Site == App.Facility).PressSetup, "Production");
+                                _fileName = ExcelReader.GetSetupPrintNumber(ShopOrder.Product.SkuNumber, ShopOrder.WorkCenter.MachineName, App.GlobalConfig.First(o => o.Site == App.Facility).PressSetup, "Production");
                                 if (!string.IsNullOrEmpty(_fileName) && !_fileName.Contains("ERR:"))
                                 {
                                     var _fileheader = string.Empty;
@@ -333,11 +348,11 @@ namespace SFW.ShopRoute
                                 }
                                 break;
                             case "FABE":
-                                 _fileName = ExcelReader.GetSetupPrintNumber(ShopOrder.SkuNumber, ShopOrder.Machine, App.GlobalConfig.First(o => o.Site == App.Facility).SyscoSetup, "PRODUCTION");
+                                 _fileName = ExcelReader.GetSetupPrintNumber(ShopOrder.Product.SkuNumber, ShopOrder.WorkCenter.MachineName, App.GlobalConfig.First(o => o.Site == App.Facility).SyscoSetup, "PRODUCTION");
                                 _filePath = $"{App.GlobalConfig.First(o => o.Site == App.Facility).PartPrint}{_fileName}.PDF";
                                 break;
                             case "EXT":
-                                _fileName = ExcelReader.GetSetupPrintNumber(ShopOrder.SkuNumber, ShopOrder.Machine, App.GlobalConfig.First(o => o.Site == App.Facility).ExtSetup, "PRODUCTION");
+                                _fileName = ExcelReader.GetSetupPrintNumber(ShopOrder.Product.SkuNumber, ShopOrder.WorkCenter.MachineName, App.GlobalConfig.First(o => o.Site == App.Facility).ExtSetup, "PRODUCTION");
                                 _filePath = $"{App.GlobalConfig.First(o => o.Site == App.Facility).PartPrint}{_fileName}.PDF";
                                 break;
                         }
@@ -377,55 +392,6 @@ namespace SFW.ShopRoute
             }
         }
         private bool NoteChgCanExecute(object parameter) => true;
-
-        #endregion
-
-        #region Press Report ICommand
-
-        public ICommand ReportICommand
-        {
-            get
-            {
-                if (_loadReport == null)
-                {
-                    _loadReport = new RelayCommand(ReportExecute, ReportCanExecute);
-                }
-                return _loadReport;
-            }
-        }
-
-        private void ReportExecute(object parameter)
-        {
-            if (int.TryParse(parameter.ToString(), out int i))
-            {
-                var _repType = (Enumerations.PressReportActions)i;
-                var _rep = new PressReport(shopOrder, App.AppSqlCon);
-                if (_repType == Enumerations.PressReportActions.LogProgress && (_rep.IsNew || _rep.ShiftReportList.Count == 0))
-                {
-                    MessageBox.Show("There is currently no report created for this work order.\nPlease click on the report sheet button and submit a new report.", "No Report Sheet", MessageBoxButton.OK, MessageBoxImage.Exclamation);
-                }
-                else
-                {
-                    if (ShopOrder != null)
-                    {
-                        if (!App.IsWindowOpen<Press_View>(new Press_ViewModel()))
-                        {
-                            new Press_View { DataContext = new Press_ViewModel(ShopOrder, _repType) }.Show();
-                        }
-                        else
-                        {
-                            var _win = App.GetWindow<Press_View>();
-                            if (_win != null)
-                            {
-                                _win.DataContext = new Press_ViewModel(ShopOrder, _repType);
-                                _win.Focus();
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        private bool ReportCanExecute(object parameter) => true;
 
         #endregion
     }

@@ -23,6 +23,7 @@
         <cvtr:SiteToVisibility x:Key="SiteToVisConverter"/>
         <cvtr:BoolInverter x:Key="InvertBoolConverter"/>
         <cvtr:IntToVisibility x:Key="IntToVisConverter"/>
+        <cvtr:TimerToView x:Key="TimerToView"/>
     </Window.Resources>
 
     <Window.InputBindings>
@@ -67,24 +68,6 @@
             <RowDefinition Height="25"/>
         </Grid.RowDefinitions>
 
-        <StackPanel Grid.Row="1"
-                    Orientation="Vertical"
-                    VerticalAlignment="Center"
-                    HorizontalAlignment="Center"
-                    Visibility="{Binding DisplayAction, Converter={StaticResource BoolToVisConverter}}">
-
-            <TextBlock Text="Please Wait"
-                       FontWeight="Bold"
-                       Opacity="80"
-                       FontSize="50"/>
-
-            <Control Grid.Row="1"
-                     Background="Transparent"
-                     Style="{DynamicResource BusyAnimationStyle}" />
-
-
-        </StackPanel>
-        
         <!--#region Main Menu Usercontrol for all commands-->
 
         <Menu x:Name="MainMenu"
@@ -106,6 +89,10 @@
                           InputGestureText="Esc"
                           IsEnabled="{Binding Path=(local:CurrentUser.IsLoggedIn)}"
                           Visibility="{Binding Path=(local:CurrentUser.IsLoggedIn), Converter={StaticResource BoolToVisConverter}}"/>
+                <MenuItem Header="Refresh"
+                          Command="{StaticResource ViewLoadICommand}"
+                          CommandParameter="-2"
+                          InputGestureText="F5"/>
                 <MenuItem Header="Exit"
                           Command="{StaticResource ExitICommand}"
                           InputGestureText="Alt+F4">
@@ -114,24 +101,21 @@
                     </MenuItem.Icon>
                 </MenuItem>
             </MenuItem>
-            <MenuItem Header="Views">
-                <MenuItem Header="Refresh"
-                          Command="{StaticResource ViewLoadICommand}"
-                          CommandParameter="-2"
-                          InputGestureText="F5"/>
-                <MenuItem Header="Site"
+            <MenuItem Header="Modules"
+                      Visibility="{Binding Path=(local:CurrentUser.BasicUser), Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}">
+                <MenuItem Header="Facility"
                           Visibility="{Binding Path=(local:CurrentUser.CanSchedule), Converter={StaticResource BoolToVisConverter}}">
-                    <MenuItem Header="CSI"
+                    <MenuItem Header="Arlington"
                               Command="{StaticResource ViewLoadICommand}"
                               CommandParameter="2"
                               IsCheckable="True"
-                              IsChecked="{Binding Path=(local:App.SiteNumber), Converter={StaticResource SiteToBoolConverter}, ConverterParameter=CSI}"
+                              IsChecked="{Binding Path=(local:App.SiteNumber), Converter={StaticResource SiteToBoolConverter}, ConverterParameter=Arlington}"
                               InputGestureText="Alt+1"/>
-                    <MenuItem Header="WCCO"
+                    <MenuItem Header="Wahpeton"
                               Command="{StaticResource ViewLoadICommand}"
                               CommandParameter="1"
                               IsCheckable="True"
-                              IsChecked="{Binding Path=(local:App.SiteNumber), Converter={StaticResource SiteToBoolConverter}, ConverterParameter=WCCO}"
+                              IsChecked="{Binding Path=(local:App.SiteNumber), Converter={StaticResource SiteToBoolConverter}, ConverterParameter=Wahpeton}"
                               InputGestureText="Alt+2"/>
                 </MenuItem>
                 <MenuItem Header="Sales Orders"
@@ -217,6 +201,10 @@
             
             <MenuItem Header="Help"
                       Visibility="{Binding Path=(ctrl:WorkSpaceDock.Module), Converter={StaticResource IntToVisConverter}, ConverterParameter=1}">
+                <MenuItem Header="Train Mode"
+                          IsCheckable="True"
+                          IsChecked="{Binding Path=(local:App.InTraining), UpdateSourceTrigger=PropertyChanged}"
+                          Visibility="{Binding Path=(local:CurrentUser.CanTrain), Converter={StaticResource BoolToVisConverter}}"/>
                 <MenuItem Header="Color Legend">
                     <MenuItem Header="Critical Work Order" Background="#FFF3321F" Focusable="False" IsHitTestVisible="False"/>
                     <MenuItem Header="Repair Work Order" Background="SteelBlue" Focusable="False" IsHitTestVisible="False"/>
@@ -230,6 +218,10 @@
 
             <MenuItem Header="Help"
                       Visibility="{Binding Path=(ctrl:WorkSpaceDock.Module), Converter={StaticResource IntToVisConverter}, ConverterParameter=8}">
+                <MenuItem Header="Train Mode"
+                          IsCheckable="True"
+                          IsChecked="{Binding Path=(local:App.InTraining), UpdateSourceTrigger=PropertyChanged}"
+                          Visibility="{Binding Path=(local:CurrentUser.CanTrain), Converter={StaticResource BoolToVisConverter}}"/>
                 <MenuItem Header="Color Legend">
                     <MenuItem Header="Shippable Daily" Background="#FFF3321F" Focusable="False" IsHitTestVisible="False"/>
                     <MenuItem Header="On-Hold Daily" Background="DarkOrchid" Focusable="False" IsHitTestVisible="False"/>
@@ -238,13 +230,6 @@
                     <MenuItem Header="Forecast Order" Background="WhiteSmoke" Focusable="False" IsHitTestVisible="False"/>
                     <Separator/>
                 </MenuItem>
-            </MenuItem>
-
-            <MenuItem Header="Training"
-                      Visibility="{Binding Path=(local:CurrentUser.CanTrain), Converter={StaticResource BoolToVisConverter}}">
-                <MenuItem Header="Train Mode"
-                          IsCheckable="True"
-                          IsChecked="{Binding Path=(local:App.InTraining), UpdateSourceTrigger=PropertyChanged}"/>
             </MenuItem>
 
             <MenuItem Header="Admin"
@@ -262,7 +247,7 @@
         </Menu>
 
         <StackPanel Orientation="Horizontal"
-                    Visibility="{Binding Path=CanFilter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource BoolToVisConverter}}"
+                    Visibility="{Binding CanFilter, Converter={StaticResource BoolToVisConverter}}"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center"
                     Margin="1">
@@ -277,7 +262,22 @@
                       FontSize="14"
                       FontWeight="Bold"/>
         </StackPanel>
+
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+
+            <TextBlock Text="{Binding Path=(local:ApplicationTimer.TickMessage)}"
+                       VerticalAlignment="Center"
+                       FontSize="14"
+                       FontWeight="Bold"
+                       Foreground="Orange"/>
+            
+            <TextBlock Text="{Binding Path=(local:ApplicationTimer.Status)}"
+                       VerticalAlignment="Center"
+                       FontSize="14"
+                       FontWeight="Bold"
+                       Margin="10,0,20,0"
+                       Foreground="{Binding Path=(local:ApplicationTimer.Status), Converter={StaticResource TimerToView}, ConverterParameter=C}"/>
+
             <Image Visibility="{Binding Path=(local:CurrentUser.IsLoggedIn), Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}"
                    Source="Icons/Lock.ico"
                    Margin="2"/>
@@ -308,19 +308,13 @@
                 </MenuItem>
             </Menu>
 
-            <TextBlock Text="{Binding Path=(local:RefreshTimer.LastRefresh), StringFormat='Last Refresh: {0}'}"
-                       Margin="20,0,10,0"
-                       VerticalAlignment="Center"
-                       FontSize="12"
-                       Foreground="CornflowerBlue"/>
-
             <Button Margin="1,1,20,1"
                     Command="{StaticResource ViewLoadICommand}"
                     CommandParameter="-3"
                     Background="Transparent"
                     BorderThickness="0"
                     ToolTip="Pause the automatic refresh for the schedule."
-                    Visibility="{Binding Path=(local:RefreshTimer.Status), Converter={StaticResource BoolToVisConverter}}"
+                    Visibility="{Binding Path=(local:ApplicationTimer.Status), Converter={StaticResource TimerToView}, ConverterParameter=A}"
                     Style="{DynamicResource ResourceKey=DefaultButton}">
                 <Image Source="/SFW;component/Icons/Pause.ico"/>
             </Button>
@@ -331,7 +325,7 @@
                     Background="Transparent"
                     BorderThickness="0"
                     ToolTip="Refresh the schedule and turn on the automatic schedule refresh as well."
-                    Visibility="{Binding Path=(local:RefreshTimer.Status), Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}"
+                    Visibility="{Binding Path=(local:ApplicationTimer.Status), Converter={StaticResource TimerToView}, ConverterParameter=P}"
                     Style="{DynamicResource ResourceKey=DefaultButton}">
                 <Image Source="/SFW;component/Icons/Refresh.ico"/>
             </Button>
@@ -342,8 +336,7 @@
         <!--#region WorkSpace Grid-->
 
         <Grid x:Name="WorkSpaceDock"
-              Grid.Row="1"
-              Visibility="{Binding DisplayAction, Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}"/>
+              Grid.Row="1"/>
 
         <!--#endregion-->
 
@@ -351,14 +344,54 @@
 
         <Grid Grid.Row="2"
               Background="LightGray">
-            <TextBlock Text="{Binding Version}"
-                       FontSize="16"
-                       FontWeight="Bold"
-                       HorizontalAlignment="Right"
-                       VerticalAlignment="Center"
-                       Margin="0,0,30,0"/>
 
-            <Button Content="!! Click To Update !!"
+            <StackPanel Orientation="Horizontal"
+                        VerticalAlignment="Center"
+                        HorizontalAlignment="Left">
+
+                <TextBlock Text="Training Mode"
+                           FontSize="16"
+                           FontWeight="Bold"
+                           Foreground="Crimson"
+                           Margin="10,0,0,0"
+                           Visibility="{Binding Path=(local:App.InTraining), Converter={StaticResource BoolToVisConverter}}"/>
+
+                <TextBlock Text="{Binding Path=(local:ApplicationTimer.LastRefresh), StringFormat=Last Refresh: {0}}"
+                           Margin="10,0,0,0"
+                           FontSize="14"
+                           FontWeight="Bold"
+                           Foreground="Black"/>
+
+                <TextBlock Text="duration"
+                           Margin="5,0,0,0"
+                           FontSize="14"
+                           FontWeight="Bold"
+                           Foreground="Black"/>
+
+                <TextBlock Text="{Binding Path=(local:ApplicationTimer.LastDurationMinutes), StringFormat={}{0} minutes}"
+                           Margin="5,0,0,0"
+                           FontSize="14"
+                           FontWeight="Bold"
+                           Visibility="{Binding Path=(local:ApplicationTimer.LastDurationMinutes), Converter={StaticResource IntToVisConverter}, ConverterParameter=Time}"
+                           Foreground="Black"/>
+
+                <TextBlock Text="and"
+                           Margin="5,0,0,0"
+                           FontSize="14"
+                           FontWeight="Bold"
+                           Visibility="{Binding Path=(local:ApplicationTimer.LastDurationMinutes), Converter={StaticResource IntToVisConverter}, ConverterParameter=Time}"
+                           Foreground="Black"/>
+
+                <TextBlock Text="{Binding Path=(local:ApplicationTimer.LastDurationSeconds), StringFormat={}{0} seconds}"
+                           Margin="5,0,0,0"
+                           FontSize="14"
+                           FontWeight="Bold"
+                           Visibility="{Binding Path=(local:ApplicationTimer.LastDurationSeconds), Converter={StaticResource IntToVisConverter}, ConverterParameter=Time}"
+                           Foreground="Black"/>
+
+            </StackPanel>
+
+            <Button Content="Available Update"
                     Command="{StaticResource AppUpdateCommand}"
                     FontSize="16"
                     FontWeight="Bold"
@@ -372,14 +405,13 @@
                     Visibility="{Binding CanUpdate, Converter={StaticResource BoolToVisConverter}}"
                     Style="{DynamicResource DefaultButton}"/>
 
-            <TextBlock Text="Training Mode"
+            <TextBlock Text="{Binding Version}"
                        FontSize="16"
                        FontWeight="Bold"
-                       HorizontalAlignment="Left"
+                       HorizontalAlignment="Right"
                        VerticalAlignment="Center"
-                       Foreground="Crimson"
-                       Margin="20,0,0,0"
-                       Visibility="{Binding Path=(local:App.InTraining), Converter={StaticResource BoolToVisConverter}}"/>
+                       Margin="0,0,30,0"/>
+
         </Grid>
 
         <!--#endregion-->

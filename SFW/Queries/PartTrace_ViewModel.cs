@@ -1,6 +1,7 @@
 ﻿using SFW.Converters;
 using SFW.Helpers;
-using SFW.Model;
+using SFW.Model.Product;
+using SFW.Model.Production;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -146,8 +147,8 @@ namespace SFW.Queries
                 }
                 else
                 {
-                    var _machName = Machine.GetMachineName(_part, 'P');
-                    var _fac = _site == 1 ? "WCCO" : "CSI";
+                    var _machName = Machine.GetName(_part, 'P');
+                    var _fac = _site == 1 ? "Wahpeton" : "Arlington";
                     if (!string.IsNullOrEmpty(_machName))
                     {
                         switch (_site)
@@ -167,7 +168,7 @@ namespace SFW.Queries
                                 }
                             case 1:
                                 var _fileName = string.Empty;
-                                var _machGrp = Machine.GetMachineGroup(_machName, 'M');
+                                var _machGrp = Machine.GetGroup(_machName, 'M');
                                 switch (_machGrp)
                                 {
                                     case "PRESS":
@@ -210,11 +211,11 @@ namespace SFW.Queries
                     }
 
                     //Get the sku work instruction list
-                    SkuWIList = Sku.GetInstructions(_part, _site, App.GlobalConfig.First(o => o.Site == _fac).WI);
+                    SkuWIList = SkuInstruction.GetList(_part, _site, App.GlobalConfig.First(o => o.Site == _fac).WI);
                     OnPropertyChanged(nameof(SkuWIList));
 
                     //Get a sku tooling list
-                    SkuToolList = CollectionViewSource.GetDefaultView(Tool.GetToolList(_part));
+                    SkuToolList = CollectionViewSource.GetDefaultView(Tool.GetList(_part));
                     SkuToolList.GroupDescriptions.Add(new PropertyGroupDescription("MachineID", new WorkCenterNameConverter()));
                     OnPropertyChanged(nameof(SkuToolList));
                     OnPropertyChanged(nameof(EmptyToolList));
@@ -229,14 +230,14 @@ namespace SFW.Queries
                                 delegate (object sender, DoWorkEventArgs e)
                                 {
                                     SkuPartStructure = new Dictionary<Sku, int>();
-                                    var _structList = Sku.GetStructure(_part, $"{_site}");
+                                    var _structList = SkuStructure.GetStructure(_part, $"{_site}");
                                     if (_structList == null)
                                     {
                                         ErrorMsg += "Trace list was to large to display.";
                                     }
                                     else
                                     {
-                                        var _groupedDict = Sku.GetStructure(_part, $"{_site}").OrderBy(o => o.Value).GroupBy(o => o.Key.DiamondNumber);
+                                        var _groupedDict = SkuStructure.GetStructure(_part, $"{_site}").OrderBy(o => o.Value).GroupBy(o => o.Key.DiamondNumber);
                                         if (_groupedDict.Count(o => o.FirstOrDefault().Key.SkuNumber != null) > 0)
                                         {
                                             foreach (var _group in _groupedDict)
@@ -312,12 +313,12 @@ namespace SFW.Queries
                     {
                         if (i == 1)
                         {
-                            _site = "WCCO";
+                            _site = "Wahpeton";
                             _siteNbr = i;
                         }
                         else
                         {
-                            _site = "CSI";
+                            _site = "Arlington";
                             _siteNbr = i;
                         }
                     }

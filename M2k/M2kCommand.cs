@@ -1,6 +1,6 @@
-﻿using IBMU2.UODOTNET;
+﻿
+using IBMU2.UODOTNET;
 using M2kClient.M2kADIArray;
-using SFW.Model;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -340,7 +340,7 @@ namespace M2kClient
         /// /// <param name="isLot">Tells the method if the current wip transaction is for a lot tracable part or non lot tracable</param>
         /// <param name="machID">Optional: Machine ID, passed when labor needs to posted.  It is also required for posting labor</param>
         /// <returns>Error number and error description, when returned as 0 and a empty string the transaction posted with errors</returns>
-        public static IReadOnlyDictionary<int, string> ProductionWip(WipReceipt wipRecord, bool postLabor, M2kConnection connection, bool isLot, string machID = "")
+        public static IReadOnlyDictionary<int, string> ProductionWip(SFW.Model.Production.Wip.Receipt wipRecord, bool postLabor, M2kConnection connection, bool isLot, string machID = "")
         {
             var _subResult = new Dictionary<int, string>();
             var tranCount = 0;
@@ -355,7 +355,7 @@ namespace M2kClient
                 var _lotEntered = !string.IsNullOrEmpty(wipRecord.WipLot.LotNumber) || !isLot;
                 if (string.IsNullOrEmpty(wipRecord.WipLot.LotNumber) && isLot)
                 {
-                    var _response = wipRecord.WipWorkOrder.IsTransfer ? GetDiamondNumber(connection) : GetLotNumber(connection);
+                    var _response = wipRecord.WipWorkOrder.Product.IsTransfer ? GetDiamondNumber(connection) : GetLotNumber(connection);
                     if (_response.Count == 1 && !_response.First().Key)
                     {
                         System.Windows.MessageBox.Show(_response.First().Value, "Connection Error");
@@ -389,8 +389,8 @@ namespace M2kClient
                     if (_lotEntered)
                     {
                         var _msgString = !string.IsNullOrEmpty(wipRecord.WipLot.LotNumber)
-                            ? $"Your transaction of {wipRecord.WipWorkOrder.SkuNumber} using {wipRecord.WipLot.LotNumber} has been submitted."
-                            : $"Your transaction of {wipRecord.WipWorkOrder.SkuNumber} has been submitted.";
+                            ? $"Your transaction of {wipRecord.WipWorkOrder.Product.SkuNumber} using {wipRecord.WipLot.LotNumber} has been submitted."
+                            : $"Your transaction of {wipRecord.WipWorkOrder.Product.SkuNumber} has been submitted.";
                         System.Windows.MessageBox.Show(_msgString, "Transaction Accepted", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
                     }
                     else if (!string.IsNullOrEmpty(wipRecord.WipLot.LotNumber))
@@ -415,28 +415,32 @@ namespace M2kClient
             {
                 var _tComp = new List<CompInfo>();
                 //Break out the BOM so that it only has a single instance of the multiple parent
-                foreach (var c in wipRecord.WipWorkOrder.Picklist.Where(o => o.IsLotTrace))
+                foreach (var _comp in wipRecord.ComponentList.Where(o => o.LotTraceable))
                 {
-                    foreach (var w in c.WipInfo.Where(o => !string.IsNullOrEmpty(o.LotNbr)))
+                    foreach (var _lot in _comp.LotList.Where(o => o.Valid))
                     {
-                        var _backFlush = c.BackflushLoc;
-                        _tComp = new List<CompInfo>
+                        var _backFlush = !string.IsNullOrEmpty(_comp.BackFlushLoc) ? _comp.BackFlushLoc : _lot.Location;
+                        var _qty = int.TryParse(_lot.Quantity, out int i) ? i : 0;
+                        if (_qty > 0)
                         {
-                            new CompInfo
+                            _tComp = new List<CompInfo>
                             {
-                                Lot = w.LotNbr,
-                                PartNbr = w.PartNbr,
-                                Quantity = Convert.ToInt32(w.LotQty / wipRecord.RollQty),
-                                WorkOrderNbr = wipRecord.WipWorkOrder.OrderNumber,
-                                IssueLoc = !string.IsNullOrEmpty(_backFlush) ? _backFlush : w.RcptLoc
-                            }
-                        };
+                                new CompInfo
+                                {
+                                    Lot = _lot.ID,
+                                    PartNbr = _comp.ProductNumber,
+                                    Quantity = Convert.ToInt32(_qty / wipRecord.RollQty),
+                                    WorkOrderNbr = wipRecord.WipWorkOrder.OrderNumber,
+                                    IssueLoc = _backFlush
+                                }
+                            };
+                        }
                     }
                 }
                 var _counter = 1;
                 while (_counter <= wipRecord.RollQty)
                 {
-                    var _response = wipRecord.WipWorkOrder.IsTransfer ? GetDiamondNumber(connection) : GetLotNumber(connection);
+                    var _response = wipRecord.WipWorkOrder.Product.IsTransfer ? GetDiamondNumber(connection) : GetLotNumber(connection);
                     if (_response.Count == 1 && !_response.First().Key)
                     {
                         System.Windows.MessageBox.Show(_response.First().Value, "Connection Error");
@@ -476,7 +480,7 @@ namespace M2kClient
                     }
                     _counter++;
                 }
-                System.Windows.MessageBox.Show($"Multiple transaction of {wipRecord.WipWorkOrder.SkuNumber} has been submitted.", "Multi-Transaction Accepted", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
+                System.Windows.MessageBox.Show($"Multiple transaction of {wipRecord.WipWorkOrder.Product.SkuNumber} has been submitted.", "Multi-Transaction Accepted", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
                 _subResult.Add(1, string.Join("*", _lotList));
             }
 
@@ -505,7 +509,7 @@ namespace M2kClient
                 }
                 InventoryAdjustment(wipRecord.Submitter,
                     !string.IsNullOrEmpty(s.Reference) ? $"{s.Reference}*{wipRecord.WipWorkOrder.OrderNumber}" : wipRecord.WipWorkOrder.OrderNumber,
-                    wipRecord.WipWorkOrder.SkuNumber,
+                    wipRecord.WipWorkOrder.Product.SkuNumber,
                     _reason,
                     'S',
                     Convert.ToInt32(s.Quantity),
@@ -541,24 +545,24 @@ namespace M2kClient
             {
                 try
                 {
-                    foreach (var c in wipRecord.WipWorkOrder.Picklist.Where(o => o.IsLotTrace))
+                    foreach (var _comp in wipRecord.ComponentList.Where(o => o.LotTraceable))
                     {
-                        var _issue = new Issue(wipRecord.Submitter, wipRecord.Facility, c.CompNumber, wipRecord.WipWorkOrder.OrderNumber, "II", new List<Transaction>(), 'R', _tWip.CFlag);
-                        foreach (var w in c.WipInfo.Where(o => !string.IsNullOrEmpty(o.LotNbr)))
+                        var _issue = new Issue(wipRecord.Submitter, wipRecord.Facility, _comp.ProductNumber, wipRecord.WipWorkOrder.OrderNumber, "II", new List<Transaction>(), 'R', _tWip.CFlag);
+                        foreach (var _lot in _comp.LotList.Where(o => !string.IsNullOrEmpty(o.ID) && o.Valid))
                         {
-                            _issue.TranList.Add(new Transaction { Location = w.RcptLoc, LotNumber = w.LotNbr, Quantity = Convert.ToInt32(w.LotQty) });
+                            if (int.TryParse(_lot.Quantity, out int _qty) && _qty > 0)
+                            {
+                                _issue.TranList.Add(new Transaction(_qty, _lot.Location, _lot.ID));
+                            }
                         }
-                        if (c.WipInfo.Sum(o => o.BaseQty) > 0)
-                        {
-                            File.WriteAllText($"{connection.BTIFolder}ISSUE{connection.AdiServer}.DAT{suffix}i{tranCount}", _issue.ToString());
-                            tranCount++;
-                        }
+                        File.WriteAllText($"{connection.BTIFolder}ISSUE{connection.AdiServer}.DAT{suffix}i{tranCount}", _issue.ToString());
+                        tranCount++;
                     }
-                    foreach (var c in wipRecord.WipWorkOrder.Picklist.Where(o => !o.IsLotTrace))
+                    foreach (var _comp in wipRecord.ComponentList.Where(o => !o.LotTraceable))
                     {
-                        var _rcptLoc = wipRecord.Facility == "01" ? wipRecord.ReceiptLocation : c.BackflushLoc;
-                        var _issQty = wipRecord.WipQty * c.AssemblyQty;
-                        var _issue = new Issue(wipRecord.Submitter, wipRecord.Facility, c.CompNumber, wipRecord.WipWorkOrder.OrderNumber, "II", new List<Transaction>(), 'R', _tWip.CFlag);
+                        var _rcptLoc = wipRecord.Facility == "01" ? wipRecord.ReceiptLocation : _comp.BackFlushLoc;
+                        var _issQty = wipRecord.WipQty * _comp.AssemblyQuantity;
+                        var _issue = new Issue(wipRecord.Submitter, wipRecord.Facility, _comp.ProductNumber, wipRecord.WipWorkOrder.OrderNumber, "II", new List<Transaction>(), 'R', _tWip.CFlag);
                         _issue.TranList.Add(new Transaction { Location = _rcptLoc, Quantity = Convert.ToInt32(_issQty) });
                         File.WriteAllText($"{connection.BTIFolder}ISSUE{connection.AdiServer}.DAT{suffix}i{tranCount}", _issue.ToString());
                         tranCount++;
@@ -606,7 +610,7 @@ namespace M2kClient
                 //Adjustment out
                 InventoryAdjustment(wipRecord.Submitter,
                     $"{wipRecord.ReclaimObject.Reference}*{wipRecord.WipWorkOrder.OrderNumber}",
-                    wipRecord.WipWorkOrder.SkuNumber,
+                    wipRecord.WipWorkOrder.Product.SkuNumber,
                     AdjustCode.REC,
                     'S',
                     Convert.ToInt32(wipRecord.ReclaimObject.Quantity),
@@ -629,11 +633,11 @@ namespace M2kClient
 
             #region Roll Marked Gone
 
-            foreach (var mat in wipRecord.WipWorkOrder.Picklist.Where(o => o.IsLotTrace))
+            foreach (var _comp in wipRecord.ComponentList.Where(o => o.LotTraceable))
             {
-                foreach (var info in mat.WipInfo.Where(o => o.RollStatus && o.OnHandCalc > 0))
+                foreach (var _lot in _comp.LotList.Where(o => o.Status))
                 {
-                    InventoryMove(wipRecord.Submitter, info.PartNbr, info.LotNbr, info.Uom, info.RcptLoc, "SCRAP", info.OnHandCalc, "Roll Marked Gone", wipRecord.Facility, connection);
+                    InventoryMove(wipRecord.Submitter, _comp.ProductNumber, _lot.ID, _comp.ProductUom, _lot.Location, "SCRAP", _lot.Stock, "Roll Marked Gone", wipRecord.Facility, connection);
                 }
             }
 
@@ -658,14 +662,14 @@ namespace M2kClient
         /// <param name="crewMember">Crew Member object to get times and dates from</param>
         /// <param name="connection">Current M2k Connection to be used for processing the transaction</param>
         /// <returns>Error number and error description, when returned as 0 and a empty string the transaction posted with no errors</returns>
-        public static IReadOnlyDictionary<int, string> PostLabor(string stationId, string empID, int shift, string workOrder, string seq, int qtyComp, string machID, string facCode, int crew, CrewMember crewMember, M2kConnection connection)
+        public static IReadOnlyDictionary<int, string> PostLabor(string stationId, string empID, int shift, string workOrder, string seq, int qtyComp, string machID, string facCode, int crew, SFW.Model.Management.Employee crewMember, M2kConnection connection)
         {
             var _subResult = new Dictionary<int, string>();
             try
             {
                 var suffix = DateTime.Now.ToString($"ssffff");
-                var _inTime = crewMember.InTime;
-                var _inDate = crewMember.InDate;
+                var _inTime = crewMember.LaborData.InTime;
+                var _inDate = crewMember.LaborData.InDate;
                 var _inDL = new DirectLabor(stationId, empID, 'I', _inTime, workOrder, seq, 0, 0, machID, CompletionFlag.N, facCode, crew, _inDate);
                 var _outDL = crew > 0
                     ? new DirectLabor(stationId, empID, 'O', DateTime.Now.ToString("HH:mm"), workOrder, seq, qtyComp, 0, machID, CompletionFlag.N, facCode, crew, DateTime.Now.ToString("MM-dd-yyyy"))

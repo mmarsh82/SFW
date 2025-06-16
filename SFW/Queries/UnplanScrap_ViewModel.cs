@@ -1,5 +1,5 @@
 ﻿using SFW.Helpers;
-using SFW.Model;
+using SFW.Model.Product;
 using System;
 using System.Windows.Input;
 
@@ -62,7 +62,7 @@ namespace SFW.Queries
             {
                 if(!string.IsNullOrEmpty(value))
                 {
-                    validPart = Sku.IsValidSkuQuantity(value, Location, Convert.ToInt32(scrapQty));
+                    validPart = Lot.ValidSkuQuantity(value, Location, Convert.ToInt32(scrapQty));
                 }
                 else
                 {

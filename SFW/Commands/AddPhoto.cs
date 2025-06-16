@@ -1,10 +1,8 @@
 ﻿using Microsoft.Win32;
 using SFW.Controls;
-using SFW.Model;
 using System;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Input;
 
@@ -12,7 +10,11 @@ namespace SFW.Commands
 {
     public class AddPhoto : ICommand
     {
-        public event EventHandler CanExecuteChanged;
+        public event EventHandler CanExecuteChanged
+        {
+            add {  }
+            remove { }
+        }
 
         public void Execute(object parameter)
         {
@@ -43,7 +45,7 @@ namespace SFW.Commands
                         File.Copy(ofd.FileName, $"{_folderPath}{_ncrId}-{_fileCount + 1}.jpg");
                         if (!_isNew)
                         {
-                            QmsForm.SubmitPhotoPath(_ncrId, $"{_ncrId}-{_fileCount + 1}.jpg", App.AppSqlCon);
+                            Model.Quality.QmsForm.SubmitPhotoPath(_ncrId, $"{_ncrId}-{_fileCount + 1}.jpg", App.AppSqlCon);
                         }
                         ((QMS.Form.ViewModel)parameter).FormObject.PhotoCollection.Add($"{_folderPath}{_ncrId}-{_fileCount + 1}.jpg");
                         if (((QMS.Form.ViewModel)parameter).FromSchedule)

@@ -1,4 +1,4 @@
-﻿using SFW.Model;
+﻿using SFW.Model.Production;
 using System;
 using System.Globalization;
 using System.Windows.Data;
@@ -11,7 +11,7 @@ namespace SFW.Converters
 
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            var _shifts = Machine.GetMachineShift(value.ToString());
+            var _shifts = Machine.GetShift(value.ToString());
             return string.IsNullOrEmpty(_shifts) ? "None" : _shifts;
         }
 

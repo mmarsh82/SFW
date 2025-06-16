@@ -22,6 +22,7 @@
                 <cvtr:MultiValueParameter x:Key="MultiValConverter"/>
                 <cvtr:NegativeIntToBool x:Key="NegIntToBoolConverter" />
                 <cvtr:BoolInverter x:Key="BoolInvertConverter"/>
+                <cvtr:WipEnabled x:Key="WipEnabled"/>
                 <cmd:ViewLoad x:Key="ViewLoadCommand" />
                 <cmd:M2kLookQuery x:Key="ShowQuery"/>
                 <cmd:PartSearch x:Key="PartSearchICommand"/>
@@ -37,15 +38,9 @@
 
             <!--#endregion-->
 
-            <TextBlock Text="Select a Work Order"
+            <TextBlock Text="           Nothing selected!&#x0a;Select a work order to review."
                        FontSize="32"
-                       FontWeight="Bold"
-                       HorizontalAlignment="Center"
-                       VerticalAlignment="Center"
-                       Visibility="{Binding ShopOrder.OrderNumber, Converter={StaticResource StringToVisConverter}, ConverterParameter=i}"/>
-
-            <TextBlock Text="Select a Work Order"
-                       FontSize="32"
+                       Margin="0,100,0,0"
                        FontWeight="Bold"
                        HorizontalAlignment="Center"
                        VerticalAlignment="Center"
@@ -70,23 +65,33 @@
 
                 <!--#region Grid.Row 0  Command Array-->
 
-                <StackPanel Grid.Row="0"
+                <StackPanel Name="CommandArrayStackPanel" Grid.Row="0"
                             Orientation="Horizontal">
-                    <Button Content="ITH"
+                    <Button Name="IthButton"
+                            Content="ITH"
                             FontSize="16"
                             Visibility="{Binding CanCheckHistory, Converter={StaticResource BoolToVisConverter}}"
                             Command="{StaticResource ViewLoadCommand}"
                             CommandParameter="{Binding ShopOrder}"
                             Style="{DynamicResource MenuButtonStyle}" />
-                    <Button Content="Wip Receipt"
+                    <Button Name="WipButton"
+                            Content="Wip Receipt"
                             FontSize="16"
                             Width="110"
-                            IsEnabled="{Binding WipActive}"
                             Command="{StaticResource WipCommand}"
                             CommandParameter="{Binding ShopOrder}"
                             Visibility="{Binding Path=(main:CurrentUser.CanWip), Converter={StaticResource BoolToVisConverter}}"
-                            Style="{DynamicResource MenuButtonStyle}"/>
-                    <Button Content="Enter Labor"
+                            Style="{DynamicResource MenuButtonStyle}">
+                        <Button.IsEnabled>
+                            <MultiBinding Converter="{StaticResource WipEnabled}">
+                                <Binding Path="WipActive"/>
+                                <Binding Path="(main:CurrentUser.CanWip)"/>
+                                <Binding Path="(main:ApplicationTimer.Status)"/>
+                            </MultiBinding>
+                        </Button.IsEnabled>
+                    </Button>
+                    <Button Name="LaborButton"
+                            Content="Enter Labor"
                             FontSize="16"
                             Width="110"
                             IsEnabled="{Binding Path=(main:CurrentUser.CanLabor)}"
@@ -94,22 +99,24 @@
                             CommandParameter="{Binding ShopOrder}"
                             Visibility="{Binding Path=(main:CurrentUser.CanLabor), Converter={StaticResource BoolToVisConverter}}"
                             Style="{DynamicResource MenuButtonStyle}"/>
-                    <Button Content="Set-up Info"
+                    <Button Name="SetUpButton"
+                            Content="Set-up Info"
                             FontSize="16"
                             Command="{StaticResource SetupCommand}"
                             CommandParameter="{Binding SetupFile}"
                             Visibility="{Binding HasSetupFile, Converter={StaticResource BoolToVisConverter}}"
                             Style="{DynamicResource MenuButtonStyle}" />
-                    <Button Content="Trim Info"
+                    <Button Name="TrimButton"
+                            Content="Trim Info"
                             FontSize="16"
                             Command="{StaticResource TrimSetupICommand}"
-                            CommandParameter="{Binding ShopOrder.SkuNumber}"
+                            CommandParameter="{Binding ShopOrder.Product.SkuNumber}"
                             Visibility="{Binding CanSeeTrim, Converter={StaticResource BoolToVisConverter}}"
                             Style="{DynamicResource MenuButtonStyle}" />
                     <Menu Style="{DynamicResource ModernMenu}"
-                          Visibility="{Binding ShopOrder.InstructionList.Count, Converter={StaticResource CountToVisConverter}}">
+                          Visibility="{Binding ShopOrder.Product.InstructionList.Count, Converter={StaticResource CountToVisConverter}}">
                         <MenuItem Header="Work&#10;Instructions"
-                                  ItemsSource="{Binding ShopOrder.InstructionList}"
+                                  ItemsSource="{Binding ShopOrder.Product.InstructionList}"
                                   FontSize="14"
                                   Width="110"
                                   Height="39"
@@ -147,19 +154,6 @@
                             </MenuItem.ItemContainerStyle>
                         </MenuItem>
                     </Menu>
-                    <Button Content="Log Round"
-                            FontSize="16"
-                            Visibility="Collapsed"
-                            Command="{Binding ReportICommand}"
-                            CommandParameter="3"
-                            Style="{DynamicResource MenuButtonStyle}" />
-                    <Button Content="Report Sheet"
-                            FontSize="16"
-                            Width="110"
-                            Visibility="Collapsed"
-                            Command="{Binding ReportICommand}"
-                            CommandParameter="2"
-                            Style="{DynamicResource MenuButtonStyle}" />
                     <Button Content="Record Defect"
                             FontSize="16"
                             Width="120"
@@ -247,7 +241,7 @@
                                TextDecorations="UnderLine"
                                Foreground="#FF135185" />
 
-                    <TextBlock Text="{Binding ShopOrder.Operation}"
+                    <TextBlock Text="{Binding ShopOrder.Product.Operation}"
                                FontSize="20"
                                FontWeight="Bold"
                                Margin="10,0,0,0" />
@@ -270,7 +264,7 @@
                             Background="Transparent"
                             BorderThickness="0"
                             Command="{StaticResource ViewLoadCommand}"
-                            CommandParameter="{Binding ShopOrder.SkuNumber}"
+                            CommandParameter="{Binding ShopOrder.Product.SkuNumber}"
                             Style="{DynamicResource DefaultButton}">
                         <Image Source="/SFW;component/Icons/Search.ico"
                                Margin="1"/>
@@ -282,12 +276,12 @@
                            TextDecorations="UnderLine"
                            Foreground="#FF135185"/>
 
-                    <TextBlock Text="{Binding ShopOrder.SkuNumber}"
+                    <TextBlock Text="{Binding ShopOrder.Product.SkuNumber}"
                            FontSize="24"
                            FontWeight="Bold"
                            Margin="10,0,0,0"/>
 
-                    <TextBlock Text="{Binding ShopOrder.SkuDescription}"
+                    <TextBlock Text="{Binding ShopOrder.Product.SkuDescription}"
                            FontSize="24"
                            FontWeight="Bold"
                            Margin="10,0,0,0"/>
@@ -299,7 +293,7 @@
                            TextDecorations="Underline"
                            Foreground="#FF135185"/>
 
-                    <TextBlock Text="{Binding ShopOrder.Uom}"
+                    <TextBlock Text="{Binding ShopOrder.Product.Uom}"
                                FontSize="24"
                                FontWeight="Bold"
                                Margin="10,0,0,0" />
@@ -541,7 +535,7 @@
 
                     <StackPanel Grid.Column="3" Orientation="Vertical" VerticalAlignment="Center">
 
-                        <StackPanel Orientation="Horizontal" Visibility="{Binding ShopOrder.CustomerRev, Converter={StaticResource StringToVisConverter}}">
+                        <StackPanel Orientation="Horizontal" Visibility="{Binding ShopOrder.Product.CustomerRev, Converter={StaticResource StringToVisConverter}}">
 
                             <TextBlock Text="Customer Revision:"
                                    FontSize="18"
@@ -549,14 +543,14 @@
                                    TextDecorations="Underline"
                                    Foreground="#FF135185"/>
 
-                            <TextBlock Text="{Binding ShopOrder.CustomerRev}"
+                            <TextBlock Text="{Binding ShopOrder.Product.CustomerRev}"
                                    FontSize="18"
                                    FontWeight="Bold"
                                    Margin="10,0,0,0"/>
 
                         </StackPanel>
 
-                        <StackPanel Orientation="Horizontal" Visibility="{Binding ShopOrder.InternalRev, Converter={StaticResource StringToVisConverter}}">
+                        <StackPanel Orientation="Horizontal" Visibility="{Binding ShopOrder.Product.InternalRev, Converter={StaticResource StringToVisConverter}}">
 
                             <TextBlock Text="Internal Revision:"
                                        FontSize="18"
@@ -564,7 +558,7 @@
                                        Margin="10,0,0,0"
                                        Foreground="#FF135185"/>
 
-                            <TextBlock Text="{Binding ShopOrder.InternalRev}"
+                            <TextBlock Text="{Binding ShopOrder.Product.InternalRev}"
                                    FontSize="18"
                                    FontWeight="Bold"
                                    Margin="10,0,0,0"/>
@@ -618,91 +612,97 @@
                 <Grid Grid.Row="7">
 
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" MaxWidth="550"/>
-                        <ColumnDefinition Width="*" MaxWidth="550"/>
+                        <ColumnDefinition Width="500"/>
+                        <ColumnDefinition Width="10"/>
+                        <ColumnDefinition Width="500"/>
                     </Grid.ColumnDefinitions>
 
-                    <StackPanel Grid.Column="0" Orientation="Vertical" MaxWidth="550"
-                                Visibility="{Binding IsPlan, Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="30"/>
+                        <RowDefinition Height="140"/>
+                        <RowDefinition Height="25"/>
+                    </Grid.RowDefinitions>
 
-                        <TextBox Text="Work Order Notes"
-                                 FontSize="18"
-                                 FontWeight="Bold"
-                                 Foreground="WhiteSmoke"
-                                 IsHitTestVisible="False"
-                                 BorderBrush="Black"
-                                 HorizontalContentAlignment="Center"
-                                 VerticalContentAlignment="Center"
-                                 Height="35"
-                                 Margin="0,10,10,0"
-                                 Style="{DynamicResource DisabledTextBox}">
-                            <TextBox.Background>
-                                <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
-                                    <GradientStop Color="#FF6B8E95" Offset="0"/>
-                                    <GradientStop Color="#FF14A7C1" Offset="1"/>
-                                    <GradientStop Color="#FF1E424E" Offset="0.509"/>
-                                    <GradientStop Color="#FF1D4855" Offset="0.542"/>
-                                    <GradientStop Color="#FF193A44" Offset="0.526"/>
-                                </LinearGradientBrush>
-                            </TextBox.Background>
-                        </TextBox>
+                    <Rectangle Grid.Column="0" Grid.Row="0"
+                               HorizontalAlignment="Stretch"
+                               VerticalAlignment="Stretch"
+                               Stroke="Black"
+                               StrokeThickness="1"
+                               Panel.ZIndex="0">
+                        <Rectangle.Fill>
+                            <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
+                                <GradientStop Color="#FF6B8E95" Offset="0"/>
+                                <GradientStop Color="#FF14A7C1" Offset="1"/>
+                                <GradientStop Color="#FF1E424E" Offset="0.509"/>
+                                <GradientStop Color="#FF1D4855" Offset="0.542"/>
+                                <GradientStop Color="#FF193A44" Offset="0.526"/>
+                            </LinearGradientBrush>
+                        </Rectangle.Fill>
+                    </Rectangle>
 
-                        <TextBox x:Name="WO_Notes"
-                                 Text="{Binding ShopOrderNotes, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay, FallbackValue={x:Null}}"
-                                 FontSize="18"
-                                 BorderBrush="Black"
-                                 Height="130"
-                                 Margin="0,0,10,0"
-                                 TextWrapping="WrapWithOverflow"
-                                 VerticalScrollBarVisibility="Auto"
-                                 Focusable="{Binding CanSchedule, Source={StaticResource User}}"
-                                 AcceptsReturn="True"/>
+                    <TextBlock Grid.Column="0" Grid.Row="0"
+                               Text="Work Order Notes"
+                               FontSize="18"
+                               VerticalAlignment="Center"
+                               HorizontalAlignment="Center"
+                               FontWeight="Bold"
+                               Foreground="WhiteSmoke"/>
 
-                        <Button Content="Save"
-                                Command="{Binding WONoteChgICommand}"
-                                HorizontalAlignment="Center"
-                                Width="90"
-                                Height="25"
-                                Visibility="{Binding IsFocused, Converter={StaticResource BoolToVisConverter}, ElementName=WO_Notes}"
-                                Style="{DynamicResource DefaultButton}"/>
+                    <Button Name="SaveButton"
+                            Grid.Column="0" Grid.Row="0"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            Command="{Binding WONoteChgICommand}"
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Center"
+                            Visibility="{Binding IsFocused, Converter={StaticResource BoolToVisConverter}, ElementName=WoNotesTextBox}"
+                            Style="{DynamicResource DefaultButton}">
+                        <Image Source="/SFW;component/Icons/Accept.ico" Margin="2,2,5,2"/>
+                    </Button>
 
-                    </StackPanel>
+                    <TextBox Name="WoNotesTextBox"
+                             Grid.Column="0" Grid.Row="1"
+                             Text="{Binding ShopOrderNotes, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay, FallbackValue={x:Null}}"
+                             FontSize="18"
+                             BorderBrush="Black"
+                             TextWrapping="WrapWithOverflow"
+                             VerticalScrollBarVisibility="Auto"
+                             Focusable="{Binding Path=(main:CurrentUser.CanSchedule)}"
+                             AcceptsReturn="True"/>
 
-                    <StackPanel Grid.Column="1" Orientation="Vertical" MaxWidth="550">
+                    <Rectangle Grid.Column="2" Grid.Row="0"
+                               HorizontalAlignment="Stretch"
+                               VerticalAlignment="Stretch"
+                               Stroke="Black"
+                               StrokeThickness="1"
+                               Panel.ZIndex="0">
+                        <Rectangle.Fill>
+                            <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
+                                <GradientStop Color="#FF6B8E95" Offset="0"/>
+                                <GradientStop Color="#FF14A7C1" Offset="1"/>
+                                <GradientStop Color="#FF1E424E" Offset="0.509"/>
+                                <GradientStop Color="#FF1D4855" Offset="0.542"/>
+                                <GradientStop Color="#FF193A44" Offset="0.526"/>
+                            </LinearGradientBrush>
+                        </Rectangle.Fill>
+                    </Rectangle>
 
-                        <TextBox Text="Shop Floor Notes"
-                                 FontSize="18"
-                                 FontWeight="Bold"
-                                 Foreground="WhiteSmoke"
-                                 BorderBrush="Black"
-                                 HorizontalContentAlignment="Center"
-                                 VerticalContentAlignment="Center"
-                                 Height="35"
-                                 IsHitTestVisible="False"
-                                 Margin="10,10,0,0"
-                                 Focusable="False"
-                                 Style="{DynamicResource DisabledTextBox}">
-                            <TextBox.Background>
-                                <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
-                                    <GradientStop Color="#FF6B8E95" Offset="0"/>
-                                    <GradientStop Color="#FF14A7C1" Offset="1"/>
-                                    <GradientStop Color="#FF1E424E" Offset="0.509"/>
-                                    <GradientStop Color="#FF1D4855" Offset="0.542"/>
-                                    <GradientStop Color="#FF193A44" Offset="0.526"/>
-                                </LinearGradientBrush>
-                            </TextBox.Background>
-                        </TextBox>
+                    <TextBlock Grid.Column="2" Grid.Row="0"
+                               Text="Shop Floor Notes"
+                               FontSize="18"
+                               VerticalAlignment="Center"
+                               HorizontalAlignment="Center"
+                               FontWeight="Bold"
+                               Foreground="WhiteSmoke"/>
 
-                        <TextBox Text="{Binding ShopOrder.ShopNotes}"
-                                 FontSize="18"
-                                 BorderBrush="Black"
-                                 Height="130"
-                                 Margin="10,0,0,0"
-                                 TextWrapping="WrapWithOverflow"
-                                 Focusable="False"
-                                 Style="{DynamicResource DisabledTextBox}"/>
-
-                    </StackPanel>
+                    <TextBox Name="ShopNotesTextBox"
+                             Grid.Column="2" Grid.Row="1"
+                             Text="{Binding ShopOrder.ShopNotes}"
+                             FontSize="18"
+                             BorderBrush="Black"
+                             TextWrapping="WrapWithOverflow"
+                             Focusable="False"
+                             Style="{DynamicResource DisabledTextBox}"/>
 
                 </Grid>
 
@@ -858,7 +858,7 @@
 
                         <TabItem Header="Picklist Parts"
                                  FontSize="18"
-                                 Visibility="{Binding ShopOrder.Picklist.Count, Converter={StaticResource CountToVisConverter}}"
+                                 Visibility="{Binding ShopOrder.PickList.Count, Converter={StaticResource CountToVisConverter}}"
                                  IsSelected="{Binding BomOnly, Converter={StaticResource BoolInvertConverter}}"
                                  Style="{DynamicResource ModernTabItem}">
 
@@ -876,11 +876,11 @@
                                     <RowDefinition Height="*"/>
                                 </Grid.RowDefinitions>
 
-                                <!--#region Picklist DataGrid-->
+                                <!--#region PickList DataGrid-->
 
                                 <DataGrid Grid.ColumnSpan="3" Grid.Row="0"
                                           x:Name="dgPick"
-                                          ItemsSource="{Binding ShopOrder.Picklist}"
+                                          ItemsSource="{Binding ShopOrder.PickList}"
                                           SelectedItem="{Binding SelectedILotItem, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                           IsReadOnly="True"
                                           FontSize="18"
@@ -915,8 +915,8 @@
                                                             <Image Source="/SFW;component/Icons/PartSearch.ico" />
                                                             <Button.CommandParameter>
                                                                 <MultiBinding Converter="{StaticResource PartSearchConverter}">
-                                                                    <Binding Path="CompNumber" />
-                                                                    <Binding Path="CompMasterPrint" />
+                                                                    <Binding Path="ProductNumber" />
+                                                                    <Binding Path="ProductMasterPrint" />
                                                                 </MultiBinding>
                                                             </Button.CommandParameter>
                                                         </Button>
@@ -941,39 +941,39 @@
                                                             <Button.CommandParameter>
                                                                 <MultiBinding Converter="{StaticResource MultiValConverter}">
                                                                     <Binding Path="Name" RelativeSource="{RelativeSource Self}"/>
-                                                                    <Binding Path="CompNumber"/>
+                                                                    <Binding Path="ProductNumber"/>
                                                                 </MultiBinding>
                                                             </Button.CommandParameter>
                                                         </Button>
-                                                        <TextBlock Text="{Binding CompNumber}"
+                                                        <TextBlock Text="{Binding ProductNumber}"
                                                                    Margin="20,0,5,0"/>
                                                     </StackPanel>
                                                 </DataTemplate>
                                             </DataGridTemplateColumn.CellTemplate>
                                         </DataGridTemplateColumn>
                                         <DataGridTextColumn Header=" Description"
-                                                            Binding="{Binding CompDescription}" />
+                                                            Binding="{Binding ProductDescription}" />
                                         <DataGridTextColumn Header=" Assembly ">
                                             <DataGridTextColumn.Binding>
                                                 <MultiBinding StringFormat="{}{0}  {1}">
-                                                    <Binding Path="AssemblyQty" />
-                                                    <Binding Path="CompUom" />
+                                                    <Binding Path="AssemblyQuantity" />
+                                                    <Binding Path="ProductUom" />
                                                 </MultiBinding>
                                             </DataGridTextColumn.Binding>
                                         </DataGridTextColumn>
                                         <DataGridTextColumn Header=" On Hand ">
                                             <DataGridTextColumn.Binding>
                                                 <MultiBinding StringFormat="{}{0}  {1}">
-                                                    <Binding Path="CurrentOnHand" />
-                                                    <Binding Path="CompUom" />
+                                                    <Binding Path="Stock" />
+                                                    <Binding Path="ProductUom" />
                                                 </MultiBinding>
                                             </DataGridTextColumn.Binding>
                                         </DataGridTextColumn>
                                         <DataGridTextColumn Header=" Required ">
                                             <DataGridTextColumn.Binding>
                                                 <MultiBinding StringFormat="{}{0}  {1}">
-                                                    <Binding Path="RequiredQty" />
-                                                    <Binding Path="CompUom" />
+                                                    <Binding Path="RequiredQuantity" />
+                                                    <Binding Path="ProductUom" />
                                                 </MultiBinding>
                                             </DataGridTextColumn.Binding>
                                         </DataGridTextColumn>
@@ -1110,7 +1110,7 @@
                                 <!--#region Bill of Material Grid-->
 
                                 <DataGrid x:Name="dgBom"
-                                          ItemsSource="{Binding ShopOrder.Bom}"
+                                          ItemsSource="{Binding ShopOrder.BillList}"
                                           SelectedItem="{Binding SelectedILotItem, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                           IsReadOnly="True"
                                           Focusable="False"
@@ -1146,13 +1146,13 @@
                                                             <Image Source="/SFW;component/Icons/PartSearch.ico" />
                                                             <Button.CommandParameter>
                                                                 <MultiBinding Converter="{StaticResource PartSearchConverter}">
-                                                                    <Binding Path="CompNumber" />
-                                                                    <Binding Path="CompMasterPrint" />
+                                                                    <Binding Path="ProductNumber" />
+                                                                    <Binding Path="ProductMasterPrint" />
                                                                 </MultiBinding>
                                                             </Button.CommandParameter>
                                                         </Button>
                                                         <Button Command="{StaticResource ViewLoadCommand}"
-                                                                CommandParameter="{Binding CompNumber}"
+                                                                CommandParameter="{Binding ProductNumber}"
                                                                 Height="20"
                                                                 Width="40"
                                                                 Background="Transparent"
@@ -1160,19 +1160,19 @@
                                                                 Style="{DynamicResource DefaultButton}">
                                                             <Image Source="/SFW;component/Icons/Search.ico" />
                                                         </Button>
-                                                        <TextBlock Text="{Binding CompNumber}"
+                                                        <TextBlock Text="{Binding ProductNumber}"
                                                                    Margin="20,0,5,0"/>
                                                     </StackPanel>
                                                 </DataTemplate>
                                             </DataGridTemplateColumn.CellTemplate>
                                         </DataGridTemplateColumn>
                                         <DataGridTextColumn Header=" Description"
-                                                            Binding="{Binding CompDescription}" />
+                                                            Binding="{Binding ProductDescription}" />
                                         <DataGridTextColumn Header=" Assembly ">
                                             <DataGridTextColumn.Binding>
                                                 <MultiBinding StringFormat="{}{0}  {1}">
-                                                    <Binding Path="AssemblyQty" />
-                                                    <Binding Path="CompUom" />
+                                                    <Binding Path="AssemblyQuantity" />
+                                                    <Binding Path="ProductUom" />
                                                 </MultiBinding>
                                             </DataGridTextColumn.Binding>
                                         </DataGridTextColumn>

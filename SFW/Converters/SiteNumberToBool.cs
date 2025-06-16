@@ -11,9 +11,9 @@ namespace SFW.Converters
         {
             switch(parameter.ToString())
             {
-                case "CSI":
+                case "Arlington":
                     return System.Convert.ToInt32(value) == 2;
-                case "WCCO":
+                case "Wahpeton":
                     return System.Convert.ToInt32(value) == 1;
                 default:
                     return false;

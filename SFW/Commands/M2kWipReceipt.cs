@@ -1,4 +1,4 @@
-﻿using SFW.Model;
+﻿using SFW.Model.Production;
 using System;
 using System.Windows.Input;
 
@@ -6,7 +6,11 @@ namespace SFW.Commands
 {
     public class M2kWipReceipt : ICommand
     {
-        public event EventHandler CanExecuteChanged;
+        public event EventHandler CanExecuteChanged
+        {
+            add {  }
+            remove { }
+        }
 
         public void Execute(object parameter)
         {

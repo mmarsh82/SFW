@@ -7,7 +7,11 @@ namespace SFW.Commands
 {
     public class WorkInstructions : ICommand
     {
-        public event EventHandler CanExecuteChanged;
+        public event EventHandler CanExecuteChanged
+        {
+            add {  }
+            remove { }
+        }
 
         public void Execute(object parameter)
         {

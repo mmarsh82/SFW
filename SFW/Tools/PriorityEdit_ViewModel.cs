@@ -1,5 +1,6 @@
 ﻿using M2kClient;
 using SFW.Helpers;
+using SFW.Model.Production;
 using System.Data;
 using System.Linq;
 using System.Windows;
@@ -102,10 +103,10 @@ namespace SFW.Tools
             }
             else
             {
-                var _row = Model.ModelBase.MasterDataSet.Tables["Master"].Select($"[WorkOrder] = '{OrderNumber}'");
-                var _index = Model.ModelBase.MasterDataSet.Tables["Master"].Rows.IndexOf(_row.FirstOrDefault());
-                Model.ModelBase.MasterDataSet.Tables["Master"].Rows[_index].SetField("Sched_Shift", string.IsNullOrEmpty(Shift) ? 999 : int.Parse(Shift));
-                Model.ModelBase.MasterDataSet.Tables["Master"].Rows[_index].SetField("Sched_Priority", Priority);
+                var _row = Model.ModelBase.MasterDataSet.Tables[typeof(WorkOrder).Name].Select($"[WorkOrder] = '{OrderNumber}'");
+                var _index = Model.ModelBase.MasterDataSet.Tables[typeof(WorkOrder).Name].Rows.IndexOf(_row.FirstOrDefault());
+                Model.ModelBase.MasterDataSet.Tables[typeof(WorkOrder).Name].Rows[_index].SetField("Sched_Shift", string.IsNullOrEmpty(Shift) ? 999 : int.Parse(Shift));
+                Model.ModelBase.MasterDataSet.Tables[typeof(WorkOrder).Name].Rows[_index].SetField("Sched_Priority", Priority);
             }
             App.CloseWindow<PriorityEdit_View>();
         }

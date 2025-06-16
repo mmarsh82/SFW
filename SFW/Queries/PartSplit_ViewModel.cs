@@ -1,5 +1,5 @@
 ﻿using SFW.Helpers;
-using SFW.Model;
+using SFW.Model.Product;
 using System;
 using System.ComponentModel;
 using System.Linq;
@@ -33,8 +33,8 @@ namespace SFW.Queries
                 {
                     if (value.Count() >= 4)
                     {
-                        _startingQty = LotQuantity = Lot.GetLotOnHandQuantity(value);
-                        LotLocation = Lot.GetLotLocation(value);
+                        _startingQty = LotQuantity = Lot.GetOnHandQuantity(value);
+                        LotLocation = Lot.GetLocation(value);
                     }
                 }
                 ValidLot = _valid;

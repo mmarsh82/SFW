@@ -8,7 +8,11 @@ namespace SFW.Commands
 {
     public class PrintUserControl : ICommand
     {
-        public event EventHandler CanExecuteChanged;
+        public event EventHandler CanExecuteChanged
+        {
+            add {  }
+            remove { }
+        }
 
         public void Execute(object parameter)
         {

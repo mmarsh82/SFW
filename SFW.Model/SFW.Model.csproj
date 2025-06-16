@@ -53,36 +53,61 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Component.cs" />
-    <Compile Include="CompWipInfo.cs" />
-    <Compile Include="CrewMember.cs" />
-    <Compile Include="Count.cs" />
+    <Compile Include="AppException.cs" />
+    <Compile Include="Extensions.cs" />
+    <Compile Include="Management\Employee.cs" />
+    <Compile Include="InventoryControl\CountReceipt.cs" />
     <Compile Include="Enumerations\Complete.cs" />
-    <Compile Include="Enumerations\Extensions.cs" />
-    <Compile Include="IModel.cs" />
-    <Compile Include="Location.cs" />
-    <Compile Include="Lot.cs" />
+    <Compile Include="IModuleData.cs" />
+    <Compile Include="Management\EmployeeLabor.cs" />
+    <Compile Include="Production\Location.cs" />
     <Compile Include="ModelBase.cs" />
-    <Compile Include="QmsForm.cs" />
-    <Compile Include="PressReport.cs" />
-    <Compile Include="PressRound.cs" />
-    <Compile Include="PressShiftReport.cs" />
+    <Compile Include="Module.cs" />
+    <Compile Include="Production\BillComponent.cs" />
+    <Compile Include="Production\Component.cs" />
+    <Compile Include="Production\Machine.cs" />
+    <Compile Include="Production\PickComponent.cs" />
+    <Compile Include="Production\Wip\Component.cs" />
+    <Compile Include="Production\Wip\Lot.cs" />
+    <Compile Include="Production\Wip\Receipt.cs" />
+    <Compile Include="Production\Wip\Reclaim.cs" />
+    <Compile Include="Production\Wip\Scrap.cs" />
+    <Compile Include="Production\WorkOrder.cs" />
+    <Compile Include="Production\WorkOrderNote.cs" />
+    <Compile Include="Product\Diamond.cs" />
+    <Compile Include="Product\Lot.cs" />
+    <Compile Include="Product\Sku.cs" />
+    <Compile Include="Product\SkuInstruction.cs" />
+    <Compile Include="Product\SkuStructure.cs" />
+    <Compile Include="SupplyChain\WorkPlan.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="PurchaseOrder.cs" />
-    <Compile Include="SalesOrder.cs" />
-    <Compile Include="Sku.cs" />
-    <Compile Include="Machine.cs" />
-    <Compile Include="SkuContainer.cs" />
-    <Compile Include="Tool.cs" />
+    <Compile Include="Quality\Category.cs" />
+    <Compile Include="Quality\CategoryFilter.cs" />
+    <Compile Include="Quality\ClosingAction.cs" />
+    <Compile Include="Quality\Defect.cs" />
+    <Compile Include="Quality\Disposition.cs" />
+    <Compile Include="Quality\Extensions.cs" />
+    <Compile Include="Quality\FormType.cs" />
+    <Compile Include="Quality\Notice.cs" />
+    <Compile Include="Quality\QmsForm.cs" />
+    <Compile Include="Quality\Reason.cs" />
+    <Compile Include="Quality\Revision.cs" />
+    <Compile Include="Sales\SalesOrder.cs" />
+    <Compile Include="Sales\SalesOrderNote.cs" />
+    <Compile Include="Product\SkuContainer.cs" />
+    <Compile Include="Production\Tool.cs" />
     <Compile Include="UdefSku.cs" />
     <Compile Include="UdefSkuPass.cs" />
-    <Compile Include="Supplier.cs" />
-    <Compile Include="WipReceipt.cs" />
-    <Compile Include="WorkOrder.cs" />
-    <Compile Include="XMLTesting.cs" />
+    <Compile Include="Quality\Supplier.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\SFW.DataAccess\SFW.DataAccess.csproj">
+      <Project>{0e866741-8670-4be4-b6ca-dd56f9e8881b}</Project>
+      <Name>SFW.DataAccess</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

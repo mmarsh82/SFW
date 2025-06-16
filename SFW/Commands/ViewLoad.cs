@@ -1,5 +1,5 @@
 ﻿using SFW.Controls;
-using SFW.Model;
+using SFW.Model.Production;
 using SFW.Queries;
 using System;
 using System.Collections.Generic;
@@ -15,7 +15,11 @@ namespace SFW.Commands
     {
         public static IList<int> HistoryList { get; set; }
 
-        public event EventHandler CanExecuteChanged;
+        public event EventHandler CanExecuteChanged
+        {
+            add {  }
+            remove { }
+        }
 
         /// <summary>
         /// Default Constructor
@@ -47,10 +51,10 @@ namespace SFW.Commands
                     switch (z)
                     {
                         case -3:
-                            RefreshTimer.Stop();
+                            ApplicationTimer.Pause();
                             return;
                         case -4:
-                            RefreshTimer.Start();
+                            ApplicationTimer.Resume();
                             parameter = -2;
                             break;
                     }
@@ -69,7 +73,7 @@ namespace SFW.Commands
                 var refreshView = _view == 1 || _view == 2;
                 if (parameter.ToString().Contains("NCR*"))
                 {
-                    _viewModel = new QMS.Form.ViewModel(new WorkOrder(parameter.ToString().Split('*').Last()), QmsForm.FormType.NCR);
+                    _viewModel = new QMS.Form.ViewModel(new WorkOrder(parameter.ToString().Split('*').Last()), Model.Quality.FormType.NCR);
                     refreshView = false;
                 }
 
@@ -110,10 +114,9 @@ namespace SFW.Commands
                         break;
                     //Handles the refresh schedule calls
                     case -2:
-                        if (!RefreshTimer.IsRefreshing)
+                        if (ApplicationTimer.Status != TimerState.Running)
                         {
-                            RefreshTimer.RefreshTimerTick();
-                            RefreshTimer.Reset();
+                            ApplicationTimer.Tick(null);
                         }
                         else
                         {

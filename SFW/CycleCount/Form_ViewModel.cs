@@ -1,6 +1,7 @@
 ﻿using M2kClient;
 using SFW.Helpers;
-using SFW.Model;
+using SFW.Model.InventoryControl;
+using SFW.Model.Product;
 using System;
 using System.Collections.Generic;
 using System.Windows.Input;
@@ -11,8 +12,8 @@ namespace SFW.CycleCount
     {
         #region Properties
 
-        private Count _countTran;
-        public Count CountTran 
+        private CountReceipt _countTran;
+        public CountReceipt CountTran 
         { 
             get { return _countTran; }
             set
@@ -35,7 +36,7 @@ namespace SFW.CycleCount
             }
         }
 
-        public bool IsLocValid { get { return !string.IsNullOrEmpty(CountLocation) && Sku.IsValidLocation(CountTran.CountLoc, App.SiteNumber); } }
+        public bool IsLocValid { get { return !string.IsNullOrEmpty(CountLocation) && Model.Production.Location.Valid(CountTran.CountLoc, App.SiteNumber); } }
         public int LocSize { get { return IsLocValid ? 1 : 3; } }
 
         public IList<Lot> ILotResultsList { get; set; }
@@ -53,7 +54,7 @@ namespace SFW.CycleCount
         /// </summary>
         public Form_ViewModel()
         {
-            CountTran = new Count();
+            CountTran = new CountReceipt();
             ResultsAsyncDelegate = new ResultsDelegate(ResultsLoading);
         }
 
@@ -61,7 +62,7 @@ namespace SFW.CycleCount
         /// Cycle Count Form ViewModel overloaded constructor
         /// </summary>
         /// <param name="_cnt">Cycle Count Object</param>
-        public Form_ViewModel(Count _cnt)
+        public Form_ViewModel(CountReceipt _cnt)
         {
             CountTran = _cnt;
             ResultsAsyncDelegate = new ResultsDelegate(ResultsLoading);
@@ -72,10 +73,10 @@ namespace SFW.CycleCount
 
         public void ResultsLoading(string inputVal)
         {
-            ILotResultsList = Lot.GetOnHandLotList(inputVal, true, App.SiteNumber);
+            ILotResultsList = Lot.GetOnHandList(inputVal, true, App.SiteNumber);
             if (ILotResultsList.Count == 0)
             {
-                ILotResultsList = Lot.GetOnHandLotList(inputVal, false, App.SiteNumber);
+                ILotResultsList = Lot.GetOnHandList(inputVal, false, App.SiteNumber);
             }
         }
         public void ResultsLoaded(IAsyncResult r)

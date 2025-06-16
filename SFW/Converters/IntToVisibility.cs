@@ -11,12 +11,16 @@ namespace SFW.Converters
 
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
+            if (parameter != null && parameter.ToString() == "Time")
+            {
+                return int.TryParse(value.ToString(), out int i) && i > 0 ? Visibility.Visible : Visibility.Collapsed;
+            }
             if (parameter != null && parameter.ToString()[0] == 'L')
             {
                 var _shift = parameter.ToString()[1].ToString();
                 return _shift == value.ToString() ? Visibility.Visible : Visibility.Collapsed;
             }
-            else if (parameter != null && parameter.ToString().Contains("Ncr"))
+            if (parameter != null && parameter.ToString().Contains("Ncr"))
             {
                 var _temp = int.TryParse(value.ToString(), out int i) ? i : 0;
                 switch (parameter.ToString())
@@ -57,18 +61,24 @@ namespace SFW.Converters
         {
             if (parameter != null && values?.Length != 0)
             {
-                if (int.TryParse(values[0].ToString(), out int _id) && bool.TryParse(values[1].ToString(), out bool _isNew))
+                if (parameter.ToString() == "EmptyForm")
+                {
+                    return values[0] == DependencyProperty.UnsetValue ? Visibility.Visible : Visibility.Hidden;
+                }
+                else if (int.TryParse(values[0].ToString(), out int _id) && bool.TryParse(values[1].ToString(), out bool _isNew))
                 {
                     switch (parameter.ToString())
                     {
-                        case "NcrHeader":
+                        case "QmsHeader":
                             return _id == 0 && _isNew == false ? Visibility.Visible : Visibility.Hidden;
-                        case "NcrDetail":
+                        case "QmsDetail":
                             return (_id == 0 && _isNew) || (_id > 0 && !_isNew) ? Visibility.Visible : Visibility.Hidden;
+                        case "SelectedForm":
+                            return Visibility.Visible;
                     }
                 }
             }
-            return Visibility.Visible;
+            return Visibility.Hidden;
         }
 
         public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)

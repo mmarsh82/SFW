@@ -5,7 +5,11 @@ namespace SFW.Commands
 {
     public class SafeShutdown : ICommand
     {
-        public event EventHandler CanExecuteChanged;
+        public event EventHandler CanExecuteChanged
+        {
+            add {  }
+            remove { }
+        }
 
         /// <summary>
         /// Safe application shutdown ICommand execution

@@ -1,4 +1,4 @@
-﻿using SFW.Model;
+﻿using SFW.Model.Production.Wip;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -117,7 +117,7 @@ namespace M2kClient.M2kADIArray
         /// Use when you have a lot number for the parent part and there is only a single bucket for all components in the wip receipt
         /// </summary>
         /// <param name="wipRecord">Wip receipt object</param>
-        public Wip(WipReceipt wipRecord)
+        public Wip(Receipt wipRecord)
         {
             StationId = wipRecord.Submitter;
             FacilityCode = wipRecord.Facility;
@@ -137,30 +137,30 @@ namespace M2kClient.M2kADIArray
             ComponentInfoList = new List<CompInfo>();
             AdjustmentList = new List<Adjust>();
             Type = wipRecord.WipWorkOrder.TaskType.FirstOrDefault();
-            foreach(var c in wipRecord.WipWorkOrder.Picklist.Where(o => o.IsLotTrace))
+            foreach (var _comp in wipRecord.ComponentList.Where(o => o.LotTraceable))
             {
-                var _backFlush = c.BackflushLoc;
-                foreach(var w in c.WipInfo.Where(o => !string.IsNullOrEmpty(o.LotNbr)))
+                foreach (var _lot in _comp.LotList.Where(o => o.Valid))
                 {
                     //Calculating scrap factor
-                    if (w.ScrapFactor > 0 && w.LotQty != null && w.LotQty > 0)
+                    if (_comp.ScrapFactor > 0)
                     {
-                        var _qty = double.TryParse(w.LotQty.ToString(), out double d) ? d : 0.00;
-                        w.LotQty = (int)Math.Round(_qty * (1 + w.ScrapFactor), 0, MidpointRounding.AwayFromZero);
+                        var _qty = double.TryParse(_lot.Quantity, out double d) ? d : 0.00;
+                        _lot.Quantity = Math.Round(_qty * (1 + _comp.ScrapFactor), 0, MidpointRounding.AwayFromZero).ToString();
                     }
 
                     //Creating the object for submission
+                    //TODO: need to look at scrap by lot
                     ComponentInfoList.Add(new CompInfo
                     {
-                        Lot = w.LotNbr,
-                        PartNbr = w.PartNbr,
-                        Quantity = Convert.ToInt32(w.LotQty),
+                        Lot = _lot.ID,
+                        PartNbr = _comp.ProductNumber,
+                        Quantity = Convert.ToInt32(_lot.Quantity),
                         WorkOrderNbr = wipRecord.WipWorkOrder.OrderNumber,
-                        IssueLoc = !string.IsNullOrEmpty(_backFlush) ? _backFlush : w.RcptLoc
+                        IssueLoc = !string.IsNullOrEmpty(_comp.BackFlushLoc) ? _comp.BackFlushLoc : _lot.Location
                     });
-                    if (w.ScrapList != null && w.ScrapList.Count() > 0)
+                    if (_comp.ScrapList != null && _comp.ScrapList.Count() > 0)
                     {
-                        foreach (var s in w.ScrapList.Where(o => int.TryParse(o.Quantity, out int i)))
+                        foreach (var s in _comp.ScrapList.Where(o => int.TryParse(o.Quantity, out int i)))
                         {
                             var _reason = AdjustCode.QSC;
                             if (wipRecord.WipWorkOrder.Facility == 2 && string.IsNullOrEmpty(s.Reference))
@@ -171,12 +171,12 @@ namespace M2kClient.M2kADIArray
                                         wipRecord.Submitter,
                                         wipRecord.Facility,
                                         !string.IsNullOrEmpty(s.Reference) ? $"{s.Reference}*{wipRecord.WipWorkOrder.OrderNumber}" : wipRecord.WipWorkOrder.OrderNumber,
-                                        w.PartNbr,
+                                        _comp.ProductNumber,
                                         _reason,
                                         'S',
                                         Convert.ToInt32(s.Quantity),
-                                        !string.IsNullOrEmpty(_backFlush) ? _backFlush : w.RcptLoc,
-                                        w.LotNbr));
+                                        !string.IsNullOrEmpty(_comp.BackFlushLoc) ? _comp.BackFlushLoc : _lot.Location,
+                                        _lot.ID));
                         }
                     }
                 }

@@ -49,17 +49,11 @@ namespace M2kClient
             get
             { switch (Database)
                 {
-                    case Database.CSI:
-                    case Database.CSITRAIN:
-                        return "CSI";
-                    case Database.WCCO:
-                    case Database.WCCOTRAIN:
-                        return "C2K";
                     case Database.CONTI:
                     case Database.CONTITRAIN:
                         return Facility == 1 ? "CONTI_W" : "CONTI_A";
                     default:
-                        return string.Empty;
+                        return "CONTI_W";
                 } 
             }
         }
@@ -71,20 +65,12 @@ namespace M2kClient
             {
                 switch (Database)
                 {
-                    case Database.CSI:
-                        return "E:/roi/CSI.MAIN";
-                    case Database.WCCO:
-                        return "E:/roi/WCCO.MAIN";
-                    case Database.CSITRAIN:
-                        return "E:/roi/CSI.TRAIN";
-                    case Database.WCCOTRAIN:
-                        return "E:/roi/WCCO.TRAIN";
                     case Database.CONTI:
                         return "D:/roi/CONTI.MAIN";
                     case Database.CONTITRAIN:
                         return "D:/roi/CONTI.TRAIN";
                     default:
-                        return string.Empty;
+                        return "D:/roi/CONTI.MAIN";
                 }
             }
         }

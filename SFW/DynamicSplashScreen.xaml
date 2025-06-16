@@ -12,6 +12,7 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
             <RowDefinition Height="40"/>
+            <RowDefinition Height="40"/>
             <RowDefinition Height="10"/>
         </Grid.RowDefinitions>
         <Image Grid.Row="0"
@@ -35,7 +36,15 @@
                    Text="{Binding Path=(local:App.SplashMessage)}"
                    HorizontalAlignment="Center"
                    VerticalAlignment="Bottom"
-                   FontSize="22"
+                   FontSize="30"
                    Foreground="DeepSkyBlue" />
+
+        <TextBlock Grid.Row="2"
+                   x:Name="UpdateDetail"
+                   Text="{Binding Path=(local:App.SplashDetail)}"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Bottom"
+                   FontSize="20"
+                   Foreground="Goldenrod" />
     </Grid>
 </Window>

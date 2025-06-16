@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Data;
 
@@ -99,10 +98,10 @@ namespace SFW.Converters
             {
                 switch (values[0])
                 {
-                    case "CSI":
+                    case "Arlington":
                         values[0] = 0;
                         break;
-                    case "WCCO":
+                    case "Wahpeton":
                         values[0] = 1;
                         break;
                 }

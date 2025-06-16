@@ -20,11 +20,6 @@
         <cvtr:StringToVisibility x:Key="StringToVisConverter" />
         <cvtr:ValueToHeight x:Key="ValueToHeightConverter"/>
         <cvtr:MultiValueParameter x:Key="MultiValParamConverter"/>
-        <CollectionViewSource x:Key="SalesSource" Source="{Binding SalesScheduleView}">
-            <CollectionViewSource.GroupDescriptions>
-                <PropertyGroupDescription PropertyName="FullCustName"/>
-            </CollectionViewSource.GroupDescriptions>
-        </CollectionViewSource>
 
         <ContextMenu x:Key="rowMenu">
             <MenuItem Header="Link Work Order"
@@ -193,8 +188,8 @@
 
         <DataGrid x:Name="SalesSchedule"
                   Grid.Row="2"
-                  ItemsSource="{Binding Source={StaticResource SalesSource}}"
-                  SelectedItem="{Binding SelectedSalesOrder, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                  ItemsSource="{Binding CollectionView}"
+                  IsSynchronizedWithCurrentItem="True"
                   HorizontalAlignment="Left"
                   HeadersVisibility="None"
                   AutoGenerateColumns="False"
@@ -304,7 +299,7 @@
                                 </Setter.Value>
                             </Setter>
                         </DataTrigger>
-                        <DataTrigger Binding="{Binding Type}" Value="DAI">
+                        <DataTrigger Binding="{Binding Type}" Value="DS3">
                             <Setter Property="Background">
                                 <Setter.Value>
                                     <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
@@ -334,6 +329,16 @@
                                 </Setter.Value>
                             </Setter>
                         </DataTrigger>
+                        <DataTrigger Binding="{Binding Type}" Value="FCO">
+                            <Setter Property="Background">
+                                <Setter.Value>
+                                    <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                                        <GradientStop Color="White" Offset="0"/>
+                                        <GradientStop Color="CadetBlue" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </Setter.Value>
+                            </Setter>
+                        </DataTrigger>
                         <DataTrigger Binding="{Binding Type}" Value="EOP">
                             <Setter Property="Background">
                                 <Setter.Value>
@@ -344,21 +349,17 @@
                                 </Setter.Value>
                             </Setter>
                         </DataTrigger>
-                        <DataTrigger Binding="{Binding Type}" Value="DA2">
+                        <DataTrigger Binding="{Binding Type}" Value="DS2">
                             <Setter Property="Background">
                                 <Setter.Value>
                                     <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
                                         <GradientStop Color="White" Offset="0"/>
-                                        <GradientStop Color="Orange" Offset="1"/>
+                                        <GradientStop Color="DarkOrange" Offset="1"/>
                                     </LinearGradientBrush>
                                 </Setter.Value>
                             </Setter>
                         </DataTrigger>
-                        <MultiDataTrigger>
-                            <MultiDataTrigger.Conditions>
-                                <Condition Binding="{Binding CanShip}" Value="0"/>
-                                <Condition Binding="{Binding Type}" Value="DAI"/>
-                            </MultiDataTrigger.Conditions>
+                        <DataTrigger Binding="{Binding Type}" Value="DS1">
                             <Setter Property="Background">
                                 <Setter.Value>
                                     <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
@@ -367,7 +368,17 @@
                                     </LinearGradientBrush>
                                 </Setter.Value>
                             </Setter>
-                        </MultiDataTrigger>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding Type}" Value="STK">
+                            <Setter Property="Background">
+                                <Setter.Value>
+                                    <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                                        <GradientStop Color="White" Offset="0"/>
+                                        <GradientStop Color="Wheat" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </Setter.Value>
+                            </Setter>
+                        </DataTrigger>
                     </Style.Triggers>
                 </Style>
             </DataGrid.RowStyle>
@@ -381,7 +392,7 @@
                         <MultiDataTrigger>
                             <MultiDataTrigger.Conditions>
                                 <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsSelected}" Value="True"/>
-                                <Condition Binding="{Binding Type}" Value="DAI"/>
+                                <Condition Binding="{Binding Type}" Value="DS3"/>
                             </MultiDataTrigger.Conditions>
                             <Setter Property="Background" Value="LightCoral"/>
                             <Setter Property="Foreground" Value="Black"/>
@@ -407,7 +418,7 @@
                                 <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsSelected}" Value="True"/>
                                 <Condition Binding="{Binding Type}" Value="FCO"/>
                             </MultiDataTrigger.Conditions>
-                            <Setter Property="Background" Value="Beige"/>
+                            <Setter Property="Background" Value="LightBlue"/>
                             <Setter Property="Foreground" Value="Black"/>
                         </MultiDataTrigger>
                         <MultiDataTrigger>
@@ -421,10 +432,25 @@
                         <MultiDataTrigger>
                             <MultiDataTrigger.Conditions>
                                 <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsSelected}" Value="True"/>
-                                <Condition Binding="{Binding CanShip}" Value="0"/>
-                                <Condition Binding="{Binding Type}" Value="DAI"/>
+                                <Condition Binding="{Binding Type}" Value="DS1"/>
                             </MultiDataTrigger.Conditions>
                             <Setter Property="Background" Value="Orchid"/>
+                            <Setter Property="Foreground" Value="Black"/>
+                        </MultiDataTrigger>
+                        <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                                <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsSelected}" Value="True"/>
+                                <Condition Binding="{Binding Type}" Value="DS2"/>
+                            </MultiDataTrigger.Conditions>
+                            <Setter Property="Background" Value="Bisque"/>
+                            <Setter Property="Foreground" Value="Black"/>
+                        </MultiDataTrigger>
+                        <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                                <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsSelected}" Value="True"/>
+                                <Condition Binding="{Binding Type}" Value="STK"/>
+                            </MultiDataTrigger.Conditions>
+                            <Setter Property="Background" Value="Beige"/>
                             <Setter Property="Foreground" Value="Black"/>
                         </MultiDataTrigger>
                     </Style.Triggers>

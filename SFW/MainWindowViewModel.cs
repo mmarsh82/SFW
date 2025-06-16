@@ -1,5 +1,6 @@
 ﻿using SFW.Controls;
 using SFW.Model;
+using SFW.Model.Production;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -27,22 +28,22 @@ namespace SFW
             get { return mach; }
             set
             {
-                if (value == null)
+                if (value == null && MachineList.Count() > 0)
                 {
                     value = MachineList[0];
                 }
                 if (mach != value && !IsChanging)
                 {
                     IsChanging = true;
-                    var _mGroup = Machine.GetMachineGroup(value, 'M');
+                    var _mGroup = Machine.GetGroup(value, 'M');
                     if (_mGroup != SelectedMachineGroup)
                     {
                         SelectedMachineGroup = _mGroup;
                     }
-                    var _mNbr = Machine.GetMachineNumber(value);
-                    Schedule.ViewModel.ScheduleFilter(value == "All" ? "" : $"MachineNumber = '{_mNbr}'", 1);
+                    var _mNbr = Machine.GetNumber(value);
+                    WorkSpaceDock.UpdateChildDockMachineFilter(1, 1, value == "All" ? "" : $"[MachineNumber] = '{_mNbr}'");
                     WorkSpaceDock.UpdateChildDockMachineFilter(11, 1, value == "All" ? "" : $"[MachineNumber] = '{_mNbr}'");
-                    WorkSpaceDock.UpdateChildDockMachineFilter(9, 4, value == "All" ? "" : $"[FoundWorkCenterId] = '{_mNbr}'");
+                    WorkSpaceDock.UpdateChildDockMachineFilter(9, 1, value == "All" ? "" : $"[FoundWorkCenterId] = '{_mNbr}'");
                     IsChanging = false;
                 }
                 mach = value;
@@ -66,9 +67,9 @@ namespace SFW
                 if (machGrp != value && !IsChanging)
                 {
                     IsChanging = true;
-                    Schedule.ViewModel.ScheduleFilter(value == "All" ? "" : $"[MachineGroup] = '{value}'", 2);
+                    WorkSpaceDock.UpdateChildDockMachineFilter(1, 2, value == "All" ? "" : $"[MachineGroup] = '{value}'");
                     WorkSpaceDock.UpdateChildDockMachineFilter(11, 2, value == "All" ? "" : $"[MachineGroup] = '{value}'");
-                    WorkSpaceDock.UpdateChildDockMachineFilter(9, 5, value == "All" ? "" : $"[FoundWorkCenterGroup] = '{value}'");
+                    WorkSpaceDock.UpdateChildDockMachineFilter(9, 2, value == "All" ? "" : $"[FoundWorkCenterGroup] = '{value}'");
                     SelectedMachine = MachineList.FirstOrDefault(o => o == "All");
                     IsChanging = false;
                 }
@@ -86,17 +87,6 @@ namespace SFW
             set { cUpdate = value; OnPropertyChanged(nameof(CanUpdate)); }
         }
 
-        private static bool dAct;
-        public static bool DisplayAction
-        {
-            get { return dAct; }
-            set
-            {
-                dAct = value;
-                StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(DisplayAction)));
-            }
-        }
-
         private static bool canFltr;
         public static bool CanFilter
         {
@@ -111,7 +101,11 @@ namespace SFW
         public static bool Initialization;
         private static bool IsChanging;
         public static event EventHandler<PropertyChangedEventArgs> StaticPropertyChanged;
-        public event EventHandler CanExecuteChanged;
+        public event EventHandler CanExecuteChanged
+        {
+            add {  }
+            remove { }
+        }
 
         #endregion
 
@@ -125,9 +119,8 @@ namespace SFW
                 UpdateProperties(false);
                 IsChanging = false;
                 CanUpdate = false;
-                CanFilter = !App.IsFocused;
                 new WorkSpaceDock();
-                RefreshTimer.RefreshActionGroup.Add(MainUpdate);
+                ApplicationTimer.ActionList.Add(MainUpdate);
                 Initialization = false;
             }
             catch (Exception ex)
@@ -145,30 +138,19 @@ namespace SFW
         {
             try
             {
-                DisplayAction = false;
                 if (!isRefresh && SelectedMachine == null && SelectedMachineGroup == null)
                 {
-                    MachineList = Machine.GetMachineNameList(true, App.SiteNumber);
-                    SelectedMachine = MachineList.First();
-                    MachineGroupList = Machine.GetMachineGroupList(true, App.SiteNumber);
+                    MachineList = Machine.GetNameList(true, App.SiteNumber);
+                    if (MachineList.Count() > 0)
+                    {
+                        SelectedMachine = MachineList.First();
+                    }
+                    MachineGroupList = Machine.GetGroupList(true, App.SiteNumber);
                     SelectedMachineGroup = MachineGroupList.First();
                 }
                 StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(MachineList)));
                 StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(MachineGroupList)));
-                if (CurrentUser.BasicUser && !isRefresh)
-                {
-                    Schedule.ViewModel.ScheduleFilter(UserConfig.BuildMachineFilter(), 1);
-                    Schedule.ViewModel.ScheduleFilter(UserConfig.BuildPriorityFilter(), 3);
-                    CanFilter = !App.IsFocused;
-                }
-                else
-                {
-                    if (!isRefresh)
-                    {
-                        Schedule.ViewModel.ClearFilter();
-                        CanFilter = true;
-                    }
-                }
+                CanFilter = !App.IsFocused;
             }
             catch (Exception ex)
             {
@@ -184,7 +166,7 @@ namespace SFW
             try
             {
                 var _ver = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
-                var _pubVer = new Version(ModelBase.GetVersion(App.AppSqlCon));
+                var _pubVer = new Version(ModelBase.DatabaseVersion);
                 if(_ver.Major != _pubVer.Major || _ver.Minor != _pubVer.Minor || _ver.Build != _pubVer.Build || _ver.Revision != _pubVer.Revision)
                 {
                     CanUpdate = true;

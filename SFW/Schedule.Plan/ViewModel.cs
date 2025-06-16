@@ -1,57 +1,26 @@
 ﻿using M2kClient;
 using SFW.Commands;
+using SFW.Converters;
 using SFW.Helpers;
 using SFW.Model;
+using SFW.Model.Production;
+using SFW.Model.SupplyChain;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Data;
 using System.Linq;
 using System.Windows;
+using System.Windows.Data;
 using System.Windows.Input;
 
 //Created by Michael Marsh 4-21-18
 
 namespace SFW.Schedule.Plan
 {
-    public class ViewModel : ViewModelBase
+    public class ViewModel : ScheduleBase
     {
         #region Properties
-
-        public string[] PlanViewFilter;
-        public DataView PlanningView { get; set; }
-
-        private DataRowView _selectedWO;
-        public DataRowView SelectedWorkOrder
-        {
-            get { return _selectedWO; }
-            set
-            {
-                _selectedWO = value;
-                if (value != null && App.LoadedModule == Enumerations.UsersControls.Plan)
-                {
-                    var _wo = new WorkOrder(value.Row);
-                    var _action = _wo.Inspection
-                        ? new Action(delegate { Controls.WorkSpaceDock.UpdateChildDock(11, 1, new ShopRoute.QTask.View { DataContext = new ShopRoute.QTask.ViewModel(_wo) }); })
-                        : new Action(delegate { Controls.WorkSpaceDock.UpdateChildDock(11, 1, new ShopRoute.View { DataContext = new ShopRoute.ViewModel(_wo) }); });
-                    Application.Current.Dispatcher.Invoke(_action);
-                }
-                OnPropertyChanged(nameof(SelectedWorkOrder));
-            }
-        }
-        public int SelectedIndex;
-
-        private string _sFilter;
-        public string SearchFilter
-        {
-            get { return _sFilter; }
-            set
-            {
-                _sFilter = value == "" ? null : value;
-                var _filter = string.IsNullOrEmpty(value) ? "" : PlanningView.Table.SearchRowFilter(value);
-                PlanFilter(_filter, 0);
-                OnPropertyChanged(nameof(SearchFilter));
-            }
-        }
 
         private bool _insp;
         public bool InspectionFilter
@@ -60,7 +29,7 @@ namespace SFW.Schedule.Plan
             set
             {
                 var _filter = value ? "[Inspection] = 'Y'" : "";
-                PlanFilter(_filter, 4);
+                Filter(_filter, 4);
                 _insp = value;
                 OnPropertyChanged(nameof(InspectionFilter));
             }
@@ -78,13 +47,13 @@ namespace SFW.Schedule.Plan
                 switch (value)
                 {
                     case "All":
-                        PlanFilter("", 5);
+                        Filter("", 5);
                         break;
                     case "Work Order":
-                        PlanFilter("[WO_Type]<>'P'", 5);
+                        Filter("[WO_Type]<>'P'", 5);
                         break;
                     case "Plan":
-                        PlanFilter("[WO_Type]='P'", 5);
+                        Filter("[WO_Type]='P'", 5);
                         break;
                 }
                 OnPropertyChanged(nameof(SelectedType));
@@ -99,7 +68,7 @@ namespace SFW.Schedule.Plan
             set
             {
                 _date = value;
-                PlanFilter($"[WO_DueDate] <= '{value}'", 6);
+                Filter($"[WO_DueDate] <= '{value}'", 6);
                 OnPropertyChanged(nameof(SelectedDate));
             }
         }
@@ -116,19 +85,15 @@ namespace SFW.Schedule.Plan
                 switch (value)
                 {
                     case "All":
-                        PlanFilter("", 7);
+                        Filter("", 7);
                         break;
                     default:
-                        PlanFilter($"[PlannerName]='{value}'", 7);
+                        Filter($"[PlannerName]='{value}'", 7);
                         break;
                 }
                 OnPropertyChanged(nameof(SelectedPlanner));
             }
         }
-
-        public delegate void LoadDelegate(string s, int i);
-        public LoadDelegate LoadAsyncDelegate { get; private set; }
-        public IAsyncResult LoadAsyncComplete { get; set; }
 
         private RelayCommand _stateChange;
         private RelayCommand _priChange;
@@ -142,102 +107,79 @@ namespace SFW.Schedule.Plan
         {
             if (App.SiteNumber == 1)
             {
-                RefreshTimer.RefreshActionGroup.Add(RefreshSchedule);
-                PlanningView = new DataView();
-                PlanViewFilter = new string[8];
+                ApplicationTimer.ActionList.Add(Refresh);
+                CollectionView = CollectionViewSource.GetDefaultView(new DataView());
                 TypeCollection = new ObservableCollection<string> { "All", "Work Order", "Plan" };
                 SelectedType = TypeCollection[0];
                 SelectedDate = DateTime.Today.AddMonths(1);
-                PlannerCollection = Sku.GetPlannerCollection();
+                PlannerCollection = WorkPlan.GetPlannerCollection();
                 SelectedPlanner = PlannerCollection[0];
-                LoadAsyncDelegate = new LoadDelegate(ViewLoading);
-                LoadAsyncComplete = LoadAsyncDelegate.BeginInvoke(PlanningView.RowFilter, 0, new AsyncCallback(ViewLoaded), null);
+                Refresh();
             }
         }
 
         /// <summary>
-        /// Filter the schedule view
-        /// Index values
-        /// 0 = Search Filter
-        /// 1 = Work Center Filter
-        /// 2 = Work Center Group Filter
-        /// 3 = Work Order Priority Filter
-        /// 4 = Inspection Filter
-        /// 5 = Type Filter
-        /// 6 = Date Filter
-        /// 7 = Planner Filter
+        /// Tracks the item selections from the CollectionView
         /// </summary>
-        /// <param name="filter">Filter string to use on the default view</param>
-        /// <param name="index">Index of the filter string list you are adding to our changing</param>
-        public void PlanFilter(string filter, int index)
-        {
-            PlanViewFilter[index] = filter;
-            var _filterStr = string.Empty;
-            foreach (var s in PlanViewFilter.Where(o => !string.IsNullOrEmpty(o)))
-            {
-                _filterStr += string.IsNullOrEmpty(_filterStr) ? $"({s})" : $" AND ({s})";
-            }
-            PlanningView.RowFilter = _filterStr;
-        }
-
-        #region Loading Async Delegation Implementation
-
-        public void ViewLoading(string filter, int index)
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void CollectionView_ItemChanged(object sender, EventArgs e)
         {
             try
             {
-                if (ModelBase.MasterDataSet.Tables.Contains("Plan"))
+                if (App.LoadedModule == Enumerations.UsersControls.Plan)
                 {
-                    SelectedIndex = index < 0 ? 0 : index;
-                    PlanningView = ModelBase.MasterDataSet.Tables["Plan"].AsDataView();
-                    PlanFilter(UserConfig.BuildMachineFilter(), 1);
-                    PlanFilter(UserConfig.BuildPriorityFilter(), 3);
-                    SearchFilter = !string.IsNullOrEmpty(SearchFilter) ? SearchFilter : string.Empty;
-                    PlanningView.RowFilter = filter;
+                    var _dRow = (DataRowView)CollectionView.CurrentItem;
+                    if (_dRow != null)
+                    {
+                        SelectedItemFilter = new KeyValuePair<string, string>(_dRow.Row.Field<string>("WorkOrderID"), "WorkOrderID");
+                        var _wo = new WorkOrder(_dRow.Row);
+                        var _action = _wo.Product.Inspection
+                            ? new Action(delegate { Controls.WorkSpaceDock.UpdateChildDock(11, 1, new ShopRoute.QTask.View { DataContext = new ShopRoute.QTask.ViewModel(_wo) }); })
+                            : new Action(delegate { Controls.WorkSpaceDock.UpdateChildDock(11, 1, new ShopRoute.View { DataContext = new ShopRoute.ViewModel(_wo) }); });
+                        Application.Current.Dispatcher.Invoke(_action);
+                    }
                 }
             }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message, "Planning Unhandled Exception", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
+            catch (Exception)
+            { }
         }
-
-        public void ViewLoaded(IAsyncResult r)
-        {
-            if (PlannerCollection != null && PlannerCollection.Count == 1)
-            {
-                PlannerCollection = Sku.GetPlannerCollection();
-                OnPropertyChanged(nameof(PlannerCollection));
-            }
-            if (PlanningView != null && PlanningView.Count > 0)
-            {
-                SelectedWorkOrder = PlanningView.Count >= SelectedIndex ? PlanningView[SelectedIndex] : PlanningView[0];
-            }
-            OnPropertyChanged(nameof(PlanningView));
-            if (App.LoadedModule == Enumerations.UsersControls.Plan)
-            {
-                MainWindowViewModel.DisplayAction = false;
-            }
-        }
-
-        #endregion
 
         /// <summary>
         /// Refresh action for the schedule data
         /// </summary>
-        public void RefreshSchedule()
+        public override void Refresh()
         {
             try
             {
-                MainWindowViewModel.DisplayAction = App.LoadedModule == Enumerations.UsersControls.Plan;
-                var _filter = PlanningView != null ? PlanningView.RowFilter : string.Empty;
-                var _index = 0;
-                if (SelectedWorkOrder != null)
+                if (ModelBase.MasterDataSet.Tables.Contains(typeof(WorkPlan).Name))
                 {
-                    var _targetId = SelectedWorkOrder.Row.SafeGetField<string>("WorkOrderID");
-                    _index = PlanningView.Cast<DataRowView>().Select((row, idx) => new { row, idx }).FirstOrDefault(o => o.row["WorkOrderID"].ToString() == _targetId)?.idx ?? 0;
+                    var _tempTable = ModelBase.MasterDataSet.Tables[typeof(WorkPlan).Name];
+                    if (_tempTable != null)
+                    {
+                        _tempTable.DefaultView.Sort = "MachineOrder ASC";
+                    }
+                    CollectionView = CollectionViewSource.GetDefaultView(_tempTable);
+                    if (CollectionView.GroupDescriptions.Count() != 0)
+                    {
+                        Application.Current?.Dispatcher.Invoke(new Action(delegate { CollectionView.GroupDescriptions.Clear(); }));
+                    }
+                    Application.Current?.Dispatcher.Invoke(new Action(delegate 
+                    { 
+                        CollectionView.GroupDescriptions.Add(new PropertyGroupDescription("MachineNumber", new WorkCenterNameConverter()));
+                    }));
+                    OnPropertyChanged(nameof(CollectionView));
+                    Application.Current?.Dispatcher.Invoke(new Action(delegate { CollectionView.Refresh(); }));
+                    if (CollectionView != null)
+                    {
+                        ((DataView)CollectionView.SourceCollection).RowFilter = GetFilter();
+                        var _selectedIndex = ((DataView)CollectionView.SourceCollection).Count > 0 && SelectedItemFilter.Key != null
+                            ? CollectionView.IndexOf(SelectedItemFilter.Key, SelectedItemFilter.Value)
+                            : -1;
+                        Application.Current?.Dispatcher.Invoke(new Action(delegate { CollectionView.MoveCurrentToPosition(_selectedIndex); }));
+                    }
+                    CollectionView.CurrentChanged += CollectionView_ItemChanged;
                 }
-                LoadAsyncComplete = LoadAsyncDelegate.BeginInvoke(_filter, _index, new AsyncCallback(ViewLoaded), null);
             }
             catch (Exception ex)
             {
@@ -263,32 +205,33 @@ namespace SFW.Schedule.Plan
         {
             try
             {
-                var _oldPri = SelectedWorkOrder?.Row?.SafeGetField<string>("WO_Priority").ToString();
-                if (char.TryParse(SelectedWorkOrder?.Row?.SafeGetField<string>("WO_Priority").ToString(), out char _oldPriChar))
+                var _dRow = (DataRowView)CollectionView.CurrentItem;
+                var _oldPri = _dRow?.Row?.SafeGetField<string>("WO_Priority").ToString();
+                if (char.TryParse(_dRow?.Row?.SafeGetField<string>("WO_Priority").ToString(), out char _oldPriChar))
                 {
                     var _oldPriInt = _oldPriChar % 32;
                     var _newPriInt = Convert.ToChar(parameter) % 32;
-                    if (_oldPriInt < _newPriInt && (SelectedWorkOrder?.Row?.SafeGetField<int>("Sched_Shift").ToString() != "999" || SelectedWorkOrder?.Row?.SafeGetField<int>("Sched_Priority").ToString() != "999"))
+                    if (_oldPriInt < _newPriInt && (_dRow?.Row?.SafeGetField<int>("Sched_Shift").ToString() != "999" || _dRow?.Row?.SafeGetField<int>("Sched_Priority").ToString() != "999"))
                     {
-                        new ClearPriority().Execute(SelectedWorkOrder);
+                        new ClearPriority().Execute(_dRow);
                     }
                 }
                 if (!string.IsNullOrEmpty(parameter?.ToString()))
                 {
-                    var _woNumber = SelectedWorkOrder?.Row?.SafeGetField<string>("WorkOrder");
+                    var _woNumber = _dRow?.Row?.SafeGetField<string>("WorkOrder");
                     var _changeRequest = M2kCommand.EditRecord("WP", _woNumber, 40, parameter.ToString(), UdArrayCommand.Replace, App.ErpCon);
                     if (!string.IsNullOrEmpty(_changeRequest))
                     {
                         MessageBox.Show(_changeRequest, "ERP Record Error");
-                        SelectedWorkOrder.BeginEdit();
-                        SelectedWorkOrder["WO_Priority"] = _oldPri;
-                        SelectedWorkOrder.EndEdit();
+                        _dRow.BeginEdit();
+                        _dRow["WO_Priority"] = _oldPri;
+                        _dRow.EndEdit();
                     }
                     else
                     {
-                        SelectedWorkOrder.BeginEdit();
-                        SelectedWorkOrder["WO_Priority"] = parameter.ToString();
-                        SelectedWorkOrder.EndEdit();
+                        _dRow.BeginEdit();
+                        _dRow["WO_Priority"] = parameter.ToString();
+                        _dRow.EndEdit();
                     }
                 }
             }

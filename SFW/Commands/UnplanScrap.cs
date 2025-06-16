@@ -6,7 +6,11 @@ namespace SFW.Commands
 {
     public class UnplanScrap : ICommand
     {
-        public event EventHandler CanExecuteChanged;
+        public event EventHandler CanExecuteChanged
+        {
+            add {  }
+            remove { }
+        }
 
         public void Execute(object parameter)
         {

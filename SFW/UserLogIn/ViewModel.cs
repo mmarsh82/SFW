@@ -96,6 +96,7 @@ namespace SFW.UserLogIn
             LogInThread.DoWork += LogInThread_DoWork;
             LogInThread.RunWorkerCompleted += LogInThread_RunWorkerCompleted;
             LogInThreadIsWorking = false;
+            ApplicationTimer.Pause();
         }
 
         /// <summary>
@@ -114,8 +115,14 @@ namespace SFW.UserLogIn
             LogInThread.DoWork += LogInThread_DoWork;
             LogInThread.RunWorkerCompleted += LogInThread_RunWorkerCompleted;
             LogInThreadIsWorking = false;
+            ApplicationTimer.Pause();
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void LogInThread_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             if (_bgParam != null)
@@ -128,6 +135,7 @@ namespace SFW.UserLogIn
                 new CurrentUser(User);
                 WorkSpaceDock.RefreshMainDock(true);
                 Application.Current.Windows.OfType<Window>().FirstOrDefault(o => o.Name == "LogIn_Window").Close();
+                Dispose();
             }
             LogInThreadIsWorking = false;
         }
@@ -208,14 +216,12 @@ namespace SFW.UserLogIn
             {
                 if (parameter != null && parameter.GetType() == typeof(PasswordBox[]))
                 {
-
                     return !string.IsNullOrEmpty(((PasswordBox[])parameter)[0].Password)
                         && !string.IsNullOrEmpty(((PasswordBox[])parameter)[1].Password)
                         && !string.IsNullOrEmpty(((PasswordBox[])parameter)[2].Password)
                         && ((PasswordBox[])parameter)[1].Password == ((PasswordBox[])parameter)[2].Password
                         && ((PasswordBox[])parameter)[0].Password != ((PasswordBox[])parameter)[1].Password
-                        && !string.IsNullOrEmpty(UserName)
-                        && CurrentUser.UserExist(UserName);
+                        && !string.IsNullOrEmpty(UserName);
                 }
                 return false;
             }
@@ -236,6 +242,7 @@ namespace SFW.UserLogIn
             if (disposing)
             {
                 LogInThread.Dispose();
+                ApplicationTimer.Resume();
             }
         }
     }

@@ -5,7 +5,11 @@ namespace SFW.Commands
 {
     public class M2kValueEdit : ICommand
     {
-        public event EventHandler CanExecuteChanged;
+        public event EventHandler CanExecuteChanged
+        {
+            add {  }
+            remove { }
+        }
 
         public void Execute(object parameter)
         {

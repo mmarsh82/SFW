@@ -8,7 +8,11 @@ namespace SFW.Commands
 {
     public class AppReload : ICommand
     {
-        public event EventHandler CanExecuteChanged;
+        public event EventHandler CanExecuteChanged
+        {
+            add {  }
+            remove { }
+        }
 
         public void Execute(object parameter)
         {

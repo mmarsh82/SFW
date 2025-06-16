@@ -43,7 +43,7 @@ namespace SFW.QMS.Form
                         ((ViewModel)DataContext).FormObject.PhotoCollection.Add($"{_folderPath}{_frm}-{_fileCount + 1}{_fileExt}");
                         if (((ViewModel)DataContext).FormObject.FormId > 0)
                         {
-                            Model.QmsForm.SubmitPhotoPath(((ViewModel)DataContext).FormObject.FormId, $"{_frm}-{_fileCount + 1}{_fileExt}", App.AppSqlCon);
+                            Model.Quality.QmsForm.SubmitPhotoPath(((ViewModel)DataContext).FormObject.FormId, $"{_frm}-{_fileCount + 1}{_fileExt}", App.AppSqlCon);
                         }
                     }
                 }

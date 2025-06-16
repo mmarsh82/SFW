@@ -1,7 +1,7 @@
-﻿using SFW.Queries;
+﻿using SFW.Model;
+using SFW.Queries;
 using System;
 using System.ComponentModel;
-using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -23,7 +23,11 @@ namespace SFW.Controls
         public static int Module => (int)App.LoadedModule;
 
         public static event EventHandler<PropertyChangedEventArgs> StaticPropertyChanged;
-        public event EventHandler CanExecuteChanged;
+        public event EventHandler CanExecuteChanged
+        {
+            add {  }
+            remove { }
+        }
 
         #endregion
 
@@ -35,7 +39,6 @@ namespace SFW.Controls
             //TODO: moved to a 2 docks, one that uses the maindock and one that uses a main split dock then just push elements from there.
             try
             {
-                RefreshTimer.IsRefreshing = true;
                 //Create the Control
                 MainDock = ((MainWindow)Application.Current.Windows[0]).WorkSpaceDock;
                 SchedDock = new DockPanel();
@@ -104,8 +107,8 @@ namespace SFW.Controls
                 MainDock.Children.Insert(11, PlanDock);
 
                 SwitchView(App.SiteNumber, null, false);
-                RefreshTimer.IsRefreshing = false;
                 App.LoadedModule = Enumerations.UsersControls.Schedule;
+                ((Schedule.ViewModel)((Schedule.View)((DockPanel)WorkSpaceDock.MainDock.Children[1]).Children[0]).DataContext).ResetFilter();
             }
             catch (Exception ex)
             {
@@ -160,12 +163,14 @@ namespace SFW.Controls
                         UpdateChildDock(9, 1, new QMS.Form.View { DataContext = dataContext });
                     }
                     break;
+                case 11:
+                    _tempDock = PlanDock;
+                    break;
             }
             if (refreshDock)
             {
-                App.SiteNumber = index;
-                Schedule.ViewModel.ScheduleFilter($"[Site] = {App.SiteNumber}", 6);
-                RefreshTimer.RefreshTimerTick();
+                App.SiteNumber = ModelBase.ModelFacility = index;
+                ApplicationTimer.Resume();
                 MainDock.Children.RemoveAt(4);
                 MainDock.Children.Insert(4, new Admin.View { DataContext = new Admin.ViewModel() });
                 MainDock.Children[4].Visibility = Visibility.Collapsed;
@@ -176,7 +181,7 @@ namespace SFW.Controls
             {
                 SchedDock.Children.RemoveAt(1);
                 SchedDock.Children.Insert(1, new QMS.Form.View { DataContext = dataContext });
-                RefreshTimer.Stop();
+                ApplicationTimer.Pause();
             }
             else if (dataContext != null)
             {
@@ -219,25 +224,25 @@ namespace SFW.Controls
             {
                 if (CurrentUser.HasSalesOrderModule)
                 {
-                    RefreshTimer.RefreshActionGroup.Add(((Schedule.SalesOrder.ViewModel)((Schedule.SalesOrder.View)SalesDock.Children[0]).DataContext).RefreshSchedule);
+                    ApplicationTimer.ActionList.Add(((Schedule.SalesOrder.ViewModel)((Schedule.SalesOrder.View)SalesDock.Children[0]).DataContext).Refresh);
                 }
                 if (CurrentUser.IsInventoryControl)
                 {
-                    RefreshTimer.RefreshActionGroup.Add(((CycleCount.Sched_ViewModel)((CycleCount.Sched_View)CountDock.Children[0]).DataContext).RefreshSchedule);
+                    ApplicationTimer.ActionList.Add(((CycleCount.Sched_ViewModel)((CycleCount.Sched_View)CountDock.Children[0]).DataContext).RefreshSchedule);
                 }
                 if (CurrentUser.IsQuality)
                 {
-                    RefreshTimer.RefreshActionGroup.Add(((QMS.Notice.ViewModel)((QMS.Notice.View)QmsFormDock.Children[0]).DataContext).RefreshNotice);
+                    ApplicationTimer.ActionList.Add(((QMS.Notice.ViewModel)((QMS.Notice.View)QmsFormDock.Children[0]).DataContext).Refresh);
                 }
                 if (CurrentUser.CanSchedule)
                 {
-                    RefreshTimer.RefreshActionGroup.Add(((Schedule.Plan.ViewModel)((Schedule.Plan.View)PlanDock.Children[0]).DataContext).RefreshSchedule);
+                    ApplicationTimer.ActionList.Add(((Schedule.Plan.ViewModel)((Schedule.Plan.View)PlanDock.Children[0]).DataContext).Refresh);
                 }
             }
             else
             {
-                RefreshTimer.RefreshActionGroup.Clear();
-                RefreshTimer.RefreshActionGroup.Add(((Schedule.ViewModel)((Schedule.View)SchedDock.Children[0]).DataContext).RefreshSchedule);
+                ApplicationTimer.ActionList.Clear();
+                ApplicationTimer.ActionList.Add(((Schedule.ViewModel)((Schedule.View)SchedDock.Children[0]).DataContext).Refresh);
             }
         }
 
@@ -284,10 +289,13 @@ namespace SFW.Controls
                 switch (parentUCIndex)
                 {
                     case 11:
-                        ((Schedule.Plan.ViewModel)((Schedule.Plan.View)((DockPanel)MainDock.Children[parentUCIndex]).Children[0]).DataContext).PlanFilter(filter, filterId);
+                        ((Schedule.Plan.ViewModel)((Schedule.Plan.View)((DockPanel)MainDock.Children[parentUCIndex]).Children[0]).DataContext).Filter(filter, filterId);
                         break;
                     case 9:
-                        ((QMS.Notice.ViewModel)((QMS.Notice.View)((DockPanel)MainDock.Children[parentUCIndex]).Children[0]).DataContext).NoticeFilter(filter, filterId);
+                        ((QMS.Notice.ViewModel)((QMS.Notice.View)((DockPanel)MainDock.Children[parentUCIndex]).Children[0]).DataContext).Filter(filter, filterId);
+                        break;
+                    case 1:
+                        ((Schedule.ViewModel)((Schedule.View)((DockPanel)MainDock.Children[parentUCIndex]).Children[0]).DataContext).Filter(filter, filterId);
                         break;
                 }
             }

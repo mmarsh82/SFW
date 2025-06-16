@@ -8,7 +8,6 @@ using System.Linq;
 using System.Text;
 using System.Windows;
 using System.Windows.Media;
-using static SFW.Commands.DevTesting;
 
 namespace SFW
 {
@@ -131,7 +130,6 @@ namespace SFW
         /// <returns>index as int</returns>
         public static int IndexOf(this ICollectionView view, object item, string colSearch = "")
         {
-
             var e = view.GetEnumerator();
             var idx = 0;
             //Handling a source collection of type DataTable different as the the items will never trigger the standard Equals operator
@@ -146,6 +144,21 @@ namespace SFW
                             return idx;
                         else
                             idx++;
+                    }
+                }
+                else if (item.GetType() == typeof(string))
+                {
+                    while (e.MoveNext())
+                    {
+                        var _curItem = ((DataRowView)e.Current).Row.Field<object>(colSearch);
+                        if (_curItem.ToString() == item.ToString())
+                        {
+                            return idx;
+                        }
+                        else
+                        {
+                            idx++;
+                        }
                     }
                 }
                 else

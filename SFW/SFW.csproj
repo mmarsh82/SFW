@@ -29,8 +29,8 @@
     <ProductName>Shop Floor Workbench</ProductName>
     <PublisherName>Michael Marsh</PublisherName>
     <SuiteName>ContiTech</SuiteName>
-    <ApplicationRevision>938</ApplicationRevision>
-    <ApplicationVersion>2.0.131.938</ApplicationVersion>
+    <ApplicationRevision>5</ApplicationRevision>
+    <ApplicationVersion>3.0.0.5</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <CreateDesktopShortcut>true</CreateDesktopShortcut>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -162,9 +162,11 @@
     <Compile Include="Converters\StringConcat.cs" />
     <Compile Include="Converters\StringToBool.cs" />
     <Compile Include="Converters\FormTypeToVisibility.cs" />
+    <Compile Include="Converters\TimerToView.cs" />
     <Compile Include="Converters\ValueToHeight.cs" />
     <Compile Include="Converters\ValueToImage.cs" />
     <Compile Include="Converters\ValueToMargin.cs" />
+    <Compile Include="Converters\WipEnabled.cs" />
     <Compile Include="Converters\WoPriorityToBool.cs" />
     <Compile Include="Converters\ContainerName.cs" />
     <Compile Include="CurrentUser.cs" />
@@ -176,6 +178,7 @@
       <DependentUpon>Sched_View.xaml</DependentUpon>
     </Compile>
     <Compile Include="CycleCount\Sched_ViewModel.cs" />
+    <Compile Include="ApplicationTimer.cs" />
     <Compile Include="DynamicSplashScreen.xaml.cs">
       <DependentUpon>DynamicSplashScreen.xaml</DependentUpon>
     </Compile>
@@ -217,26 +220,15 @@
       <DependentUpon>UnplanScrap_View.xaml</DependentUpon>
     </Compile>
     <Compile Include="Queries\UnplanScrap_ViewModel.cs" />
-    <Compile Include="Reports\PressShift_View.xaml.cs">
-      <DependentUpon>PressShift_View.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Reports\PressShift_ViewModel.cs" />
     <Compile Include="Schedule.Plan\View.xaml.cs">
       <DependentUpon>View.xaml</DependentUpon>
     </Compile>
     <Compile Include="Schedule.Plan\ViewModel.cs" />
-    <Compile Include="Schedule.PurchaseOrder\View.xaml.cs">
-      <DependentUpon>View.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Schedule.PurchaseOrder\ViewModel.cs" />
     <Compile Include="Schedule.SalesOrder\View.xaml.cs">
       <DependentUpon>View.xaml</DependentUpon>
     </Compile>
     <Compile Include="Schedule.SalesOrder\ViewModel.cs" />
-    <Compile Include="ShopRoute.PurchaseOrder\View.xaml.cs">
-      <DependentUpon>View.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="ShopRoute.PurchaseOrder\ViewModel.cs" />
+    <Compile Include="ScheduleBase.cs" />
     <Compile Include="ShopRoute.SalesOrder\View.xaml.cs">
       <DependentUpon>View.xaml</DependentUpon>
     </Compile>
@@ -276,7 +268,6 @@
       <DependentUpon>View.xaml</DependentUpon>
     </Compile>
     <Compile Include="UserLogIn\ViewModel.cs" />
-    <Compile Include="RefreshTimer.cs" />
     <Compile Include="Behaviors\ExpanderState.cs" />
     <Compile Include="Commands\M2kLookQuery.cs" />
     <Compile Include="Commands\PartSearch.cs" />
@@ -299,18 +290,10 @@
       <DependentUpon>PartInfo_View.xaml</DependentUpon>
     </Compile>
     <Compile Include="Queries\PartInfo_ViewModel.cs" />
-    <Compile Include="Reports\Press_View.xaml.cs">
-      <DependentUpon>Press_View.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Reports\Press_ViewModel.cs" />
     <Compile Include="Reports\ProcessSpec_View.xaml.cs">
       <DependentUpon>ProcessSpec_View.xaml</DependentUpon>
     </Compile>
     <Compile Include="Reports\ProcessSpec_ViewModel.cs" />
-    <Compile Include="Scheduler\View.xaml.cs">
-      <DependentUpon>View.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Scheduler\ViewModel.cs" />
     <Compile Include="Schedule\View.xaml.cs">
       <DependentUpon>View.xaml</DependentUpon>
     </Compile>
@@ -380,14 +363,6 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Reports\PressShift_View.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Reports\Press_View.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="Reports\ProcessSpec_View.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -396,25 +371,13 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Schedule.PurchaseOrder\View.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
     <Page Include="Schedule.SalesOrder\View.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Scheduler\View.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Schedule\View.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="ShopRoute.PurchaseOrder\View.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
     </Page>
     <Page Include="ShopRoute.SalesOrder\View.xaml">
       <SubType>Designer</SubType>
@@ -545,6 +508,10 @@
       <Project>{5dbe7a03-346d-4a21-86b8-f11d737e93f3}</Project>
       <Name>M2kClient</Name>
     </ProjectReference>
+    <ProjectReference Include="..\SFW.DataAccess\SFW.DataAccess.csproj">
+      <Project>{0e866741-8670-4be4-b6ca-dd56f9e8881b}</Project>
+      <Name>SFW.DataAccess</Name>
+    </ProjectReference>
     <ProjectReference Include="..\SFW.Helpers\SFW.Helpers.csproj">
       <Project>{6f663e0a-cd5e-40a9-b67e-7564627915f6}</Project>
       <Name>SFW.Helpers</Name>
@@ -580,9 +547,6 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Icons\About.ico" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="GlobalAppConfig.xml" />
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Icons\Delete.ico" />
