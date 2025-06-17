@@ -28,7 +28,7 @@ namespace SFW.Model.Sales
                         return dt;
                     }
                 }
-                catch (SqlException sqlEx)
+                catch (SqlException)
                 {
                     return new DataTable();
                 }

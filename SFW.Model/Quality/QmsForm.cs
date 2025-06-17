@@ -581,15 +581,22 @@ GROUP BY
         public static IList<string> GetNcrList(string orderId)
         {
             var _rtnList = new List<string>();
-            var _rows = MasterDataSet.Tables[typeof(Notice).Name].Select($"[WorkOrderId] = '{orderId}' AND [NcrRevisionId] = [RevisionFilter]");
-            if (_rows.Count() > 0)
+            try
             {
-                foreach (var _row in _rows)
+                var _rows = MasterDataSet.Tables[typeof(Notice).Name].Select($"[WorkOrderId] = '{orderId}' AND [NcrRevisionId] = [RevisionFilter]");
+                if (_rows.Count() > 0)
                 {
-                    _rtnList.Add($"{_row.SafeGetField<int>("NcrId")} {_row.SafeGetField<string>("TypeDescription")}");
+                    foreach (var _row in _rows)
+                    {
+                        _rtnList.Add($"{_row.SafeGetField<int>("NcrId")} {_row.SafeGetField<string>("TypeDescription")}");
+                    }
                 }
+                return _rtnList;
             }
-            return _rtnList;
+            catch
+            {
+                return _rtnList;
+            }
         }
 
         /// <summary>

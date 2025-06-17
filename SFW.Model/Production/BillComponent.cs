@@ -32,7 +32,7 @@ namespace SFW.Model.Production
                             return _tempTable;
                         }
                     }
-                    catch (SqlException sqlEx)
+                    catch (SqlException)
                     {
                         return new DataTable();
                     }
@@ -81,27 +81,34 @@ namespace SFW.Model.Production
         public static List<BillComponent> GetList(string partNbr, string woSeq)
         {
             var _tempList = new List<BillComponent>();
-            var _rows = MasterDataSet.Tables[typeof(BillComponent).Name].Select($"[ParentSkuID] = '{partNbr}' AND [Routing] = '{woSeq}'");
-            if (_rows.Length == 0 && woSeq != "10")
+            try
             {
-                woSeq = "10";
-                _rows = MasterDataSet.Tables[typeof(BillComponent).Name].Select($"[ParentSkuID] = '{partNbr}' AND [Routing] = '{woSeq}'");
-            }
-            if (_rows.Length > 0)
-            {
-                foreach (var _row in _rows)
+                var _rows = MasterDataSet.Tables[typeof(BillComponent).Name].Select($"[ParentSkuID] = '{partNbr}' AND [Routing] = '{woSeq}'");
+                if (_rows.Length == 0 && woSeq != "10")
                 {
-                    _tempList.Add(new BillComponent
-                    {
-                        ProductNumber = _row.Field<string>("ChildSkuID")
-                        ,AssemblyQuantity = _row.Field<decimal>("AssemblyQuantity")
-                        ,ProductDescription = _row.Field<string>("Description")
-                        ,ProductMasterPrint = _row.Field<string>("MasterSkuID")
-                        ,ProductUom = _row.Field<string>("Uom")
-                    });
+                    woSeq = "10";
+                    _rows = MasterDataSet.Tables[typeof(BillComponent).Name].Select($"[ParentSkuID] = '{partNbr}' AND [Routing] = '{woSeq}'");
                 }
+                if (_rows.Length > 0)
+                {
+                    foreach (var _row in _rows)
+                    {
+                        _tempList.Add(new BillComponent
+                        {
+                            ProductNumber = _row.Field<string>("ChildSkuID")
+                            ,AssemblyQuantity = _row.Field<decimal>("AssemblyQuantity")
+                            ,ProductDescription = _row.Field<string>("Description")
+                            ,ProductMasterPrint = _row.Field<string>("MasterSkuID")
+                            ,ProductUom = _row.Field<string>("Uom")
+                        });
+                    }
+                }
+                return _tempList;
             }
-            return _tempList;
+            catch
+            {
+                return _tempList;
+            }
         }
 
         /// <summary>

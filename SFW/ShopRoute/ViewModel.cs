@@ -249,9 +249,10 @@ namespace SFW.ShopRoute
                             {
                                 try
                                 {
-                                    if (ShopOrder.Product.InstructionList != null)
+                                    var _instList = SkuInstruction.GetList(ShopOrder.Product.SkuNumber, App.SiteNumber, App.GlobalConfig.First(o => o.Site == App.Facility).WI);
+                                    if (_instList != null || _instList.Count > 0)
                                     {
-                                        ShopOrder.Product.InstructionList = SkuInstruction.GetList(ShopOrder.Product.SkuNumber, App.SiteNumber, App.GlobalConfig.First(o => o.Site == App.Facility).WI);
+                                        ShopOrder.Product.InstructionList = _instList;
                                     }
                                 }
                                 catch

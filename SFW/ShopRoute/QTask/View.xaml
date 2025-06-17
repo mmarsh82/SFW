@@ -334,8 +334,8 @@
                                                         <Image Source="/SFW;component/Icons/PartSearch.ico" />
                                                         <Button.CommandParameter>
                                                             <MultiBinding Converter="{StaticResource PartSearchConverter}">
-                                                                <Binding Path="CompNumber" />
-                                                                <Binding Path="CompMasterPrint" />
+                                                                <Binding Path="ProductNumber" />
+                                                                <Binding Path="ProductMasterPrint" />
                                                             </MultiBinding>
                                                         </Button.CommandParameter>
                                                     </Button>

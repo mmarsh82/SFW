@@ -701,8 +701,7 @@
                              FontSize="18"
                              BorderBrush="Black"
                              TextWrapping="WrapWithOverflow"
-                             Focusable="False"
-                             Style="{DynamicResource DisabledTextBox}"/>
+                             Focusable="False"/>
 
                 </Grid>
 
@@ -921,7 +920,7 @@
                                                             </Button.CommandParameter>
                                                         </Button>
                                                         <Button Command="{StaticResource ViewLoadCommand}"
-                                                                CommandParameter="{Binding CompNumber}"
+                                                                CommandParameter="{Binding ProductNumber}"
                                                                 Height="20"
                                                                 Width="40"
                                                                 Background="Transparent"

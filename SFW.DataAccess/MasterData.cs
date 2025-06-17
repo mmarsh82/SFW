@@ -2,7 +2,7 @@
 
 namespace SFW.DataAccess
 {
-    public class DataLink : Base
+    public class MasterData : Base
     {
         /// <summary>
         /// Model master dataset
@@ -12,7 +12,7 @@ namespace SFW.DataAccess
         /// <summary>
         /// Default Constructor
         /// </summary>
-        public DataLink()
+        public MasterData()
         { }
     }
 }

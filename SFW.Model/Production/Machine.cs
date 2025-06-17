@@ -42,7 +42,7 @@ namespace SFW.Model.Production
                             return _tempTable;
                         }
                     }
-                    catch (SqlException sqlEx)
+                    catch (SqlException)
                     {
                         return _tempTable;
                     }
@@ -202,7 +202,6 @@ namespace SFW.Model.Production
             {
                 _tempList.Add("All");
             }
-            _tempList.Add("Custom");
             if (MasterDataSet != null)
             {
                 foreach (DataRow _row in MasterDataSet.Tables[typeof(Machine).Name].DefaultView.ToTable(true, "Group", "Site").Rows)

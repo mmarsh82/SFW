@@ -29,7 +29,7 @@ namespace SFW.Model.Production
                             return _tempTable;
                         }
                     }
-                    catch (SqlException sqlEx)
+                    catch (SqlException)
                     {
                         return new DataTable();
                     }

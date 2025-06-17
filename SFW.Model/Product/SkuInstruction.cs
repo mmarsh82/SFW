@@ -30,7 +30,7 @@ namespace SFW.Model.Product
                         }
                         return _dt;
                     }
-                    catch (SqlException sqlEx)
+                    catch (SqlException)
                     {
                         return _dt;
                     }
@@ -75,7 +75,7 @@ namespace SFW.Model.Product
                 }
                 else
                 {
-                    var _rows = MasterDataSet.Tables[new SkuInstruction().GetType().Name].Select($"[SkuID] = '{partNbr}'");
+                    var _rows = MasterDataSet.Tables[typeof(SkuInstruction).Name].Select($"[SkuID] = '{partNbr}'");
                     foreach (var _row in _rows)
                     {
                         var dir = new DirectoryInfo(filepath);

@@ -35,7 +35,7 @@ namespace SFW.Model.Production
                         }
                         return _dt;
                     }
-                    catch (SqlException sqlEx)
+                    catch (SqlException)
                     {
                         return _dt;
                     }

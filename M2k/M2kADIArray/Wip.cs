@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace M2kClient.M2kADIArray
 {
@@ -137,6 +138,7 @@ namespace M2kClient.M2kADIArray
             ComponentInfoList = new List<CompInfo>();
             AdjustmentList = new List<Adjust>();
             Type = wipRecord.WipWorkOrder.TaskType.FirstOrDefault();
+            var _tempQty = 0;
             foreach (var _comp in wipRecord.ComponentList.Where(o => o.LotTraceable))
             {
                 foreach (var _lot in _comp.LotList.Where(o => o.Valid))
@@ -145,7 +147,7 @@ namespace M2kClient.M2kADIArray
                     if (_comp.ScrapFactor > 0)
                     {
                         var _qty = double.TryParse(_lot.Quantity, out double d) ? d : 0.00;
-                        _lot.Quantity = Math.Round(_qty * (1 + _comp.ScrapFactor), 0, MidpointRounding.AwayFromZero).ToString();
+                        _tempQty = Convert.ToInt32(Math.Ceiling(_qty * (1 + _comp.ScrapFactor)));
                     }
 
                     //Creating the object for submission
@@ -154,10 +156,11 @@ namespace M2kClient.M2kADIArray
                     {
                         Lot = _lot.ID,
                         PartNbr = _comp.ProductNumber,
-                        Quantity = Convert.ToInt32(_lot.Quantity),
+                        Quantity = _tempQty,
                         WorkOrderNbr = wipRecord.WipWorkOrder.OrderNumber,
                         IssueLoc = !string.IsNullOrEmpty(_comp.BackFlushLoc) ? _comp.BackFlushLoc : _lot.Location
                     });
+                    _tempQty = 0;
                     if (_comp.ScrapList != null && _comp.ScrapList.Count() > 0)
                     {
                         foreach (var s in _comp.ScrapList.Where(o => int.TryParse(o.Quantity, out int i)))

@@ -31,7 +31,7 @@ namespace SFW.Model.Product
                         }
                         return _dt;
                     }
-                    catch (SqlException sqlEx)
+                    catch (SqlException)
                     {
                         return _dt;
                     }
@@ -85,7 +85,7 @@ namespace SFW.Model.Product
                 {
                     return null;
                 }
-                var _temp = MasterDataSet.Tables["PS"].Select(_query);
+                var _temp = MasterDataSet.Tables[typeof(SkuStructure).Name].Select(_query);
                 _partList.Clear();
                 foreach (var _sku in _temp)
                 {

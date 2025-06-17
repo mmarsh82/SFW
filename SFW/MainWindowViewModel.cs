@@ -30,7 +30,7 @@ namespace SFW
             {
                 if (value == null && MachineList.Count() > 0)
                 {
-                    value = MachineList[0];
+                    value = MachineList.FirstOrDefault();
                 }
                 if (mach != value && !IsChanging)
                 {
@@ -40,12 +40,12 @@ namespace SFW
                     {
                         SelectedMachineGroup = _mGroup;
                     }
-                    var _mNbr = Machine.GetNumber(value);
-                    WorkSpaceDock.UpdateChildDockMachineFilter(1, 1, value == "All" ? "" : $"[MachineNumber] = '{_mNbr}'");
-                    WorkSpaceDock.UpdateChildDockMachineFilter(11, 1, value == "All" ? "" : $"[MachineNumber] = '{_mNbr}'");
-                    WorkSpaceDock.UpdateChildDockMachineFilter(9, 1, value == "All" ? "" : $"[FoundWorkCenterId] = '{_mNbr}'");
                     IsChanging = false;
                 }
+                var _mNbr = Machine.GetNumber(value);
+                WorkSpaceDock.UpdateChildDockMachineFilter(1, 1, value == "All" ? "" : $"[MachineNumber] = '{_mNbr}'");
+                WorkSpaceDock.UpdateChildDockMachineFilter(11, 1, value == "All" ? "" : $"[MachineNumber] = '{_mNbr}'");
+                WorkSpaceDock.UpdateChildDockMachineFilter(9, 1, value == "All" ? "" : $"[FoundWorkCenterId] = '{_mNbr}'");
                 mach = value;
                 StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(SelectedMachine)));
             }
@@ -64,15 +64,19 @@ namespace SFW
             get { return machGrp; }
             set
             {
+                if (value == null && MachineGroupList.Count() > 0)
+                {
+                    value = MachineGroupList.FirstOrDefault();
+                }
                 if (machGrp != value && !IsChanging)
                 {
                     IsChanging = true;
-                    WorkSpaceDock.UpdateChildDockMachineFilter(1, 2, value == "All" ? "" : $"[MachineGroup] = '{value}'");
-                    WorkSpaceDock.UpdateChildDockMachineFilter(11, 2, value == "All" ? "" : $"[MachineGroup] = '{value}'");
-                    WorkSpaceDock.UpdateChildDockMachineFilter(9, 2, value == "All" ? "" : $"[FoundWorkCenterGroup] = '{value}'");
                     SelectedMachine = MachineList.FirstOrDefault(o => o == "All");
                     IsChanging = false;
                 }
+                WorkSpaceDock.UpdateChildDockMachineFilter(1, 2, value == "All" ? "" : $"[MachineGroup] = '{value}'");
+                WorkSpaceDock.UpdateChildDockMachineFilter(11, 2, value == "All" ? "" : $"[MachineGroup] = '{value}'");
+                WorkSpaceDock.UpdateChildDockMachineFilter(9, 2, value == "All" ? "" : $"[FoundWorkCenterGroup] = '{value}'");
                 machGrp = value;
                 StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(SelectedMachineGroup)));
             }
@@ -146,7 +150,10 @@ namespace SFW
                         SelectedMachine = MachineList.First();
                     }
                     MachineGroupList = Machine.GetGroupList(true, App.SiteNumber);
-                    SelectedMachineGroup = MachineGroupList.First();
+                    if (MachineGroupList.Count > 0)
+                    {
+                        SelectedMachineGroup = MachineGroupList.First();
+                    }
                 }
                 StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(MachineList)));
                 StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(MachineGroupList)));

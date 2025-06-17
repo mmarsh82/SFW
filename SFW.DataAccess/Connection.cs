@@ -1,5 +1,5 @@
 ﻿using System.Data;
-using System.Data.SqlClient;
+using Microsoft.Data.SqlClient;
 using System.Security;
 
 namespace SFW.DataAccess
@@ -9,7 +9,7 @@ namespace SFW.DataAccess
         /// <summary>
         /// Library main SQL Connection
         /// </summary>
-        public static SqlConnection DataConnection { get; set; }
+        public static SqlConnection Sql { get; set; }
 
         /// <summary>
         /// Default Constructor
@@ -28,11 +28,11 @@ namespace SFW.DataAccess
         public Connection(string user, SecureString password, string server, string database, string timeout)
         {
             var sqlCred = new SqlCredential(user, password);
-            DataConnection = new SqlConnection($"Server={server};DataBase={database};Connection Timeout={timeout};MultipleActiveResultSets=True;Connection Lifetime=3;Max Pool Size=3;Pooling=true;", sqlCred);
-            DataConnection.StatisticsEnabled = true;
-            DataConnection.Open();
-            while (DataConnection.State != ConnectionState.Open) { }
-            DataConnection.StateChange += SqlCon_StateChange;
+            Sql = new SqlConnection($"Server={server};DataBase={database};Connection Timeout={timeout};MultipleActiveResultSets=True;Connection Lifetime=3;Max Pool Size=3;Pooling=true;", sqlCred);
+            Sql.StatisticsEnabled = true;
+            Sql.Open();
+            while (Sql.State != ConnectionState.Open) { }
+            Sql.StateChange += SqlCon_StateChange;
         }
 
         /// <summary>
@@ -44,11 +44,11 @@ namespace SFW.DataAccess
         private static void SqlCon_StateChange(object sender, StateChangeEventArgs e)
         {
             var count = 0;
-            while ((DataConnection.State == ConnectionState.Broken || DataConnection.State == ConnectionState.Closed) && count <= 5)
+            while ((Sql.State == ConnectionState.Broken || Sql.State == ConnectionState.Closed) && count <= 5)
             {
-                if (!string.IsNullOrEmpty(DataConnection.ConnectionString))
+                if (!string.IsNullOrEmpty(Sql.ConnectionString))
                 {
-                    DataConnection.Open();
+                    Sql.Open();
                 }
                 else
                 {

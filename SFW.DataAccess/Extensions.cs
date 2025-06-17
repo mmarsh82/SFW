@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.SqlClient;
+using Microsoft.Data.SqlClient;
 using System.Linq;
 
 namespace SFW.DataAccess
@@ -17,11 +17,11 @@ namespace SFW.DataAccess
         public static DataTable GetTable(string conString, Dictionary<string, object> parameters = null)
         {
             var _tempTable = new DataTable();
-            if (Connection.DataConnection != null && Connection.DataConnection.State != ConnectionState.Closed && Connection.DataConnection.State != ConnectionState.Broken)
+            if (Connection.Sql != null && Connection.Sql.State != ConnectionState.Closed && Connection.Sql.State != ConnectionState.Broken)
             {
                 try
                 {
-                    using (SqlDataAdapter adapter = new SqlDataAdapter($"USE {Connection.DataConnection.Database}; {conString}", Connection.DataConnection))
+                    using (SqlDataAdapter adapter = new SqlDataAdapter($"USE {Connection.Sql.Database}; {conString}", Connection.Sql))
                     {
                         if (parameters != null && parameters.Count() > 0)
                         {
@@ -57,12 +57,12 @@ namespace SFW.DataAccess
         /// <returns>Scalar value as an object</returns>
         public static object GetValue(string conString, Dictionary<string, object> parameters)
         {
-            if (Connection.DataConnection != null && Connection.DataConnection.State != ConnectionState.Closed && Connection.DataConnection.State != ConnectionState.Broken)
+            if (Connection.Sql != null && Connection.Sql.State != ConnectionState.Closed && Connection.Sql.State != ConnectionState.Broken)
             {
                 object _rtnVal = null;
                 try
                 {
-                    using (SqlCommand cmd = new SqlCommand(conString, Connection.DataConnection))
+                    using (SqlCommand cmd = new SqlCommand(conString, Connection.Sql))
                     {
                         if (parameters != null && parameters.Count() > 0)
                         {
@@ -94,12 +94,12 @@ namespace SFW.DataAccess
         /// <returns>Scalar value as an object</returns>
         public static T GetValue<T>(string conString, Dictionary<string, object> parameters)
         {
-            if (Connection.DataConnection != null && Connection.DataConnection.State != ConnectionState.Closed && Connection.DataConnection.State != ConnectionState.Broken)
+            if (Connection.Sql != null && Connection.Sql.State != ConnectionState.Closed && Connection.Sql.State != ConnectionState.Broken)
             {
                 object _rtnVal = null;
                 try
                 {
-                    using (SqlCommand cmd = new SqlCommand(conString, Connection.DataConnection))
+                    using (SqlCommand cmd = new SqlCommand(conString, Connection.Sql))
                     {
                         if (parameters != null && parameters.Count() > 0)
                         {
