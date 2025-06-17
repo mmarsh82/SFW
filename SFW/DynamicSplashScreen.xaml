@@ -17,20 +17,9 @@
         </Grid.RowDefinitions>
         <Image Grid.Row="0"
                x:Name="CompanyLogoImage"
-               Margin="10">
-            <Image.Style>
-                <Style TargetType="{x:Type Image}">
-                    <Style.Triggers>
-                        <DataTrigger Binding="{Binding Site}" Value="2">
-                            <Setter Property="Source" Value="/Images/ContiLogo.png"/>
-                        </DataTrigger>
-                        <DataTrigger Binding="{Binding Site}" Value="1">
-                            <Setter Property="Source" Value="/Images/ContiLogo.png"/>
-                        </DataTrigger>
-                    </Style.Triggers>
-                </Style>
-            </Image.Style>
-        </Image>
+               Margin="10"
+               Source="/Images/ContiLogo.png"/>
+        
         <TextBlock Grid.Row="1"
                    x:Name="UpdateMessage"
                    Text="{Binding Path=(local:App.SplashMessage)}"

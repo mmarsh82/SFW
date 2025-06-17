@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
 
 namespace M2kClient.M2kADIArray
 {
@@ -138,16 +137,16 @@ namespace M2kClient.M2kADIArray
             ComponentInfoList = new List<CompInfo>();
             AdjustmentList = new List<Adjust>();
             Type = wipRecord.WipWorkOrder.TaskType.FirstOrDefault();
-            var _tempQty = 0;
+            var _tempQty = 0.00;
             foreach (var _comp in wipRecord.ComponentList.Where(o => o.LotTraceable))
             {
                 foreach (var _lot in _comp.LotList.Where(o => o.Valid))
                 {
+                    _tempQty = double.TryParse(_lot.Quantity, out double d) ? d : 0.00;
                     //Calculating scrap factor
                     if (_comp.ScrapFactor > 0)
                     {
-                        var _qty = double.TryParse(_lot.Quantity, out double d) ? d : 0.00;
-                        _tempQty = Convert.ToInt32(Math.Ceiling(_qty * (1 + _comp.ScrapFactor)));
+                        _tempQty = Math.Ceiling(_tempQty * (1 + _comp.ScrapFactor));
                     }
 
                     //Creating the object for submission
@@ -156,7 +155,7 @@ namespace M2kClient.M2kADIArray
                     {
                         Lot = _lot.ID,
                         PartNbr = _comp.ProductNumber,
-                        Quantity = _tempQty,
+                        Quantity = Convert.ToInt32(_tempQty),
                         WorkOrderNbr = wipRecord.WipWorkOrder.OrderNumber,
                         IssueLoc = !string.IsNullOrEmpty(_comp.BackFlushLoc) ? _comp.BackFlushLoc : _lot.Location
                     });

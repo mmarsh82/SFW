@@ -51,7 +51,12 @@ namespace SFW
             {
                 try
                 {
-                    Groups = user.GetAuthorizationGroups().Where(o => o.Name.Contains("WAXSG-SFW-") || o.Name.Contains("ARXSG-SFW-")).Select(o => o.Name).ToList();
+                    Groups = new List<string>();
+                    foreach (var _group in user.GetAuthorizationGroups().Where(o => o.Name.Contains("-SFW-")))
+                    {
+                        var _name = _group.Name.Contains("WAX") ? _group.Name.Replace("WAXSG-SFW-", "") : _group.Name.Replace("ARXSG-SFW-", "");
+                        Groups.Add(_name);
+                    }
                     DomainName = context.ConnectedServer;
                     DomainUserName = user.SamAccountName;
                     DisplayName = user.DisplayName;
@@ -502,8 +507,13 @@ namespace SFW
         {
             try
             {
-                var _aGroups = user.GetAuthorizationGroups().Where(o => o.Name.Contains("WAXSG-SFW-") || o.Name.Contains("ARXSG-SFW-")).Select(o => o.Name).ToList();
-                App.IsFocused = BasicUser = AssignPermissions(_aGroups);
+                var _list = new List<string>();
+                foreach (var _group in user.GetAuthorizationGroups().Where(o => o.Name.Contains("-SFW-")))
+                {
+                    var _name = _group.Name.Contains("WAX") ? _group.Name.Replace("WAXSG-SFW-", "") : _group.Name.Replace("ARXSG-SFW-", "");
+                    _list.Add(_name);
+                }
+                App.IsFocused = BasicUser = AssignPermissions(_list);
                 DomainName = context.ConnectedServer;
                 DomainUserName = user.SamAccountName;
                 DisplayName = user.DisplayName;
@@ -543,8 +553,7 @@ namespace SFW
                 {
                     foreach (var _group in groups)
                     {
-                        var _permission = _group.Contains("WAX") ? _group.Replace("WAXSG-SFW-", "") : _group.Replace("ARXSG-SFW-", "");
-                        switch (_permission)
+                        switch (_group)
                         {
                             case "Admin":
                                 CanTrain = CanSchedule = IsSupervisor = IsManager = IsInventoryControl = IsAccountsReceivable = IsAdmin = HasSalesOrderModule = IsQuality = IsEngineer = CanSplit = CanDeviate = HasNotice = Planner = true;
@@ -686,7 +695,7 @@ namespace SFW
                             else
                             {
                                 new CurrentUser(pContext, uPrincipal);
-                                Controls.WorkSpaceDock.RefreshMainDock(true);
+                                WorkSpaceDock.RefreshMainDock(true);
                                 MainWindowViewModel.UpdateProperties(false);
                             }
                             _result.Add(_resultKey, _resultVal);
@@ -886,15 +895,7 @@ namespace SFW
         /// <returns>Dynamic PrincipalContext</returns>
         public static PrincipalContext GetPrincipal(string username)
         {
-            if (username.Contains("\\"))
-            {
-                var uSplit = username.Split('\\');
-                return new PrincipalContext(ContextType.Domain, uSplit[0]);
-            }
-            else
-            {
-                return new PrincipalContext(ContextType.Domain);
-            }
+            return new PrincipalContext(ContextType.Domain, username.Contains("\\") ? username.Split('\\')[0] : "TIRETECH2");
         }
 
         /// <summary>
