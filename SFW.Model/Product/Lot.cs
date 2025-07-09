@@ -22,7 +22,18 @@ namespace SFW.Model.Product
                 OnPropertyChanged(nameof(LotNumber));
             }
         }
-        public int Onhand { get; set; }
+
+        private int _onHand;
+        public int Onhand
+        { 
+            get
+            { return _onHand; }
+            set
+            {
+                _onHand = value;
+                OnPropertyChanged(nameof(Onhand));
+            }
+        }
         public string Uom { get; set; }
         private string _loc;
         public string Location
@@ -319,6 +330,7 @@ namespace SFW.Model.Product
         /// Validate lot number existance
         /// </summary>
         /// <param name="lotNbr">Database ready Lot Number</param>
+        /// <param name="sqlCon">Sql Connection to use</param>
         /// <returns>Validation response</returns>
         public static bool IsValid(string lotNbr, SqlConnection sqlCon)
         {
@@ -335,6 +347,66 @@ namespace SFW.Model.Product
                 catch (Exception)
                 {
                     return false;
+                }
+            }
+            else
+            {
+                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
+            }
+        }
+
+        /// <summary>
+        /// Get the Sku's Diamond number using a parent lot number
+        /// </summary>
+        /// <param name="lotNbr">Lot Number used as a search reference</param>
+        /// <param name="sqlCon">Sql Connection to use</param>
+        /// <returns>Diamond number as string, or the error that was encountered</returns>
+        public static string GetDiamondNumber(string lotNbr, SqlConnection sqlCon)
+        {
+            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
+            {
+                try
+                {
+                    var _rtnValue = string.Empty;
+                    using (SqlCommand cmd = new SqlCommand(@"SELECT * FROM [dbo].[SFW_Diamond] sd WHERE sd.[ParentType] IS NOT NULL AND sd.[ChildType] IS NOT NULL AND sd.[ParentLot] = @p1", sqlCon))
+                    {
+                        if (!lotNbr.Contains("|"))
+                        {
+                            lotNbr += "|P|01";
+                        }
+                        cmd.Parameters.AddWithValue("p1", lotNbr);
+                        using (SqlDataReader reader = cmd.ExecuteReader())
+                        {
+                            if (reader.HasRows)
+                            {
+                                while (reader.Read())
+                                {
+                                    if (reader.SafeGetString("ParentType") == "RR")
+                                    {
+                                        return reader.SafeGetString("ParentLot").Replace("|P|01", "");
+                                    }
+                                    else if (reader.SafeGetString("ChildType") == "RR")
+                                    {
+                                        return reader.SafeGetString("ChildLot").Replace("|P|01", "");
+                                    }
+                                    else
+                                    {
+                                        _rtnValue = reader.SafeGetString("ChildLot");
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    if (!string.IsNullOrEmpty(_rtnValue))
+                    {
+                        _rtnValue = GetDiamondNumber(_rtnValue, sqlCon);
+                        return _rtnValue;
+                    }
+                    return "error";
+                }
+                catch (Exception)
+                {
+                    return "error";
                 }
             }
             else
@@ -522,65 +594,6 @@ namespace SFW.Model.Product
             return _rows.Length > 0
                 ? _rows.FirstOrDefault().Field<string>("SkuID")
                 : null;
-        }
-
-        /// <summary>
-        /// Get the Sku's Diamond number using a parent lot number
-        /// </summary>
-        /// <param name="lotNbr">Lot Number used as a search reference</param>
-        /// <param name="site">Facility code</param>
-        /// <returns>Diamond number as string, or the error that was encountered</returns>
-        public static string GetDiamondNumber(string lotNbr, int site)
-        {
-            try
-            {
-                var _item = MasterDataSet.Tables["LOT"].Select($"[LotID] = '{lotNbr}'").FirstOrDefault();
-                var _type = Sku.GetType(_item.Field<string>("SkuID"), site);
-                if (_type == "RR")
-                {
-                    return lotNbr;
-                }
-                else if (_type == "FR" || _type == "MT")
-                {
-                    return string.Empty;
-                }
-                var _search = $"[ParentLot] = '{lotNbr}'";
-                var _dList = MasterDataSet.Tables.Contains("Diamond") ? MasterDataSet.Tables["Diamond"].Select(_search) : new DataRow[0];
-                if (_dList.Length > 0)
-                {
-                    while (!string.IsNullOrEmpty(_search))
-                    {
-                        _dList = _dList == null ? MasterDataSet.Tables["Diamond"].Select(_search) : _dList;
-                        if (_dList.Length > 0)
-                        {
-                            _search = string.Empty;
-                            foreach (var _row in _dList)
-                            {
-                                if (_row.Field<string>("IsDiamond") == "Y")
-                                {
-                                    return _row.Field<string>("ChildLot");
-                                }
-                                else
-                                {
-                                    _search += string.IsNullOrEmpty(_search)
-                                        ? $"[ParentLot] = '{_row.Field<string>("ChildLot")}'"
-                                        : $" OR [ParentLot] = '{_row.Field<string>("ChildLot")}'";
-                                }
-                            }
-                            _dList = null;
-                        }
-                        else
-                        {
-                            return "error";
-                        }
-                    }
-                }
-                return "error";
-            }
-            catch
-            {
-                return "error";
-            }
         }
 
         /// <summary>

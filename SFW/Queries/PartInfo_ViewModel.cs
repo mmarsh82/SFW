@@ -408,12 +408,15 @@ namespace SFW.Queries
         {
             if (App.SiteNumber == 1)
             {
-                var _dmd = UseLot ? Lot.GetDiamondNumber(_lot, App.SiteNumber) : "";
+                var _dmd = UseLot ? Lot.GetDiamondNumber(_lot, App.AppSqlCon) : "";
                 if (_dmd == "error")
                 {
                     _dmd = DiamondEntry.Show();
                 }
-                var _ncr = UseLot ? Model.Quality.QmsForm.GetNcrId(_lot, App.AppSqlCon) : "";
+
+                var _ncr = UseLot
+                        ? Model.Quality.QmsForm.GetNcrId(_lot, App.AppSqlCon)
+                        : string.Empty;
                 TravelCard.Create("", "technology#1",
                     Part.SkuNumber,
                     _lot,

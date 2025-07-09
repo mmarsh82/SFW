@@ -150,7 +150,6 @@ namespace M2kClient.M2kADIArray
                     }
 
                     //Creating the object for submission
-                    //TODO: need to look at scrap by lot
                     ComponentInfoList.Add(new CompInfo
                     {
                         Lot = _lot.ID,

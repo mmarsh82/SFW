@@ -490,7 +490,18 @@ namespace SFW.Model.Management
                         HoursWorked = 8;
                         WorkCenter = new Production.Machine();
                     }
-                    LaborData = new EmployeeLabor(ErpId, Shift, _rows.FirstOrDefault().Field<int>("Site"), ShiftStart);
+                    var _labor = EmployeeLabor.GetLabor(ErpId);
+                    if (_labor == null)
+                    {
+                        _labor = new EmployeeLabor
+                        {
+                            Shift = Shift
+                            ,InTime = ShiftStart
+                            ,DateId = -1
+                        };
+                        _labor.LaborId = $"{ErpId}*{_labor.DateId}*{Facility}";
+                    }
+                    LaborData = _labor;
                 }
             }
         }
@@ -522,7 +533,18 @@ namespace SFW.Model.Management
                         HoursWorked = 8;
                         WorkCenter = new Production.Machine();
                     }
-                    LaborData = new EmployeeLabor(ErpId, Shift, _rows.FirstOrDefault().Field<int>("Site"), ShiftStart);
+                    var _labor = EmployeeLabor.GetLabor(ErpId);
+                    if (_labor == null)
+                    {
+                        _labor = new EmployeeLabor
+                        {
+                            Shift = Shift
+                            ,InTime = ShiftStart
+                            ,DateId = -1
+                        };
+                        _labor.LaborId = $"{ErpId}*{_labor.DateId}*{Facility}";
+                    }
+                    LaborData = _labor;
                 }
             }
         }
@@ -535,6 +557,8 @@ namespace SFW.Model.Management
         /// <param name="loadLabor">Load the labor fields for the crew member</param>
         public Employee(string erpId, bool fullLoad, bool laborLoad)
         {
+            var _temp = laborLoad;
+            if (_temp) { }
             var _rows = MasterDataSet.Tables[new Employee().GetType().Name].Select($"[EmployeeID] = '{erpId}'");
             if (_rows.Count() > 0)
             {
@@ -554,7 +578,18 @@ namespace SFW.Model.Management
                         HoursWorked = 8;
                         WorkCenter = new Production.Machine();
                     }
-                    LaborData = new EmployeeLabor(ErpId, Shift, _rows.FirstOrDefault().Field<int>("Site"), ShiftStart);
+                    var _labor = EmployeeLabor.GetLabor(ErpId);
+                    if (_labor == null)
+                    {
+                        _labor = new EmployeeLabor
+                        {
+                            Shift = Shift
+                            ,InTime = ShiftStart
+                            ,DateId = -1
+                        };
+                        _labor.LaborId = $"{ErpId}*{_labor.DateId}*{Facility}";
+                    }
+                    LaborData = _labor;
                 }
             }
         }
@@ -569,10 +604,10 @@ namespace SFW.Model.Management
         /// <param name="loadLabor">Load the labor fields for the crew member</param>
         public Employee(string erpId, string firstName, string lastName, bool loadLabor)
         {
-            var _rows = MasterDataSet.Tables[new Employee().GetType().Name].Select($"[EmployeeID] = '{erpId}'");
+            var _rows = MasterDataSet.Tables[typeof(Employee).Name].Select($"[EmployeeID] = '{erpId}'");
             if (_rows.Count() == 0)
             {
-                _rows = MasterDataSet.Tables[new Employee().GetType().Name].Select($"[FirstName] = '{firstName}' AND [LastName] = '{lastName}'");
+                _rows = MasterDataSet.Tables[typeof(Employee).Name].Select($"[FirstName] = '{firstName}' AND [LastName] = '{lastName}'");
             }
             if (_rows.Length > 0)
             {
@@ -591,7 +626,18 @@ namespace SFW.Model.Management
                         HoursWorked = 8;
                         WorkCenter = new Production.Machine();
                     }
-                    LaborData = new EmployeeLabor(ErpId, Shift, _rows.FirstOrDefault().Field<int>("Site"), ShiftStart);
+                    var _labor = EmployeeLabor.GetLabor(ErpId);
+                    if (_labor == null)
+                    {
+                        _labor = new EmployeeLabor
+                        {
+                            Shift = Shift
+                            ,InTime = ShiftStart
+                            ,DateId = -1
+                        };
+                        _labor.LaborId = $"{ErpId}*{_labor.DateId}*{Facility}";
+                    }
+                    LaborData = _labor;
                 }
             }
         }
@@ -603,7 +649,7 @@ namespace SFW.Model.Management
         /// <returns>Crew member existance in the database</returns>
         public static bool ValidErpId(string erpId)
         {
-            return MasterDataSet.Tables[new Employee().GetType().Name].Select($"[EmployeeID] = '{erpId}'").Length > 0;
+            return MasterDataSet.Tables[typeof(Employee).Name].Select($"[EmployeeID] = '{erpId}'").Length > 0;
         }
 
         /// <summary>
@@ -613,7 +659,7 @@ namespace SFW.Model.Management
         /// <returns>Crew member existance in the database</returns>
         public static string GetErpID(int sapId)
         {
-            return MasterDataSet?.Tables[new Employee().GetType().Name].Select($"[SapEmployeeID] = '{sapId}'").FirstOrDefault().SafeGetField<string>("EmployeeID");
+            return MasterDataSet?.Tables[typeof(Employee).Name].Select($"[SapEmployeeID] = '{sapId}'").FirstOrDefault().SafeGetField<string>("EmployeeID");
         }
 
         /// <summary>
@@ -624,7 +670,7 @@ namespace SFW.Model.Management
         /// <returns>Crew member existance in the database</returns>
         public static string GetErpID(string firstName, string lastName)
         {
-            return MasterDataSet.Tables[new Employee().GetType().Name].Select($"[FirstName] = '{firstName}' AND [LastName] LIKE '{lastName}%'").FirstOrDefault().SafeGetField<string>("EmployeeID");
+            return MasterDataSet.Tables[typeof(Employee).Name].Select($"[FirstName] = '{firstName}' AND [LastName] LIKE '{lastName}%'").FirstOrDefault().SafeGetField<string>("EmployeeID");
         }
 
         /// <summary>
@@ -634,7 +680,7 @@ namespace SFW.Model.Management
         /// <returns>Crew member's display name</returns>
         public static string GetDisplayName(string idNbr)
         {
-            var _rows = MasterDataSet.Tables[new Employee().GetType().Name].Select($"[EmployeeID] = '{idNbr}'");
+            var _rows = MasterDataSet.Tables[typeof(Employee).Name].Select($"[EmployeeID] = '{idNbr}'");
             return _rows.Length > 0 ? _rows.FirstOrDefault().Field<string>("DisplayName") : null;
         }
 
@@ -645,7 +691,7 @@ namespace SFW.Model.Management
         /// <returns>facility code as a string</returns>
         public static string GetFacility(string idNbr)
         {
-            var _rows = MasterDataSet.Tables[new Employee().GetType().Name].Select($"[EmployeeID] = '{idNbr}'");
+            var _rows = MasterDataSet.Tables[typeof(Employee).Name].Select($"[EmployeeID] = '{idNbr}'");
             return _rows.Length > 0 ? $"0{_rows.FirstOrDefault().Field<int>("Site")}" : string.Empty;
         }
 
@@ -673,7 +719,7 @@ namespace SFW.Model.Management
         public static ObservableCollection<Employee> GetCollection(int site)
         {
             var _crewCol = new ObservableCollection<Employee>();
-            var _crewRows = MasterDataSet.Tables[new Employee().GetType().Name].Select($"[Site] = '{site}'");
+            var _crewRows = MasterDataSet.Tables[typeof(Employee).Name].Select($"[Site] = '{site}'");
             foreach (var _row in _crewRows)
             {
                _crewCol.Add(new Employee
@@ -694,7 +740,7 @@ namespace SFW.Model.Management
         /// <returns>Shift start time as a string</returns>
         public static string GetShiftStartTime(string idNbr)
         {
-            var _rows = MasterDataSet.Tables[new Employee().GetType().Name].Select($"[EmployeeID] = '{idNbr}'");
+            var _rows = MasterDataSet.Tables[typeof(Employee).Name].Select($"[EmployeeID] = '{idNbr}'");
             return _rows.Length > 0 ? _rows.FirstOrDefault().Field<string>("ShiftStart") : string.Empty;
         }
 
@@ -705,7 +751,7 @@ namespace SFW.Model.Management
         /// <returns>Shift end time as a string</returns>
         public static string GetShiftEndTime(string idNbr)
         {
-            var _rows = MasterDataSet.Tables[new Employee().GetType().Name].Select($"[EmployeeID] = '{idNbr}'");
+            var _rows = MasterDataSet.Tables[typeof(Employee).Name].Select($"[EmployeeID] = '{idNbr}'");
             return _rows.Length > 0 ? _rows.FirstOrDefault().Field<string>("ShiftEnd") : string.Empty;
         }
     }

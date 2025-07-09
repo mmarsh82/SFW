@@ -60,7 +60,9 @@ namespace SFW.Model.Production.Wip
         {
             get
             { 
-                return !string.IsNullOrEmpty(Quantity) && !string.IsNullOrEmpty(Reference) && Quality.QmsForm.IsValid(int.Parse(Reference), OrderId, ProductId, 'P');
+                return !string.IsNullOrEmpty(Quantity) 
+                    && !string.IsNullOrEmpty(Reference) 
+                    && Quality.QmsForm.IsValid(int.Parse(Reference), OrderId, ProductId, 'P');
             }
         }
 

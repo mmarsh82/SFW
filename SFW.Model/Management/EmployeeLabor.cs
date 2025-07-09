@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
@@ -11,10 +12,39 @@ namespace SFW.Model.Management
 
         public string LaborId { get; set; }
         public int Shift { get; set; }
+        public string OutTime { get; set; }
+
+        private int _dateId;
         public int DateId
-        {
+        { 
             get
-            { return DateTime.TryParse(OutDate, out DateTime dt) ? (dt - Convert.ToDateTime("1967/12/31")).Days : (DateTime.Today - Convert.ToDateTime("1967/12/31")).Days; }
+            { return _dateId; }
+            set
+            {
+                if (value == -1)
+                {
+                    //Wahpeton shift 1 and 2 along with Arlington shift 1 logic
+                    //No changes to the date are nessesary
+                    if (Shift < 3 || Shift == 4)
+                    {
+                        value = (DateTime.Today - Convert.ToDateTime("1967/12/31")).Days;
+                    }
+                    //Wahpeton shift 3 logic when time of day is greater than 21:00 then next day
+                    //Arlington shift 2 logic when time of day is less than 14:00 then previous day
+                    if (TimeSpan.TryParse(InTime, out TimeSpan t))
+                    {
+                        var _addDay = (Shift == 3 && DateTime.Now.Hour > 21) || (Shift == 5 && DateTime.Now.Hour < 14) ? 4 - Shift : 0;
+                        var _conDate = _addDay == 0 ? DateTime.Today.AddDays(_addDay) : DateTime.Today;
+                        value = (_conDate - Convert.ToDateTime("1967/12/31")).Days;
+                    }
+                    else
+                    {
+                        value = (DateTime.Today - Convert.ToDateTime("1967/12/31")).Days;
+                    }
+                }
+                _dateId = value;
+                OnPropertyChanged(nameof(DateId));
+            }
         }
 
         private string _inTime;
@@ -29,54 +59,26 @@ namespace SFW.Model.Management
             }
         }
 
-        public string InDate
+        public DateTime InDate
         {
             get
             {
-                if (Shift != 3 && Shift != 5)
+                //Wahpeton shift 1 and 2 along with Arlington shift 1 logic
+                //No changes to the date are nessesary
+                if (Shift < 3 || Shift == 4)
                 {
-                    return DateTime.Today.ToString("MM-dd-yyyy");
+                    return DateTime.Today;
+                }
+                //Wahpeton shift 3 logic when in time is after 21:00 but time of day is less than 21:00 then previous day
+                //Arlington shift 2 logic when in time is after 14:00 but time of day is less than 14:00 then previous day
+                if (TimeSpan.TryParse(InTime, out TimeSpan t))
+                {
+                    var _hour = Shift == 3 ? 21 : 14;
+                    return t.Hours > _hour && DateTime.Now.Hour < _hour ? DateTime.Today.AddDays(-1) : DateTime.Today;
                 }
                 else
                 {
-                    var _time = Shift == 3 ? TimeSpan.Parse("21:00") : TimeSpan.Parse("14:00");
-                    if (DateTime.Now.TimeOfDay > _time)
-                    {
-                        return DateTime.Today.ToString("MM-dd-yyyy");
-                    }
-                    else
-                    {
-                        return DateTime.Today.AddDays(-1).ToString("MM-dd-yyyy");
-                    }
-                }
-            }
-        }
-
-        public string OutTime
-        {
-            get 
-            { return DateTime.Now.ToString("HH:mm"); }
-        }
-
-        public string OutDate
-        {
-            get
-            {
-                if (Shift != 3 && Shift != 5)
-                {
-                    return DateTime.Today.ToString("MM-dd-yyyy");
-                }
-                else
-                {
-                    var _time = Shift == 3 ? TimeSpan.Parse("21:00") : TimeSpan.Parse("14:00");
-                    if (DateTime.Now.TimeOfDay > _time)
-                    {
-                        return DateTime.Today.ToString("MM-dd-yyyy");
-                    }
-                    else
-                    {
-                        return DateTime.Today.AddDays(-1).ToString("MM-dd-yyyy");
-                    }
+                    return DateTime.Today;
                 }
             }
         }
@@ -99,11 +101,9 @@ namespace SFW.Model.Management
                 {
                     try
                     {
-                        var _dateId = (DateTime.Today - Convert.ToDateTime("1967/12/31")).Days - 2;
-                        using (SqlDataAdapter adapter = new SqlDataAdapter($@"SELECT * FROM [dbo].[SFW_StaffErpLabor] WHERE [DateId] >= @p1 AND [Site] = @p2", sqlCon))
+                        using (SqlDataAdapter adapter = new SqlDataAdapter($@"SELECT * FROM [dbo].[SFW_StaffErpLabor] WHERE [Site] = @p1", sqlCon))
                         {
-                            adapter.SelectCommand.Parameters.AddWithValue("p1", _dateId);
-                            adapter.SelectCommand.Parameters.AddWithValue("p2", site);
+                            adapter.SelectCommand.Parameters.AddWithValue("p1", site);
                             adapter.Fill(_tempTable);
                             return _tempTable;
                         }
@@ -133,30 +133,62 @@ namespace SFW.Model.Management
         { }
 
         /// <summary>
-        /// Overridded Constructor
+        /// Retreives a new employee labor object
         /// </summary>
-        /// <param name="erpId">ERP ID of the employee</param>
-        /// <param name="shift">Employee labor shift</param>
-        /// <param name="site">Facility ID for the employee</param>
-        public EmployeeLabor(string erpId, int shift, int site, string shiftStart)
+        /// <param name="erpId">User ERP ID number</param>
+        /// <returns>employee labor object or null</returns>
+        public static EmployeeLabor GetLabor(string erpId)
         {
-            Shift = shift;
-            LaborId = $"{erpId}*{DateId}*0{site}";
-            var _in = GetInTime(LaborId);
-            InTime = !string.IsNullOrEmpty(_in) ? _in : shiftStart;
+            try
+            {
+                var _rows = MasterDataSet.Tables[typeof(EmployeeLabor).Name].Select($"[ErpId] = '{erpId}'", "[OutTime] DESC");
+                if (_rows.Count() > 0)
+                {
+                    return new EmployeeLabor
+                    {
+                        LaborId = _rows.FirstOrDefault().Field<string>("LaborId"),
+                        Shift = _rows.FirstOrDefault().Field<int>("Shift"),
+                        DateId = _rows.FirstOrDefault().Field<int>("DateId"),
+                        InTime = _rows.FirstOrDefault().Field<string>("OutTime"),
+                        OutTime = DateTime.Now.ToString("HH:mm")
+                    };
+                }
+                return null;
+            }
+            catch
+            {
+                return null;
+            }
         }
 
         /// <summary>
-        /// Retreives the last labor clocked in time for the current user
+        /// Retreives a new employee labor object
         /// </summary>
-        /// <param name="crewId">User ID number</param>
-        /// <param name="facCode">Facility code</param>
-        /// <param name="dateId">ERP Date ID in unix time to be used for query</param>
-        /// <returns>Time as a string</returns>
-        public static string GetInTime(string laborId)
+        /// <param name="erpId">User ERP ID number</param>
+        /// <returns>List of labor entries from an employee</returns>
+        public static List<EmployeeLabor> GetLaborList(string erpId)
         {
-            var _rows = MasterDataSet.Tables[new EmployeeLabor().GetType().Name].Select($"[LaborID] = '{laborId}'", "[OutTime] DESC");
-            return _rows.Length > 0 ? _rows.FirstOrDefault().Field<string>("OutTime") : string.Empty;
+            var _rtnList = new List<EmployeeLabor>();
+            try
+            {
+                var _rows = MasterDataSet.Tables[typeof(EmployeeLabor).Name].Select($"[ErpId] = '{erpId}'");
+                foreach (var _row in _rows)
+                {
+                    _rtnList.Add(new EmployeeLabor
+                    {
+                        LaborId = _rows.FirstOrDefault().Field<string>("LaborId"),
+                        Shift = _rows.FirstOrDefault().Field<int>("Shift"),
+                        DateId = _rows.FirstOrDefault().Field<int>("DateId"),
+                        InTime = _rows.FirstOrDefault().Field<string>("InTime"),
+                        OutTime = _rows.FirstOrDefault().Field<string>("OutTime")
+                    });
+                }
+                return _rtnList;
+            }
+            catch
+            {
+                return _rtnList;
+            }
         }
     }
 }

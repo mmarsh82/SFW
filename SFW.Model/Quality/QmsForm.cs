@@ -5,7 +5,6 @@ using System.ComponentModel;
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
-using System.Runtime.InteropServices;
 
 namespace SFW.Model.Quality
 {
@@ -250,7 +249,7 @@ GROUP BY
                     using (SqlCommand cmd = new SqlCommand($@"SELECT COUNT(ncrLot.[NcrId]) FROM [dbo].[SFW_DefectLotLink] ncrLot WHERE ncrLot.[NcrId] = @p1 AND ncrLot.[LotId] = @p2", sqlCon))
                     {
                         cmd.Parameters.AddWithValue("p1", ncrId.ToString());
-                        cmd.Parameters.AddWithValue("p1", ncrId.ToString());
+                        cmd.Parameters.AddWithValue("p2", lotId.ToString());
                         return int.TryParse(cmd.ExecuteScalar().ToString(), out int i) && i > 0;
                     }
                 }
@@ -652,10 +651,10 @@ GROUP BY
             {
                 case 'P':
                     reference = reference.Contains("|") ? reference : $"{reference}|01";
-                    return MasterDataSet.Tables[typeof(Notice).Name].Select($"[NcrId] = '{ncrId}' AND [PartId] = '{reference}' AND [WorkOrderId] = '{workOrder}'").Count() > 0;
+                    return MasterDataSet.Tables[typeof(Notice).Name].Select($"[NcrId] = {ncrId} AND [PartId] = '{reference}' AND [WorkOrderId] = '{workOrder}'").Count() > 0;
                 case 'L':
                     reference = reference.Contains("|") ? reference : $"{reference}|P|01";
-                    var _valid = MasterDataSet.Tables[typeof(Notice).Name].Select($"[NcrId] = '{ncrId}' AND [WorkOrderId] = '{workOrder}'").Count() > 0;
+                    var _valid = MasterDataSet.Tables[typeof(Notice).Name].Select($"[NcrId] = {ncrId} AND [WorkOrderId] = '{workOrder}'").Count() > 0;
                     if (_valid)
                     {
                         return ValidNcrLot(ncrId, reference, ModelSqlCon);

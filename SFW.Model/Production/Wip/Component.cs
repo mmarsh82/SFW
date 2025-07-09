@@ -166,7 +166,7 @@ namespace SFW.Model.Production.Wip
             {
                 var _divCnt = _tempList.Count(o => o.Valid && !o.QuantityLocked);
                 var _balance = ((BindingList<Lot>)sender).First().RequiredQuantity - _tempList.Where(o => o.Valid && o.QuantityLocked).Sum(o => int.TryParse(o.Quantity, out int i) ? i : 0);
-                if (_divCnt > 0 && _balance > 0)
+                if (_divCnt > 0 && (_balance > 0 || ((BindingList<Lot>)sender).First().RequiredQuantity < 0))
                 {
                     foreach (var _lot in _tempList.Where(o => o.Valid && !o.QuantityLocked))
                     {

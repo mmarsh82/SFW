@@ -74,7 +74,6 @@
     <Compile Include="Production\Wip\Scrap.cs" />
     <Compile Include="Production\WorkOrder.cs" />
     <Compile Include="Production\WorkOrderNote.cs" />
-    <Compile Include="Product\Diamond.cs" />
     <Compile Include="Product\Lot.cs" />
     <Compile Include="Product\Sku.cs" />
     <Compile Include="Product\SkuInstruction.cs" />

@@ -28,8 +28,10 @@ namespace SFW.DataAccess
         public Connection(string user, SecureString password, string server, string database, string timeout)
         {
             var sqlCred = new SqlCredential(user, password);
-            Sql = new SqlConnection($"Server={server};DataBase={database};Connection Timeout={timeout};MultipleActiveResultSets=True;Connection Lifetime=3;Max Pool Size=3;Pooling=true;", sqlCred);
-            Sql.StatisticsEnabled = true;
+            Sql = new SqlConnection($"Server={server};DataBase={database};Connection Timeout={timeout};MultipleActiveResultSets=True;Connection Lifetime=3;Max Pool Size=3;Pooling=true;", sqlCred)
+            {
+                StatisticsEnabled = true
+            };
             Sql.Open();
             while (Sql.State != ConnectionState.Open) { }
             Sql.StateChange += SqlCon_StateChange;

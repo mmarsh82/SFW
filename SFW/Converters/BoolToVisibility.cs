@@ -53,7 +53,11 @@ namespace SFW.Converters
                 foreach (var _arg in parameter.ToString().Split('*'))
                 {
                     var _intVal = int.TryParse(_arg, out int i) ? i > 0 : false;
-                    _rtnBool = bool.TryParse(values[_counter].ToString(), out bool b) ? _intVal == b : false;
+                    if (!bool.TryParse(values[_counter].ToString(), out bool _boolVal))
+                    {
+                        _boolVal = int.TryParse(values[_counter].ToString(), out int l) && l > 0;
+                    }
+                    _rtnBool = _boolVal == _intVal;
                     if (!_rtnBool)
                     {
                         return Visibility.Collapsed;

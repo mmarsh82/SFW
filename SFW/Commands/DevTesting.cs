@@ -8,7 +8,7 @@ namespace SFW.Commands
 
         public event EventHandler CanExecuteChanged
         {
-            add {  }
+            add { }
             remove { }
         }
 
@@ -18,7 +18,7 @@ namespace SFW.Commands
         /// <param name="parameter"></param>
         public void Execute(object parameter)
         {
-
+            
         }
 
         public bool CanExecute(object parameter) { return true; }

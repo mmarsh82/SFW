@@ -735,7 +735,7 @@
 
                     <ItemsControl Name="LotNumbers"
                                   Grid.Column="1" Grid.Row="1"
-                                  ItemsSource="{Binding Path=FormObject.LotList}"
+                                  ItemsSource="{Binding FormObject.LotList}"
                                   Margin="10,0,0,0"
                                   FontSize="18"
                                   Cursor="Hand"
@@ -769,31 +769,23 @@
                                                    Margin="5,0,0,0"/>
 
                                         <TextBox Text="{Binding LotNumber, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                                 FontSize="16"
                                                  MinWidth="130"
                                                  CharacterCasing="Upper"
                                                  Margin="3"
                                                  Background="LightGray">
                                             <TextBox.Visibility>
-                                                <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="">
+                                                <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="1*0">
                                                     <Binding Path="(main:CurrentUser.IsQuality)"/>
-                                                    <Binding Path="OnHand"/>
+                                                    <Binding Path="Onhand"/>
                                                 </MultiBinding>
                                             </TextBox.Visibility>
                                         </TextBox>
 
                                         <TextBlock Text="{Binding LotNumber}"
                                                    VerticalAlignment="Center"
-                                                   FontSize="16"
                                                    FontWeight="Bold"
-                                                   Margin="5,0,0,0">
-                                            <TextBlock.Visibility>
-                                                <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="1*1">
-                                                    <Binding Path="(main:CurrentUser.IsQuality)"/>
-                                                    <Binding Path="OnHand"/>
-                                                </MultiBinding>
-                                            </TextBlock.Visibility>
-                                        </TextBlock>
+                                                   Margin="5,0,0,0"
+                                                   Visibility="{Binding Onhand, Converter={StaticResource IntToVisConverter}, ConverterParameter=n0}"/>
 
                                         <TextBlock Text="Scrap:"
                                                    TextDecorations="Underline"

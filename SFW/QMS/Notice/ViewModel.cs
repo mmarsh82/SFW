@@ -233,7 +233,9 @@ namespace SFW.QMS.Notice
             try
             {
                 Application.Current?.Dispatcher.Invoke(new Action(delegate { CollectionView.DeferRefresh(); }));
-                var _tempTable = ModelBase.MasterDataSet.Tables[typeof(Model.Quality.Notice).Name].Select("[NcrRevisionId] = [RevisionFilter]").CopyToDataTable().AsDataView();
+                var _tempTable = ModelBase.MasterDataSet.Tables.Contains(typeof(Model.Quality.Notice).Name)
+                    ? ModelBase.MasterDataSet.Tables[typeof(Model.Quality.Notice).Name].Select("[NcrRevisionId] = [RevisionFilter]").CopyToDataTable().AsDataView()
+                    : null;
                 if (_tempTable != null)
                 {
                     _tempTable.Sort = "RevisionDateTime DESC";

@@ -72,8 +72,7 @@
                          Width="200"
                          FontSize="18"
                          Margin="5"
-                         Background="LightGray"
-                         Style="{DynamicResource OptionalTextBox}" />
+                         Background="LightGray" />
 
             </StackPanel>
 
@@ -86,9 +85,14 @@
                         BorderThickness="0"
                         Background="Transparent"
                         IsTabStop="False"
-                        Visibility="{Binding Path=(main:CurrentUser.IsQuality), Converter={StaticResource BoolToVisConverter}}"
                         Style="{DynamicResource ResourceKey=DefaultButton}">
                     <Image Source="/SFW;component/Icons/admin.ico"/>
+                    <Button.Visibility>
+                        <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="1|1">
+                            <Binding Path="(main:CurrentUser.IsQuality)"/>
+                            <Binding Path="(main:CurrentUser.IsManager)"/>
+                        </MultiBinding>
+                    </Button.Visibility>
                 </Button>
 
                 <ComboBox x:Name="FormTypeFilter"

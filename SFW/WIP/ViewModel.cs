@@ -155,7 +155,7 @@ namespace SFW.WIP
                 WipRecord.IsScrap = value;
                 OnPropertyChanged(nameof(Scrap));
                 WipRecord.ScrapList.Clear();
-                WipRecord.ScrapList.Add(new Scrap { ID = WipRecord.ScrapList.Count().ToString() });
+                WipRecord.ScrapList.Add(new Scrap("0", WipLot, WipRecord.WipWorkOrder.OrderNumber, WipRecord.WipWorkOrder.Product.SkuNumber));
                 WipQuantity = "-987654";
                 OnPropertyChanged(nameof(WipRecord));
             }
@@ -285,9 +285,7 @@ namespace SFW.WIP
         {
             get
             {
-                return WipRecord.WipWorkOrder.PickList.Count(o => o.InventoryType == "RC" || o.InventoryType == "CS") > 0 && App.SiteNumber == 2
-                    ? !WipRecord.WipWorkOrder.PickList.FirstOrDefault(o => o.InventoryType == "RC" || o.InventoryType == "CS").IsLotTrace
-                    : false;
+                return WipRecord.WipWorkOrder.PickList.Count(o => o.InventoryType == "RC" || o.InventoryType == "CS") > 0 && App.SiteNumber == 2 && !WipRecord.WipWorkOrder.PickList.FirstOrDefault(o => o.InventoryType == "RC" || o.InventoryType == "CS").IsLotTrace;
             }
         }
 
@@ -454,7 +452,7 @@ namespace SFW.WIP
                     }
                     if (App.SiteNumber == 2)
                     {
-                        _baseValid = _baseValid ? Weight > 0 : false;
+                        _baseValid = _baseValid && Weight > 0;
                     }
 
                     #endregion
@@ -464,15 +462,23 @@ namespace SFW.WIP
                     var _scrapValid = true;
                     if (WipRecord.IsScrap == Model.Enumerations.Complete.Y)
                     {
+                        var _qty = WipRecord.WipQty;
+                        _qty += WipRecord.ScrapList.Sum(o => o.Valid && int.TryParse(o.Quantity, out int i) ? i : 0);
+                        WipRecord.ComponentList.Update(decimal.Parse(_qty.ToString()));
                         if (WipRecord.ScrapList.Count(o => int.TryParse(o.Quantity, out int i) && i > 0) > 0)
                         {
                             if (App.SiteNumber == 1)
                             {
                                 _scrapValid = false;
-                                if (WipRecord.ScrapList.Count(o => Convert.ToInt32(o.Quantity) > 0) == WipRecord.ScrapList.Count())
+                                if (WipRecord.ScrapList.Count(o => o.Valid) == WipRecord.ScrapList.Count())
                                 {
                                     foreach(var s in WipRecord.ScrapList)
                                     {
+                                        if (WipRecord.ScrapList.Count(o => o.Reference == s.Reference) > 1)
+                                        {
+                                            _scrapValid = false;
+                                            break;
+                                        }
                                         var _ncrId = int.TryParse(s.Reference, out int nRef) ? nRef : 0;
                                         _scrapValid = (WipRecord.IsLotTracable || string.IsNullOrEmpty(WipLot))
                                             ? Model.Product.Lot.IsValidQIR(s.Reference, WipRecord.WipWorkOrder.OrderNumber, "", WipRecord.WipWorkOrder.Product.SkuNumber, App.AppSqlCon) || Model.Quality.QmsForm.IsValid(nRef, WipRecord.WipWorkOrder.OrderNumber, WipRecord.WipWorkOrder.Product.SkuNumber, 'P')
@@ -494,7 +500,7 @@ namespace SFW.WIP
                     var _reclaimValid = true;
                     if (WipRecord.IsReclaim == Model.Enumerations.Complete.Y)
                     {
-                        _reclaimValid = int.TryParse(WipRecord.ReclaimObject.Quantity, out int rRef) ? rRef > 0 : false;
+                        _reclaimValid = int.TryParse(WipRecord.ReclaimObject.Quantity, out int rRef) && rRef > 0;
                     }
 
                     #endregion
@@ -553,19 +559,39 @@ namespace SFW.WIP
         {
             var _wQty = TQty == null || TQty == 0 ? Convert.ToInt32(WipRecord.WipQty) : Convert.ToInt32(TQty);
             var _diamond = string.Empty;
-
             //Printing the travel card logic
             if (LotList == null || LotList.Count == 0)
             {
                 if (App.SiteNumber == 1)
                 {
-                    if (_diamond == string.Empty && WipRecord.IsLotTracable)
+                    //Get the diamond number
+                    if (WipRecord.IsLotTracable)
                     {
-                        App.GetWindow<View>().Topmost = false;
-                        _diamond = DiamondEntry.Show();
-                        App.GetWindow<View>().Topmost = true;
+                        foreach (var _comp in WipRecord.ComponentList)
+                        {
+                            foreach (var _lot in _comp.LotList)
+                            {
+                                _diamond = Model.Product.Lot.GetDiamondNumber(_lot.ID, App.AppSqlCon);
+                            }
+                            if (!string.IsNullOrEmpty(_diamond) && _diamond != "error")
+                            {
+                                break;
+                            }
+                        }
+                        if (string.IsNullOrEmpty(_diamond) || _diamond == "error")
+                        {
+                            App.GetWindow<View>().Topmost = false;
+                            _diamond = DiamondEntry.Show();
+                            App.GetWindow<View>().Topmost = true;
+                        }
                     }
-                    var _ncr = WipRecord.IsLotTracable ? Model.Quality.QmsForm.GetNcrId(WipRecord.WipLot.LotNumber, App.AppSqlCon) : Model.Quality.QmsForm.GetNcrId(WipRecord.WipWorkOrder.OrderNumber);
+
+                    //Check to see if there is an associated NCR
+                    var _ncr = WipRecord.IsLotTracable
+                        ? Model.Quality.QmsForm.GetNcrId(WipRecord.WipLot.LotNumber, App.AppSqlCon)
+                        : Model.Quality.QmsForm.GetNcrId(WipRecord.WipWorkOrder.OrderNumber);
+
+                    //Print the travel card
                     TravelCard.Create("", "technology#1",
                         WipRecord.WipWorkOrder.Product.SkuNumber,
                         WipRecord.IsLotTracable ? WipRecord.WipLot.LotNumber : "",
@@ -814,7 +840,8 @@ namespace SFW.WIP
 
         private void AddScrapExecute(object parameter)
         {
-            WipRecord.ScrapList.Add(new Scrap { ID = WipRecord.ScrapList.Count().ToString() });
+            var _newId = WipRecord.ScrapList.Count().ToString();
+            WipRecord.ScrapList.Add(new Scrap(_newId, WipLot, WipRecord.WipWorkOrder.OrderNumber, WipRecord.WipWorkOrder.Product.SkuNumber));
             OnPropertyChanged(nameof(WipRecord));
         }
         private bool AddScrapCanExecute(object parameter) => parameter != null && !string.IsNullOrEmpty(parameter.ToString());

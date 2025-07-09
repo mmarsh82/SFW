@@ -534,6 +534,10 @@ namespace SFW
                     ((Schedule.ViewModel)((Schedule.View)((DockPanel)WorkSpaceDock.MainDock.Children[1]).Children[0]).DataContext).ResetFilter();
                 }
             }
+            catch (PrincipalServerDownException)
+            {
+
+            }
             catch (Exception)
             {
 

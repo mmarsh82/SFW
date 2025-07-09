@@ -161,6 +161,12 @@
                             Visibility="{Binding Path=(main:CurrentUser.IsQuality), Converter={StaticResource BoolToVisConverter}}"
                             Command="{StaticResource ViewLoadCommand}"
                             Style="{DynamicResource MenuButtonStyle}">
+                        <Button.IsEnabled>
+                            <MultiBinding Converter="{StaticResource WipEnabled}">
+                                <Binding Path="(main:CurrentUser.IsQuality)"/>
+                                <Binding Path="(main:ApplicationTimer.Status)"/>
+                            </MultiBinding>
+                        </Button.IsEnabled>
                         <Button.CommandParameter>
                             <MultiBinding Converter="{StaticResource StringCombineConverter}" ConverterParameter="NCR">
                                 <Binding Path="ShopOrder.OrderNumber"/>

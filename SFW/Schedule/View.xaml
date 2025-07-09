@@ -123,8 +123,7 @@
                          Width="200"
                          FontSize="18"
                          Margin="5"
-                         Background="LightGray"
-                         Style="{DynamicResource OptionalTextBox}" />
+                         Background="LightGray" />
 
             </StackPanel>
 

@@ -656,7 +656,6 @@ namespace M2kClient
         /// <param name="seq">Work order sequence</param>
         /// <param name="qtyComp">Quantity completed for this transaction</param>
         /// <param name="machID">Machine ID that will receive the labor posting</param>
-        /// <param name="clockTranType">Clock transaction type, when passed will need to be formated as 'I' or 'O', by leaving this parameter blank will cause the method to calculate labor</param>
         /// <param name="facCode">Facility code</param>
         /// <param name="crew">Crew size, only needs to be passed when the crewsize listed in the ERP is smaller or larger that the amount of crew members posting labor to the work order</param>
         /// <param name="crewMember">Crew Member object to get times and dates from</param>
@@ -669,7 +668,7 @@ namespace M2kClient
             {
                 var suffix = DateTime.Now.ToString($"ssffff");
                 var _inTime = crewMember.LaborData.InTime;
-                var _inDate = crewMember.LaborData.InDate;
+                var _inDate = crewMember.LaborData.InDate.ToString("MM-dd-yyyy");
                 var _inDL = new DirectLabor(stationId, empID, 'I', _inTime, workOrder, seq, 0, 0, machID, CompletionFlag.N, facCode, crew, _inDate);
                 var _outDL = crew > 0
                     ? new DirectLabor(stationId, empID, 'O', DateTime.Now.ToString("HH:mm"), workOrder, seq, qtyComp, 0, machID, CompletionFlag.N, facCode, crew, DateTime.Now.ToString("MM-dd-yyyy"))
