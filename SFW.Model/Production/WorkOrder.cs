@@ -98,10 +98,13 @@ namespace SFW.Model.Production
 	,im.Description AS SkuDesc
 	,im.Um AS SkuUom
 	,im.Drawing_Nbrs AS SkuMasterPrint
-	,ISNULL(CASE WHEN (SELECT aa.[Ord_Type] FROM [dbo].[SOH-INIT] aa WHERE aa.[So_Nbr] = SUBSTRING(wp.[So_Reference], 0, CHARINDEX('*', wp.[So_Reference], 0))) = 'DAI' THEN 'A' WHEN wp.[Wo_Type] = 'R'
-		THEN 'B'
-		ELSE wp.[Mgt_Priority_Code]
-	END, 'D') AS WO_Priority
+	,ISNULL(CASE WHEN (SELECT aa.[Ord_Type] FROM [dbo].[SOH-INIT] aa WHERE aa.[So_Nbr] = SUBSTRING(wp.[So_Reference], 0, CHARINDEX('*', wp.[So_Reference], 0))) = 'DS1'
+			OR (SELECT aa.[Ord_Type] FROM [dbo].[SOH-INIT] aa WHERE aa.[So_Nbr] = SUBSTRING(wp.[So_Reference], 0, CHARINDEX('*', wp.[So_Reference], 0))) = 'DS3'
+			THEN 'A'
+		WHEN wp.[Wo_Type] = 'R'
+			THEN 'B'
+			ELSE wp.[Mgt_Priority_Code] END, 'D') AS WO_Priority
+    ,(SELECT aa.[Ord_Type] FROM [dbo].[SOH-INIT] aa WHERE aa.[So_Nbr] = SUBSTRING(wp.[So_Reference], 0, CHARINDEX('*', wp.[So_Reference], 0))) as 'SalesOrderType'
 	,(SELECT Remarks FROM dbo.[RT-INIT_Remarks] AS rt WHERE (ID = { fn CONCAT({ fn CONCAT(im.Part_Number, '*') }, SUBSTRING(wpo.ID, CHARINDEX('*', wpo.ID, 0) + 1, LEN(wpo.ID))) }) AND (ID2 = 1)) AS Op_Desc
     ,ISNULL((SELECT ISNULL(Insp_Req, 'N') AS Expr1 FROM dbo.[RT-INIT] AS rt WHERE (ID = { fn CONCAT({ fn CONCAT(im.Part_Number, '*') }, SUBSTRING(wpo.ID, CHARINDEX('*', wpo.ID, 0) + 1, LEN(wpo.ID))) })), 'N') AS Inspection
 	,(SELECT Cust_Part_Nbr FROM dbo.[SOD-INIT] AS ac WHERE (ID = SUBSTRING(wp.So_Reference, 0, LEN(wp.So_Reference) - 1))) AS Cust_Part_Nbr

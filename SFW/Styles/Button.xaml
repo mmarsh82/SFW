@@ -28,7 +28,7 @@
         <Setter Property="BorderThickness" Value="2"/>
         <Setter Property="Effect">
             <Setter.Value>
-                <DropShadowEffect/>
+                <DropShadowEffect ShadowDepth="7" Opacity=".5" BlurRadius="4" Direction="220"/>
             </Setter.Value>
         </Setter>
         <Setter Property="Template">

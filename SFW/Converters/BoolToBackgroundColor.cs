@@ -11,11 +11,11 @@ namespace SFW.Converters
         {
             if (bool.TryParse(value.ToString(), out bool b))
             {
-                return b ? new SolidColorBrush(Colors.Crimson) : new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FF135185"));
+                return b ? new SolidColorBrush(Colors.Crimson) : new SolidColorBrush(Colors.Transparent);
             }
             else if (parameter != null && parameter.ToString() == "Y")
             {
-                return value.ToString() == "Y" ? new SolidColorBrush(Colors.Crimson) : new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FF135185"));
+                return value.ToString() == "Y" ? new SolidColorBrush(Colors.Crimson) : new SolidColorBrush(Colors.Transparent);
             }
             else
             {

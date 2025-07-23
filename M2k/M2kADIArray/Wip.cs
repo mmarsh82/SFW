@@ -159,23 +159,23 @@ namespace M2kClient.M2kADIArray
                         IssueLoc = !string.IsNullOrEmpty(_comp.BackFlushLoc) ? _comp.BackFlushLoc : _lot.Location
                     });
                     _tempQty = 0;
-                    if (_comp.ScrapList != null && _comp.ScrapList.Count() > 0)
+                    if (_lot.ScrapCollection != null && _lot.ScrapCollection.Count() > 0)
                     {
-                        foreach (var s in _comp.ScrapList.Where(o => int.TryParse(o.Quantity, out int i)))
+                        foreach (var _scrap in _lot.ScrapCollection.Where(o => int.TryParse(o.Quantity, out int i)))
                         {
                             var _reason = AdjustCode.QSC;
-                            if (wipRecord.WipWorkOrder.Facility == 2 && string.IsNullOrEmpty(s.Reference))
+                            if (wipRecord.WipWorkOrder.Facility == 2 && string.IsNullOrEmpty(_scrap.Reference))
                             {
                                 _reason = AdjustCode.YIE;
                             }
                             AdjustmentList.Add(new Adjust(
                                         wipRecord.Submitter,
                                         wipRecord.Facility,
-                                        !string.IsNullOrEmpty(s.Reference) ? $"{s.Reference}*{wipRecord.WipWorkOrder.OrderNumber}" : wipRecord.WipWorkOrder.OrderNumber,
+                                        !string.IsNullOrEmpty(_scrap.Reference) ? $"{_scrap.Reference}*{wipRecord.WipWorkOrder.OrderNumber}" : wipRecord.WipWorkOrder.OrderNumber,
                                         _comp.ProductNumber,
                                         _reason,
                                         'S',
-                                        Convert.ToInt32(s.Quantity),
+                                        Convert.ToInt32(_scrap.Quantity),
                                         !string.IsNullOrEmpty(_comp.BackFlushLoc) ? _comp.BackFlushLoc : _lot.Location,
                                         _lot.ID));
                         }

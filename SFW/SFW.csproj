@@ -29,8 +29,8 @@
     <ProductName>Shop Floor Workbench</ProductName>
     <PublisherName>Michael Marsh</PublisherName>
     <SuiteName>ContiTech</SuiteName>
-    <ApplicationRevision>70</ApplicationRevision>
-    <ApplicationVersion>3.0.0.70</ApplicationVersion>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>3.0.1.0</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <CreateDesktopShortcut>true</CreateDesktopShortcut>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -537,9 +537,6 @@
     <Resource Include="Icons\PartSearch.ico" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Icons\Warning.ico" />
-  </ItemGroup>
-  <ItemGroup>
     <Resource Include="Icons\Refresh.ico" />
   </ItemGroup>
   <ItemGroup>
@@ -561,16 +558,7 @@
     <Resource Include="Icons\Help.ico" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Icons\Search.ico" />
-  </ItemGroup>
-  <ItemGroup>
     <Resource Include="Icons\Exit.ico" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Icons\Late.ico" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Icons\Critical.ico" />
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Icons\Lock.ico" />
@@ -638,6 +626,32 @@
       <EmbedInteropTypes>True</EmbedInteropTypes>
     </COMReference>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Resource Include="Icons\ProductSearch.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Icons\UserOnline.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Icons\Search.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Icons\Verify.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Icons\Download.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Icons\Warning.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Icons\Critical.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Icons\Late.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Icons\Daily.ico" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

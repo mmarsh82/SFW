@@ -1,7 +1,8 @@
-﻿using System.Collections.Generic;
-using System.ComponentModel;
+﻿using System;
 using System.Data;
 using System.Linq;
+using System.Windows;
+using System.Windows.Data;
 
 namespace SFW
 {
@@ -18,13 +19,7 @@ namespace SFW
         /// <summary>
         /// Model data CollectionView to be used to bind in the view
         /// </summary>
-        public ICollectionView CollectionView { get; set; }
-
-        /// <summary>
-        /// The current Selected item that is synced from the view
-        /// Used in the change event and the refresh to load the dynamic object into the form view
-        /// </summary>
-        public KeyValuePair<string, string> SelectedItemFilter;
+        public ListCollectionView CollectionView { get; set; }
 
         private string _sFilter;
         public string SearchFilter
@@ -79,6 +74,7 @@ namespace SFW
             {
                 ((DataView)CollectionView.SourceCollection).RowFilter = _filterStr;
             }
+            Application.Current?.Dispatcher.Invoke(new Action(delegate { CollectionView.Refresh(); }));
         }
 
         /// <summary>
@@ -99,6 +95,23 @@ namespace SFW
         { }
 
         public virtual void Refresh()
+        {
+            try
+            {
+                var _index = CollectionView.CurrentPosition;
+                Application.Current?.Dispatcher.Invoke(new Action(delegate { CollectionView.Refresh(); }));
+                if (CollectionView != null)
+                {
+                    Application.Current?.Dispatcher.Invoke(new Action(delegate { CollectionView.MoveCurrentToPosition(_index); }));
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Prod Unhandled Exception", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        public virtual void Initialize()
         { }
     }
 }

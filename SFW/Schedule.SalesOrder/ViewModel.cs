@@ -120,7 +120,7 @@ namespace SFW.Schedule.SalesOrder
             if (App.SiteNumber == 1)
             {
                 ApplicationTimer.ActionList.Add(Refresh);
-                CollectionView = CollectionViewSource.GetDefaultView(new DataView());
+                CollectionView = new ListCollectionView(new DataView());
                 OrderTypeList = Model.Sales.SalesOrder.GetOrderTypeList();
                 OrderTypeList.Insert(0, "All");
                 IsSchedule = false;
@@ -132,7 +132,7 @@ namespace SFW.Schedule.SalesOrder
                     ,"W"
                 };
                 SelectedCredStatus = CreditStatusList[0];
-                Refresh();
+                Initialize();
             }
         }
 
@@ -150,7 +150,6 @@ namespace SFW.Schedule.SalesOrder
                     var _dRow = (DataRowView)CollectionView.CurrentItem;
                     if (_dRow != null)
                     {
-                        SelectedItemFilter = new KeyValuePair<string, string>(_dRow.Row.Field<string>("ID"), "ID");
                         var _sku = new Sku(_dRow.Row.Field<string>("PartNbr"), 'S', App.SiteNumber, true);
                         var _soObj = new Model.Sales.SalesOrder(_dRow.Row);
                         var _action = new Action(delegate { Controls.WorkSpaceDock.UpdateChildDock(8, 1, new ShopRoute.SalesOrder.ViewModel(_soObj, _sku)); });
@@ -165,7 +164,7 @@ namespace SFW.Schedule.SalesOrder
         /// <summary>
         /// Refresh action for the schedule data
         /// </summary>
-        public override void Refresh()
+        public override void Initialize()
         {
             try
             {
@@ -177,7 +176,7 @@ namespace SFW.Schedule.SalesOrder
                         .Select(g => g.First())
                         .CopyToDataTable();
                 }
-                CollectionView = CollectionViewSource.GetDefaultView(_tempTable);
+                CollectionView = new ListCollectionView(_tempTable.AsDataView());
                 if (CollectionView.GroupDescriptions.Count() != 0)
                 {
                     Application.Current?.Dispatcher.Invoke(new Action(delegate { CollectionView.GroupDescriptions.Clear(); }));
@@ -188,13 +187,6 @@ namespace SFW.Schedule.SalesOrder
                 }));
                 OnPropertyChanged(nameof(CollectionView));
                 Application.Current?.Dispatcher.Invoke(new Action(delegate { CollectionView.Refresh(); }));
-                if (CollectionView != null)
-                {
-                    var _selectedIndex = ((DataView)CollectionView.SourceCollection).Count > 0 && SelectedItemFilter.Key != null
-                        ? CollectionView.IndexOf(SelectedItemFilter.Key, SelectedItemFilter.Value)
-                        : -1;
-                    Application.Current?.Dispatcher.Invoke(new Action(delegate { CollectionView.MoveCurrentToPosition(_selectedIndex); }));
-                }
                 CollectionView.CurrentChanged += CollectionView_ItemChanged;
                 if (OrderTypeList.Count == 1)
                 {

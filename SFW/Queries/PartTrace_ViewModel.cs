@@ -59,7 +59,7 @@ namespace SFW.Queries
             { return _verifyTxt; }
             set
             {
-                _verifyTxt = string.IsNullOrEmpty(value) ? "Verify" : value;
+                _verifyTxt = string.IsNullOrEmpty(value) ? "Details" : value;
                 OnPropertyChanged(nameof(VerifyText));
             }
         }

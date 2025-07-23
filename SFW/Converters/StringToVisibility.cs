@@ -27,6 +27,14 @@ namespace SFW.Converters
                 {
                     return value?.ToString() == "Open" ? Visibility.Visible : Visibility.Collapsed;
                 }
+                if (parameter.ToString() == "WO")
+                {
+                    return value?.ToString() == "DS3" ? Visibility.Visible : Visibility.Collapsed;
+                }
+                if (parameter.ToString() == "Daily")
+                {
+                    return value != null && value.ToString().Contains("DS") ? Visibility.Visible : Visibility.Collapsed;
+                }
                 else
                 {
                     var _val = parameter.ToString();
@@ -72,8 +80,14 @@ namespace SFW.Converters
 
         public object Convert(object[] values, Type targetType, object parameter, System.Globalization.CultureInfo culture)
         {
+            if (parameter != null && parameter.ToString() == "SCAR")
+            {
+                var _access = bool.TryParse(values[1].ToString(), out bool b) && !b;
+                return values[0].ToString() == parameter.ToString() && _access ? Visibility.Visible : Visibility.Collapsed;
+            }
+
             var boolVal = values.Length == 2;
-            boolVal = boolVal ? bool.TryParse(values[1].ToString(), out boolVal) : false;
+            boolVal = boolVal && bool.TryParse(values[1].ToString(), out boolVal);
             if (parameter != null)
             {
                 switch (parameter.ToString())

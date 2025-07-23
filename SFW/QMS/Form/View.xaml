@@ -547,8 +547,14 @@
 
                     <TextBlock Text="{Binding SelectedSupplier.Name}"
                                FontSize="24"
-                               Visibility="{Binding ShowSupplierCollection, Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}"
-                               Margin="10,0,0,0"/>
+                               Margin="10,0,0,0">
+                        <TextBlock.Visibility>
+                            <MultiBinding Converter="{StaticResource StringToVisConverter}" ConverterParameter="SCAR">
+                                <Binding Path="FormRevision.RevFormType"/>
+                                <Binding Path="(main:CurrentUser.IsQuality)"/>
+                            </MultiBinding>
+                        </TextBlock.Visibility>
+                    </TextBlock>
 
                     <ComboBox x:Name="Supplier"
                               ItemsSource="{Binding SupplierCollection, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"

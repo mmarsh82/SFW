@@ -122,66 +122,6 @@ namespace SFW
         }
 
         /// <summary>
-        /// Retrieve the index of an item within an ICollectionView
-        /// </summary>
-        /// <param name="view">ICollectionView object</param>
-        /// <param name="item">Item to search for</param>
-        /// <param name="colSearch">Optional:When using a SourceCollection of DataView will assert the name of the attribute to use in the index search</param>
-        /// <returns>index as int</returns>
-        public static int IndexOf(this ICollectionView view, object item, string colSearch = "")
-        {
-            var e = view.GetEnumerator();
-            var idx = 0;
-            //Handling a source collection of type DataTable different as the the items will never trigger the standard Equals operator
-            //The underlying DataTable must contain an ID field
-            try
-            {
-                if (item.GetType() == typeof(DataRowView) && view.SourceCollection.GetType() == typeof(DataView) && !string.IsNullOrEmpty(colSearch))
-                {
-                    while (e.MoveNext())
-                    {
-                        if (((DataRowView)item).Row.Field<object>(colSearch).ToString() == ((DataRowView)e.Current).Row.Field<object>(colSearch).ToString())
-                            return idx;
-                        else
-                            idx++;
-                    }
-                }
-                else if (item.GetType() == typeof(string))
-                {
-                    while (e.MoveNext())
-                    {
-                        var _curItem = ((DataRowView)e.Current).Row.Field<object>(colSearch);
-                        if (_curItem.ToString() == item.ToString())
-                        {
-                            return idx;
-                        }
-                        else
-                        {
-                            idx++;
-                        }
-                    }
-                }
-                else
-                {
-                    while (e.MoveNext())
-                    {
-                        if (item.GetType() != e.Current.GetType())
-                            return -1;
-                        if (Equals(item, e.Current))
-                            return idx;
-                        else
-                            idx++;
-                    }
-                }
-                return -1;
-            }
-            catch (Exception)
-            {
-                return -1;
-            }
-        }
-
-        /// <summary>
         /// Get direct reports collection with User Principal
         /// </summary>
         /// <param name="userPrincipal">User Principal Object</param>

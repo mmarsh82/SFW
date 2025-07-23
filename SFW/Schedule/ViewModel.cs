@@ -5,7 +5,6 @@ using SFW.Helpers;
 using SFW.Model;
 using SFW.Model.Production;
 using System;
-using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Windows;
@@ -57,7 +56,7 @@ namespace SFW.Schedule
         public ViewModel()
         {
             ApplicationTimer.ActionList.Add(Refresh);
-            CollectionView = CollectionViewSource.GetDefaultView(new DataView());
+            CollectionView = new ListCollectionView(new DataView());
             Filter($"[Site] = {App.SiteNumber}", 3);
             if (CurrentUser.BasicUser)
             {
@@ -66,7 +65,7 @@ namespace SFW.Schedule
             Filter(UserConfig.BuildPriorityFilter(), 4);
             ClosedFilter = false;
             InspectionFilter = false;
-            Refresh();
+            Initialize();
         }
 
         /// <summary>
@@ -83,7 +82,6 @@ namespace SFW.Schedule
                     var _dRow = (DataRowView)CollectionView.CurrentItem;
                     if (_dRow != null)
                     {
-                        SelectedItemFilter = new KeyValuePair<string, string>(_dRow.Row.Field<string>("WorkOrderID"), "WorkOrderID");
                         var _wo = new WorkOrder(_dRow.Row);
                         var _action = _wo.Product.Inspection
                             ? new Action(delegate { Controls.WorkSpaceDock.UpdateChildDock(1, 1, new ShopRoute.QTask.View { DataContext = new ShopRoute.QTask.ViewModel(_wo) }); })
@@ -113,12 +111,13 @@ namespace SFW.Schedule
             {
                 ((DataView)CollectionView.SourceCollection).RowFilter = GetFilter();
             }
+            Application.Current?.Dispatcher.Invoke(new Action(delegate { CollectionView.Refresh(); }));
         }
 
         /// <summary>
-        /// Refresh action for the schedule data
+        /// Initialize the production schedule view
         /// </summary>
-        public override void Refresh()
+        public override void Initialize()
         {
             try
             {
@@ -136,7 +135,7 @@ namespace SFW.Schedule
                 {
                     _tempTable.DefaultView.Sort = "MachineOrder ASC";
                 }
-                CollectionView = CollectionViewSource.GetDefaultView(_tempTable);
+                CollectionView = new ListCollectionView(_tempTable.AsDataView());
                 if (CollectionView.GroupDescriptions.Count() != 0)
                 {
                     Application.Current?.Dispatcher.Invoke(new Action(delegate { CollectionView.GroupDescriptions.Clear(); }));
@@ -145,14 +144,6 @@ namespace SFW.Schedule
                 {
                     CollectionView.GroupDescriptions.Add(new PropertyGroupDescription("MachineNumber", new WorkCenterNameConverter()));
                 }));
-                if (CollectionView != null)
-                {
-                    ((DataView)CollectionView.SourceCollection).RowFilter = GetFilter();
-                    var _selectedIndex = ((DataView)CollectionView.SourceCollection).Count > 0 && SelectedItemFilter.Key != null
-                        ? CollectionView.IndexOf(SelectedItemFilter.Key, SelectedItemFilter.Value)
-                        : -1;
-                    Application.Current?.Dispatcher.Invoke(new Action(delegate { CollectionView.MoveCurrentToPosition(_selectedIndex); }));
-                }
                 OnPropertyChanged(nameof(CollectionView));
                 Application.Current?.Dispatcher.Invoke(new Action(delegate { CollectionView.Refresh(); }));
                 CollectionView.CurrentChanged += CollectionView_ItemChanged;

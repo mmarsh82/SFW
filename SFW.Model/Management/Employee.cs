@@ -490,7 +490,7 @@ namespace SFW.Model.Management
                         HoursWorked = 8;
                         WorkCenter = new Production.Machine();
                     }
-                    var _labor = EmployeeLabor.GetLabor(ErpId);
+                    var _labor = EmployeeLabor.GetLabor(ErpId, Shift);
                     if (_labor == null)
                     {
                         _labor = new EmployeeLabor
@@ -533,7 +533,7 @@ namespace SFW.Model.Management
                         HoursWorked = 8;
                         WorkCenter = new Production.Machine();
                     }
-                    var _labor = EmployeeLabor.GetLabor(ErpId);
+                    var _labor = EmployeeLabor.GetLabor(ErpId, Shift);
                     if (_labor == null)
                     {
                         _labor = new EmployeeLabor
@@ -578,7 +578,7 @@ namespace SFW.Model.Management
                         HoursWorked = 8;
                         WorkCenter = new Production.Machine();
                     }
-                    var _labor = EmployeeLabor.GetLabor(ErpId);
+                    var _labor = EmployeeLabor.GetLabor(ErpId, Shift);
                     if (_labor == null)
                     {
                         _labor = new EmployeeLabor
@@ -626,7 +626,7 @@ namespace SFW.Model.Management
                         HoursWorked = 8;
                         WorkCenter = new Production.Machine();
                     }
-                    var _labor = EmployeeLabor.GetLabor(ErpId);
+                    var _labor = EmployeeLabor.GetLabor(ErpId, Shift);
                     if (_labor == null)
                     {
                         _labor = new EmployeeLabor

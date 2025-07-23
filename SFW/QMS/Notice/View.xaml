@@ -81,12 +81,12 @@
                         HorizontalAlignment="Right">
 
                 <Button Command="{Binding ExportQmsICommand}"
-                        Margin="5,5,20,5"
+                        Margin="1,1,20,1"
                         BorderThickness="0"
                         Background="Transparent"
                         IsTabStop="False"
                         Style="{DynamicResource ResourceKey=DefaultButton}">
-                    <Image Source="/SFW;component/Icons/admin.ico"/>
+                    <Image Source="/Icons/Download.ico"/>
                     <Button.Visibility>
                         <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="1|1">
                             <Binding Path="(main:CurrentUser.IsQuality)"/>
@@ -160,9 +160,11 @@
                                         <Button Command="{StaticResource PartSearchCommand}"
                                                 Margin="0,0,10,0"
                                                 Height="30"
+                                                Background="Transparent"
+                                                BorderThickness="0"
                                                 IsTabStop="False"
                                                 Style="{DynamicResource ResourceKey=DefaultButton}">
-                                            <Image Source="/SFW;component/Icons/PartSearch.ico"/>
+                                            <Image Source="/SFW;component/Icons/ProductSearch.ico"/>
                                             <Button.CommandParameter>
                                                 <MultiBinding Converter="{StaticResource PartSearchConverter}">
                                                     <Binding Source="NCR"/>

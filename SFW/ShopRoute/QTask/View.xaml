@@ -331,7 +331,7 @@
                                                                 Background="Transparent"
                                                                 BorderThickness="0"
                                                                 Style="{DynamicResource ResourceKey=DefaultButton}">
-                                                        <Image Source="/SFW;component/Icons/PartSearch.ico" />
+                                                        <Image Source="/SFW;component/Icons/ProductSearch.ico" />
                                                         <Button.CommandParameter>
                                                             <MultiBinding Converter="{StaticResource PartSearchConverter}">
                                                                 <Binding Path="ProductNumber" />
@@ -531,7 +531,7 @@
                                                                 Background="Transparent"
                                                                 BorderThickness="0"
                                                                 Style="{DynamicResource ResourceKey=DefaultButton}">
-                                                    <Image Source="/SFW;component/Icons/PartSearch.ico" />
+                                                    <Image Source="/SFW;component/Icons/ProductSearch.ico" />
                                                     <Button.CommandParameter>
                                                         <MultiBinding Converter="{StaticResource PartSearchConverter}">
                                                             <Binding Path="ProductNumber" />

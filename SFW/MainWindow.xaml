@@ -282,7 +282,7 @@
                    Source="Icons/Lock.ico"
                    Margin="2"/>
             <Image Visibility="{Binding Path=(local:CurrentUser.IsLoggedIn), Converter={StaticResource BoolToVisConverter}}"
-                   Source="Icons/Admin.ico"
+                   Source="/Icons/UserOnline.ico"
                    Margin="2"/>
             <TextBlock Text="Welcome"
                        Visibility="{Binding Path=(local:CurrentUser.IsLoggedIn), Converter={StaticResource BoolToVisConverter}}"

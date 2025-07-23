@@ -81,7 +81,7 @@
                     Command="{Binding VerifyICommand}">
                 <Button.Content>
                     <StackPanel Orientation="Horizontal">
-                        <Image Source="/SFW;component/Icons/Search.ico"/>
+                        <Image Source="/SFW;component/Icons/Verify.ico"/>
                         <TextBlock Text="{Binding VerifyText}"
                                    FontSize="14"
                                    FontWeight="Bold"

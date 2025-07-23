@@ -137,11 +137,20 @@ namespace SFW.Model.Management
         /// </summary>
         /// <param name="erpId">User ERP ID number</param>
         /// <returns>employee labor object or null</returns>
-        public static EmployeeLabor GetLabor(string erpId)
+        public static EmployeeLabor GetLabor(string erpId, int shift)
         {
             try
             {
-                var _rows = MasterDataSet.Tables[typeof(EmployeeLabor).Name].Select($"[ErpId] = '{erpId}'", "[OutTime] DESC");
+                var _dateId = (DateTime.Today - Convert.ToDateTime("1967/12/31")).Days;
+                if (shift == 3 && DateTime.Now.Hour > 9)
+                {
+                    _dateId++;
+                }
+                else if (shift == 5 && DateTime.Now.Hour < 4)
+                {
+                    _dateId--;
+                }
+                var _rows = MasterDataSet.Tables[typeof(EmployeeLabor).Name].Select($"[ErpId] = '{erpId}' AND [DateId] = {_dateId}", "[OutTime] DESC");
                 if (_rows.Count() > 0)
                 {
                     return new EmployeeLabor

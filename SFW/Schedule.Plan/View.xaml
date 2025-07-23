@@ -296,7 +296,7 @@
                                                 Background="{Binding Deviation, Converter={StaticResource BoolToBGConverter}, ConverterParameter=Y}"
                                                 ToolTip="{Binding Deviation, Converter={StaticResource DisplayToolTip}, ConverterParameter=WO}"
                                                 Style="{DynamicResource ResourceKey=DefaultButton}">
-                                            <Image Source="/SFW;component/Icons/PartSearch.ico"/>
+                                            <Image Source="/SFW;component/Icons/ProductSearch.ico"/>
                                             <Button.CommandParameter>
                                                 <MultiBinding Converter="{StaticResource PartSearchConverter}">
                                                     <Binding Path="SkuNumber"/>

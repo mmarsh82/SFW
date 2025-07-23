@@ -13,26 +13,9 @@ using System.Windows.Input;
 
 namespace SFW.QMS.Notice
 {
-    public class ViewModel : ViewModelBase
+    public class ViewModel : ScheduleBase
     {
         #region Properties
-
-        public static string[] ViewFilter;
-        public ICollectionView CollectionView { get; set; }
-        public KeyValuePair<string, string> SelectedItemFilter;
-
-        private string _sFilter;
-        public string SearchFilter
-        {
-            get { return _sFilter; }
-            set
-            {
-                _sFilter = value == "" ? null : value;
-                var _filter = string.IsNullOrEmpty(value) ? "" : ((DataView)CollectionView.SourceCollection).Table.SearchRowFilter(value);
-                Filter(_filter, 0);
-                OnPropertyChanged(nameof(SearchFilter));
-            }
-        }
 
         public IDictionary<string, object> TypeDictionary { get; set; }
         private KeyValuePair<string, object> _selType;
@@ -82,7 +65,7 @@ namespace SFW.QMS.Notice
             if (ModelBase.MasterDataSet.Tables.Contains(typeof(Model.Quality.Notice).Name))
             {
                 ApplicationTimer.ActionList.Add(Refresh);
-                CollectionView = CollectionViewSource.GetDefaultView(new DataView());
+                CollectionView = new ListCollectionView(new DataView());
                 TypeDictionary = new Dictionary<string, object>
                 {
                     { "All", new string[4]{ "", "1", "", "3" } }
@@ -94,7 +77,7 @@ namespace SFW.QMS.Notice
                     ,{"Closed SCAR", new string[4]{ "[FormStatus] = 'Closed'", "1", "[FormType] = 'SCAR'", "3"} }
                 };
                 ResetFilter();
-                Refresh();
+                Initialize();
             }
         }
 
@@ -112,7 +95,6 @@ namespace SFW.QMS.Notice
                     var _dRow = (DataRowView)CollectionView.CurrentItem;
                     if (_dRow != null)
                     {
-                        SelectedItemFilter = new KeyValuePair<string, string>(_dRow.Row.Field<int>("NcrId").ToString(), "NcrId");
                         var _ncr = new Model.Quality.QmsForm(_dRow.Row.Field<int>("NcrId"));
                         var _action = new Action(delegate { WorkSpaceDock.UpdateChildDock(9, 1, new Form.ViewModel(_ncr, _dRow.Row.Field<int>("RevisionFilter"))); });
                         Application.Current.Dispatcher.Invoke(_action);
@@ -124,41 +106,9 @@ namespace SFW.QMS.Notice
         }
 
         /// <summary>
-        /// Filter the notice view
-        /// Index values
-        /// 0 = Search Filter
-        /// 1 = Closed Filter
-        /// 2 = Site Filter
-        /// 3 = Form Type Filter
-        /// 4 = Work Center Filter
-        /// 5 = Work Center Group Filter
-        /// </summary>
-        /// <param name="filter">Filter string to use on the default view</param>
-        /// <param name="index">Index of the filter string list you are adding to our changing</param>
-        public void Filter(string filter, int index)
-        {
-            if (ViewFilter == null)
-            {
-                ViewFilter = new string[7];
-            }
-            ViewFilter[index] = filter;
-            var _filterStr = string.Empty;
-            foreach (var s in ViewFilter.Where(o => !string.IsNullOrEmpty(o)))
-            {
-                _filterStr += string.IsNullOrEmpty(_filterStr) ? $"({s})" : $" AND ({s})";
-            }
-            var _tempList = new List<DataView>();
-            if (CollectionView != null)
-            {
-                ((DataView)CollectionView.SourceCollection).RowFilter = _filterStr;
-                OnPropertyChanged(nameof(CollectionView));
-            }
-        }
-
-        /// <summary>
         /// Reset the filter after a log in event
         /// </summary>
-        public void ResetFilter()
+        public override void ResetFilter()
         {
             SelectedTypeFilter = TypeDictionary.FirstOrDefault();
             Filter($"[Site] = {App.SiteNumber}", 6);
@@ -166,20 +116,41 @@ namespace SFW.QMS.Notice
             {
                 ((DataView)CollectionView.SourceCollection).RowFilter = GetFilter();
             }
+            Application.Current?.Dispatcher.Invoke(new Action(delegate { CollectionView.Refresh(); }));
         }
 
         /// <summary>
-        /// Used to get the current filter string
+        /// Refresh action for the schedule data
         /// </summary>
-        /// <returns></returns>
-        public string GetFilter()
+        public override void Initialize()
         {
-            var _filterStr = string.Empty;
-            foreach (var s in ViewFilter.Where(o => !string.IsNullOrEmpty(o)))
+            try
             {
-                _filterStr += string.IsNullOrEmpty(_filterStr) ? $"({s})" : $" AND ({s})";
+                Application.Current?.Dispatcher.Invoke(new Action(delegate { CollectionView.DeferRefresh(); }));
+                var _tempTable = ModelBase.MasterDataSet.Tables.Contains(typeof(Model.Quality.Notice).Name)
+                    ? ModelBase.MasterDataSet.Tables[typeof(Model.Quality.Notice).Name].Select("[NcrRevisionId] = [RevisionFilter]").CopyToDataTable().AsDataView()
+                    : null;
+                if (_tempTable != null)
+                {
+                    _tempTable.Sort = "RevisionDateTime DESC";
+                }
+                CollectionView = new ListCollectionView(_tempTable);
+                if (CollectionView.GroupDescriptions.Count() != 0)
+                {
+                    Application.Current?.Dispatcher.Invoke(new Action(delegate { CollectionView.GroupDescriptions.Clear(); }));
+                }
+                Application.Current?.Dispatcher.Invoke(new Action(delegate
+                {
+                    CollectionView.GroupDescriptions.Add(new PropertyGroupDescription("RevisionDateTime", new DateGroupConverter()));
+                }));
+                CollectionView.CurrentChanged += CollectionView_ItemChanged;
+                OnPropertyChanged(nameof(CollectionView));
+                Application.Current?.Dispatcher.Invoke(new Action(delegate { CollectionView.Refresh(); }));
             }
-            return _filterStr;
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "QMS Unhandled Exception", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
         #region New Form input ICommand
@@ -224,47 +195,5 @@ namespace SFW.QMS.Notice
         }
 
         #endregion
-
-        /// <summary>
-        /// Refresh action for the schedule data
-        /// </summary>
-        public void Refresh()
-        {
-            try
-            {
-                Application.Current?.Dispatcher.Invoke(new Action(delegate { CollectionView.DeferRefresh(); }));
-                var _tempTable = ModelBase.MasterDataSet.Tables.Contains(typeof(Model.Quality.Notice).Name)
-                    ? ModelBase.MasterDataSet.Tables[typeof(Model.Quality.Notice).Name].Select("[NcrRevisionId] = [RevisionFilter]").CopyToDataTable().AsDataView()
-                    : null;
-                if (_tempTable != null)
-                {
-                    _tempTable.Sort = "RevisionDateTime DESC";
-                }
-                CollectionView = CollectionViewSource.GetDefaultView(_tempTable);
-                if (CollectionView.GroupDescriptions.Count() != 0)
-                {
-                    Application.Current?.Dispatcher.Invoke(new Action(delegate { CollectionView.GroupDescriptions.Clear(); }));
-                }
-                Application.Current?.Dispatcher.Invoke(new Action(delegate
-                {
-                    CollectionView.GroupDescriptions.Add(new PropertyGroupDescription("RevisionDateTime", new DateGroupConverter()));
-                }));
-                if (CollectionView != null)
-                {
-                    ((DataView)CollectionView.SourceCollection).RowFilter = GetFilter();
-                    var _selectedIndex = ((DataView)CollectionView.SourceCollection).Count > 0 && SelectedItemFilter.Key != null
-                        ? CollectionView.IndexOf(SelectedItemFilter.Key, SelectedItemFilter.Value)
-                        : -1;
-                    Application.Current?.Dispatcher.Invoke(new Action(delegate { CollectionView.MoveCurrentToPosition(_selectedIndex); }));
-                }
-                CollectionView.CurrentChanged += CollectionView_ItemChanged;
-                OnPropertyChanged(nameof(CollectionView));
-                Application.Current?.Dispatcher.Invoke(new Action(delegate { CollectionView.Refresh(); }));
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message, "QMS Unhandled Exception", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-        }
     }
 }

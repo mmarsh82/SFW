@@ -179,6 +179,14 @@
                                 <Grid>
                                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Left">
                                         <TextBlock Text="{Binding WorkOrder}" FontSize="24" FontWeight="Bold"/>
+                                        <Image Source="/SFW;component/Icons/Critical.ico"
+                                               Visibility="{Binding SalesOrderType, Converter={StaticResource StringToVisConverter}, ConverterParameter=WO}"
+                                               ToolTip="Work Order is marked as critical and must be completed ASAP."
+                                               Margin="10,0,0,0" Height="25" Width="25"/>
+                                        <Image Source="/SFW;component/Icons/Daily.ico"
+                                               Visibility="{Binding SalesOrderType, Converter={StaticResource StringToVisConverter}, ConverterParameter=Daily}"
+                                               ToolTip="Work Order is marked as critical and must be completed ASAP."
+                                               Margin="10,0,0,0" Height="25" Width="25"/>
                                         <Image Source="/SFW;component/Icons/Late.ico"
                                                Visibility="{Binding IsLate, Converter={StaticResource BoolToVisConverter}}"
                                                ToolTip="Work Order is currently past the due date!"
@@ -219,6 +227,8 @@
                                         <Button Command="{StaticResource PartSearchCommand}"
                                                 Margin="0,0,10,0"
                                                 Height="30"
+                                                BorderBrush="Transparent"
+                                                BorderThickness="0"
                                                 IsTabStop="False"
                                                 Background="{Binding Deviation, ConverterParameter=Y, Converter={StaticResource BoolToBGConverter}}"
                                                 ToolTip="{Binding Deviation, ConverterParameter=WO, Converter={StaticResource DisplayToolTip}}"
@@ -231,7 +241,7 @@
                                                     <Binding Path="WorkOrderID"/>
                                                 </MultiBinding>
                                             </Button.CommandParameter>
-                                            <Image Source="/SFW;component/Icons/PartSearch.ico"/>
+                                            <Image Source="/SFW;component/Icons/ProductSearch.ico"/>
                                         </Button>
                                     </StackPanel>
                                 </Grid>
