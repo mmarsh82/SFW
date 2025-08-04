@@ -185,7 +185,7 @@
                                                Margin="10,0,0,0" Height="25" Width="25"/>
                                         <Image Source="/SFW;component/Icons/Daily.ico"
                                                Visibility="{Binding SalesOrderType, Converter={StaticResource StringToVisConverter}, ConverterParameter=Daily}"
-                                               ToolTip="Work Order is marked as critical and must be completed ASAP."
+                                               ToolTip="Work Order is linked to a daily sales order."
                                                Margin="10,0,0,0" Height="25" Width="25"/>
                                         <Image Source="/SFW;component/Icons/Late.ico"
                                                Visibility="{Binding IsLate, Converter={StaticResource BoolToVisConverter}}"

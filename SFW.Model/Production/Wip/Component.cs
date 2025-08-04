@@ -81,7 +81,7 @@ namespace SFW.Model.Production.Wip
             {
                 LotList = new BindingList<Lot>
                 {
-                    new Lot(workOrderNumber, partNbr)
+                    new Lot(workOrderNumber, seq, partNbr)
                 };
                 LotList.ListChanged += LotList_Changed;
             }
@@ -183,7 +183,7 @@ namespace SFW.Model.Production.Wip
                         ((BindingList<Lot>)sender).FirstOrDefault(o => o.ID == _comp.ID).Quantity = "0";
                     }
                 }
-                else if (e.ListChangedType != ListChangedType.ItemDeleted && e.ListChangedType != ListChangedType.Reset)
+                else if (e.ListChangedType != ListChangedType.ItemDeleted && e.ListChangedType != ListChangedType.Reset && !((BindingList<Lot>)sender)[e.NewIndex].QuantityLocked)
                 {
                     ((BindingList<Lot>)sender)[e.NewIndex].Quantity = _balance.ToString();
                 }
@@ -200,7 +200,7 @@ namespace SFW.Model.Production.Wip
             switch(_action)
             {
                 case 'A':
-                    ((BindingList<Lot>)sender).Add(new Lot(_tempComp.RequiredQuantity, _tempComp.OrderId, _tempComp.ProductId));
+                    ((BindingList<Lot>)sender).Add(new Lot(_tempComp.RequiredQuantity, _tempComp.OrderId, _tempComp.OrderSequence, _tempComp.ProductId));
                     break;
                 case 'D':
                     ((BindingList<Lot>)sender).Remove(((BindingList<Lot>)sender).Last());

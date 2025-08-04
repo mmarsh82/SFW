@@ -7,7 +7,7 @@
         SizeToContent="WidthAndHeight" WindowStyle="ToolWindow" ResizeMode="NoResize" Icon="/SFW;component/Icons/Admin.ico" WindowStartupLocation="CenterScreen" Background="LightGray">
     <Window.Style>
         <Style TargetType="{x:Type Window}">
-            <Setter Property="Title" Value="User Log In"/>
+            <Setter Property="Title" Value="User Sign In"/>
             <Style.Triggers>
                 <DataTrigger Binding="{Binding ViewType}" Value="True">
                     <Setter Property="Title" Value="Password Reset"/>

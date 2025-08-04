@@ -293,6 +293,7 @@
                                                 Margin="0,0,10,0"
                                                 Height="30"
                                                 IsTabStop="False"
+                                                BorderThickness="0"
                                                 Background="{Binding Deviation, Converter={StaticResource BoolToBGConverter}, ConverterParameter=Y}"
                                                 ToolTip="{Binding Deviation, Converter={StaticResource DisplayToolTip}, ConverterParameter=WO}"
                                                 Style="{DynamicResource ResourceKey=DefaultButton}">

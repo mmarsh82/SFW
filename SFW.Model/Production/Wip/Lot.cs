@@ -1,4 +1,6 @@
-﻿using System.Collections.ObjectModel;
+﻿using System;
+using System.Collections.ObjectModel;
+using System.Text.RegularExpressions;
 
 namespace SFW.Model.Production.Wip
 {
@@ -60,6 +62,7 @@ namespace SFW.Model.Production.Wip
                 }
                 OnPropertyChanged(nameof(Quantity));
                 OnPropertyChanged(nameof(Stock));
+                OnPropertyChanged(nameof(Factor));
             }
         }
         public bool QuantityLocked { get; set; }
@@ -92,7 +95,22 @@ namespace SFW.Model.Production.Wip
         public int Stock
         {
             get
-            { return SystemStock - (int.TryParse(Quantity, out int i) ? i : 0); }
+            { return SystemStock - ((int.TryParse(Quantity, out int i) ? i : 0) + Factor); }
+        }
+        public decimal ScrapFactor { get; set; }
+        public int Factor
+        {
+            get
+            {
+                if (decimal.TryParse(Quantity, out decimal d))
+                {
+                    return int.TryParse(Math.Ceiling(d * ScrapFactor).ToString(), out int i) ? i : 0;
+                }
+                else
+                {
+                    return 0;
+                }
+            }
         }
         public int RequiredQuantity { get; set; }
 
@@ -135,6 +153,7 @@ namespace SFW.Model.Production.Wip
         }
         public ObservableCollection<Scrap> ScrapCollection { get; set; }
         public string OrderId { get; set; }
+        public string OrderSequence { get; set; }
 
         #endregion
 
@@ -148,10 +167,13 @@ namespace SFW.Model.Production.Wip
         /// Overridden Constructor
         /// </summary>
         /// <param name="orderId">Work Order ID</param>
+        /// <param name="seq">Work Order sequence number</param>
         /// <param name="productId">Product ID</param>
-        public Lot(string orderId, string productId)
+        public Lot(string orderId, string seq, string productId)
         {
+            ScrapFactor = PickComponent.GetScrapFactor(productId, orderId, seq);
             OrderId = orderId;
+            OrderSequence = seq;
             ProductId = productId;
         }
 
@@ -160,12 +182,15 @@ namespace SFW.Model.Production.Wip
         /// </summary>
         /// <param name="rqdQty">Required Quantity</param>
         /// <param name="orderId">Work Order ID</param>
+        /// <param name="seq">Work Order sequence number</param>
         /// <param name="productId">Product ID</param>
-        public Lot(int rqdQty, string orderId, string productId)
+        public Lot(int rqdQty, string orderId, string seq, string productId)
         {
+            ScrapFactor = PickComponent.GetScrapFactor(productId, orderId, seq);
             RequiredQuantity = rqdQty;
             QuantityLocked = false;
             OrderId = orderId;
+            OrderSequence = seq;
             ProductId = productId;
         }
 
@@ -178,9 +203,11 @@ namespace SFW.Model.Production.Wip
         /// <param name="loc">Lot location</param>
         /// <param name="rqdQty">Required quantity</param>
         /// <param name="orderId">Work Order ID</param>
+        /// <param name="seq">Work Order sequence number</param>
         /// <param name="productId">Product ID</param>
-        public Lot(string id, bool valid, int qty, string loc, int rqdQty, string orderId, string productId)
+        public Lot(string id, bool valid, int qty, string loc, int rqdQty, string orderId, string seq, string productId)
         {
+            ScrapFactor = PickComponent.GetScrapFactor(productId, orderId, seq);
             ID = id;
             SystemStock = Product.Lot.GetOnHandQuantity(id);
             Valid = valid;
@@ -190,6 +217,7 @@ namespace SFW.Model.Production.Wip
             RequiredQuantity = rqdQty;
             LotUom = Product.Lot.GetUom(id);
             OrderId = orderId;
+            OrderSequence = seq;
             ProductId = productId;
         }
     }

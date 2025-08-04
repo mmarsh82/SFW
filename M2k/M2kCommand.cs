@@ -337,7 +337,7 @@ namespace M2kClient
         /// <param name="wipRecord">Wip Record object to be processed</param>
         /// <param name="postLabor">Tells the method if it should also post labor with the wip transaction</param>
         /// <param name="connection">Current M2k Connection to be used for processing the transaction</param>
-        /// /// <param name="isLot">Tells the method if the current wip transaction is for a lot tracable part or non lot tracable</param>
+        /// <param name="isLot">Tells the method if the current wip transaction is for a lot tracable part or non lot tracable</param>
         /// <param name="machID">Optional: Machine ID, passed when labor needs to posted.  It is also required for posting labor</param>
         /// <returns>Error number and error description, when returned as 0 and a empty string the transaction posted with errors</returns>
         public static IReadOnlyDictionary<int, string> ProductionWip(SFW.Model.Production.Wip.Receipt wipRecord, bool postLabor, M2kConnection connection, bool isLot, string machID = "")
@@ -635,7 +635,7 @@ namespace M2kClient
 
             foreach (var _comp in wipRecord.ComponentList.Where(o => o.LotTraceable))
             {
-                foreach (var _lot in _comp.LotList.Where(o => o.Status))
+                foreach (var _lot in _comp.LotList.Where(o => o.Status && o.Stock > 0))
                 {
                     InventoryMove(wipRecord.Submitter, _comp.ProductNumber, _lot.ID, _comp.ProductUom, _lot.Location, "SCRAP", _lot.Stock, "Roll Marked Gone", wipRecord.Facility, connection);
                 }

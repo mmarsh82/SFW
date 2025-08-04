@@ -317,6 +317,9 @@
                     Visibility="{Binding Path=(local:ApplicationTimer.Status), Converter={StaticResource TimerToView}, ConverterParameter=A}"
                     Style="{DynamicResource ResourceKey=DefaultButton}">
                 <Image Source="/SFW;component/Icons/Pause.ico"/>
+                <Button.Effect>
+                    <DropShadowEffect Opacity="0"/>
+                </Button.Effect>
             </Button>
 
             <Button Margin="1,1,20,1"
@@ -328,6 +331,9 @@
                     Visibility="{Binding Path=(local:ApplicationTimer.Status), Converter={StaticResource TimerToView}, ConverterParameter=P}"
                     Style="{DynamicResource ResourceKey=DefaultButton}">
                 <Image Source="/SFW;component/Icons/Refresh.ico"/>
+                <Button.Effect>
+                    <DropShadowEffect Opacity="0"/>
+                </Button.Effect>
             </Button>
         </StackPanel>
 

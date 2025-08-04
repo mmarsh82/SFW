@@ -567,9 +567,9 @@ namespace SFW.WIP
                     //Get the diamond number
                     if (WipRecord.IsLotTracable)
                     {
-                        foreach (var _comp in WipRecord.ComponentList)
+                        foreach (var _comp in WipRecord.ComponentList.Where(o => o.LotTraceable))
                         {
-                            foreach (var _lot in _comp.LotList)
+                            foreach (var _lot in _comp.LotList.Where(o => !string.IsNullOrEmpty(o.ID)))
                             {
                                 _diamond = Model.Product.Lot.GetDiamondNumber(_lot.ID, App.AppSqlCon);
                             }

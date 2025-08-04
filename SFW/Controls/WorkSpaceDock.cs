@@ -165,6 +165,7 @@ namespace SFW.Controls
                     break;
                 case 11:
                     _tempDock = PlanDock;
+                    ((Schedule.Plan.View)PlanDock.Children[0]).DataContext = new Schedule.Plan.ViewModel();
                     break;
             }
             if (refreshDock)

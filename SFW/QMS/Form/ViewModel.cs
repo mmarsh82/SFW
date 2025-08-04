@@ -99,7 +99,10 @@ namespace SFW.QMS.Form
                         }
                         OnPropertyChanged(nameof(ShowReason));
                         OnPropertyChanged(nameof(ShowReasonCollection));
-                        SupplierCollection.Clear();
+                        if (SupplierCollection != null)
+                        {
+                            SupplierCollection.Clear();
+                        }
                         if (value.QmsFormType == Model.Quality.FormType.SCAR)
                         {
                             SupplierCollection = new ObservableCollection<Supplier>(Supplier.GetSupplierList(true));

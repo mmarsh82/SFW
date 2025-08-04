@@ -137,49 +137,56 @@ namespace M2kClient.M2kADIArray
             ComponentInfoList = new List<CompInfo>();
             AdjustmentList = new List<Adjust>();
             Type = wipRecord.WipWorkOrder.TaskType.FirstOrDefault();
-            var _tempQty = 0.00;
-            foreach (var _comp in wipRecord.ComponentList.Where(o => o.LotTraceable))
+            foreach (var _comp in wipRecord.ComponentList)
             {
-                foreach (var _lot in _comp.LotList.Where(o => o.Valid))
+                //Lot traceable components
+                if (_comp.LotTraceable)
                 {
-                    _tempQty = double.TryParse(_lot.Quantity, out double d) ? d : 0.00;
-                    //Calculating scrap factor
-                    if (_comp.ScrapFactor > 0)
+                    foreach (var _lot in _comp.LotList.Where(o => o.Valid))
                     {
-                        _tempQty = Math.Ceiling(_tempQty * (1 + _comp.ScrapFactor));
+                        //Creating the object for submission
+                        ComponentInfoList.Add(new CompInfo
+                        {
+                            Lot = _lot.ID,
+                            PartNbr = _comp.ProductNumber,
+                            Quantity = int.TryParse(_lot.Quantity, out int q) ? q + _lot.Factor : 0,
+                            WorkOrderNbr = wipRecord.WipWorkOrder.OrderNumber,
+                            IssueLoc = !string.IsNullOrEmpty(_comp.BackFlushLoc) ? _comp.BackFlushLoc : _lot.Location
+                        });
+                        if (_lot.ScrapCollection != null && _lot.ScrapCollection.Count() > 0)
+                        {
+                            foreach (var _scrap in _lot.ScrapCollection.Where(o => int.TryParse(o.Quantity, out int i)))
+                            {
+                                var _reason = AdjustCode.QSC;
+                                if (wipRecord.WipWorkOrder.Facility == 2 && string.IsNullOrEmpty(_scrap.Reference))
+                                {
+                                    _reason = AdjustCode.YIE;
+                                }
+                                AdjustmentList.Add(new Adjust(
+                                            wipRecord.Submitter,
+                                            wipRecord.Facility,
+                                            !string.IsNullOrEmpty(_scrap.Reference) ? $"{_scrap.Reference}*{wipRecord.WipWorkOrder.OrderNumber}" : wipRecord.WipWorkOrder.OrderNumber,
+                                            _comp.ProductNumber,
+                                            _reason,
+                                            'S',
+                                            Convert.ToInt32(_scrap.Quantity),
+                                            !string.IsNullOrEmpty(_comp.BackFlushLoc) ? _comp.BackFlushLoc : _lot.Location,
+                                            _lot.ID));
+                            }
+                        }
                     }
-
+                }
+                else
+                {
+                    var _tempQty = decimal.TryParse(wipRecord.WipQty.ToString(), out decimal d) ? int.Parse(Math.Ceiling(d * _comp.AssemblyQuantity).ToString()) : 0;
                     //Creating the object for submission
                     ComponentInfoList.Add(new CompInfo
                     {
-                        Lot = _lot.ID,
                         PartNbr = _comp.ProductNumber,
                         Quantity = Convert.ToInt32(_tempQty),
                         WorkOrderNbr = wipRecord.WipWorkOrder.OrderNumber,
-                        IssueLoc = !string.IsNullOrEmpty(_comp.BackFlushLoc) ? _comp.BackFlushLoc : _lot.Location
+                        IssueLoc = !string.IsNullOrEmpty(_comp.BackFlushLoc) ? _comp.BackFlushLoc : "STOCK"
                     });
-                    _tempQty = 0;
-                    if (_lot.ScrapCollection != null && _lot.ScrapCollection.Count() > 0)
-                    {
-                        foreach (var _scrap in _lot.ScrapCollection.Where(o => int.TryParse(o.Quantity, out int i)))
-                        {
-                            var _reason = AdjustCode.QSC;
-                            if (wipRecord.WipWorkOrder.Facility == 2 && string.IsNullOrEmpty(_scrap.Reference))
-                            {
-                                _reason = AdjustCode.YIE;
-                            }
-                            AdjustmentList.Add(new Adjust(
-                                        wipRecord.Submitter,
-                                        wipRecord.Facility,
-                                        !string.IsNullOrEmpty(_scrap.Reference) ? $"{_scrap.Reference}*{wipRecord.WipWorkOrder.OrderNumber}" : wipRecord.WipWorkOrder.OrderNumber,
-                                        _comp.ProductNumber,
-                                        _reason,
-                                        'S',
-                                        Convert.ToInt32(_scrap.Quantity),
-                                        !string.IsNullOrEmpty(_comp.BackFlushLoc) ? _comp.BackFlushLoc : _lot.Location,
-                                        _lot.ID));
-                        }
-                    }
                 }
             }
         }

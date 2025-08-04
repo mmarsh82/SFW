@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Data;
 using System.Windows.Input;
 
 namespace SFW.Commands
@@ -18,7 +19,7 @@ namespace SFW.Commands
         /// <param name="parameter"></param>
         public void Execute(object parameter)
         {
-            
+
         }
 
         public bool CanExecute(object parameter) { return true; }

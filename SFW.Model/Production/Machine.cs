@@ -186,7 +186,9 @@ namespace SFW.Model.Production
             {
                 machName = machName.Split('(')[1].Replace(')', ' ').Trim();
             }
-            return MasterDataSet.Tables[typeof(Machine).Name].Select($"[WorkCenterID] = '{machName}'")[0].Field<int>("Shifts").ToString();
+            return MasterDataSet.Tables[typeof(Machine).Name].Select($"[WorkCenterID] = '{machName}'").Count() > 0
+                    ? MasterDataSet.Tables[typeof(Machine).Name].Select($"[WorkCenterID] = '{machName}'")[0].Field<int>("Shifts").ToString()
+                    : "0";
         }
 
         /// <summary>

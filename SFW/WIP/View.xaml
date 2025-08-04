@@ -622,7 +622,7 @@
                     <DataTemplate>
 
                         <StackPanel Orientation="Vertical"
-                                    Visibility="{Binding IsLotTrace, Converter={StaticResource BooltoVisConverter}}">
+                                    Visibility="{Binding LotTraceable, Converter={StaticResource BooltoVisConverter}}">
                             <StackPanel Orientation="Horizontal">
                                 <TextBlock Text="Part:"
                                            TextDecorations="Underline"
@@ -682,18 +682,6 @@
                                                          Margin="3"
                                                          Background="LightGray"
                                                          Style="{DynamicResource RequiredTextBox}" />
-                                                <TextBlock Text="Location:"
-                                                           FontSize="16"
-                                                           Visibility="{Binding Valid, Converter={StaticResource BooltoVisConverter}}"
-                                                           TextDecorations="UnderLine"
-                                                           VerticalAlignment="Center"
-                                                           FontWeight="Bold"
-                                                           Margin="10,0,0,0"/>
-                                                <TextBlock Text="{Binding Location, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                                           Visibility="{Binding Valid, Converter={StaticResource BooltoVisConverter}}"
-                                                           FontSize="16"
-                                                           VerticalAlignment="Center"
-                                                           Margin="5,0,0,0"/>
                                                 <Image Source="/Icons/Warning.ico"
                                                        Margin="10,0,0,0"
                                                        Width="20"
@@ -723,6 +711,36 @@
                                                          Style="{DynamicResource RequiredTextBox}" />
                                                 <TextBlock x:Name="UomTextBlock"
                                                            Text="{Binding LotUom}"
+                                                           Visibility="{Binding Valid, Converter={StaticResource BooltoVisConverter}}"
+                                                           FontSize="16"
+                                                           FontWeight="Bold"
+                                                           VerticalAlignment="Center"
+                                                           Margin="5,0,0,0" />
+                                                <TextBlock Text="Location:"
+                                                           FontSize="16"
+                                                           Visibility="{Binding Valid, Converter={StaticResource BooltoVisConverter}}"
+                                                           TextDecorations="UnderLine"
+                                                           VerticalAlignment="Center"
+                                                           FontWeight="Bold"
+                                                           Margin="10,0,0,0"/>
+                                                <TextBlock Text="{Binding Location, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                           Visibility="{Binding Valid, Converter={StaticResource BooltoVisConverter}}"
+                                                           FontSize="16"
+                                                           VerticalAlignment="Center"
+                                                           Margin="5,0,0,0"/>
+                                                <TextBlock Text="Factor:"
+                                                           FontSize="16"
+                                                           Visibility="{Binding Valid, Converter={StaticResource BooltoVisConverter}}"
+                                                           TextDecorations="UnderLine"
+                                                           VerticalAlignment="Center"
+                                                           FontWeight="Bold"
+                                                           Margin="10,0,0,0"/>
+                                                <TextBlock Text="{Binding Factor, UpdateSourceTrigger=PropertyChanged}"
+                                                           Visibility="{Binding Valid, Converter={StaticResource BooltoVisConverter}}"
+                                                           FontSize="16"
+                                                           VerticalAlignment="Center"
+                                                           Margin="5,0,0,0"/>
+                                                <TextBlock Text="{Binding LotUom}"
                                                            Visibility="{Binding Valid, Converter={StaticResource BooltoVisConverter}}"
                                                            FontSize="16"
                                                            FontWeight="Bold"
@@ -770,19 +788,6 @@
                                                            FontWeight="Bold"
                                                            VerticalAlignment="Center"
                                                            Margin="3,0,0,0" />
-                                                <TextBlock Text="Is Component Gone?"
-                                                           Visibility="{Binding Valid, Converter={StaticResource BooltoVisConverter}}"
-                                                           FontSize="16"
-                                                           TextDecorations="UnderLine"
-                                                           FontWeight="Bold"
-                                                           VerticalAlignment="Center"
-                                                           Margin="10,0,0,0"/>
-                                                <CheckBox IsChecked="{Binding Status, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                                          Visibility="{Binding Valid, Converter={StaticResource BooltoVisConverter}}"
-                                                          FontSize="16"
-                                                          VerticalAlignment="Center"
-                                                          IsTabStop="False"
-                                                          Margin="5,0,0,0"/>
                                                 <Button Command="{Binding DataContext.RemoveCompICommand, ElementName=Wip_Window}"
                                                         CommandParameter="{Binding ID}"
                                                         Visibility="{Binding Valid, Converter={StaticResource BooltoVisConverter}}"
@@ -806,10 +811,24 @@
                                                         HorizontalAlignment="Left"
                                                         Orientation="Horizontal"
                                                         Visibility="{Binding Valid, Converter={StaticResource BooltoVisConverter}}">
+                                                <TextBlock Text="Is Component Gone?"
+                                                           Visibility="{Binding Valid, Converter={StaticResource BooltoVisConverter}}"
+                                                           FontSize="16"
+                                                           TextDecorations="UnderLine"
+                                                           FontWeight="Bold"
+                                                           VerticalAlignment="Center"
+                                                           Margin="10,0,0,5"/>
+                                                <CheckBox IsChecked="{Binding Status, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                          Visibility="{Binding Valid, Converter={StaticResource BooltoVisConverter}}"
+                                                          FontSize="16"
+                                                          VerticalAlignment="Center"
+                                                          IsTabStop="False"
+                                                          Margin="5,0,0,0"/>
                                                 <TextBlock Text="Scrap:"
                                                            FontSize="16"
                                                            FontWeight="Bold"
-                                                           TextDecorations="Underline"/>
+                                                           TextDecorations="Underline"
+                                                           Margin="20,0,0,0"/>
                                                 <RadioButton x:Name="ScrapYes"
                                                              IsChecked="{Binding HasScrap, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource EnumtoBoolConverter}, ConverterParameter=Y}"
                                                              Content="Yes"

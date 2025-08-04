@@ -363,7 +363,7 @@ namespace SFW.Model.Product
         /// <returns>Diamond number as string, or the error that was encountered</returns>
         public static string GetDiamondNumber(string lotNbr, SqlConnection sqlCon)
         {
-            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
+            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken && !string.IsNullOrEmpty(lotNbr))
             {
                 try
                 {

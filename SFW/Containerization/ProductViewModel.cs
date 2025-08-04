@@ -57,11 +57,11 @@ namespace SFW.Containerization
                                     if (value != null)
                                     {
                                         var _id = int.TryParse(value.Row.ItemArray[0].ToString(), out int i) ? i : 0;
-                                        ContainerObject = Model.Product.SkuContainer.GetContainer(_id, App.AppSqlCon);
+                                        ContainerObject = SkuContainer.GetContainer(_id, App.AppSqlCon);
                                         OnPropertyChanged(nameof(ContainerObject));
                                         if (value.Row.SafeGetField<string>("LotTraceable").ToString() == "T")
                                         {
-                                            IthResultsTable = Model.Product.Lot.GetHistoryTable(value.Row.SafeGetField<string>("ProductId").ToString(), value.Row.SafeGetField<string>("LotId").ToString(), 1, App.AppSqlCon);
+                                            IthResultsTable = Lot.GetHistoryTable(value.Row.SafeGetField<string>("ProductId").ToString(), value.Row.SafeGetField<string>("LotId").ToString(), 1, App.AppSqlCon);
                                         }
                                         else
                                         {
@@ -113,7 +113,7 @@ namespace SFW.Containerization
             }
         }
 
-        public Model.Product.SkuContainer ContainerObject { get; set; }
+        public SkuContainer ContainerObject { get; set; }
 
         public bool HasContainers { get { return ContainerView.Count > 0; } }
         public bool ShowProduct { get { return HasContainers || SelectedProduct != null || NewContainer; } }
@@ -238,16 +238,19 @@ namespace SFW.Containerization
         private void RefreshExecute(object parameter)
         {
             ContainerView = SkuContainer.GetContainerData(App.AppSqlCon).AsDataView();
-            var _contId = SelectedProduct.Row.SafeGetField<string>("ContainerID");
-            var _partId = SelectedProduct.Row.SafeGetField<string>("ProductId");
-            var _lotId = SelectedProduct.Row.SafeGetField<string>("LotId");
-            var _index = string.IsNullOrEmpty(_lotId)
-                ? ContainerView.Cast<DataRowView>().Select((row, idx) => new { row, idx }).FirstOrDefault(o => o.row["ContainerID"].ToString() == _contId && o.row["ProductId"].ToString() == _partId)?.idx ?? 0
-                : ContainerView.Cast<DataRowView>().Select((row, idx) => new { row, idx }).FirstOrDefault(o => o.row["ContainerID"].ToString() == _contId && o.row["ProductId"].ToString() == _partId && o.row["LotId"].ToString() == _lotId)?.idx ?? 0;
-            SelectedProduct = null;
-            if (ContainerView.Count > 0)
+            if (SelectedProduct != null)
             {
-                SelectedProduct = _index == -1 ? ContainerView[0] : ContainerView?[_index];
+                var _contId = SelectedProduct.Row.SafeGetField<string>("ContainerID");
+                var _partId = SelectedProduct.Row.SafeGetField<string>("ProductId");
+                var _lotId = SelectedProduct.Row.SafeGetField<string>("LotId");
+                var _index = string.IsNullOrEmpty(_lotId)
+                    ? ContainerView.Cast<DataRowView>().Select((row, idx) => new { row, idx }).FirstOrDefault(o => o.row["ContainerID"].ToString() == _contId && o.row["ProductId"].ToString() == _partId)?.idx ?? 0
+                    : ContainerView.Cast<DataRowView>().Select((row, idx) => new { row, idx }).FirstOrDefault(o => o.row["ContainerID"].ToString() == _contId && o.row["ProductId"].ToString() == _partId && o.row["LotId"].ToString() == _lotId)?.idx ?? 0;
+                SelectedProduct = null;
+                if (ContainerView.Count > 0)
+                {
+                    SelectedProduct = _index == -1 ? ContainerView[0] : ContainerView?[_index];
+                }
             }
             OnPropertyChanged(nameof(ContainerView));
             NoticeFilter(SearchFilter, 0);
@@ -392,7 +395,62 @@ namespace SFW.Containerization
 
         private void PrintExecute(object parameter)
         {
-            
+            var _cntId = SelectedProduct.Row.SafeGetField<string>("ContainerID");
+            var _itemString = string.Empty;
+            var _counter = 1;
+            var _rowPos = 192;
+            foreach (var _item in ContainerObject.ProductCollection)
+            {
+                _itemString += _counter <= 8
+                    ? $"^FT{_rowPos},1875^A0B,50,51^FH\\^CI28^FD{_item.ProductId}^FS^CI27^FT{_rowPos},1485^A0B,50,51^FH\\^CI28^FD{_item.LotId}^FS^CI27"
+                    : $"^FT{_rowPos},954^A0B,50,51^FH\\^CI28^FD{_item.ProductId}^FS^CI27^FT{_rowPos},564^A0B,50,51^FH\\^CI28^FD{_item.LotId}^FS^CI27";
+                _counter++;
+                _rowPos += _counter == 9 ? -532 : 76;
+                if (_counter > 16)
+                {
+                    break;
+                }
+            }
+
+            var _prtName = string.Empty;
+            foreach (string printer in System.Drawing.Printing.PrinterSettings.InstalledPrinters)
+            {
+                if (printer.Contains("-WAZ"))
+                {
+                    _prtName = printer;
+                    break;
+                }
+            }
+            if (!string.IsNullOrEmpty(_prtName))
+            {
+                string s = $@"^XA
+^MMT
+^PW1200
+^LL1950
+^LS0
+^FT105,1920^A0B,75,76^FH\^CI28^FDContainer Id:^FS^CI27
+^FT105,1350^A0B,75,76^FH\^CI28^FD{_cntId}^FS^CI27
+^FO129,30^GB0,1890,12^FS
+{_itemString}
+^FO141,1496^GB609,0,8^FS
+^FO744,30^GB0,1890,12^FS
+^FO141,964^GB609,0,30^FS
+^FO141,576^GB609,0,8^FS
+^FO141,30^GB609,0,30^FS
+^FO141,1890^GB609,0,30^FS
+^FO209,44^GB0,1868,3^FS
+^FO284,44^GB0,1868,3^FS
+^FO358,44^GB0,1868,3^FS
+^FO434,44^GB0,1868,3^FS
+^FO508,44^GB0,1868,3^FS
+^FO584,44^GB0,1868,3^FS
+^FO659,44^GB0,1868,3^FS
+^BY10,3,300^FT1125,1453^B3B,N,,N,N
+^FD{_cntId}^FS
+^PQ1,0,1,Y
+^XZ";
+                RawPrinter.SendStringToPrinter(_prtName, s, 1);
+            }
         }
 
         private bool PrintCanExecute(object parameter) => !string.IsNullOrEmpty(ContainerObject?.ContainerId);

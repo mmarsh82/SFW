@@ -189,7 +189,7 @@ namespace SFW.Model.Production.Wip
             PullLocation = Machine.GetPullLocation(WipWorkOrder.WorkCenter.MachineName);
             ComponentList = new List<Component>();
             var _tempComp = PickComponent.GetList(WipWorkOrder.OrderNumber, WipWorkOrder.Seq, 1, WipWorkOrder.WorkCenter.MachineName);
-            foreach (var _comp in _tempComp.Where(o => o.IsLotTrace))
+            foreach (var _comp in _tempComp)
             {
                 ComponentList.Add(new Component(!string.IsNullOrEmpty(_comp.BackFlushLocation), _comp.ProductNumber, _comp.ProductUom, _comp.AssemblyQuantity, WipWorkOrder.OrderNumber, WipWorkOrder.Seq));
             }
