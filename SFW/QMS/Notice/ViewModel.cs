@@ -4,7 +4,6 @@ using SFW.Helpers;
 using SFW.Model;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
 using System.Linq;
 using System.Windows;
@@ -120,7 +119,7 @@ namespace SFW.QMS.Notice
         }
 
         /// <summary>
-        /// Refresh action for the schedule data
+        /// Intialization for the schedule data
         /// </summary>
         public override void Initialize()
         {
@@ -150,6 +149,35 @@ namespace SFW.QMS.Notice
             catch (Exception ex)
             {
                 MessageBox.Show(ex.Message, "QMS Unhandled Exception", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        /// <summary>
+        /// Refresh action for the schedule data
+        /// </summary>
+        public override void Refresh()
+        {
+            var _index = -1;
+            var _ncrId = 0;
+            if (CollectionView.CurrentItem != null)
+            {
+                _ncrId = (int)((DataRowView)CollectionView.CurrentItem).Row.ItemArray[0];
+            }
+            Initialize();
+            if (_ncrId > 0)
+            {
+                foreach (DataRowView item in CollectionView)
+                {
+                    if ((int)item.Row.ItemArray[0] == _ncrId)
+                    {
+                        _index = CollectionView.IndexOf(item);
+                        break;
+                    }
+                }
+            }           
+            if (CollectionView != null && _index > 0)
+            {
+                Application.Current?.Dispatcher.Invoke(new Action(delegate { CollectionView.MoveCurrentToPosition(_index); }));
             }
         }
 

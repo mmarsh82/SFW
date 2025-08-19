@@ -78,7 +78,7 @@ namespace M2kClient.M2kADIArray
 
         /// <summary>
         /// R = Repair, S = Standard
-        /// Type of work order, not used for the inport but is nessesary for classification of what the import sends
+        /// Type of work order, not used for the import but is nessesary for classification of what the import sends
         /// </summary>
         public char Type { get; set; }
 

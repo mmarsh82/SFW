@@ -29,8 +29,8 @@
     <ProductName>Shop Floor Workbench</ProductName>
     <PublisherName>Michael Marsh</PublisherName>
     <SuiteName>ContiTech</SuiteName>
-    <ApplicationRevision>36</ApplicationRevision>
-    <ApplicationVersion>3.0.5.36</ApplicationVersion>
+    <ApplicationRevision>55</ApplicationRevision>
+    <ApplicationVersion>3.0.6.55</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <CreateDesktopShortcut>true</CreateDesktopShortcut>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -228,11 +228,19 @@
       <DependentUpon>View.xaml</DependentUpon>
     </Compile>
     <Compile Include="Schedule.SalesOrder\ViewModel.cs" />
+    <Compile Include="Schedule.WipManagement\View.xaml.cs">
+      <DependentUpon>View.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Schedule.WipManagement\ViewModel.cs" />
     <Compile Include="ScheduleBase.cs" />
     <Compile Include="ShopRoute.SalesOrder\View.xaml.cs">
       <DependentUpon>View.xaml</DependentUpon>
     </Compile>
     <Compile Include="ShopRoute.SalesOrder\ViewModel.cs" />
+    <Compile Include="ShopRoute.WipManagement\View.xaml.cs">
+      <DependentUpon>View.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="ShopRoute.WipManagement\ViewModel.cs" />
     <Compile Include="ShopRoute\QTask\View.xaml.cs">
       <DependentUpon>View.xaml</DependentUpon>
     </Compile>
@@ -375,6 +383,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Schedule.WipManagement\View.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="Schedule\View.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -382,6 +394,10 @@
     <Page Include="ShopRoute.SalesOrder\View.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="ShopRoute.WipManagement\View.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
     </Page>
     <Page Include="ShopRoute\QTask\View.xaml">
       <SubType>Designer</SubType>

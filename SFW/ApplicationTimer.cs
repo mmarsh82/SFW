@@ -171,7 +171,11 @@ namespace SFW
         /// <summary>
         /// Resume the timer
         /// </summary>
-        public static void Resume() => Status = MainTimer.Change(RefreshInterval, RefreshInterval) ? TimerState.Sleeping : TimerState.Aborted;
+        public static void Resume()
+        {
+            Status = MainTimer.Change(RefreshInterval, RefreshInterval) ? TimerState.Sleeping : TimerState.Aborted;
+            Tick(0);
+        }
     }
 
     public enum TimerState

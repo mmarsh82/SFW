@@ -12,7 +12,7 @@ using System.Windows.Input;
 
 //Created by Michael Marsh 10-23-18
 
-namespace SFW.WIP
+namespace SFW.ShopRoute.WipManagement
 {
     public class ViewModel : ViewModelBase
     {
@@ -303,7 +303,13 @@ namespace SFW.WIP
         #endregion
 
         /// <summary>
-        /// WIP ViewModel Default Constructor
+        /// Default Constructor
+        /// </summary>
+        public ViewModel()
+        { }
+
+        /// <summary>
+        /// Overridden Constructor
         /// </summary>
         public ViewModel(WorkOrder woObject)
         {
@@ -383,7 +389,6 @@ namespace SFW.WIP
                 {
                     WipLot = WipRecord.WipLot.LotNumber = _wipProc.First().Value.Contains("*") || !WipRecord.IsLotTracable ? "Mulitple" : _wipProc.First().Value;
                     LotList = _wipProc.First().Value.Contains("*") ? _wipProc.First().Value.Split('*').ToList() : null;
-                    //TODO: add in the labor code here
                 }
                 else
                 {

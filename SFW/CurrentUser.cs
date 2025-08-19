@@ -5,6 +5,8 @@ using SFW.Model.Management;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Data;
+using System.Data.SqlClient;
 using System.DirectoryServices;
 using System.DirectoryServices.AccountManagement;
 using System.Linq;
@@ -51,12 +53,7 @@ namespace SFW
             {
                 try
                 {
-                    Groups = new List<string>();
-                    foreach (var _group in user.GetAuthorizationGroups().Where(o => o.Name.Contains("-SFW-")))
-                    {
-                        var _name = _group.Name.Contains("WAX") ? _group.Name.Replace("WAXSG-SFW-", "") : _group.Name.Replace("ARXSG-SFW-", "");
-                        Groups.Add(_name);
-                    }
+                    Groups = GetGroupMembership(user.SamAccountName);
                     DomainName = context.ConnectedServer;
                     DomainUserName = user.SamAccountName;
                     DisplayName = user.DisplayName;
@@ -507,13 +504,8 @@ namespace SFW
         {
             try
             {
-                var _list = new List<string>();
-                foreach (var _group in user.GetAuthorizationGroups().Where(o => o.Name.Contains("-SFW-")))
-                {
-                    var _name = _group.Name.Contains("WAX") ? _group.Name.Replace("WAXSG-SFW-", "") : _group.Name.Replace("ARXSG-SFW-", "");
-                    _list.Add(_name);
-                }
-                App.IsFocused = BasicUser = AssignPermissions(_list);
+                var _groups = GetGroupMembership(user.SamAccountName);
+                App.IsFocused = BasicUser = AssignPermissions(_groups);
                 DomainName = context.ConnectedServer;
                 DomainUserName = user.SamAccountName;
                 DisplayName = user.DisplayName;
@@ -743,6 +735,142 @@ namespace SFW
                         return -1;
                     }
                 }
+            }
+        }
+
+        /// <summary>
+        /// Get the group memebership of a User from SQL
+        /// </summary>
+        /// <param name="userName">User identity</param>
+        /// <returns>List of group memebership names</returns>
+        public static List<string> GetGroupMembership(string userName)
+        {
+            var _rtnList = new List<string>();
+            var _cmdString = $@"SELECT
+	CASE WHEN adj.[SAMAccountName] IS NOT NULL
+		THEN 1
+		ELSE 0 END as 'Adjust'
+	,CASE WHEN adm.[SAMAccountName] IS NOT NULL
+		THEN 1
+		ELSE 0 END as 'Admin'
+	,CASE WHEN dev.[SAMAccountName] IS NOT NULL
+		THEN 1
+		ELSE 0 END as 'Deviate'
+	,CASE WHEN eng.[SAMAccountName] IS NOT NULL
+		THEN 1
+		ELSE 0 END as 'Engineer'
+	,CASE WHEN inv.[SAMAccountName] IS NOT NULL
+		THEN 1
+		ELSE 0 END as 'Inventory'
+	,CASE WHEN mgr.[SAMAccountName] IS NOT NULL
+		THEN 1
+		ELSE 0 END as 'Manager'
+	,CASE WHEN qnot.[SAMAccountName] IS NOT NULL
+		THEN 1
+		ELSE 0 END as 'QNotice'
+	,CASE WHEN qlt.[SAMAccountName] IS NOT NULL
+		THEN 1
+		ELSE 0 END as 'Quality'
+	,CASE WHEN sale.[SAMAccountName] IS NOT NULL
+		THEN 1
+		ELSE 0 END as 'Sales'
+	,CASE WHEN schd.[SAMAccountName] IS NOT NULL
+		THEN 1
+		ELSE 0 END as 'Scheduler'
+	,CASE WHEN super.[SAMAccountName] IS NOT NULL
+		THEN 1
+		ELSE 0 END as 'Supervisor'
+	,CASE WHEN train.[SAMAccountName] IS NOT NULL
+		THEN 1
+		ELSE 0 END as 'Train'
+FROM
+	OPENQUERY(ADSI, 'Select SAMAccountName from ''LDAP://OU=WAK1,OU=US,OU=LDA,DC=TIRETECH2,DC=CONTIWAN,DC=COM'' WHERE SAMAccountName = ''{userName}'' ') main
+LEFT JOIN
+	OPENQUERY(ADSI, 'Select SAMAccountName from ''LDAP://OU=WAK1,OU=US,OU=LDA,DC=TIRETECH2,DC=CONTIWAN,DC=COM'' 
+	WHERE memberof= ''CN=WAXSG-SFW-Adjust,OU=SoftwareDistributionLocal,OU=Groups,OU=wak1,OU=us,OU=lda,DC=tiretech2,DC=contiwan,DC=com'' ') adj
+	ON main.[SAMAccountName] = adj.[SAMAccountName]
+LEFT JOIN
+	OPENQUERY(ADSI, 'Select SAMAccountName from ''LDAP://OU=WAK1,OU=US,OU=LDA,DC=TIRETECH2,DC=CONTIWAN,DC=COM'' 
+	WHERE memberof= ''CN=WAXSG-SFW-Admin,OU=SoftwareDistributionLocal,OU=Groups,OU=wak1,OU=us,OU=lda,DC=tiretech2,DC=contiwan,DC=com'' ') adm
+	ON main.[SAMAccountName] = adm.[SAMAccountName]
+LEFT JOIN
+	OPENQUERY(ADSI, 'Select SAMAccountName from ''LDAP://OU=WAK1,OU=US,OU=LDA,DC=TIRETECH2,DC=CONTIWAN,DC=COM'' 
+	WHERE memberof= ''CN=WAXSG-SFW-Deviate,OU=SoftwareDistributionLocal,OU=Groups,OU=wak1,OU=us,OU=lda,DC=tiretech2,DC=contiwan,DC=com'' ') dev
+	ON main.[SAMAccountName] = dev.[SAMAccountName]
+LEFT JOIN
+	OPENQUERY(ADSI, 'Select SAMAccountName from ''LDAP://OU=WAK1,OU=US,OU=LDA,DC=TIRETECH2,DC=CONTIWAN,DC=COM'' 
+	WHERE memberof= ''CN=WAXSG-SFW-Engineer,OU=SoftwareDistributionLocal,OU=Groups,OU=wak1,OU=us,OU=lda,DC=tiretech2,DC=contiwan,DC=com'' ') eng
+	ON main.[SAMAccountName] = eng.[SAMAccountName]
+LEFT JOIN
+	OPENQUERY(ADSI, 'Select SAMAccountName from ''LDAP://OU=WAK1,OU=US,OU=LDA,DC=TIRETECH2,DC=CONTIWAN,DC=COM'' 
+	WHERE memberof= ''CN=WAXSG-SFW-Inventory,OU=SoftwareDistributionLocal,OU=Groups,OU=wak1,OU=us,OU=lda,DC=tiretech2,DC=contiwan,DC=com'' ') inv
+	ON main.[SAMAccountName] = inv.[SAMAccountName]
+LEFT JOIN
+	OPENQUERY(ADSI, 'Select SAMAccountName from ''LDAP://OU=WAK1,OU=US,OU=LDA,DC=TIRETECH2,DC=CONTIWAN,DC=COM'' 
+	WHERE memberof= ''CN=WAXSG-SFW-Manager,OU=SoftwareDistributionLocal,OU=Groups,OU=wak1,OU=us,OU=lda,DC=tiretech2,DC=contiwan,DC=com'' ') mgr
+	ON main.[SAMAccountName] = mgr.[SAMAccountName]
+LEFT JOIN
+	OPENQUERY(ADSI, 'Select SAMAccountName from ''LDAP://OU=WAK1,OU=US,OU=LDA,DC=TIRETECH2,DC=CONTIWAN,DC=COM'' 
+	WHERE memberof= ''CN=WAXSG-SFW-QNotice,OU=SoftwareDistributionLocal,OU=Groups,OU=wak1,OU=us,OU=lda,DC=tiretech2,DC=contiwan,DC=com'' ') qnot
+	ON main.[SAMAccountName] = qnot.[SAMAccountName]
+LEFT JOIN
+	OPENQUERY(ADSI, 'Select SAMAccountName from ''LDAP://OU=WAK1,OU=US,OU=LDA,DC=TIRETECH2,DC=CONTIWAN,DC=COM'' 
+	WHERE memberof= ''CN=WAXSG-SFW-Quality,OU=SoftwareDistributionLocal,OU=Groups,OU=wak1,OU=us,OU=lda,DC=tiretech2,DC=contiwan,DC=com'' ') qlt
+	ON main.[SAMAccountName] = qlt.[SAMAccountName]
+LEFT JOIN
+	OPENQUERY(ADSI, 'Select SAMAccountName from ''LDAP://OU=WAK1,OU=US,OU=LDA,DC=TIRETECH2,DC=CONTIWAN,DC=COM'' 
+	WHERE memberof= ''CN=WAXSG-SFW-Sales,OU=SoftwareDistributionLocal,OU=Groups,OU=wak1,OU=us,OU=lda,DC=tiretech2,DC=contiwan,DC=com'' ') sale
+	ON main.[SAMAccountName] = sale.[SAMAccountName]
+LEFT JOIN
+	OPENQUERY(ADSI, 'Select SAMAccountName from ''LDAP://OU=WAK1,OU=US,OU=LDA,DC=TIRETECH2,DC=CONTIWAN,DC=COM'' 
+	WHERE memberof= ''CN=WAXSG-SFW-Scheduler,OU=SoftwareDistributionLocal,OU=Groups,OU=wak1,OU=us,OU=lda,DC=tiretech2,DC=contiwan,DC=com'' ') schd
+	ON main.[SAMAccountName] = schd.[SAMAccountName]
+LEFT JOIN
+	OPENQUERY(ADSI, 'Select SAMAccountName from ''LDAP://OU=WAK1,OU=US,OU=LDA,DC=TIRETECH2,DC=CONTIWAN,DC=COM'' 
+	WHERE memberof= ''CN=WAXSG-SFW-Supervisor,OU=SoftwareDistributionLocal,OU=Groups,OU=wak1,OU=us,OU=lda,DC=tiretech2,DC=contiwan,DC=com'' ') super
+	ON main.[SAMAccountName] = super.[SAMAccountName]
+LEFT JOIN
+	OPENQUERY(ADSI, 'Select SAMAccountName from ''LDAP://OU=WAK1,OU=US,OU=LDA,DC=TIRETECH2,DC=CONTIWAN,DC=COM'' 
+	WHERE memberof= ''CN=WAXSG-SFW-Train,OU=SoftwareDistributionLocal,OU=Groups,OU=wak1,OU=us,OU=lda,DC=tiretech2,DC=contiwan,DC=com'' ') train
+	ON main.[SAMAccountName] = train.[SAMAccountName]";
+            if (App.AppSqlCon != null && App.AppSqlCon.State != ConnectionState.Closed && App.AppSqlCon.State != ConnectionState.Broken)
+            {
+                try
+                {
+                    using (SqlCommand cmd = new SqlCommand(_cmdString, App.AppSqlCon))
+                    {
+                        using (SqlDataReader reader = cmd.ExecuteReader())
+                        {
+                            if (reader.HasRows)
+                            {
+                                while (reader.Read())
+                                {
+                                    var _colList = Enumerable.Range(0, reader.FieldCount).Select(reader.GetName).ToList();
+                                    foreach (var _col in _colList)
+                                    {
+                                        if (reader.SafeGetBoolean(_col))
+                                        {
+                                            _rtnList.Add(_col);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    return _rtnList;
+                }
+                catch (SqlException)
+                {
+                    return null;
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception(ex.Message);
+                }
+            }
+            else
+            {
+                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
             }
         }
 

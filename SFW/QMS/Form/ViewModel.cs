@@ -398,6 +398,10 @@ namespace SFW.QMS.Form
                 FormRevision.Submitter = new Employee(CurrentUser.ErpId, false);
                 FormRevision.Submit(FormObject.FormId, newRevId, App.AppSqlCon);
                 FormObject.SubmitLots(App.AppSqlCon);
+                if (ApplicationTimer.Status != TimerState.Running)
+                {
+                    ApplicationTimer.Pause();
+                }
             }
 
             if (ApplicationTimer.Status == TimerState.Paused)
@@ -542,7 +546,8 @@ namespace SFW.QMS.Form
                 }
                 FormObject.RevisionList.FirstOrDefault(o => o.RevisionId == i).Current = true;
                 FormRevision = FormObject.RevisionList.FirstOrDefault(o => o.RevisionId == i);
-                OnPropertyChanged(nameof(FormRevision));
+                var _action = new Action(delegate { WorkSpaceDock.UpdateChildDock(9, 1, new ViewModel(FormObject, i)); });
+                Application.Current.Dispatcher.Invoke(_action);
             }
         }
 

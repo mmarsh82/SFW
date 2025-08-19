@@ -110,6 +110,17 @@ namespace SFW.Schedule
             if (CollectionView != null)
             {
                 ((DataView)CollectionView.SourceCollection).RowFilter = GetFilter();
+                if (CollectionView.SortDescriptions.Count > 1)
+                {
+                    CollectionView.SortDescriptions.Clear();
+                }
+                Application.Current?.Dispatcher.Invoke(new Action(delegate
+                {
+                    CollectionView.SortDescriptions.Add(new System.ComponentModel.SortDescription("MachineOrder", System.ComponentModel.ListSortDirection.Ascending));
+                    CollectionView.SortDescriptions.Add(new System.ComponentModel.SortDescription("WO_Priority", System.ComponentModel.ListSortDirection.Ascending));
+                    CollectionView.SortDescriptions.Add(new System.ComponentModel.SortDescription("Sched_Shift", System.ComponentModel.ListSortDirection.Ascending));
+                    CollectionView.SortDescriptions.Add(new System.ComponentModel.SortDescription("Sched_Priority", System.ComponentModel.ListSortDirection.Ascending));
+                }));
             }
             Application.Current?.Dispatcher.Invoke(new Action(delegate { CollectionView.Refresh(); }));
         }
@@ -131,10 +142,6 @@ namespace SFW.Schedule
                         _tempTable.Rows[_index].SetField("MachineOrder", _keyValPair.Value);
                     }
                 }
-                if (_tempTable != null)
-                {
-                    _tempTable.DefaultView.Sort = "MachineOrder ASC";
-                }
                 CollectionView = new ListCollectionView(_tempTable.AsDataView());
                 if (CollectionView.GroupDescriptions.Count() != 0)
                 {
@@ -143,6 +150,17 @@ namespace SFW.Schedule
                 Application.Current?.Dispatcher.Invoke(new Action(delegate
                 {
                     CollectionView.GroupDescriptions.Add(new PropertyGroupDescription("MachineNumber", new WorkCenterNameConverter()));
+                }));
+                if (CollectionView.SortDescriptions.Count > 1)
+                {
+                    CollectionView.SortDescriptions.Clear();
+                }
+                Application.Current?.Dispatcher.Invoke(new Action(delegate
+                {
+                    CollectionView.SortDescriptions.Add(new System.ComponentModel.SortDescription("MachineOrder", System.ComponentModel.ListSortDirection.Ascending));
+                    CollectionView.SortDescriptions.Add(new System.ComponentModel.SortDescription("WO_Priority", System.ComponentModel.ListSortDirection.Ascending));
+                    CollectionView.SortDescriptions.Add(new System.ComponentModel.SortDescription("Sched_Shift", System.ComponentModel.ListSortDirection.Ascending));
+                    CollectionView.SortDescriptions.Add(new System.ComponentModel.SortDescription("Sched_Priority", System.ComponentModel.ListSortDirection.Ascending));
                 }));
                 OnPropertyChanged(nameof(CollectionView));
                 Application.Current?.Dispatcher.Invoke(new Action(delegate { CollectionView.Refresh(); }));

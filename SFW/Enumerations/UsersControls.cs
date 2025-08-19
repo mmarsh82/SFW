@@ -26,7 +26,9 @@ namespace SFW.Enumerations
         // The flag for the container query
         Container = 10,
         // The flag for the Scheduling Plan module
-        Plan = 11
+        Plan = 11,
+        // The flag for the WIP Management module
+        WipManagement = 12
 
     }
 }

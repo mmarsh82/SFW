@@ -20,12 +20,13 @@ namespace SFW.Controls
         public static DockPanel SalesDock { get; set; }
         public static DockPanel QmsFormDock { get; set; }
         public static DockPanel PlanDock { get; set; }
+        public static DockPanel WipDock { get; set; }
         public static int Module => (int)App.LoadedModule;
 
         public static event EventHandler<PropertyChangedEventArgs> StaticPropertyChanged;
         public event EventHandler CanExecuteChanged
         {
-            add {  }
+            add { }
             remove { }
         }
 
@@ -47,6 +48,7 @@ namespace SFW.Controls
                 SalesDock = new DockPanel();
                 QmsFormDock = new DockPanel();
                 PlanDock = new DockPanel();
+                WipDock = new DockPanel();
 
                 //Add the Part Info View to [0]
                 MainDock.Children.Insert(0, new PartInfo_View());
@@ -105,6 +107,11 @@ namespace SFW.Controls
                 PlanDock.Children.Insert(0, new Schedule.Plan.View());
                 PlanDock.Children.Insert(1, new ShopRoute.View { DataContext = new ShopRoute.ViewModel() });
                 MainDock.Children.Insert(11, PlanDock);
+
+                // Add the Wip management View
+                WipDock.Children.Insert(0, new Schedule.WipManagement.View());
+                WipDock.Children.Insert(1, new ShopRoute.View { DataContext = new ShopRoute.ViewModel() });
+                MainDock.Children.Insert(12, WipDock);
 
                 SwitchView(App.SiteNumber, null, false);
                 App.LoadedModule = Enumerations.UsersControls.Schedule;
@@ -166,6 +173,10 @@ namespace SFW.Controls
                 case 11:
                     _tempDock = PlanDock;
                     ((Schedule.Plan.View)PlanDock.Children[0]).DataContext = new Schedule.Plan.ViewModel();
+                    break;
+                case 12:
+                    _tempDock = WipDock;
+                    ((Schedule.WipManagement.View)WipDock.Children[0]).DataContext = new Schedule.WipManagement.ViewModel();
                     break;
             }
             if (refreshDock)
@@ -289,6 +300,9 @@ namespace SFW.Controls
             {
                 switch (parentUCIndex)
                 {
+                    case 12:
+                        ((Schedule.WipManagement.ViewModel)((Schedule.WipManagement.View)((DockPanel)MainDock.Children[parentUCIndex]).Children[0]).DataContext).Filter(filter, filterId);
+                        break;
                     case 11:
                         ((Schedule.Plan.ViewModel)((Schedule.Plan.View)((DockPanel)MainDock.Children[parentUCIndex]).Children[0]).DataContext).Filter(filter, filterId);
                         break;

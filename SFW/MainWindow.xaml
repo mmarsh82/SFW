@@ -191,6 +191,8 @@
                           CommandParameter="SFW.Tools.PriorityList_View"/>
 
                 <MenuItem Header="WIP Receipts"
+                          Command="{StaticResource ViewLoadICommand}"
+                          CommandParameter="12"
                           Visibility="Visible"/>
 
                 <MenuItem Header="Machine Reports"
