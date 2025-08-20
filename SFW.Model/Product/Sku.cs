@@ -270,6 +270,7 @@ namespace SFW.Model.Product
                                 SkuDescription = _row.FirstOrDefault().Field<string>("Description");
                                 Uom = _row.FirstOrDefault().Field<string>("Uom");
                                 Facility = site;
+                                IsLotTrace = IsLotTracable(searchValue, site);
                             }
                         }
                         else
@@ -284,6 +285,7 @@ namespace SFW.Model.Product
                             InventoryType = _row.FirstOrDefault().Field<string>("Type");
                             CrewSize = _row.FirstOrDefault().Field<int>("Crew");
                             Facility = _row.FirstOrDefault().Field<int>("Site");
+                            IsLotTrace = IsLotTracable(searchValue, site);
                         }
                         break;
                     //Lot based Sku Loading
@@ -301,6 +303,7 @@ namespace SFW.Model.Product
                             TotalOnHand = _row.FirstOrDefault().Field<int>("OnHand");
                             Location = _row.FirstOrDefault().Field<string>("Location");
                             Facility = _row.FirstOrDefault().Field<int>("Site");
+                            IsLotTrace = IsLotTracable(searchValue, site);
                         }
                         break;
                     //Custom Sku Loading
@@ -314,6 +317,7 @@ namespace SFW.Model.Product
                             TotalOnHand = _row.FirstOrDefault().Field<int>("OnHand");
                             EngStatus = _row.FirstOrDefault().Field<string>("Status");
                             Facility = _row.FirstOrDefault().Field<int>("Site");
+                            IsLotTrace = IsLotTracable(searchValue, site);
                         }
                         break;
                 }
@@ -366,7 +370,8 @@ namespace SFW.Model.Product
             {
                 partNbr = partNbr.Split('|')[0];
             }
-            return MasterDataSet.Tables[typeof(Sku).Name].Select($"[SkuID] = '{partNbr}' AND [Status] = 'A' AND [Site] = {site}").FirstOrDefault().Field<string>("LotTraceable") == "T";
+            var _rtnVal = MasterDataSet.Tables[typeof(Sku).Name].Select($"[SkuID] = '{partNbr}' AND [Status] = 'A' AND [Site] = {site}");
+            return _rtnVal != null && _rtnVal.Count() >= 1 ? _rtnVal.FirstOrDefault().Field<string>("LotTraceable") == "T" : true;
         }
 
         /// <summary>

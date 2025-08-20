@@ -540,35 +540,38 @@ namespace M2kClient
 
             #region Issue Process
 
-            try
+            if (wipRecord.WipWorkOrder.TaskType == "R")
             {
-                var _woType = wipRecord.WipWorkOrder.TaskType != "R" ? 'S' : 'R';
-                foreach (var _comp in wipRecord.ComponentList.Where(o => o.LotTraceable))
+                try
                 {
-                    var _issue = new Issue(wipRecord.Submitter, wipRecord.Facility, _comp.ProductNumber, wipRecord.WipWorkOrder.OrderNumber, "II", new List<Transaction>(), _woType, _tWip.CFlag, wipRecord.WipWorkOrder.Routing);
-                    foreach (var _lot in _comp.LotList.Where(o => !string.IsNullOrEmpty(o.ID) && o.Valid))
+                    var _woType = wipRecord.WipWorkOrder.TaskType != "R" ? 'S' : 'R';
+                    foreach (var _comp in wipRecord.ComponentList.Where(o => o.LotTraceable))
                     {
-                        if (int.TryParse(_lot.Quantity, out int _qty) && _qty > 0)
+                        var _issue = new Issue(wipRecord.Submitter, wipRecord.Facility, _comp.ProductNumber, wipRecord.WipWorkOrder.OrderNumber, "II", new List<Transaction>(), _woType, _tWip.CFlag, wipRecord.WipWorkOrder.Routing);
+                        foreach (var _lot in _comp.LotList.Where(o => !string.IsNullOrEmpty(o.ID) && o.Valid))
                         {
-                            _issue.TranList.Add(new Transaction(_qty, _lot.Location, _lot.ID));
+                            if (int.TryParse(_lot.Quantity, out int _qty) && _qty > 0)
+                            {
+                                _issue.TranList.Add(new Transaction(_qty, _lot.Location, _lot.ID));
+                            }
                         }
+                        File.WriteAllText($"{connection.BTIFolder}ISSUE{connection.AdiServer}.DAT{suffix}i{tranCount}", _issue.ToString());
+                        tranCount++;
                     }
-                    File.WriteAllText($"{connection.BTIFolder}ISSUE{connection.AdiServer}.DAT{suffix}i{tranCount}", _issue.ToString());
-                    tranCount++;
+                    foreach (var _comp in wipRecord.ComponentList.Where(o => !o.LotTraceable))
+                    {
+                        var _rcptLoc = wipRecord.Facility == "01" ? wipRecord.ReceiptLocation : _comp.BackFlushLoc;
+                        var _issQty = wipRecord.WipQty * _comp.AssemblyQuantity;
+                        var _issue = new Issue(wipRecord.Submitter, wipRecord.Facility, _comp.ProductNumber, wipRecord.WipWorkOrder.OrderNumber, "II", new List<Transaction>(), _woType, _tWip.CFlag, wipRecord.WipWorkOrder.Routing);
+                        _issue.TranList.Add(new Transaction { Location = _rcptLoc, Quantity = Convert.ToInt32(_issQty) });
+                        File.WriteAllText($"{connection.BTIFolder}ISSUE{connection.AdiServer}.DAT{suffix}i{tranCount}", _issue.ToString());
+                        tranCount++;
+                    }
                 }
-                foreach (var _comp in wipRecord.ComponentList.Where(o => !o.LotTraceable))
+                catch (Exception e)
                 {
-                    var _rcptLoc = wipRecord.Facility == "01" ? wipRecord.ReceiptLocation : _comp.BackFlushLoc;
-                    var _issQty = wipRecord.WipQty * _comp.AssemblyQuantity;
-                    var _issue = new Issue(wipRecord.Submitter, wipRecord.Facility, _comp.ProductNumber, wipRecord.WipWorkOrder.OrderNumber, "II", new List<Transaction>(), _woType, _tWip.CFlag, wipRecord.WipWorkOrder.Routing);
-                    _issue.TranList.Add(new Transaction { Location = _rcptLoc, Quantity = Convert.ToInt32(_issQty) });
-                    File.WriteAllText($"{connection.BTIFolder}ISSUE{connection.AdiServer}.DAT{suffix}i{tranCount}", _issue.ToString());
-                    tranCount++;
+                    System.Windows.MessageBox.Show($"Unable to process Issue\nPlease contact IT immediately!\n\n{e.Message}", "M2k Issue file error", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
                 }
-            }
-            catch (Exception e)
-            {
-                System.Windows.MessageBox.Show($"Unable to process Issue\nPlease contact IT immediately!\n\n{e.Message}", "M2k Issue file error", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
             }
 
             #endregion

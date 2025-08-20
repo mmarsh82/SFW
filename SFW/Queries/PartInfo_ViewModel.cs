@@ -466,7 +466,7 @@ namespace SFW.Queries
             {
                 return false;
             }
-            return QuantityInput > 0;
+            return Part != null && Part.IsLotTrace ? QuantityInput > 0 && !string.IsNullOrEmpty(_lot) : QuantityInput > 0;
         }
 
         #endregion
@@ -520,6 +520,10 @@ namespace SFW.Queries
         }
         private bool MoveCanExecute(object parameter)
         {
+            if (Part != null && Part.IsLotTrace && string.IsNullOrEmpty(_lot))
+            {
+                return false;
+            }
             if (!NoResults && QuantityInput > 0 && IsToValid && IsFromValid && !string.IsNullOrEmpty(ToLocation) && !string.IsNullOrEmpty(FromLocation))
             {
                 if (!string.IsNullOrEmpty(ToLocation) && (!ToLocation.EndsWith("N") || (ToLocation.EndsWith("N") && !string.IsNullOrEmpty(NonConReason))))

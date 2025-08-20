@@ -745,6 +745,9 @@ namespace SFW
         /// <returns>List of group memebership names</returns>
         public static List<string> GetGroupMembership(string userName)
         {
+            
+            var _ou = App.Facility == "Wahpeton" ? "WAK1" : "ARX1";
+            var _group = App.Facility == "Wahpeton" ? "WAX" : "ARX";
             var _rtnList = new List<string>();
             var _cmdString = $@"SELECT
 	CASE WHEN adj.[SAMAccountName] IS NOT NULL
@@ -784,54 +787,54 @@ namespace SFW
 		THEN 1
 		ELSE 0 END as 'Train'
 FROM
-	OPENQUERY(ADSI, 'Select SAMAccountName from ''LDAP://OU=WAK1,OU=US,OU=LDA,DC=TIRETECH2,DC=CONTIWAN,DC=COM'' WHERE SAMAccountName = ''{userName}'' ') main
+	OPENQUERY(ADSI, 'Select SAMAccountName from ''LDAP://OU={_ou},OU=US,OU=LDA,DC=TIRETECH2,DC=CONTIWAN,DC=COM'' WHERE SAMAccountName = ''{userName}'' ') main
 LEFT JOIN
-	OPENQUERY(ADSI, 'Select SAMAccountName from ''LDAP://OU=WAK1,OU=US,OU=LDA,DC=TIRETECH2,DC=CONTIWAN,DC=COM'' 
-	WHERE memberof= ''CN=WAXSG-SFW-Adjust,OU=SoftwareDistributionLocal,OU=Groups,OU=wak1,OU=us,OU=lda,DC=tiretech2,DC=contiwan,DC=com'' ') adj
+	OPENQUERY(ADSI, 'Select SAMAccountName from ''LDAP://OU={_ou},OU=US,OU=LDA,DC=TIRETECH2,DC=CONTIWAN,DC=COM'' 
+	WHERE memberof= ''CN={_group}SG-SFW-Adjust,OU=SoftwareDistributionLocal,OU=Groups,OU={_ou},OU=us,OU=lda,DC=tiretech2,DC=contiwan,DC=com'' ') adj
 	ON main.[SAMAccountName] = adj.[SAMAccountName]
 LEFT JOIN
-	OPENQUERY(ADSI, 'Select SAMAccountName from ''LDAP://OU=WAK1,OU=US,OU=LDA,DC=TIRETECH2,DC=CONTIWAN,DC=COM'' 
-	WHERE memberof= ''CN=WAXSG-SFW-Admin,OU=SoftwareDistributionLocal,OU=Groups,OU=wak1,OU=us,OU=lda,DC=tiretech2,DC=contiwan,DC=com'' ') adm
+	OPENQUERY(ADSI, 'Select SAMAccountName from ''LDAP://OU={_ou},OU=US,OU=LDA,DC=TIRETECH2,DC=CONTIWAN,DC=COM'' 
+	WHERE memberof= ''CN={_group}SG-SFW-Admin,OU=SoftwareDistributionLocal,OU=Groups,OU={_ou},OU=us,OU=lda,DC=tiretech2,DC=contiwan,DC=com'' ') adm
 	ON main.[SAMAccountName] = adm.[SAMAccountName]
 LEFT JOIN
-	OPENQUERY(ADSI, 'Select SAMAccountName from ''LDAP://OU=WAK1,OU=US,OU=LDA,DC=TIRETECH2,DC=CONTIWAN,DC=COM'' 
-	WHERE memberof= ''CN=WAXSG-SFW-Deviate,OU=SoftwareDistributionLocal,OU=Groups,OU=wak1,OU=us,OU=lda,DC=tiretech2,DC=contiwan,DC=com'' ') dev
+	OPENQUERY(ADSI, 'Select SAMAccountName from ''LDAP://OU={_ou},OU=US,OU=LDA,DC=TIRETECH2,DC=CONTIWAN,DC=COM'' 
+	WHERE memberof= ''CN={_group}SG-SFW-Deviate,OU=SoftwareDistributionLocal,OU=Groups,OU={_ou},OU=us,OU=lda,DC=tiretech2,DC=contiwan,DC=com'' ') dev
 	ON main.[SAMAccountName] = dev.[SAMAccountName]
 LEFT JOIN
-	OPENQUERY(ADSI, 'Select SAMAccountName from ''LDAP://OU=WAK1,OU=US,OU=LDA,DC=TIRETECH2,DC=CONTIWAN,DC=COM'' 
-	WHERE memberof= ''CN=WAXSG-SFW-Engineer,OU=SoftwareDistributionLocal,OU=Groups,OU=wak1,OU=us,OU=lda,DC=tiretech2,DC=contiwan,DC=com'' ') eng
+	OPENQUERY(ADSI, 'Select SAMAccountName from ''LDAP://OU={_ou},OU=US,OU=LDA,DC=TIRETECH2,DC=CONTIWAN,DC=COM'' 
+	WHERE memberof= ''CN={_group}SG-SFW-Engineer,OU=SoftwareDistributionLocal,OU=Groups,OU={_ou},OU=us,OU=lda,DC=tiretech2,DC=contiwan,DC=com'' ') eng
 	ON main.[SAMAccountName] = eng.[SAMAccountName]
 LEFT JOIN
-	OPENQUERY(ADSI, 'Select SAMAccountName from ''LDAP://OU=WAK1,OU=US,OU=LDA,DC=TIRETECH2,DC=CONTIWAN,DC=COM'' 
-	WHERE memberof= ''CN=WAXSG-SFW-Inventory,OU=SoftwareDistributionLocal,OU=Groups,OU=wak1,OU=us,OU=lda,DC=tiretech2,DC=contiwan,DC=com'' ') inv
+	OPENQUERY(ADSI, 'Select SAMAccountName from ''LDAP://OU={_ou},OU=US,OU=LDA,DC=TIRETECH2,DC=CONTIWAN,DC=COM'' 
+	WHERE memberof= ''CN={_group}SG-SFW-Inventory,OU=SoftwareDistributionLocal,OU=Groups,OU={_ou},OU=us,OU=lda,DC=tiretech2,DC=contiwan,DC=com'' ') inv
 	ON main.[SAMAccountName] = inv.[SAMAccountName]
 LEFT JOIN
-	OPENQUERY(ADSI, 'Select SAMAccountName from ''LDAP://OU=WAK1,OU=US,OU=LDA,DC=TIRETECH2,DC=CONTIWAN,DC=COM'' 
-	WHERE memberof= ''CN=WAXSG-SFW-Manager,OU=SoftwareDistributionLocal,OU=Groups,OU=wak1,OU=us,OU=lda,DC=tiretech2,DC=contiwan,DC=com'' ') mgr
+	OPENQUERY(ADSI, 'Select SAMAccountName from ''LDAP://OU={_ou},OU=US,OU=LDA,DC=TIRETECH2,DC=CONTIWAN,DC=COM'' 
+	WHERE memberof= ''CN={_group}SG-SFW-Manager,OU=SoftwareDistributionLocal,OU=Groups,OU={_ou},OU=us,OU=lda,DC=tiretech2,DC=contiwan,DC=com'' ') mgr
 	ON main.[SAMAccountName] = mgr.[SAMAccountName]
 LEFT JOIN
-	OPENQUERY(ADSI, 'Select SAMAccountName from ''LDAP://OU=WAK1,OU=US,OU=LDA,DC=TIRETECH2,DC=CONTIWAN,DC=COM'' 
-	WHERE memberof= ''CN=WAXSG-SFW-QNotice,OU=SoftwareDistributionLocal,OU=Groups,OU=wak1,OU=us,OU=lda,DC=tiretech2,DC=contiwan,DC=com'' ') qnot
+	OPENQUERY(ADSI, 'Select SAMAccountName from ''LDAP://OU={_ou},OU=US,OU=LDA,DC=TIRETECH2,DC=CONTIWAN,DC=COM'' 
+	WHERE memberof= ''CN={_group}SG-SFW-QNotice,OU=SoftwareDistributionLocal,OU=Groups,OU={_ou},OU=us,OU=lda,DC=tiretech2,DC=contiwan,DC=com'' ') qnot
 	ON main.[SAMAccountName] = qnot.[SAMAccountName]
 LEFT JOIN
-	OPENQUERY(ADSI, 'Select SAMAccountName from ''LDAP://OU=WAK1,OU=US,OU=LDA,DC=TIRETECH2,DC=CONTIWAN,DC=COM'' 
-	WHERE memberof= ''CN=WAXSG-SFW-Quality,OU=SoftwareDistributionLocal,OU=Groups,OU=wak1,OU=us,OU=lda,DC=tiretech2,DC=contiwan,DC=com'' ') qlt
+	OPENQUERY(ADSI, 'Select SAMAccountName from ''LDAP://OU={_ou},OU=US,OU=LDA,DC=TIRETECH2,DC=CONTIWAN,DC=COM'' 
+	WHERE memberof= ''CN={_group}SG-SFW-Quality,OU=SoftwareDistributionLocal,OU=Groups,OU={_ou},OU=us,OU=lda,DC=tiretech2,DC=contiwan,DC=com'' ') qlt
 	ON main.[SAMAccountName] = qlt.[SAMAccountName]
 LEFT JOIN
-	OPENQUERY(ADSI, 'Select SAMAccountName from ''LDAP://OU=WAK1,OU=US,OU=LDA,DC=TIRETECH2,DC=CONTIWAN,DC=COM'' 
-	WHERE memberof= ''CN=WAXSG-SFW-Sales,OU=SoftwareDistributionLocal,OU=Groups,OU=wak1,OU=us,OU=lda,DC=tiretech2,DC=contiwan,DC=com'' ') sale
+	OPENQUERY(ADSI, 'Select SAMAccountName from ''LDAP://OU={_ou},OU=US,OU=LDA,DC=TIRETECH2,DC=CONTIWAN,DC=COM'' 
+	WHERE memberof= ''CN={_group}SG-SFW-Sales,OU=SoftwareDistributionLocal,OU=Groups,OU={_ou},OU=us,OU=lda,DC=tiretech2,DC=contiwan,DC=com'' ') sale
 	ON main.[SAMAccountName] = sale.[SAMAccountName]
 LEFT JOIN
-	OPENQUERY(ADSI, 'Select SAMAccountName from ''LDAP://OU=WAK1,OU=US,OU=LDA,DC=TIRETECH2,DC=CONTIWAN,DC=COM'' 
-	WHERE memberof= ''CN=WAXSG-SFW-Scheduler,OU=SoftwareDistributionLocal,OU=Groups,OU=wak1,OU=us,OU=lda,DC=tiretech2,DC=contiwan,DC=com'' ') schd
+	OPENQUERY(ADSI, 'Select SAMAccountName from ''LDAP://OU={_ou},OU=US,OU=LDA,DC=TIRETECH2,DC=CONTIWAN,DC=COM'' 
+	WHERE memberof= ''CN={_group}SG-SFW-Scheduler,OU=SoftwareDistributionLocal,OU=Groups,OU={_ou},OU=us,OU=lda,DC=tiretech2,DC=contiwan,DC=com'' ') schd
 	ON main.[SAMAccountName] = schd.[SAMAccountName]
 LEFT JOIN
-	OPENQUERY(ADSI, 'Select SAMAccountName from ''LDAP://OU=WAK1,OU=US,OU=LDA,DC=TIRETECH2,DC=CONTIWAN,DC=COM'' 
-	WHERE memberof= ''CN=WAXSG-SFW-Supervisor,OU=SoftwareDistributionLocal,OU=Groups,OU=wak1,OU=us,OU=lda,DC=tiretech2,DC=contiwan,DC=com'' ') super
+	OPENQUERY(ADSI, 'Select SAMAccountName from ''LDAP://OU={_ou},OU=US,OU=LDA,DC=TIRETECH2,DC=CONTIWAN,DC=COM'' 
+	WHERE memberof= ''CN={_group}SG-SFW-Supervisor,OU=SoftwareDistributionLocal,OU=Groups,OU={_ou},OU=us,OU=lda,DC=tiretech2,DC=contiwan,DC=com'' ') super
 	ON main.[SAMAccountName] = super.[SAMAccountName]
 LEFT JOIN
-	OPENQUERY(ADSI, 'Select SAMAccountName from ''LDAP://OU=WAK1,OU=US,OU=LDA,DC=TIRETECH2,DC=CONTIWAN,DC=COM'' 
-	WHERE memberof= ''CN=WAXSG-SFW-Train,OU=SoftwareDistributionLocal,OU=Groups,OU=wak1,OU=us,OU=lda,DC=tiretech2,DC=contiwan,DC=com'' ') train
+	OPENQUERY(ADSI, 'Select SAMAccountName from ''LDAP://OU={_ou},OU=US,OU=LDA,DC=TIRETECH2,DC=CONTIWAN,DC=COM'' 
+	WHERE memberof= ''CN={_group}SG-SFW-Train,OU=SoftwareDistributionLocal,OU=Groups,OU={_ou},OU=us,OU=lda,DC=tiretech2,DC=contiwan,DC=com'' ') train
 	ON main.[SAMAccountName] = train.[SAMAccountName]";
             if (App.AppSqlCon != null && App.AppSqlCon.State != ConnectionState.Closed && App.AppSqlCon.State != ConnectionState.Broken)
             {
