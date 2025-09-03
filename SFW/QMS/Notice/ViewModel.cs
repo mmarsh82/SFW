@@ -174,10 +174,20 @@ namespace SFW.QMS.Notice
                         break;
                     }
                 }
-            }           
-            if (CollectionView != null && _index > 0)
+            }
+            try
             {
-                Application.Current?.Dispatcher.Invoke(new Action(delegate { CollectionView.MoveCurrentToPosition(_index); }));
+                if (CollectionView != null && _index > 0)
+                {
+                    Application.Current?.Dispatcher.Invoke(new Action(delegate { CollectionView.MoveCurrentToPosition(_index); }));
+                }
+            }
+            catch
+            {
+                if (CollectionView != null)
+                {
+                    Application.Current?.Dispatcher.Invoke(new Action(delegate { CollectionView.MoveCurrentToFirst(); }));
+                }
             }
         }
 

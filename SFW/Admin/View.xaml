@@ -17,7 +17,10 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="50"/>
             <RowDefinition Height="40"/>
-            <RowDefinition Height="340"/>
+            <RowDefinition Height="40"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="40"/>
+            <RowDefinition Height="10"/>
         </Grid.RowDefinitions>
 
         <Button Grid.Row="0"
@@ -48,19 +51,40 @@
                   Margin="10,0,0,0"
                   VerticalAlignment="Center"
                   VerticalContentAlignment="Center"
+                  Visibility="{Binding Path=(local:CurrentUser.IsAdmin), Converter={StaticResource BooltoVisConverter}}"
                   IsChecked="{Binding Path=(local:App.IsFocused)}"/>
 
         <!--#endregion-->
-
-        <!--#region Default Machine Selection-->
+        
+        <!--#region Machine Group Selector-->
 
         <StackPanel Grid.Row="2"
+                    Orientation="Horizontal">
+            <TextBlock Text="Machine Group:"
+                       FontSize="18"
+                       FontWeight="Bold"
+                       TextDecorations="Underline"
+                       VerticalAlignment="Center"
+                       Margin="10,0,0,0" />
+            <ComboBox ItemsSource="{Binding DataContext.MachineGroupCollection, ElementName=Admin_UC}"
+                      SelectedItem="{Binding SelectedMachineGroup, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                      FontSize="18"
+                      FontWeight="Bold"
+                      Margin="5"
+                      Width="175"/>
+        </StackPanel>
+        
+        <!--#endregion-->
+
+        <!--#region Machine Order Selection-->
+
+        <StackPanel Grid.Row="3"
                     Orientation="Vertical"
                     HorizontalAlignment="Left">
 
             <StackPanel Orientation="Horizontal">
 
-                <TextBlock Text="Default Machines"
+                <TextBlock Text="Machine Order Preference"
                            FontSize="24"
                            FontWeight="Bold"
                            Margin="10,0,0,0"
@@ -80,27 +104,14 @@
                     </Button.Content>
                 </Button>
 
-                <Button Command="{Binding ListICommand}"
-                        CommandParameter="Save"
-                        Width="30"
-                        Height="30"
-                        Background="Transparent"
-                        BorderThickness="0"
-                        Margin="20,0 0 0"
-                        ToolTip="Save all changes."
-                        Style="{DynamicResource DefaultButton}">
-                    <Button.Content>
-                        <Image Source="/SFW;component/Icons/Accept.ico" />
-                    </Button.Content>
-                </Button>
-
             </StackPanel>
 
             <ItemsControl x:Name="MachineInput"
-                          Grid.Row="1"
+                          Grid.Row="3"
                           HorizontalAlignment="Left"
                           ScrollViewer.CanContentScroll="True"
                           ScrollViewer.VerticalScrollBarVisibility="Auto"
+                          MaxHeight="720"
                           Margin="20,0,0,0"
                           ItemsSource="{Binding MachineConfig, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
                 <ItemsControl.ItemsPanel>
@@ -112,7 +123,9 @@
 
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                        <StackPanel Orientation="Horizontal">
+                        <StackPanel Orientation="Horizontal"
+                                    CanVerticallyScroll="True"
+                                    MaxHeight="720">
 
                             <TextBlock Text="Machine:"
                                        FontSize="18"
@@ -166,6 +179,28 @@
         </StackPanel>
 
         <!--#endregion-->
+
+        <Button Grid.Row="4"
+                Content="Restore Defaults"
+                FontSize="16"
+                Width="150"
+                IsEnabled="False"
+                HorizontalAlignment="Center"
+                Command="{Binding ListICommand}"
+                CommandParameter="Default"
+                ToolTip="Revert back to default settings."
+                Style="{DynamicResource DefaultButton}"/>
+
+        <Button Grid.Row="4" 
+                Content="Save Changes"
+                FontSize="16"
+                Width="150"
+                HorizontalAlignment="Left"
+                Margin="50,0,0,0"
+                Command="{Binding ListICommand}"
+                CommandParameter="Save"
+                ToolTip="Save all changes."
+                Style="{DynamicResource DefaultButton}"/>
 
     </Grid>
 </UserControl>

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
-using System.Windows;
 using System.Xml;
 
 namespace SFW
@@ -64,7 +63,7 @@ namespace SFW
         /// <summary>
         /// Get a list of the user XML config file
         /// </summary>
-        public static List<UserConfig> GetUserConfigList()
+        public static List<UserConfig> GetList()
         {
             var _uConf = new List<UserConfig>();
             try
@@ -72,7 +71,7 @@ namespace SFW
                 var folder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
                 if (!File.Exists($"{folder}\\SFW\\SfwConfig.xml"))
                 {
-                    CreateNewConfigFile();
+                    CreateNewFile();
                 }
                 using (var rStream = new FileStream($"{folder}\\SFW\\SfwConfig.xml", FileMode.Open))
                 {
@@ -106,7 +105,7 @@ namespace SFW
         /// <summary>
         /// Create a new user config file for the SFW application 
         /// </summary>
-        public static void CreateNewConfigFile()
+        public static void CreateNewFile()
         {
             try
             {
@@ -121,7 +120,7 @@ namespace SFW
                         writer.WriteStartElement("SFW_User_Config");
 
                         writer.WriteComment("Default Work Centers");
-                        writer.WriteComment("Work center name and schedule position seperated by Site number");
+                        writer.WriteComment("Work center group, name and schedule position seperated by Site number");
 
                         writer.WriteStartElement("Default_WC");
 
@@ -152,7 +151,7 @@ namespace SFW
         /// </summary>
         /// <param name="ucList">List of stored userconfig objects</param>
         /// <param name="focus">Set the focus view value</param>
-        public static void UpdateConfigFile(List<UserConfig> ucList, bool focus)
+        public static void UpdateFile(List<UserConfig> ucList, bool focus)
         {
             try
             {
@@ -175,7 +174,7 @@ namespace SFW
                         writer.WriteEndElement();
 
                         writer.WriteComment("Default Work Centers");
-                        writer.WriteComment("Work center name and schedule position seperated by Site number");
+                        writer.WriteComment("Work center group, name and schedule position seperated by Site number");
 
                         writer.WriteStartElement("Default_WC");
 

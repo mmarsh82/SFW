@@ -93,6 +93,10 @@
                           Command="{StaticResource ViewLoadICommand}"
                           CommandParameter="-2"
                           InputGestureText="F5"/>
+                <MenuItem Header="Preferences"
+                          Command="{StaticResource ViewLoadICommand}"
+                          CommandParameter="4"
+                          Visibility="{Binding Path=(local:CurrentUser.BasicUser), Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}"/>
                 <MenuItem Header="Exit"
                           Command="{StaticResource ExitICommand}"
                           InputGestureText="Alt+F4">

@@ -17,8 +17,8 @@ namespace SFW.Converters
             try
             {
                 return value != null && value != DependencyProperty.UnsetValue
-                        ? $"{Machine.GetName(value.ToString(), 'M')} ({value})"
-                        : string.Empty;
+                            ? $"{Machine.GetName(value.ToString(), 'M')} ({value})"
+                            : string.Empty;
             }
             catch
             {

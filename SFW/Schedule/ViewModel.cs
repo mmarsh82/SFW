@@ -100,9 +100,16 @@ namespace SFW.Schedule
         public override void ResetFilter()
         {
             Filter($"[Site] = {App.SiteNumber}", 3);
-            if (CurrentUser.BasicUser)
+            var _compUser = System.Security.Principal.WindowsIdentity.GetCurrent().Name.Contains('\\')
+                ? System.Security.Principal.WindowsIdentity.GetCurrent().Name.Split('\\')[1]
+                : System.Security.Principal.WindowsIdentity.GetCurrent().Name;
+            if (CurrentUser.BasicUser || _compUser == CurrentUser.DomainUserName || string.IsNullOrEmpty(CurrentUser.DomainUserName))
             {
                 Filter(UserConfig.BuildMachineFilter(), 1);
+            }
+            else
+            {
+                Filter("", 1);
             }
             Filter(UserConfig.BuildPriorityFilter(), 4);
             ClosedFilter = false;
@@ -110,17 +117,6 @@ namespace SFW.Schedule
             if (CollectionView != null)
             {
                 ((DataView)CollectionView.SourceCollection).RowFilter = GetFilter();
-                if (CollectionView.SortDescriptions.Count > 1)
-                {
-                    CollectionView.SortDescriptions.Clear();
-                }
-                Application.Current?.Dispatcher.Invoke(new Action(delegate
-                {
-                    CollectionView.SortDescriptions.Add(new System.ComponentModel.SortDescription("MachineOrder", System.ComponentModel.ListSortDirection.Ascending));
-                    CollectionView.SortDescriptions.Add(new System.ComponentModel.SortDescription("WO_Priority", System.ComponentModel.ListSortDirection.Ascending));
-                    CollectionView.SortDescriptions.Add(new System.ComponentModel.SortDescription("Sched_Shift", System.ComponentModel.ListSortDirection.Ascending));
-                    CollectionView.SortDescriptions.Add(new System.ComponentModel.SortDescription("Sched_Priority", System.ComponentModel.ListSortDirection.Ascending));
-                }));
             }
             Application.Current?.Dispatcher.Invoke(new Action(delegate { CollectionView.Refresh(); }));
         }
@@ -142,26 +138,19 @@ namespace SFW.Schedule
                         _tempTable.Rows[_index].SetField("MachineOrder", _keyValPair.Value);
                     }
                 }
-                CollectionView = new ListCollectionView(_tempTable.AsDataView());
+                var _tempDataView = _tempTable.AsDataView();
+                _tempDataView.Sort = "MachineGroup, MachineNumber, MachineOrder, WO_Priority, Sched_Shift, Sched_Priority";
+                CollectionView = new ListCollectionView(_tempDataView);
                 if (CollectionView.GroupDescriptions.Count() != 0)
                 {
                     Application.Current?.Dispatcher.Invoke(new Action(delegate { CollectionView.GroupDescriptions.Clear(); }));
                 }
                 Application.Current?.Dispatcher.Invoke(new Action(delegate
                 {
+                    CollectionView.GroupDescriptions.Add(new PropertyGroupDescription("MachineGroup"));
                     CollectionView.GroupDescriptions.Add(new PropertyGroupDescription("MachineNumber", new WorkCenterNameConverter()));
                 }));
-                if (CollectionView.SortDescriptions.Count > 1)
-                {
-                    CollectionView.SortDescriptions.Clear();
-                }
-                Application.Current?.Dispatcher.Invoke(new Action(delegate
-                {
-                    CollectionView.SortDescriptions.Add(new System.ComponentModel.SortDescription("MachineOrder", System.ComponentModel.ListSortDirection.Ascending));
-                    CollectionView.SortDescriptions.Add(new System.ComponentModel.SortDescription("WO_Priority", System.ComponentModel.ListSortDirection.Ascending));
-                    CollectionView.SortDescriptions.Add(new System.ComponentModel.SortDescription("Sched_Shift", System.ComponentModel.ListSortDirection.Ascending));
-                    CollectionView.SortDescriptions.Add(new System.ComponentModel.SortDescription("Sched_Priority", System.ComponentModel.ListSortDirection.Ascending));
-                }));
+                
                 OnPropertyChanged(nameof(CollectionView));
                 Application.Current?.Dispatcher.Invoke(new Action(delegate { CollectionView.Refresh(); }));
                 CollectionView.CurrentChanged += CollectionView_ItemChanged;

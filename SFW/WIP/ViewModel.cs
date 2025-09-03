@@ -383,7 +383,6 @@ namespace SFW.WIP
                 {
                     WipLot = WipRecord.WipLot.LotNumber = _wipProc.First().Value.Contains("*") || !WipRecord.IsLotTracable ? "Mulitple" : _wipProc.First().Value;
                     LotList = _wipProc.First().Value.Contains("*") ? _wipProc.First().Value.Split('*').ToList() : null;
-                    //TODO: add in the labor code here
                 }
                 else
                 {
@@ -392,6 +391,7 @@ namespace SFW.WIP
                 }
                 IsSubmitted = true;
                 TQty = WipRecord.WipQty + _preOnHand;
+                Model.Management.EmployeeLabor.UpdateTimeIn(WipRecord.CrewList.ToList(), App.AppSqlCon);
                 if (App.SiteNumber == 2)
                 {
                     try

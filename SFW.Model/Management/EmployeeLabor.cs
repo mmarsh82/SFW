@@ -124,6 +124,100 @@ namespace SFW.Model.Management
             }
         }
 
+        /// <summary>
+        /// Retrieve the user last transaction date and time
+        /// </summary>
+        /// <param name="erpId">User ERP ID</param>
+        /// <returns>Last time in as DateTime</returns>
+        public static string GetTimeIn(string erpId, int shift, SqlConnection sqlCon)
+        {
+            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
+            {
+                try
+                {
+                    using (SqlCommand cmd = new SqlCommand($"USE {sqlCon.Database}; SELECT [TimeIn] FROM [dbo].[SFW_LaborTimeIn] WHERE [UserId] = @p1", sqlCon))
+                    {
+                        cmd.Parameters.AddWithValue("p1", erpId);
+                        var _rtnVal = cmd.ExecuteScalar();
+                        if (_rtnVal != null && DateTime.TryParse(_rtnVal.ToString(), out DateTime dt))
+                        {
+                            return dt.Date.Year == 1900 ? Employee.GetShiftStartTime(erpId) : dt.ToString("HH:mm");
+                        }
+                        return Employee.GetShiftStartTime(erpId);
+                    }
+                }
+                catch (SqlException)
+                {
+                    return Employee.GetShiftStartTime(erpId);
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception(ex.Message);
+                }
+            }
+            else
+            {
+                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
+            }
+        }
+
+        /// <summary>
+        /// Update the user last transaction date and time
+        /// </summary>
+        /// <param name="erpId">User ERP ID</param>
+        /// <returns>Pass or fail as bool</returns>
+        public static bool UpdateTimeIn(List<Employee> crewLabor, SqlConnection sqlCon)
+        {
+            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
+            {
+                try
+                {
+                    var _isNew = true;
+                    foreach (var crew in crewLabor.Where(o => o.IsDirect))
+                    {
+                        using (SqlCommand cmd = new SqlCommand($"USE {ModelSqlCon.Database}; SELECT COUNT([UserId]) FROM [dbo].[LBR_DETAIL-CSTM_UserLastTime] WHERE [UserId] = @p1", sqlCon))
+                        {
+                            cmd.Parameters.AddWithValue("p1", crew.ErpId);
+                            _isNew = !int.TryParse(cmd.ExecuteScalar().ToString(), out int i) && i == 0;
+                        }
+                        //Insert the user if they do not exist
+                        if (_isNew)
+                        {
+                            using (SqlCommand cmd = new SqlCommand($"USE {ModelSqlCon.Database}; INSERT INTO [dbo].[LBR_DETAIL-CSTM_UserLastTime] ([UserId], [LastTransaction]) VALUES (@p1, @p2)", sqlCon))
+                            {
+                                cmd.Parameters.AddWithValue("p1", crew.ErpId);
+                                cmd.Parameters.AddWithValue("p2", DateTime.Now.ToString("yyyy-MM-dd HH:mm"));
+                                cmd.ExecuteNonQuery();
+                            }
+                        }
+                        //Update the transaction date and time
+                        else
+                        {
+                            using (SqlCommand cmd = new SqlCommand($"USE {ModelSqlCon.Database}; UPDATE [dbo].[LBR_DETAIL-CSTM_UserLastTime] SET [LastTransaction] = @p1 WHERE [UserId] = @p2", sqlCon))
+                            {
+                                cmd.Parameters.AddWithValue("p1", DateTime.Now.ToString("yyyy-MM-dd HH:mm"));
+                                cmd.Parameters.AddWithValue("p2", crew.ErpId);
+                                cmd.ExecuteNonQuery();
+                            }
+                        }
+                    }
+                    return true;
+                }
+                catch (SqlException)
+                {
+                    return false;
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception(ex.Message);
+                }
+            }
+            else
+            {
+                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
+            }
+        }
+
         #endregion
 
         /// <summary>
@@ -136,17 +230,18 @@ namespace SFW.Model.Management
         /// Retreives a new employee labor object
         /// </summary>
         /// <param name="erpId">User ERP ID number</param>
+        /// <param name="shift">Shift of the user</param>
         /// <returns>employee labor object or null</returns>
         public static EmployeeLabor GetLabor(string erpId, int shift)
         {
             try
             {
                 var _dateId = (DateTime.Today - Convert.ToDateTime("1967/12/31")).Days;
-                if (shift == 3 && DateTime.Now.Hour > 9)
+                if (shift == 3 && DateTime.Now.Hour > 21)
                 {
                     _dateId++;
                 }
-                else if (shift == 5 && DateTime.Now.Hour < 4)
+                else if (shift == 5 && DateTime.Now.Hour < 16)
                 {
                     _dateId--;
                 }
@@ -158,7 +253,7 @@ namespace SFW.Model.Management
                         LaborId = _rows.FirstOrDefault().Field<string>("LaborId"),
                         Shift = _rows.FirstOrDefault().Field<int>("Shift"),
                         DateId = _rows.FirstOrDefault().Field<int>("DateId"),
-                        InTime = _rows.FirstOrDefault().Field<string>("OutTime"),
+                        InTime = GetTimeIn(erpId, shift, ModelSqlCon),
                         OutTime = DateTime.Now.ToString("HH:mm")
                     };
                 }
@@ -174,8 +269,9 @@ namespace SFW.Model.Management
         /// Retreives a new employee labor object
         /// </summary>
         /// <param name="erpId">User ERP ID number</param>
+        /// <param name="shift">Shift of the user</param>
         /// <returns>List of labor entries from an employee</returns>
-        public static List<EmployeeLabor> GetLaborList(string erpId)
+        public static List<EmployeeLabor> GetLaborList(string erpId, int shift)
         {
             var _rtnList = new List<EmployeeLabor>();
             try
@@ -188,7 +284,7 @@ namespace SFW.Model.Management
                         LaborId = _rows.FirstOrDefault().Field<string>("LaborId"),
                         Shift = _rows.FirstOrDefault().Field<int>("Shift"),
                         DateId = _rows.FirstOrDefault().Field<int>("DateId"),
-                        InTime = _rows.FirstOrDefault().Field<string>("InTime"),
+                        InTime = GetTimeIn(erpId, shift, ModelSqlCon),
                         OutTime = _rows.FirstOrDefault().Field<string>("OutTime")
                     });
                 }

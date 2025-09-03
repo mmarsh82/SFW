@@ -131,7 +131,7 @@ namespace SFW
                 //Initialization of default application properties
                 SplashMessage = "Customizing your experience.";
                 GlobalConfig = AppGlobal.Load($"{AppFilePath}GlobalConfig.xml");
-                DefualtWorkCenter = UserConfig.GetUserConfigList();
+                DefualtWorkCenter = UserConfig.GetList();
                 ApplicationTimer.Start();
                 SplashMessage = "Connecting to your data.";
                 if (AppSqlCon != null)
