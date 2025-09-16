@@ -88,9 +88,10 @@
                         Style="{DynamicResource ResourceKey=DefaultButton}">
                     <Image Source="/Icons/Download.ico"/>
                     <Button.Visibility>
-                        <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="1|1">
+                        <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="1|1|1">
                             <Binding Path="(main:CurrentUser.IsQuality)"/>
                             <Binding Path="(main:CurrentUser.IsManager)"/>
+                            <Binding Path="(main:CurrentUser.IsEngineer)"/>
                         </MultiBinding>
                     </Button.Visibility>
                 </Button>

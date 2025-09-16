@@ -29,8 +29,8 @@
     <ProductName>Shop Floor Workbench</ProductName>
     <PublisherName>Michael Marsh</PublisherName>
     <SuiteName>ContiTech</SuiteName>
-    <ApplicationRevision>100</ApplicationRevision>
-    <ApplicationVersion>3.0.14.100</ApplicationVersion>
+    <ApplicationRevision>124</ApplicationRevision>
+    <ApplicationVersion>3.0.16.124</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <CreateDesktopShortcut>true</CreateDesktopShortcut>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -669,6 +669,15 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Icons\Daily.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Icons\Save.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Icons\Restore.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Icons\Reset.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

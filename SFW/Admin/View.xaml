@@ -12,6 +12,21 @@
             <cvtr:BoolToVisibility x:Key="BooltoVisConverter"/>
             <cvtr:CountToVisibility x:Key="CounttoVisConverter"/>
             <cvtr:StringConcat x:Key="StringConcatConverter"/>
+            <cvtr:IntToBool x:Key="IntToBoolConverter"/>
+
+            <LinearGradientBrush x:Key="BackgroundBrush" StartPoint="0.5,0" EndPoint="0.5,1">
+                <GradientStop Color="#FF6B8E95" Offset="0"/>
+                <GradientStop Color="#FF14A7C1" Offset="1"/>
+                <GradientStop Color="#FF1E424E" Offset="0.509"/>
+                <GradientStop Color="#FF1D4855" Offset="0.542"/>
+                <GradientStop Color="#FF193A44" Offset="0.526"/>
+            </LinearGradientBrush>
+
+            <LinearGradientBrush x:Key="BorderBrush" StartPoint="0.5,0" EndPoint="0.5,1">
+                <GradientStop Color="#FF1D1D1D" Offset="0.614"/>
+                <GradientStop Color="#FF007F96" Offset="0.853"/>
+                <GradientStop Color="#FF0AEAFA" Offset="1"/>
+            </LinearGradientBrush>
         </Grid.Resources>
 
         <Grid.RowDefinitions>
@@ -19,7 +34,6 @@
             <RowDefinition Height="40"/>
             <RowDefinition Height="40"/>
             <RowDefinition Height="*"/>
-            <RowDefinition Height="40"/>
             <RowDefinition Height="10"/>
         </Grid.RowDefinitions>
 
@@ -56,151 +70,289 @@
 
         <!--#endregion-->
         
-        <!--#region Machine Group Selector-->
+        <!--#region Machine Order Header -->
 
         <StackPanel Grid.Row="2"
-                    Orientation="Horizontal">
-            <TextBlock Text="Machine Group:"
-                       FontSize="18"
-                       FontWeight="Bold"
-                       TextDecorations="Underline"
-                       VerticalAlignment="Center"
-                       Margin="10,0,0,0" />
-            <ComboBox ItemsSource="{Binding DataContext.MachineGroupCollection, ElementName=Admin_UC}"
-                      SelectedItem="{Binding SelectedMachineGroup, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                      FontSize="18"
-                      FontWeight="Bold"
-                      Margin="5"
-                      Width="175"/>
-        </StackPanel>
-        
-        <!--#endregion-->
-
-        <!--#region Machine Order Selection-->
-
-        <StackPanel Grid.Row="3"
-                    Orientation="Vertical"
+                    Orientation="Horizontal"
                     HorizontalAlignment="Left">
 
-            <StackPanel Orientation="Horizontal">
+            <TextBlock Text="Machine Order Preference"
+                       FontSize="24"
+                       FontWeight="Bold"
+                       Margin="10,0,0,0"
+                       VerticalAlignment="Center" />
 
-                <TextBlock Text="Machine Order Preference"
-                           FontSize="24"
-                           FontWeight="Bold"
-                           Margin="10,0,0,0"
-                           VerticalAlignment="Center" />
+            <Button Command="{Binding ListICommand}"
+                    CommandParameter="Save"
+                    ToolTip="Save all changes."
+                    Width="30"
+                    Background="Transparent"
+                    BorderThickness="0"
+                    Margin="20,0,0,0"
+                    Style="{DynamicResource DefaultButton}">
+                <Button.Content>
+                    <Image Source="/Icons/Save.ico" />
+                </Button.Content>
+            </Button>
 
-                <Button Command="{Binding ListICommand}"
-                        CommandParameter="Add"
-                        Width="30"
-                        Height="30"
-                        Background="Transparent"
-                        BorderThickness="0"
-                        Margin="10,0 0 0"
-                        ToolTip="Add new machine row."
-                        Style="{DynamicResource DefaultButton}">
-                    <Button.Content>
-                        <Image Source="/SFW;component/Icons/Add.ico" />
-                    </Button.Content>
-                </Button>
+            <Button Command="{Binding ListICommand}"
+                    CommandParameter="Restore"
+                    ToolTip="Restore system defaults."
+                    Width="30"
+                    Background="Transparent"
+                    BorderThickness="0"
+                    Margin="30,0,0,0"
+                    Style="{DynamicResource DefaultButton}">
+                <Button.Content>
+                    <Image Source="/Icons/Restore.ico" />
+                </Button.Content>
+            </Button>
 
-            </StackPanel>
-
-            <ItemsControl x:Name="MachineInput"
-                          Grid.Row="3"
-                          HorizontalAlignment="Left"
-                          ScrollViewer.CanContentScroll="True"
-                          ScrollViewer.VerticalScrollBarVisibility="Auto"
-                          MaxHeight="720"
-                          Margin="20,0,0,0"
-                          ItemsSource="{Binding MachineConfig, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
-                <ItemsControl.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <VirtualizingStackPanel IsItemsHost="True"
-                                                Orientation="Vertical" />
-                    </ItemsPanelTemplate>
-                </ItemsControl.ItemsPanel>
-
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                        <StackPanel Orientation="Horizontal"
-                                    CanVerticallyScroll="True"
-                                    MaxHeight="720">
-
-                            <TextBlock Text="Machine:"
-                                       FontSize="18"
-                                       FontWeight="Bold"
-                                       TextDecorations="Underline"
-                                       VerticalAlignment="Center"
-                                       Margin="10,0,0,0" />
-                            <ComboBox ItemsSource="{Binding DataContext.MachineCollection, ElementName=Admin_UC}"
-                                      SelectedValue="{Binding MachineNumber, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                      SelectedValuePath="MachineNumber"
-                                      DisplayMemberPath="MachineName"
-                                      FontSize="18"
-                                      FontWeight="Bold"
-                                      Margin="5"
-                                      Width="175"
-                                      TabIndex="6" />
-                            <TextBlock Text="Order:"
-                                       FontSize="18"
-                                       FontWeight="Bold"
-                                       TextDecorations="Underline"
-                                       VerticalAlignment="Center"
-                                       Margin="10,0,0,0" />
-                            <TextBox Text="{Binding Position, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                     FontSize="18"
-                                     FontWeight="Bold"
-                                     Margin="5"
-                                     Width="50"
-                                     MaxLength="2"
-                                     Style="{DynamicResource RequiredTextBox}" />
-
-                            <Button Command="{Binding DataContext.ListICommand, ElementName=Admin_UC}"
-                                    CommandParameter="{Binding}"
-                                    Visibility="{Binding ElementName=MachineInput, Path=Items.Count, Mode=OneWay, Converter={StaticResource CounttoVisConverter}, ConverterParameter=i}"
-                                    Width="30"
-                                    Height="30"
-                                    Background="Transparent"
-                                    BorderThickness="0"
-                                    Margin="10,0 0 0"
-                                    ToolTip="Delete this row."
-                                    Style="{DynamicResource DefaultButton}">
-                                <Button.Content>
-                                    <Image Source="/SFW;component/Icons/Delete.ico" />
-                                </Button.Content>
-                            </Button>
-
-                        </StackPanel>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
+            <Button Command="{Binding ListICommand}"
+                    CommandParameter="Reset"
+                    ToolTip="Reset all changes."
+                    Width="30"
+                    Background="Transparent"
+                    BorderThickness="0"
+                    Margin="30,0,0,0"
+                    Style="{DynamicResource DefaultButton}">
+                <Button.Content>
+                    <Image Source="/Icons/Reset.ico" />
+                </Button.Content>
+            </Button>
 
         </StackPanel>
 
         <!--#endregion-->
+            
+        <!--#region Machine Order -->
 
-        <Button Grid.Row="4"
-                Content="Restore Defaults"
-                FontSize="16"
-                Width="150"
-                IsEnabled="False"
-                HorizontalAlignment="Center"
-                Command="{Binding ListICommand}"
-                CommandParameter="Default"
-                ToolTip="Revert back to default settings."
-                Style="{DynamicResource DefaultButton}"/>
+        <Grid Grid.Row="3">
 
-        <Button Grid.Row="4" 
-                Content="Save Changes"
-                FontSize="16"
-                Width="150"
-                HorizontalAlignment="Left"
-                Margin="50,0,0,0"
-                Command="{Binding ListICommand}"
-                CommandParameter="Save"
-                ToolTip="Save all changes."
-                Style="{DynamicResource DefaultButton}"/>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="300"/>
+                <ColumnDefinition Width="500"/>
+            </Grid.ColumnDefinitions>
+
+            <ListView x:Name="SourceListView"
+                      Grid.Column="0"
+                      HorizontalAlignment="Left"
+                      Margin="10,0,0,0"
+                      ItemsSource="{Binding MachineCollection, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                      SelectionMode="Extended"
+                      AllowDrop="True"
+                      FontSize="20"
+                      Foreground="Black"
+                      Background="LightGray"
+                      BorderThickness="0"
+                      PreviewMouseLeftButtonDown="SourceListView_PreviewMouseLeftButtonDown"
+                      PreviewMouseDoubleClick="SourceListView_PreviewMouseDoubleClick"
+                      MouseMove="SourceListView_MouseMove"
+                      DragEnter="SourceListView_DragEnter"
+                      Drop="SourceListView_Drop">
+                <ListView.View>
+                    <GridView>
+                        <GridViewColumn Header="Not Shown" Width="175" DisplayMemberBinding="{Binding}"/>
+                    </GridView>
+                </ListView.View>
+            </ListView>
+
+
+            <ListView x:Name="TargetListView"
+                      Grid.Column="1"
+                      HorizontalAlignment="Left"
+                      Margin="10,0,0,0"
+                      ItemsSource="{Binding MachineConfig, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                      AllowDrop="True"
+                      FontSize="20"
+                      Foreground="Black"
+                      Background="LightGray"
+                      BorderThickness="0"
+                      PreviewMouseLeftButtonDown="TargetListView_PreviewMouseLeftButtonDown"
+                      PreviewMouseDoubleClick="TargetListView_PreviewMouseDoubleClick"
+                      MouseMove="TargetListView_MouseMove"
+                      DragEnter="TargetListView_DragEnter"
+                      Drop="TargetListView_Drop">
+                <ListView.View>
+                    <GridView>
+                        <GridViewColumn Header="Shown" Width="175" DisplayMemberBinding="{Binding MachineName}" />
+                        <GridViewColumn Header="Position" Width="75" DisplayMemberBinding="{Binding Position}" />
+                        <GridViewColumn Width="75">
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="30"/>
+                                            <ColumnDefinition Width="30"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Button x:Name="UpButton"
+                                                Grid.Column="0"
+                                                Content="▲"
+                                                Command="{Binding DataContext.ListOrderICommand, ElementName=Admin_UC}"
+                                                CommandParameter="{Binding Path=MachineName, Converter={StaticResource StringConcatConverter}, ConverterParameter=U}">
+                                            <Button.Style>
+                                                <Style TargetType="{x:Type Button}">
+                                                    <Setter Property="Cursor" Value="Hand" />
+                                                    <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+                                                    <Setter Property="Background" Value="{StaticResource BackgroundBrush}"/>
+                                                    <Setter Property="BorderThickness" Value="1,0,1,0" />
+                                                    <Setter Property="Opacity" Value=".8"/>
+                                                    <Setter Property="Foreground" Value="White" />
+                                                    <Setter Property="Template">
+                                                        <Setter.Value>
+                                                            <ControlTemplate TargetType="Button">
+                                                                <Border BorderBrush="{TemplateBinding BorderBrush}"
+                                                                        BorderThickness="{TemplateBinding BorderThickness}"
+                                                                        Background="{TemplateBinding Background}"
+                                                                        CornerRadius="5">
+                                                                    <ContentPresenter Content="{TemplateBinding Content}"
+                                                                                      VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                                                                      HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"/>
+                                                                </Border>
+                                                                <ControlTemplate.Triggers>
+                                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                                        <Setter Property="Foreground" Value="Black"/>
+                                                                        <Setter Property="Background">
+                                                                            <Setter.Value>
+                                                                                <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
+                                                                                    <GradientStop Offset="0" Color="WhiteSmoke"/>
+                                                                                    <GradientStop Offset="1" Color="CornflowerBlue"/>
+                                                                                </LinearGradientBrush>
+                                                                            </Setter.Value>
+                                                                        </Setter>
+                                                                    </Trigger>
+                                                                    <Trigger Property="IsPressed" Value="True">
+                                                                        <Setter Property="Foreground" Value="Crimson"/>
+                                                                        <Setter Property="Background">
+                                                                            <Setter.Value>
+                                                                                <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
+                                                                                    <GradientStop Offset="0" Color="CornflowerBlue"/>
+                                                                                    <GradientStop Offset="1" Color="WhiteSmoke"/>
+                                                                                </LinearGradientBrush>
+                                                                            </Setter.Value>
+                                                                        </Setter>
+                                                                    </Trigger>
+                                                                    <Trigger Property="IsEnabled" Value="False">
+                                                                        <Setter Property="Foreground" Value="DarkGray"/>
+                                                                        <Setter Property="Background">
+                                                                            <Setter.Value>
+                                                                                <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
+                                                                                    <GradientStop Offset="0" Color="Gray"/>
+                                                                                    <GradientStop Offset="1" Color="LightGray"/>
+                                                                                </LinearGradientBrush>
+                                                                            </Setter.Value>
+                                                                        </Setter>
+                                                                    </Trigger>
+                                                                </ControlTemplate.Triggers>
+                                                            </ControlTemplate>
+                                                        </Setter.Value>
+                                                    </Setter>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding DataContext.MachineConfig.Count, ElementName=Admin_UC}" Value="1">
+                                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding Position}" Value="1">
+                                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Button.Style>
+                                        </Button>
+
+                                        <Button x:Name="DownButton"
+                                                Grid.Column="1"
+                                                Content="▼"
+                                                Margin="1,0,0,0"
+                                                Command="{Binding DataContext.ListOrderICommand, ElementName=Admin_UC}"
+                                                CommandParameter="{Binding Path=MachineName, Converter={StaticResource StringConcatConverter}, ConverterParameter=D}">
+                                            <Button.Style>
+                                                <Style TargetType="{x:Type Button}">
+                                                    <Setter Property="Cursor" Value="Hand" />
+                                                    <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+                                                    <Setter Property="Background" Value="{StaticResource BackgroundBrush}"/>
+                                                    <Setter Property="BorderThickness" Value="1,0,1,0" />
+                                                    <Setter Property="Opacity" Value=".8"/>
+                                                    <Setter Property="Foreground" Value="White" />
+                                                    <Setter Property="Template">
+                                                        <Setter.Value>
+                                                            <ControlTemplate TargetType="Button">
+                                                                <Border BorderBrush="{TemplateBinding BorderBrush}"
+                                                                        BorderThickness="{TemplateBinding BorderThickness}"
+                                                                        Background="{TemplateBinding Background}"
+                                                                        CornerRadius="5">
+                                                                    <ContentPresenter Content="{TemplateBinding Content}"
+                                                                                      VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                                                                      HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"/>
+                                                                </Border>
+                                                                <ControlTemplate.Triggers>
+                                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                                        <Setter Property="Foreground" Value="Black"/>
+                                                                        <Setter Property="Background">
+                                                                            <Setter.Value>
+                                                                                <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
+                                                                                    <GradientStop Offset="0" Color="WhiteSmoke"/>
+                                                                                    <GradientStop Offset="1" Color="CornflowerBlue"/>
+                                                                                </LinearGradientBrush>
+                                                                            </Setter.Value>
+                                                                        </Setter>
+                                                                    </Trigger>
+                                                                    <Trigger Property="IsPressed" Value="True">
+                                                                        <Setter Property="Foreground" Value="Crimson"/>
+                                                                        <Setter Property="Background">
+                                                                            <Setter.Value>
+                                                                                <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
+                                                                                    <GradientStop Offset="0" Color="CornflowerBlue"/>
+                                                                                    <GradientStop Offset="1" Color="WhiteSmoke"/>
+                                                                                </LinearGradientBrush>
+                                                                            </Setter.Value>
+                                                                        </Setter>
+                                                                    </Trigger>
+                                                                    <Trigger Property="IsEnabled" Value="False">
+                                                                        <Setter Property="Foreground" Value="DarkGray"/>
+                                                                        <Setter Property="Background">
+                                                                            <Setter.Value>
+                                                                                <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
+                                                                                    <GradientStop Offset="0" Color="Gray"/>
+                                                                                    <GradientStop Offset="1" Color="LightGray"/>
+                                                                                </LinearGradientBrush>
+                                                                            </Setter.Value>
+                                                                        </Setter>
+                                                                    </Trigger>
+                                                                </ControlTemplate.Triggers>
+                                                            </ControlTemplate>
+                                                        </Setter.Value>
+                                                    </Setter>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding DataContext.MachineConfig.Count, ElementName=Admin_UC}" Value="1">
+                                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                                        </DataTrigger>
+                                                        <DataTrigger Value="True">
+                                                            <DataTrigger.Binding>
+                                                                <MultiBinding Converter="{StaticResource IntToBoolConverter}">
+                                                                    <Binding Path="Position"/>
+                                                                    <Binding Path="DataContext.MachineConfig.Count" ElementName="Admin_UC"/>
+                                                                </MultiBinding>
+                                                            </DataTrigger.Binding>
+                                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Button.Style>
+                                        </Button>
+
+                                    </Grid>
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
+                    </GridView>
+                </ListView.View>
+            </ListView>
+
+        </Grid>
+
+        
+
+        <!--#endregion-->
 
     </Grid>
 </UserControl>

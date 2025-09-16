@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SFW.Model.Production;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
@@ -32,6 +33,13 @@ namespace SFW
             set { _machNbr = value; OnPropertyChanged(nameof(MachineNumber)); }
         }
 
+        private string _machName;
+        public string MachineName
+        {
+            get { return _machName; }
+            set { _machName = value; OnPropertyChanged(nameof(MachineName)); }
+        }
+
         #endregion
 
         #region INotifyPropertyChanged Implementation
@@ -63,7 +71,8 @@ namespace SFW
         /// <summary>
         /// Get a list of the user XML config file
         /// </summary>
-        public static List<UserConfig> GetList()
+        /// <param name="loadName">Load the name true or false</param>
+        public static List<UserConfig> GetList(bool loadName)
         {
             var _uConf = new List<UserConfig>();
             try
@@ -87,7 +96,16 @@ namespace SFW
                                     if (reader.Name.Contains("Site"))
                                     {
                                         var _site = Convert.ToInt32(reader.Name.Substring(reader.Name.Length - 1));
-                                        _uConf.Add(new UserConfig { SiteNumber = _site, MachineNumber = reader.GetAttribute("WC_Nbr"), Position = Convert.ToInt32(reader.GetAttribute("Position")) });
+                                        _uConf.Add(new UserConfig 
+                                        { 
+                                            SiteNumber = _site
+                                            ,MachineNumber = reader.GetAttribute("WC_Nbr")
+                                            ,Position = Convert.ToInt32(reader.GetAttribute("Position"))
+                                        });
+                                        if (loadName)
+                                        {
+                                            _uConf.LastOrDefault().MachineName = Machine.GetName(reader.GetAttribute("WC_Nbr"), 'M');
+                                        }
                                     }
                                 }
                             }

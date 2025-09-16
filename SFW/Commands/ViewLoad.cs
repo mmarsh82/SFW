@@ -118,10 +118,6 @@ namespace SFW.Commands
                         {
                             ApplicationTimer.Tick(null);
                         }
-                        else
-                        {
-                            MessageBox.Show("The work load is currently refreshing.");
-                        }
                         break;
                     case 10:
                         _viewModel = new Containerization.ProductViewModel();

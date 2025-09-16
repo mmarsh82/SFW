@@ -494,7 +494,6 @@ namespace SFW.Queries
         /// <param name="parameter"></param>
         private void MoveExecute(object parameter)
         {
-            //TODO: add in logic to add the values to each of the tables here
             if (UseLot)
             {
                 M2kClient.M2kCommand.InventoryMove(CurrentUser.DisplayName, Part.SkuNumber, _lot, Part.Uom, FromLocation, ToLocation, Convert.ToInt32(QuantityInput), MoveReference, $"0{App.SiteNumber}", App.ErpCon, NonConReason);

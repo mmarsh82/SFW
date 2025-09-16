@@ -12,20 +12,24 @@ namespace SFW.Model
         /// Refresh a table in the master dataset
         /// </summary>
         /// <param name="ds">Master dataset object</param>
-        /// <param name="tableName">Table name to refresh</param>
-        /// <param name="dt">Datatable object to merge in the refresh</param>
+        /// <param name="type">Type of object to refresh</param>
+        /// <param name="table">Datatable object to merge in the refresh</param>
         public static void RefreshTable(this DataSet ds, Type type, DataTable table)
         {
-            if (ds.Tables.Contains(type.Name))
+            try
             {
-                ds.Tables[type.Name].Clear();
-                if (table != null)
+                if (ds.Tables.Contains(type.Name))
                 {
-                    ds.Tables[type.Name].BeginLoadData();
-                    ds.Tables[type.Name].Merge(table);
-                    ds.Tables[type.Name].EndLoadData();
+                    ds.Tables[type.Name].Clear();
+                    if (table != null)
+                    {
+                        ds.Tables[type.Name].BeginLoadData();
+                        ds.Tables[type.Name].Merge(table);
+                        ds.Tables[type.Name].EndLoadData();
+                    }
                 }
             }
+            catch { }
         }
 
         /// <summary>

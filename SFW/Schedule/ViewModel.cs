@@ -118,7 +118,47 @@ namespace SFW.Schedule
             {
                 ((DataView)CollectionView.SourceCollection).RowFilter = GetFilter();
             }
+            foreach (var _keyValPair in UserConfig.GetIROD())
+            {
+                DataRow[] _rows = ((DataView)CollectionView.SourceCollection).Table.Select($"MachineNumber={_keyValPair.Key}");
+                foreach (DataRow _row in _rows)
+                {
+                    var _rIndex = ((DataView)CollectionView.SourceCollection).Table.Rows.IndexOf(_row);
+                    ((DataView)CollectionView.SourceCollection).Table.Rows[_rIndex].SetField("MachineOrder", _keyValPair.Value);
+                }
+            }
+                ((DataView)CollectionView.SourceCollection).Sort = "MachineOrder, MachineGroup, MachineNumber, WO_Priority, Sched_Shift, Sched_Priority";
             Application.Current?.Dispatcher.Invoke(new Action(delegate { CollectionView.Refresh(); }));
+        }
+
+        /// <summary>
+        /// Refresh action for the schedule data
+        /// </summary>
+        public override void Refresh()
+        {
+            try
+            {
+                var _index = CollectionView.CurrentPosition;
+                foreach (var _keyValPair in UserConfig.GetIROD())
+                {
+                    DataRow[] _rows = ((DataView)CollectionView.SourceCollection).Table.Select($"MachineNumber={_keyValPair.Key}");
+                    foreach (DataRow _row in _rows)
+                    {
+                        var _rIndex = ((DataView)CollectionView.SourceCollection).Table.Rows.IndexOf(_row);
+                        ((DataView)CollectionView.SourceCollection).Table.Rows[_rIndex].SetField("MachineOrder", _keyValPair.Value);
+                    }
+                }
+                ((DataView)CollectionView.SourceCollection).Sort = "MachineOrder, MachineGroup, MachineNumber, WO_Priority, Sched_Shift, Sched_Priority";
+                Application.Current?.Dispatcher.Invoke(new Action(delegate { CollectionView.Refresh(); }));
+                if (CollectionView != null)
+                {
+                    Application.Current?.Dispatcher.Invoke(new Action(delegate { CollectionView.MoveCurrentToPosition(_index); }));
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Prod Unhandled Exception", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
         /// <summary>
@@ -139,7 +179,7 @@ namespace SFW.Schedule
                     }
                 }
                 var _tempDataView = _tempTable.AsDataView();
-                _tempDataView.Sort = "MachineGroup, MachineNumber, MachineOrder, WO_Priority, Sched_Shift, Sched_Priority";
+                _tempDataView.Sort = "MachineOrder, MachineGroup, MachineNumber, WO_Priority, Sched_Shift, Sched_Priority";
                 CollectionView = new ListCollectionView(_tempDataView);
                 if (CollectionView.GroupDescriptions.Count() != 0)
                 {

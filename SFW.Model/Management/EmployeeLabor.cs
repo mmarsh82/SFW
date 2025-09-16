@@ -178,7 +178,14 @@ namespace SFW.Model.Management
                         using (SqlCommand cmd = new SqlCommand($"USE {ModelSqlCon.Database}; SELECT COUNT([UserId]) FROM [dbo].[LBR_DETAIL-CSTM_UserLastTime] WHERE [UserId] = @p1", sqlCon))
                         {
                             cmd.Parameters.AddWithValue("p1", crew.ErpId);
-                            _isNew = !int.TryParse(cmd.ExecuteScalar().ToString(), out int i) && i == 0;
+                            var _result = cmd.ExecuteScalar();
+                            if (_result != null)
+                            {
+                                if (int.TryParse(_result.ToString(), out int i))
+                                {
+                                    _isNew = i == 0;
+                                }
+                            }
                         }
                         //Insert the user if they do not exist
                         if (_isNew)

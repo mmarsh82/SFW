@@ -1,4 +1,5 @@
-﻿using SFW.Helpers;
+﻿using SFW.Controls;
+using SFW.Helpers;
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -18,41 +19,10 @@ namespace SFW.Admin
             set { mCon = value; OnPropertyChanged(nameof(MachineConfig)); }
         }
 
-        public ObservableCollection<Model.Production.Machine> MachineCollection { get; set; }
-
-        public ObservableCollection<string> MachineGroupCollection { get; set; }
-
-        private string _selMachGrp;
-        public string SelectedMachineGroup
-        {
-            get
-            { return _selMachGrp; }
-            set
-            {
-                if (value != null && !string.IsNullOrEmpty(value))
-                {
-                    var _groupList = Model.Production.Machine.GetList(false, false, 1).Where(o => o.MachineGroup == value);
-                    var _tranList = MachineConfig.Where(o => !string.IsNullOrEmpty(o.MachineNumber)).ToList();
-                    MachineConfig.Clear();
-                    foreach (var _item in _tranList)
-                    {
-                        MachineConfig.Add(_item);
-                    }
-                    foreach (var _mach in _groupList)
-                    {
-                        if (MachineConfig.Count(o => o.MachineNumber == _mach.MachineNumber) == 0)
-                        {
-                            MachineConfig.Add(new UserConfig { MachineNumber = _mach.MachineNumber, Position = MachineConfig.Count()+1, SiteNumber = App.SiteNumber });
-                        }
-                    }
-                }
-                _selMachGrp = MachineGroupCollection[0];
-                OnPropertyChanged(nameof(SelectedMachineGroup));
-                OnPropertyChanged(nameof(MachineGroupCollection));
-            }
-        }
+        public ObservableCollection<string> MachineCollection { get; set; }
 
         RelayCommand _listCom;
+        RelayCommand _listOrder;
 
         #endregion
 
@@ -61,11 +31,14 @@ namespace SFW.Admin
         /// </summary>
         public ViewModel()
         {
-            MachineCollection = new ObservableCollection<Model.Production.Machine>(Model.Production.Machine.GetList(false, false, App.SiteNumber).OrderBy(o => o.MachineName));
-            MachineCollection.Insert(0, new Model.Production.Machine { MachineName = "" });
-            MachineGroupCollection = new ObservableCollection<string>(Model.Production.Machine.GetGroupList(false, 1));
-            MachineGroupCollection.Insert(0, "");
-            MachineConfig = new BindingList<UserConfig>(App.DefualtWorkCenter.Where(o => o.SiteNumber == App.SiteNumber).ToList());
+            var _noNameList = App.DefualtWorkCenter.Where(o => o.SiteNumber == App.SiteNumber && !string.IsNullOrEmpty(o.MachineNumber)).OrderBy(o => o.Position).ToList();
+            foreach (var _noNameMach in _noNameList)
+            {
+                _noNameMach.MachineName = Model.Production.Machine.GetName(_noNameMach.MachineNumber, 'M');
+            }
+            MachineConfig = new BindingList<UserConfig>(_noNameList);
+            var _filteredMachList = Model.Production.Machine.GetNameList(false, 1).Except(MachineConfig.Select(o => o.MachineName).ToList());
+            MachineCollection = new ObservableCollection<string>(_filteredMachList);
             MachineConfig.ListChanged += MachineConfig_ListChanged;
         }
 
@@ -76,15 +49,18 @@ namespace SFW.Admin
         /// <param name="e">All the change informtion</param>
         private void MachineConfig_ListChanged(object sender, ListChangedEventArgs e)
         {
+            ((BindingList<UserConfig>)sender).RaiseListChangedEvents = false;
             if (e.ListChangedType == ListChangedType.ItemDeleted)
             {
                 var _counter = 1;
-                foreach (var _item in ((BindingList<UserConfig>)sender))
+                foreach (var _item in (BindingList<UserConfig>)sender)
                 {
                     _item.Position = _counter;
                     _counter++;
                 }
             }
+            ((BindingList<UserConfig>)sender).RaiseListChangedEvents = true;
+            OnPropertyChanged(nameof(MachineConfig));
         }
 
         #region List ICommands
@@ -111,16 +87,16 @@ namespace SFW.Admin
             {
                 switch (parameter.ToString())
                 {
-                    case "Add":
-                        MachineConfig.Add(new UserConfig { SiteNumber = App.SiteNumber, Position = MachineConfig.Count + 1 });
-                        break;
                     case "Save":
                         UserConfig.UpdateFile(MachineConfig.ToList(), App.IsFocused);
-                        App.DefualtWorkCenter = UserConfig.GetList();
+                        App.DefualtWorkCenter = UserConfig.GetList(true);
                         var _userName = CurrentUser.DomainUserName;
                         CurrentUser.LogOff();
                         CurrentUser.LogIn(_userName);
                         System.Windows.MessageBox.Show($"All changes have been saved to the User config file located at;\n{Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)}\\SFW\\SfwConfig.xml", "Saved Changes");
+                        break;
+                    case "Reset":
+                        ((View)WorkSpaceDock.MainDock.Children[4]).DataContext = new ViewModel();
                         break;
                     case "Default":
 
@@ -147,6 +123,37 @@ namespace SFW.Admin
                             && MachineConfig.GroupBy(x => x.Position).All(y => y.Count() == 1);
                     default:
                         return true;
+                }
+            }
+        }
+
+        #endregion
+
+        #region List Order ICommands
+
+        public ICommand ListOrderICommand
+        {
+            get
+            {
+                if (_listOrder == null)
+                {
+                    _listOrder = new RelayCommand(ListOrderExecute);
+                }
+                return _listOrder;
+            }
+        }
+
+        private void ListOrderExecute(object parameter)
+        {
+            if (parameter != null && parameter.ToString().Contains('*'))
+            {
+                var _machCon = MachineConfig.FirstOrDefault(o => o.MachineName == parameter.ToString().Split('*')[0]);
+                var _newPos = parameter.ToString().Split('*')[1] == "U" ? _machCon.Position-1 : _machCon.Position+1;
+                MachineConfig.Remove(_machCon);
+                MachineConfig.Insert((int)_newPos-1, _machCon);
+                foreach (var _item in MachineConfig)
+                {
+                    MachineConfig[MachineConfig.IndexOf(_item)].Position = MachineConfig.IndexOf(_item)+1;
                 }
             }
         }

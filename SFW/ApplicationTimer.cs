@@ -99,10 +99,10 @@ namespace SFW
         {
             if (Status != TimerState.Aborted || Status != TimerState.Paused || Status != TimerState.Running || Status != TimerState.Stopped)
             {
+                Status = TimerState.Running;
                 await Task.Run(new Action(delegate
                 {
                     var _start = DateTime.Now;
-                    Status = TimerState.Running;
                     StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(Status)));
                     CleanActionList(ActionList);
                     ModelBase.LoadedModules.Clear();
@@ -174,7 +174,7 @@ namespace SFW
         public static void Resume()
         {
             Status = MainTimer.Change(RefreshInterval, RefreshInterval) ? TimerState.Sleeping : TimerState.Aborted;
-            Tick(0);
+            Tick(null);
         }
     }
 
