@@ -236,14 +236,14 @@ namespace SFW.Model.Production
                 switch (searchType)
                 {
                     case 'P':
-                        var _sRows = MasterDataSet.Tables["SKU"].Select($"[SkuID] = '{searchValue}' AND [Status] = 'A'");
+                        var _sRows = MasterDataSet.Tables[typeof(Product.Sku).Name].Select($"[SkuID] = '{searchValue}' AND [Status] = 'A'");
                         if (_sRows.Length > 0)
                         {
                             searchValue = _sRows.FirstOrDefault().Field<string>("WorkCenterID");
                         }
                         break;
                     case 'W':
-                        var _wRows = MasterDataSet.Tables["Master"].Select($"[WorkOrder] = '{searchValue}'");
+                        var _wRows = MasterDataSet.Tables[typeof(WorkOrder).Name].Select($"[WorkOrder] = '{searchValue}'");
                         if (_wRows.Length > 0)
                         {
                             _rVal = _wRows.FirstOrDefault().Field<string>("MachineName");

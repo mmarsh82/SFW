@@ -112,6 +112,39 @@ namespace SFW.Model.Product
         }
 
         /// <summary>
+        /// Get the total onhand by location based on a part number
+        /// </summary>
+        /// <param name="skuId">Product ID</param>
+        /// <returns>Onhand quantity as int</returns>
+        public static int GetLocationQuantity(string skuId, string location)
+        {
+            if (ModelSqlCon != null && ModelSqlCon.State != ConnectionState.Closed && ModelSqlCon.State != ConnectionState.Broken)
+            {
+                try
+                {
+                    using (SqlCommand cmd = new SqlCommand($"USE {ModelSqlCon.Database}; SELECT SUM([Oh_Qty_By_Loc]) as 'OnHand' FROM [dbo].[IPL-INIT_Location_Data] WHERE [ID1] = @p1 AND [Location_ID] = @p2", ModelSqlCon))
+                    {
+                        cmd.Parameters.AddWithValue("p1", skuId);
+                        cmd.Parameters.AddWithValue("p2", location);
+                        return int.TryParse(cmd.ExecuteScalar().ToString(), out int i) ? i : 0;
+                    }
+                }
+                catch (SqlException)
+                {
+                    return 0;
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception(ex.Message);
+                }
+            }
+            else
+            {
+                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
+            }
+        }
+
+        /// <summary>
         /// Get observable collection of products
         /// </summary>
         /// <param name="workOrder">Work Order filter</param>

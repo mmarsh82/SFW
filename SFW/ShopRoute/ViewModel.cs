@@ -228,7 +228,7 @@ namespace SFW.ShopRoute
         {
             if (workOrder.OrderID == null)
             {
-                workOrder = new WorkOrder(ModelBase.MasterDataSet.Tables["Master"].Rows[0]);
+                workOrder = new WorkOrder(ModelBase.MasterDataSet.Tables[typeof(WorkOrder).Name].Rows[0]);
             }
             ShopOrder = workOrder;
             IsMultiLoading = true;

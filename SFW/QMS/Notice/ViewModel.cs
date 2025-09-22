@@ -183,12 +183,7 @@ namespace SFW.QMS.Notice
                 }
             }
             catch
-            {
-                if (CollectionView != null)
-                {
-                    Application.Current?.Dispatcher.Invoke(new Action(delegate { CollectionView.MoveCurrentToFirst(); }));
-                }
-            }
+            { }
         }
 
         #region New Form input ICommand

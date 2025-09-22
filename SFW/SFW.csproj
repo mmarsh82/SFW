@@ -29,8 +29,8 @@
     <ProductName>Shop Floor Workbench</ProductName>
     <PublisherName>Michael Marsh</PublisherName>
     <SuiteName>ContiTech</SuiteName>
-    <ApplicationRevision>124</ApplicationRevision>
-    <ApplicationVersion>3.0.16.124</ApplicationVersion>
+    <ApplicationRevision>163</ApplicationRevision>
+    <ApplicationVersion>3.0.25.163</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <CreateDesktopShortcut>true</CreateDesktopShortcut>
     <PublishWizardCompleted>true</PublishWizardCompleted>

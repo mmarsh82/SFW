@@ -70,14 +70,14 @@
     <Compile Include="UdArrayCommand.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="app.config" />
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\SFW.Model\SFW.Model.csproj">
       <Project>{68a56a1d-33e8-44f4-8ba5-ca6f36f52bf9}</Project>
       <Name>SFW.Model</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="app.config" />
-    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

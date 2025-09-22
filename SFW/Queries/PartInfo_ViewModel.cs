@@ -494,6 +494,15 @@ namespace SFW.Queries
         /// <param name="parameter"></param>
         private void MoveExecute(object parameter)
         {
+            /*var _ohQty = Sku.GetLocationQuantity(Part.SkuNumber, FromLocation);
+            if (_ohQty < Convert.ToInt32(QuantityInput) && Part.IsLotTrace)
+            {
+                var _code = Part.SkuDescription.Contains("RAW") ? M2kClient.AdjustCode.YIE : M2kClient.AdjustCode.DRO;
+                foreach (var _lotItem in ILotResultsList.Where(o => o.Onhand < 0))
+                {
+                    M2kClient.M2kCommand.InventoryAdjustment(CurrentUser.DisplayName, "SFW-Auto", Part.SkuNumber, _code, 'A', _lotItem.Onhand * -1, _lotItem.Location, "01", App.ErpCon, _lotItem.LotNumber);
+                }
+            }*/
             if (UseLot)
             {
                 M2kClient.M2kCommand.InventoryMove(CurrentUser.DisplayName, Part.SkuNumber, _lot, Part.Uom, FromLocation, ToLocation, Convert.ToInt32(QuantityInput), MoveReference, $"0{App.SiteNumber}", App.ErpCon, NonConReason);

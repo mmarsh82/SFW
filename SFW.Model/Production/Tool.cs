@@ -100,7 +100,7 @@ namespace SFW.Model.Production
             var _tempList = new List<Tool>();
             try
             {
-                if (MasterDataSet.Tables.Contains(new Tool().GetType().Name))
+                if (MasterDataSet.Tables.Contains(typeof(Tool).Name))
                 {
                     var _rows = MasterDataSet.Tables[typeof(Tool).Name].Select($"[ID] = '{skuNbr}|0{facCode}*{seq}'");
                     if (_rows.Length > 0)
@@ -110,12 +110,9 @@ namespace SFW.Model.Production
                             _tempList.Add(new Tool
                             {
                                 ID = _row.Field<string>("ID")
-                                ,
-                                SkuID = _row.Field<string>("SkuID")
-                                ,
-                                ToolID = _row.Field<string>("ToolID")
-                                ,
-                                MachineID = _row.Field<string>("MachineID")
+                                ,SkuID = _row.Field<string>("SkuID")
+                                ,ToolID = _row.Field<string>("ToolID")
+                                ,MachineID = _row.Field<string>("MachineID")
                             });
                         }
                     }

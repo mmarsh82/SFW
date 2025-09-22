@@ -119,7 +119,7 @@ namespace SFW.Tools
         /// </summary>
         public PriorityList_ViewModel()
         {
-            PriorityView = CollectionViewSource.GetDefaultView(ModelBase.MasterDataSet.Tables["Master"]);
+            PriorityView = CollectionViewSource.GetDefaultView(ModelBase.MasterDataSet.Tables[typeof(WorkOrder).Name]);
             MachineList = Machine.GetNameList(false, App.SiteNumber);
             IsWorkOrderValid = true;
             DisplayAction = false;
@@ -205,10 +205,10 @@ namespace SFW.Tools
                                             }
                                             else
                                             {
-                                                var _row = ModelBase.MasterDataSet.Tables["Master"].Select($"[WorkOrder] = '{_wo.OrderNumber}'");
-                                                var _index = ModelBase.MasterDataSet.Tables["Master"].Rows.IndexOf(_row.FirstOrDefault());
-                                                ModelBase.MasterDataSet.Tables["Master"].Rows[_index].SetField("Sched_Shift", _wo.Shift);
-                                                ModelBase.MasterDataSet.Tables["Master"].Rows[_index].SetField("Sched_Priority", _wo.Priority);
+                                                var _row = ModelBase.MasterDataSet.Tables[typeof(WorkOrder).Name].Select($"[WorkOrder] = '{_wo.OrderNumber}'");
+                                                var _index = ModelBase.MasterDataSet.Tables[typeof(WorkOrder).Name].Rows.IndexOf(_row.FirstOrDefault());
+                                                ModelBase.MasterDataSet.Tables[typeof(WorkOrder).Name].Rows[_index].SetField("Sched_Shift", _wo.Shift);
+                                                ModelBase.MasterDataSet.Tables[typeof(WorkOrder).Name].Rows[_index].SetField("Sched_Priority", _wo.Priority);
                                             }
                                         }
                                         DisplayAction = false;
@@ -235,9 +235,9 @@ namespace SFW.Tools
                         }
                         else
                         {
-                            var _row = ModelBase.MasterDataSet.Tables["Master"].Select($"[WorkOrder] = '{WorkOrderInput}'");
-                            var _index = ModelBase.MasterDataSet.Tables["Master"].Rows.IndexOf(_row.FirstOrDefault());
-                            ModelBase.MasterDataSet.Tables["Master"].Rows[_index].SetField("Sched_Priority", PriorityInput);
+                            var _row = ModelBase.MasterDataSet.Tables[typeof(WorkOrder).Name].Select($"[WorkOrder] = '{WorkOrderInput}'");
+                            var _index = ModelBase.MasterDataSet.Tables[typeof(WorkOrder).Name].Rows.IndexOf(_row.FirstOrDefault());
+                            ModelBase.MasterDataSet.Tables[typeof(WorkOrder).Name].Rows[_index].SetField("Sched_Priority", PriorityInput);
                         }
                         break;
                     //Organize Command
@@ -268,10 +268,10 @@ namespace SFW.Tools
                                             }
                                             else
                                             {
-                                                var _row = ModelBase.MasterDataSet.Tables["Master"].Select($"[WorkOrder] = '{_wo.OrderNumber}'");
-                                                var _index = ModelBase.MasterDataSet.Tables["Master"].Rows.IndexOf(_row.FirstOrDefault());
-                                                ModelBase.MasterDataSet.Tables["Master"].Rows[_index].SetField("Sched_Shift", _wo.Shift);
-                                                ModelBase.MasterDataSet.Tables["Master"].Rows[_index].SetField("Sched_Priority", _counter.ToString());
+                                                var _row = ModelBase.MasterDataSet.Tables[typeof(WorkOrder).Name].Select($"[WorkOrder] = '{_wo.OrderNumber}'");
+                                                var _index = ModelBase.MasterDataSet.Tables[typeof(WorkOrder).Name].Rows.IndexOf(_row.FirstOrDefault());
+                                                ModelBase.MasterDataSet.Tables[typeof(WorkOrder).Name].Rows[_index].SetField("Sched_Shift", _wo.Shift);
+                                                ModelBase.MasterDataSet.Tables[typeof(WorkOrder).Name].Rows[_index].SetField("Sched_Priority", _counter.ToString());
                                             }
                                         }
                                         DisplayAction = false;

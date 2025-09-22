@@ -13,10 +13,6 @@ namespace SFW.Converters
 
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (value.GetType() == typeof(System.Windows.Controls.ListView))
-            {
-                
-            }
             if (parameter?.ToString() == "ncr" && int.TryParse(value.ToString(), out int id))
             {
                 return id > 1 ? Visibility.Visible : Visibility.Collapsed;
@@ -39,7 +35,7 @@ namespace SFW.Converters
             {
                 if (int.TryParse(value.ToString(), out int i))
                 {
-                    return i > 1 ? Visibility.Visible : Visibility.Collapsed;
+                    return i >= 1 ? Visibility.Visible : Visibility.Collapsed;
                 }
                 return Visibility.Collapsed;
             }
