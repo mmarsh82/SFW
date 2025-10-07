@@ -9,6 +9,7 @@
         public string ProductDescription { get; set; }
         public string ProductMasterPrint { get; set; }
         public string ProductUom { get; set; }
+        public bool IsLotTrace { get; set; }
 
         #endregion
     }

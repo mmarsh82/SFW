@@ -93,7 +93,7 @@ namespace SFW.Model.Quality
         {
             try
             {
-                var _oldLotList = QmsForm.GetNcrLotList(ncrObj.FormId, ncrObj.Part.Uom, sqlCon);
+                var _oldLotList = QmsForm.GetLotList(ncrObj.FormId, ncrObj.Part.Uom, sqlCon);
                 foreach (var lot in ncrObj.LotList.Where(o => o.Validated))
                 {
                     if (_oldLotList.Count(o => o.LotNumber == lot.LotNumber) == 0)

@@ -1,6 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Text.RegularExpressions;
 
 namespace SFW.Model.Production.Wip
 {
@@ -152,6 +152,7 @@ namespace SFW.Model.Production.Wip
             }
         }
         public ObservableCollection<Scrap> ScrapCollection { get; set; }
+        public IList<string> DefectList { get; set; }
         public string OrderId { get; set; }
         public string OrderSequence { get; set; }
 

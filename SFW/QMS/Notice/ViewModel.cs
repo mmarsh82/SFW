@@ -157,33 +157,35 @@ namespace SFW.QMS.Notice
         /// </summary>
         public override void Refresh()
         {
-            var _index = -1;
-            var _ncrId = 0;
-            if (CollectionView.CurrentItem != null)
-            {
-                _ncrId = (int)((DataRowView)CollectionView.CurrentItem).Row.ItemArray[0];
-            }
-            Initialize();
-            if (_ncrId > 0)
-            {
-                foreach (DataRowView item in CollectionView)
-                {
-                    if ((int)item.Row.ItemArray[0] == _ncrId)
-                    {
-                        _index = CollectionView.IndexOf(item);
-                        break;
-                    }
-                }
-            }
             try
             {
+                var _index = -1;
+                var _ncrId = 0;
+                if (CollectionView.CurrentItem != null)
+                {
+                    _ncrId = (int)((DataRowView)CollectionView.CurrentItem).Row.ItemArray[0];
+                }
+                Initialize();
+                if (_ncrId > 0)
+                {
+                    foreach (DataRowView item in CollectionView)
+                    {
+                        if ((int)item.Row.ItemArray[0] == _ncrId)
+                        {
+                            _index = CollectionView.IndexOf(item);
+                            break;
+                        }
+                    }
+                }
                 if (CollectionView != null && _index > 0)
                 {
                     Application.Current?.Dispatcher.Invoke(new Action(delegate { CollectionView.MoveCurrentToPosition(_index); }));
                 }
             }
-            catch
-            { }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"{ex.Message}\n\nPlease contact IT with this error.", "Unhandled Exception", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
         #region New Form input ICommand

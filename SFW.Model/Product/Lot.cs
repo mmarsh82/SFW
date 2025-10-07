@@ -90,6 +90,7 @@ namespace SFW.Model.Product
         public DateTime ReceivedDate { get; set; }
 
         public ObservableCollection<string> LotCollection { get; set; }
+        public IList<string> DefectList { get; set; }
 
         #endregion
 
@@ -687,7 +688,8 @@ namespace SFW.Model.Product
                         LotNumber = _row.Field<string>("LotID"),
                         Onhand = _row.Field<int>("OnHand"),
                         Location = _row.Field<string>("Location"),
-                        Uom = _row.Field<string>("Uom")
+                        Uom = _row.Field<string>("Uom"),
+                        DefectList = Quality.QmsForm.GetNcrList(_row.Field<string>("LotID"), ModelSqlCon)
                     });
                 }
                 else

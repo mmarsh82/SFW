@@ -32,8 +32,10 @@ namespace SFW.ShopRoute
                 MachineGroup = string.Empty;
                 OnPropertyChanged(nameof(CanCheckHistory));
                 OnPropertyChanged(nameof(HasFirstPiece));
+                OnPropertyChanged(nameof(SelectedOrder));
             }
         }
+        public string SelectedOrder { get { return ShopOrder.OrderNumber; } }
 
         public string FqSalesOrder
         {
@@ -118,23 +120,59 @@ namespace SFW.ShopRoute
             {
                 if (value != null)
                 {
-                    ILotResultsList = Lot.GetOnHandList(value.ProductNumber, true, App.SiteNumber);
-                    NoLotResults = ILotResultsList.Count == 0;
-                    IDedicateLotResultsList = Lot.GetDedicatedList(value.ProductNumber, ShopOrder.OrderNumber);
-                    NoDedicateResults = IDedicateLotResultsList.Count == 0;
-                    if (App.SiteNumber == 0 && NoDedicateResults)
+                    if (value.IsLotTrace)
                     {
+                        LotListLoading = true;
+                        LotListText = "";
+                        OnPropertyChanged(nameof(LotListText));
+                        OnPropertyChanged(nameof(LotListLoading));
+                        using (BackgroundWorker bw = new BackgroundWorker())
+                        {
+                            try
+                            {
+                                bw.DoWork += new DoWorkEventHandler(
+                                    delegate (object sender, DoWorkEventArgs e)
+                                    {
+                                        ILotResultsList = Lot.GetOnHandList(value.ProductNumber, value.IsLotTrace, App.SiteNumber);
+                                        NoLotResults = ILotResultsList.Count == 0;
+                                        OnPropertyChanged(nameof(ILotResultsList));
+                                        OnPropertyChanged(nameof(NoLotResults));
+                                        LotListLoading = false;
+                                        OnPropertyChanged(nameof(LotListLoading));
+                                        IDedicateLotResultsList = Lot.GetDedicatedList(value.ProductNumber, ShopOrder.OrderNumber);
+                                        NoDedicateResults = IDedicateLotResultsList.Count == 0;
+                                        OnPropertyChanged(nameof(IDedicateLotResultsList));
+                                        LotListText = NoDedicateResults && NoLotResults ? "No Onhand Material" : "";
+                                        OnPropertyChanged(nameof(LotListText));
+                                    });
+                                bw.RunWorkerAsync();
+                            }
+                            catch (Exception)
+                            {
 
+                            }
+                        }
                     }
-                    OnPropertyChanged(nameof(ILotResultsList));
-                    OnPropertyChanged(nameof(IDedicateLotResultsList));
-                    LotListText = NoDedicateResults && NoLotResults ? "No Onhand Material" : "";
+                    else
+                    {
+                        ILotResultsList = Lot.GetOnHandList(value.ProductNumber, value.IsLotTrace, App.SiteNumber);
+                        NoLotResults = ILotResultsList.Count == 0;
+                        OnPropertyChanged(nameof(ILotResultsList));
+                        IDedicateLotResultsList = Lot.GetDedicatedList(value.ProductNumber, ShopOrder.OrderNumber);
+                        NoDedicateResults = IDedicateLotResultsList.Count == 0;
+                        OnPropertyChanged(nameof(IDedicateLotResultsList));
+                        LotListText = NoDedicateResults && NoLotResults ? "No Onhand Material" : "";
+                    }
                 }
                 _selItem = value;
+                ItemIsLotTrace = value.IsLotTrace;
+                OnPropertyChanged(nameof(ItemIsLotTrace));
                 OnPropertyChanged(nameof(SelectedILotItem));
                 OnPropertyChanged(nameof(LotListText));
             }
         }
+        public bool ItemIsLotTrace { get; set; }
+        public bool LotListLoading { get; set; }
 
         public ObservableCollection<string> CompCollection { get; set; }
         private string _compSel;
@@ -203,6 +241,8 @@ namespace SFW.ShopRoute
             }
         }
 
+        public IList<string> ComponentDefectList { get; set; }
+
         public DataView ActivityTable { get; set; }
 
         private RelayCommand _noteChange;
@@ -218,6 +258,7 @@ namespace SFW.ShopRoute
             {
                 ShopOrder = new WorkOrder();
             }
+            LotListLoading = false;
         }
 
         /// <summary>
@@ -230,11 +271,13 @@ namespace SFW.ShopRoute
             {
                 workOrder = new WorkOrder(ModelBase.MasterDataSet.Tables[typeof(WorkOrder).Name].Rows[0]);
             }
+            LotListLoading = false;
             ShopOrder = workOrder;
             IsMultiLoading = true;
             NoLotResults = NoDedicateResults = true;
             LotListText = "Select a Part";
             NcrList = new List<string>();
+            ComponentDefectList = new List<string>();
             IsPlan = BomOnly = ShopOrder.TaskType == "P";
             WipActive = false;
             using (BackgroundWorker bw = new BackgroundWorker())

@@ -182,9 +182,9 @@ namespace SFW.Model.Product
                 {
                     return null;
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
-                    throw new Exception(ex.Message);
+                    return null;
                 }
             }
             else

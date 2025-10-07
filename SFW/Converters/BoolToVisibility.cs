@@ -46,38 +46,35 @@ namespace SFW.Converters
 
         public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
         {
-            if (parameter?.ToString().Contains('*') == true && values.Count() > 1)
+            if (values.Count() > 1)
             {
-                var _counter = 0;
-                var _rtnBool = true;
-                foreach (var _arg in parameter.ToString().Split('*'))
+                if (parameter?.ToString().Contains('*') == true)
                 {
-                    var _intVal = int.TryParse(_arg, out int i) ? i > 0 : false;
-                    if (!bool.TryParse(values[_counter].ToString(), out bool _boolVal))
-                    {
-                        _boolVal = int.TryParse(values[_counter].ToString(), out int l) && l > 0;
-                    }
-                    _rtnBool = _boolVal == _intVal;
-                    if (!_rtnBool)
-                    {
-                        return Visibility.Collapsed;
-                    }
-                    _counter++;
+                    return ConvertWithAnd(values, parameter.ToString());
                 }
-                return Visibility.Visible;
+                else if (parameter?.ToString().Contains('|') == true)
+                {
+                    return ConvertWithOr(values, parameter.ToString());
+                }
             }
-            if (parameter?.ToString().Contains('|') == true && values.Count() > 1)
+
+            if (parameter?.ToString() == "SCR")
             {
-                var _counter = 0;
-                var _rtnList = new List<bool>();
-                foreach (var _arg in parameter.ToString().Split('|'))
+                var _boolList = new List<bool>();
+                foreach (var _val in values)
                 {
-                    var _intVal = int.TryParse(_arg, out int i) ? i > 0 : false;
-                    _rtnList.Add(bool.TryParse(values[_counter].ToString(), out bool b) ? _intVal == b : false);
-                    _counter++;
+                    if (_val.GetType() == typeof(bool))
+                    {
+                        _boolList.Add((bool)_val);
+                    }
+                    else if (_val.GetType() == typeof(int))
+                    {
+                        _boolList.Add((int)_val > 0);
+                    }
                 }
-                return _rtnList.Count(o => o) > 0 ? Visibility.Visible : Visibility.Collapsed;
+                return (_boolList[0] && _boolList[1]) || !_boolList[2] ? Visibility.Visible : Visibility.Collapsed; 
             }
+
             if (parameter?.ToString() == "NCR")
             {
                 var _type = values[0];
@@ -183,5 +180,51 @@ namespace SFW.Converters
         }
 
         #endregion
+
+        /// <summary>
+        /// Convert logic when the parameter contains a AND modifier
+        /// </summary>
+        /// <param name="values">array of values</param>
+        /// <param name="parameter">Modifier string</param>
+        /// <returns></returns>
+        public Visibility ConvertWithAnd(object[] values, string parameter)
+        {
+            var _counter = 0;
+            var _rtnBool = true;
+            foreach (var _arg in parameter.ToString().Split('*'))
+            {
+                var _intVal = int.TryParse(_arg, out int i) && i > 0;
+                if (!bool.TryParse(values[_counter].ToString(), out bool _boolVal))
+                {
+                    _boolVal = int.TryParse(values[_counter].ToString(), out int l) && l > 0;
+                }
+                _rtnBool = _boolVal == _intVal;
+                if (!_rtnBool)
+                {
+                    return Visibility.Collapsed;
+                }
+                _counter++;
+            }
+            return Visibility.Visible;
+        }
+
+        /// <summary>
+        /// Convert logic when the parameter contains a OR modifier
+        /// </summary>
+        /// <param name="values">array of values</param>
+        /// <param name="parameter">Modifier string</param>
+        /// <returns></returns>
+        public Visibility ConvertWithOr(object[] values, string parameter)
+        {
+            var _counter = 0;
+            var _rtnList = new List<bool>();
+            foreach (var _arg in parameter.Split('|'))
+            {
+                var _intVal = int.TryParse(_arg, out int i) && i > 0;
+                _rtnList.Add(bool.TryParse(values[_counter].ToString(), out bool b) && _intVal == b);
+                _counter++;
+            }
+            return _rtnList.Count(o => o) > 0 ? Visibility.Visible : Visibility.Collapsed;
+        }
     }
 }

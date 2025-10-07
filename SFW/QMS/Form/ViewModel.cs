@@ -321,7 +321,14 @@ namespace SFW.QMS.Form
                 FromSchedule = fromSched;
                 if (FromSchedule)
                 {
-                    LoadedWorkOrder = new WorkOrder(frm.OrderId);
+                    if (App.LoadedModule == Enumerations.UsersControls.Schedule)
+                    {
+                        LoadedWorkOrder = new WorkOrder(frm.LoadedOrderId, 'W');
+                    }
+                    else
+                    {
+                        LoadedWorkOrder = new WorkOrder(frm.LoadedOrderId, 'P');
+                    }
                 }
                 FormObject = frm;
                 FormRevision = frm.RevisionList.FirstOrDefault(o => o.RevisionId == revId);
@@ -480,8 +487,17 @@ namespace SFW.QMS.Form
         {
             if(FromSchedule)
             {
-                WorkSpaceDock.SchedDock.Children.RemoveAt(1);
-                WorkSpaceDock.SchedDock.Children.Insert(1, new ShopRoute.View { DataContext = new ShopRoute.ViewModel(LoadedWorkOrder) });
+                switch (App.LoadedModule)
+                {
+                    case Enumerations.UsersControls.Schedule:
+                        WorkSpaceDock.SchedDock.Children.RemoveAt(1);
+                        WorkSpaceDock.SchedDock.Children.Insert(1, new ShopRoute.View { DataContext = new ShopRoute.ViewModel(LoadedWorkOrder) });
+                        break;
+                    case Enumerations.UsersControls.Plan:
+                        WorkSpaceDock.PlanDock.Children.RemoveAt(1);
+                        WorkSpaceDock.PlanDock.Children.Insert(1, new ShopRoute.View { DataContext = new ShopRoute.ViewModel(LoadedWorkOrder) });
+                        break;
+                }
             }
             else
             {

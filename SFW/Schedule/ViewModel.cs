@@ -65,6 +65,7 @@ namespace SFW.Schedule
             Filter(UserConfig.BuildPriorityFilter(), 4);
             ClosedFilter = false;
             InspectionFilter = false;
+
             Initialize();
         }
 

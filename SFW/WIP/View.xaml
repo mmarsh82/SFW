@@ -5,7 +5,7 @@
         xmlns:main="clr-namespace:SFW"
         xmlns:cvtr="clr-namespace:SFW.Converters"
         x:Name="Wip_Window"
-        Title="Production Wip" Height="Auto" Width="1000" ShowInTaskbar="True" WindowStyle="ToolWindow" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" SizeToContent="Height" Topmost="True">
+        Title="Production Wip" Height="Auto" Width="1050" ShowInTaskbar="True" WindowStyle="ToolWindow" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" SizeToContent="Height" Topmost="True">
 
     <Window.Resources>
         <cvtr:BoolToVisibility x:Key="BooltoVisConverter" />
@@ -18,6 +18,7 @@
         <cvtr:BoolToInt x:Key="BoolToIntConverter" />
         <cvtr:SiteToVisibility x:Key="SiteToVisConverter" />
         <cvtr:CountToVisibility x:Key="CountToVisConverter" />
+        <cvtr:ValueToHeight x:Key="ValueToHeightConverter" />
     </Window.Resources>
 
     <ScrollViewer VerticalScrollBarVisibility="Auto">
@@ -30,6 +31,8 @@
                 <RowDefinition Height="40" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
+                <RowDefinition Height="{Binding DefectList.Count, Converter={StaticResource ValueToHeightConverter}, ConverterParameter=S35}"/>
+                <RowDefinition Height="{Binding DefectList.Count, Converter={StaticResource ValueToHeightConverter}, ConverterParameter=SAuto}"/>
                 <RowDefinition Height="35" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="35" />
@@ -428,11 +431,130 @@
             <!--#region Seperator-->
 
             <Rectangle Grid.Row="6"
+                       Fill="#FF135185"
+                       HorizontalAlignment="Stretch"
+                       VerticalAlignment="Stretch"
+                       Visibility="{Binding DefectList.Count, Converter={StaticResource CountToVisConverter}}"/>
+            
+            <TextBlock Grid.Row="6"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center"
+                       Text="Product Defects"
+                       FontWeight="Bold"
+                       FontSize="20"
+                       Foreground="WhiteSmoke" 
+                       Visibility="{Binding DefectList.Count, Converter={StaticResource CountToVisConverter}}"/>
+
+            <StackPanel Grid.Row="6"
+                        Orientation="Horizontal"
+                        HorizontalAlignment="Left">
+
+                <CheckBox IsChecked="{Binding NotApply}"
+                          Margin="2"
+                          VerticalAlignment="Center"
+                          Style="{DynamicResource SliderCheckBox}"/>
+
+                <TextBlock Text="None Apply"
+                           Foreground="White"
+                           Margin="10,0,0,0"
+                           FontSize="16"
+                           TextDecorations="Underline"
+                           VerticalAlignment="Center"
+                           FontWeight="Bold" />
+
+            </StackPanel>
+
+            <!--#endregion-->
+
+            <!--#region Defect Inputs-->
+
+            <ItemsControl Name="Defects"
+                          Grid.Row="7"
+                          ItemsSource="{Binding DefectList}"
+                          Margin="10,0,0,0"
+                          FontSize="18"
+                          Cursor="Hand"
+                          Background="Transparent"
+                          Foreground="Black"
+                          Focusable="False"
+                          Visibility="{Binding DefectList.Count, Converter={StaticResource CountToVisConverter}}">
+
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <VirtualizingStackPanel IsItemsHost="True" Orientation="Vertical" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="55"/>
+                                <ColumnDefinition Width="75"/>
+                                <ColumnDefinition Width="50"/>
+                                <ColumnDefinition Width="300"/>
+                                <ColumnDefinition Width="65"/>
+                                <ColumnDefinition Width="300"/>
+                                <ColumnDefinition Width="103"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Grid.Column="0"
+                                       Text="{Binding RevisionList[0].RevFormType, StringFormat={}{0}:}"
+                                       VerticalAlignment="Center"
+                                       TextDecorations="Underline"
+                                       FontWeight="Bold" />
+
+                            <TextBlock Grid.Column="1"
+                                       Text="{Binding FormId}"
+                                       VerticalAlignment="Center"
+                                       FontWeight="Bold" />
+
+                            <TextBlock Grid.Column="2"
+                                       Text="Type:"
+                                       VerticalAlignment="Center"
+                                       TextDecorations="Underline"
+                                       FontWeight="Bold" />
+
+                            <TextBlock Grid.Column="3"
+                                       Text="{Binding RevisionList[0].DefectType.Description}"
+                                       VerticalAlignment="Center"
+                                       FontWeight="Bold" />
+
+                            <TextBlock Grid.Column="4"
+                                       Text="Defect:"
+                                       VerticalAlignment="Center"
+                                       TextDecorations="Underline"
+                                       FontWeight="Bold" />
+
+                            <TextBlock Grid.Column="5"
+                                       Text="{Binding RevisionList[0].DefectSubType.Description}"
+                                       VerticalAlignment="Center"
+                                       FontWeight="Bold" />
+
+                            <CheckBox Grid.Column="6"
+                                      Margin="2"
+                                      IsChecked="{Binding IsSelected}"
+                                      VerticalAlignment="Center"
+                                      Style="{DynamicResource SliderCheckBox}"/>
+
+                        </Grid>
+
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+
+            </ItemsControl>
+
+            <!--#endregion-->
+
+            <!--#region Seperator-->
+
+            <Rectangle Grid.Row="8"
                    Fill="#FF135185"
                    HorizontalAlignment="Stretch"
                    VerticalAlignment="Stretch"
                    Visibility="{Binding WipRecord.HasCrew, Converter={StaticResource BooltoVisConverter}}"/>
-            <TextBlock Grid.Row="6"
+            <TextBlock Grid.Row="8"
                    HorizontalAlignment="Center"
                    VerticalAlignment="Center"
                    Text="Crew Members"
@@ -446,7 +568,7 @@
             <!--#region Crew Inputs-->
 
             <ItemsControl Name="CrewMembers"
-                          Grid.Row="7"
+                          Grid.Row="9"
                           ItemsSource="{Binding Path=WipRecord.CrewList}"
                           Margin="10,0,0,0"
                           FontSize="18"
@@ -582,26 +704,26 @@
 
             <!--#region Seperator-->
 
-            <Rectangle Grid.Row="8"
-                   Fill="#FF135185"
-                   HorizontalAlignment="Stretch"
-                   VerticalAlignment="Stretch"
-                   Visibility="{Binding IsLotTrace, Converter={StaticResource BooltoVisConverter}}" />
-            <TextBlock Grid.Row="8"
-                   HorizontalAlignment="Center"
-                   VerticalAlignment="Center"
-                   Text="Components"
-                   FontWeight="Bold"
-                   FontSize="20"
-                   Foreground="WhiteSmoke"
-                   Visibility="{Binding IsLotTrace, Converter={StaticResource BooltoVisConverter}}" />
+            <Rectangle Grid.Row="10"
+                       Fill="#FF135185"
+                       HorizontalAlignment="Stretch"
+                       VerticalAlignment="Stretch"
+                       Visibility="{Binding IsLotTrace, Converter={StaticResource BooltoVisConverter}}" />
+            <TextBlock Grid.Row="10"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center"
+                       Text="Components"
+                       FontWeight="Bold"
+                       FontSize="20"
+                       Foreground="WhiteSmoke"
+                       Visibility="{Binding IsLotTrace, Converter={StaticResource BooltoVisConverter}}" />
 
             <!--#endregion-->
 
             <!--#region Component Inputs-->
 
             <ItemsControl Name="CompParent"
-                          Grid.Row="9"
+                          Grid.Row="11"
                           ItemsSource="{Binding Path=WipRecord.ComponentList}"
                           Margin="10,0,0,0"
                           FontSize="18"
@@ -957,12 +1079,12 @@
 
             <!--#region Seperator-->
 
-            <Rectangle Grid.Row="10"
+            <Rectangle Grid.Row="12"
                    Fill="#FF135185"
                    HorizontalAlignment="Stretch"
                    VerticalAlignment="Stretch"
                    Visibility="{Binding Compound, Converter={StaticResource BooltoVisConverter}}" />
-            <TextBlock Grid.Row="10"
+            <TextBlock Grid.Row="12"
                    HorizontalAlignment="Center"
                    VerticalAlignment="Center"
                    Text="Compound"
@@ -975,7 +1097,7 @@
 
             <!--#region Compound Inputs-->
 
-            <StackPanel Grid.Row="11"
+            <StackPanel Grid.Row="13"
                         Orientation="Vertical"
                         HorizontalAlignment="Center"
                         Visibility="{Binding Compound, Converter={StaticResource BooltoVisConverter}}">
@@ -1122,7 +1244,7 @@
 
             <!--#region Submission Actions-->
 
-            <StackPanel Grid.Row="12"
+            <StackPanel Grid.Row="14"
                         Orientation="Horizontal"
                         HorizontalAlignment="Right">
 
@@ -1136,7 +1258,7 @@
 
             </StackPanel>
 
-            <StackPanel Grid.Row="12"
+            <StackPanel Grid.Row="14"
                         Orientation="Horizontal"
                         HorizontalAlignment="Left">
 
@@ -1209,12 +1331,12 @@
 
             <!--#region Seperator-->
 
-            <Rectangle Grid.Row="13"
+            <Rectangle Grid.Row="15"
                    Fill="#FF135185"
                    HorizontalAlignment="Stretch"
                    VerticalAlignment="Stretch"
                    Visibility="{Binding LotList.Count, Converter={StaticResource CountToVisConverter}, ConverterParameter=2}"/>
-            <TextBlock Grid.Row="13"
+            <TextBlock Grid.Row="15"
                    HorizontalAlignment="Center"
                    VerticalAlignment="Center"
                    Text="Lot Numbers"
@@ -1228,7 +1350,7 @@
             <!--#region Lot List-->
 
             <ItemsControl Name="LotList"
-                          Grid.Row="14"
+                          Grid.Row="16"
                           ItemsSource="{Binding LotList}"
                           Margin="10,0,0,0"
                           FontSize="18"

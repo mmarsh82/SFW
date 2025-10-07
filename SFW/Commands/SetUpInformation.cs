@@ -28,7 +28,7 @@ namespace SFW.Commands
                     if (parameter.ToString().Contains("|"))
                     {
                         var _woNbr = parameter.ToString().Split('|').FirstOrDefault();
-                        var _wo = new WorkOrder(_woNbr);
+                        var _wo = new WorkOrder(_woNbr, 'W');
                         new ProcessSpec_View { DataContext = new ProcessSpec_ViewModel(_wo) }.ShowDialog();
                     }
                     else

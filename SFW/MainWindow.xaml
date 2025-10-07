@@ -202,6 +202,9 @@
                 <MenuItem Header="Machine Reports"
                           Visibility="Visible"/>
 
+                <MenuItem Header="Document Links"
+                          Visibility="Visible"/>
+
             </MenuItem>
             
             

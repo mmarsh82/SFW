@@ -37,6 +37,8 @@ namespace SFW.Model.Quality
                 OnPropertyChanged(nameof(OrderId));
             }
         }
+        public string LoadedOrderId { get; set; }
+
         private int? _ordSeqId;
         public string OrderSeqId
         {
@@ -115,6 +117,7 @@ namespace SFW.Model.Quality
 
 
         public BindingList<Product.Lot> LotList { get; set; }
+        public bool IsLotLoading { get; set; }
 
         private Production.Machine _foundWC;
         public Production.Machine FoundWorkCenter
@@ -151,6 +154,19 @@ namespace SFW.Model.Quality
                 OnPropertyChanged(nameof(ProductValue));
             }
         }
+
+        private bool _isSel;
+        public bool IsSelected
+        {
+            get
+            { return _isSel; }
+            set
+            {
+                _isSel = value;
+                OnPropertyChanged(nameof(IsSelected));
+            }
+        }
+
         public int Site { get; set; }
         public IList<Revision> RevisionList { get; set; }
 
@@ -167,8 +183,8 @@ namespace SFW.Model.Quality
         /// </summary>
         /// <param name="ncrId">Ncr object ID</param>
         /// <param name="sqlCon">Sql Connection to use</param>
-        /// <returns>A table of NCR Notice information</returns>
-        public static BindingList<Product.Lot> GetNcrLotList(int ncrId, string uom, SqlConnection sqlCon)
+        /// <returns>A list of NCR lot information</returns>
+        public static BindingList<Product.Lot> GetLotList(int ncrId, string uom, SqlConnection sqlCon)
         {
             var _rtnList = new BindingList<Product.Lot>();
             if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
@@ -196,21 +212,7 @@ GROUP BY
                                 {
                                     var _lotId = reader.SafeGetString("LotId");
                                     var _import = reader.SafeGetString("ImportType") == "M";
-                                    if (_rtnList.Count(o => o.LotNumber == _lotId) > 0)
-                                    {
-                                        if (!_import)
-                                        {
-                                            if (_rtnList.Count(o => o.LotNumber == _lotId && o.Imported) > 0)
-                                            {
-                                                _rtnList.Remove(_rtnList.FirstOrDefault(o => o.LotNumber == _lotId && o.Imported));
-                                                _rtnList.Add(new Product.Lot(_lotId, reader.SafeGetInt32("Scrap"), uom, _import, true));
-                                            }
-                                        }
-                                    }
-                                    else
-                                    {
-                                        _rtnList.Add(new Product.Lot(_lotId, reader.SafeGetInt32("Scrap"), uom, _import, true));
-                                    }
+                                    _rtnList.Add(new Product.Lot(_lotId, reader.SafeGetInt32("Scrap"), uom, _import, true));
                                 }
                             }
                         }
@@ -245,19 +247,13 @@ GROUP BY
             {
                 try
                 {
-                    var _lotString = "";
-                    foreach (var _lotId in lotIdList)
+                    if (!lotId.Contains("|"))
                     {
-                        var _lot = _lotId;
-                        if (!_lot.Contains("|"))
-                        {
-                            _lot = $"{_lotId}|P|01";
-                        }
-                        _lotString = string.IsNullOrEmpty(_lotString) ? $"[LotId] = '{_lot}'" : $" OR [LotId] = '{_lot}'";
+                        lotId = $"{lotId}|P|01";
                     }
-                    var _cmdString = $@"SELECT ncrLot.[NcrId] FROM [dbo].[SFW_DefectLotLink] ncrLot WHERE {_lotString}";
-                    using (SqlCommand cmd = new SqlCommand(_cmdString, sqlCon))
+                    using (SqlCommand cmd = new SqlCommand($@"SELECT ncrLot.[NcrId] FROM [dbo].[SFW_DefectLotLink] ncrLot WHERE [LotId] = @p1 AND [ImportType] = 'M'", sqlCon))
                     {
+                        cmd.Parameters.AddWithValue("p1", lotId);
                         using (SqlDataReader reader = cmd.ExecuteReader())
                         {
                             if (reader.HasRows)
@@ -500,10 +496,47 @@ GROUP BY
             }
         }
 
+        /// <summary>
+        /// Submit NCR lot number to the lot escape table
+        /// </summary>
+        /// <param name="ncrId">NCR ID</param>
+        /// <param name="lotId">Lot ID</param>
+        /// <param name="sqlCon">Sql Connection to use</param>
+        public static void SubmitDefectLot(int ncrId, string lotId, SqlConnection sqlCon)
+        {
+            try
+            {
+                using (SqlCommand cmd = new SqlCommand { Connection = sqlCon })
+                {
+                    cmd.CommandText = "SELECT COUNT([NcrId]) as 'Exists' FROM [dbo].[DEFECT-CSTM_EscapeLot] WHERE [NCrId] = @p1 AND [LotId] = @p2";
+                    cmd.Parameters.AddWithValue("p1", ncrId);
+                    cmd.Parameters.AddWithValue("p2", lotId);
+                    var _lotExists = int.TryParse(cmd.ExecuteScalar().ToString(), out int i) ? i : 1;
+                    if (_lotExists == 0)
+                    {
+                        cmd.CommandText = $@"INSERT INTO [dbo].[Defect-CSTM_EscapeLot] ([NcrId], [LotId]) Values(@p1, @p2)";
+                        cmd.Parameters.AddWithValue("p1", ncrId);
+                        cmd.Parameters.AddWithValue("p2", lotId);
+                        cmd.ExecuteNonQuery();
+                    }
+                }
+            }
+            catch (Exception)
+            {
+
+            }
+        }
+
         #endregion
 
         /// <summary>
         /// Ncr Default Constructor
+        /// </summary>
+        public QmsForm()
+        { }
+
+        /// <summary>
+        /// Ncr Overridden Constructor
         /// </summary>
         public QmsForm(Management.Employee submitter, FormType frmType)
         {
@@ -516,13 +549,15 @@ GROUP BY
         /// <summary>
         /// Ncr Overridden Constructor
         /// <param name="id">NCR Id to load</param>
+        /// <param name="loadedId">Order ID that sent the request</param>
         /// </summary>
-        public QmsForm(int id)
+        public QmsForm(int id, string loadedId = "")
         {
             var ncrDataRows = MasterDataSet.Tables[typeof(Notice).Name].Select($"[NcrId] = '{id}'", "[NcrRevisionId] DESC");
             FormId = id;
             OrderId = ncrDataRows[0].Field<string>("WorkOrderId");
             OrderSeqId = ncrDataRows[0].Field<int>("WorkOrderSeqId").ToString();
+            LoadedOrderId = loadedId;
             Part = new Product.Sku(ncrDataRows[0].Field<string>("PartId"));
             FoundWorkCenter = new Production.Machine(ncrDataRows[0].Field<int>("FoundWorkCenterId"));
             Reporter = new Management.Employee(ncrDataRows[0].Field<string>("ReporterId"), false);
@@ -533,22 +568,42 @@ GROUP BY
             {
                 RevisionList.Add(new Revision(ncr, ProductValue));
             }
-            using (BackgroundWorker bw = new BackgroundWorker())
+            using (BackgroundWorker bw1 = new BackgroundWorker())
             {
                 try
                 {
-                    bw.DoWork += new DoWorkEventHandler(
+                    bw1.DoWork += new DoWorkEventHandler(
                         delegate (object sender, DoWorkEventArgs e)
                         {
                             PartCollection = int.TryParse(OrderSeqId, out int i) ? Product.Sku.GetCollection(OrderId, i) : Product.Sku.GetCollection(OrderId, 10);
                             OnPropertyChanged(nameof(PartCollection));
-                            LotList = GetNcrLotList(id, Part.Uom, ModelSqlCon);
-                            LotList.ListChanged += LotList_Changed;
-                            OnPropertyChanged(nameof(LotList));
-                            PhotoCollection = new ObservableCollection<string>(GetNcrPhotoList(id, ModelSqlCon));
+                            var _photoCol = GetNcrPhotoList(id, ModelSqlCon);
+                            PhotoCollection = _photoCol == null ? new ObservableCollection<string>() : new ObservableCollection<string>(_photoCol);
                             OnPropertyChanged(nameof(PhotoCollection));
                         });
-                    bw.RunWorkerAsync();
+                    bw1.RunWorkerAsync();
+                }
+                catch (Exception)
+                {
+
+                }
+            }
+            using (BackgroundWorker bw2 = new BackgroundWorker())
+            {
+                try
+                {
+                    IsLotLoading = true;
+                    OnPropertyChanged(nameof(IsLotLoading));
+                    bw2.DoWork += new DoWorkEventHandler(
+                        delegate (object sender, DoWorkEventArgs e)
+                        {
+                            LotList = GetLotList(id, Part.Uom, ModelSqlCon);
+                            LotList.ListChanged += LotList_Changed;
+                            OnPropertyChanged(nameof(LotList));
+                            IsLotLoading = false;
+                            OnPropertyChanged(nameof(IsLotLoading));
+                        });
+                    bw2.RunWorkerAsync();
                 }
                 catch (Exception)
                 {
@@ -642,6 +697,33 @@ GROUP BY
                     foreach (var _row in _rows)
                     {
                         _rtnList.Add($"{_row.SafeGetField<int>("NcrId")} {_row.SafeGetField<string>("TypeDescription")}");
+                    }
+                }
+                return _rtnList;
+            }
+            catch
+            {
+                return _rtnList;
+            }
+        }
+
+        /// <summary>
+        /// Gets a list of NCR IDs that exist on a work order
+        /// </summary>
+        /// <param name="orderId">Work Order ID</param>
+        /// <returns>List of NCR ID's as strings</returns>
+        public static BindingList<QmsForm> GetList(string orderId)
+        {
+            var _rtnList = new BindingList<QmsForm>();
+            try
+            {
+                var _rows = MasterDataSet.Tables[typeof(Notice).Name].Select($"[WorkOrderId] = '{orderId}' AND [NcrRevisionId] = [RevisionFilter]");
+                if (_rows.Count() > 0)
+                {
+                    foreach (var _row in _rows)
+                    {
+                        var _qmsObj = new QmsForm(_row.SafeGetField<int>("NcrId"));
+                        _rtnList.Add(_qmsObj);
                     }
                 }
                 return _rtnList;

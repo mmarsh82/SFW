@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows;
 
 namespace SFW
 {
@@ -109,13 +110,20 @@ namespace SFW
                     ModelBase.LoadedModules = Module.GetModuleList(CurrentUser.Modules);
                     foreach (var _mod in ModelBase.LoadedModules)
                     {
-                        TickMessage = $"{_mod.Group}.{_mod.TableType.Name}";
-                        StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(TickMessage)));
-                        if (!ModelBase.MasterDataSet.Tables.Contains(_mod.TableType.Name))
+                        try
                         {
-                            ModelBase.MasterDataSet.Tables.Add(_mod.TableType.Name);
+                            TickMessage = $"{_mod.Group}.{_mod.TableType.Name}";
+                            StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(TickMessage)));
+                            if (!ModelBase.MasterDataSet.Tables.Contains(_mod.TableType.Name))
+                            {
+                                ModelBase.MasterDataSet.Tables.Add(_mod.TableType.Name);
+                            }
+                            ModelBase.MasterDataSet.LoadTable(_mod, App.SiteNumber, App.AppSqlCon);
                         }
-                        ModelBase.MasterDataSet.LoadTable(_mod, App.SiteNumber, App.AppSqlCon);
+                        catch (Exception ex)
+                        {
+                            MessageBox.Show($"{ex.Message}\n\nPlease reach out to IT with this issue.", "Unhandled Exception", MessageBoxButton.OK, MessageBoxImage.Error);
+                        }
                     }
                     TickMessage = $"Refreshing Views";
                     StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(TickMessage)));

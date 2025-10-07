@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Globalization;
+using System.Windows.Controls;
 using System.Windows.Data;
 
 namespace SFW.Converters
@@ -17,8 +18,8 @@ namespace SFW.Converters
                 if (value.GetType() == typeof(int))
                 {
                     var _stick = false;
-                    var _cnt = 0;
-                    var _cstHgt = int.TryParse(value.ToString(), out _cnt) && _cnt > 0 ? 30 : 0;
+                    var _cnt = 0.0;
+                    var _cstHgt = double.TryParse(value.ToString(), out _cnt) && _cnt > 0 ? 30.0 : 0.0;
                     if (parameter != null)
                     {
                         if (parameter.ToString().Contains("L"))
@@ -28,7 +29,16 @@ namespace SFW.Converters
                         else if (parameter.ToString().Contains("S"))
                         {
                             _stick = true;
-                            _cstHgt = int.TryParse(parameter.ToString().Replace("S", ""), out int i) && _cnt > 0 ? i : 0;
+                            var _rtnHeight = double.TryParse(parameter.ToString().Replace("S", ""), out double d) ? d : 0;
+                            if (parameter.ToString().Contains("Auto"))
+                            {
+                                _rtnHeight = double.NaN;
+                            }
+                            _cstHgt = _cnt > 0 ? _rtnHeight : 0;
+                        }
+                        else if (parameter.ToString() == "Auto")
+                        {
+                            return double.NaN;
                         }
                     }
                     return !_stick ? _cnt * _cstHgt : _cstHgt;

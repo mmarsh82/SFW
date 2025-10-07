@@ -17,11 +17,11 @@ namespace SFW.Model.Production
         public int IssuedQuantity { get; set; }
         public int IssuedTotal { get; set; }
         public string InventoryType { get; set; }
-        public bool IsLotTrace { get; set; }
         public string BackFlushLocation { get; set; }
         public string DefaultLocation { get; set; }
         public int Facility { get; set; }
         public decimal ScrapFactor { get; set; }
+        public IList<string> DefectList { get; set; }
 
         #endregion
 
@@ -84,6 +84,7 @@ namespace SFW.Model.Production
         {
             var _tempList = new List<PickComponent>();
             var _rows = MasterDataSet.Tables[new PickComponent().GetType().Name].Select($"[WorkOrderID] LIKE '{woNbr}' AND [Routing] = '{woSeq}'");
+            
             if (_rows.Length > 0)
             {
                 foreach (var _row in _rows)

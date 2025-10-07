@@ -739,6 +739,15 @@
                         </Button.Visibility>
                     </Button>
 
+                    <Control Grid.Column="1" Grid.Row="1"
+                             Background="Transparent"
+                             VerticalAlignment="Center"
+                             HorizontalAlignment="Center"
+                             Margin="0,50,0,0"
+                             Visibility="{Binding FormObject.IsLotLoading, Converter={StaticResource BoolToVisConverter}}"
+                             Style="{DynamicResource BusyAnimationStyle}" />
+
+
                     <ItemsControl Name="LotNumbers"
                                   Grid.Column="1" Grid.Row="1"
                                   ItemsSource="{Binding FormObject.LotList}"
@@ -774,7 +783,7 @@
                                                    Foreground="#FF135185"
                                                    Margin="5,0,0,0"/>
 
-                                        <TextBox Text="{Binding LotNumber, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                        <TextBox Text="{Binding LotNumber}"
                                                  MinWidth="130"
                                                  CharacterCasing="Upper"
                                                  Margin="3"
@@ -790,8 +799,15 @@
                                         <TextBlock Text="{Binding LotNumber}"
                                                    VerticalAlignment="Center"
                                                    FontWeight="Bold"
-                                                   Margin="5,0,0,0"
-                                                   Visibility="{Binding Onhand, Converter={StaticResource IntToVisConverter}, ConverterParameter=n0}"/>
+                                                   Margin="5,0,0,0">
+                                            <TextBlock.Visibility>
+                                                <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="SCR">
+                                                    <Binding Path="(main:CurrentUser.IsQuality)"/>
+                                                    <Binding Path="Onhand"/>
+                                                    <Binding Path="(main:CurrentUser.IsQuality)"/>
+                                                </MultiBinding>
+                                            </TextBlock.Visibility>
+                                        </TextBlock>
 
                                         <TextBlock Text="Scrap:"
                                                    TextDecorations="Underline"

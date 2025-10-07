@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SFW.Model.Product;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Data;
@@ -69,6 +70,7 @@ namespace SFW.Model.Production
             {
                 ProductNumber = _rows.FirstOrDefault().Field<string>("ChildSkuID");
                 AssemblyQuantity = _rows.FirstOrDefault().Field<decimal>("AssemblyQuantity");
+                IsLotTrace = Sku.IsLotTracable(ProductNumber, 1);
             }
         }
 
@@ -100,6 +102,7 @@ namespace SFW.Model.Production
                             ,ProductDescription = _row.Field<string>("Description")
                             ,ProductMasterPrint = _row.Field<string>("MasterSkuID")
                             ,ProductUom = _row.Field<string>("Uom")
+                            ,IsLotTrace = Sku.IsLotTracable(_row.Field<string>("ChildSkuID"), 1)
                         });
                     }
                 }

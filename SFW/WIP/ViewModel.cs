@@ -5,6 +5,7 @@ using SFW.Model.Production;
 using SFW.Model.Production.Wip;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Data;
 using System.Linq;
 using System.Windows;
@@ -289,6 +290,37 @@ namespace SFW.WIP
             }
         }
 
+        private BindingList<Model.Quality.QmsForm> _dList;
+        public BindingList<Model.Quality.QmsForm> DefectList
+        {
+            get
+            { return _dList; }
+            set
+            {
+                _dList = value;
+                OnPropertyChanged(nameof(DefectList));
+            }
+        }
+
+        private bool _notApply;
+        public bool NotApply
+        {
+            get
+            { return _notApply; }
+            set
+            {
+                if (value)
+                {
+                    foreach (var _defect in DefectList)
+                    {
+                        _defect.IsSelected = false;
+                    }
+                }
+                _notApply = value;
+                OnPropertyChanged(nameof(NotApply));
+            }
+        }
+
         RelayCommand _wip;
         RelayCommand _mPrint;
         RelayCommand _removeCrew;
@@ -315,6 +347,27 @@ namespace SFW.WIP
             LotList = new List<string>();
             IsSubmitted = false;
             IsLotValid = IsLocationValid = IsLocationEditable = true;
+            var _tempList = Model.Quality.QmsForm.GetList(woObject.OrderNumber);
+            DefectList = _tempList.Count() > 0
+                ? _tempList
+                : new BindingList<Model.Quality.QmsForm>();
+            DefectList.ListChanged += DefectList_ListChanged;
+        }
+
+        /// <summary>
+        /// Event handler for Defect List changes
+        /// </summary>
+        /// <param name="sender">DefectList object</param>
+        /// <param name="e">Property that changed and what the changes were</param>
+        private void DefectList_ListChanged(object sender, ListChangedEventArgs e)
+        {
+            if (e.ListChangedType == ListChangedType.ItemChanged && e.PropertyDescriptor.DisplayName == "IsSelected")
+            {
+                if (((BindingList<Model.Quality.QmsForm>)sender)[e.NewIndex].IsSelected && NotApply)
+                {
+                    NotApply = false;
+                }
+            }
         }
 
         /// <summary>
@@ -356,6 +409,93 @@ namespace SFW.WIP
                 MessageBox.Show(e.Message);
                 return false;
             }
+        }
+
+        /// <summary>
+        /// Core WIP receipt validation
+        /// </summary>
+        /// <returns></returns>
+        private bool CoreValidation()
+        {
+            var _baseValid = false;
+            var _locValid = !string.IsNullOrEmpty(WipRecord.ReceiptLocation) && Location.Valid(WipRecord.ReceiptLocation, App.SiteNumber);
+            if (WipRecord.WipQty > 0)
+            {
+                _baseValid = _locValid && (string.IsNullOrEmpty(WipRecord.WipLot.LotNumber) || IsLotValid) && ValidateComponents();
+            }
+            else if (WipRecord.WipQty == 0)
+            {
+                if (WipRecord.IsReclaim == Model.Enumerations.Complete.Y)
+                {
+                    _baseValid = _locValid;
+                }
+                else if (WipRecord.IsScrap == Model.Enumerations.Complete.Y)
+                {
+                    _baseValid = _locValid && IsLotValid && ValidateComponents();
+                }
+                else if (WipRecord.SeqComplete == Model.Enumerations.Complete.Y)
+                {
+                    _baseValid = _locValid = true;
+                }
+            }
+            else if (WipRecord.WipQty < 0)
+            {
+                if (WipRecord.IsLotTracable)
+                {
+                    _baseValid = _locValid && !string.IsNullOrEmpty(WipRecord.WipLot.LotNumber) && IsLotValid && ValidateComponents();
+                }
+                else
+                {
+                    _baseValid = _locValid;
+                }
+            }
+            if (App.SiteNumber == 2)
+            {
+                _baseValid = _baseValid && Weight > 0;
+            }
+            return _baseValid;
+        }
+
+        /// <summary>
+        /// Scrap WIP receipt validation
+        /// </summary>
+        /// <returns></returns>
+        private bool ScrapValidation()
+        {
+            var _scrapValid = true;
+            if (WipRecord.IsScrap == Model.Enumerations.Complete.Y)
+            {
+                var _qty = WipRecord.WipQty;
+                _qty += WipRecord.ScrapList.Sum(o => o.Valid && int.TryParse(o.Quantity, out int i) ? i : 0);
+                WipRecord.ComponentList.Update(decimal.Parse(_qty.ToString()));
+                if (WipRecord.ScrapList.Count(o => int.TryParse(o.Quantity, out int i) && i > 0) > 0)
+                {
+                    if (App.SiteNumber == 1)
+                    {
+                        _scrapValid = false;
+                        if (WipRecord.ScrapList.Count(o => o.Valid) == WipRecord.ScrapList.Count())
+                        {
+                            foreach (var s in WipRecord.ScrapList)
+                            {
+                                if (WipRecord.ScrapList.Count(o => o.Reference == s.Reference) > 1)
+                                {
+                                    _scrapValid = false;
+                                    break;
+                                }
+                                var _ncrId = int.TryParse(s.Reference, out int nRef) ? nRef : 0;
+                                _scrapValid = (WipRecord.IsLotTracable || string.IsNullOrEmpty(WipLot))
+                                    ? Model.Product.Lot.IsValidQIR(s.Reference, WipRecord.WipWorkOrder.OrderNumber, "", WipRecord.WipWorkOrder.Product.SkuNumber, App.AppSqlCon) || Model.Quality.QmsForm.IsValid(nRef, WipRecord.WipWorkOrder.OrderNumber, WipRecord.WipWorkOrder.Product.SkuNumber, 'P')
+                                    : Model.Product.Lot.IsValidQIR(s.Reference, WipRecord.WipWorkOrder.OrderNumber, WipLot, WipRecord.WipWorkOrder.Product.SkuNumber, App.AppSqlCon) || Model.Quality.QmsForm.IsValid(nRef, WipRecord.WipWorkOrder.OrderNumber, WipLot, 'L');
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    _scrapValid = false;
+                }
+            }
+            return _scrapValid;
         }
 
         #region Process Wip ICommand
@@ -404,6 +544,25 @@ namespace SFW.WIP
                     }
                     WipStickerPrintExecute(null);
                 }
+
+                if (DefectList.Count() > 0 && !NotApply && WipRecord.IsLotTracable)
+                {
+                    foreach (var _form in DefectList.Where(o => o.IsSelected))
+                    {
+                        if (WipRecord.WipLot.LotNumber == "Multiple")
+                        {
+                            foreach (var _lot in LotList)
+                            {
+                                Model.Quality.QmsForm.SubmitDefectLot(_form.FormId, _lot, App.AppSqlCon);
+                            }
+                        }
+                        else
+                        {
+                            Model.Quality.QmsForm.SubmitDefectLot(_form.FormId, WipRecord.WipLot.LotNumber, App.AppSqlCon);
+                        }
+                    }
+                }
+
                 OnPropertyChanged(nameof(WipRecord));
             }
             else
@@ -417,112 +576,15 @@ namespace SFW.WIP
             {
                 if (WipRecord != null)
                 {
-                    #region Core Wip Validation
-
-                    var _baseValid = false;
-                    var _locValid = !string.IsNullOrEmpty(WipRecord.ReceiptLocation) && Location.Valid(WipRecord.ReceiptLocation, App.SiteNumber);
-                    if (WipRecord.WipQty > 0)
-                    {
-                        _baseValid = _locValid && (string.IsNullOrEmpty(WipRecord.WipLot.LotNumber) || IsLotValid) && ValidateComponents();
-                    }
-                    else if (WipRecord.WipQty == 0)
-                    {
-                        if (WipRecord.IsReclaim == Model.Enumerations.Complete.Y)
-                        {
-                            _baseValid = _locValid;
-                        }
-                        else if (WipRecord.IsScrap == Model.Enumerations.Complete.Y)
-                        {
-                            _baseValid = _locValid && IsLotValid && ValidateComponents();
-                        }
-                        else if (WipRecord.SeqComplete == Model.Enumerations.Complete.Y)
-                        {
-                            _baseValid = _locValid = true;
-                        }
-                    }
-                    else if (WipRecord.WipQty < 0)
-                    {
-                        if (WipRecord.IsLotTracable)
-                        {
-                            _baseValid = _locValid && !string.IsNullOrEmpty(WipRecord.WipLot.LotNumber) && IsLotValid && ValidateComponents();
-                        }
-                        else
-                        {
-                            _baseValid = _locValid;
-                        }
-                    }
-                    if (App.SiteNumber == 2)
-                    {
-                        _baseValid = _baseValid && Weight > 0;
-                    }
-
-                    #endregion
-
-                    #region Scrap Validation
-
-                    var _scrapValid = true;
-                    if (WipRecord.IsScrap == Model.Enumerations.Complete.Y)
-                    {
-                        var _qty = WipRecord.WipQty;
-                        _qty += WipRecord.ScrapList.Sum(o => o.Valid && int.TryParse(o.Quantity, out int i) ? i : 0);
-                        WipRecord.ComponentList.Update(decimal.Parse(_qty.ToString()));
-                        if (WipRecord.ScrapList.Count(o => int.TryParse(o.Quantity, out int i) && i > 0) > 0)
-                        {
-                            if (App.SiteNumber == 1)
-                            {
-                                _scrapValid = false;
-                                if (WipRecord.ScrapList.Count(o => o.Valid) == WipRecord.ScrapList.Count())
-                                {
-                                    foreach(var s in WipRecord.ScrapList)
-                                    {
-                                        if (WipRecord.ScrapList.Count(o => o.Reference == s.Reference) > 1)
-                                        {
-                                            _scrapValid = false;
-                                            break;
-                                        }
-                                        var _ncrId = int.TryParse(s.Reference, out int nRef) ? nRef : 0;
-                                        _scrapValid = (WipRecord.IsLotTracable || string.IsNullOrEmpty(WipLot))
-                                            ? Model.Product.Lot.IsValidQIR(s.Reference, WipRecord.WipWorkOrder.OrderNumber, "", WipRecord.WipWorkOrder.Product.SkuNumber, App.AppSqlCon) || Model.Quality.QmsForm.IsValid(nRef, WipRecord.WipWorkOrder.OrderNumber, WipRecord.WipWorkOrder.Product.SkuNumber, 'P')
-                                            : Model.Product.Lot.IsValidQIR(s.Reference, WipRecord.WipWorkOrder.OrderNumber, WipLot, WipRecord.WipWorkOrder.Product.SkuNumber, App.AppSqlCon) || Model.Quality.QmsForm.IsValid(nRef, WipRecord.WipWorkOrder.OrderNumber, WipLot, 'L');
-                                    }
-                                }
-                            }
-                        }
-                        else
-                        {
-                            _scrapValid = false;
-                        }
-                    }
-
-                    #endregion
-
-                    #region Reclaim Validation
-
-                    var _reclaimValid = true;
-                    if (WipRecord.IsReclaim == Model.Enumerations.Complete.Y)
-                    {
-                        _reclaimValid = int.TryParse(WipRecord.ReclaimObject.Quantity, out int rRef) && rRef > 0;
-                    }
-
-                    #endregion
-
-                    #region Labor Validation
-
-                    var _laborValid = true;
-                    _laborValid = WipRecord.CrewList != null;
-                    if (WipRecord.CrewList.Count(o => !string.IsNullOrEmpty(o.Name)) == 0)
-                    {
-                        _laborValid = false;
-                    }
-                    else
-                    {
-                        _laborValid = true;
-                    }
-
-                    #endregion
-
+                    var _baseValid = CoreValidation();
+                    var _scrapValid = ScrapValidation();
+                    var _laborValid = WipRecord.CrewList != null && WipRecord.CrewList.Count(o => !string.IsNullOrEmpty(o.Name)) > 0;
+                    var _reclaimValid = WipRecord.IsReclaim == Model.Enumerations.Complete.N 
+                        || (WipRecord.IsReclaim == Model.Enumerations.Complete.Y && int.TryParse(WipRecord.ReclaimObject.Quantity, out int rRef) && rRef > 0);
                     var _multiValid = !WipRecord.IsMulti || (WipRecord.IsMulti && WipRecord.RollQty > 0);
-                    return _baseValid && _scrapValid && _reclaimValid && _multiValid && _laborValid;
+                    var _defectValid = DefectList.Count() == 0 || (DefectList.Count() > 0 && (NotApply || DefectList.Count(o => o.IsSelected) > 0));
+
+                    return _baseValid && _scrapValid && _reclaimValid && _multiValid && _laborValid && _defectValid;
                 }
                 else
                 {

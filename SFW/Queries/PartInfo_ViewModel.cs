@@ -494,6 +494,7 @@ namespace SFW.Queries
         /// <param name="parameter"></param>
         private void MoveExecute(object parameter)
         {
+            //TODO:fix the bot
             /*var _ohQty = Sku.GetLocationQuantity(Part.SkuNumber, FromLocation);
             if (_ohQty < Convert.ToInt32(QuantityInput) && Part.IsLotTrace)
             {

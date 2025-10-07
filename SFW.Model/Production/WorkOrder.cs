@@ -1,4 +1,5 @@
 ﻿using SFW.Model.Product;
+using SFW.Model.SupplyChain;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -198,9 +199,12 @@ ORDER BY
         /// Will create a new WorkOrder Object based on a Work Order Number
         /// </summary>
         /// <param name="woNumber">Work Order Number</param>
-        public WorkOrder(string woNumber)
+        /// <param name="type">Type of work order to load</param>
+        public WorkOrder(string woNumber, char type)
         {
-            var _rows = MasterDataSet.Tables[new WorkOrder().GetType().Name].Select($"[WorkOrder] = '{woNumber}'");
+            var _rows = type == 'W'
+                ? MasterDataSet.Tables[typeof(WorkOrder).Name].Select($"[WorkOrder] = '{woNumber}'")
+                : MasterDataSet.Tables[typeof(WorkPlan).Name].Select($"[WorkOrder] = '{woNumber}'");
             Product = new Sku();
             WorkCenter = new Machine();
             if (_rows.Length > 0)
@@ -309,19 +313,19 @@ ORDER BY
         {
             if (string.IsNullOrEmpty(machName) && pri == 0)
             {
-                return MasterDataSet.Tables[new WorkOrder().GetType().Name].Select($"[WorkOrder] = '{woNumber}'").Length > 0;
+                return MasterDataSet.Tables[typeof(WorkOrder).Name].Select($"[WorkOrder] = '{woNumber}'").Length > 0;
             }
             else if (string.IsNullOrEmpty(machName) && pri != 0)
             {
-                return MasterDataSet.Tables[new WorkOrder().GetType().Name].Select($"[WorkOrder] = '{woNumber}' AND [Sched_Priority] = {pri}").Length > 0;
+                return MasterDataSet.Tables[typeof(WorkOrder).Name].Select($"[WorkOrder] = '{woNumber}' AND [Sched_Priority] = {pri}").Length > 0;
             }
             else if (!string.IsNullOrEmpty(machName) && pri == 0)
             {
-                return MasterDataSet.Tables[new WorkOrder().GetType().Name].Select($"[WorkOrder] = '{woNumber}' AND [MachineName] = '{machName}'").Length > 0;
+                return MasterDataSet.Tables[typeof(WorkOrder).Name].Select($"[WorkOrder] = '{woNumber}' AND [MachineName] = '{machName}'").Length > 0;
             }
             else
             {
-                return MasterDataSet.Tables[new WorkOrder().GetType().Name].Select($"[WorkOrder] = '{woNumber}' AND [MachineName] = '{machName}' AND [Sched_Priority] = {pri}").Length > 0;
+                return MasterDataSet.Tables[typeof(WorkOrder).Name].Select($"[WorkOrder] = '{woNumber}' AND [MachineName] = '{machName}' AND [Sched_Priority] = {pri}").Length > 0;
             }
         }
 
@@ -333,7 +337,7 @@ ORDER BY
         public static List<WorkOrder> GetWorkOrderPriList(string machineName)
         {
             var _tempList = new List<WorkOrder>();
-            var _rows = MasterDataSet.Tables[new WorkOrder().GetType().Name].Select($"[MachineName] = '{machineName}' AND [Sched_Priority] <> 999 AND [Status] <> 'C'");
+            var _rows = MasterDataSet.Tables[typeof(WorkOrder).Name].Select($"[MachineName] = '{machineName}' AND [Sched_Priority] <> 999 AND [Status] <> 'C'");
             if (_rows.Length > 0)
             {
                 foreach (var _row in _rows)

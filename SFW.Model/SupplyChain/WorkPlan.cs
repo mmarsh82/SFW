@@ -64,7 +64,7 @@ namespace SFW.Model.SupplyChain
                 var _rtnCol = new ObservableCollection<string> { "All" };
                 if (MasterDataSet.Tables.Contains(typeof(WorkPlan).Name) && MasterDataSet.Tables[typeof(WorkPlan).Name].Rows.Count > 0)
                 {
-                    var _results = MasterDataSet.Tables[new WorkPlan().GetType().Name].AsDataView().ToTable(true, "PlannerName");
+                    var _results = MasterDataSet.Tables[typeof(WorkPlan).Name].AsDataView().ToTable(true, "PlannerName");
                     foreach (DataRow _result in _results.Rows)
                     {
                         _rtnCol.Add(_result.Field<string>("PlannerName"));

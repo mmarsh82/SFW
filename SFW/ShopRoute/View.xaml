@@ -4,36 +4,122 @@
              xmlns:cvtr="clr-namespace:SFW.Converters"
              xmlns:cmd="clr-namespace:SFW.Commands"
              xmlns:main="clr-namespace:SFW"
+             xmlns:sys="clr-namespace:System;assembly=mscorlib"
              x:Name="ShopRouteUserControl">
 
     <ScrollViewer x:Name="MainScroll" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" Margin="0,0,0,20" VerticalAlignment="Top">
         <Grid AllowDrop="{Binding Path=(main:CurrentUser.CanDeviate)}" Drop="Deviation_Drop">
 
             <!--#region Resources -->
-            
+
             <Grid.Resources>
                 <cvtr:StringToVisibility x:Key="StringToVisConverter"/>
                 <cvtr:StringConcat x:Key="StringCombineConverter"/>
                 <cvtr:CountToVisibility x:Key="CountToVisConverter"/>
                 <cvtr:SkuMasterPrint x:Key="PartSearchConverter"/>
                 <cvtr:BoolToVisibility x:Key="BoolToVisConverter"/>
-                <cvtr:DateToVisibility x:Key="DateToVisConverter" />
+                <cvtr:DateToVisibility x:Key="DateToVisConverter"/>
                 <cvtr:ValueToHeight x:Key="ValueToHeightConverter"/>
                 <cvtr:MultiValueParameter x:Key="MultiValConverter"/>
-                <cvtr:NegativeIntToBool x:Key="NegIntToBoolConverter" />
+                <cvtr:NegativeIntToBool x:Key="NegIntToBoolConverter"/>
                 <cvtr:BoolInverter x:Key="BoolInvertConverter"/>
                 <cvtr:WipEnabled x:Key="WipEnabled"/>
-                <cmd:ViewLoad x:Key="ViewLoadCommand" />
+                <cmd:ViewLoad x:Key="ViewLoadCommand"/>
                 <cmd:M2kLookQuery x:Key="ShowQuery"/>
                 <cmd:PartSearch x:Key="PartSearchICommand"/>
-                <cmd:SetUpInformation x:Key="SetupCommand" />
+                <cmd:SetUpInformation x:Key="SetupCommand"/>
                 <cmd:TrimmingInformation x:Key="TrimSetupICommand"/>
-                <cmd:M2kWipReceipt x:Key="WipCommand" />
-                <cmd:M2kLabor x:Key="LaborCommand" />
-                <cmd:WorkInstructions x:Key="WorkInstICommand" />
-                <cmd:M2kLookQuery x:Key="LookQueryCommand" />
-                <cmd:LoadNcr x:Key="LoadNcrCommand" />
-                <main:CurrentUser x:Key="User" />
+                <cmd:M2kWipReceipt x:Key="WipCommand"/>
+                <cmd:M2kLabor x:Key="LaborCommand"/>
+                <cmd:WorkInstructions x:Key="WorkInstICommand"/>
+                <cmd:M2kLookQuery x:Key="LookQueryCommand"/>
+                <cmd:LoadNcr x:Key="LoadNcrCommand"/>
+                <main:CurrentUser x:Key="User"/>
+
+                <DataGridTextColumn x:Key="dgLotColumn"
+                                    Header=" Lot Number  "
+                                    Binding="{Binding LotNumber}"
+                                    Visibility="{Binding Source={x:Reference MainScroll}, Path=DataContext.ItemIsLotTrace, Converter={StaticResource BoolToVisConverter}}"/>
+
+                <DataGridTextColumn x:Key="dgBomLotColumn"
+                                    Header=" Lot Number  "
+                                    Binding="{Binding LotNumber}"
+                                    Visibility="{Binding Source={x:Reference MainScroll}, Path=DataContext.ItemIsLotTrace, Converter={StaticResource BoolToVisConverter}}"/>
+
+                <DataGridTemplateColumn x:Key="dgDefectColumn"
+                                        Header="Defects"
+                                        Visibility="{Binding Source={x:Reference MainScroll}, Path=DataContext.ItemIsLotTrace, Converter={StaticResource BoolToVisConverter}}">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <ItemsControl x:Name="DefectIC"
+                                          ItemsSource="{Binding DefectList}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <VirtualizingStackPanel IsItemsHost="True" Orientation="Horizontal" />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+
+                                        <Button Content="{Binding}"
+                                                Margin="3,0,3,0"
+                                                Width="50"
+                                                Command="{StaticResource LoadNcrCommand}"
+                                                Style="{DynamicResource DefaultButton}">
+                                            <Button.CommandParameter>
+                                                <MultiBinding Converter="{StaticResource StringCombineConverter}" ConverterParameter="^">
+                                                    <Binding />
+                                                    <Binding Source="{x:Reference MainScroll}" Path="DataContext.SelectedOrder"/>
+                                                </MultiBinding>
+                                            </Button.CommandParameter>
+                                        </Button>
+
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+
+                            </ItemsControl>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+
+                <DataGridTemplateColumn x:Key="dgBomDefectColumn"
+                        Header="Defects"
+                        Visibility="{Binding Source={x:Reference MainScroll}, Path=DataContext.ItemIsLotTrace, Converter={StaticResource BoolToVisConverter}}">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <ItemsControl x:Name="DefectIC"
+                          ItemsSource="{Binding DefectList}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <VirtualizingStackPanel IsItemsHost="True" Orientation="Horizontal" />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+
+                                        <Button Content="{Binding}"
+                                                Margin="3,0,3,0"
+                                                Width="50"
+                                                Command="{StaticResource LoadNcrCommand}"
+                                                Style="{DynamicResource DefaultButton}">
+                                            <Button.CommandParameter>
+                                                <MultiBinding Converter="{StaticResource StringCombineConverter}" ConverterParameter="^">
+                                                    <Binding />
+                                                    <Binding Source="{x:Reference MainScroll}" Path="DataContext.SelectedOrder"/>
+                                                </MultiBinding>
+                                            </Button.CommandParameter>
+                                        </Button>
+                                        
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+
+                            </ItemsControl>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+
             </Grid.Resources>
 
             <!--#endregion-->
@@ -46,6 +132,26 @@
                        VerticalAlignment="Center"
                        Visibility="{Binding ShopOrder.OrderNumber, Converter={StaticResource StringToVisConverter}, ConverterParameter=i}"/>
 
+            <Button Content="Start Setup"
+                    FontSize="24"
+                    Width="160"
+                    Height="40"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Visibility="Hidden"
+                    Style="{DynamicResource DefaultButton}"/>
+
+            <Button Content="Skip Setup"
+                    FontSize="24"
+                    Width="160"
+                    Height="40"
+                    Margin="0,100,0,0"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Visibility="Hidden"
+                    Style="{DynamicResource DefaultButton}"/>
+
+            <!-- <Grid Margin="10,0,10,0" Visibility="Hidden"> -->
             <Grid Margin="10,0,10,0" Visibility="{Binding ShopOrder.OrderNumber, Converter={StaticResource StringToVisConverter}, ConverterParameter=Hide}">
 
                 <Grid.RowDefinitions>
@@ -209,7 +315,8 @@
                                Foreground="#FF135185"
                                TextDecorations="Underline"/>
 
-                    <TextBlock Text="{Binding ShopOrder.OrderNumber}"
+                    <TextBlock x:Name="tbOrderNumber"
+                               Text="{Binding ShopOrder.OrderNumber}"
                                FontSize="32"
                                FontWeight="Bold"
                                Margin="10,0,0,0" />
@@ -870,7 +977,7 @@
                             <Grid>
 
                                 <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="350"/>
+                                    <ColumnDefinition Width="500"/>
                                     <ColumnDefinition Width="350"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
@@ -994,6 +1101,13 @@
 
                                 <Grid Grid.ColumnSpan="2" Grid.Row="2">
 
+                                    <Control Background="Transparent"
+                                             VerticalAlignment="Center"
+                                             HorizontalAlignment="Center"
+                                             Margin="0,50,0,0"
+                                             Visibility="{Binding LotListLoading, Converter={StaticResource BoolToVisConverter}}"
+                                             Style="{DynamicResource BusyAnimationStyle}" />
+
                                     <TextBlock Text="{Binding LotListText}"
                                                FontSize="24"
                                                FontWeight="Bold"
@@ -1002,10 +1116,11 @@
                                                VerticalAlignment="Center"
                                                Visibility="{Binding LotList.Count, Converter={StaticResource CountToVisConverter}}"/>
 
-                                    <DataGrid ItemsSource="{Binding ILotResultsList}"
-                                              Visibility="{Binding NoLotResults, ConverterParameter=i, Converter={StaticResource BoolToVisConverter}}"
+                                    <DataGrid x:Name="dgLotResult"
+                                              ItemsSource="{Binding ILotResultsList, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                               HorizontalAlignment="Left"
                                               VerticalAlignment="Top"
+                                              MaxWidth="500"
                                               FontSize="18"
                                               FontWeight="Bold"
                                               RowHeaderWidth="0"
@@ -1013,9 +1128,14 @@
                                               AutoGenerateColumns="False"
                                               IsReadOnly="True"
                                               ColumnHeaderStyle="{DynamicResource ModernColumnHeader}">
+                                        <DataGrid.Visibility>
+                                            <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="0*0">
+                                                <Binding Path="NoLotResults"/>
+                                                <Binding Path="LotListLoading"/>
+                                            </MultiBinding>
+                                        </DataGrid.Visibility>
                                         <DataGrid.Columns>
-                                            <DataGridTextColumn Header=" Lot Number  "
-                                                                Binding="{Binding LotNumber}" />
+                                            <StaticResource ResourceKey="dgLotColumn"/>
                                             <DataGridTextColumn Header=" On Hand "
                                                                 Binding="{Binding Onhand}">
                                                 <DataGridTextColumn.CellStyle>
@@ -1034,6 +1154,8 @@
                                             </DataGridTextColumn>
                                             <DataGridTextColumn Header=" Location "
                                                                 Binding="{Binding Location}" />
+                                            <StaticResource ResourceKey="dgDefectColumn"/>
+
                                         </DataGrid.Columns>
 
                                     </DataGrid>
@@ -1165,6 +1287,22 @@
                                                                 Style="{DynamicResource DefaultButton}">
                                                             <Image Source="/SFW;component/Icons/Search.ico" />
                                                         </Button>
+                                                        <Button Name="ACT"
+                                                                Command="{StaticResource LookQueryCommand}"
+                                                                Height="20"
+                                                                Width="40"
+                                                                Background="Transparent"
+                                                                BorderThickness="0"
+                                                                Visibility="Collapsed"
+                                                                Style="{DynamicResource DefaultButton}">
+                                                            <Image Source="/SFW;component/Icons/Help.ico" />
+                                                            <Button.CommandParameter>
+                                                                <MultiBinding Converter="{StaticResource MultiValConverter}">
+                                                                    <Binding Path="Name" RelativeSource="{RelativeSource Self}"/>
+                                                                    <Binding Path="ProductNumber"/>
+                                                                </MultiBinding>
+                                                            </Button.CommandParameter>
+                                                        </Button>
                                                         <TextBlock Text="{Binding ProductNumber}"
                                                                    Margin="20,0,5,0"/>
                                                     </StackPanel>
@@ -1192,6 +1330,13 @@
                                 <Grid Grid.Column="1" Grid.RowSpan="2"
                                       Margin="10,0,0,0">
 
+                                    <Control Background="Transparent"
+                                             VerticalAlignment="Center"
+                                             HorizontalAlignment="Center"
+                                             Margin="0,50,0,0"
+                                             Visibility="{Binding LotListLoading, Converter={StaticResource BoolToVisConverter}}"
+                                             Style="{DynamicResource BusyAnimationStyle}" />
+
                                     <TextBlock Text="{Binding LotListText}"
                                                FontSize="24"
                                                FontWeight="Bold"
@@ -1200,21 +1345,26 @@
                                                VerticalAlignment="Center"
                                                Visibility="{Binding LotList.Count, Converter={StaticResource CountToVisConverter}}"/>
 
-                                    <DataGrid ItemsSource="{Binding ILotResultsList}"
-                                              Visibility="{Binding NoLotResults, ConverterParameter=i, Converter={StaticResource BoolToVisConverter}}"
+                                    <DataGrid x:Name="dgBomLotResult"
+                                              ItemsSource="{Binding ILotResultsList, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                               HorizontalAlignment="Left"
                                               VerticalAlignment="Top"
+                                              MaxWidth="500"
                                               FontSize="18"
                                               FontWeight="Bold"
                                               RowHeaderWidth="0"
                                               AlternatingRowBackground="LightGray"
                                               AutoGenerateColumns="False"
                                               IsReadOnly="True"
-                                              MaxHeight="355"
                                               ColumnHeaderStyle="{DynamicResource ModernColumnHeader}">
+                                        <DataGrid.Visibility>
+                                            <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="0*0">
+                                                <Binding Path="NoLotResults"/>
+                                                <Binding Path="LotListLoading"/>
+                                            </MultiBinding>
+                                        </DataGrid.Visibility>
                                         <DataGrid.Columns>
-                                            <DataGridTextColumn Header=" Lot Number  "
-                                                                Binding="{Binding LotNumber}" />
+                                            <StaticResource ResourceKey="dgBomLotColumn"/>
                                             <DataGridTextColumn Header=" On Hand "
                                                                 Binding="{Binding Onhand}">
                                                 <DataGridTextColumn.CellStyle>
@@ -1233,6 +1383,8 @@
                                             </DataGridTextColumn>
                                             <DataGridTextColumn Header=" Location "
                                                                 Binding="{Binding Location}" />
+                                            <StaticResource ResourceKey="dgBomDefectColumn"/>
+
                                         </DataGrid.Columns>
 
                                     </DataGrid>

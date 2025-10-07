@@ -113,7 +113,10 @@ namespace SFW.Schedule.Plan
                 SelectedDate = DateTime.Today.AddMonths(1);
                 PlannerCollection = WorkPlan.GetPlannerCollection();
                 SelectedPlanner = PlannerCollection[0];
-                Initialize();
+                if (ModelBase.MasterDataSet.Tables.Contains(typeof(WorkPlan).Name))
+                {
+                    Initialize();
+                }
             }
         }
 
@@ -146,6 +149,43 @@ namespace SFW.Schedule.Plan
         /// <summary>
         /// Refresh action for the schedule data
         /// </summary>
+        public override void Refresh()
+        {
+            try
+            {
+                if (ModelBase.MasterDataSet.Tables.Contains(typeof(WorkPlan).Name) && ((DataView)CollectionView.SourceCollection).Table == null)
+                {
+                    Initialize();
+                }
+                else
+                {
+                    var _index = CollectionView.CurrentPosition;
+                    foreach (var _keyValPair in UserConfig.GetIROD())
+                    {
+                        DataRow[] _rows = ((DataView)CollectionView.SourceCollection).Table.Select($"MachineNumber={_keyValPair.Key}");
+                        foreach (DataRow _row in _rows)
+                        {
+                            var _rIndex = ((DataView)CollectionView.SourceCollection).Table.Rows.IndexOf(_row);
+                            ((DataView)CollectionView.SourceCollection).Table.Rows[_rIndex].SetField("MachineOrder", _keyValPair.Value);
+                        }
+                    }
+                    ((DataView)CollectionView.SourceCollection).Sort = "MachineOrder, MachineGroup, MachineNumber, WO_Priority, Sched_Shift, Sched_Priority";
+                    Application.Current?.Dispatcher.Invoke(new Action(delegate { CollectionView.Refresh(); }));
+                    if (CollectionView != null)
+                    {
+                        Application.Current?.Dispatcher.Invoke(new Action(delegate { CollectionView.MoveCurrentToPosition(_index); }));
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Prod Unhandled Exception", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        /// <summary>
+        /// Refresh action for the schedule data
+        /// </summary>
         public override void Initialize()
         {
             try
@@ -153,19 +193,28 @@ namespace SFW.Schedule.Plan
                 if (ModelBase.MasterDataSet.Tables.Contains(typeof(WorkPlan).Name))
                 {
                     var _tempTable = ModelBase.MasterDataSet.Tables[typeof(WorkPlan).Name];
-                    if (_tempTable != null)
+                    foreach (var _keyValPair in UserConfig.GetIROD())
                     {
-                        _tempTable.DefaultView.Sort = "MachineOrder ASC";
+                        DataRow[] _rows = _tempTable.Select($"MachineNumber={_keyValPair.Key}");
+                        foreach (DataRow _row in _rows)
+                        {
+                            var _index = _tempTable.Rows.IndexOf(_row);
+                            _tempTable.Rows[_index].SetField("MachineOrder", _keyValPair.Value);
+                        }
                     }
-                    CollectionView = new ListCollectionView(_tempTable.AsDataView());
+                    var _tempDataView = _tempTable.AsDataView();
+                    _tempDataView.Sort = "MachineOrder, MachineGroup, MachineNumber, WO_Priority, Sched_Shift, Sched_Priority";
+                    CollectionView = new ListCollectionView(_tempDataView);
                     if (CollectionView.GroupDescriptions.Count() != 0)
                     {
                         Application.Current?.Dispatcher.Invoke(new Action(delegate { CollectionView.GroupDescriptions.Clear(); }));
                     }
-                    Application.Current?.Dispatcher.Invoke(new Action(delegate 
-                    { 
+                    Application.Current?.Dispatcher.Invoke(new Action(delegate
+                    {
+                        CollectionView.GroupDescriptions.Add(new PropertyGroupDescription("MachineGroup"));
                         CollectionView.GroupDescriptions.Add(new PropertyGroupDescription("MachineNumber", new WorkCenterNameConverter()));
                     }));
+
                     OnPropertyChanged(nameof(CollectionView));
                     Application.Current?.Dispatcher.Invoke(new Action(delegate { CollectionView.Refresh(); }));
                     CollectionView.CurrentChanged += CollectionView_ItemChanged;
@@ -173,7 +222,7 @@ namespace SFW.Schedule.Plan
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message, "Planning Unhandled Exception", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show(ex.Message, "Plan Unhandled Exception", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 

@@ -92,7 +92,13 @@ namespace SFW.Model.Quality
         #endregion
 
         /// <summary>
-        /// NCR revisions default constructor
+        /// Default Constructor
+        /// </summary>
+        public Revision()
+        { }
+
+        /// <summary>
+        /// NCR revisions Overridden constructor
         /// </summary>
         public Revision(Management.Employee submitter, FormType type)
         {

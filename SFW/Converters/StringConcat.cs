@@ -41,6 +41,15 @@ namespace SFW.Converters
             {
                 return $"{parameter}*{values.FirstOrDefault()}";
             }
+            else if (parameter != null && values.Length > 1)
+            {
+                var _rtnStr = string.Empty;
+                foreach (var _val in values.Where(o => o != null && o != DependencyProperty.UnsetValue))
+                {
+                    _rtnStr = string.IsNullOrEmpty(_rtnStr) ? _val.ToString() : $"{_rtnStr}{parameter}{_val}";
+                }
+                return _rtnStr;
+            }
             else
             {
                 return string.Empty;
