@@ -233,6 +233,60 @@ GROUP BY
         }
 
         /// <summary>
+        /// Load a list with all the NCR information
+        /// </summary>
+        /// <param name="lotId">Lot ID</param>
+        /// <param name="sqlCon">Sql Connection to use</param>
+        /// <returns>A list of NCR ID's based on a lot ID</returns>
+        public static IList<string> GetNcrList(string lotId, SqlConnection sqlCon)
+        {
+            var _rtnList = new List<string>();
+            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
+            {
+                try
+                {
+                    var _lotString = "";
+                    foreach (var _lotId in lotIdList)
+                    {
+                        var _lot = _lotId;
+                        if (!_lot.Contains("|"))
+                        {
+                            _lot = $"{_lotId}|P|01";
+                        }
+                        _lotString = string.IsNullOrEmpty(_lotString) ? $"[LotId] = '{_lot}'" : $" OR [LotId] = '{_lot}'";
+                    }
+                    var _cmdString = $@"SELECT ncrLot.[NcrId] FROM [dbo].[SFW_DefectLotLink] ncrLot WHERE {_lotString}";
+                    using (SqlCommand cmd = new SqlCommand(_cmdString, sqlCon))
+                    {
+                        using (SqlDataReader reader = cmd.ExecuteReader())
+                        {
+                            if (reader.HasRows)
+                            {
+                                while (reader.Read())
+                                {
+                                    _rtnList.Add(reader.SafeGetString("NcrId"));
+                                }
+                            }
+                        }
+                    }
+                    return _rtnList;
+                }
+                catch (SqlException)
+                {
+                    return null;
+                }
+                catch (Exception)
+                {
+                    return null;
+                }
+            }
+            else
+            {
+                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
+            }
+        }
+
+        /// <summary>
         /// Validated if a lot is attached to an NCR
         /// </summary>
         /// <param name="ncrId">Ncr object ID</param>
