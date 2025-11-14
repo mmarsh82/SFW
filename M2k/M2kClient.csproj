@@ -53,6 +53,9 @@
     <Compile Include="CompletionFlag.cs" />
     <Compile Include="Database.cs" />
     <Compile Include="Extensions.cs" />
+    <Compile Include="M2kADIArray\Method.cs" />
+    <Compile Include="M2kADIArray\SaleLine.cs" />
+    <Compile Include="M2kADIArray\Sale.cs" />
     <Compile Include="M2kADIArray\Adjust.cs" />
     <Compile Include="M2kADIArray\CodeType.cs" />
     <Compile Include="M2kADIArray\CompInfo.cs" />

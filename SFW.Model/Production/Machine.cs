@@ -35,7 +35,7 @@ namespace SFW.Model.Production
                     var _selectCmd = string.Empty;
                     try
                     {
-                        using (SqlDataAdapter adapter = new SqlDataAdapter($"USE [{sqlCon.Database}]; SELECT * FROM [dbo].[SFW_Machine] WHERE [Site] = @p1", sqlCon))
+                        using (SqlDataAdapter adapter = new SqlDataAdapter($"USE [{sqlCon.Database}]; SELECT * FROM [dbo].[SFW_Machine] WHERE [Site] = @p1 ORDER BY [Name]", sqlCon))
                         {
                             adapter.SelectCommand.Parameters.AddWithValue("p1", site);
                             adapter.Fill(_tempTable);

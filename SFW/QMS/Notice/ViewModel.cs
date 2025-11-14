@@ -125,7 +125,6 @@ namespace SFW.QMS.Notice
         {
             try
             {
-                Application.Current?.Dispatcher.Invoke(new Action(delegate { CollectionView.DeferRefresh(); }));
                 var _tempTable = ModelBase.MasterDataSet.Tables.Contains(typeof(Model.Quality.Notice).Name)
                     ? ModelBase.MasterDataSet.Tables[typeof(Model.Quality.Notice).Name].Select("[NcrRevisionId] = [RevisionFilter]").CopyToDataTable().AsDataView()
                     : null;
@@ -144,7 +143,10 @@ namespace SFW.QMS.Notice
                 }));
                 CollectionView.CurrentChanged += CollectionView_ItemChanged;
                 OnPropertyChanged(nameof(CollectionView));
-                Application.Current?.Dispatcher.Invoke(new Action(delegate { CollectionView.Refresh(); }));
+                if(App.LoadedModule == Enumerations.UsersControls.Quality)
+                {
+                    Application.Current?.Dispatcher.Invoke(new Action(delegate { CollectionView.Refresh(); }));
+                }
             }
             catch (Exception ex)
             {
@@ -177,14 +179,14 @@ namespace SFW.QMS.Notice
                         }
                     }
                 }
-                if (CollectionView != null && _index > 0)
+                if (CollectionView != null && _index > 0 && App.LoadedModule == Enumerations.UsersControls.Quality)
                 {
                     Application.Current?.Dispatcher.Invoke(new Action(delegate { CollectionView.MoveCurrentToPosition(_index); }));
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"{ex.Message}\n\nPlease contact IT with this error.", "Unhandled Exception", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"{ex.Message}\n\nPlease contact IT with this error.", "QMS Unhandled Exception", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 

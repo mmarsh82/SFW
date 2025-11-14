@@ -240,7 +240,7 @@ namespace SFW.Controls
                 }
                 if (CurrentUser.IsInventoryControl)
                 {
-                    ApplicationTimer.ActionList.Add(((CycleCount.Sched_ViewModel)((CycleCount.Sched_View)CountDock.Children[0]).DataContext).RefreshSchedule);
+                    ApplicationTimer.ActionList.Add(((CycleCount.Sched_ViewModel)((CycleCount.Sched_View)CountDock.Children[0]).DataContext).Refresh);
                 }
                 if (CurrentUser.IsQuality)
                 {

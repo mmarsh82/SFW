@@ -108,10 +108,11 @@ namespace SFW
                     CleanActionList(ActionList);
                     ModelBase.LoadedModules.Clear();
                     ModelBase.LoadedModules = Module.GetModuleList(CurrentUser.Modules);
-                    foreach (var _mod in ModelBase.LoadedModules)
+                    for (int i = 0; i < ModelBase.LoadedModules.Count(); i++)
                     {
                         try
                         {
+                            var _mod = ModelBase.LoadedModules[i];
                             TickMessage = $"{_mod.Group}.{_mod.TableType.Name}";
                             StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(TickMessage)));
                             if (!ModelBase.MasterDataSet.Tables.Contains(_mod.TableType.Name))

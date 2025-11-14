@@ -31,7 +31,7 @@ namespace SFW.Model.Quality
                 {
                     try
                     {
-                        using (SqlDataAdapter adapter = new SqlDataAdapter($@"SELECT * FROM [dbo].[DEFECT-CSTM_Disposition] WHERE [ID] <> 7", sqlCon))
+                        using (SqlDataAdapter adapter = new SqlDataAdapter($@"SELECT * FROM [dbo].[DEFECT-CSTM_Disposition] WHERE [Status] = 'Active'", sqlCon))
                         {
                             adapter.Fill(_dt);
                         }

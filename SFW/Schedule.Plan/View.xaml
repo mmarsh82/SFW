@@ -176,6 +176,19 @@
                             Background="LightGray"
                             SelectedDate="{Binding SelectedDate, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
 
+                <Button Margin="5"
+                        Command="{Binding RefreshICommand}"
+                        IsEnabled="{Binding RefreshCanExecute}"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        ToolTip="Refresh the schedule."
+                        Style="{DynamicResource ResourceKey=DefaultButton}">
+                    <Image Source="/SFW;component/Icons/Refresh.ico"/>
+                    <Button.Effect>
+                        <DropShadowEffect Opacity="0"/>
+                    </Button.Effect>
+                </Button>
+
             </StackPanel>
 
         </Grid>

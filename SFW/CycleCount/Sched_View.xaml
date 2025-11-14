@@ -10,11 +10,6 @@
     <UserControl.Resources>
         <cmd:ViewLoad x:Key="ViewLoadCommand" />
         <cvtr:BoolToVisibility x:Key="BoolToVisConverter"/>
-        <CollectionViewSource x:Key="CountSource" Source="{Binding CountView}">
-            <CollectionViewSource.GroupDescriptions>
-                <PropertyGroupDescription PropertyName="CountLoc"/>
-            </CollectionViewSource.GroupDescriptions>
-        </CollectionViewSource>
     </UserControl.Resources>
 
     <Grid>
@@ -78,16 +73,14 @@
 
         <DataGrid x:Name="CountSchedule"
                   Grid.Row="1"
-                  ItemsSource="{Binding Source={StaticResource CountSource}}"
-                  SelectedItem="{Binding SelectedCount, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                  ItemsSource="{Binding CollectionView}"
+                  IsSynchronizedWithCurrentItem="True"
                   HorizontalAlignment="Left"
                   HeadersVisibility="None"
                   AutoGenerateColumns="False"
                   CanUserAddRows="False"
                   IsReadOnly="True"
                   SelectionMode="Single"
-                  IsSynchronizedWithCurrentItem="True"
-                  VirtualizingStackPanel.VirtualizationMode ="Recycling"
                   VirtualizingPanel.IsVirtualizingWhenGrouping="True"
                   ScrollViewer.CanContentScroll="True">
 

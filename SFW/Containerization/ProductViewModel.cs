@@ -8,6 +8,7 @@ using System.Data;
 using System.Linq;
 using System.Windows;
 using System.Windows.Input;
+using Forms = System.Windows.Forms;
 
 namespace SFW.Containerization
 {
@@ -31,6 +32,28 @@ namespace SFW.Containerization
         }
 
         public DataView ContainerView { get; set; }
+
+        private bool _statusFltr;
+        public bool StatusFilter
+        {
+            get
+            { return _statusFltr; }
+            set
+            {
+                _statusFltr = value;
+                if (value)
+                {
+                    NoticeFilter("[Status] = 'A'", 1);
+                }
+                else
+                {
+                    NoticeFilter("[Status] = 'S'", 1);
+                }
+                OnPropertyChanged(nameof(StatusFilter));
+                OnPropertyChanged(nameof(StatusText));
+            }
+        }
+        public string StatusText { get { return StatusFilter ? "Active:" : "Shipped:"; } }
 
         private DataRowView _selProduct;
         public DataRowView SelectedProduct
@@ -117,11 +140,14 @@ namespace SFW.Containerization
 
         public bool HasContainers { get { return ContainerView.Count > 0; } }
         public bool ShowProduct { get { return HasContainers || SelectedProduct != null || NewContainer; } }
+        public bool HasDims { get { return ContainerObject?.Height > 0 && ContainerObject?.Length > 0 && ContainerObject?.Depth > 0; } }
 
         RelayCommand _refresh;
         RelayCommand _addCon;
         RelayCommand _addPrt;
         RelayCommand _submit;
+        RelayCommand _update;
+        RelayCommand _ship;
         RelayCommand _delete;
         RelayCommand _print;
         RelayCommand _cancel;
@@ -138,6 +164,7 @@ namespace SFW.Containerization
             ContainerView = SkuContainer.GetContainerData(App.AppSqlCon).AsDataView();
             NewContainer = false;
             ViewFilter = new string[2];
+            StatusFilter = true;
             OnPropertyChanged(nameof(HasContainers));
             OnPropertyChanged(nameof(ShowProduct));
         }
@@ -351,6 +378,50 @@ namespace SFW.Containerization
 
         #endregion
 
+        #region Update ICommand
+
+        public ICommand UpdateICommand
+        {
+            get
+            {
+                if (_update == null)
+                {
+                    _update = new RelayCommand(UpdateExecute);
+                }
+                return _update;
+            }
+        }
+
+        private void UpdateExecute(object parameter)
+        {
+            SkuContainer.UpdateHeader(ContainerObject, CurrentUser.ErpId, App.AppSqlCon);
+        }
+
+        #endregion
+
+        #region Ship ICommand
+
+        public ICommand ShipICommand
+        {
+            get
+            {
+                if (_ship == null)
+                {
+                    _ship = new RelayCommand(ShipExecute, ShipCanExecute);
+                }
+                return _ship;
+            }
+        }
+
+        private void ShipExecute(object parameter)
+        {
+            
+        }
+
+        private bool ShipCanExecute(object parameter) => ContainerObject != null && ContainerObject.Weight > 0 && !string.IsNullOrEmpty(ContainerObject.SalesOrderNumber) && HasDims;
+
+        #endregion
+
         #region Delete ICommand
 
         public ICommand DeleteICommand
@@ -402,8 +473,8 @@ namespace SFW.Containerization
             foreach (var _item in ContainerObject.ProductCollection)
             {
                 _itemString += _counter <= 8
-                    ? $"^FT{_rowPos},1875^A0B,50,51^FH\\^CI28^FD{_item.ProductId}^FS^CI27^FT{_rowPos},1485^A0B,50,51^FH\\^CI28^FD{_item.LotId}^FS^CI27"
-                    : $"^FT{_rowPos},954^A0B,50,51^FH\\^CI28^FD{_item.ProductId}^FS^CI27^FT{_rowPos},564^A0B,50,51^FH\\^CI28^FD{_item.LotId}^FS^CI27";
+                    ? $"^FT{_rowPos},1875^A0B,50,51^FH\\^CI28^FD{_item.ProductId}^FS^CI27^FT{_rowPos},1485^A0B,50,51^FH\\^CI28^FD{_item.LotId}^FS^CI27^FT{_rowPos},1125^A0B,50,51^FH\\^CI28^FD{_item.Quantity}^FS^CI27"
+                    : $"^FT{_rowPos},945^A0B,50,51^FH\\^CI28^FD{_item.ProductId}^FS^CI27^FT{_rowPos},555^A0B,50,51^FH\\^CI28^FD{_item.LotId}^FS^CI27^FT{_rowPos},195^A0B,50,51^FH\\^CI28^FD{_item.Quantity}^FS^CI27";
                 _counter++;
                 _rowPos += _counter == 9 ? -532 : 76;
                 if (_counter > 16)
@@ -413,13 +484,10 @@ namespace SFW.Containerization
             }
 
             var _prtName = string.Empty;
-            foreach (string printer in System.Drawing.Printing.PrinterSettings.InstalledPrinters)
+            Forms.PrintDialog prtDialog = new Forms.PrintDialog();
+            if (prtDialog.ShowDialog() == Forms.DialogResult.OK)
             {
-                if (printer.Contains("-WAZ"))
-                {
-                    _prtName = printer;
-                    break;
-                }
+                _prtName = prtDialog.PrinterSettings.PrinterName;
             }
             if (!string.IsNullOrEmpty(_prtName))
             {
@@ -434,8 +502,8 @@ namespace SFW.Containerization
 {_itemString}
 ^FO141,1496^GB609,0,8^FS
 ^FO744,30^GB0,1890,12^FS
-^FO141,964^GB609,0,30^FS
-^FO141,576^GB609,0,8^FS
+^FO141,960^GB609,0,30^FS
+^FO141,566^GB609,0,8^FS
 ^FO141,30^GB609,0,30^FS
 ^FO141,1890^GB609,0,30^FS
 ^FO209,44^GB0,1868,3^FS
@@ -445,10 +513,16 @@ namespace SFW.Containerization
 ^FO508,44^GB0,1868,3^FS
 ^FO584,44^GB0,1868,3^FS
 ^FO659,44^GB0,1868,3^FS
-^BY10,3,300^FT1125,1453^B3B,N,,N,N
+^FO141,1136^GB609,0,8^FS
+^FO141,206^GB609,0,8^FS
+^FT875,1905^A0B,50,51^FH\^CI28^FD{ContainerObject.SalesOrderNumber}^FS^CI27
+^FT88,197^A0B,50,51^FH\^CI28^FD{ContainerObject.Weight} LBS^FS^CI27
+^FT950,1905^A0B,50,51^FH\^CI28^FD{ContainerObject.CustomerNumber}  {ContainerObject.CustomerName}^FS^CI27
+^FT1112,1905^A0B,50,51^FH\^CI28^FD{ContainerObject.Height} x {ContainerObject.Length} x {ContainerObject.Depth}^FS^CI27
+^BY10,3,300^FT1125,995^B3B,N,,N,N
 ^FD{_cntId}^FS
 ^PQ1,0,1,Y
-^XZ";
+^XZ ";
                 RawPrinter.SendStringToPrinter(_prtName, s, 1);
             }
         }

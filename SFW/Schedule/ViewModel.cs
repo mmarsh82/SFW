@@ -150,10 +150,13 @@ namespace SFW.Schedule
                     }
                 }
                 ((DataView)CollectionView.SourceCollection).Sort = "MachineOrder, MachineGroup, MachineNumber, WO_Priority, Sched_Shift, Sched_Priority";
-                Application.Current?.Dispatcher.Invoke(new Action(delegate { CollectionView.Refresh(); }));
-                if (CollectionView != null)
+                if (App.LoadedModule == Enumerations.UsersControls.Schedule)
                 {
-                    Application.Current?.Dispatcher.Invoke(new Action(delegate { CollectionView.MoveCurrentToPosition(_index); }));
+                    Application.Current?.Dispatcher.Invoke(new Action(delegate { CollectionView.Refresh(); }));
+                    if (CollectionView != null)
+                    {
+                        Application.Current?.Dispatcher.Invoke(new Action(delegate { CollectionView.MoveCurrentToPosition(_index); }));
+                    }
                 }
             }
             catch (Exception ex)

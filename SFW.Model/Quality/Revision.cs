@@ -87,6 +87,23 @@ namespace SFW.Model.Quality
             }
         }
 
+        private int _estLoss;
+        public int EstimatedLoss
+        {
+            get
+            { return _estLoss; }
+            set
+            {
+                _estLoss = value;
+                OnPropertyChanged(nameof(EstimatedLoss));
+                OnPropertyChanged(nameof(EstimatedCost));
+            }
+        }
+
+        public double EstimatedCost => EstimatedLoss * ProductValue;
+        private double ProductValue;
+
+
         public Supplier FormSupplier { get; set; }
 
         #endregion
@@ -127,6 +144,8 @@ namespace SFW.Model.Quality
             Current = ncrDataRow.Field<int>("RevisionFilter") == RevisionId;
             ActualCost = ncrDataRow.SafeGetField<double>("ScrapCost");
             ActualLoss = ncrDataRow.SafeGetField<int>("ScrapQuantity");
+            ProductValue = prodVal;
+            EstimatedLoss = ncrDataRow.SafeGetField<int>("EstimatedLoss");
         }
     }
 }

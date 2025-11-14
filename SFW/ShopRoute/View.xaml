@@ -203,7 +203,7 @@
                             IsEnabled="{Binding Path=(main:CurrentUser.CanLabor)}"
                             Command="{StaticResource LaborCommand}"
                             CommandParameter="{Binding ShopOrder}"
-                            Visibility="{Binding Path=(main:CurrentUser.CanLabor), Converter={StaticResource BoolToVisConverter}}"
+                            Visibility="Collapsed"
                             Style="{DynamicResource MenuButtonStyle}"/>
                     <Button Name="SetUpButton"
                             Content="Set-up Info"

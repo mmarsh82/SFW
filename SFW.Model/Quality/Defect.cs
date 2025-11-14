@@ -32,7 +32,7 @@ namespace SFW.Model.Quality
                 {
                     try
                     {
-                        using (SqlDataAdapter adapter = new SqlDataAdapter($@"SELECT * FROM [dbo].[DEFECT-CSTM_SubType]", sqlCon))
+                        using (SqlDataAdapter adapter = new SqlDataAdapter($@"SELECT * FROM [dbo].[DEFECT-CSTM_SubType] WHERE [Status] = 'Active'", sqlCon))
                         {
                             adapter.Fill(_dt);
                         }

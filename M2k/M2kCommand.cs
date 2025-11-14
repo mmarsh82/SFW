@@ -821,7 +821,13 @@ namespace M2kClient
             }
         }
 
-        //Not implemented yet
+        /// <summary>
+        /// Process a shipment entry in the current ERP system with standard ADI template
+        /// </summary>
+        /// <param name="stationId"></param>
+        /// <param name="compNbr"></param>
+        /// <param name="woNbr"></param>
+        /// <returns></returns>
         public static IReadOnlyDictionary<int, string> Shipment(string stationId, string compNbr, string woNbr)
         {
             var suffix = DateTime.Now.ToString("HHmmssfff");

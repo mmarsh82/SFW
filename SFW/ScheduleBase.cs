@@ -1,8 +1,10 @@
-﻿using System;
+﻿using SFW.Helpers;
+using System;
 using System.Data;
 using System.Linq;
 using System.Windows;
 using System.Windows.Data;
+using System.Windows.Input;
 
 namespace SFW
 {
@@ -33,6 +35,8 @@ namespace SFW
                 OnPropertyChanged(nameof(SearchFilter));
             }
         }
+
+        private RelayCommand _refresh;
 
         #endregion
 
@@ -98,7 +102,7 @@ namespace SFW
         {
             try
             {
-                var _index = CollectionView.CurrentPosition;
+                var _index = CollectionView == null ? -1 : CollectionView.CurrentPosition;
                 Application.Current?.Dispatcher.Invoke(new Action(delegate { CollectionView.Refresh(); }));
                 if (CollectionView != null)
                 {
@@ -113,5 +117,27 @@ namespace SFW
 
         public virtual void Initialize()
         { }
+
+        #region Schedule Refresh ICommand
+
+        public ICommand RefreshICommand
+        {
+            get
+            {
+                if (_refresh == null)
+                {
+                    _refresh = new RelayCommand(RefreshExecute, RefreshCanExecute);
+                }
+                return _refresh;
+            }
+        }
+
+        private void RefreshExecute(object parameter)
+        {
+            Refresh();
+        }
+        private bool RefreshCanExecute(object parameter) => ApplicationTimer.Status != TimerState.Running;
+
+        #endregion
     }
 }

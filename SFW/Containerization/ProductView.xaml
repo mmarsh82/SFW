@@ -114,6 +114,17 @@
                         Orientation="Horizontal"
                         HorizontalAlignment="Right">
 
+                <CheckBox IsChecked="{Binding StatusFilter}"
+                          VerticalAlignment="Center"
+                          HorizontalAlignment="Right"
+                          FontSize="18"
+                          Margin="0,0,10,0"
+                          ToolTip="Active and shipped filter."
+                          Style="{DynamicResource SliderCheckBox}">
+                    <TextBlock Text="{Binding StatusText}"
+                   TextDecorations="Underline"/>
+                </CheckBox>
+
                 <Button Background="Transparent"
                         BorderThickness="0"
                         Command="{Binding AddContainerICommand}">
@@ -224,6 +235,7 @@
                         <MultiDataTrigger>
                             <MultiDataTrigger.Conditions>
                                 <Condition Binding="{Binding LotTraceable}" Value="T"/>
+                                <Condition Binding="{Binding Status}" Value="A"/>
                             </MultiDataTrigger.Conditions>
                             <Setter Property="Background">
                                 <Setter.Value>
@@ -238,12 +250,43 @@
                         <MultiDataTrigger>
                             <MultiDataTrigger.Conditions>
                                 <Condition Binding="{Binding LotTraceable}" Value="N"/>
+                                <Condition Binding="{Binding Status}" Value="A"/>
                             </MultiDataTrigger.Conditions>
                             <Setter Property="Background">
                                 <Setter.Value>
                                     <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
                                         <GradientStop Color="White" Offset="0"/>
                                         <GradientStop Color="DarkOrange" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </Setter.Value>
+                            </Setter>
+                        </MultiDataTrigger>
+                        <!--Lot Traceable shipped products-->
+                        <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                                <Condition Binding="{Binding LotTraceable}" Value="T"/>
+                                <Condition Binding="{Binding Status}" Value="S"/>
+                            </MultiDataTrigger.Conditions>
+                            <Setter Property="Background">
+                                <Setter.Value>
+                                    <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                                        <GradientStop Color="White" Offset="0"/>
+                                        <GradientStop Color="#FF29D129" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </Setter.Value>
+                            </Setter>
+                        </MultiDataTrigger>
+                        <!--Non-Lot tracable shipped products-->
+                        <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                                <Condition Binding="{Binding LotTraceable}" Value="N"/>
+                                <Condition Binding="{Binding Status}" Value="S"/>
+                            </MultiDataTrigger.Conditions>
+                            <Setter Property="Background">
+                                <Setter.Value>
+                                    <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                                        <GradientStop Color="White" Offset="0"/>
+                                        <GradientStop Color="#FFF3321F" Offset="1"/>
                                     </LinearGradientBrush>
                                 </Setter.Value>
                             </Setter>
@@ -345,6 +388,24 @@
             <Button Content="Print"
                     FontSize="16"
                     Command="{Binding PrintICommand}"
+                    Style="{DynamicResource MenuButtonStyle}">
+                <Button.Visibility>
+                    <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="0*1">
+                        <Binding Path="NewContainer"/>
+                        <Binding Path="HasContainers"/>
+                    </MultiBinding>
+                </Button.Visibility>
+            </Button>
+
+            <Button Content="Update"
+                    FontSize="16"
+                    Command="{Binding UpdateICommand}"
+                    Style="{DynamicResource MenuButtonStyle}"
+                    Visibility="{Binding NewContainer, Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}"/>
+
+            <Button Content="Ship"
+                    FontSize="16"
+                    Command="{Binding ShipICommand}"
                     Style="{DynamicResource MenuButtonStyle}">
                 <Button.Visibility>
                     <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="0*1">
@@ -498,9 +559,10 @@
             <Grid.RowDefinitions>
                 <RowDefinition x:Name="Row0" Height="50"/>
                 <RowDefinition x:Name="Row1" Height="30"/>
-                <RowDefinition x:Name="Row2" Height="10"/>
-                <RowDefinition x:Name="Row3" Height="30"/>
-                <RowDefinition x:Name="Row4" Height="*"/>
+                <RowDefinition x:Name="Row2" Height="30"/>
+                <RowDefinition x:Name="Row3" Height="10"/>
+                <RowDefinition x:Name="Row4" Height="30"/>
+                <RowDefinition x:Name="Row5" Height="*"/>
             </Grid.RowDefinitions>
 
             <!--#region Container ID -->
@@ -509,11 +571,14 @@
 
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="300"/>
-                    <ColumnDefinition Width="30"/>
+                    <ColumnDefinition Width="50"/>
                     <ColumnDefinition Width="20"/>
                     <ColumnDefinition Width="40"/>
                     <ColumnDefinition Width="150"/>
-                    <ColumnDefinition Width="150"/>
+                    <ColumnDefinition Width="120"/>
+                    <ColumnDefinition Width="130"/>
+                    <ColumnDefinition Width="100"/>
+                    <ColumnDefinition Width="50"/>
                 </Grid.ColumnDefinitions>
 
                 <TextBlock Grid.Column="0"
@@ -572,13 +637,116 @@
                          MaxWidth="130"
                          CharacterCasing="Upper"/>
 
+                <TextBlock Grid.Column="6"
+                           Text="Weight:"
+                           FontSize="32"
+                           FontWeight="Bold"
+                           Foreground="#FF135185"
+                           TextDecorations="Underline"/>
+
+                <TextBox Grid.Column="7"
+                         Text="{Binding ContainerObject.Weight, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                         FontSize="32"
+                         VerticalAlignment="Center"
+                         HorizontalAlignment="Left"
+                         Width="95"
+                         CharacterCasing="Upper"/>
+
+                <TextBlock Grid.Column="8"
+                           Text="LBS"
+                           VerticalAlignment="Center"
+                           FontSize="32"/>
+
+            </Grid>
+
+            <!--#endregion-->
+
+            <!--#region Container Info -->
+
+            <Grid Grid.Row="1">
+
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="225"/>
+                    <ColumnDefinition Width="110"/>
+                    <ColumnDefinition Width="55"/>
+                    <ColumnDefinition Width="350"/>
+                    <ColumnDefinition Width="150"/>
+                    <ColumnDefinition Width="60"/>
+                    <ColumnDefinition Width="20"/>
+                    <ColumnDefinition Width="60"/>
+                    <ColumnDefinition Width="20"/>
+                    <ColumnDefinition Width="60"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Column="0"
+                           Text="Sales Order Number:"
+                           FontSize="22"
+                           FontWeight="Bold"
+                           Foreground="#FF135185"
+                           TextDecorations="Underline"/>
+
+                <TextBox Grid.Column="1"
+                         Text="{Binding ContainerObject.SalesOrderNumber, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                         FontSize="22"
+                         VerticalAlignment="Center"
+                         HorizontalAlignment="Left"
+                         Width="100"
+                         CharacterCasing="Upper"/>
+
+                <TextBlock Grid.Column="2"
+                           Text="{Binding ContainerObject.CustomerNumber}"
+                           FontSize="22"/>
+
+                <TextBlock Grid.Column="3"
+                           Text="{Binding ContainerObject.CustomerName}"
+                           FontSize="22"/>
+
+                <TextBlock Grid.Column="4"
+                           Text="Dimensions:"
+                           FontSize="22"
+                           FontWeight="Bold"
+                           Foreground="#FF135185"
+                           TextDecorations="Underline"/>
+
+                <TextBox Grid.Column="5"
+                         Text="{Binding ContainerObject.Height, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                         FontSize="22"
+                         VerticalAlignment="Center"
+                         HorizontalAlignment="Left"
+                         Width="50"
+                         CharacterCasing="Upper"/>
+
+                <TextBlock Grid.Column="6"
+                           Text="x"
+                           FontSize="22"/>
+
+                <TextBox Grid.Column="7"
+                         Text="{Binding ContainerObject.Length, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                         FontSize="22"
+                         VerticalAlignment="Center"
+                         HorizontalAlignment="Left"
+                         Width="50"
+                         CharacterCasing="Upper"/>
+
+                <TextBlock Grid.Column="8"
+                           Text="x"
+                           FontSize="22"/>
+
+                <TextBox Grid.Column="9"
+                         Text="{Binding ContainerObject.Depth, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                         FontSize="22"
+                         VerticalAlignment="Center"
+                         HorizontalAlignment="Left"
+                         Width="50"
+                         CharacterCasing="Upper"/>
+
             </Grid>
 
             <!--#endregion-->
 
             <!--#region Creator Info -->
 
-            <StackPanel Grid.Row="1"
+            <StackPanel Grid.Row="2"
                         Orientation="Horizontal">
 
                 <TextBlock Text="Creator:"
@@ -587,7 +755,7 @@
                            TextDecorations="UnderLine"
                            Foreground="#FF135185" />
 
-                <TextBlock Text="{Binding ContainerObject.UserId}"
+                <TextBlock Text="{Binding ContainerObject.UserName}"
                            FontSize="20"
                            Margin="10,0,30,0" />
 
@@ -603,16 +771,26 @@
 
             </StackPanel>
 
+            <StackPanel Grid.Row="2"
+                        Orientation="Horizontal"
+                        Margin="890,0,0,0">
+
+                <TextBlock Text="Height      Length     Depth"
+                           FontSize="18"
+                           VerticalAlignment="Center"/>
+                
+            </StackPanel>
+
             <!--#endregion-->
 
             <!--#region Product Header -->
 
-            <Rectangle Grid.Row="3"
+            <Rectangle Grid.Row="4"
                        Fill="#FF135185"
                        HorizontalAlignment="Stretch"
                        VerticalAlignment="Stretch"/>
 
-            <TextBlock Grid.Row="3"
+            <TextBlock Grid.Row="4"
                        HorizontalAlignment="Center"
                        VerticalAlignment="Center"
                        Text="Container Products"
@@ -620,7 +798,7 @@
                        FontSize="20"
                        Foreground="WhiteSmoke"/>
 
-            <Button Grid.Row="3"
+            <Button Grid.Row="4"
                     Command="{Binding AddProductICommand}"
                     HorizontalAlignment="Left"
                     VerticalAlignment="Center"
@@ -637,7 +815,7 @@
 
             <!--#region Product Data -->
 
-            <ScrollViewer Grid.Row="4"
+            <ScrollViewer Grid.Row="5"
                           VerticalScrollBarVisibility="Auto">
                 <ItemsControl Name="Products"
                               Grid.Row="4"

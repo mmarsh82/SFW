@@ -507,7 +507,7 @@
                 <!--#region Grid.Row 9  (Used as a spacer)-->
                 <!--#endregion-->
 
-                <!--#region Grid.Row 10 Reason and Loss Information-->
+                <!--#region Grid.Row 10 Reason and Supplier Information-->
 
                 <StackPanel Grid.Row="10" Orientation="Horizontal"
                             Visibility="{Binding FormObject.IsValidOrder, Converter={StaticResource BoolToVisConverter}}">
@@ -603,6 +603,49 @@
                               Margin="5,0,0,0"
                               Visibility="{Binding Path=(main:CurrentUser.IsQuality), Converter={StaticResource BoolToVisConverter}}"
                               Style="{DynamicResource RequiredComboBox}"/>
+
+                    <TextBlock Text="Possible Loss:"
+                               FontSize="24"
+                               FontWeight="Bold"
+                               Margin="30,0,0,0"
+                               TextDecorations="Underline"
+                               Foreground="#FF135185">
+                        <TextBlock.Visibility>
+                            <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="1|1">
+                                <Binding Path="(main:CurrentUser.IsQuality)"/>
+                                <Binding Path="FormRevision.EstimatedLoss"/>
+                            </MultiBinding>
+                        </TextBlock.Visibility>
+                    </TextBlock>
+
+                    <TextBox Text="{Binding FormRevision.EstimatedLoss, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                             MinWidth="50"
+                             FontSize="18"
+                             CharacterCasing="Upper"
+                             Margin="3"
+                             Visibility="{Binding Path=(main:CurrentUser.IsQuality), Converter={StaticResource BoolToVisConverter}}"
+                             Background="LightGray"/>
+
+                    <TextBlock Text="{Binding FormRevision.EstimatedLoss}"
+                               FontSize="24"
+                               Margin="10,0,0,0">
+                        <TextBlock.Visibility>
+                            <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="0*1">
+                                <Binding Path="(main:CurrentUser.IsQuality)"/>
+                                <Binding Path="FormRevision.EstimatedLoss"/>
+                            </MultiBinding>
+                        </TextBlock.Visibility>
+                    </TextBlock>
+
+                    <TextBlock Text="{Binding FormObject.Part.Uom}"
+                               FontSize="24"
+                               Margin="5,0,0,0"
+                               Visibility="{Binding FormRevision.EstimatedLoss, Converter={StaticResource IntToVisConverter}, ConverterParameter=n0}"/>
+
+                    <TextBlock Text="{Binding FormRevision.EstimatedCost, StringFormat=c}"
+                               FontSize="24"
+                               Visibility="{Binding FormRevision.EstimatedLoss, Converter={StaticResource IntToVisConverter}, ConverterParameter=n0}"
+                               Margin="10,0,0,0"/>
 
                     <TextBlock Text="Actual Loss:"
                                FontSize="24"

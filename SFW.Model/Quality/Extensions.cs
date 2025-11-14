@@ -61,8 +61,8 @@ namespace SFW.Model.Quality
         {
             try
             {
-                using (SqlCommand cmd = new SqlCommand($@"INSERT INTO [dbo].[DEFECT-CSTM_Revisions] ([NcrId], [NcrRevisionId], [SubmitterId], [RevisionDateTime], [ReasonId], [SubTypeId], [TypeId], [DispositionId], [SupplierId], [Description])
-                                                        Values(@p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, @p10);", sqlCon))
+                using (SqlCommand cmd = new SqlCommand($@"INSERT INTO [dbo].[DEFECT-CSTM_Revisions] ([NcrId], [NcrRevisionId], [SubmitterId], [RevisionDateTime], [ReasonId], [SubTypeId], [TypeId], [DispositionId], [SupplierId], [Description], [EstimatedLoss])
+                                                        Values(@p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, @p10, @p11);", sqlCon))
                 {
                     cmd.Parameters.AddWithValue("p1", ncrId);
                     cmd.Parameters.AddWithValue("p2", ncrRevId);
@@ -74,6 +74,7 @@ namespace SFW.Model.Quality
                     cmd.Parameters.AddWithValue("p8", ncrRev.Disposition.Id);
                     cmd.Parameters.AddWithValue("p9", ncrRev.FormSupplier != null ? ncrRev.FormSupplier.Id : 0);
                     cmd.Parameters.AddWithValue("p10", ncrRev.Description);
+                    cmd.Parameters.AddWithValue("p11", ncrRev.EstimatedLoss);
                     cmd.ExecuteNonQuery();
                 }
             }

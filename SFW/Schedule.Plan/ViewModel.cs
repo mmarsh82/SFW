@@ -106,7 +106,6 @@ namespace SFW.Schedule.Plan
         {
             if (App.SiteNumber == 1)
             {
-                ApplicationTimer.ActionList.Add(Refresh);
                 CollectionView = new ListCollectionView(new DataView());
                 TypeCollection = new ObservableCollection<string> { "All", "Work Order", "Plan" };
                 SelectedType = TypeCollection[0];
@@ -116,6 +115,7 @@ namespace SFW.Schedule.Plan
                 if (ModelBase.MasterDataSet.Tables.Contains(typeof(WorkPlan).Name))
                 {
                     Initialize();
+                    ApplicationTimer.ActionList.Add(Refresh);
                 }
             }
         }
@@ -153,8 +153,9 @@ namespace SFW.Schedule.Plan
         {
             try
             {
-                if (ModelBase.MasterDataSet.Tables.Contains(typeof(WorkPlan).Name) && ((DataView)CollectionView.SourceCollection).Table == null)
+                if (ModelBase.MasterDataSet.Tables.Contains(typeof(WorkPlan).Name) && (CollectionView == null || ((DataView)CollectionView.SourceCollection).Table == null))
                 {
+                    CollectionView = new ListCollectionView(new DataView());
                     Initialize();
                 }
                 else
@@ -179,7 +180,7 @@ namespace SFW.Schedule.Plan
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message, "Prod Unhandled Exception", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show(ex.Message, "Plan Unhandled Exception", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 

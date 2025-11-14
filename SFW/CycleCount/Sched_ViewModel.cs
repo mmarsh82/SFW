@@ -2,57 +2,14 @@
 using System;
 using System.Data;
 using System.Linq;
+using System.Windows;
+using System.Windows.Data;
 
 namespace SFW.CycleCount
 {
-    public class Sched_ViewModel : ViewModelBase
+    public class Sched_ViewModel : ScheduleBase
     {
         #region Properties
-
-        public DataView CountView { get; set; }
-
-        private DataRowView _selCnt;
-        public DataRowView SelectedCount
-        {
-            get { return _selCnt; }
-            set
-            {
-                _selCnt = value;
-                if (value != null && App.LoadedModule == Enumerations.UsersControls.CycleCount)
-                {
-                    var _cnt = new CountReceipt(value.Row);
-                    Controls.WorkSpaceDock.UpdateChildDock(3, 1, new Form_ViewModel(_cnt));
-                }
-                OnPropertyChanged(nameof(SelectedCount));
-            }
-        }
-
-        private string _originalFilter;
-        private string _sFilter;
-        public string SearchFilter
-        {
-            get { return _sFilter; }
-            set
-            {
-                if (_sFilter == null || value == null)
-                {
-                    _originalFilter = CountView.RowFilter;
-                }
-                if (!string.IsNullOrEmpty(value))
-                {
-                    var _sRowFilter = CountView.Table.SearchRowFilter(value);
-                    CountView.RowFilter = !string.IsNullOrEmpty(_originalFilter)
-                        ? $"{_originalFilter} AND ({_sRowFilter})"
-                        : _sRowFilter;
-                }
-                else
-                {
-                    CountView.RowFilter = _originalFilter;
-                }
-                _sFilter = value == "" ? null : value;
-                OnPropertyChanged(nameof(SearchFilter));
-            }
-        }
 
         private bool _emptyCnt;
         public bool EmptyCount
@@ -79,11 +36,6 @@ namespace SFW.CycleCount
             }
         }
 
-        public delegate void LoadDelegate(string s);
-        public LoadDelegate LoadAsyncDelegate { get; private set; }
-        public LoadDelegate FilterAsyncDelegate { get; private set; }
-        public static IAsyncResult LoadAsyncComplete { get; set; }
-
         #endregion
 
         /// <summary>
@@ -93,95 +45,62 @@ namespace SFW.CycleCount
         {
             if (CurrentUser.IsInventoryControl)
             {
-                LoadAsyncDelegate = new LoadDelegate(ViewLoading);
-                FilterAsyncDelegate = new LoadDelegate(FilterView);
-                var _filter = "";
-                LoadAsyncComplete = LoadAsyncDelegate.BeginInvoke(_filter, new AsyncCallback(ViewLoaded), null);
-                if (CurrentUser.IsInventoryControl)
-                {
-                    ApplicationTimer.ActionList.Add(RefreshSchedule);
-                }
+                ApplicationTimer.ActionList.Add(Refresh);
+                CollectionView = new ListCollectionView(new DataView());
+                Initialize();
             }
         }
 
         /// <summary>
-        /// Async filter the schedule view
+        /// Tracks the item selections from the CollectionView
         /// </summary>
-        /// <param name="filter">Filter string to use on the default view</param>
-        public void FilterSchedule(string filter)
-        {
-            LoadAsyncComplete = FilterAsyncDelegate.BeginInvoke(filter, new AsyncCallback(ViewLoaded), null);
-        }
-
-        #region Loading Async Delegation Implementation
-
-        public void FilterView(string filter)
-        {
-            if (string.IsNullOrEmpty(filter))
-            {
-                ViewLoading(string.Empty);
-            }
-            else
-            {
-                CountView.RowFilter = $"PartNumber = '{filter}'";
-                OnPropertyChanged(nameof(CountView));
-            }
-        }
-
-        public void ViewLoading(string filter)
-        {
-            CountView = new CountReceipt().GetTable(1, App.AppSqlCon).AsDataView();
-            EmptyCount = CountView.Cast<object>().Count() == 0;
-            OnPropertyChanged(nameof(CountView));
-        }
-        public void ViewLoaded(IAsyncResult r)
-        {
-        }
-
-        #endregion
-
-        /// <summary>
-        /// Refresh action for the schedule data
-        /// </summary>
-        public void RefreshSchedule()
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void CollectionView_ItemChanged(object sender, EventArgs e)
         {
             try
             {
-                var _oldItem = SelectedCount;
-                CountView = new CountReceipt().GetTable(1, App.AppSqlCon).AsDataView();
-                SelectedCount = _oldItem != null
-                    ? _oldItem
-                    : null;
-                SearchFilter = !string.IsNullOrEmpty(SearchFilter)
-                    ? SearchFilter
-                    : string.Empty;
-                OnPropertyChanged(nameof(CountView));
+                if (App.LoadedModule == Enumerations.UsersControls.CycleCount)
+                {
+                    var _dRow = (DataRowView)CollectionView.CurrentItem;
+                    if (_dRow != null)
+                    {
+                        var _cnt = new CountReceipt(_dRow.Row);
+                        var _action = new Action(delegate { Controls.WorkSpaceDock.UpdateChildDock(3, 1, new Form_ViewModel(_cnt)); });
+                        Application.Current.Dispatcher.Invoke(_action);
+                    }
+                }
             }
             catch (Exception)
             { }
         }
 
         /// <summary>
-        /// Refresh action for the schedule data
-        /// Overloadded with a filter string
+        /// Overridden Refresh action
         /// </summary>
-        public void RefreshSchedule(string filter)
+        public override void Refresh()
         {
+            if (CollectionView != null)
+            {
+                base.Refresh();
+            }
+            else
+            {
+                Initialize();
+            }
+        }
+
+        /// <summary>
+        /// Initiliazation action for the schedule data
+        /// </summary>
+        public override void Initialize()
+        { 
             try
             {
-                var _oldItem = SelectedCount;
-                var _schedData = new CountReceipt().GetTable(1, App.AppSqlCon);
-                _schedData.Rows.Remove(_schedData.Select($"CountID == '{filter}'")[0]);
-                _schedData.AcceptChanges();
-                CountView = _schedData.AsDataView();
-                SearchFilter = !string.IsNullOrEmpty(SearchFilter)
-                     ? SearchFilter
-                     : string.Empty;
-                if (CountView.Count == 0)
-                {
-                    Controls.WorkSpaceDock.UpdateChildDock(3, 1, new Form_ViewModel());
-                }
-                OnPropertyChanged(nameof(CountView));
+                CollectionView = new ListCollectionView(new CountReceipt().GetTable(1, App.AppSqlCon).AsDataView());
+                EmptyCount = CollectionView.Count == 0;
+                Application.Current?.Dispatcher.Invoke(new Action(delegate { CollectionView.Refresh(); }));
+                CollectionView.CurrentChanged += CollectionView_ItemChanged;
             }
             catch (Exception)
             { }

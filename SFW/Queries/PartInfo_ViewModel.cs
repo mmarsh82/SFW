@@ -155,7 +155,24 @@ namespace SFW.Queries
                 OnPropertyChanged(nameof(IsNCR));
             }
         }
-        public bool IsFromValid { get { return ILotResultsList == null || string.IsNullOrEmpty(FromLocation) || ILotResultsList.Any(o => o.Location == FromLocation); } }
+        public bool IsFromValid 
+        {
+            get 
+            {
+                if (!string.IsNullOrEmpty(FromLocation) && Location.Valid(FromLocation, App.SiteNumber))
+                {
+                    if (Part.IsLotTrace)
+                    {
+                        return ILotResultsList != null && ILotResultsList.Any(o => o.Location == FromLocation);
+                    }
+                    else
+                    {
+                        return Sku.GetLocationQuantity($"{Part.SkuNumber}|01", FromLocation) > 0;
+                    }
+                }
+                return false;
+            }
+        }
         public int FromLocSize { get { return IsFromValid ? 1 : 3; } }
 
         public string MoveReference { get; set; }

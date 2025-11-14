@@ -89,7 +89,7 @@
                           InputGestureText="Esc"
                           IsEnabled="{Binding Path=(local:CurrentUser.IsLoggedIn)}"
                           Visibility="{Binding Path=(local:CurrentUser.IsLoggedIn), Converter={StaticResource BoolToVisConverter}}"/>
-                <MenuItem Header="Refresh"
+                <MenuItem Header="Refresh All"
                           Command="{StaticResource ViewLoadICommand}"
                           CommandParameter="-2"
                           InputGestureText="F5"/>
@@ -108,7 +108,7 @@
             <MenuItem Header="Modules"
                       Visibility="{Binding Path=(local:CurrentUser.BasicUser), Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}">
                 <MenuItem Header="Facility"
-                          Visibility="{Binding Path=(local:CurrentUser.CanSchedule), Converter={StaticResource BoolToVisConverter}}">
+                          Visibility="Collapsed">
                     <MenuItem Header="Arlington"
                               Command="{StaticResource ViewLoadICommand}"
                               CommandParameter="2"
@@ -130,7 +130,7 @@
                 <MenuItem Header="Cycle Count"
                           Command="{StaticResource ViewLoadICommand}"
                           CommandParameter="3"
-                          Visibility="{Binding Path=(local:CurrentUser.IsInventoryControl), Converter={StaticResource BoolToVisConverter}}"/>
+                          Visibility="Collapsed"/>
                 <MenuItem Header="QMS Notice"
                           Command="{StaticResource ViewLoadICommand}"
                           CommandParameter="9"
