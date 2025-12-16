@@ -37,11 +37,15 @@ namespace M2kClient
                 {
                     try
                     {
+                        if (newValue.Contains(".") && decimal.TryParse(newValue, out decimal d))
+                        {
+                            newValue = uSession.Iconv(newValue, $"MD{newValue.Split('.')[1].Count()}");
+                        }
                         using (UniFile uFile = uSession.CreateUniFile(file))
                         {
                             using (UniDynArray udArray = uFile.Read(recordID))
                             {
-                                switch(arrayCommand)
+                                switch (arrayCommand)
                                 {
                                     case UdArrayCommand.Insert:
                                         udArray.Insert(attribute, newValue);
@@ -83,66 +87,124 @@ namespace M2kClient
         /// </summary>
         /// <param name="file">Manage 2000 file to be edited</param>
         /// <param name="recordID">Record ID value to be edited</param>
-        /// <param name="attributes">Array of attribute numbers that the new value will be associated with, see the warning</param>
-        /// <param name="newValues">Array of New values to be written into the record</param>
+        /// <param name="AttributeValuePair">Dictionary containing the attribute to be modified and the value to modify it with</param>
         /// <param name="arrayCommand">UniDynArray Command to execute on the record</param>
         /// <param name="connection">UniConnection to use for the edit</param>
         /// <returns>Change request error, if none exists then it will return a null value</returns>
-        public static string EditRecord(string file, string recordID, int[] attributes, string[] newValues, UdArrayCommand arrayCommand, M2kConnection connection)
+        public static string EditRecord(string file, string recordID, IReadOnlyDictionary<int, string> AttributeValuePair, UdArrayCommand arrayCommand, M2kConnection connection)
         {
-            if (attributes.Length == newValues.Length || arrayCommand == UdArrayCommand.Remove)
+            try
             {
-                try
+                using (UniSession uSession = UniObjects.OpenSession(connection.HostName, connection.UserName, connection.Password, connection.UniAccount, connection.UniService))
                 {
-                    using (UniSession uSession = UniObjects.OpenSession(connection.HostName, connection.UserName, connection.Password, connection.UniAccount, connection.UniService))
+                    try
                     {
-                        try
+                        using (UniFile uFile = uSession.CreateUniFile(file))
                         {
-                            using (UniFile uFile = uSession.CreateUniFile(file))
+                            using (UniDynArray udArray = uFile.Read(recordID))
                             {
-                                using (UniDynArray udArray = uFile.Read(recordID))
+                                foreach (var attributeValuePair in AttributeValuePair.Where(o => !string.IsNullOrEmpty(o.Value) && o.Key > 0))
                                 {
-                                    foreach (var attr in attributes)
+                                    var _val = attributeValuePair.Value.Contains(".") && decimal.TryParse(attributeValuePair.Value, out decimal d)
+                                        ? uSession.Iconv(attributeValuePair.Value, $"MD{attributeValuePair.Value.Split('.')[1].Count()}")
+                                        : attributeValuePair.Value;
+                                    switch (arrayCommand)
                                     {
-                                        var attrIndx = Array.IndexOf(attributes, attr);
-                                        switch (arrayCommand)
-                                        {
-                                            case UdArrayCommand.Insert:
-                                                udArray.Insert(attr, newValues[attrIndx]);
-                                                break;
-                                            case UdArrayCommand.Replace:
-                                                udArray.Replace(attr, newValues[attrIndx]);
-                                                break;
-                                            case UdArrayCommand.Remove:
-                                                udArray.Remove(attr);
-                                                break;
-                                        }
-                                    }
-                                    if (arrayCommand == UdArrayCommand.Replace)
-                                    {
-                                        uFile.Write(recordID, udArray);
+                                        case UdArrayCommand.Insert:
+                                            udArray.Insert(attributeValuePair.Key, _val);
+                                            break;
+                                        case UdArrayCommand.Replace:
+                                            udArray.Replace(attributeValuePair.Key, _val);
+                                            break;
+                                        case UdArrayCommand.Remove:
+                                            udArray.Remove(attributeValuePair.Key);
+                                            break;
                                     }
                                 }
+                                uFile.Write(recordID, udArray);
                             }
-                            UniObjects.CloseSession(uSession);
-                            return null;
                         }
-                        catch (Exception ex)
+                        UniObjects.CloseSession(uSession);
+                        return null;
+                    }
+                    catch (Exception ex)
+                    {
+                        if (uSession != null)
                         {
-                            if (uSession != null)
-                            {
-                                UniObjects.CloseSession(uSession);
-                            }
-                            return ex.Message;
+                            UniObjects.CloseSession(uSession);
                         }
+                        return ex.Message;
                     }
                 }
-                catch (Exception ex)
+            }
+            catch (Exception ex)
+            {
+                return ex.Message;
+            }
+        }
+
+        /// <summary>
+        /// Will edit multiple attributes in a Manage 2000 record
+        /// ***WARNING***
+        /// DO NOT attempt to edit any record value that has business logic associated with it
+        /// Contact your ERP administrator if you need help verifing
+        /// </summary>
+        /// <param name="file">Manage 2000 file to be edited</param>
+        /// <param name="attribute">Array of attribute numbers that the new value will be associated with, see the warning</param>
+        /// <param name="recordValuePairs">Dictionary of Record ID and new values to be imported</param>
+        /// <param name="arrayCommand">UniDynArray Command to execute on the record</param>
+        /// <param name="connection">UniConnection to use for the edit</param>
+        /// <returns>Change request error, if none exists then it will return a null value</returns>
+        public static string EditRecords(string file, int attribute, IReadOnlyDictionary<string, string> recordValuePairs, UdArrayCommand arrayCommand, M2kConnection connection)
+        {
+            try
+            {
+                using (UniSession uSession = UniObjects.OpenSession(connection.HostName, connection.UserName, connection.Password, connection.UniAccount, connection.UniService))
                 {
-                    return ex.Message;
+                    try
+                    {
+                        using (UniFile uFile = uSession.CreateUniFile(file))
+                        {
+                            foreach (var recordValuePair in recordValuePairs.Where(o => !string.IsNullOrEmpty(o.Key) && !string.IsNullOrEmpty(o.Value)))
+                            {
+                                using (UniDynArray udArray = uFile.Read(recordValuePair.Key))
+                                {
+                                    var _val = recordValuePair.Value.Contains(".") && decimal.TryParse(recordValuePair.Value, out decimal d)
+                                        ? uSession.Iconv(recordValuePair.Value, $"MD{recordValuePair.Value.Split('.')[1].Count()}")
+                                        : recordValuePair.Value;
+                                    switch (arrayCommand)
+                                    {
+                                        case UdArrayCommand.Insert:
+                                            udArray.Insert(attribute, _val);
+                                            break;
+                                        case UdArrayCommand.Replace:
+                                            udArray.Replace(attribute, _val);
+                                            break;
+                                        case UdArrayCommand.Remove:
+                                            udArray.Remove(attribute);
+                                            break;
+                                    }
+                                    uFile.Write(recordValuePair.Key, udArray);
+                                }
+                            }
+                        }
+                        UniObjects.CloseSession(uSession);
+                        return null;
+                    }
+                    catch (Exception ex)
+                    {
+                        if (uSession != null)
+                        {
+                            UniObjects.CloseSession(uSession);
+                        }
+                        return ex.Message;
+                    }
                 }
             }
-            return "There is either more attributes to edit than new edit values or more edit values have been included that attributes to edit.";
+            catch (Exception ex)
+            {
+                return ex.Message;
+            }
         }
 
         ///<summary>

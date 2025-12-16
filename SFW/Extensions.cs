@@ -1,4 +1,6 @@
-﻿using System;
+﻿using DocumentFormat.OpenXml.Drawing;
+using DocumentFormat.OpenXml.ExtendedProperties;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -136,7 +138,7 @@ namespace SFW
                 foreach (var _directReport in _propColl)
                 {
                     var _reportPrincipal = UserPrincipal.FindByIdentity(userPrincipal.Context, _directReport);
-                    var _empId = int.TryParse(((DirectoryEntry)_reportPrincipal.GetUnderlyingObject()).Properties["global-ExtensionAttribute1"]?.Value.ToString(), out int i) ? i : 0;
+                    var _empId = int.TryParse(((DirectoryEntry)_reportPrincipal.GetUnderlyingObject()).Properties["global-ExtensionAttribute1"]?.Value?.ToString(), out int i) ? i : 0;
                     _rtnDict.Add(_empId, $"{_reportPrincipal.Surname},{_reportPrincipal.GivenName}");
                 }
                 return _rtnDict;
@@ -146,6 +148,32 @@ namespace SFW
                 MessageBox.Show(ex.Message, "Unhandled Exception");
                 return _rtnDict;
             }
+        }
+
+        /// <summary>
+        /// String extension to replace explicit words from free text user input
+        /// </summary>
+        /// <param name="_input">User input string</param>
+        /// <returns>Clean user input as string</returns>
+        public static string ReplaceExplicitWords(this string _input)
+        {
+            var _badWordList = Enum.GetValues(typeof(ExplicitWords)).Cast<ExplicitWords>().Select(o => o.ToString()).ToList();
+            var _hString = _input.ToUpper();
+            foreach (var _bWord in _badWordList)
+            {
+                _hString = _hString.Replace(_bWord.ToString(), new string('~', _bWord.ToString().Length));
+            }
+            var _counter = 0;
+            foreach (var _char in _hString)
+            {
+                if (_char != _input[_counter] && _char.ToString().ToLower() != _input[_counter].ToString())
+                {
+                    _input = _input.Remove(_counter, 1);
+                    _input = _input.Insert(_counter, _char.ToString());
+                }
+                _counter++;
+            }
+            return _input.Replace("~", "");
         }
     }
 }

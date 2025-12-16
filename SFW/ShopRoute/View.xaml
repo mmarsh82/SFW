@@ -134,7 +134,7 @@
 
             <Button Content="Start Setup"
                     FontSize="24"
-                    Width="160"
+                    Width="200"
                     Height="40"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center"
@@ -143,16 +143,179 @@
 
             <Button Content="Skip Setup"
                     FontSize="24"
-                    Width="160"
+                    Width="200"
                     Height="40"
                     Margin="0,100,0,0"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center"
                     Visibility="Hidden"
                     Style="{DynamicResource DefaultButton}"/>
+            
+            <!--#region Work Order Comments -->
+
+            <Expander ExpandDirection="Left"
+                      HorizontalAlignment="Right"
+                      VerticalAlignment="Stretch"
+                      Margin="0,5,0,5"
+                      IsExpanded="False"
+                      Panel.ZIndex="1">
+
+                <Expander.Background>
+                    <LinearGradientBrush StartPoint="0,0.5" EndPoint="1,0.5">
+                        <GradientStop Color="#FF6B8E95" Offset="0"/>
+                        <GradientStop Color="#FF14A7C1" Offset="1"/>
+                        <GradientStop Color="#FF1E424E" Offset="0.509"/>
+                        <GradientStop Color="#FF1D4855" Offset="0.542"/>
+                        <GradientStop Color="#FF193A44" Offset="0.526"/>
+                    </LinearGradientBrush>
+                </Expander.Background>
+
+                <Expander.Header>
+                    <StackPanel Orientation="Vertical">
+                        <TextBlock Text="Operator Comments"
+                                   FontWeight="Bold"
+                                   FontSize="18"
+                                   Foreground="WhiteSmoke"
+                                   Tag="{x:Static RotateTransform.AngleProperty}"
+                                   RenderTransformOrigin="0.5,0.5">
+                            <TextBlock.LayoutTransform>
+                                <RotateTransform Angle="-90"/>
+                            </TextBlock.LayoutTransform>
+                        </TextBlock>
+                    </StackPanel>
+                </Expander.Header>
+
+                <!-- Comment content -->
+                <ScrollViewer Background="LightGray"
+                              VerticalScrollBarVisibility="Auto"
+                              HorizontalScrollBarVisibility="Auto">
+                    <Grid Width="500">
+
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="75"/>
+                            <RowDefinition Height="30"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <TextBox Grid.Row="0"
+                                 BorderBrush="Black"
+                                 Text="{Binding CommentInput, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                                 BorderThickness="1"
+                                 FontSize="14"
+                                 AcceptsReturn="True"
+                                 AcceptsTab="True"
+                                 SpellCheck.IsEnabled="True"
+                                 Visibility="{Binding Path=(main:CurrentUser.IsLoggedIn), Converter={StaticResource BoolToVisConverter}}"
+                                 MaxLength="255"/>
+
+                        <Button Grid.Row="1"
+                                HorizontalAlignment="Right"
+                                Content="Add Note"
+                                Command="{Binding ModifyCommentICommand}"
+                                CommandParameter="A"
+                                Margin="0,0,3,0"
+                                Visibility="{Binding Path=(main:CurrentUser.IsLoggedIn), Converter={StaticResource BoolToVisConverter}}"
+                                Style="{DynamicResource MenuButtonStyle}"/>
+
+                        <ItemsControl Name="CommentsIC"
+                                      Grid.Row="2"
+                                      ItemsSource="{Binding CommentCollection, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                                      Margin="10,0,10,0"
+                                      FontSize="18"
+                                      Cursor="Hand"
+                                      Background="Transparent"
+                                      Foreground="Black"
+                                      Focusable="False">
+
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <VirtualizingStackPanel IsItemsHost="True"
+                                                            Orientation="Vertical" />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+
+                                    <Grid>
+
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="20"/>
+                                            <RowDefinition Height="*"/>
+                                        </Grid.RowDefinitions>
+
+                                        <StackPanel Grid.Row="0"
+                                                    Orientation="Horizontal">
+
+                                            <Button Command="{Binding DataContext.ModifyCommentICommand, ElementName=ShopRouteUserControl}"
+                                                    CommandParameter="{Binding}"
+                                                    Margin="1"
+                                                    Background="Transparent"
+                                                    BorderThickness="0"
+                                                    Style="{DynamicResource DefaultButton}">
+                                                <Button.Content>
+                                                    <Image Source="/Icons/Show.ico" />
+                                                </Button.Content>
+                                                <Button.Visibility>
+                                                    <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="1*0">
+                                                        <Binding Path="(main:CurrentUser.IsSupervisor)"/>
+                                                        <Binding Path="IsHidden"/>
+                                                    </MultiBinding>
+                                                </Button.Visibility>
+                                            </Button>
+
+                                            <Button Command="{Binding DataContext.ModifyCommentICommand, ElementName=ShopRouteUserControl}"
+                                                    CommandParameter="{Binding}"
+                                                    Margin="1"
+                                                    Background="Transparent"
+                                                    BorderThickness="0"
+                                                    Style="{DynamicResource DefaultButton}">
+                                                <Button.Content>
+                                                    <Image Source="/Icons/Hide.ico" />
+                                                </Button.Content>
+                                                <Button.Visibility>
+                                                    <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="1*1">
+                                                        <Binding Path="(main:CurrentUser.IsSupervisor)"/>
+                                                        <Binding Path="IsHidden"/>
+                                                    </MultiBinding>
+                                                </Button.Visibility>
+                                            </Button>
+
+                                            <TextBlock Text="{Binding SubmitterId}"
+                                                       Margin="10,0,0,0"
+                                                       FontStyle="Italic"
+                                                       FontWeight="Bold"/>
+
+                                            <TextBlock Text="{Binding SubmitterName}"
+                                                       Margin="5,0,0,0"
+                                                       FontStyle="Italic"
+                                                       FontWeight="Bold"/>
+
+                                            <TextBlock Text="{Binding SubmitDate, StringFormat='{}{0:ddMMMyyyy HH:mm}'}"
+                                                       Margin="20,0,0,0"
+                                                       FontStyle="Italic"
+                                                       FontWeight="Bold"/>
+
+                                        </StackPanel>
+
+                                        <TextBlock Grid.Row="1"
+                                                   Text="{Binding CommentText}"/>
+
+                                    </Grid>
+
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+
+                        </ItemsControl>
+
+                    </Grid>
+                </ScrollViewer>
+            </Expander>
+            
+            <!--#endregion-->
 
             <!-- <Grid Margin="10,0,10,0" Visibility="Hidden"> -->
-            <Grid Margin="10,0,10,0" Visibility="{Binding ShopOrder.OrderNumber, Converter={StaticResource StringToVisConverter}, ConverterParameter=Hide}">
+            <Grid Panel.ZIndex="0" Margin="10,0,10,0" Visibility="{Binding ShopOrder.OrderNumber, Converter={StaticResource StringToVisConverter}, ConverterParameter=Hide}">
 
                 <Grid.RowDefinitions>
                     <RowDefinition x:Name="Row0" Height="40"/>

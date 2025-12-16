@@ -144,7 +144,7 @@ namespace SFW.Model.Production.Wip
                         ScrapCollection.Clear();
                         break;
                     case Enumerations.Complete.Y:
-                        ScrapCollection.Add(new Scrap("0", ID, OrderId, Product.Lot.GetSkuNumber(ID)));
+                        ScrapCollection.Add(new Scrap("0", ID, OrderId, Product.Lot.GetSkuNumber(ID), 'C'));
                         break;
                 }
                 OnPropertyChanged(nameof(HasScrap));

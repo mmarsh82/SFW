@@ -140,7 +140,13 @@ namespace SFW.Containerization
 
         public bool HasContainers { get { return ContainerView.Count > 0; } }
         public bool ShowProduct { get { return HasContainers || SelectedProduct != null || NewContainer; } }
-        public bool HasDims { get { return ContainerObject?.Height > 0 && ContainerObject?.Length > 0 && ContainerObject?.Depth > 0; } }
+        public bool HasDims 
+        {
+            get
+            {
+                return int.TryParse(ContainerObject?.Height, out int h) && h > 0 && int.TryParse(ContainerObject?.Length, out int l) && l > 0 && int.TryParse(ContainerObject?.Depth, out int d) && d > 0;
+            }
+        }
 
         RelayCommand _refresh;
         RelayCommand _addCon;
@@ -306,7 +312,7 @@ namespace SFW.Containerization
             IthResultsTable = new DataTable();
             OnPropertyChanged(nameof(ResultsCount));
             NewContainer = true;
-            ContainerObject = new SkuContainer(CurrentUser.DisplayName);
+            ContainerObject = new SkuContainer(CurrentUser.ErpId, CurrentUser.DisplayName);
             OnPropertyChanged(nameof(ContainerObject));
             OnPropertyChanged(nameof(HasContainers));
             OnPropertyChanged(nameof(ShowProduct));
@@ -418,7 +424,7 @@ namespace SFW.Containerization
             
         }
 
-        private bool ShipCanExecute(object parameter) => ContainerObject != null && ContainerObject.Weight > 0 && !string.IsNullOrEmpty(ContainerObject.SalesOrderNumber) && HasDims;
+        private bool ShipCanExecute(object parameter) => ContainerObject != null && int.TryParse(ContainerObject.Weight, out int w) && w > 0 && !string.IsNullOrEmpty(ContainerObject.SalesOrderNumber) && HasDims;
 
         #endregion
 

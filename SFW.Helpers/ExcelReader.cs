@@ -151,6 +151,71 @@ namespace SFW.Helpers
                 return null;
             }
         }
+
+        /// <summary>
+        /// Reads a key and an value from an excel sheet and returns it as a dictionary
+        /// </summary>
+        /// <param name="filePath">File path for the excel sheet</param>
+        /// <returns></returns>
+        public static IReadOnlyDictionary<string, string> Read(string filePath)
+        {
+            var _returnDict = new Dictionary<string, string>();
+            try
+            {
+                var ssPack = Package.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
+                using (var ssDoc = SpreadsheetDocument.Open(ssPack))
+                {
+                    var wbPart = ssDoc.WorkbookPart;
+                    var setupSheet = wbPart.Workbook.Descendants<Sheet>().FirstOrDefault();
+                    var wsPart = (WorksheetPart)wbPart.GetPartById(setupSheet.Id);
+                    var sheetRows = wsPart.Worksheet.GetFirstChild<SheetData>().Descendants<Row>();
+                    var stringTable = wbPart.GetPartsOfType<SharedStringTablePart>().FirstOrDefault();
+                    foreach (var r in sheetRows)
+                    {
+                        var _key = string.Empty;
+                        var _value = string.Empty;
+                        foreach (var c in r.Descendants<Cell>())
+                        {
+                            //Read the value and based on the type the being a decimal round it down to a precision of 3
+                            var _cellValue = c.InnerText;
+                            if (c.DataType != null && c.DataType.Value == CellValues.SharedString)
+                            {
+                                _cellValue = stringTable.SharedStringTable.ElementAt(int.Parse(c.InnerText)).InnerText;
+                            }
+                            //Check the type and change the precision
+                            if (float.TryParse(_cellValue, out float cv))
+                            {
+                                _cellValue = Math.Round(cv, 3).ToString("N3");
+                            }
+
+                            //Add to the key or the value based on the column placement
+                            if (string.IsNullOrEmpty(_key))
+                            {
+                                _key = _cellValue;
+                            }
+                            else
+                            {
+                                _value = _cellValue;
+                            }
+                        }
+                        _returnDict.Add(_key, _value);
+                    }
+                }
+                return _returnDict;
+            }
+            catch (ArgumentException ax)
+            {
+                _returnDict.Clear();
+                _returnDict.Add("ERR", ax.Message);
+                return _returnDict;
+            }
+            catch (Exception ex)
+            {
+                _returnDict.Clear();
+                _returnDict.Add("ERR", ex.Message);
+                return _returnDict;
+            }
+        }
     }
 
     public class ExcelWriter

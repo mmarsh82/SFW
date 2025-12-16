@@ -59,12 +59,22 @@ namespace SFW.Model.Production.Wip
         public bool Valid
         {
             get
-            { 
-                return !string.IsNullOrEmpty(Quantity) 
-                    && !string.IsNullOrEmpty(Reference) 
-                    && Quality.QmsForm.IsValid(int.Parse(Reference), OrderId, ProductId, 'P');
+            {
+                if (ScrapType == 'P')
+                {
+                    return !string.IsNullOrEmpty(Quantity)
+                        && !string.IsNullOrEmpty(Reference)
+                        && Quality.QmsForm.IsValid(int.Parse(Reference), OrderId, ProductId, ScrapType);
+                }
+                else
+                {
+                    return !string.IsNullOrEmpty(Quantity)
+                        && !string.IsNullOrEmpty(Reference)
+                        && Quality.QmsForm.IsValid(int.Parse(Reference), OrderId, LotId, ScrapType);
+                }
             }
         }
+        public char ScrapType { get; set; }
 
         #endregion
 
@@ -77,12 +87,16 @@ namespace SFW.Model.Production.Wip
         /// <summary>
         /// Overridded constructor
         /// </summary>
-        public Scrap(string id, string lotId, string orderId, string prodId)
+        /// <param name="id">Scrap ID</param>
+        /// <param name="lotId">Lot number</param>
+        /// <param name="orderId">Work Order ID</param>
+        public Scrap(string id, string lotId, string orderId, string prodId, char scrapType)
         {
             ID = id;
             LotId = lotId;
             OrderId = orderId;
             ProductId = prodId;
+            ScrapType = scrapType;
         }
     }
 }

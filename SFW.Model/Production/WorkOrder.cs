@@ -77,7 +77,9 @@ namespace SFW.Model.Production
 	,ISNULL(wpo.Due_Date, ISNULL(wpo.Date_Start, '1999-01-01')) AS WO_DueDate
 	,ISNULL(wp.[Date_Orig_Comp], '1999-01-01') as OriginalDueDate
 	,ISNULL(wp.[Orig_Start_Date], '1999-01-01') as OriginalStartDate
-	,ISNULL(CAST(ROUND(wpo.Mach_Load_Hrs_Rem, 1) AS float), 0) AS RunTime
+	,CAST(CASE WHEN (SELECT COUNT(wpci.[ID1]) FROM [dbo].[WP-INIT_Comp_Info] wpci WHERE wpci.[ID1] = wp.[Wp_Nbr]) = 0
+		THEN wp.[Qty_To_Start] / (60 / (SELECT rt.[Plan_Run_Mach_Time] FROM [dbo].[RT-INIT] rt WHERE rt.[ID] = CONCAT(im.Part_Number,'*', SUBSTRING(wpo.ID, CHARINDEX('*', wpo.ID, 0) + 1, LEN(wpo.ID)))))
+		ELSE (wp.[Qty_To_Start] - (SELECT SUM(CAST(wpci.[Qty_Comp] as int)) FROM [dbo].[WP-INIT_Comp_Info] wpci WHERE wpci.[ID1] = wp.[Wp_Nbr])) / (60 / (SELECT rt.[Plan_Run_Mach_Time] FROM [dbo].[RT-INIT] rt WHERE rt.[ID] = CONCAT(im.Part_Number,'*', SUBSTRING(wpo.ID, CHARINDEX('*', wpo.ID, 0) + 1, LEN(wpo.ID))))) END as decimal(10,2)) AS 'RunTime'
 	,CASE WHEN CAST(wpo.[Due_Date] as date) < CAST(GETDATE() as date)
 		THEN 1
 		ELSE 0
@@ -121,7 +123,7 @@ LEFT JOIN
 LEFT JOIN
 	dbo.[IM-INIT] AS im ON im.Part_Number = wp.Part_Wo_Desc
 WHERE
-	(wc.D_esc <> 'DO NOT USE') AND (wpo.Alt_Seq_Status IS NULL) AND (wp.Status_Flag = 'C' OR wp.Status_Flag = 'A' OR wp.Status_Flag = 'R') AND im.[Part_Number] IS NOT NULL AND wc.[Fac_Code] = @p1
+	(wc.D_esc <> 'DO NOT USE') AND (wpo.Alt_Seq_Status IS NULL) AND (wp.Status_Flag = 'C' OR wp.Status_Flag = 'A' OR wp.Status_Flag = 'R') AND im.[Part_Number] IS NOT NULL AND wc.[Fac_Code] = 1
 ORDER BY
 	MachineOrder, MachineNumber, WO_Priority, Sched_Shift, Sched_Priority, WO_SchedStartDate, WorkOrderID ASC";
 

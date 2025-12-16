@@ -85,18 +85,7 @@ namespace SFW.ShopRoute.SalesOrder
 
         private void ARUpdateExecute(object parameter)
         {
-            var _code = parameter.ToString()[0];
-            ///Credit Status = M2k Credit_Code - Field 20
-            ///Credit Date = M2k Credit_Date - Field 18
-            ///Credit Approver = M2k Credit_Chk - Field 17
-            ///Credit Approver + Site = M2k Credit_Chk_Acc - Field 19
-            var _changeRequest = M2kClient.M2kCommand.EditRecord("SOH", Order.SalesNumber
-                , new int[4] { 20, 18, 17, 19 }
-                , new string[4] { _code.ToString(), DateTime.Now.ToString("MM-dd-yy"), CurrentUser.DomainUserName.ToUpper(), $"{CurrentUser.DomainUserName}:{App.Site.Replace('_', '.')}" }, M2kClient.UdArrayCommand.Replace, App.ErpCon);
-            if (!string.IsNullOrEmpty(_changeRequest))
-            {
-                MessageBox.Show(_changeRequest, "ERP Record Error");
-            }
+            
         }
         private bool ARUpdateCanExecute(object parameter) => true;
 

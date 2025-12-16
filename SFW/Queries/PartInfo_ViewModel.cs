@@ -430,9 +430,8 @@ namespace SFW.Queries
                 {
                     _dmd = DiamondEntry.Show();
                 }
-
                 var _ncr = UseLot
-                        ? Model.Quality.QmsForm.GetNcrId(_lot, App.AppSqlCon)
+                        ? Model.Quality.QmsForm.GetNcrId($"{_lot}|P|01", App.AppSqlCon)
                         : string.Empty;
                 TravelCard.Create("", "technology#1",
                     Part.SkuNumber,

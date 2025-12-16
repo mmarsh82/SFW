@@ -361,50 +361,78 @@ namespace SFW.Model.Product
             }
         }
 
-        private int _weight;
-        public int Weight
+        private int? _weight;
+        public string Weight
         {
             get
-            { return _weight; }
+            { return _weight.ToString(); }
             set
             {
-                _weight = value;
+                if(int.TryParse(value, out int i))
+                {
+                    _weight = i;
+                }
+                else
+                {
+                    _weight = null;
+                }
                 OnPropertyChanged(nameof(Weight));
             }
         }
 
-        private int _lgt;
-        public int Length
+        private int? _lgt;
+        public string Length
         {
             get
-            { return _lgt; }
+            { return _lgt.ToString(); }
             set
             {
-                _lgt = value;
+                if (int.TryParse(value, out int i))
+                {
+                    _lgt = i;
+                }
+                else
+                {
+                    _lgt = null;
+                }
                 OnPropertyChanged(nameof(Length));
             }
         }
 
-        private int _hgt;
-        public int Height
+        private int? _hgt;
+        public string Height
         {
             get
-            { return _hgt; }
+            { return _hgt.ToString(); }
             set
             {
-                _hgt = value;
+                if (int.TryParse(value, out int i))
+                {
+                    _hgt = i;
+                }
+                else
+                {
+                    _hgt = null;
+                }
                 OnPropertyChanged(nameof(Height));
             }
         }
 
-        private int _dpt;
-        public int Depth
+        private int? _dpt;
+        public string Depth
         {
             get
-            { return _dpt; }
+            { return _dpt.ToString(); }
             set
             {
-                _dpt = value;
+                if (int.TryParse(value, out int i))
+                {
+                    _dpt = i;
+                }
+                else
+                {
+                    _dpt = null;
+                }
                 OnPropertyChanged(nameof(Depth));
             }
         }
@@ -451,16 +479,21 @@ namespace SFW.Model.Product
         {
             RevisionDateTime = DateTime.Now;
             ProductCollection = new ObservableCollection<Product>();
+            Status = "A";
         }
 
         /// <summary>
         /// Overridden constructor
         /// </summary>
-        public SkuContainer(string userId)
+        /// <param name="userId">Current user ERP ID</param>
+        /// <param name="userName">Current user full name</param>
+        public SkuContainer(string userId, string userName)
         {
             UserId = userId;
+            UserName = userName;
             RevisionDateTime = DateTime.Now;
             ProductCollection = new ObservableCollection<Product>();
+            Status = "A";
         }
 
         #region Data Access
@@ -525,10 +558,10 @@ namespace SFW.Model.Product
                                     if (string.IsNullOrEmpty(_tempCon.Location))
                                     {
                                         _tempCon.Location = _tempCon.LoadedLocation = reader.SafeGetString("ContainerLocation");
-                                        _tempCon.Weight = reader.SafeGetInt32("Weight");
-                                        _tempCon.Height = reader.SafeGetInt32("Height");
-                                        _tempCon.Length = reader.SafeGetInt32("Length");
-                                        _tempCon.Depth = reader.SafeGetInt32("Depth");
+                                        _tempCon.Weight = reader.SafeGetInt32("Weight").ToString();
+                                        _tempCon.Height = reader.SafeGetInt32("Height").ToString();
+                                        _tempCon.Length = reader.SafeGetInt32("Length").ToString();
+                                        _tempCon.Depth = reader.SafeGetInt32("Depth").ToString();
                                         var _tempSo = new Sales.SalesOrder($"{reader.SafeGetString("SalesOrderNumber")}*1");
                                         if (!string.IsNullOrEmpty(_tempSo.SalesNumber))
                                         {
@@ -810,18 +843,18 @@ SELECT @newId = CASE WHEN MAX([ContainerID]) IS NULL THEN 1 ELSE MAX([ContainerI
 INSERT INTO [Nexus_Main].[dbo].[ContainerHeader]
 	([ContainerID], [ContainerType], [ContainerStatus], [LastUserID], [LastEditDate], [XrefID], [ContainerWeight], [XrefType], [ContainerHeight], [ContainerLocation], [User_Def_1], [User_Def_2], [User_Def_3], [User_Def_4])
 VALUES
-	(@newId, 'PALLET', 'PACK', @p1, @p2, @p3, @p4, 'INT', @p5, @p3, @p5, @p6, @p7, @p8)
+	(@newId, 'PALLET', 'PACK', @p1, @p2, @p3, @p4, 'INT', @p5, @p3, @p6, @p7, @p8, @p9)
 SELECT @newId", sqlCon))
                             {
                                 cmd.Parameters.AddWithValue("p1", container.UserId);
                                 cmd.Parameters.AddWithValue("p2", DateTime.Now.ToString("yyyy-MM-dd HH:mm"));
                                 cmd.Parameters.AddWithValue("p3", container.Location);
+                                cmd.Parameters.AddWithValue("p4", container.Weight);
                                 cmd.Parameters.AddWithValue("p5", container.Height);
-                                cmd.Parameters.AddWithValue("p3", container.Location);
-                                cmd.Parameters.AddWithValue("p5", container.Length);
-                                cmd.Parameters.AddWithValue("p6", container.Depth);
-                                cmd.Parameters.AddWithValue("p7", container.SalesOrderNumber);
-                                cmd.Parameters.AddWithValue("p8", container.Status);
+                                cmd.Parameters.AddWithValue("p6", container.Length);
+                                cmd.Parameters.AddWithValue("p7", container.Depth);
+                                cmd.Parameters.AddWithValue("p8", container.SalesOrderNumber);
+                                cmd.Parameters.AddWithValue("p9", container.Status);
                                 container.ContainerId = cmd.ExecuteScalar().ToString();
                             }
                             foreach (var _prod in container.ProductCollection)

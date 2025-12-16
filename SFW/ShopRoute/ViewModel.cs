@@ -1,4 +1,5 @@
-﻿using M2kClient;
+﻿using DocumentFormat.OpenXml.Office.Word;
+using M2kClient;
 using SFW.Helpers;
 using SFW.Model;
 using SFW.Model.Product;
@@ -245,7 +246,21 @@ namespace SFW.ShopRoute
 
         public DataView ActivityTable { get; set; }
 
+        private string _com;
+        public string CommentInput
+        {
+            get
+            { return _com; }
+            set
+            {
+                _com = value.ReplaceExplicitWords();
+                OnPropertyChanged(nameof(CommentInput));
+            }
+        }
+        public ObservableCollection<WorkOrderComment> CommentCollection { get; set; }
+
         private RelayCommand _noteChange;
+        private RelayCommand _modComment;
 
         #endregion
 
@@ -333,6 +348,12 @@ namespace SFW.ShopRoute
                                 SelectedComp = CompCollection != null ? CompCollection.FirstOrDefault(o => o == ShopOrder.Product.SkuNumber) : null;
                                 OnPropertyChanged(nameof(CompCollection));
                             }
+                            CommentCollection = new ObservableCollection<WorkOrderComment>();
+                            if (CurrentUser.IsLoggedIn)
+                            {
+                                CommentCollection = WorkOrderComment.GetCollection(ShopOrder.OrderID);
+                                OnPropertyChanged(nameof(CommentCollection));
+                            }
                             OnPropertyChanged(nameof(IsMultiLoading));
                             OnPropertyChanged(nameof(ShopOrder));
                             WipActive = true;
@@ -418,7 +439,7 @@ namespace SFW.ShopRoute
             {
                 if (_noteChange == null)
                 {
-                    _noteChange = new RelayCommand(NoteChgExecute, NoteChgCanExecute);
+                    _noteChange = new RelayCommand(NoteChgExecute);
                 }
                 return _noteChange;
             }
@@ -435,7 +456,65 @@ namespace SFW.ShopRoute
                 ShopOrderNotes = ShopOrder.Notes;
             }
         }
-        private bool NoteChgCanExecute(object parameter) => true;
+
+        #endregion
+
+        #region Work Order Comment ICommand
+
+        public ICommand ModifyCommentICommand
+        {
+            get
+            {
+                if (_modComment == null)
+                {
+                    _modComment = new RelayCommand(ModifyCommentExecute, ModifyCommentCanExecute);
+                }
+                return _modComment;
+            }
+        }
+
+        private void ModifyCommentExecute(object parameter)
+        {
+            if (char.TryParse(parameter.ToString(), out char c))
+            {
+                var _woComment = new WorkOrderComment
+                {
+                    WpoId = ShopOrder.OrderID
+                    ,CommentText = CommentInput
+                    ,SubmitDate = DateTime.Now
+                    ,SubmitterId = CurrentUser.ErpId
+                    ,Status = 'A'
+                };
+                _woComment.CommentId = WorkOrderComment.SubmitComment(_woComment, App.AppSqlCon);
+                if (_woComment.CommentId != 0)
+                {
+                    CommentCollection.Insert(0, _woComment);
+                    OnPropertyChanged(nameof(CommentCollection));
+                    CommentInput = string.Empty;
+                }
+            }
+            else
+            {
+                if (parameter.GetType() == typeof(WorkOrderComment))
+                {
+                    var _com = (WorkOrderComment)parameter;
+                    var _newStatus = WorkOrderComment.ModifyStatus(_com, App.AppSqlCon);
+                    if (_newStatus != 'E')
+                    {
+                        CommentCollection.FirstOrDefault(o => o.CommentId == _com.CommentId).Status = _newStatus;
+                        OnPropertyChanged(nameof(CommentCollection));
+                    }
+                }
+            }
+        }
+        private bool ModifyCommentCanExecute(object parameter)
+        {
+            if (char.TryParse(parameter?.ToString(), out char c))
+            {
+                return !string.IsNullOrEmpty(CommentInput);
+            }
+            return true;
+        }
 
         #endregion
     }

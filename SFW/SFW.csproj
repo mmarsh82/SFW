@@ -29,8 +29,8 @@
     <ProductName>Shop Floor Workbench</ProductName>
     <PublisherName>Michael Marsh</PublisherName>
     <SuiteName>ContiTech</SuiteName>
-    <ApplicationRevision>305</ApplicationRevision>
-    <ApplicationVersion>3.0.45.305</ApplicationVersion>
+    <ApplicationRevision>351</ApplicationRevision>
+    <ApplicationVersion>3.0.50.351</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <CreateDesktopShortcut>true</CreateDesktopShortcut>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -184,6 +184,7 @@
       <DependentUpon>DynamicSplashScreen.xaml</DependentUpon>
     </Compile>
     <Compile Include="Enumerations\PressReportActions.cs" />
+    <Compile Include="ExplicitWords.cs" />
     <Compile Include="ISplashScreen.cs" />
     <Compile Include="Labor\View.xaml.cs">
       <DependentUpon>View.xaml</DependentUpon>
@@ -251,6 +252,10 @@
       <DependentUpon>CrewList_View.xaml</DependentUpon>
     </Compile>
     <Compile Include="Tools\CrewList_ViewModel.cs" />
+    <Compile Include="Tools\ErpUpload_View.xaml.cs">
+      <DependentUpon>ErpUpload_View.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Tools\ErpUpload_ViewModel.cs" />
     <Compile Include="Tools\NcrSearch_View.xaml.cs">
       <DependentUpon>NcrSearch_View.xaml</DependentUpon>
     </Compile>
@@ -461,6 +466,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Tools\CrewList_View.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Tools\ErpUpload_View.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -678,6 +687,12 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Icons\Reset.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Icons\Hide.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Icons\Show.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

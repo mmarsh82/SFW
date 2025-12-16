@@ -155,7 +155,7 @@ namespace SFW.ShopRoute.WipManagement
                 WipRecord.IsScrap = value;
                 OnPropertyChanged(nameof(Scrap));
                 WipRecord.ScrapList.Clear();
-                WipRecord.ScrapList.Add(new Scrap("0", WipLot, WipRecord.WipWorkOrder.OrderNumber, WipRecord.WipWorkOrder.Product.SkuNumber));
+                WipRecord.ScrapList.Add(new Scrap("0", WipLot, WipRecord.WipWorkOrder.OrderNumber, WipRecord.WipWorkOrder.Product.SkuNumber, 'P'));
                 WipQuantity = "-987654";
                 OnPropertyChanged(nameof(WipRecord));
             }
@@ -847,7 +847,7 @@ namespace SFW.ShopRoute.WipManagement
         private void AddScrapExecute(object parameter)
         {
             var _newId = WipRecord.ScrapList.Count().ToString();
-            WipRecord.ScrapList.Add(new Scrap(_newId, WipLot, WipRecord.WipWorkOrder.OrderNumber, WipRecord.WipWorkOrder.Product.SkuNumber));
+            WipRecord.ScrapList.Add(new Scrap(_newId, WipLot, WipRecord.WipWorkOrder.OrderNumber, WipRecord.WipWorkOrder.Product.SkuNumber, 'P'));
             OnPropertyChanged(nameof(WipRecord));
         }
         private bool AddScrapCanExecute(object parameter) => parameter != null && !string.IsNullOrEmpty(parameter.ToString());
@@ -917,7 +917,7 @@ namespace SFW.ShopRoute.WipManagement
                     if (_comp.LotList.Count(o => o.ID == _lot.ID) > 0)
                     {
                         var _id = _comp.LotList.FirstOrDefault(o => o.ID == _lot.ID).ScrapCollection.Count();
-                        _comp.LotList.FirstOrDefault(o => o.ID == _lot.ID).ScrapCollection.Add(new Scrap(_id.ToString(), _lot.ID, WipRecord.WipWorkOrder.OrderNumber, WipRecord.WipWorkOrder.Product.SkuNumber));
+                        _comp.LotList.FirstOrDefault(o => o.ID == _lot.ID).ScrapCollection.Add(new Scrap(_id.ToString(), _lot.ID, WipRecord.WipWorkOrder.OrderNumber, WipRecord.WipWorkOrder.Product.SkuNumber, 'L'));
                         OnPropertyChanged(nameof(WipRecord));
                         break;
                     }

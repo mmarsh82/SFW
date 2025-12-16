@@ -734,7 +734,7 @@
                              ScrollViewer.VerticalScrollBarVisibility="Auto"
                              MinWidth="300"
                              MaxWidth="580"
-                             MaxLength="1000"
+                             MaxLength="3000"
                              IsEnabled="{Binding Path=(main:CurrentUser.IsQuality)}"
                              Background="LightGray"
                              HorizontalAlignment="Left"
@@ -826,7 +826,7 @@
                                                    Foreground="#FF135185"
                                                    Margin="5,0,0,0"/>
 
-                                        <TextBox Text="{Binding LotNumber}"
+                                        <TextBox Text="{Binding LotNumber, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                                  MinWidth="130"
                                                  CharacterCasing="Upper"
                                                  Margin="3"

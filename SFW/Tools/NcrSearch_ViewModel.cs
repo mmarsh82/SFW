@@ -1,5 +1,4 @@
 ﻿using SFW.Commands;
-using SFW.Controls;
 using SFW.Helpers;
 using System.Windows;
 using System.Windows.Input;

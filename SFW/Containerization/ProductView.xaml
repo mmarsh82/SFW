@@ -9,6 +9,7 @@
              Name="ContainerFormUC">
     
     <UserControl.Resources>
+        
         <cmd:ViewLoad x:Key="ViewLoadCommand"/>
         <cvtr:BoolToBackgroundColor x:Key="BoolToBGConverter"/>
         <cvtr:ContainerNameConverter x:Key="ContainerGroupConverter"/>
@@ -34,6 +35,10 @@
         </CollectionViewSource>
 
     </UserControl.Resources>
+
+    <UserControl.InputBindings>
+        <KeyBinding Gesture="Shift+Alt" Command="{Binding AddContainerICommand}"/>
+    </UserControl.InputBindings>
 
     <Grid Background="LightGray">
 

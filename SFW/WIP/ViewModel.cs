@@ -156,7 +156,7 @@ namespace SFW.WIP
                 WipRecord.IsScrap = value;
                 OnPropertyChanged(nameof(Scrap));
                 WipRecord.ScrapList.Clear();
-                WipRecord.ScrapList.Add(new Scrap("0", WipLot, WipRecord.WipWorkOrder.OrderNumber, WipRecord.WipWorkOrder.Product.SkuNumber));
+                WipRecord.ScrapList.Add(new Scrap("0", WipLot, WipRecord.WipWorkOrder.OrderNumber, WipRecord.WipWorkOrder.Product.SkuNumber, 'P'));
                 WipQuantity = "-987654";
                 OnPropertyChanged(nameof(WipRecord));
             }
@@ -545,7 +545,7 @@ namespace SFW.WIP
                     WipStickerPrintExecute(null);
                 }
 
-                if (DefectList.Count() > 0 && !NotApply && WipRecord.IsLotTracable)
+                if (DefectList.Count() > 0 && !NotApply && WipRecord.IsLotTracable && !App.InTraining)
                 {
                     foreach (var _form in DefectList.Where(o => o.IsSelected))
                     {
@@ -650,9 +650,14 @@ namespace SFW.WIP
                     }
 
                     //Check to see if there is an associated NCR
-                    var _ncr = WipRecord.IsLotTracable
-                        ? Model.Quality.QmsForm.GetNcrId(WipRecord.WipLot.LotNumber, App.AppSqlCon)
-                        : Model.Quality.QmsForm.GetNcrId(WipRecord.WipWorkOrder.OrderNumber);
+                    var _ncr = string.Empty;
+                    if (DefectList.Count() > 0)
+                    {
+                        foreach (var _defect in DefectList.Where(o => o.IsSelected))
+                        {
+                            _ncr += string.IsNullOrEmpty(_ncr) ? _defect.FormId.ToString() : $"-{_defect.FormId}";
+                        }
+                    }
 
                     //Print the travel card
                     TravelCard.Create("", "technology#1",
@@ -904,7 +909,7 @@ namespace SFW.WIP
         private void AddScrapExecute(object parameter)
         {
             var _newId = WipRecord.ScrapList.Count().ToString();
-            WipRecord.ScrapList.Add(new Scrap(_newId, WipLot, WipRecord.WipWorkOrder.OrderNumber, WipRecord.WipWorkOrder.Product.SkuNumber));
+            WipRecord.ScrapList.Add(new Scrap(_newId, WipLot, WipRecord.WipWorkOrder.OrderNumber, WipRecord.WipWorkOrder.Product.SkuNumber, 'P'));
             OnPropertyChanged(nameof(WipRecord));
         }
         private bool AddScrapCanExecute(object parameter) => parameter != null && !string.IsNullOrEmpty(parameter.ToString());
@@ -974,7 +979,7 @@ namespace SFW.WIP
                     if (_comp.LotList.Count(o => o.ID == _lot.ID) > 0)
                     {
                         var _id = _comp.LotList.FirstOrDefault(o => o.ID == _lot.ID).ScrapCollection.Count();
-                        _comp.LotList.FirstOrDefault(o => o.ID == _lot.ID).ScrapCollection.Add(new Scrap(_id.ToString(), _lot.ID, WipRecord.WipWorkOrder.OrderNumber, WipRecord.WipWorkOrder.Product.SkuNumber));
+                        _comp.LotList.FirstOrDefault(o => o.ID == _lot.ID).ScrapCollection.Add(new Scrap(_id.ToString(), _lot.ID, WipRecord.WipWorkOrder.OrderNumber, WipRecord.WipWorkOrder.Product.SkuNumber, 'C'));
                         OnPropertyChanged(nameof(WipRecord));
                         break;
                     }

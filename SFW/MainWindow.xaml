@@ -250,6 +250,9 @@
                 <MenuItem Header="Modify Application"
                           Command="{StaticResource ViewLoadICommand}"
                           CommandParameter="4"/>
+                <MenuItem Header="ERP Upload"
+                          Command="{StaticResource ShowWindowICommand}"
+                          CommandParameter="SFW.Tools.ErpUpload_View"/>
                 <MenuItem Header="Developer Command"
                           Command="{StaticResource TestICommand}"/>
             </MenuItem>

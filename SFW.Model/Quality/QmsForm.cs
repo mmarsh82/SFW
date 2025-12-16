@@ -626,6 +626,8 @@ GROUP BY
             RevisionList = new List<Revision> { new Revision(submitter, frmType) };
             Site = workOrder.Facility;
             TempId = int.TryParse(DateTime.Now.ToString("HHmmss"), out int id) ? id : 123456;
+            LotList = new BindingList<Product.Lot>();
+            LotList.ListChanged += LotList_Changed;
         }
 
         /// <summary>
@@ -651,8 +653,9 @@ GROUP BY
         /// </summary>
         /// <param name="sender">BindingList<Lot> list passed without changes</param>
         /// <param name="e">Change info</param>
-        public static void LotList_Changed(object sender, ListChangedEventArgs e)
+        public void LotList_Changed(object sender, ListChangedEventArgs e)
         {
+            LotList.ListChanged -= LotList_Changed;
             if (e.ListChangedType == ListChangedType.ItemChanged)
             {
                 if (sender != null && e.PropertyDescriptor.DisplayName == "LotNumber" && !LotChanging)
@@ -678,6 +681,7 @@ GROUP BY
                     }
                 }
             }
+            LotList.ListChanged += LotList_Changed;
             LotChanging = false;
         }
 
@@ -696,7 +700,7 @@ GROUP BY
                 {
                     foreach (var _row in _rows)
                     {
-                        _rtnList.Add($"{_row.SafeGetField<int>("NcrId")} {_row.SafeGetField<string>("TypeDescription")}");
+                        _rtnList.Add($"{_row.SafeGetField<int>("NcrId")} {_row.SafeGetField<string>("SubTypeDescription")}");
                     }
                 }
                 return _rtnList;
@@ -780,9 +784,13 @@ GROUP BY
         /// Checks to see if it is a valid NCR
         /// </summary>
         /// <param name="ncrId">Ncr ID</param>
+        /// <param name="workOrder">Work Order ID</param>
+        /// <param name="reference">Part Number or Lot Number</param>
+        /// <param name="type">Changes the query type P for part number reference, L for lot number reference, C for component lot number reference</param>
         /// <returns>pass flag as bool</returns>
         public static bool IsValid(int ncrId, string workOrder, string reference, char type)
         {
+            var _valid = false;
             switch (type)
             {
                 case 'P':
@@ -790,7 +798,15 @@ GROUP BY
                     return MasterDataSet.Tables[typeof(Notice).Name].Select($"[NcrId] = {ncrId} AND [PartId] = '{reference}' AND [WorkOrderId] = '{workOrder}'").Count() > 0;
                 case 'L':
                     reference = reference.Contains("|") ? reference : $"{reference}|P|01";
-                    var _valid = MasterDataSet.Tables[typeof(Notice).Name].Select($"[NcrId] = {ncrId} AND [WorkOrderId] = '{workOrder}'").Count() > 0;
+                    _valid = MasterDataSet.Tables[typeof(Notice).Name].Select($"[NcrId] = {ncrId} AND [WorkOrderId] = '{workOrder}'").Count() > 0;
+                    if (_valid)
+                    {
+                        return ValidNcrLot(ncrId, reference, ModelSqlCon);
+                    }
+                    return false;
+                case 'C':
+                    reference = reference.Contains("|") ? reference : $"{reference}|P|01";
+                    _valid = MasterDataSet.Tables[typeof(Notice).Name].Select($"[NcrId] = {ncrId}").Count() > 0;
                     if (_valid)
                     {
                         return ValidNcrLot(ncrId, reference, ModelSqlCon);

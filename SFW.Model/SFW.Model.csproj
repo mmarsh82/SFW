@@ -73,6 +73,7 @@
     <Compile Include="Production\Wip\Reclaim.cs" />
     <Compile Include="Production\Wip\Scrap.cs" />
     <Compile Include="Production\WorkOrder.cs" />
+    <Compile Include="Production\WorkOrderComment.cs" />
     <Compile Include="Production\WorkOrderNote.cs" />
     <Compile Include="Product\Lot.cs" />
     <Compile Include="Product\Sku.cs" />
