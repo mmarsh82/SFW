@@ -11,6 +11,7 @@
         STUPID = 4,
         DUMB = 5,
         IDIOT = 6,
-        BITCH = 7
+        BITCH = 7,
+        POOP = 8
     }
 }

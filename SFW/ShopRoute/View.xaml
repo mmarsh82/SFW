@@ -246,6 +246,12 @@
 
                                         <StackPanel Grid.Row="0"
                                                     Orientation="Horizontal">
+                                            <StackPanel.Visibility>
+                                                <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="1|0">
+                                                    <Binding Path="(main:CurrentUser.IsSupervisor)"/>
+                                                    <Binding Path="IsHidden"/>
+                                                </MultiBinding>
+                                            </StackPanel.Visibility>
 
                                             <Button Command="{Binding DataContext.ModifyCommentICommand, ElementName=ShopRouteUserControl}"
                                                     CommandParameter="{Binding}"
@@ -299,7 +305,14 @@
                                         </StackPanel>
 
                                         <TextBlock Grid.Row="1"
-                                                   Text="{Binding CommentText}"/>
+                                                   Text="{Binding CommentText}">
+                                            <TextBlock.Visibility>
+                                                <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="1|0">
+                                                    <Binding Path="(main:CurrentUser.IsSupervisor)"/>
+                                                    <Binding Path="IsHidden"/>
+                                                </MultiBinding>
+                                            </TextBlock.Visibility>
+                                        </TextBlock>
 
                                     </Grid>
 
