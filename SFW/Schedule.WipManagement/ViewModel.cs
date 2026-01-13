@@ -1,6 +1,6 @@
 ﻿using SFW.Converters;
 using SFW.Model;
-using SFW.Model.Production;
+using SFW.Model.Production.Wip;
 using System;
 using System.Data;
 using System.Linq;
@@ -43,8 +43,8 @@ namespace SFW.Schedule.WipManagement
                     var _dRow = (DataRowView)CollectionView.CurrentItem;
                     if (_dRow != null)
                     {
-                        var _wo = new WorkOrder(_dRow.Row);
-                        var _action = new Action(delegate { Controls.WorkSpaceDock.UpdateChildDock(12, 1, new ShopRoute.WipManagement.ViewModel()); });
+                        var _rec = new Receipt(_dRow.Row);
+                        var _action = new Action(delegate { Controls.WorkSpaceDock.UpdateChildDock(12, 1, new ShopRoute.WipManagement.ViewModel(_rec)); });
                         Application.Current.Dispatcher.Invoke(_action);
                     }
                 }
@@ -72,21 +72,7 @@ namespace SFW.Schedule.WipManagement
         {
             try
             {
-                var _tempTable = ModelBase.MasterDataSet.Tables[typeof(WorkOrder).Name];
-                foreach (var _keyValPair in UserConfig.GetIROD())
-                {
-                    DataRow[] _rows = _tempTable.Select($"MachineNumber={_keyValPair.Key}");
-                    foreach (DataRow _row in _rows)
-                    {
-                        var _index = _tempTable.Rows.IndexOf(_row);
-                        _tempTable.Rows[_index].SetField("MachineOrder", _keyValPair.Value);
-                    }
-                }
-                if (_tempTable != null)
-                {
-                    _tempTable.DefaultView.Sort = "MachineOrder ASC";
-                }
-                CollectionView = new ListCollectionView(_tempTable.AsDataView());
+                CollectionView = new ListCollectionView(ModelBase.MasterDataSet.Tables[typeof(Receipt).Name].AsDataView());
                 if (CollectionView.GroupDescriptions.Count() != 0)
                 {
                     Application.Current?.Dispatcher.Invoke(new Action(delegate { CollectionView.GroupDescriptions.Clear(); }));

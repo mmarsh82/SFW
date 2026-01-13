@@ -52,20 +52,16 @@
                            Margin="10,0,0,0"
                            Visibility="{Binding Path=(main:App.InTraining), Converter={StaticResource BooltoVisConverter}}"
                            VerticalAlignment="Center"/>
-            </StackPanel>
-            
-            <StackPanel Grid.Row="0"
-                        HorizontalAlignment="Center"
-                        Orientation="Horizontal">
                 <TextBlock Text="Work Order:"
                            FontSize="24"
                            FontWeight="Bold"
+                           Margin="10,0,0,0"
                            TextDecorations="Underline"/>
                 <TextBlock Text="{Binding WipRecord.WipWorkOrder.OrderNumber}"
                            FontSize="24"
                            Margin="10,0,0,0"/>
             </StackPanel>
-
+            
             <StackPanel Grid.Row="0"
                         HorizontalAlignment="Right"
                         Orientation="Horizontal">
@@ -75,7 +71,7 @@
                            TextDecorations="Underline" />
                 <TextBlock Text="{Binding WipRecord.Submitter}"
                            FontSize="16"
-                           Margin="10,0,10,0" />
+                           Margin="10,0,50,0" />
             </StackPanel>
 
             <!--#endregion-->
@@ -149,15 +145,6 @@
                              IsTabStop="False"
                              Margin="10,0,0,0" 
                              Visibility="{Binding WipRecord.CanReclaim, Converter={StaticResource BooltoVisConverter}}"/>
-
-                <CheckBox x:Name="MultiCheck"
-                          IsChecked="{Binding Multi, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                          Content="Multi-WIP"
-                          FontSize="18"
-                          FontWeight="Bold"
-                          IsTabStop="False"
-                          Margin="30,0,0,0"
-                          Visibility="{Binding WipRecord.CanMulti, Mode=TwoWay, Converter={StaticResource BooltoVisConverter}}"/>
             </StackPanel>
 
             <!--#endregion-->
@@ -199,30 +186,6 @@
 
                 </StackPanel>
 
-                <TextBlock Text="X"
-                           FontSize="18"
-                           FontWeight="Bold"
-                           VerticalAlignment="Center"
-                           Foreground="Green"
-                           Margin="10,0,0,0"
-                           Visibility="{Binding Multi, Converter={StaticResource BooltoVisConverter}}"/>
-                
-                <TextBox Text="{Binding RollQuantity, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                         FontSize="18"
-                         FontWeight="Bold"
-                         Background="LightGray"
-                         Margin="10,5,5,5"
-                         Width="50"
-                         MaxLength="2"
-                         Visibility="{Binding Multi, Converter={StaticResource BooltoVisConverter}}"
-                         Style="{DynamicResource RequiredTextBox}" />
-                <TextBlock Text="Rolls"
-                           FontSize="18"
-                           FontWeight="Bold"
-                           VerticalAlignment="Center"
-                           Margin="10,0,0,0"
-                           Visibility="{Binding Multi, Converter={StaticResource BooltoVisConverter}}"/>
-                
                 <TextBlock Text="Seq. Complete:"
                            FontSize="18"
                            FontWeight="Bold"

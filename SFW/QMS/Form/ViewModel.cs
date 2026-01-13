@@ -323,7 +323,7 @@ namespace SFW.QMS.Form
                 {
                     if (App.LoadedModule == Enumerations.UsersControls.Schedule)
                     {
-                        LoadedWorkOrder = new WorkOrder(frm.LoadedOrderId, 'W');
+                        LoadedWorkOrder = new WorkOrder(frm.LoadedOrderId, 'S');
                     }
                     else
                     {

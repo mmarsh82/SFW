@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Data;
 using System.Data.SqlClient;
 using System.DirectoryServices.AccountManagement;
@@ -302,6 +303,77 @@ namespace SFW.Model.Management
             {
                 throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
             }
+        }
+
+        /// <summary>
+        /// Get a table of all BOM's for every SKU on file
+        /// </summary>
+        /// <param name="sqlCon">Sql Connection to use</param>
+        /// <returns>DataTable of bill of materials</returns>
+        public static BindingList<Employee> GetWipCrewList(string woNbr, SqlConnection sqlCon)
+        {
+            var _rtnList = new BindingList<Employee>();
+            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
+                {
+                    try
+                    {
+                        using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database}; SELECT
+	em.[Emp_No] as 'ErpID'
+	,lbrd.[Emp_Date] as 'LaborID'
+	,lbrd.[In_Time] as 'StartTime'
+	,lbrd.[Out_Time] as 'EndTime'
+	,CONCAT(CONCAT(em.[First_Name], ' '), em.[Last_Name]) as 'DisplayName'
+	,em.[Shift] as 'EmployeeShift'
+FROM
+	[dbo].[LBR_DETAIL-INIT] lbrd
+LEFT JOIN
+	[dbo].[EM-INIT] em ON em.[Emp_No] = SUBSTRING(lbrd.[Emp_Date],0, CHARINDEX('*', lbrd.[Emp_Date]))
+WHERE
+    lbrd.[Wo_Nbr] = @p1", sqlCon))
+                        {
+                            cmd.Parameters.AddWithValue("p1", woNbr);
+                            using (SqlDataReader reader = cmd.ExecuteReader())
+                            {
+                                if (reader.HasRows)
+                                {
+                                    while (reader.Read())
+                                    {
+                                        var _lbrId = reader.SafeGetString("LaborID");
+                                        var _dtId = int.TryParse(_lbrId.Split('*')[1], out int i) ? i : 0;
+                                        _rtnList.Add(new Employee
+                                        {
+                                            ErpId = reader.SafeGetString("ErpID")
+                                            ,Facility = _lbrId.Split('*')[2]
+                                            ,LaborData = new EmployeeLabor
+                                                {
+                                                    LaborId = _lbrId
+                                                    ,DateId = _dtId
+                                                    ,Shift = reader.SafeGetInt32("EmployeeShift")
+                                                    ,InTime = reader.SafeGetString("StartTime")
+                                                    ,OutTime = reader.SafeGetString("EndTime")
+                                                }
+                                            ,Name = reader.SafeGetString("DisplayName")
+                                            ,Shift = reader.SafeGetInt32("EmployeeShift")
+                                        });
+                                    }
+                                }
+                            }
+                        }
+                        return _rtnList;
+                    }
+                    catch (SqlException)
+                    {
+                        return _rtnList;
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new Exception(ex.Message);
+                    }
+                }
+                else
+                {
+                    throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
+                }
         }
 
         /// <summary>

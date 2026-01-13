@@ -77,33 +77,20 @@
 
             </StackPanel>
 
-            <StackPanel Grid.Column="1"
-                        Orientation="Horizontal"
-                        HorizontalAlignment="Right">
-
-                <CheckBox IsChecked="{Binding ClosedFilter}"
-                          VerticalAlignment="Center"
-                          HorizontalAlignment="Right"
-                          FontSize="18"
-                          Margin="0,0,10,0"
-                          ToolTip="Filter to closed work orders."
-                          Style="{DynamicResource SliderCheckBox}">
-                    <TextBlock Text="Closed:"
-                                   TextDecorations="Underline"/>
-                </CheckBox>
-
-                <CheckBox IsChecked="{Binding InspectionFilter}"
-                          VerticalAlignment="Center"
-                          HorizontalAlignment="Right"
-                          FontSize="18"
-                          Margin="0,0,10,0"
-                          ToolTip="Filter to only work orders with inspections."
-                          Style="{DynamicResource SliderCheckBox}">
-                    <TextBlock Text="Inspection:"
-                               TextDecorations="Underline"/>
-                </CheckBox>
-
-            </StackPanel>
+            <Button Grid.Column="1"
+                    Margin="5"
+                    Command="{Binding RefreshICommand}"
+                    IsEnabled="{Binding RefreshCanExecute}"
+                    Background="Transparent"
+                    BorderThickness="0"
+                    HorizontalAlignment="Right"
+                    ToolTip="Refresh the schedule."
+                    Style="{DynamicResource ResourceKey=DefaultButton}">
+                <Image Source="/SFW;component/Icons/Refresh.ico"/>
+                <Button.Effect>
+                    <DropShadowEffect Opacity="0"/>
+                </Button.Effect>
+            </Button>
 
         </Grid>
 
@@ -128,116 +115,23 @@
                             <StackPanel Orientation="Vertical" MinWidth="780">
                                 <Grid>
                                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Left">
-                                        <TextBlock Text="{Binding WorkOrder}" FontSize="24" FontWeight="Bold"/>
-                                        <Image Source="/SFW;component/Icons/Critical.ico"
-                                               Visibility="{Binding SalesOrderType, Converter={StaticResource StringToVisConverter}, ConverterParameter=WO}"
-                                               ToolTip="Work Order is marked as critical and must be completed ASAP."
-                                               Margin="10,0,0,0" Height="25" Width="25"/>
-                                        <Image Source="/SFW;component/Icons/Daily.ico"
-                                               Visibility="{Binding SalesOrderType, Converter={StaticResource StringToVisConverter}, ConverterParameter=Daily}"
-                                               ToolTip="Work Order is linked to a daily sales order."
-                                               Margin="10,0,0,0" Height="25" Width="25"/>
-                                        <Image Source="/SFW;component/Icons/Late.ico"
-                                               Visibility="{Binding IsLate, Converter={StaticResource BoolToVisConverter}}"
-                                               ToolTip="Work Order is currently past the due date!"
-                                               Margin="10,0,0,0" Height="25" Width="25"/>
-                                        <Image Source="/SFW;component/Icons/Warning.ico"
-                                               Visibility="{Binding IsStartLate, Converter={StaticResource BoolToVisConverter}}"
-                                               ToolTip="Work Order has currently went past it's expected start date."
-                                               Margin="10,0,0,0" Height="25" Width="25"/>
-                                        <Image Source="/SFW;component/Icons/Pending.ico"
-                                               Visibility="{Binding IsPastDue, Converter={StaticResource BoolToVisConverter}}"
-                                               ToolTip="Work order is scheduled to complete past the original date required."
-                                               Margin="10,0,0,0" Height="25" Width="25"/>
-                                        <Image Source="/SFW;component/Icons/First.ico"
-                                               Visibility="{Binding Sched_Shift, ConverterParameter=~1, Converter={StaticResource StringToVisConverter}}"
-                                               ToolTip="Work order created for 1st shift."
-                                               Margin="10,0,0,0" Height="25" Width="25"/>
-                                        <Image Source="/SFW;component/Icons/Second.ico"
-                                               Visibility="{Binding Sched_Shift, ConverterParameter=~2, Converter={StaticResource StringToVisConverter}}"
-                                               ToolTip="Work order created for 2nd shift."
-                                               Margin="10,0,0,0" Height="25" Width="25"/>
-                                        <Image Source="/SFW;component/Icons/Third.ico"
-                                               Visibility="{Binding Sched_Shift, ConverterParameter=~3, Converter={StaticResource StringToVisConverter}}"
-                                               ToolTip="Work order created for 3rd shift."
-                                               Margin="10,0,0,0" Height="25" Width="25"/>
-                                        <TextBlock Text="Priority:"
-                                                   TextDecorations="Underline"
-                                                   Margin="20,0,0,0"
-                                                   VerticalAlignment="Center"
-                                                   Visibility="{Binding Sched_Priority, ConverterParameter=Sched_Priority, Converter={StaticResource StringToVisConverter}}"/>
-                                        <TextBlock Text="{Binding Sched_Priority}"
-                                                   Margin="5,0,0,0"
-                                                   VerticalAlignment="Center"
-                                                   Visibility="{Binding Sched_Priority, ConverterParameter=Sched_Priority, Converter={StaticResource StringToVisConverter}}"/>
+                                        <TextBlock Text="{Binding WipOrder}" FontSize="24" FontWeight="Bold"/>
                                     </StackPanel>
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                                         <TextBlock Text="{Binding SkuNumber}" VerticalAlignment="Center"/>
                                         <TextBlock Text="{Binding SkuDesc}" Margin="10,0,10,0" VerticalAlignment="Center"/>
-                                        <Button Command="{StaticResource PartSearchCommand}"
-                                                Margin="0,0,10,0"
-                                                Height="30"
-                                                BorderBrush="Transparent"
-                                                BorderThickness="0"
-                                                IsTabStop="False"
-                                                Background="{Binding Deviation, ConverterParameter=Y, Converter={StaticResource BoolToBGConverter}}"
-                                                ToolTip="{Binding Deviation, ConverterParameter=WO, Converter={StaticResource DisplayToolTip}}"
-                                                Style="{DynamicResource ResourceKey=DefaultButton}">
-                                            <Button.CommandParameter>
-                                                <MultiBinding Converter="{StaticResource PartSearchConverter}">
-                                                    <Binding Path="SkuNumber"/>
-                                                    <Binding Path="SkuMasterPrint"/>
-                                                    <Binding Path="Deviation"/>
-                                                    <Binding Path="WorkOrderID"/>
-                                                </MultiBinding>
-                                            </Button.CommandParameter>
-                                            <Image Source="/SFW;component/Icons/ProductSearch.ico"/>
-                                        </Button>
                                     </StackPanel>
                                 </Grid>
                                 <Grid>
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
-                                        <TextBlock Text="Due:" Margin="5,0,0,0" TextDecorations="Underline"/>
-                                        <TextBlock Text="{Binding WO_DueDate, StringFormat=d}" Margin="5,0,0,0"/>
-                                        <TextBlock Text="Needed:" Margin="20,0,0,0" TextDecorations="Underline"/>
-                                        <TextBlock Text="{Binding OriginalDueDate, StringFormat=d}" Margin="5,0,0,0"/>
-                                        <TextBlock Text="Run:" Margin="20,0,0,0" TextDecorations="Underline"/>
-                                        <TextBlock Text="{Binding RunTime, StringFormat=\{0\} hr}" Margin="5,0,0,0"/>
+                                        <TextBlock Text="Submitted:" Margin="5,0,0,0" TextDecorations="Underline"/>
+                                        <TextBlock Text="{Binding WipSubmitted, StringFormat=d}" Margin="5,0,0,0"/>
+                                        <TextBlock Text="Submitter:" Margin="20,0,0,0" TextDecorations="Underline"/>
+                                        <TextBlock Text="{Binding Submitter, StringFormat=d}" Margin="5,0,0,0"/>
                                     </StackPanel>
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                                        <TextBlock Text="Need" Margin="0,0,5,0">
-                                            <TextBlock.Visibility>
-                                                <MultiBinding Converter="{StaticResource IntEqualConverter}">
-                                                    <Binding Path="WO_StartQty"/>
-                                                    <Binding Path="WO_CurrentQty"/>
-                                                </MultiBinding>
-                                            </TextBlock.Visibility>
-                                        </TextBlock>
-                                        <TextBlock Text="{Binding WO_CurrentQty, StringFormat=n0}">
-                                            <TextBlock.Visibility>
-                                                <MultiBinding Converter="{StaticResource IntEqualConverter}">
-                                                    <Binding Path="WO_StartQty"/>
-                                                    <Binding Path="WO_CurrentQty"/>
-                                                </MultiBinding>
-                                            </TextBlock.Visibility>
-                                        </TextBlock>
-                                        <TextBlock Text="{Binding SkuUom}" Margin="5,0,5,0">
-                                            <TextBlock.Visibility>
-                                                <MultiBinding Converter="{StaticResource IntEqualConverter}">
-                                                    <Binding Path="WO_StartQty"/>
-                                                    <Binding Path="WO_CurrentQty"/>
-                                                </MultiBinding>
-                                            </TextBlock.Visibility>
-                                        </TextBlock>
-                                        <TextBlock Text="of">
-                                            <TextBlock.Visibility>
-                                                <MultiBinding Converter="{StaticResource IntEqualConverter}">
-                                                    <Binding Path="WO_StartQty"/>
-                                                    <Binding Path="WO_CurrentQty"/>
-                                                </MultiBinding>
-                                            </TextBlock.Visibility>
-                                        </TextBlock>
-                                        <TextBlock Text="{Binding WO_StartQty, StringFormat=n0}" Margin="5,0,0,0"/>
+                                        <TextBlock Text="WIP Quantity:"/>
+                                        <TextBlock Text="{Binding WipQuantity, StringFormat=n0}" Margin="5,0,0,0"/>
                                         <TextBlock Text="{Binding SkuUom}" Margin="5,0,5,0"/>
                                     </StackPanel>
                                 </Grid>
@@ -252,27 +146,9 @@
                     <Setter Property="FontWeight" Value="Bold"/>
                     <Setter Property="FontSize" Value="18"/>
                     <Style.Triggers>
+                        
                         <!--Unclassified Work Orders-->
-                        <MultiDataTrigger>
-                            <MultiDataTrigger.Conditions>
-                                <Condition Binding="{Binding Inspection}" Value="Y"/>
-                                <Condition Binding="{Binding WO_Priority}" Value="D"/>
-                            </MultiDataTrigger.Conditions>
-                            <Setter Property="Background">
-                                <Setter.Value>
-                                    <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
-                                        <GradientStop Color="Purple" Offset="0"/>
-                                        <GradientStop Color="White" Offset=".25"/>
-                                        <GradientStop Color="Wheat" Offset="1"/>
-                                    </LinearGradientBrush>
-                                </Setter.Value>
-                            </Setter>
-                        </MultiDataTrigger>
-                        <MultiDataTrigger>
-                            <MultiDataTrigger.Conditions>
-                                <Condition Binding="{Binding Inspection}" Value="N"/>
-                                <Condition Binding="{Binding WO_Priority}" Value="D"/>
-                            </MultiDataTrigger.Conditions>
+                        <DataTrigger Binding="{Binding WipOrderPriority}" Value="D">
                             <Setter Property="Background">
                                 <Setter.Value>
                                     <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
@@ -281,99 +157,45 @@
                                     </LinearGradientBrush>
                                 </Setter.Value>
                             </Setter>
-                        </MultiDataTrigger>
-                        <!--Hot Work Orders-->
-                        <MultiDataTrigger>
-                            <MultiDataTrigger.Conditions>
-                                <Condition Binding="{Binding Inspection}" Value="Y"/>
-                                <Condition Binding="{Binding WO_Priority}" Value="A"/>
-                            </MultiDataTrigger.Conditions>
-                            <Setter Property="Background">
-                                <Setter.Value>
-                                    <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
-                                        <GradientStop Color="Purple" Offset="0"/>
-                                        <GradientStop Color="White" Offset=".25"/>
-                                        <GradientStop Color="#FFF3321F" Offset="1"/>
-                                    </LinearGradientBrush>
-                                </Setter.Value>
-                            </Setter>
-                        </MultiDataTrigger>
-                        <MultiDataTrigger>
-                            <MultiDataTrigger.Conditions>
-                                <Condition Binding="{Binding Inspection}" Value="N"/>
-                                <Condition Binding="{Binding WO_Priority}" Value="A"/>
-                            </MultiDataTrigger.Conditions>
-                            <Setter Property="Background">
-                                <Setter.Value>
-                                    <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
-                                        <GradientStop Color="White" Offset="0"/>
-                                        <GradientStop Color="#FFF3321F" Offset="1"/>
-                                    </LinearGradientBrush>
-                                </Setter.Value>
-                            </Setter>
-                        </MultiDataTrigger>
-                        <!--Standard Work Orders-->
-                        <MultiDataTrigger>
-                            <MultiDataTrigger.Conditions>
-                                <Condition Binding="{Binding Inspection}" Value="Y"/>
-                                <Condition Binding="{Binding WO_Priority}" Value="B"/>
-                            </MultiDataTrigger.Conditions>
-                            <Setter Property="Background">
-                                <Setter.Value>
-                                    <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
-                                        <GradientStop Color="Purple" Offset="0"/>
-                                        <GradientStop Color="White" Offset=".25"/>
-                                        <GradientStop Color="#FF29D129" Offset="1"/>
-                                    </LinearGradientBrush>
-                                </Setter.Value>
-                            </Setter>
-                        </MultiDataTrigger>
-                        <MultiDataTrigger>
-                            <MultiDataTrigger.Conditions>
-                                <Condition Binding="{Binding Inspection}" Value="N"/>
-                                <Condition Binding="{Binding WO_Priority}" Value="B"/>
-                            </MultiDataTrigger.Conditions>
-                            <Setter Property="Background">
-                                <Setter.Value>
-                                    <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
-                                        <GradientStop Color="White" Offset="0"/>
-                                        <GradientStop Color="#FF29D129" Offset="1"/>
-                                    </LinearGradientBrush>
-                                </Setter.Value>
-                            </Setter>
-                        </MultiDataTrigger>
-                        <!--Pending Work Orders-->
-                        <MultiDataTrigger>
-                            <MultiDataTrigger.Conditions>
-                                <Condition Binding="{Binding Inspection}" Value="Y"/>
-                                <Condition Binding="{Binding WO_Priority}" Value="C"/>
-                            </MultiDataTrigger.Conditions>
-                            <Setter Property="Background">
-                                <Setter.Value>
-                                    <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
-                                        <GradientStop Color="Purple" Offset="0"/>
-                                        <GradientStop Color="White" Offset=".25"/>
-                                        <GradientStop Color="LightSlateGray" Offset="1"/>
-                                    </LinearGradientBrush>
-                                </Setter.Value>
-                            </Setter>
-                        </MultiDataTrigger>
-                        <MultiDataTrigger>
-                            <MultiDataTrigger.Conditions>
-                                <Condition Binding="{Binding Inspection}" Value="N"/>
-                                <Condition Binding="{Binding WO_Priority}" Value="C"/>
-                            </MultiDataTrigger.Conditions>
-                            <Setter Property="Background">
-                                <Setter.Value>
-                                    <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
-                                        <GradientStop Color="White" Offset="0"/>
-                                        <GradientStop Color="LightSlateGray" Offset="1"/>
-                                    </LinearGradientBrush>
-                                </Setter.Value>
-                            </Setter>
-                        </MultiDataTrigger>
+                        </DataTrigger>
 
-                        <DataTrigger Binding="{Binding WO_Priority}" Value="W">
+                        <!--Hot Work Orders-->
+                        <DataTrigger Binding="{Binding WipOrderPriority}" Value="A">
+                            <Setter Property="Background">
+                                <Setter.Value>
+                                    <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                                        <GradientStop Color="White" Offset="0"/>
+                                        <GradientStop Color="#FFF3321F" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </Setter.Value>
+                            </Setter>
+                        </DataTrigger>
+
+                        <!--Standard Work Orders-->
+                        <DataTrigger Binding="{Binding WipOrderPriority}" Value="B">
+                            <Setter Property="Background">
+                                <Setter.Value>
+                                    <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                                        <GradientStop Color="White" Offset="0"/>
+                                        <GradientStop Color="#FF29D129" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </Setter.Value>
+                            </Setter>
+                        </DataTrigger>
+
+                        <!--Pending Work Orders-->
+                        <DataTrigger Binding="{Binding WipOrderPriority}" Value="C">
+                            <Setter Property="Background">
+                                <Setter.Value>
+                                    <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                                        <GradientStop Color="White" Offset="0"/>
+                                        <GradientStop Color="LightSlateGray" Offset="1"/>
+                                    </LinearGradientBrush>
+                                </Setter.Value>
+                            </Setter>
+                        </DataTrigger>
+
+                        <DataTrigger Binding="{Binding WipOrderPriority}" Value="W">
                             <Setter Property="Background">
                                 <Setter.Value>
                                     <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
@@ -383,26 +205,8 @@
                                 </Setter.Value>
                             </Setter>
                         </DataTrigger>
-                        <MultiDataTrigger>
-                            <MultiDataTrigger.Conditions>
-                                <Condition Binding="{Binding Inspection}" Value="Y"/>
-                                <Condition Binding="{Binding WO_Type}" Value="R"/>
-                            </MultiDataTrigger.Conditions>
-                            <Setter Property="Background">
-                                <Setter.Value>
-                                    <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
-                                        <GradientStop Color="Purple" Offset="0"/>
-                                        <GradientStop Color="White" Offset=".25"/>
-                                        <GradientStop Color="CornflowerBlue" Offset="1"/>
-                                    </LinearGradientBrush>
-                                </Setter.Value>
-                            </Setter>
-                        </MultiDataTrigger>
-                        <MultiDataTrigger>
-                            <MultiDataTrigger.Conditions>
-                                <Condition Binding="{Binding Inspection}" Value="N"/>
-                                <Condition Binding="{Binding WO_Type}" Value="R"/>
-                            </MultiDataTrigger.Conditions>
+                        
+                        <DataTrigger Binding="{Binding WipOrderType}" Value="R">
                             <Setter Property="Background">
                                 <Setter.Value>
                                     <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
@@ -411,7 +215,8 @@
                                     </LinearGradientBrush>
                                 </Setter.Value>
                             </Setter>
-                        </MultiDataTrigger>
+                        </DataTrigger>
+                        
                     </Style.Triggers>
                 </Style>
             </DataGrid.RowStyle>
@@ -425,7 +230,7 @@
                         <MultiDataTrigger>
                             <MultiDataTrigger.Conditions>
                                 <Condition Binding="{Binding IsSelected, RelativeSource={RelativeSource Mode=Self}}" Value="True"/>
-                                <Condition Binding="{Binding WO_Priority}" Value="A"/>
+                                <Condition Binding="{Binding WipOrderPriority}" Value="A"/>
                             </MultiDataTrigger.Conditions>
                             <Setter Property="Background" Value="LightCoral"/>
                             <Setter Property="Foreground" Value="Black"/>
@@ -434,8 +239,8 @@
                         <MultiDataTrigger>
                             <MultiDataTrigger.Conditions>
                                 <Condition Binding="{Binding IsSelected, RelativeSource={RelativeSource Mode=Self}}" Value="True"/>
-                                <Condition Binding="{Binding WO_Priority}" Value="B"/>
-                                <Condition Binding="{Binding WO_Type}" Value="S"/>
+                                <Condition Binding="{Binding WipOrderPriority}" Value="B"/>
+                                <Condition Binding="{Binding WipOrderType}" Value="S"/>
                             </MultiDataTrigger.Conditions>
                             <Setter Property="Background" Value="DarkSeaGreen"/>
                             <Setter Property="Foreground" Value="Black"/>
@@ -444,7 +249,7 @@
                         <MultiDataTrigger>
                             <MultiDataTrigger.Conditions>
                                 <Condition Binding="{Binding IsSelected, RelativeSource={RelativeSource Mode=Self}}" Value="True"/>
-                                <Condition Binding="{Binding WO_Priority}" Value="C"/>
+                                <Condition Binding="{Binding WipOrderPriority}" Value="C"/>
                             </MultiDataTrigger.Conditions>
                             <Setter Property="Background" Value="Gray"/>
                             <Setter Property="Foreground" Value="Black"/>
@@ -453,7 +258,7 @@
                         <MultiDataTrigger>
                             <MultiDataTrigger.Conditions>
                                 <Condition Binding="{Binding IsSelected, RelativeSource={RelativeSource Mode=Self}}" Value="True"/>
-                                <Condition Binding="{Binding WO_Priority}" Value="D"/>
+                                <Condition Binding="{Binding WipOrderPriority}" Value="D"/>
                             </MultiDataTrigger.Conditions>
                             <Setter Property="Background" Value="Beige"/>
                             <Setter Property="Foreground" Value="Black"/>
@@ -461,7 +266,7 @@
                         <MultiDataTrigger>
                             <MultiDataTrigger.Conditions>
                                 <Condition Binding="{Binding IsSelected, RelativeSource={RelativeSource Mode=Self}}" Value="True"/>
-                                <Condition Binding="{Binding WO_Type}" Value="R"/>
+                                <Condition Binding="{Binding WipOrderType}" Value="R"/>
                             </MultiDataTrigger.Conditions>
                             <Setter Property="Background" Value="LightBlue"/>
                             <Setter Property="Foreground" Value="Black"/>

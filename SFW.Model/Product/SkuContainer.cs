@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Data;
 using System.Data.SqlClient;
@@ -275,6 +276,16 @@ namespace SFW.Model.Product
             }
         }
 
+        public class TableChanges
+        {
+            #region Properties
+
+            public DataRowAction Action { get; set; }
+            public DataRow TableRow { get; set; }
+
+            #endregion
+        }
+
         #region Properties
 
         private int _id;
@@ -472,36 +483,12 @@ namespace SFW.Model.Product
 
         #endregion
 
-        /// <summary>
-        /// Default constructor
-        /// </summary>
-        public SkuContainer()
-        {
-            RevisionDateTime = DateTime.Now;
-            ProductCollection = new ObservableCollection<Product>();
-            Status = "A";
-        }
-
-        /// <summary>
-        /// Overridden constructor
-        /// </summary>
-        /// <param name="userId">Current user ERP ID</param>
-        /// <param name="userName">Current user full name</param>
-        public SkuContainer(string userId, string userName)
-        {
-            UserId = userId;
-            UserName = userName;
-            RevisionDateTime = DateTime.Now;
-            ProductCollection = new ObservableCollection<Product>();
-            Status = "A";
-        }
-
         #region Data Access
 
         /// <summary>
         /// Get the container data
         /// </summary>
-        /// <param name="sqlCon"></param>
+        /// <param name="sqlCon">Application SQL connection</param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
         public static DataTable GetContainerData(SqlConnection sqlCon)
@@ -533,15 +520,140 @@ namespace SFW.Model.Product
         }
 
         /// <summary>
+        /// Get the container pallet data
+        /// </summary>
+        /// <param name="sqlCon">Application SQL connection</param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
+        public static DataTable GetPalletTable(SqlConnection sqlCon)
+        {
+            var _tempTable = new DataTable();
+            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
+            {
+                try
+                {
+                    using (SqlDataAdapter adapter = new SqlDataAdapter($"SELECT * FROM [Nexus_Main].[dbo].[ContainerTypes]", sqlCon))
+                    {
+                        adapter.Fill(_tempTable);
+                        return _tempTable;
+                    }
+                }
+                catch (SqlException sqlEx)
+                {
+                    throw new Exception(sqlEx.Message);
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception(ex.Message);
+                }
+            }
+            else
+            {
+                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
+            }
+        }
+
+        /// <summary>
+        /// Commit any changes to the container pallet table
+        /// </summary>
+        /// <param name="changes">List of changes and the data to be changed</param>
+        /// <param name="sqlCon">Application SQL connection</param>
+        public static void ChangePalletTable(List<TableChanges> changes, SqlConnection sqlCon)
+        {
+            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
+            {
+                try
+                {
+                    var _cmdString = string.Empty;
+                    var _parameters = new Dictionary<int, string>();
+                    var _columnNumber = 0;
+                    foreach (var _change in changes)
+                    {
+                        switch (_change.Action)
+                        {
+                            //SQL INSERT logic for the local database
+                            case DataRowAction.Add:
+                                _cmdString += @"INSERT INTO [Nexus_Main].[dbo].[ContainerTypes] ";
+                                var _cols = "(";
+                                var _values = " VALUES (";
+                                foreach (var _colVal in _change.TableRow.ItemArray)
+                                {
+                                    if (_colVal != null && !string.IsNullOrEmpty(_colVal.ToString()))
+                                    {
+                                        _values += $"@p{_parameters.Count}, ";
+                                        _parameters.Add(_parameters.Count, _colVal.ToString());
+                                        _cols += $"[{_change.TableRow.Table.Columns[_columnNumber]}], ";
+                                    }
+                                    _columnNumber++;
+                                }
+                                _cols = _cols.TrimEnd(' ', ',');
+                                _cols += ")";
+                                _values = _values.TrimEnd(' ', ',');
+                                _values += ");";
+                                _cmdString = _cmdString + _cols + _values;
+                                _columnNumber = 0;
+                                break;
+
+                            //SQL UPDATE logic for the local database
+                            case DataRowAction.Change:
+                                _cmdString += @"UPDATE [Nexus_Main].dbo.[ContainerTypes] SET ";
+                                foreach (var _colVal in _change.TableRow.ItemArray)
+                                {
+                                    if (_colVal != null && _columnNumber != 0 && !string.IsNullOrEmpty(_colVal.ToString()))
+                                    {
+                                        _cmdString += $"[{_change.TableRow.Table.Columns[_columnNumber]}] = @p{_parameters.Count}, ";
+                                        _parameters.Add(_parameters.Count, _colVal.ToString());
+                                    }
+                                    _columnNumber++;
+                                }
+                                _cmdString = _cmdString.TrimEnd(' ', ',');
+                                _cmdString += $" WHERE [ContainerType] = @p{_parameters.Count};";
+                                _parameters.Add(_parameters.Count, _change.TableRow.ItemArray.GetValue(0).ToString());
+                                _columnNumber = 0;
+                                break;
+
+                            //SQL DELETE logic for the local database
+                            case DataRowAction.Delete:
+                                var _pk = _change.TableRow.Table.PrimaryKey[0].ColumnName;
+                                _cmdString += $@"DELETE FROM [Nexus_Main].[dbo].[ContainerTypes] WHERE [{_pk}] = @p{_parameters.Count};";
+                                _parameters.Add(_parameters.Count, _change.TableRow.RowError);
+                                break;
+                        }
+                    }
+                    using (SqlCommand _sqlCmd = new SqlCommand(_cmdString, sqlCon))
+                    {
+                        foreach (var _param in _parameters)
+                        {
+                            _sqlCmd.Parameters.AddWithValue($"p{_param.Key}", _param.Value);
+                        }
+                        _sqlCmd.ExecuteNonQuery();
+                    }
+                }
+                catch (SqlException sqlEx)
+                {
+                    throw new Exception(sqlEx.Message);
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception(ex.Message);
+                }
+            }
+            else
+            {
+                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
+            }
+        }
+
+        /// <summary>
         /// Get a container's data
         /// </summary>
         /// <param name="id">Id of the container</param>
-        /// <param name="sqlCon"></param>
+        /// <param name="sqlCon">Application SQL connection</param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
         public static SkuContainer GetContainer(int id, SqlConnection sqlCon)
         {
-            var _tempCon = new SkuContainer() { ContainerId = id.ToString(), ProductCollection = new ObservableCollection<Product>()};
+            var _tempCon = new SkuContainer() { ContainerId = id.ToString(), ProductCollection = new ObservableCollection<Product>() };
             if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
             {
                 try
@@ -579,11 +691,16 @@ namespace SFW.Model.Product
                                     var _prod = new Product(_tempCon.ContainerId, _tempCon.UserId, false, false)
                                     {
                                         ProductId = reader.SafeGetString("ProductId")
-                                        ,ProductDescription = reader.SafeGetString("ProductDescription")
-                                        ,Quantity = reader.SafeGetInt32("Quantity")
-                                        ,LotTraceable = reader.SafeGetString("LotTraceable") == "T"
-                                        ,QuantityInput = reader.SafeGetInt32("Quantity").ToString()
-                                        ,ValidQuantity = true
+                                        ,
+                                        ProductDescription = reader.SafeGetString("ProductDescription")
+                                        ,
+                                        Quantity = reader.SafeGetInt32("Quantity")
+                                        ,
+                                        LotTraceable = reader.SafeGetString("LotTraceable") == "T"
+                                        ,
+                                        QuantityInput = reader.SafeGetInt32("Quantity").ToString()
+                                        ,
+                                        ValidQuantity = true
                                     };
                                     if (_prod.LotTraceable)
                                     {
@@ -617,7 +734,7 @@ namespace SFW.Model.Product
         /// <param name="ctnId">Container ID</param>
         /// <param name="type">Type to search as char. P for part and L for lot</param>
         /// <param name="prodId">Product ID</param>
-        /// <param name="sqlCon"></param>
+        /// <param name="sqlCon">Application SQL connection</param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
         public static int GetProductCount(string ctnId, char type, string prodId, SqlConnection sqlCon)
@@ -656,7 +773,7 @@ namespace SFW.Model.Product
         /// <summary>
         /// Get a containers location
         /// </summary>
-        /// <param name="sqlCon"></param>
+        /// <param name="sqlCon">Application SQL connection</param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
         public static string GetContainerLocation(int ctnId, SqlConnection sqlCon)
@@ -690,7 +807,7 @@ namespace SFW.Model.Product
         /// Delete a container
         /// </summary>
         /// <param name="containerId"></param>
-        /// <param name="sqlCon"></param>
+        /// <param name="sqlCon">Application SQL connection</param>
         public static bool Delete(int containerId, SqlConnection sqlCon)
         {
             if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
@@ -726,7 +843,7 @@ DELETE FROM [Nexus_Main].dbo.[ContainerDetailLot] WHERE [ContainerID] = @p1;", s
         /// <param name="containerId"></param>
         /// <param name="userId"></param>
         /// <param name="location"></param>
-        /// <param name="sqlCon"></param>
+        /// <param name="sqlCon">Application SQL connection</param>
         public static bool Update(int containerId, string userId, string location, SqlConnection sqlCon)
         {
             if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
@@ -817,6 +934,30 @@ WHERE
         }
 
         #endregion
+
+        /// <summary>
+        /// Default constructor
+        /// </summary>
+        public SkuContainer()
+        {
+            RevisionDateTime = DateTime.Now;
+            ProductCollection = new ObservableCollection<Product>();
+            Status = "A";
+        }
+
+        /// <summary>
+        /// Overridden constructor
+        /// </summary>
+        /// <param name="userId">Current user ERP ID</param>
+        /// <param name="userName">Current user full name</param>
+        public SkuContainer(string userId, string userName)
+        {
+            UserId = userId;
+            UserName = userName;
+            RevisionDateTime = DateTime.Now;
+            ProductCollection = new ObservableCollection<Product>();
+            Status = "A";
+        }
     }
 
     public static class ProductActions

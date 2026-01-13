@@ -12,9 +12,9 @@ namespace M2kClient
         WCCOTRAIN = 2,
         [Description("\\\\10.20.177.21\\ERP\\ROI\\CSI.TRAIN\\")]
         CSITRAIN = 3,
-        [Description("\\\\WAXAS001\\")]
+        [Description("\\\\WAXAS001.contitechwan.com\\")]
         CONTI = 4,
-        [Description("\\\\WAXAS001\\")]
+        [Description("\\\\WAXAS001.contitechwan.com\\")]
         CONTITRAIN = 5
     }
 }

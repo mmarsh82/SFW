@@ -201,10 +201,10 @@ ORDER BY
         /// Will create a new WorkOrder Object based on a Work Order Number
         /// </summary>
         /// <param name="woNumber">Work Order Number</param>
-        /// <param name="type">Type of work order to load</param>
+        /// <param name="type">Type of work order to load, 'S' for standard and 'P' for Plan</param>
         public WorkOrder(string woNumber, char type)
         {
-            var _rows = type == 'W'
+            var _rows = type == 'S'
                 ? MasterDataSet.Tables[typeof(WorkOrder).Name].Select($"[WorkOrder] = '{woNumber}'")
                 : MasterDataSet.Tables[typeof(WorkPlan).Name].Select($"[WorkOrder] = '{woNumber}'");
             Product = new Sku();

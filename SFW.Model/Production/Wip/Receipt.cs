@@ -1,11 +1,14 @@
 ﻿using SFW.Model.Management;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Data;
+using System.Data.SqlClient;
 using System.Linq;
 
 namespace SFW.Model.Production.Wip
 {
-    public class Receipt : ModelBase
+    public class Receipt : ModelBase, IModuleData
     {
         #region Properties
 
@@ -152,8 +155,54 @@ namespace SFW.Model.Production.Wip
 
         #endregion
 
+        #region Data Access
+
         /// <summary>
-        /// Wip Receipt Constructor
+        /// Get a table of all BOM's for every SKU on file
+        /// </summary>
+        /// <param name="site">Facility to load</param>
+        /// <param name="sqlCon">Sql Connection to use</param>
+        /// <returns>DataTable of bill of materials</returns>
+        public DataTable GetTable(int site, SqlConnection sqlCon)
+        {
+            using (var _tempTable = new DataTable())
+            {
+                if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
+                {
+                    try
+                    {
+                        using (SqlDataAdapter adapter = new SqlDataAdapter($@"USE {sqlCon.Database}; SELECT * FROM [dbo].[SFW_WipManagement]", sqlCon))
+                        {
+                            adapter.Fill(_tempTable);
+                            return _tempTable;
+                        }
+                    }
+                    catch (SqlException)
+                    {
+                        return new DataTable();
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new Exception(ex.Message);
+                    }
+                }
+                else
+                {
+                    throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
+                }
+            }
+        }
+
+        #endregion
+
+        /// <summary>
+        /// Default Constructor
+        /// </summary>
+        public Receipt()
+        { }
+
+        /// <summary>
+        /// Wip Receipt Overridden Constructor
         /// </summary>
         /// <param name="submitter">The crew member that is submitting the wip</param>
         /// <param name="facCode">Currently logged in user facility code</param>
@@ -193,6 +242,25 @@ namespace SFW.Model.Production.Wip
             {
                 ComponentList.Add(new Component(!string.IsNullOrEmpty(_comp.BackFlushLocation), _comp.ProductNumber, _comp.ProductUom, _comp.AssemblyQuantity, WipWorkOrder.OrderNumber, WipWorkOrder.Seq));
             }
+        }
+
+        /// <summary>
+        /// Wip Receipt Overridden Constructor
+        /// </summary>
+        /// <param name="dRow">Data Row with Receipt object information</param>
+        public Receipt(DataRow dRow)
+        {
+            Submitter = dRow.Field<string>("Submitter");
+            Facility = "01";
+            WipQty = dRow.Field<int>("WipQuantity");
+            SeqComplete = Enumerations.Complete.N;
+            ReceiptLocation = dRow.Field<string>("WipLocation");
+            WipLot = new Product.Lot(dRow.Field<string>("WipLot"));
+            LotList = new List<Product.Lot>();
+            WipWorkOrder = new WorkOrder(dRow.Field<string>("WipOrder"), 'S');
+            HasCrew = true;
+            IsLotTracable = WipLot != null;
+            CrewList = Employee.GetWipCrewList(WipWorkOrder.OrderNumber, ModelSqlCon);
         }
 
         /// <summary>

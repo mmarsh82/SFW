@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
-using System.Data.SqlClient;
 using System.DirectoryServices;
 using System.DirectoryServices.AccountManagement;
 using System.Linq;
@@ -53,7 +52,7 @@ namespace SFW
             {
                 try
                 {
-                    Groups = GetGroupMembership(user.SamAccountName);
+                    Groups = GetGroupMembership(user);
                     DomainName = context.ConnectedServer;
                     DomainUserName = user.SamAccountName;
                     DisplayName = user.DisplayName;
@@ -504,7 +503,7 @@ namespace SFW
         {
             try
             {
-                var _groups = GetGroupMembership(user.SamAccountName);
+                var _groups = GetGroupMembership(user);
                 App.IsFocused = BasicUser = AssignPermissions(_groups);
                 DomainName = context.ConnectedServer;
                 DomainUserName = user.SamAccountName;
@@ -743,10 +742,17 @@ namespace SFW
         /// </summary>
         /// <param name="userName">User identity</param>
         /// <returns>List of group memebership names</returns>
-        public static List<string> GetGroupMembership(string userName)
+        public static List<string> GetGroupMembership(UserPrincipal userPrincipal)
         {
-            
-            var _ou = App.Facility == "Wahpeton" ? "WAK1" : "ARX1";
+            var _groups = userPrincipal.GetAuthorizationGroups();
+            var _rtnList = new List<string>();
+            foreach (var _group in _groups.Where(o => o.Name.Contains("-SFW-")))
+            {
+                _rtnList.Add(_group.Name.Replace("WAXSG-SFW-", ""));
+            }
+            return _rtnList;
+
+            /*var _ou = App.Facility == "Wahpeton" ? "WAK1" : "ARX1";
             var _group = App.Facility == "Wahpeton" ? "WAX" : "ARX";
             var _rtnList = new List<string>();
             var _cmdString = $@"SELECT
@@ -874,7 +880,7 @@ LEFT JOIN
             else
             {
                 throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
-            }
+            }*/
         }
 
         /// <summary>

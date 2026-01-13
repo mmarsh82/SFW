@@ -199,11 +199,10 @@
                           CommandParameter="12"
                           Visibility="Visible"/>
 
-                <MenuItem Header="Machine Reports"
-                          Visibility="Visible"/>
-
-                <MenuItem Header="Document Links"
-                          Visibility="Visible"/>
+                <MenuItem Header="Pallets"
+                          Visibility="{Binding Path=(local:CurrentUser.IsInventoryControl), Converter={StaticResource BoolToVisConverter}}"
+                          Command="{StaticResource ShowWindowICommand}"
+                          CommandParameter="SFW.Tools.Pallet_View"/>
 
             </MenuItem>
             

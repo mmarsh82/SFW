@@ -432,7 +432,7 @@ namespace SFW.Model.Product
         {
             if (!string.IsNullOrEmpty(lotNbr))
             {
-                var _rows = MasterDataSet.Tables[new Lot().GetType().Name].Select($"[LotID] = '{lotNbr}' AND [WorkOrderID] != ''");
+                var _rows = MasterDataSet.Tables[new Lot().GetType().Name].Select($"[LotID] = '{lotNbr}' AND [WorkOrderID] <> ''");
                 foreach (var _row in _rows)
                 {
                     Dedication.Add(_row.Field<string>("WorkOrderID"), _row.Field<int>("OnHand"));

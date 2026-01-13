@@ -61,7 +61,7 @@ namespace SFW.ShopRoute.WipManagement
         public string WipLot
         {
             get
-            { return WipRecord.WipLot.LotNumber; }
+            { return WipRecord?.WipLot?.LotNumber; }
             set
             {
                 if (!string.IsNullOrEmpty(value))
@@ -235,7 +235,7 @@ namespace SFW.ShopRoute.WipManagement
 
         public bool IsLotTrace
         {
-            get { return WipRecord.IsLotTracable || WipRecord.WipWorkOrder.PickList.Count(o => o.IsLotTrace) > 0; }
+            get { return WipRecord != null || WipRecord.IsLotTracable || WipRecord.WipWorkOrder.PickList.Count(o => o.IsLotTrace) > 0; }
         }
 
         private List<string> _lList;
@@ -306,18 +306,22 @@ namespace SFW.ShopRoute.WipManagement
         /// Default Constructor
         /// </summary>
         public ViewModel()
-        { }
+        {
+            WipRecord = new Receipt
+            {
+                IsScrap = Model.Enumerations.Complete.N,
+                IsReclaim = Model.Enumerations.Complete.N
+            };
+        }
 
         /// <summary>
         /// Overridden Constructor
         /// </summary>
-        public ViewModel(WorkOrder woObject)
+        public ViewModel(Receipt receipt)
         {
-            ApplicationTimer.Pause();
             CompoundPart = new string[4];
             CompoundLot = new string[4];
-            var erpCon = new string[5] { App.ErpCon.HostName, App.ErpCon.UserName, App.ErpCon.Password, App.ErpCon.UniAccount, App.ErpCon.UniService };
-            WipRecord = new Receipt(new Model.Management.Employee(CurrentUser.ErpId, true), App.SiteNumber, woObject, erpCon);
+            WipRecord = receipt;
             LotList = new List<string>();
             IsSubmitted = false;
             IsLotValid = IsLocationValid = IsLocationEditable = true;
@@ -331,27 +335,31 @@ namespace SFW.ShopRoute.WipManagement
         {
             try
             {
-                foreach (var _comp in WipRecord.ComponentList.Where(o => o.LotTraceable))
+                if (WipRecord.ComponentList != null)
                 {
-                    if (_comp.LotList.Where(o => o.Valid).Sum(o => int.TryParse(o.Quantity, out int i) ? i : 0) != _comp.LotList.First().RequiredQuantity)
+                    foreach (var _comp in WipRecord.ComponentList.Where(o => o.LotTraceable))
                     {
-                        return false;
-                    }
-                    if (CurrentUser.Facility == 1)
-                    {
-                        foreach (var _lot in _comp.LotList)
+                        if (_comp.LotList.Where(o => o.Valid).Sum(o => int.TryParse(o.Quantity, out int i) ? i : 0) != _comp.LotList.First().RequiredQuantity)
                         {
-                            if (_lot.HasScrap == Model.Enumerations.Complete.Y)
+                            return false;
+                        }
+                        if (CurrentUser.Facility == 1)
+                        {
+                            foreach (var _lot in _comp.LotList)
                             {
-                                if (_lot.ScrapCollection.Count(o => o.Valid) != _lot.ScrapCollection.Count())
+                                if (_lot.HasScrap == Model.Enumerations.Complete.Y)
                                 {
-                                    return false;
+                                    if (_lot.ScrapCollection.Count(o => o.Valid) != _lot.ScrapCollection.Count())
+                                    {
+                                        return false;
+                                    }
                                 }
                             }
                         }
-                    }    
+                    }
+                    return true;
                 }
-                return true;
+                return false;
             }
             catch (FormatException)
             {
@@ -515,7 +523,7 @@ namespace SFW.ShopRoute.WipManagement
 
                     var _laborValid = true;
                     _laborValid = WipRecord.CrewList != null;
-                    if (WipRecord.CrewList.Count(o => !string.IsNullOrEmpty(o.Name)) == 0)
+                    if (WipRecord?.CrewList?.Count(o => !string.IsNullOrEmpty(o.Name)) == 0)
                     {
                         _laborValid = false;
                     }

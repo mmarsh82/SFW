@@ -73,7 +73,7 @@ namespace SFW.Commands
                 var refreshView = _view == 1 || _view == 2;
                 if (parameter.ToString().Contains("NCR*"))
                 {
-                    _viewModel = new QMS.Form.ViewModel(new WorkOrder(parameter.ToString().Split('*').Last(), 'W'), Model.Quality.FormType.NCR);
+                    _viewModel = new QMS.Form.ViewModel(new WorkOrder(parameter.ToString().Split('*').Last(), 'S'), Model.Quality.FormType.NCR);
                     refreshView = false;
                 }
 

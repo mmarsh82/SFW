@@ -110,7 +110,7 @@ namespace SFW.Controls
 
                 // Add the Wip management View
                 WipDock.Children.Insert(0, new Schedule.WipManagement.View());
-                WipDock.Children.Insert(1, new ShopRoute.View { DataContext = new ShopRoute.ViewModel() });
+                WipDock.Children.Insert(1, new ShopRoute.WipManagement.View { DataContext = new ShopRoute.WipManagement.ViewModel() });
                 MainDock.Children.Insert(12, WipDock);
 
                 SwitchView(App.SiteNumber, null, false);
