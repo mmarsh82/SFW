@@ -1,7 +1,6 @@
 ﻿using SFW.Model.InventoryControl;
 using System;
 using System.Data;
-using System.Linq;
 using System.Windows;
 using System.Windows.Data;
 

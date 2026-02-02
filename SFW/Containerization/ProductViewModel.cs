@@ -159,7 +159,7 @@ namespace SFW.Containerization
         }
 
         public bool HasContainers { get { return CollectionView.Count > 0; } }
-        public bool ShowProduct { get { return HasContainers || SelectedProduct != null || NewContainer; } }
+        public bool ShowProduct { get { return (HasContainers && SelectedProduct != null) || NewContainer; } }
         public bool HasDims 
         {
             get
@@ -186,7 +186,6 @@ namespace SFW.Containerization
         /// </summary>
         public ProductViewModel()
         {
-            ApplicationTimer.ActionList.Add(Refresh);
             CollectionView = new ListCollectionView(new DataView());
             PalletDictionary = SkuContainer.GetPalletDictionary(App.AppSqlCon);
             NewContainer = false;
@@ -194,7 +193,11 @@ namespace SFW.Containerization
             StatusFilter = true;
             OnPropertyChanged(nameof(HasContainers));
             OnPropertyChanged(nameof(ShowProduct));
-            Initialize();
+            if (ModelBase.MasterDataSet.Tables.Contains(typeof(SkuContainer).Name))
+            {
+                Initialize();
+                ApplicationTimer.ActionList.Add(Refresh);
+            }
         }
 
         /// <summary>
@@ -206,14 +209,17 @@ namespace SFW.Containerization
         {
             try
             {
-                var _dRow = (DataRowView)CollectionView.CurrentItem;
-                if (_dRow != null)
+                if (App.LoadedModule == Enumerations.UsersControls.Container)
                 {
-                    if (_dRow.Row.RowState != DataRowState.Detached)
+                    var _dRow = (DataRowView)CollectionView.CurrentItem;
+                    if (_dRow != null)
                     {
-                        _contId = int.TryParse(_dRow.Row.ItemArray[0].ToString(), out int i) ? i : 0;
+                        if (_dRow.Row.RowState != DataRowState.Detached)
+                        {
+                            _contId = int.TryParse(_dRow.Row.ItemArray[0].ToString(), out int i) ? i : 0;
+                        }
+                        SelectedProduct = _dRow;
                     }
-                    SelectedProduct = _dRow;
                 }
             }
             catch (Exception)
@@ -270,12 +276,30 @@ namespace SFW.Containerization
         }
 
         /// <summary>
-        /// Initialize the production schedule view
+        /// Refresh the container schedule view
+        /// </summary>
+        public override void Refresh()
+        {
+            try
+            {
+                var _index = CollectionView.CurrentPosition;
+                Application.Current?.Dispatcher.Invoke(new Action(delegate { CollectionView.Refresh(); }));
+                if (CollectionView != null)
+                {
+                    Application.Current?.Dispatcher.Invoke(new Action(delegate { CollectionView.MoveCurrentToPosition(_index); }));
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Prod Unhandled Exception", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        /// <summary>
+        /// Initialize the container schedule view
         /// </summary>
         public override void Initialize()
         {
-            var _index = CollectionView.CurrentPosition;
-            ModelBase.MasterDataSet.RefreshTable(typeof(SkuContainer), new SkuContainer().GetTable(0, App.AppSqlCon));
             CollectionView = new ListCollectionView(ModelBase.MasterDataSet.Tables[typeof(SkuContainer).Name].AsDataView());
             if (CollectionView.GroupDescriptions.Count() != 0)
             {
@@ -285,29 +309,44 @@ namespace SFW.Containerization
             {
                 CollectionView.GroupDescriptions.Add(new PropertyGroupDescription("ContainerID", new ContainerNameConverter()));
             }));
-
             OnPropertyChanged(nameof(CollectionView));
             Application.Current?.Dispatcher.Invoke(new Action(delegate { CollectionView.Refresh(); }));
-            if (CollectionView != null)
-            {
-                Application.Current?.Dispatcher.Invoke(new Action(delegate { CollectionView.MoveCurrentToPosition(_index); }));
-            }
-            if (!string.IsNullOrEmpty(SearchFilter))
-            {
-                Filter(SearchFilter, 0);
-            }
             CollectionView.CurrentChanged += CollectionView_ItemChanged;
         }
 
-        public string ProductZPLString(int row, int dpi)
+        /// <summary>
+        /// Set up the product ZPL string for the printer
+        /// </summary>
+        /// <param name="product"></param>
+        /// <param name="row"></param>
+        /// <param name="custName"></param>
+        /// <param name="dpi"></param>
+        /// <returns></returns>
+        public string ProductZPLString(SkuContainer.Product product, int rowNbr, string custName, int dpi)
         {
-            var _rtnStr = string.Empty;
-
-
-
-            return _rtnStr;
+            var _rowPos = dpi == 300 ? rowNbr * 76 + 192 : rowNbr * 50 + 130;
+            var _colPos = dpi == 300 ? 695 : 455;
+            return dpi == 300
+                ? $@"^FT{_rowPos},{_colPos + 1180}^A0B,50,51^FH\^CI28^FD{product.ProductId}^FS^CI27
+^FT{_rowPos},{_colPos + 790}^A0B,50,51^FH\^CI28^FD{product.LotId}^FS^CI27
+^FT{_rowPos},{_colPos + 430}^A0B,50,51^FH\^CI28^FD{product.Quantity}^FS^CI27
+^FT{_rowPos},{_colPos + 250}^A0B,50,51^FH\^CI28^FD{product.SalesOrderNumber}*{product.SalesLineNumber}^FS^CI27
+^FT{_rowPos},{_colPos}^A0B,50,51^FH\^CI28^FD{product.CustomerNumber} {custName}^FS^CI27"
+                : $@"^FT{_rowPos},{_colPos + 815}^A0B,34,35^FH\^CI28^FD{product.ProductId}^FS^CI27
+^FT{_rowPos},{_colPos + 550}^A0B,34,35^FH\^CI28^FD{product.LotId}^FS^CI27
+^FT{_rowPos},{_colPos + 305}^A0B,34,35^FH\^CI28^FD{product.Quantity}^FS^CI27
+^FT{_rowPos},{_colPos + 185}^A0B,34,35^FH\^CI28^FD{product.SalesOrderNumber}*{product.SalesLineNumber}^FS^CI27
+^FT{_rowPos},{_colPos}^A0B,34,35^FH\^CI28^FD{product.CustomerNumber} {custName}^FS^CI27
+";
         }
 
+        /// <summary>
+        /// Set up the main ZPL string for the printer
+        /// </summary>
+        /// <param name="products"></param>
+        /// <param name="containerId"></param>
+        /// <param name="dpi"></param>
+        /// <returns></returns>
         public string MainZPLString(string products, string containerId, int dpi)
         {
             return dpi == 300 
@@ -330,7 +369,7 @@ namespace SFW.Containerization
 ^FO584,44^GB0,1868,3^FS
 ^FO659,44^GB0,1868,3^FS
 ^FO141,1136^GB609,0,8^FS
-^FT88,197^A0B,50,51^FH\^CI28^FD{ContainerObject.Weight} LBS^FS^CI27
+^FT88,220^A0B,50,51^FH\^CI28^FD{ContainerObject.Weight} LBS^FS^CI27
 ^FT88,500^A0B,50,51^FH\^CI28^FD{ContainerObject.PalletType}^FS^CI27
 ^FT1112,1905^A0B,50,51^FH\^CI28^FD{ContainerObject.Depth} x {ContainerObject.Length} x {ContainerObject.Height}^FS^CI27
 ^BY10,3,300^FT1125,995^B3B,N,,N,N
@@ -342,24 +381,24 @@ namespace SFW.Containerization
 ^FT71,914^A0B,51,51^FH\^CI28^FD{containerId}^FS^CI27
 ^FO87,21^GB0,1279,8^FS
 {products}
-^FO141,1496^GB609,0,8^FS
-^FO744,30^GB0,1890,12^FS
-^FO141,960^GB609,0,30^FS
-^FO141,700^GB609,0,8^FS
-^FO141,30^GB609,0,30^FS
-^FO141,1890^GB609,0,30^FS
-^FO209,44^GB0,1868,3^FS
-^FO284,44^GB0,1868,3^FS
-^FO358,44^GB0,1868,3^FS
-^FO434,44^GB0,1868,3^FS
-^FO508,44^GB0,1868,3^FS
-^FO584,44^GB0,1868,3^FS
-^FO659,44^GB0,1868,3^FS
-^FO141,1136^GB609,0,8^FS
-^FT88,197^A0B,50,51^FH\^CI28^FD{ContainerObject.Weight} LBS^FS^CI27
-^FT88,500^A0B,50,51^FH\^CI28^FD{ContainerObject.PalletType}^FS^CI27
-^FT1112,1905^A0B,50,51^FH\^CI28^FD{ContainerObject.Depth} x {ContainerObject.Length} x {ContainerObject.Height}^FS^CI27
-^BY10,3,300^FT1125,995^B3B,N,,N,N
+^FO95,1013^GB412,0,5^FS
+^FO504,21^GB0,1279,8^FS
+^FO95,650^GB412,0,20^FS
+^FO95,460^GB412,0,5^FS
+^FO95,21^GB412,0,20^FS
+^FO95,1280^GB412,0,20^FS
+^FO141,31^GB0,1264,2^FS
+^FO192,31^GB0,1264,2^FS
+^FO243,31^GB0,1264,2^FS
+^FO293,31^GB0,1264,2^FS
+^FO344,31^GB0,1264,2^FS
+^FO395,31^GB0,1264,2^FS
+^FO446,31^GB0,1264,2^FS
+^FO95,769^GB412,0,5^FS
+^FT59,160^A0B,34,35^FH\^CI28^FD{ContainerObject.Weight} LBS^FS^CI27
+^FT59,371^A0B,34,35^FH\^CI28^FD{ContainerObject.PalletType}^FS^CI27
+^FT753,1290^A0B,34,35^FH\^CI28^FD{ContainerObject.Depth} x {ContainerObject.Length} x {ContainerObject.Height}^FS^CI27
+^BY7,3,203^FT761,696^B3B,N,,N,N
 ^FD{containerId}^FS
 ^PQ1,0,1,Y
 ^XZ";
@@ -440,7 +479,6 @@ namespace SFW.Containerization
                     ProductMove(_product);
                 }
             }
-            Initialize();
         }
 
         private bool SubmitCanExecute(object parameter)
@@ -483,7 +521,6 @@ namespace SFW.Containerization
                     _item.Update('S', ContainerObject.ContainerId, App.AppSqlCon);
                 }
             }
-            Initialize();
         }
 
         #endregion
@@ -531,7 +568,6 @@ namespace SFW.Containerization
             if (_result == MessageBoxResult.Yes && int.TryParse(SelectedProduct.Row.ItemArray[0].ToString(), out int i))
             {
                 SkuContainer.Delete(i, App.AppSqlCon);
-                Initialize();
             }
         }
 
@@ -556,60 +592,32 @@ namespace SFW.Containerization
         private void PrintExecute(object parameter)
         {
             var _prtName = string.Empty;
+            var _prtRez = 300;
             Forms.PrintDialog prtDialog = new Forms.PrintDialog();
             if (prtDialog.ShowDialog() == Forms.DialogResult.OK)
             {
                 _prtName = prtDialog.PrinterSettings.PrinterName;
+                _prtRez = prtDialog.PrinterSettings.DefaultPageSettings.PrinterResolution.X;
             }
             if (!string.IsNullOrEmpty(_prtName))
             {
                 var _cntId = SelectedProduct.Row.SafeGetField<string>("ContainerID");
                 var _itemString = string.Empty;
-                var _lineCounter = 1;
+                var _lineCounter = 0;
                 var _counter = 1;
-                var _rowPos = 192;
 
                 foreach (var _item in ContainerObject.ProductCollection)
                 {
                     var _custName = _item.CustomerName?.Length > 22 ? _item.CustomerName.Substring(0, 22) : _item.CustomerName;
-                    _itemString += $@"^FT{_rowPos},1875^A0B,50,51^FH\^CI28^FD{_item.ProductId}^FS^CI27
-^FT{_rowPos},1485^A0B,50,51^FH\^CI28^FD{_item.LotId}^FS^CI27
-^FT{_rowPos},1125^A0B,50,51^FH\^CI28^FD{_item.Quantity}^FS^CI27
-^FT{_rowPos},945^A0B,50,51^FH\^CI28^FD{_item.SalesOrderNumber}*{_item.SalesLineNumber}^FS^CI27
-^FT{_rowPos},695^A0B,50,51^FH\^CI28^FD{_item.CustomerNumber} {_custName}^FS^CI27";
-                    _rowPos += _lineCounter == 9 ? -532 : 76;
+                    _itemString += ProductZPLString(_item, _lineCounter, _custName, _prtRez);
 
-                    if (_lineCounter == 8 || _counter == ContainerObject.ProductCollection.Count())
+                    if (_lineCounter == 7 || _counter == ContainerObject.ProductCollection.Count())
                     {
-                        _lineCounter = 1;
-                        string s = $@"^XA
-^FT105,1920^A0B,75,76^FH\^CI28^FDContainer Id:^FS^CI27
-^FT105,1350^A0B,75,76^FH\^CI28^FD{_cntId}^FS^CI27
-^FO129,30^GB0,1890,12^FS
-{_itemString}
-^FO141,1496^GB609,0,8^FS
-^FO744,30^GB0,1890,12^FS
-^FO141,960^GB609,0,30^FS
-^FO141,700^GB609,0,8^FS
-^FO141,30^GB609,0,30^FS
-^FO141,1890^GB609,0,30^FS
-^FO209,44^GB0,1868,3^FS
-^FO284,44^GB0,1868,3^FS
-^FO358,44^GB0,1868,3^FS
-^FO434,44^GB0,1868,3^FS
-^FO508,44^GB0,1868,3^FS
-^FO584,44^GB0,1868,3^FS
-^FO659,44^GB0,1868,3^FS
-^FO141,1136^GB609,0,8^FS
-^FT88,197^A0B,50,51^FH\^CI28^FD{ContainerObject.Weight} LBS^FS^CI27
-^FT88,500^A0B,50,51^FH\^CI28^FD{ContainerObject.PalletType}^FS^CI27
-^FT1112,1905^A0B,50,51^FH\^CI28^FD{ContainerObject.Depth} x {ContainerObject.Length} x {ContainerObject.Height}^FS^CI27
-^BY10,3,300^FT1125,995^B3B,N,,N,N
-^FD{_cntId}^FS
-^PQ1,0,1,Y
-^XZ";
-                        RawPrinter.SendStringToPrinter(_prtName, s, 1);
+                        _lineCounter = 0;
+                        var _zplStr = MainZPLString(_itemString, _cntId, _prtRez);
+                        RawPrinter.SendStringToPrinter(_prtName, _zplStr, 1);
                     }
+
                     _lineCounter++;
                     _counter++;
                 }
@@ -689,7 +697,7 @@ namespace SFW.Containerization
             }
             if (_refresh)
             {
-                Initialize();
+                
             }
         }
 
@@ -727,7 +735,6 @@ namespace SFW.Containerization
             {
                 ProductMove((SkuContainer.Product)parameter);
             }
-            Initialize();
         }
 
         #endregion

@@ -298,16 +298,18 @@ GROUP BY sl.[NcrId], sl.[LotId], sl.[ImportType]", sqlCon))
         /// <returns>Pass or fail as bool</returns>
         public static bool ValidNcrLot(int ncrId, string lotId, SqlConnection sqlCon)
         {
-            var _rtnList = new BindingList<Product.Lot>();
             if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
             {
                 try
                 {
-                    using (SqlCommand cmd = new SqlCommand($@"SELECT COUNT(ncrLot.[NcrId]) FROM [dbo].[SFW_DefectLotLink] ncrLot WHERE ncrLot.[NcrId] = @p1 AND ncrLot.[LotId] = @p2", sqlCon))
+                    using (SqlCommand cmd = new SqlCommand($@"SELECT COUNT(ncrLot.[NcrId]) FROM [dbo].[SFW_ScrapLots] ncrLot WHERE ncrLot.[NcrId] = @p1 AND ncrLot.[LotId] = @p2", sqlCon))
                     {
                         cmd.Parameters.AddWithValue("p1", ncrId.ToString());
                         cmd.Parameters.AddWithValue("p2", lotId.ToString());
-                        return int.TryParse(cmd.ExecuteScalar().ToString(), out int i) && i > 0;
+                        var _count = int.TryParse(cmd.ExecuteScalar().ToString(), out int scr) ? scr : 0;
+                        cmd.CommandText = $@"SELECT COUNT(ncrLot.[NcrId]) FROM [dbo].[DEFECT-CSTM_EscapeLot] ncrLot WHERE ncrLot.[NcrId] = @p1 AND ncrLot.[LotId] = @p2";
+                        _count += int.TryParse(cmd.ExecuteScalar().ToString(), out int def) ? def : 0;
+                        return _count > 0;
                     }
                 }
                 catch (SqlException)

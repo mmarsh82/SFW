@@ -119,9 +119,6 @@ namespace SFW.Commands
                             ApplicationTimer.Tick(null);
                         }
                         break;
-                    case 10:
-                        _viewModel = new Containerization.ProductViewModel();
-                        break;
                 }
                 if(_view != -2)
                 {

@@ -1,5 +1,4 @@
-﻿using DocumentFormat.OpenXml.Drawing.Diagrams;
-using SFW.Commands;
+﻿using SFW.Commands;
 using SFW.Helpers;
 using SFW.Model;
 using SFW.Model.Production;
@@ -9,7 +8,6 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Linq;
-using System.Management;
 using System.Windows;
 using System.Windows.Input;
 

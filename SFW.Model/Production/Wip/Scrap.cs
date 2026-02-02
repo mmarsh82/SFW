@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace SFW.Model.Production.Wip
+﻿namespace SFW.Model.Production.Wip
 {
     public class Scrap : ModelBase
     {
@@ -60,18 +58,10 @@ namespace SFW.Model.Production.Wip
         {
             get
             {
-                if (ScrapType == 'P')
-                {
-                    return !string.IsNullOrEmpty(Quantity)
+                var _product = ScrapType == 'P' ? ProductId : LotId;
+                return !string.IsNullOrEmpty(Quantity)
                         && !string.IsNullOrEmpty(Reference)
-                        && Quality.QmsForm.IsValid(int.Parse(Reference), OrderId, ProductId, ScrapType);
-                }
-                else
-                {
-                    return !string.IsNullOrEmpty(Quantity)
-                        && !string.IsNullOrEmpty(Reference)
-                        && Quality.QmsForm.IsValid(int.Parse(Reference), OrderId, LotId, ScrapType);
-                }
+                        && Quality.QmsForm.IsValid(int.Parse(Reference), OrderId, _product, ScrapType);
             }
         }
         public char ScrapType { get; set; }

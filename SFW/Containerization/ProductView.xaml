@@ -352,12 +352,22 @@
         </DataGrid>
         
         <!--#endregion-->
-        
+
+        <TextBlock Grid.RowSpan="3" Grid.Column="1"
+                   VerticalAlignment="Center"
+                   HorizontalAlignment="Center"
+                   Text="Please Select an Item."
+                   Foreground="Crimson"
+                   FontSize="50"
+                   FontWeight="Bold"
+                   Visibility="{Binding ShowProduct, Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}"/>
+
         <!--#region Command Array -->
 
         <StackPanel Grid.Row="0" Grid.Column="1"
                     Orientation="Horizontal"
-                    HorizontalAlignment="Left">
+                    HorizontalAlignment="Left"
+                    Visibility="{Binding ShowProduct, Converter={StaticResource BoolToVisConverter}}">
 
             <Button Background="Transparent"
                     BorderThickness="0"
@@ -435,9 +445,10 @@
                  Background="LightGray"
                  Style="{DynamicResource BusyAnimationStyle}">
             <Control.Visibility>
-                <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="0*1">
+                <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="0*1*1">
                     <Binding Path="ShowResults"/>
                     <Binding Path="HasContainers"/>
+                    <Binding Path="ShowProduct"/>
                 </MultiBinding>
             </Control.Visibility>
         </Control>
