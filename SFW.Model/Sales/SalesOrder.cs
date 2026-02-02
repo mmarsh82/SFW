@@ -49,6 +49,7 @@ namespace SFW.Model.Sales
         public decimal OrderBalance { get; set; }
         public bool CanShip { get; set; }
         public int Facility { get; set; }
+        public DateTime? LastSchedDate { get; set; }
 
         #endregion
 
@@ -144,6 +145,7 @@ namespace SFW.Model.Sales
             CurrentCreditLimit = dRow.Field<decimal>("AR_Credit");
             OrderBalance = dRow.Field<decimal>("AR_OrdBal");
             Facility = dRow.Field<int>("Site");
+            LastSchedDate = dRow.Field<DateTime?>("LastSchedDate");
         }
 
         /// <summary>
@@ -153,7 +155,7 @@ namespace SFW.Model.Sales
         /// <param name="salesOrder">Sales order ID as string</param>
         public SalesOrder(string soID)
         {
-            var _rows = MasterDataSet.Tables[new SalesOrder().GetType().Name].Select($"[ID] = '{soID}'");
+            var _rows = MasterDataSet.Tables[typeof(SalesOrder).Name].Select($"[ID] = '{soID}'");
             if (_rows.Length > 0)
             {
                 var _row = _rows.FirstOrDefault();
@@ -193,6 +195,7 @@ namespace SFW.Model.Sales
                 CurrentCreditLimit = _row.Field<decimal>("AR_Credit");
                 OrderBalance = _row.Field<decimal>("AR_OrdBal");
                 Facility = _row.Field<int>("Site");
+                LastSchedDate = _row.Field<DateTime?>("LastSchedDate");
             }
         }
 
@@ -204,7 +207,7 @@ namespace SFW.Model.Sales
         /// <returns>Line count as a int</returns>
         public static int GetLineCount(string soNumber, int lineNumber)
         {
-            var _rtnVal = MasterDataSet.Tables[new SalesOrder().GetType().Name].Select($"[SoNbr] = '{soNumber}'").Count();
+            var _rtnVal = MasterDataSet.Tables[typeof(SalesOrder).Name].Select($"[SoNbr] = '{soNumber}'").Count();
             return _rtnVal >= lineNumber ? _rtnVal : lineNumber;
         }
 
@@ -215,9 +218,9 @@ namespace SFW.Model.Sales
         public static IList<string> GetOrderTypeList()
         {
             var _rtnList = new List<string>();
-            if (MasterDataSet.Tables[new SalesOrder().GetType().Name].Columns.Contains("Type"))
+            if (MasterDataSet.Tables[typeof(SalesOrder).Name].Columns.Contains("Type"))
             {
-                foreach (DataRow _row in MasterDataSet.Tables[new SalesOrder().GetType().Name].DefaultView.ToTable(true, "Type").Rows)
+                foreach (DataRow _row in MasterDataSet.Tables[typeof(SalesOrder).Name].DefaultView.ToTable(true, "Type").Rows)
                 {
                     if (!string.IsNullOrEmpty(_row.Field<string>("Type")))
                     {
@@ -237,7 +240,7 @@ namespace SFW.Model.Sales
         public static IList<SalesOrder> GetLineList(string soNbr)
         {
             var _rtnList = new List<SalesOrder>();
-            var _rows = MasterDataSet.Tables[new SalesOrder().GetType().Name].Select($"[SoNbr] = '{soNbr}'");
+            var _rows = MasterDataSet.Tables[typeof(SalesOrder).Name].Select($"[SoNbr] = '{soNbr}'");
             if (_rows.Length > 0)
             {
                 foreach (var _row in _rows)
@@ -257,6 +260,41 @@ namespace SFW.Model.Sales
             return (from c in _rtnList
                    orderby c.LineNumber
                    select c).ToList();
+        }
+
+        /// <summary>
+        /// Get the sales order line number
+        /// </summary>
+        /// <param name="soNumber">Sales Order to get the line count</param>
+        /// <param name="productId">Product ID</param>
+        /// <returns>Line number as a int</returns>
+        public static int GetLineNumber(string soNumber, string productId)
+        {
+            var _row = MasterDataSet.Tables[typeof(SalesOrder).Name].Select($"[SoNbr] = '{soNumber}' AND [PartNbr] = '{productId}'").FirstOrDefault();
+            return _row != null ? _row.Field<int>("LineNbr") : 0;
+        }
+
+        /// <summary>
+        /// Get the sales order customer infomration
+        /// </summary>
+        /// <param name="soNumber">Sales Order</param>
+        /// <returns>Customer name and number seperated by a *</returns>
+        public static string GetCustomer(string soNumber)
+        {
+            var _row = MasterDataSet.Tables[typeof(SalesOrder).Name].Select($"[SoNbr] = '{soNumber}'").FirstOrDefault();
+            return _row != null ? $"{_row.Field<string>("CustNbr")}*{_row.Field<string>("CustName")}" : string.Empty;
+        }
+
+        /// <summary>
+        /// Get the sales order customer product ID
+        /// </summary>
+        /// <param name="soNbr">Sales Order</param>
+        /// <param name="lineNbr">Sales order line number</param>
+        /// <returns>Customer product ID as a string</returns>
+        public static string GetCustomerProductID(string soNbr, string lineNbr)
+        {
+            var _row = MasterDataSet.Tables[typeof(SalesOrder).Name].Select($"[SoNbr] = '{soNbr}' AND [LineNbr] = '{lineNbr}'").FirstOrDefault();
+            return _row != null ? _row.Field<string>("CustPartNbr") : string.Empty;
         }
     }
 }

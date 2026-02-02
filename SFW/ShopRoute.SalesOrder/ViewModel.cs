@@ -1,7 +1,6 @@
 ﻿using SFW.Helpers;
 using SFW.Model.Product;
 using System;
-using System.Windows;
 using System.Windows.Input;
 
 namespace SFW.ShopRoute.SalesOrder
@@ -25,6 +24,7 @@ namespace SFW.ShopRoute.SalesOrder
                 OnPropertyChanged(nameof(CanAccept));
                 OnPropertyChanged(nameof(CanHold));
                 OnPropertyChanged(nameof(CanPending));
+                LastSchedInput = Order.LastSchedDate;
             }
         }
 
@@ -39,11 +39,23 @@ namespace SFW.ShopRoute.SalesOrder
             }
         }
 
+        private DateTime? _lastSched;
+        public DateTime? LastSchedInput
+        {
+            get { return _lastSched; }
+            set
+            {
+                _lastSched = value;
+                OnPropertyChanged(nameof(LastSchedInput));
+            }
+        }
+
         public bool CanAccept { get { return Order.CreditStatus != "A"; } }
         public bool CanHold { get { return Order.CreditStatus != "H"; } }
         public bool CanPending { get { return Order.CreditStatus != "W"; } }
 
         RelayCommand _arUpdate;
+        RelayCommand _commit;
 
         #endregion
 
@@ -88,6 +100,31 @@ namespace SFW.ShopRoute.SalesOrder
             
         }
         private bool ARUpdateCanExecute(object parameter) => true;
+
+        #endregion
+
+        #region Last Actual Commit ICommand
+
+        public ICommand CommitICommand
+        {
+            get
+            {
+                if (_commit == null)
+                {
+                    _commit = new RelayCommand(CommitExecute);
+                }
+                return _commit;
+            }
+        }
+
+        private void CommitExecute(object parameter)
+        {
+            if (DateTime.TryParse(LastSchedInput.ToString(), out DateTime _dt))
+            {
+                var _dateVal = (_dt - Convert.ToDateTime("1967/12/31")).Days;
+                M2kClient.M2kCommand.EditRecord("SOH", Order.SalesNumber, 58, _dateVal.ToString(), M2kClient.UdArrayCommand.Replace, App.ErpCon);
+            }
+        }
 
         #endregion
     }

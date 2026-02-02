@@ -1,4 +1,5 @@
-﻿using SFW.Commands;
+﻿using DocumentFormat.OpenXml.Drawing.Diagrams;
+using SFW.Commands;
 using SFW.Helpers;
 using SFW.Model;
 using SFW.Model.Production;
@@ -8,6 +9,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Linq;
+using System.Management;
 using System.Windows;
 using System.Windows.Input;
 
@@ -622,6 +624,17 @@ namespace SFW.WIP
         {
             var _wQty = TQty == null || TQty == 0 ? Convert.ToInt32(WipRecord.WipQty) : Convert.ToInt32(TQty);
             var _diamond = string.Empty;
+            var _isStandard = false;
+            System.Windows.Forms.PrintDialog prtDialog = new System.Windows.Forms.PrintDialog();
+            if (prtDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                TravelCard.PrinterName = prtDialog.PrinterSettings.PrinterName;
+                if (prtDialog.PrinterSettings.DefaultPageSettings.PaperSize.Kind == System.Drawing.Printing.PaperKind.Letter)
+                {
+                    _isStandard = true;
+                }
+            }
+
             //Printing the travel card logic
             if (LotList == null || LotList.Count == 0)
             {
@@ -670,14 +683,21 @@ namespace SFW.WIP
                         _ncr,
                         deviation:WipRecord.WipWorkOrder.IsDeviated
                         );
-                    switch (parameter.ToString())
+                    if (_isStandard)
                     {
-                        case "T":
-                            TravelCard.PrintPDF(FormType.Portrait, App.GlobalConfig.FirstOrDefault(o => o.Site == App.Facility).MaterialCard);
-                            break;
-                        case "R":
-                            TravelCard.PrintPDF(FormType.Landscape, App.GlobalConfig.FirstOrDefault(o => o.Site == App.Facility).ReferenceCard);
-                            break;
+                        switch (parameter.ToString())
+                        {
+                            case "T":
+                                TravelCard.PrintPDF(FormType.Portrait, App.GlobalConfig.FirstOrDefault(o => o.Site == App.Facility).MaterialCard);
+                                break;
+                            case "R":
+                                TravelCard.PrintPDF(FormType.Landscape, App.GlobalConfig.FirstOrDefault(o => o.Site == App.Facility).ReferenceCard);
+                                break;
+                        }
+                    }
+                    else
+                    {
+                        TravelCard.PrintZPL();
                     }
                 }
                 else

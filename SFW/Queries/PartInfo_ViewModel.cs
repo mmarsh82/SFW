@@ -423,25 +423,35 @@ namespace SFW.Queries
 
         private void MPrintExecute(object parameter)
         {
-            if (App.SiteNumber == 1)
+            var _dmd = UseLot ? Lot.GetDiamondNumber(_lot, App.AppSqlCon) : "";
+            if (_dmd == "error")
             {
-                var _dmd = UseLot ? Lot.GetDiamondNumber(_lot, App.AppSqlCon) : "";
-                if (_dmd == "error")
+                _dmd = DiamondEntry.Show();
+            }
+            var _ncr = UseLot
+                    ? Model.Quality.QmsForm.GetNcrId($"{_lot}|P|01", App.AppSqlCon)
+                    : string.Empty;
+            TravelCard.Create("", "technology#1",
+                Part.SkuNumber,
+                _lot,
+                Part.SkuDescription,
+                _dmd,
+                Convert.ToInt32(QuantityInput),
+                Part.Uom,
+                _ncr
+                );
+            var _isStandard = false;
+            System.Windows.Forms.PrintDialog prtDialog = new System.Windows.Forms.PrintDialog();
+            if (prtDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                if (prtDialog.PrinterSettings.DefaultPageSettings.PaperSize.Kind == System.Drawing.Printing.PaperKind.Letter)
                 {
-                    _dmd = DiamondEntry.Show();
+                    _isStandard = true;
                 }
-                var _ncr = UseLot
-                        ? Model.Quality.QmsForm.GetNcrId($"{_lot}|P|01", App.AppSqlCon)
-                        : string.Empty;
-                TravelCard.Create("", "technology#1",
-                    Part.SkuNumber,
-                    _lot,
-                    Part.SkuDescription,
-                    _dmd,
-                    Convert.ToInt32(QuantityInput),
-                    Part.Uom,
-                    _ncr
-                    );
+                TravelCard.PrinterName = prtDialog.PrinterSettings.PrinterName;
+            }
+            if (_isStandard)
+            {
                 switch (parameter.ToString())
                 {
                     case "T":
@@ -452,28 +462,9 @@ namespace SFW.Queries
                         break;
                 }
             }
-            if (App.SiteNumber == 2)
+            else
             {
-                switch (parameter.ToString())
-                {
-                    case "W":
-                        var _sticker = new WipSticker("", "", Part.SkuNumber, Part.SkuDescription, Part.Uom, SelectedILotRow.LotNumber, new string[4], new string[4], Convert.ToInt32(QuantityInput), 0, "", "", "");
-                        _sticker.Print(1);
-                        break;
-                    default:
-                        TravelCard.Create("", "",
-                        Part.SkuNumber,
-                        _lot,
-                        Part.SkuDescription,
-                        "",
-                        Convert.ToInt32(QuantityInput),
-                        Part.Uom,
-                        "",
-                        submitter: CurrentUser.DisplayName
-                        );
-                        TravelCard.Display(FormType.CoC, App.GlobalConfig.FirstOrDefault(o => o.Site == "Arlington").MaterialCard);
-                        break;
-                }
+                TravelCard.PrintZPL();
             }
         }
         private bool MPrintCanExecute(object parameter)

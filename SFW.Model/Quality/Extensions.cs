@@ -94,27 +94,20 @@ namespace SFW.Model.Quality
         {
             try
             {
-                var _oldLotList = QmsForm.GetLotList(ncrObj.FormId, ncrObj.Part.Uom, sqlCon);
-                foreach (var lot in ncrObj.LotList.Where(o => o.Validated))
+                foreach (var _lot in ncrObj.LotList.Where(o => o.Validated))
                 {
-                    if (_oldLotList.Count(o => o.LotNumber == lot.LotNumber) == 0)
+                    using (SqlCommand cmd = new SqlCommand { Connection = sqlCon })
                     {
-                        using (SqlCommand cmd = new SqlCommand($@"INSERT INTO [dbo].[DEFECT-CSTM_EscapeLot] ([NcrId], [LotId]) Values(@p1, @p2)", sqlCon))
+                        cmd.CommandText = "SELECT COUNT([NcrId]) as 'Exists' FROM [dbo].[DEFECT-CSTM_EscapeLot] WHERE [NCrId] = @p1 AND [LotId] = @p2";
+                        cmd.Parameters.AddWithValue("p1", ncrObj.FormId);
+                        cmd.Parameters.AddWithValue("p2", _lot.LotNumber);
+                        var _lotExists = int.TryParse(cmd.ExecuteScalar().ToString(), out int i) ? i : 1;
+                        cmd.Parameters.Clear();
+                        if (_lotExists == 0)
                         {
+                            cmd.CommandText = $@"INSERT INTO [dbo].[Defect-CSTM_EscapeLot] ([NcrId], [LotId]) Values(@p1, @p2)";
                             cmd.Parameters.AddWithValue("p1", ncrObj.FormId);
-                            cmd.Parameters.AddWithValue("p2", lot.LotNumber);
-                            cmd.ExecuteNonQuery();
-                        }
-                    }
-                }
-                foreach (var oldLot in _oldLotList)
-                {
-                    if (ncrObj.LotList.Count(o => o.LotNumber == oldLot.LotNumber) == 0)
-                    {
-                        using (SqlCommand cmd = new SqlCommand($@"DELETE FROM [dbo].[DEFECT-CSTM_EscapeLot] WHERE [NcrId] = @p1 AND [LotId] = @p2", sqlCon))
-                        {
-                            cmd.Parameters.AddWithValue("p1", ncrObj.FormId);
-                            cmd.Parameters.AddWithValue("p2", oldLot.LotNumber);
+                            cmd.Parameters.AddWithValue("p2", _lot.LotNumber);
                             cmd.ExecuteNonQuery();
                         }
                     }

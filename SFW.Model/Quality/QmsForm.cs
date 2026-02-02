@@ -191,28 +191,35 @@ namespace SFW.Model.Quality
             {
                 try
                 {
-                    using (SqlCommand cmd = new SqlCommand($@"SELECT
-	ncrLot.[NcrId]
-	,ncrLot.[LotId]
-	,SUM(ncrLot.[Quantity]) as 'Scrap'
-	,ncrlot.[ImportType]
-FROM
-	[dbo].[SFW_DefectLotLink] ncrLot
-WHERE
-	ncrLot.[NcrId] = @p1 AND ncrLot.[LotId] <> ''
-GROUP BY
-	ncrLot.[NcrId], ncrLot.[LotId], ncrLot.[ImportType]", sqlCon))
+                    var _dtDefect = new DataTable();
+                    using (SqlDataAdapter _dataAdapter = new SqlDataAdapter($@"SELECT sl.[NcrId], sl.[LotId], sl.[ImportType], CAST(SUM(sl.[Quantity]) as int) as 'Quantity'
+FROM [dbo].[SFW_ScrapLots] sl
+WHERE ISNUMERIC([NcrId]) = 1 AND [NcrId] = @p1
+GROUP BY sl.[NcrId], sl.[LotId], sl.[ImportType]", sqlCon))
                     {
-                        cmd.Parameters.AddWithValue("p1", ncrId.ToString());
-                        using (SqlDataReader reader = cmd.ExecuteReader())
+                        _dataAdapter.SelectCommand.Parameters.AddWithValue("p1", ncrId);
+                        _dataAdapter.Fill(_dtDefect);
+                        if (_dtDefect.Rows.Count > 0)
                         {
-                            if (reader.HasRows)
+                            foreach (DataRow _row in _dtDefect.Rows)
                             {
-                                while (reader.Read())
+                                var _lotId = _row.SafeGetField<string>("LotId");
+                                var _import = _row.SafeGetField<string>("ImportType") == "M";
+                                var _qty = _row.SafeGetField<int>("Quantity");
+                                _rtnList.Add(new Product.Lot(_lotId, _qty, uom, _import, true));
+                            }
+                        }
+                        _dataAdapter.SelectCommand.CommandText = $@"SELECT CAST(del.[NcrId] as varchar) as 'NcrId', del.[LotId], 0 as 'Quantity', 'M' as 'ImportType' FROM [dbo].[DEFECT-CSTM_EscapeLot] del WHERE [NcrId] = @p1";
+                        _dataAdapter.Fill(_dtDefect);
+                        if (_dtDefect.Rows.Count > 0)
+                        {
+                            foreach (DataRow _row in _dtDefect.Rows)
+                            {
+                                if (_rtnList.Count(o => o.LotNumber == _row.SafeGetField<string>("LotId")) == 0)
                                 {
-                                    var _lotId = reader.SafeGetString("LotId");
-                                    var _import = reader.SafeGetString("ImportType") == "M";
-                                    _rtnList.Add(new Product.Lot(_lotId, reader.SafeGetInt32("Scrap"), uom, _import, true));
+                                    var _lotId = _row.SafeGetField<string>("LotId");
+                                    var _import = _row.SafeGetField<string>("ImportType") == "M";
+                                    _rtnList.Add(new Product.Lot(_lotId, _row.SafeGetField<int>("Quantity"), uom, _import, true));
                                 }
                             }
                         }

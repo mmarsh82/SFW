@@ -362,6 +362,18 @@ namespace SFW
             }
         }
 
+        private static bool _hasCon;
+        public static bool HasContainers
+        {
+            get
+            { return _hasCon; }
+            set
+            {
+                _hasCon = value;
+                StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(HasContainers)));
+            }
+        }
+
         private static string _erp;
         public static string ErpId
         {
@@ -551,7 +563,7 @@ namespace SFW
                         switch (_group)
                         {
                             case "Admin":
-                                CanTrain = CanSchedule = IsSupervisor = IsManager = IsInventoryControl = IsAccountsReceivable = IsAdmin = HasSalesOrderModule = IsQuality = IsEngineer = CanSplit = CanDeviate = HasNotice = Planner = true;
+                                CanTrain = CanSchedule = IsSupervisor = IsManager = IsInventoryControl = IsAccountsReceivable = IsAdmin = HasSalesOrderModule = IsQuality = IsEngineer = CanSplit = CanDeviate = HasNotice = Planner = HasContainers = true;
                                 return false;
                             case "Scheduler":
                                 CanSchedule = true;
@@ -563,16 +575,16 @@ namespace SFW
                                 IsManager = true;
                                 break;
                             case "Inventory":
-                                IsInventoryControl = true;
+                                IsInventoryControl = HasContainers = true;
                                 break;
                             case "AR":
-                                IsInventoryControl = true;
+                                IsAccountsReceivable = true;
                                 break;
                             case "Sales":
                                 HasSalesOrderModule = true;
                                 break;
                             case "Train":
-                                HasSalesOrderModule = true;
+                                CanTrain = true;
                                 break;
                             case "Quality":
                                 IsQuality = HasNotice = true;
@@ -591,6 +603,9 @@ namespace SFW
                                 break;
                             case "Planner":
                                 Planner = true;
+                                break;
+                            case "Containers":
+                                HasContainers = true;
                                 break;
                         }
                     }
@@ -613,6 +628,7 @@ namespace SFW
         /// <param name="userName">User Name</param>
         public static void LogIn(string userName)
         {
+            //userName = "UIF89547";
             using (PrincipalContext pContext = GetPrincipal(userName))
             {
                 if (pContext != null)

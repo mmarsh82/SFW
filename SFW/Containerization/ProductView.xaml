@@ -12,7 +12,6 @@
         
         <cmd:ViewLoad x:Key="ViewLoadCommand"/>
         <cvtr:BoolToBackgroundColor x:Key="BoolToBGConverter"/>
-        <cvtr:ContainerNameConverter x:Key="ContainerGroupConverter"/>
         <cvtr:StringToVisibility x:Key="StringToVisConverter"/>
         <cvtr:BoolToVisibility x:Key="BoolToVisConverter"/>
         <cvtr:NegativeIntToBool x:Key="NegIntToBoolConverter"/>
@@ -26,13 +25,6 @@
                       Command="{Binding DataContext.RemoveICommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type DataGrid}}}"
                       CommandParameter="{Binding}"/>
         </ContextMenu>
-
-        <CollectionViewSource x:Key="ContainerSource" Source="{Binding ContainerView}">
-            <CollectionViewSource.GroupDescriptions>
-                <PropertyGroupDescription PropertyName="ContainerID"
-                                          Converter="{StaticResource ContainerGroupConverter}"/>
-            </CollectionViewSource.GroupDescriptions>
-        </CollectionViewSource>
 
     </UserControl.Resources>
 
@@ -162,8 +154,8 @@
 
         <DataGrid x:Name="ContainerCollection"
                   Grid.Row="1" Grid.RowSpan="2"
-                  ItemsSource="{Binding Source={StaticResource ContainerSource}}"
-                  SelectedItem="{Binding SelectedProduct, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                  ItemsSource="{Binding CollectionView}"
+                  IsSynchronizedWithCurrentItem="True"
                   HorizontalAlignment="Left"
                   HeadersVisibility="None"
                   AutoGenerateColumns="False"
@@ -671,8 +663,8 @@
             <Grid Grid.Row="1">
 
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="225"/>
-                    <ColumnDefinition Width="110"/>
+                    <ColumnDefinition Width="160"/>
+                    <ColumnDefinition Width="170"/>
                     <ColumnDefinition Width="55"/>
                     <ColumnDefinition Width="350"/>
                     <ColumnDefinition Width="150"/>
@@ -684,26 +676,25 @@
                 </Grid.ColumnDefinitions>
 
                 <TextBlock Grid.Column="0"
-                           Text="Sales Order Number:"
+                           Text="Pallet Number:"
                            FontSize="22"
                            FontWeight="Bold"
                            Foreground="#FF135185"
                            TextDecorations="Underline"/>
 
-                <TextBox Grid.Column="1"
-                         Text="{Binding ContainerObject.SalesOrderNumber, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                         FontSize="22"
-                         VerticalAlignment="Center"
-                         HorizontalAlignment="Left"
-                         Width="100"
-                         CharacterCasing="Upper"/>
+                <ComboBox x:Name="PalletList" Grid.Column="1"
+                          ItemsSource="{Binding PalletDictionary, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                          SelectedValue="{Binding SelectedType, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                          DisplayMemberPath="Key"
+                          FontSize="18"
+                          FontWeight="Bold"
+                          Width="160"
+                          IsEditable="True"
+                          Style="{DynamicResource RequiredComboBox}"/>
 
-                <TextBlock Grid.Column="2"
-                           Text="{Binding ContainerObject.CustomerNumber}"
-                           FontSize="22"/>
-
-                <TextBlock Grid.Column="3"
-                           Text="{Binding ContainerObject.CustomerName}"
+                <TextBlock Grid.Column="2" Grid.ColumnSpan="2"
+                           Text="{Binding SelectedValue.Value, ElementName=PalletList}"
+                           Margin="5,0,0,0"
                            FontSize="22"/>
 
                 <TextBlock Grid.Column="4"
@@ -714,7 +705,7 @@
                            TextDecorations="Underline"/>
 
                 <TextBox Grid.Column="5"
-                         Text="{Binding ContainerObject.Height, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                         Text="{Binding ContainerObject.Depth, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                          FontSize="22"
                          VerticalAlignment="Center"
                          HorizontalAlignment="Left"
@@ -738,7 +729,7 @@
                            FontSize="22"/>
 
                 <TextBox Grid.Column="9"
-                         Text="{Binding ContainerObject.Depth, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                         Text="{Binding ContainerObject.Height, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                          FontSize="22"
                          VerticalAlignment="Center"
                          HorizontalAlignment="Left"
@@ -778,9 +769,9 @@
 
             <StackPanel Grid.Row="2"
                         Orientation="Horizontal"
-                        Margin="890,0,0,0">
+                        Margin="885,0,0,0">
 
-                <TextBlock Text="Height      Length     Depth"
+                <TextBlock Text="Depth      Length     Height"
                            FontSize="18"
                            VerticalAlignment="Center"/>
                 
@@ -844,208 +835,298 @@
 
                             <Grid>
 
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="20"/>
-                                    <ColumnDefinition Width="120"/>
-                                    <ColumnDefinition Width="130"/>
-                                    <ColumnDefinition Width="300"/>
-                                    <ColumnDefinition Width="20"/>
-                                    <ColumnDefinition Width="85"/>
-                                    <ColumnDefinition Width="70"/>
-                                    <ColumnDefinition Width="115"/>
-                                    <ColumnDefinition Width="100"/>
-                                    <ColumnDefinition Width="20"/>
-                                    <ColumnDefinition Width="50"/>
-                                    <ColumnDefinition Width="90"/>
-                                    <ColumnDefinition Width="40"/>
-                                    <ColumnDefinition Width="40"/>
-                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="25"/>
+                                    <RowDefinition Height="25"/>
+                                    <RowDefinition Height="5"/>
+                                </Grid.RowDefinitions>
 
-                                <Image Grid.Column="0"
-                                       Source="/SFW;component/Icons/Warning.ico"
-                                       Width="20"
-                                       Height="20"
-                                       Visibility="{Binding Validated, Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}"/>
+                                <!--#region Grid Row 1-->
+                                
+                                <Grid Grid.Row="0">
 
-                                <TextBlock Grid.Column="1"
-                                           Text="Part Number:"
-                                           TextDecorations="Underline"
-                                           FontWeight="Bold"
-                                           Foreground="#FF135185"
-                                           Visibility="{Binding Validated, Converter={StaticResource BoolToVisConverter}}"/>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="20"/>
+                                        <ColumnDefinition Width="80"/>
+                                        <ColumnDefinition Width="400"/>
+                                        <ColumnDefinition Width="20"/>
+                                        <ColumnDefinition Width="85"/>
+                                        <ColumnDefinition Width="70"/>
+                                        <ColumnDefinition Width="40"/>
+                                        <ColumnDefinition Width="120"/>
+                                        <ColumnDefinition Width="20"/>
+                                        <ColumnDefinition Width="50"/>
+                                        <ColumnDefinition Width="100"/>
+                                        <ColumnDefinition Width="40"/>
+                                        <ColumnDefinition Width="40"/>
+                                    </Grid.ColumnDefinitions>
 
-                                <TextBlock Grid.Column="1"
-                                           Text="Product ID:"
-                                           TextDecorations="Underline"
-                                           FontWeight="Bold"
-                                           Foreground="#FF135185"
+                                    <Image Grid.Column="0"
+                                           Source="/SFW;component/Icons/Warning.ico"
+                                           Width="20"
+                                           Height="20"
                                            Visibility="{Binding Validated, Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}"/>
 
-                                <TextBlock Grid.Column="2"
-                                           Text="{Binding ProductId}"
-                                           Visibility="{Binding Validated, Converter={StaticResource BoolToVisConverter}}"/>
+                                    <TextBlock Grid.Column="1"
+                                               Text="Product:"
+                                               TextDecorations="Underline"
+                                               FontWeight="Bold"
+                                               Foreground="#FF135185"
+                                               Visibility="{Binding Validated, Converter={StaticResource BoolToVisConverter}}"/>
 
-                                <TextBox Grid.Column="2"
-                                         Text="{Binding ProductInput, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                         FontSize="16"
-                                         Width="120"
-                                         Margin="2"
-                                         CharacterCasing="Upper"
-                                         Visibility="{Binding Validated, Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}"/>
+                                    <TextBlock Grid.Column="1"
+                                               Text="Product:"
+                                               TextDecorations="Underline"
+                                               FontWeight="Bold"
+                                               Foreground="#FF135185"
+                                               Visibility="{Binding Validated, Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}"/>
 
-                                <TextBlock Grid.Column="3"
-                                       Text="{Binding ProductDescription}"/>
+                                    <StackPanel Grid.Column="2"
+                                                Orientation="Horizontal">
 
-                                <Image Grid.Column="4"
-                                       Source="/SFW;component/Icons/Warning.ico"
-                                       Width="20"
-                                       Height="20">
-                                    <Image.Visibility>
-                                        <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="1*0">
-                                            <Binding Path="Validated"/>
-                                            <Binding Path="ValidQuantity"/>
-                                        </MultiBinding>
-                                    </Image.Visibility>
-                                </Image>
+                                        <TextBlock Text="{Binding ProductId}"
+                                                   Visibility="{Binding Validated, Converter={StaticResource BoolToVisConverter}}"/>
 
-                                <TextBlock Grid.Column="5"
-                                           Text="Quantity:"
-                                           TextDecorations="Underline"
-                                           FontWeight="Bold"
-                                           Foreground="#FF135185"
-                                           Visibility="{Binding Validated, Converter={StaticResource BoolToVisConverter}}"/>
+                                        <TextBox Text="{Binding ProductInput, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                 FontSize="16"
+                                                 Width="120"
+                                                 Margin="1"
+                                                 CharacterCasing="Upper"
+                                                 Visibility="{Binding Validated, Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}"/>
 
-                                <TextBox Grid.Column="6"
-                                         Text="{Binding QuantityInput, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                         FontSize="16"
-                                         Width="50"
-                                         CharacterCasing="Upper"
-                                         HorizontalAlignment="Left"
-                                         Margin="1">
-                                    <TextBox.Visibility>
-                                        <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="1*0">
-                                            <Binding Path="Validated"/>
-                                            <Binding Path="LotTraceable"/>
-                                        </MultiBinding>
-                                    </TextBox.Visibility>
-                                </TextBox>
+                                        <TextBlock Text="{Binding ProductDescription}"
+                                                   Margin="5,0,0,0"/>
 
-                                <TextBlock Grid.Column="6"
-                                       Visibility="{Binding LotTraceable, Converter={StaticResource BoolToVisConverter}}"
-                                       Text="{Binding Quantity}"/>
+                                    </StackPanel>
 
-                                <TextBlock Grid.Column="7"
-                                       Text="Lot Number:"
-                                       TextDecorations="Underline"
-                                       FontWeight="Bold"
-                                       Foreground="#FF135185"
-                                       Visibility="{Binding LotTraceable, Converter={StaticResource BoolToVisConverter}}"/>
+                                    <Image Grid.Column="3"
+                                           Source="/SFW;component/Icons/Warning.ico"
+                                           Width="20"
+                                           Height="20">
+                                        <Image.Visibility>
+                                            <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="1*0">
+                                                <Binding Path="Validated"/>
+                                                <Binding Path="ValidQuantity"/>
+                                            </MultiBinding>
+                                        </Image.Visibility>
+                                    </Image>
 
-                                <TextBlock Grid.Column="8"
-                                       Text="{Binding LotId}"
-                                       Visibility="{Binding LotTraceable, Converter={StaticResource BoolToVisConverter}}"/>
+                                    <TextBlock Grid.Column="4"
+                                               Text="Quantity:"
+                                               TextDecorations="Underline"
+                                               FontWeight="Bold"
+                                               Foreground="#FF135185"
+                                               Visibility="{Binding Validated, Converter={StaticResource BoolToVisConverter}}"/>
 
-                                <Image Grid.Column="9"
-                                   Source="/SFW;component/Icons/Warning.ico"
-                                   Width="20"
-                                   Height="20">
-                                    <Image.Visibility>
-                                        <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="0*0*1">
-                                            <Binding Path="LotTraceable"/>
-                                            <Binding Path="ValidLocation"/>
-                                            <Binding Path="Validated"/>
-                                        </MultiBinding>
-                                    </Image.Visibility>
-                                </Image>
+                                    <TextBox Grid.Column="5"
+                                             Text="{Binding QuantityInput, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                             FontSize="16"
+                                             Width="50"
+                                             CharacterCasing="Upper"
+                                             HorizontalAlignment="Left"
+                                             Margin="1">
+                                        <TextBox.Visibility>
+                                            <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="1*0">
+                                                <Binding Path="Validated"/>
+                                                <Binding Path="LotTraceable"/>
+                                            </MultiBinding>
+                                        </TextBox.Visibility>
+                                    </TextBox>
 
-                                <TextBlock Grid.Column="10"
-                                       Text="From:"
-                                       TextDecorations="Underline"
-                                       FontWeight="Bold"
-                                       Foreground="#FF135185">
-                                    <TextBlock.Visibility>
-                                        <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="0*1*1">
-                                            <Binding Path="LotTraceable"/>
-                                            <Binding Path="NewProduct"/>
-                                            <Binding Path="Validated"/>
-                                        </MultiBinding>
-                                    </TextBlock.Visibility>
-                                </TextBlock>
+                                    <TextBlock Grid.Column="5"
+                                               Visibility="{Binding LotTraceable, Converter={StaticResource BoolToVisConverter}}"
+                                               Text="{Binding Quantity}"/>
 
-                                <TextBox Grid.Column="11"
-                                     Text="{Binding LocationInput, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                     FontSize="16"
-                                     Width="70"
-                                     CharacterCasing="Upper"
-                                     HorizontalAlignment="Left"
-                                     Margin="5,1,1,1">
-                                    <TextBox.Visibility>
-                                        <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="0*1*1">
-                                            <Binding Path="LotTraceable"/>
-                                            <Binding Path="NewProduct"/>
-                                            <Binding Path="Validated"/>
-                                        </MultiBinding>
-                                    </TextBox.Visibility>
-                                </TextBox>
+                                    <TextBlock Grid.Column="6"
+                                               Text="Lot:"
+                                               TextDecorations="Underline"
+                                               FontWeight="Bold"
+                                               Foreground="#FF135185"
+                                               Visibility="{Binding LotTraceable, Converter={StaticResource BoolToVisConverter}}"/>
 
-                                <Button Grid.Column="12"
-                                        Command="{Binding DataContext.CommitICommand, ElementName=ContainerFormUC}"
-                                        CommandParameter="{Binding}"
-                                        Width="22"
-                                        Height="22"
-                                        Background="Transparent"
-                                        BorderThickness="0"
-                                        Margin="10,0 0 0"
-                                        Style="{DynamicResource DefaultButton}">
-                                    <Button.Content>
-                                        <Image Source="/SFW;component/Icons/Accept.ico" />
-                                    </Button.Content>
-                                    <Button.Visibility>
-                                        <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="1*1*1*0">
-                                            <Binding Path="ValidQuantity"/>
-                                            <Binding Path="ValidLocation"/>
-                                            <Binding Path="NewProduct"/>
-                                            <Binding Path="NewContainer"/>
-                                        </MultiBinding>
-                                    </Button.Visibility>
-                                </Button>
+                                    <TextBlock Grid.Column="7"
+                                               Text="{Binding LotId}"
+                                               Visibility="{Binding LotTraceable, Converter={StaticResource BoolToVisConverter}}"/>
 
-                                <Button Grid.Column="12"
-                                        Command="{Binding DataContext.CommitICommand, ElementName=ContainerFormUC}"
-                                        CommandParameter="{Binding}"
-                                        Width="22"
-                                        Height="22"
-                                        Background="Transparent"
-                                        BorderThickness="0"
-                                        Margin="10,0 0 0"
-                                        Style="{DynamicResource DefaultButton}">
-                                    <Button.Content>
-                                        <Image Source="/SFW;component/Icons/Accept.ico" />
-                                    </Button.Content>
-                                    <Button.Visibility>
-                                        <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="1*1*1*0">
-                                            <Binding Path="Validated"/>
-                                            <Binding Path="LotTraceable"/>
-                                            <Binding Path="NewProduct"/>
-                                            <Binding Path="NewContainer"/>
-                                        </MultiBinding>
-                                    </Button.Visibility>
-                                </Button>
+                                    <Image Grid.Column="8"
+                                           Source="/SFW;component/Icons/Warning.ico"
+                                           Width="20"
+                                           Height="20">
+                                        <Image.Visibility>
+                                            <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="0*0*1">
+                                                <Binding Path="LotTraceable"/>
+                                                <Binding Path="ValidLocation"/>
+                                                <Binding Path="Validated"/>
+                                            </MultiBinding>
+                                        </Image.Visibility>
+                                    </Image>
 
-                                <Button Grid.Column="13"
-                                        Command="{Binding DataContext.RemoveICommand, ElementName=ContainerFormUC}"
-                                        CommandParameter="{Binding}"
-                                        Width="22"
-                                        Height="22"
-                                        Background="Transparent"
-                                        BorderThickness="0"
-                                        Margin="10,0 0 0"
-                                        Visibility="{Binding Validated, Converter={StaticResource BoolToVisConverter}}"
-                                        Style="{DynamicResource DefaultButton}">
-                                    <Button.Content>
-                                        <Image Source="/SFW;component/Icons/Remove.ico" />
-                                    </Button.Content>
-                                </Button>
+                                    <TextBlock Grid.Column="9"
+                                               Text="From:"
+                                               TextDecorations="Underline"
+                                               FontWeight="Bold"
+                                               Foreground="#FF135185">
+                                        <TextBlock.Visibility>
+                                            <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="0*1*1">
+                                                <Binding Path="LotTraceable"/>
+                                                <Binding Path="NewProduct"/>
+                                                <Binding Path="Validated"/>
+                                            </MultiBinding>
+                                        </TextBlock.Visibility>
+                                    </TextBlock>
+
+                                    <TextBox Grid.Column="10"
+                                             Text="{Binding LocationInput, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                             FontSize="16"
+                                             Width="70"
+                                             CharacterCasing="Upper"
+                                             HorizontalAlignment="Left"
+                                             Margin="5,1,1,1">
+                                        <TextBox.Visibility>
+                                            <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="0*1*1">
+                                                <Binding Path="LotTraceable"/>
+                                                <Binding Path="NewProduct"/>
+                                                <Binding Path="Validated"/>
+                                            </MultiBinding>
+                                        </TextBox.Visibility>
+                                    </TextBox>
+
+                                    <Button Grid.Column="11"
+                                            Command="{Binding DataContext.CommitICommand, ElementName=ContainerFormUC}"
+                                            CommandParameter="{Binding}"
+                                            Width="22"
+                                            Height="22"
+                                            Background="Transparent"
+                                            BorderThickness="0"
+                                            Margin="10,0 0 0"
+                                            Style="{DynamicResource DefaultButton}">
+                                        <Button.Content>
+                                            <Image Source="/SFW;component/Icons/Accept.ico" />
+                                        </Button.Content>
+                                        <Button.Visibility>
+                                            <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="1*1*1*0">
+                                                <Binding Path="ValidQuantity"/>
+                                                <Binding Path="ValidLocation"/>
+                                                <Binding Path="NewProduct"/>
+                                                <Binding Path="NewContainer"/>
+                                            </MultiBinding>
+                                        </Button.Visibility>
+                                    </Button>
+
+                                    <Button Grid.Column="11"
+                                            Command="{Binding DataContext.CommitICommand, ElementName=ContainerFormUC}"
+                                            CommandParameter="{Binding}"
+                                            Width="22"
+                                            Height="22"
+                                            Background="Transparent"
+                                            BorderThickness="0"
+                                            Margin="10,0 0 0"
+                                            Style="{DynamicResource DefaultButton}">
+                                        <Button.Content>
+                                            <Image Source="/SFW;component/Icons/Accept.ico" />
+                                        </Button.Content>
+                                        <Button.Visibility>
+                                            <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="1*1*1*0">
+                                                <Binding Path="Validated"/>
+                                                <Binding Path="LotTraceable"/>
+                                                <Binding Path="NewProduct"/>
+                                                <Binding Path="NewContainer"/>
+                                            </MultiBinding>
+                                        </Button.Visibility>
+                                    </Button>
+
+                                    <Button Grid.Column="12"
+                                            Command="{Binding DataContext.RemoveICommand, ElementName=ContainerFormUC}"
+                                            CommandParameter="{Binding}"
+                                            Width="22"
+                                            Height="22"
+                                            Background="Transparent"
+                                            BorderThickness="0"
+                                            Margin="10,0 0 0"
+                                            Visibility="{Binding Validated, Converter={StaticResource BoolToVisConverter}}"
+                                            Style="{DynamicResource DefaultButton}">
+                                        <Button.Content>
+                                            <Image Source="/SFW;component/Icons/Remove.ico" />
+                                        </Button.Content>
+                                    </Button>
+
+                                </Grid>
+
+                                <!--#endregion-->
+                                
+                                <!--#region Grid Row 2-->
+
+                                <Grid Grid.Row="1" Visibility="{Binding Validated, Converter={StaticResource BoolToVisConverter}}">
+
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="50"/>
+                                        <ColumnDefinition Width="110"/>
+                                        <ColumnDefinition Width="110"/>
+                                        <ColumnDefinition Width="45"/>
+                                        <ColumnDefinition Width="75"/>
+                                        <ColumnDefinition Width="350"/>
+                                        <ColumnDefinition Width="165"/>
+                                        <ColumnDefinition Width="350"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <TextBlock Grid.Column="1"
+                                               Text="Sales Order:"
+                                               TextDecorations="Underline"
+                                               FontWeight="Bold"
+                                               Foreground="#FF135185"/>
+
+                                    <TextBox Grid.Column="2"
+                                             Text="{Binding SalesOrderNumber, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                             FontSize="16"
+                                             Width="100"
+                                             CharacterCasing="Upper"
+                                             HorizontalAlignment="Left"
+                                             Margin="1"/>
+
+                                    <TextBlock Grid.Column="3"
+                                               Text="Line:"
+                                               TextDecorations="Underline"
+                                               FontWeight="Bold"
+                                               Foreground="#FF135185"/>
+
+                                    <TextBox Grid.Column="4"
+                                             Text="{Binding SalesLineNumber, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                             FontSize="16"
+                                             Width="70"
+                                             CharacterCasing="Upper"
+                                             HorizontalAlignment="Left"
+                                             Margin="1"/>
+
+                                    <StackPanel Grid.Column="5"
+                                                Orientation="Horizontal">
+
+                                        <TextBlock Text="{Binding CustomerNumber}"/>
+
+                                        <TextBlock Text="{Binding CustomerName}"
+                                                   Margin="5,0,0,0"/>
+
+                                    </StackPanel>
+
+                                    <TextBlock Grid.Column="6"
+                                               Text="Customer Product:"
+                                               TextDecorations="Underline"
+                                               FontWeight="Bold"
+                                               Foreground="#FF135185"
+                                               Visibility="{Binding CustomerProductID, Converter={StaticResource StringToVisConverter}}"/>
+
+                                    <TextBlock Grid.Column="7"
+                                               Text="{Binding CustomerProductID}"/>
+
+                                </Grid>
+
+                                
+                                
+                                <!--#endregion-->
+
+                                <Rectangle Grid.Row="3"
+                                           Fill="#FF135185"
+                                           HorizontalAlignment="Stretch"
+                                           VerticalAlignment="Stretch"/>
 
                             </Grid>
 

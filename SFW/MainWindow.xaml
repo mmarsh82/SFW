@@ -141,7 +141,7 @@
                           Visibility="{Binding Path=(local:CurrentUser.CanSchedule), Converter={StaticResource BoolToVisConverter}}"/>
                 <MenuItem Header="Containers"
                           Command="{StaticResource ViewLoadICommand}"
-                          Visibility="{Binding Path=(local:CurrentUser.IsInventoryControl), Converter={StaticResource BoolToVisConverter}}"
+                          Visibility="{Binding Path=(local:CurrentUser.HasContainers), Converter={StaticResource BoolToVisConverter}}"
                           CommandParameter="10"
                           InputGestureText="Alt+C"/>
             </MenuItem>
@@ -171,10 +171,11 @@
 
             <MenuItem Header="Management">
                 <MenuItem.Visibility>
-                    <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="1|1|1">
+                    <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="1|1|1|1">
                         <Binding Path="(local:CurrentUser.IsSupervisor)"/>
                         <Binding Path="(local:CurrentUser.IsManager)"/>
                         <Binding Path="(local:CurrentUser.CanSchedule)"/>
+                        <Binding Path="(local:CurrentUser.IsInventoryControl)"/>
                     </MultiBinding>
                 </MenuItem.Visibility>
 
@@ -261,7 +262,7 @@
                     Visibility="{Binding CanFilter, Converter={StaticResource BoolToVisConverter}}"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center"
-                    Margin="1">
+                    Margin="1,1,560,1">
             <ComboBox ItemsSource="{Binding MachineList}"
                       SelectedItem="{Binding SelectedMachine, NotifyOnSourceUpdated=True, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
                       Width="150"

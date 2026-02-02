@@ -98,7 +98,6 @@
                       VerticalAlignment="Center"
                       FontSize="18"
                       Margin="10,0,0,0"
-                      Visibility="{Binding Path=(app:CurrentUser.IsAccountsReceivable), Converter={StaticResource BoolToVisConverter}}"
                       Style="{DynamicResource SliderCheckBox}">
                 <CheckBox.Content>
                     <TextBlock Text="{Binding ScheduleTypeContent}"

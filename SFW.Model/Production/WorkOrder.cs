@@ -43,6 +43,7 @@ namespace SFW.Model.Production
         public DateTime OriginDueDate { get; set; }
         public Sku Product { get; set; }
         public Machine WorkCenter { get; set; }
+        public bool InQue { get; set; }
 
         #endregion
 
@@ -114,6 +115,7 @@ namespace SFW.Model.Production
 	,CAST(ISNULL((SELECT Ln_Bal_Qty FROM dbo.[SOD-INIT] AS ad WHERE (ID = SUBSTRING(wp.So_Reference, 0, LEN(wp.So_Reference) - 1))), 0) AS int) AS Ln_Bal_Qty
 	,CAST(wc.[Fac_Code] as int) as 'Site'
 	,CASE WHEN CAST(wp.[Date_Sch_Comp] as date) > CAST(wp.[Date_Orig_Comp] as date) THEN 1 ELSE 0 END as 'IsPastDue'
+    ,wpo.[InQue] as 'LaborState'
 FROM
 	dbo.[WC-INIT] AS wc
 LEFT JOIN
@@ -249,6 +251,7 @@ ORDER BY
                 Facility = _row.Field<int>("Site");
                 OriginStartDate = _row.Field<DateTime>("OriginalStartDate");
                 OriginDueDate = _row.Field<DateTime>("OriginalDueDate");
+                InQue = bool.TryParse(_row.Field<byte>("LaborState").ToString(), out bool b) ? b : false;
             }
         }
 
@@ -301,6 +304,7 @@ ORDER BY
                 IsStarted = true;
                 OriginStartDate = dRow.Field<DateTime>("OriginalStartDate");
                 OriginDueDate = dRow.Field<DateTime>("OriginalDueDate");
+                InQue = bool.TryParse(dRow.Field<byte>("LaborState").ToString(), out bool b) ? b : false;
             }
         }
 

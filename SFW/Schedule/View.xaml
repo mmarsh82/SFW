@@ -22,6 +22,7 @@
         <cvtr:IntToBool x:Key="IntToBoolConverter"/>
         <cvtr:DisplayToolTip x:Key="DisplayToolTip"/>
         <cvtr:BoolToForegroundColor x:Key="BoolToForegroundConverter"/>
+        <cvtr:IntToLaborState x:Key="LaborStateConverter"/>
 
         <ContextMenu x:Key="rowMenu">
             <MenuItem Header="Work Order State"
@@ -234,6 +235,32 @@
                                                    Margin="5,0,0,0"
                                                    VerticalAlignment="Center"
                                                    Visibility="{Binding Sched_Priority, ConverterParameter=Sched_Priority, Converter={StaticResource StringToVisConverter}}"/>
+
+                                        <TextBlock Text="{Binding LaborState, Converter={StaticResource LaborStateConverter}}"
+                                                   Margin="10,0,0,0"
+                                                   VerticalAlignment="Center"
+                                                   HorizontalAlignment="Center"
+                                                   FontStyle="Italic">
+                                            <TextBlock.Foreground>
+                                                <SolidColorBrush x:Name="RunForeground" Color="LightGoldenrodYellow"/>
+                                            </TextBlock.Foreground>
+                                            <TextBlock.Triggers>
+                                                <EventTrigger RoutedEvent="TextBlock.Loaded">
+                                                    <BeginStoryboard>
+                                                        <Storyboard>
+                                                            <ColorAnimation Storyboard.TargetName="RunForeground"
+                                                                            Storyboard.TargetProperty="Color"
+                                                                            From="Crimson" To="MediumBlue"
+                                                                            Duration="0:0:1"
+                                                                            AutoReverse="True"
+                                                                            RepeatBehavior="Forever"/>
+                                                        </Storyboard>
+                                                    </BeginStoryboard>
+                                                </EventTrigger>
+                                            </TextBlock.Triggers>
+
+                                        </TextBlock>
+                                        
                                     </StackPanel>
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                                         <TextBlock Text="{Binding SkuNumber}" VerticalAlignment="Center"/>

@@ -448,7 +448,7 @@ namespace SFW.QMS.Form
 
         #endregion
 
-        #region Remove Lot List Item ICommand
+        #region Add Lot List Item ICommand
 
         public ICommand AddLotICommand
         {

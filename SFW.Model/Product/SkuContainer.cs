@@ -1,13 +1,15 @@
-﻿using System;
+﻿using SFW.Model.Sales;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Data;
 using System.Data.SqlClient;
+using System.Linq;
 using System.Windows;
 
 namespace SFW.Model.Product
 {
-    public partial class SkuContainer : ModelBase
+    public partial class SkuContainer : ModelBase, IModuleData
     {
         public class Product : ModelBase
         {
@@ -118,6 +120,15 @@ namespace SFW.Model.Product
                                 Validated = true;
                                 NewProduct = true;
                                 _input = string.Empty;
+                                if (Exists(ProductId, ParentId) > 0)
+                                {
+                                    var _order = GetSalesOrder(ProductId, ParentId);
+                                    if (!string.IsNullOrEmpty(_order))
+                                    {
+                                        SalesOrderNumber = _order.Split('*')[0];
+                                        SalesLineNumber = _order.Split('*')[1];
+                                    }
+                                }
                             }
                             else
                             {
@@ -261,6 +272,77 @@ namespace SFW.Model.Product
                 }
             }
 
+            private string _soNbr;
+            public string SalesOrderNumber
+            {
+                get 
+                { return _soNbr; }
+                set
+                {
+                    _soNbr = value;
+                    if (string.IsNullOrEmpty(SalesLineNumber))
+                    {
+                        var _line = Sales.SalesOrder.GetLineNumber(value, ProductId);
+                        if (_line != 0)
+                        {
+                            SalesLineNumber = _line.ToString();
+                            ValidSalesOrder = true;
+                            var _cust = SalesOrder.GetCustomer(value);
+                            CustomerNumber = _cust.Contains('*') ? _cust.Split('*')[0] : "";
+                            OnPropertyChanged(nameof(CustomerNumber));
+                            CustomerName = _cust.Contains('*') ? _cust.Split('*')[1] : "";
+                            OnPropertyChanged(nameof(CustomerName));
+                            CustomerProductID = SalesOrder.GetCustomerProductID(value, SalesLineNumber);
+                        }
+                        else
+                        {
+                            ValidSalesOrder = false;
+                        }
+                    }
+                    else
+                    {
+                        ValidSalesOrder = false;
+                    }
+                    OnPropertyChanged(nameof(SalesOrderNumber));
+                }
+            }
+            public string Customer { get; set; }
+
+            private bool _valSo;
+            public bool ValidSalesOrder
+            {
+                get
+                { return _valSo; }
+                set
+                {
+                    _valSo = value;
+                    OnPropertyChanged(nameof(ValidSalesOrder));
+                }
+            }
+
+            private int? _lnNbr;
+            public string SalesLineNumber
+            {
+                get
+                { return int.TryParse(_lnNbr.ToString(), out int i) ? i.ToString() : null; }
+                set
+                {
+                    if(int.TryParse(value, out int i))
+                    {
+                        _lnNbr = i;
+                    }
+                    else
+                    {
+                        _lnNbr = null;
+                    }
+                    OnPropertyChanged(nameof(SalesLineNumber));
+                }
+            }
+
+            public string CustomerNumber { get; set; }
+            public string CustomerName { get; set; }
+            public string CustomerProductID { get; set; }
+
             #endregion
 
             /// <summary>
@@ -273,6 +355,34 @@ namespace SFW.Model.Product
                 Validated = ValidLocation = !newProd;
                 NewProduct = newProd;
                 NewContainer = newCont;
+            }
+
+            /// <summary>
+            /// Check to see if a container already containers a product
+            /// </summary>
+            /// <param name="productId">Product ID</param>
+            /// <param name="containerId">container ID</param>
+            /// <returns>Number of the same products in the container</returns>
+            public int Exists(string productId, string containerId)
+            {
+                return MasterDataSet.Tables[typeof(SkuContainer).Name].Select($"[ProductId] = '{productId}' AND [ContainerID] = '{containerId}'").Count();
+            }
+
+            /// <summary>
+            /// Check to see if a container already containers a product
+            /// </summary>
+            /// <param name="productId">Product ID</param>
+            /// <param name="containerId">container ID</param>
+            /// <returns>Number of the same products in the container</returns>
+            public static string GetSalesOrder(string productId, string containerId)
+            {
+                var _rows = MasterDataSet.Tables[typeof(SkuContainer).Name].Select($"[ProductId] = '{productId}' AND [ContainerID] = '{containerId}'");
+                if (_rows.Count(o => !string.IsNullOrEmpty(o.Field<string>("SalesOrderNumber"))) > 0)
+                {
+                    var _row = _rows.FirstOrDefault(o => !string.IsNullOrEmpty(o.Field<string>("SalesOrderNumber")));
+                    return $"{_row.Field<string>("SalesOrderNumber")}*{_row.Field<string>("SalesLineNumber")}";
+                }
+                return string.Empty;
             }
         }
 
@@ -460,24 +570,17 @@ namespace SFW.Model.Product
             }
         }
 
-        private string _soNbr;
-        public string SalesOrderNumber
+        private string _palType;
+        public string PalletType
         {
             get
-            { return _soNbr; }
+            { return _palType; }
             set
             {
-                var _temp = new Sales.SalesOrder($"{value}*1");
-                _soNbr = value;
-                OnPropertyChanged(nameof(SalesOrderNumber));
-                CustomerNumber = _temp.CustomerNumber;
-                OnPropertyChanged(nameof(CustomerNumber));
-                CustomerName = _temp.CustomerName;
-                OnPropertyChanged(nameof(CustomerName));
+                _palType = value;
+                OnPropertyChanged(nameof(PalletType));
             }
         }
-        public string CustomerNumber { get; set; }
-        public string CustomerName { get; set; }
 
         public ObservableCollection<Product> ProductCollection { get; set; }
 
@@ -491,7 +594,7 @@ namespace SFW.Model.Product
         /// <param name="sqlCon">Application SQL connection</param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
-        public static DataTable GetContainerData(SqlConnection sqlCon)
+        public DataTable GetTable(int site, SqlConnection sqlCon)
         {
             var _tempTable = new DataTable();
             if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
@@ -537,6 +640,49 @@ namespace SFW.Model.Product
                         adapter.Fill(_tempTable);
                         return _tempTable;
                     }
+                }
+                catch (SqlException sqlEx)
+                {
+                    throw new Exception(sqlEx.Message);
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception(ex.Message);
+                }
+            }
+            else
+            {
+                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
+            }
+        }
+
+        /// <summary>
+        /// Get the container pallet data as a list
+        /// </summary>
+        /// <param name="sqlCon">Application SQL connection</param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
+        public static IReadOnlyDictionary<string, string> GetPalletDictionary(SqlConnection sqlCon)
+        {
+            var _rtnDict = new Dictionary<string, string>();
+            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
+            {
+                try
+                {
+                    using (SqlCommand cmd = new SqlCommand($"SELECT ct.[ContainerType], ct.[ContainerTypeDesc] FROM [Nexus_Main].[dbo].[ContainerTypes] ct WHERE ct.[Enabled] = 1", sqlCon))
+                    {
+                        using (SqlDataReader reader = cmd.ExecuteReader())
+                        {
+                            if (reader.HasRows)
+                            {
+                                while (reader.Read())
+                                {
+                                    _rtnDict.Add(reader.SafeGetString("ContainerType"), reader.SafeGetString("ContainerTypeDesc"));
+                                }
+                            }
+                        }
+                    }
+                    return _rtnDict;
                 }
                 catch (SqlException sqlEx)
                 {
@@ -674,13 +820,7 @@ namespace SFW.Model.Product
                                         _tempCon.Height = reader.SafeGetInt32("Height").ToString();
                                         _tempCon.Length = reader.SafeGetInt32("Length").ToString();
                                         _tempCon.Depth = reader.SafeGetInt32("Depth").ToString();
-                                        var _tempSo = new Sales.SalesOrder($"{reader.SafeGetString("SalesOrderNumber")}*1");
-                                        if (!string.IsNullOrEmpty(_tempSo.SalesNumber))
-                                        {
-                                            _tempCon.SalesOrderNumber = _tempSo.SalesNumber;
-                                            _tempCon.CustomerNumber = _tempSo.CustomerNumber;
-                                            _tempCon.CustomerName = _tempSo.CustomerName;
-                                        }
+                                        _tempCon.PalletType = reader.SafeGetString("ContainerType");
                                     }
                                     if (string.IsNullOrEmpty(_tempCon.UserId))
                                     {
@@ -691,16 +831,13 @@ namespace SFW.Model.Product
                                     var _prod = new Product(_tempCon.ContainerId, _tempCon.UserId, false, false)
                                     {
                                         ProductId = reader.SafeGetString("ProductId")
-                                        ,
-                                        ProductDescription = reader.SafeGetString("ProductDescription")
-                                        ,
-                                        Quantity = reader.SafeGetInt32("Quantity")
-                                        ,
-                                        LotTraceable = reader.SafeGetString("LotTraceable") == "T"
-                                        ,
-                                        QuantityInput = reader.SafeGetInt32("Quantity").ToString()
-                                        ,
-                                        ValidQuantity = true
+                                        ,ProductDescription = reader.SafeGetString("ProductDescription")
+                                        ,Quantity = reader.SafeGetInt32("Quantity")
+                                        ,LotTraceable = reader.SafeGetString("LotTraceable") == "T"
+                                        ,QuantityInput = reader.SafeGetInt32("Quantity").ToString()
+                                        ,ValidQuantity = true
+                                        ,SalesOrderNumber = reader.SafeGetString("SalesOrderNumber")
+                                        ,SalesLineNumber = reader.SafeGetString("SalesLineNumber")
                                     };
                                     if (_prod.LotTraceable)
                                     {
@@ -785,7 +922,7 @@ namespace SFW.Model.Product
                     using (SqlCommand cmd = new SqlCommand($"USE {sqlCon.Database}; SELECT TOP 1 [ContainerLocation] FROM dbo.[SFW_Containers] WHERE [ContainerID] = @p1", sqlCon))
                     {
                         cmd.Parameters.AddWithValue("p1", ctnId);
-                        return cmd.ExecuteScalar().ToString();
+                        return cmd.ExecuteScalar()?.ToString();
                     }
                 }
                 catch (SqlException sqlEx)
@@ -902,18 +1039,18 @@ DELETE FROM [Nexus_Main].dbo.[ContainerDetailLot] WHERE [ContainerID] = @p1;", s
                     using (SqlCommand cmd = new SqlCommand($@"UPDATE
     [Nexus_Main].dbo.[ContainerHeader]
 SET
-    [LastUserID]=@p1, [LastEditDate]=@p2, [ContainerHeight]=@p3, [ContainerWeight]=@p4, [User_Def_1]=@p5, [User_Def_2]=@p6, [User_Def_3]=@p7, [User_Def_4]=@p8
+    [ContainerType]=@p1, [ContainerStatus]=@p2, [LastUserID]=@p3, [LastEditDate]=@p4, [ContainerWeight]=@p5, [ContainerHeight]=@p6, [User_Def_1]=@p7, [User_Def_2]=@p8
 WHERE
     [ContainerID]=@p9", sqlCon))
                     {
-                        cmd.Parameters.AddWithValue("p1", userId);
-                        cmd.Parameters.AddWithValue("p2", DateTime.Now.ToString("yyyy-MM-dd HH:mm"));
-                        cmd.Parameters.AddWithValue("p3", container.Height);
-                        cmd.Parameters.AddWithValue("p4", container.Weight);
-                        cmd.Parameters.AddWithValue("p5", container.Length);
-                        cmd.Parameters.AddWithValue("p6", container.Depth);
-                        cmd.Parameters.AddWithValue("p7", container.SalesOrderNumber);
-                        cmd.Parameters.AddWithValue("p8", container.Status);
+                        cmd.Parameters.AddWithValue("p1", container.PalletType);
+                        cmd.Parameters.AddWithValue("p2", container.Status);
+                        cmd.Parameters.AddWithValue("p3", userId);
+                        cmd.Parameters.AddWithValue("p4", DateTime.Now.ToString("yyyy-MM-dd HH:mm"));
+                        cmd.Parameters.AddWithValue("p5", container.Weight);
+                        cmd.Parameters.AddWithValue("p6", container.Height);
+                        cmd.Parameters.AddWithValue("p7", container.Length);
+                        cmd.Parameters.AddWithValue("p8", container.Depth);
                         cmd.Parameters.AddWithValue("p9", container.ContainerId);
                         return cmd.ExecuteNonQuery() > 0;
                     }
@@ -980,22 +1117,22 @@ WHERE
                         try
                         {
                             using (SqlCommand cmd = new SqlCommand($@"DECLARE @newId int
-SELECT @newId = CASE WHEN MAX([ContainerID]) IS NULL THEN 1 ELSE MAX([ContainerID])+1 END FROM [Nexus_Main].[dbo].[ContainerHeader]
+SELECT @newId = CASE WHEN MAX(CAST([ContainerID] as int)) = 0 THEN 1 ELSE MAX(CAST([ContainerID] as int))+1 END FROM [Nexus_Main].[dbo].[ContainerHeader]
 INSERT INTO [Nexus_Main].[dbo].[ContainerHeader]
-	([ContainerID], [ContainerType], [ContainerStatus], [LastUserID], [LastEditDate], [XrefID], [ContainerWeight], [XrefType], [ContainerHeight], [ContainerLocation], [User_Def_1], [User_Def_2], [User_Def_3], [User_Def_4])
+	([ContainerID], [ContainerType], [ContainerStatus], [LastUserID], [LastEditDate], [XrefID], [ContainerWeight], [XrefType], [ContainerHeight], [ContainerLocation], [User_Def_1], [User_Def_2])
 VALUES
-	(@newId, 'PALLET', 'PACK', @p1, @p2, @p3, @p4, 'INT', @p5, @p3, @p6, @p7, @p8, @p9)
+	(@newId, @p1, @p2, @p3, @p4, @p5, @p6, 'INT', @p7, @p5, @p8, @p9)
 SELECT @newId", sqlCon))
                             {
-                                cmd.Parameters.AddWithValue("p1", container.UserId);
-                                cmd.Parameters.AddWithValue("p2", DateTime.Now.ToString("yyyy-MM-dd HH:mm"));
-                                cmd.Parameters.AddWithValue("p3", container.Location);
-                                cmd.Parameters.AddWithValue("p4", container.Weight);
-                                cmd.Parameters.AddWithValue("p5", container.Height);
-                                cmd.Parameters.AddWithValue("p6", container.Length);
-                                cmd.Parameters.AddWithValue("p7", container.Depth);
-                                cmd.Parameters.AddWithValue("p8", container.SalesOrderNumber);
-                                cmd.Parameters.AddWithValue("p9", container.Status);
+                                cmd.Parameters.AddWithValue("p1", container.PalletType);
+                                cmd.Parameters.AddWithValue("p2", container.Status);
+                                cmd.Parameters.AddWithValue("p3", container.UserId);
+                                cmd.Parameters.AddWithValue("p4", DateTime.Now.ToString("yyyy-MM-dd HH:mm"));
+                                cmd.Parameters.AddWithValue("p5", container.Location);
+                                if (string.IsNullOrEmpty(container.Weight)) { cmd.Parameters.AddWithValue("p6", DBNull.Value); } else { cmd.Parameters.AddWithValue("p6", container.Weight); }
+                                if (string.IsNullOrEmpty(container.Height)) { cmd.Parameters.AddWithValue("p7", DBNull.Value); } else { cmd.Parameters.AddWithValue("p7", container.Height); }
+                                if (string.IsNullOrEmpty(container.Length)) { cmd.Parameters.AddWithValue("p8", DBNull.Value); } else { cmd.Parameters.AddWithValue("p8", container.Length); }
+                                if (string.IsNullOrEmpty(container.Depth)) { cmd.Parameters.AddWithValue("p9", DBNull.Value); } else { cmd.Parameters.AddWithValue("p9", container.Depth); }
                                 container.ContainerId = cmd.ExecuteScalar().ToString();
                             }
                             foreach (var _prod in container.ProductCollection)
@@ -1003,9 +1140,8 @@ SELECT @newId", sqlCon))
                                 _prod.ParentId = container.ContainerId;
                                 var _loc = _prod.LocationInput;
                                 _prod.LocationInput = container.Location;
-                                _prod.Submit(container.UserId, sqlCon);
+                                _prod.Submit(sqlCon);
                                 _prod.LocationInput = _loc;
-
                             }
                         }
                         catch (SqlException sqlEx)
@@ -1131,10 +1267,9 @@ DELETE FROM [Nexus_Main].dbo.[ContainerDetailLot] WHERE [ContainerID] = @p1 AND 
         /// Delete a container
         /// </summary>
         /// <param name="product">Product object</param>
-        /// <param name="userId">Currently logged in user</param>
         /// <param name="sqlCon">Application SQL connection</param>
         /// <returns>Pass or fail as bool</returns>
-        public static bool Submit(this SkuContainer.Product product, string userId, SqlConnection sqlCon)
+        public static bool Submit(this SkuContainer.Product product, SqlConnection sqlCon)
         {
             var _revised = false;
             if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
@@ -1154,13 +1289,15 @@ DELETE FROM [Nexus_Main].dbo.[ContainerDetailLot] WHERE [ContainerID] = @p1 AND 
                         {
                             using (SqlCommand cmd = new SqlCommand($@"DECLARE @rowId int
 SELECT @rowId = [ContainerRow] FROM [Nexus_Main].dbo.[ContainerDetail] WHERE [ContainerID] = @p1 AND [ItemNumber] = @p2
-UPDATE [Nexus_Main].dbo.[ContainerDetail] SET [Qty_Stock] = [Qty_Stock]+@p3 WHERE [ContainerID] = @p1 AND [ItemNumber] = @p2
+UPDATE [Nexus_Main].dbo.[ContainerDetail] SET [Qty_Stock] = [Qty_Stock]+@p3, [OrderNumber] = @p5, [LineNumber] = @p6 WHERE [ContainerID] = @p1 AND [ItemNumber] = @p2
 INSERT INTO [Nexus_Main].dbo.[ContainerDetailLot] ([ContainerID], [ContainerRowID], [LotNumber], [LotQty]) VALUES(@p1, @rowId, @p4, @p3)", sqlCon))
                             {
                                 cmd.Parameters.AddWithValue("p1", product.ParentId);
                                 cmd.Parameters.AddWithValue("p2", product.ProductId);
                                 cmd.Parameters.AddWithValue("p3", product.Quantity);
                                 cmd.Parameters.AddWithValue("p4", product.LotId);
+                                cmd.Parameters.AddWithValue("p5", product.SalesOrderNumber);
+                                cmd.Parameters.AddWithValue("p6", product.SalesLineNumber);
                                 _revised = cmd.ExecuteNonQuery() > 0;
                             }
                         }
@@ -1168,13 +1305,15 @@ INSERT INTO [Nexus_Main].dbo.[ContainerDetailLot] ([ContainerID], [ContainerRowI
                         {
                             using (SqlCommand cmd = new SqlCommand($@"DECLARE @rowId int
 SELECT @rowId = CASE WHEN COUNT([ContainerRow]) = 0 THEN 1 ELSE MAX([ContainerRow])+1 END FROM [Nexus_Main].dbo.[ContainerDetail] WHERE [ContainerID] = @p1
-INSERT INTO [Nexus_Main].dbo.[ContainerDetail] ([ContainerID], [ContainerRow], [ItemNumber], [Qty_Stock]) VALUES(@p1,@rowId,@p2,@p3)
+INSERT INTO [Nexus_Main].dbo.[ContainerDetail] ([ContainerID], [ContainerRow], [ItemNumber], [Qty_Stock], [OrderNumber], [LineNumber]) VALUES(@p1,@rowId,@p2,@p3,@p5,@p6)
 INSERT INTO [Nexus_Main].dbo.[ContainerDetailLot] ([ContainerID], [ContainerRowID], [LotNumber], [LotQty]) VALUES(@p1, @rowId, @p4, @p3)", sqlCon))
                             {
                                 cmd.Parameters.AddWithValue("p1", product.ParentId);
                                 cmd.Parameters.AddWithValue("p2", product.ProductId);
                                 cmd.Parameters.AddWithValue("p3", product.Quantity);
                                 cmd.Parameters.AddWithValue("p4", product.LotId);
+                                cmd.Parameters.AddWithValue("p5", product.SalesOrderNumber);
+                                cmd.Parameters.AddWithValue("p6", product.SalesLineNumber);
                                 _revised = cmd.ExecuteNonQuery() > 0;
                             }
                         }
@@ -1183,11 +1322,13 @@ INSERT INTO [Nexus_Main].dbo.[ContainerDetailLot] ([ContainerID], [ContainerRowI
                     {
                         using (SqlCommand cmd = new SqlCommand($@"DECLARE @rowId int
 SELECT @rowId = CASE WHEN COUNT([ContainerRow]) = 0 THEN 1 ELSE MAX([ContainerRow])+1 END FROM [Nexus_Main].dbo.[ContainerDetail] WHERE [ContainerID] = @p1
-INSERT INTO [Nexus_Main].dbo.[ContainerDetail] ([ContainerID], [ContainerRow], [ItemNumber], [Qty_Stock]) VALUES (@p1,@rowId,@p2,@p3)", sqlCon))
+INSERT INTO [Nexus_Main].dbo.[ContainerDetail] ([ContainerID], [ContainerRow], [ItemNumber], [Qty_Stock], [OrderNumber], [LineNumber]) VALUES (@p1,@rowId,@p2,@p3,@p4,@p5)", sqlCon))
                         {
                             cmd.Parameters.AddWithValue("p1", product.ParentId);
                             cmd.Parameters.AddWithValue("p2", product.ProductId);
                             cmd.Parameters.AddWithValue("p3", product.QuantityInput);
+                            cmd.Parameters.AddWithValue("p4", product.SalesOrderNumber);
+                            cmd.Parameters.AddWithValue("p5", product.SalesLineNumber);
                             _revised = cmd.ExecuteNonQuery() > 0;
                         }
                     }
@@ -1216,21 +1357,37 @@ INSERT INTO [Nexus_Main].dbo.[ContainerDetail] ([ContainerID], [ContainerRow], [
         /// Update a container
         /// </summary>
         /// <param name="product">Product object</param>
-        /// <param name="userId">Currently logged in user</param>
+        /// <param name="type">Type of update Q for Quantity, S for sales order</param>
+        /// <param name="contId">Container ID</param>
         /// <param name="sqlCon">Application SQL connection</param>
         /// <returns>Pass or fail as bool</returns>
-        public static bool Update(this SkuContainer.Product product, string userId, SqlConnection sqlCon)
+        public static bool Update(this SkuContainer.Product product, char type, string contId, SqlConnection sqlCon)
         {
             var _revised = false;
             if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
             {
                 try
                 {
-                    using (SqlCommand cmd = new SqlCommand($@"UPDATE [Nexus_Main].dbo.[ContainerDetail] SET [Qty_Stock]=@p1 WHERE [ItemNumber]=@p2", sqlCon))
+                    if (type == 'Q')
                     {
-                        cmd.Parameters.AddWithValue("p1", product.QuantityInput);
-                        cmd.Parameters.AddWithValue("p2", product.ProductId);
-                        _revised = cmd.ExecuteNonQuery() > 0;
+                        using (SqlCommand cmd = new SqlCommand($@"UPDATE [Nexus_Main].dbo.[ContainerDetail] SET [Qty_Stock]=@p1 WHERE [ItemNumber]=@p2 AND [ContainerID]=@p3", sqlCon))
+                        {
+                            cmd.Parameters.AddWithValue("p1", product.QuantityInput);
+                            cmd.Parameters.AddWithValue("p2", product.ProductId);
+                            cmd.Parameters.AddWithValue("p3", contId);
+                            _revised = cmd.ExecuteNonQuery() > 0;
+                        }
+                    }
+                    else
+                    {
+                        using (SqlCommand cmd = new SqlCommand($@"UPDATE [Nexus_Main].dbo.[ContainerDetail] SET [OrderNumber]=@p1, [LineNumber]=@p2 WHERE [ItemNumber]=@p3 AND [ContainerID]=@p4", sqlCon))
+                        {
+                            cmd.Parameters.AddWithValue("p1", product.SalesOrderNumber);
+                            cmd.Parameters.AddWithValue("p2", product.SalesLineNumber);
+                            cmd.Parameters.AddWithValue("p3", product.ProductId);
+                            cmd.Parameters.AddWithValue("p4", contId);
+                            _revised = cmd.ExecuteNonQuery() > 0;
+                        }
                     }
                     if (_revised)
                     {

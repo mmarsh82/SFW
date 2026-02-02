@@ -22,11 +22,12 @@ namespace SFW.Helpers
     {
         #region Properties
 
+        public static string PrinterName { get; set; }
         public static string FilePath { get; set; }
         public static string Password { get; set; }
         public static string PartNbr { get; set; }
+        public static string PartDesc { get; set; }
         public static string LotNbr { get; set; }
-        public static string Desc { get; set; }
         public static string DiamondNbr { get; set; }
         public static int Quantity { get; set; }
         public static string Uom { get; set; }
@@ -58,7 +59,7 @@ namespace SFW.Helpers
             Password = password;
             PartNbr = partNbr;
             LotNbr = lotNbr;
-            Desc = desc;
+            PartDesc = desc;
             DiamondNbr = dmdNbr;
             Quantity = qty;
             Uom = uom;
@@ -103,7 +104,7 @@ namespace SFW.Helpers
                                 pdfField.SetField("Lot Bar", $"*{LotNbr}*");
                                 pdfField.SetField("Lot Bar Sm", $"*{LotNbr}*");
                             }
-                            pdfField.SetField("Description", Desc);
+                            pdfField.SetField("Description", PartDesc);
                             if (!string.IsNullOrEmpty(DiamondNbr))
                             {
                                 pdfField.SetField("D/N", DiamondNbr);
@@ -153,7 +154,7 @@ namespace SFW.Helpers
                             pdfField.SetField("Part", PartNbr);
                             pdfField.SetField("Qty", Quantity.ToString());
                             pdfField.SetField("UoM", Uom);
-                            pdfField.SetField("Description", Desc);
+                            pdfField.SetField("Description", PartDesc);
                             pdfField.SetField("Lot", LotNbr);
                             pdfField.SetField("LotBar", $"*{LotNbr}*");
                             if (CompPart != null)
@@ -277,6 +278,11 @@ namespace SFW.Helpers
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="filePath"></param>
+        /// <returns></returns>
         public static double ExtractPDFText(string filePath)
         {
             try
@@ -296,6 +302,61 @@ namespace SFW.Helpers
             catch (Exception)
             {
                 return 0.0;
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public static void PrintZPL()
+        {
+            var _barCode = string.IsNullOrEmpty(LotNbr) ? PartNbr : LotNbr;
+            if (!string.IsNullOrEmpty(PrinterName))
+            {
+                var _zpl = $@"^XA
+^MMT
+^PW1200
+^LL1950
+^LS0
+
+^FXCurrent Date
+^FT30,80^A0N,50,51
+^FC%,{{,#
+^FH\^CI28^FD%m/%d/%Y^FS^CI27
+
+^FXDiamond Number
+^FT720,80^A0N,50,51^FH\^CI28^FDDiamond:^FS^CI27
+^FT970,80^A0N,50,51^FH\^CI28^FD{DiamondNbr}^FS^CI27
+
+^FXProduct Number
+^FO30,148^GB1140,4,4^FS
+^FT30,225^A0N,58,58^FH\^CI28^FDProduct:^FS^CI27
+^FT30,425^A0N,200,200^FH\^CI28^FD{PartNbr}^FS^CI27
+^FT30,500^A0N,50,51^FH\^CI28^FD{PartDesc}^FS^CI27
+
+^FXLot Number
+^FO30,530^GB1140,4,4^FS
+^FT30,600^A0N,58,58^FH\^CI28^FDLot:^FS^CI27
+^FT30,750^A0N,150,150^FH\^CI28^FD{LotNbr}^FS^CI27
+
+^FXQuantity with UOM
+^FO30,790^GB1140,4,4^FS
+^FT30,870^A0N,58,58^FH\^CI28^FDQuantity:^FS^CI27
+^FT30,1070^A0N,200,200^FH\^CI28^FD{Quantity} {Uom}^FS^CI27
+
+^FXNCR or SCAR Number
+^FO30,1125^GB1140,4,4^FS
+^FT30,1200^A0N,58,58^FH\^CI28^FDNCR/SCAR:^FS^CI27
+^FT30,1400^A0N,200,200^FH\^CI28^FD{Ncr}^FS^CI27
+
+^FXBarcoded Part or Lot Number
+^SL0,1
+^BY5,3,300^FT100,1900^B3N,N,,N,N
+^FD{_barCode}^FS
+^PQ1,0,1,Y
+
+^XZ";
+                RawPrinter.SendStringToPrinter(PrinterName, _zpl, 1);
             }
         }
     }

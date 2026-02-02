@@ -609,14 +609,8 @@
                                FontWeight="Bold"
                                Margin="30,0,0,0"
                                TextDecorations="Underline"
-                               Foreground="#FF135185">
-                        <TextBlock.Visibility>
-                            <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="1|1">
-                                <Binding Path="(main:CurrentUser.IsQuality)"/>
-                                <Binding Path="FormRevision.EstimatedLoss"/>
-                            </MultiBinding>
-                        </TextBlock.Visibility>
-                    </TextBlock>
+                               Foreground="#FF135185"
+                               Visibility="{Binding FormRevision.EstimatedLoss, Converter={StaticResource IntToVisConverter}, ConverterParameter=n0}"/>
 
                     <TextBox Text="{Binding FormRevision.EstimatedLoss, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                              MinWidth="50"
@@ -871,7 +865,7 @@
                                                    Visibility="{Binding Onhand, Converter={StaticResource IntToVisConverter}, ConverterParameter=n0}"
                                                    Margin="5,0,0,0"/>
 
-                                        <Button Command="{Binding DataContext.RemoveLotICommand, ElementName=NcrFormUC}"
+                                        <Button Command="{Binding DataContext.RemoveLotICommand, ElementName=QmsFormUC}"
                                                 CommandParameter="{Binding LotNumber}"
                                                 Width="22"
                                                 Height="22"

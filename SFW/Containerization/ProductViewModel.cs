@@ -1,4 +1,5 @@
-﻿using SFW.Helpers;
+﻿using SFW.Converters;
+using SFW.Helpers;
 using SFW.Model;
 using SFW.Model.Product;
 using System;
@@ -7,31 +8,15 @@ using System.ComponentModel;
 using System.Data;
 using System.Linq;
 using System.Windows;
+using System.Windows.Data;
 using System.Windows.Input;
 using Forms = System.Windows.Forms;
 
 namespace SFW.Containerization
 {
-    public class ProductViewModel : ViewModelBase
+    public class ProductViewModel : ScheduleBase
     {
         #region Properties
-
-        public string[] ViewFilter;
-
-        private string _sFilter;
-        public string SearchFilter
-        {
-            get { return _sFilter; }
-            set
-            {
-                _sFilter = value == "" ? null : value;
-                var _filter = string.IsNullOrEmpty(value) ? "" : ContainerView.Table.SearchRowFilter(value);
-                NoticeFilter(_filter, 0);
-                OnPropertyChanged(nameof(SearchFilter));
-            }
-        }
-
-        public DataView ContainerView { get; set; }
 
         private bool _statusFltr;
         public bool StatusFilter
@@ -43,11 +28,11 @@ namespace SFW.Containerization
                 _statusFltr = value;
                 if (value)
                 {
-                    NoticeFilter("[Status] = 'A'", 1);
+                    Filter("[Status] = 'A'", 1);
                 }
                 else
                 {
-                    NoticeFilter("[Status] = 'S'", 1);
+                    Filter("[Status] = 'S'", 1);
                 }
                 OnPropertyChanged(nameof(StatusFilter));
                 OnPropertyChanged(nameof(StatusText));
@@ -62,10 +47,6 @@ namespace SFW.Containerization
             { return _selProduct; }
             set
             {
-                if ((value == null || _selProduct == null) && ContainerView != null && ContainerView.Count >= 1)
-                {
-                    value = ContainerView[0];
-                }
                 if (_selProduct == null || value != _selProduct)
                 {
                     ShowResults = false;
@@ -79,20 +60,33 @@ namespace SFW.Containerization
                                 {
                                     if (value != null)
                                     {
-                                        var _id = int.TryParse(value.Row.ItemArray[0].ToString(), out int i) ? i : 0;
-                                        ContainerObject = SkuContainer.GetContainer(_id, App.AppSqlCon);
-                                        OnPropertyChanged(nameof(ContainerObject));
-                                        if (value.Row.SafeGetField<string>("LotTraceable").ToString() == "T")
+                                        try
                                         {
-                                            IthResultsTable = Lot.GetHistoryTable(value.Row.SafeGetField<string>("ProductId").ToString(), value.Row.SafeGetField<string>("LotId").ToString(), 1, App.AppSqlCon);
+                                            if (value.Row.RowState != DataRowState.Detached)
+                                            {
+                                                Application.Current?.Dispatcher.Invoke(new Action(delegate { CollectionView.Refresh(); }));
+                                            }
+                                            var _id = int.TryParse(value.Row.ItemArray[0].ToString(), out int i) ? i : 0;
+                                            ContainerObject = SkuContainer.GetContainer(_id, App.AppSqlCon);
+                                            OnPropertyChanged(nameof(ContainerObject));
+                                            if (value.Row.SafeGetField<string>("LotTraceable").ToString() == "T")
+                                            {
+                                                IthResultsTable = Lot.GetHistoryTable(value.Row.SafeGetField<string>("ProductId").ToString(), value.Row.SafeGetField<string>("LotId").ToString(), 1, App.AppSqlCon);
+                                            }
+                                            else
+                                            {
+                                                IthResultsTable = new DataTable();
+                                            }
+                                            OnPropertyChanged(nameof(IthResultsTable));
+                                            OnPropertyChanged(nameof(ResultsCount));
+                                            ShowResults = true;
+                                            SelectedType = PalletDictionary.FirstOrDefault(o => o.Key == ContainerObject.PalletType);
+                                            OnPropertyChanged(nameof(SelectedType));
                                         }
-                                        else
+                                        catch
                                         {
-                                            IthResultsTable = new DataTable();
+                                            Refresh();
                                         }
-                                        OnPropertyChanged(nameof(IthResultsTable));
-                                        OnPropertyChanged(nameof(ResultsCount));
-                                        ShowResults = true;
                                     }
                                 });
                             bw.RunWorkerAsync();
@@ -108,6 +102,7 @@ namespace SFW.Containerization
                 OnPropertyChanged(nameof(ShowProduct));
             }
         }
+        private int _contId;
 
         public DataTable IthResultsTable { get; set; }
         public bool ResultsCount { get { return IthResultsTable != null && IthResultsTable.Rows.Count == 0; } }
@@ -138,7 +133,32 @@ namespace SFW.Containerization
 
         public SkuContainer ContainerObject { get; set; }
 
-        public bool HasContainers { get { return ContainerView.Count > 0; } }
+        public IReadOnlyDictionary<string, string> PalletDictionary { get; set; }
+
+        private KeyValuePair<string, string> _selType;
+        public KeyValuePair<string, string> SelectedType
+        {
+            get
+            { return _selType; }
+            set
+            {
+                if (!string.IsNullOrEmpty(value.Key))
+                {
+                    _selType = PalletDictionary.FirstOrDefault(o => o.Key == value.Key);
+                }
+                else
+                {
+                    _selType = PalletDictionary.FirstOrDefault();
+                }
+                if (ContainerObject != null)
+                {
+                    ContainerObject.PalletType = value.Key;
+                }
+                OnPropertyChanged(nameof(SelectedType));
+            }
+        }
+
+        public bool HasContainers { get { return CollectionView.Count > 0; } }
         public bool ShowProduct { get { return HasContainers || SelectedProduct != null || NewContainer; } }
         public bool HasDims 
         {
@@ -148,7 +168,6 @@ namespace SFW.Containerization
             }
         }
 
-        RelayCommand _refresh;
         RelayCommand _addCon;
         RelayCommand _addPrt;
         RelayCommand _submit;
@@ -167,42 +186,38 @@ namespace SFW.Containerization
         /// </summary>
         public ProductViewModel()
         {
-            ContainerView = SkuContainer.GetContainerData(App.AppSqlCon).AsDataView();
+            ApplicationTimer.ActionList.Add(Refresh);
+            CollectionView = new ListCollectionView(new DataView());
+            PalletDictionary = SkuContainer.GetPalletDictionary(App.AppSqlCon);
             NewContainer = false;
             ViewFilter = new string[2];
             StatusFilter = true;
             OnPropertyChanged(nameof(HasContainers));
             OnPropertyChanged(nameof(ShowProduct));
+            Initialize();
         }
 
         /// <summary>
-        /// Filter the notice view
-        /// Index values
-        /// 0 = Search Filter
+        /// Tracks the item selections from the CollectionView
         /// </summary>
-        /// <param name="filter">Filter string to use on the default view</param>
-        /// <param name="index">Index of the filter string list you are adding to our changing</param>
-        public void NoticeFilter(string filter, int index)
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void CollectionView_ItemChanged(object sender, EventArgs e)
         {
-            if (ViewFilter != null)
+            try
             {
-                ViewFilter[index] = filter;
-                var _filterStr = string.Empty;
-                foreach (var s in ViewFilter.Where(o => !string.IsNullOrEmpty(o)))
+                var _dRow = (DataRowView)CollectionView.CurrentItem;
+                if (_dRow != null)
                 {
-                    _filterStr += string.IsNullOrEmpty(_filterStr) ? $"({s})" : $" AND ({s})";
-                }
-                var _tempList = new List<DataView>();
-                if (ContainerView != null)
-                {
-                    ContainerView.RowFilter = _filterStr;
-                    OnPropertyChanged(nameof(ContainerView));
+                    if (_dRow.Row.RowState != DataRowState.Detached)
+                    {
+                        _contId = int.TryParse(_dRow.Row.ItemArray[0].ToString(), out int i) ? i : 0;
+                    }
+                    SelectedProduct = _dRow;
                 }
             }
-            else
-            {
-                ViewFilter = new string[2];
-            }
+            catch (Exception)
+            { }
         }
 
         /// <summary>
@@ -216,7 +231,7 @@ namespace SFW.Containerization
             {
                 if (!product.NewContainer)
                 {
-                    if (product.Submit(CurrentUser.DisplayName, App.AppSqlCon))
+                    if (product.Submit(App.AppSqlCon))
                     {
                         ContainerObject.ProductCollection.FirstOrDefault(o => o.ParentId == product.ParentId && o.LotId == product.LotId).NewProduct = false;
                         var _loc = Lot.GetLocation(product.LotId);
@@ -236,13 +251,13 @@ namespace SFW.Containerization
                 if (_qty != product.Quantity && !product.NewProduct)
                 {
                     M2kClient.M2kCommand.InventoryMove(CurrentUser.DisplayName, product.ProductId.Split('|')[0], "", _sku.Uom, product.LocationInput, ContainerObject.Location, _qty, $"Container {product.ParentId}", "01", App.ErpCon);
-                    product.Update(CurrentUser.DisplayName, App.AppSqlCon);
+                    product.Update('Q', ContainerObject.ContainerId, App.AppSqlCon);
                 }
                 else if (product.NewProduct && !product.NewContainer)
                 {
                     ContainerObject.ProductCollection.FirstOrDefault(o => o.ParentId == product.ParentId && o.ProductId == product.ProductId).NewProduct = false;
                     M2kClient.M2kCommand.InventoryMove(CurrentUser.DisplayName, product.ProductId.Split('|')[0], "", _sku.Uom, product.LocationInput, ContainerObject.Location, _qty, $"Container {product.ParentId}", "01", App.ErpCon);
-                    product.Submit(CurrentUser.DisplayName, App.AppSqlCon);
+                    product.Submit(App.AppSqlCon);
                 }
                 else
                 {
@@ -254,43 +269,101 @@ namespace SFW.Containerization
             }
         }
 
-        #region Refresh ICommand
-
-        public ICommand RefreshICommand
+        /// <summary>
+        /// Initialize the production schedule view
+        /// </summary>
+        public override void Initialize()
         {
-            get
+            var _index = CollectionView.CurrentPosition;
+            ModelBase.MasterDataSet.RefreshTable(typeof(SkuContainer), new SkuContainer().GetTable(0, App.AppSqlCon));
+            CollectionView = new ListCollectionView(ModelBase.MasterDataSet.Tables[typeof(SkuContainer).Name].AsDataView());
+            if (CollectionView.GroupDescriptions.Count() != 0)
             {
-                if (_refresh == null)
-                {
-                    _refresh = new RelayCommand(RefreshExecute);
-                }
-                return _refresh;
+                Application.Current?.Dispatcher.Invoke(new Action(delegate { CollectionView.GroupDescriptions.Clear(); }));
             }
+            Application.Current?.Dispatcher.Invoke(new Action(delegate
+            {
+                CollectionView.GroupDescriptions.Add(new PropertyGroupDescription("ContainerID", new ContainerNameConverter()));
+            }));
+
+            OnPropertyChanged(nameof(CollectionView));
+            Application.Current?.Dispatcher.Invoke(new Action(delegate { CollectionView.Refresh(); }));
+            if (CollectionView != null)
+            {
+                Application.Current?.Dispatcher.Invoke(new Action(delegate { CollectionView.MoveCurrentToPosition(_index); }));
+            }
+            if (!string.IsNullOrEmpty(SearchFilter))
+            {
+                Filter(SearchFilter, 0);
+            }
+            CollectionView.CurrentChanged += CollectionView_ItemChanged;
         }
 
-        private void RefreshExecute(object parameter)
+        public string ProductZPLString(int row, int dpi)
         {
-            ContainerView = SkuContainer.GetContainerData(App.AppSqlCon).AsDataView();
-            if (SelectedProduct != null)
-            {
-                var _contId = SelectedProduct.Row.SafeGetField<string>("ContainerID");
-                var _partId = SelectedProduct.Row.SafeGetField<string>("ProductId");
-                var _lotId = SelectedProduct.Row.SafeGetField<string>("LotId");
-                var _index = string.IsNullOrEmpty(_lotId)
-                    ? ContainerView.Cast<DataRowView>().Select((row, idx) => new { row, idx }).FirstOrDefault(o => o.row["ContainerID"].ToString() == _contId && o.row["ProductId"].ToString() == _partId)?.idx ?? 0
-                    : ContainerView.Cast<DataRowView>().Select((row, idx) => new { row, idx }).FirstOrDefault(o => o.row["ContainerID"].ToString() == _contId && o.row["ProductId"].ToString() == _partId && o.row["LotId"].ToString() == _lotId)?.idx ?? 0;
-                SelectedProduct = null;
-                if (ContainerView.Count > 0)
-                {
-                    SelectedProduct = _index == -1 ? ContainerView[0] : ContainerView?[_index];
-                }
-            }
-            OnPropertyChanged(nameof(ContainerView));
-            NoticeFilter(SearchFilter, 0);
-            OnPropertyChanged(nameof(HasContainers));
+            var _rtnStr = string.Empty;
+
+
+
+            return _rtnStr;
         }
 
-        #endregion
+        public string MainZPLString(string products, string containerId, int dpi)
+        {
+            return dpi == 300 
+                ? $@"^XA
+^FT105,1920^A0B,75,76^FH\^CI28^FDContainer Id:^FS^CI27
+^FT105,1350^A0B,75,76^FH\^CI28^FD{containerId}^FS^CI27
+^FO129,30^GB0,1890,12^FS
+{products}
+^FO141,1496^GB609,0,8^FS
+^FO744,30^GB0,1890,12^FS
+^FO141,960^GB609,0,30^FS
+^FO141,700^GB609,0,8^FS
+^FO141,30^GB609,0,30^FS
+^FO141,1890^GB609,0,30^FS
+^FO209,44^GB0,1868,3^FS
+^FO284,44^GB0,1868,3^FS
+^FO358,44^GB0,1868,3^FS
+^FO434,44^GB0,1868,3^FS
+^FO508,44^GB0,1868,3^FS
+^FO584,44^GB0,1868,3^FS
+^FO659,44^GB0,1868,3^FS
+^FO141,1136^GB609,0,8^FS
+^FT88,197^A0B,50,51^FH\^CI28^FD{ContainerObject.Weight} LBS^FS^CI27
+^FT88,500^A0B,50,51^FH\^CI28^FD{ContainerObject.PalletType}^FS^CI27
+^FT1112,1905^A0B,50,51^FH\^CI28^FD{ContainerObject.Depth} x {ContainerObject.Length} x {ContainerObject.Height}^FS^CI27
+^BY10,3,300^FT1125,995^B3B,N,,N,N
+^FD{containerId}^FS
+^PQ1,0,1,Y
+^XZ"
+                : $@"^XA
+^FT71,1300^A0B,51,51^FH\^CI28^FDContainer Id:^FS^CI27
+^FT71,914^A0B,51,51^FH\^CI28^FD{containerId}^FS^CI27
+^FO87,21^GB0,1279,8^FS
+{products}
+^FO141,1496^GB609,0,8^FS
+^FO744,30^GB0,1890,12^FS
+^FO141,960^GB609,0,30^FS
+^FO141,700^GB609,0,8^FS
+^FO141,30^GB609,0,30^FS
+^FO141,1890^GB609,0,30^FS
+^FO209,44^GB0,1868,3^FS
+^FO284,44^GB0,1868,3^FS
+^FO358,44^GB0,1868,3^FS
+^FO434,44^GB0,1868,3^FS
+^FO508,44^GB0,1868,3^FS
+^FO584,44^GB0,1868,3^FS
+^FO659,44^GB0,1868,3^FS
+^FO141,1136^GB609,0,8^FS
+^FT88,197^A0B,50,51^FH\^CI28^FD{ContainerObject.Weight} LBS^FS^CI27
+^FT88,500^A0B,50,51^FH\^CI28^FD{ContainerObject.PalletType}^FS^CI27
+^FT1112,1905^A0B,50,51^FH\^CI28^FD{ContainerObject.Depth} x {ContainerObject.Length} x {ContainerObject.Height}^FS^CI27
+^BY10,3,300^FT1125,995^B3B,N,,N,N
+^FD{containerId}^FS
+^PQ1,0,1,Y
+^XZ";
+        }
 
         #region Add Container ICommand
 
@@ -312,7 +385,9 @@ namespace SFW.Containerization
             IthResultsTable = new DataTable();
             OnPropertyChanged(nameof(ResultsCount));
             NewContainer = true;
+            SelectedType = PalletDictionary.FirstOrDefault();
             ContainerObject = new SkuContainer(CurrentUser.ErpId, CurrentUser.DisplayName);
+            ContainerObject.PalletType = SelectedType.Key;
             OnPropertyChanged(nameof(ContainerObject));
             OnPropertyChanged(nameof(HasContainers));
             OnPropertyChanged(nameof(ShowProduct));
@@ -336,7 +411,7 @@ namespace SFW.Containerization
 
         private void AddProductExecute(object parameter)
         {
-            ContainerObject.ProductCollection.Add(new SkuContainer.Product(ContainerObject.ContainerId, CurrentUser.DisplayName, true, string.IsNullOrEmpty(ContainerObject.ContainerId)));
+            ContainerObject.ProductCollection.Add(new SkuContainer.Product(ContainerObject.ContainerId, CurrentUser.ErpId, true, string.IsNullOrEmpty(ContainerObject.ContainerId)));
         }
 
         #endregion
@@ -365,7 +440,7 @@ namespace SFW.Containerization
                     ProductMove(_product);
                 }
             }
-            RefreshExecute(null);
+            Initialize();
         }
 
         private bool SubmitCanExecute(object parameter)
@@ -401,6 +476,14 @@ namespace SFW.Containerization
         private void UpdateExecute(object parameter)
         {
             SkuContainer.UpdateHeader(ContainerObject, CurrentUser.ErpId, App.AppSqlCon);
+            foreach (var _item in ContainerObject.ProductCollection.Where(o => o.ValidSalesOrder))
+            {
+                if (_item.SalesOrderNumber != SkuContainer.Product.GetSalesOrder(_item.ProductId, _item.ParentId))
+                {
+                    _item.Update('S', ContainerObject.ContainerId, App.AppSqlCon);
+                }
+            }
+            Initialize();
         }
 
         #endregion
@@ -424,7 +507,7 @@ namespace SFW.Containerization
             
         }
 
-        private bool ShipCanExecute(object parameter) => ContainerObject != null && int.TryParse(ContainerObject.Weight, out int w) && w > 0 && !string.IsNullOrEmpty(ContainerObject.SalesOrderNumber) && HasDims;
+        private bool ShipCanExecute(object parameter) => ContainerObject != null && int.TryParse(ContainerObject.Weight, out int w) && w > 0 && HasDims && ContainerObject.ProductCollection.Count(o => !o.ValidSalesOrder) == 0;
 
         #endregion
 
@@ -448,7 +531,7 @@ namespace SFW.Containerization
             if (_result == MessageBoxResult.Yes && int.TryParse(SelectedProduct.Row.ItemArray[0].ToString(), out int i))
             {
                 SkuContainer.Delete(i, App.AppSqlCon);
-                RefreshExecute(null);
+                Initialize();
             }
         }
 
@@ -472,23 +555,6 @@ namespace SFW.Containerization
 
         private void PrintExecute(object parameter)
         {
-            var _cntId = SelectedProduct.Row.SafeGetField<string>("ContainerID");
-            var _itemString = string.Empty;
-            var _counter = 1;
-            var _rowPos = 192;
-            foreach (var _item in ContainerObject.ProductCollection)
-            {
-                _itemString += _counter <= 8
-                    ? $"^FT{_rowPos},1875^A0B,50,51^FH\\^CI28^FD{_item.ProductId}^FS^CI27^FT{_rowPos},1485^A0B,50,51^FH\\^CI28^FD{_item.LotId}^FS^CI27^FT{_rowPos},1125^A0B,50,51^FH\\^CI28^FD{_item.Quantity}^FS^CI27"
-                    : $"^FT{_rowPos},945^A0B,50,51^FH\\^CI28^FD{_item.ProductId}^FS^CI27^FT{_rowPos},555^A0B,50,51^FH\\^CI28^FD{_item.LotId}^FS^CI27^FT{_rowPos},195^A0B,50,51^FH\\^CI28^FD{_item.Quantity}^FS^CI27";
-                _counter++;
-                _rowPos += _counter == 9 ? -532 : 76;
-                if (_counter > 16)
-                {
-                    break;
-                }
-            }
-
             var _prtName = string.Empty;
             Forms.PrintDialog prtDialog = new Forms.PrintDialog();
             if (prtDialog.ShowDialog() == Forms.DialogResult.OK)
@@ -497,11 +563,26 @@ namespace SFW.Containerization
             }
             if (!string.IsNullOrEmpty(_prtName))
             {
-                string s = $@"^XA
-^MMT
-^PW1200
-^LL1950
-^LS0
+                var _cntId = SelectedProduct.Row.SafeGetField<string>("ContainerID");
+                var _itemString = string.Empty;
+                var _lineCounter = 1;
+                var _counter = 1;
+                var _rowPos = 192;
+
+                foreach (var _item in ContainerObject.ProductCollection)
+                {
+                    var _custName = _item.CustomerName?.Length > 22 ? _item.CustomerName.Substring(0, 22) : _item.CustomerName;
+                    _itemString += $@"^FT{_rowPos},1875^A0B,50,51^FH\^CI28^FD{_item.ProductId}^FS^CI27
+^FT{_rowPos},1485^A0B,50,51^FH\^CI28^FD{_item.LotId}^FS^CI27
+^FT{_rowPos},1125^A0B,50,51^FH\^CI28^FD{_item.Quantity}^FS^CI27
+^FT{_rowPos},945^A0B,50,51^FH\^CI28^FD{_item.SalesOrderNumber}*{_item.SalesLineNumber}^FS^CI27
+^FT{_rowPos},695^A0B,50,51^FH\^CI28^FD{_item.CustomerNumber} {_custName}^FS^CI27";
+                    _rowPos += _lineCounter == 9 ? -532 : 76;
+
+                    if (_lineCounter == 8 || _counter == ContainerObject.ProductCollection.Count())
+                    {
+                        _lineCounter = 1;
+                        string s = $@"^XA
 ^FT105,1920^A0B,75,76^FH\^CI28^FDContainer Id:^FS^CI27
 ^FT105,1350^A0B,75,76^FH\^CI28^FD{_cntId}^FS^CI27
 ^FO129,30^GB0,1890,12^FS
@@ -509,7 +590,7 @@ namespace SFW.Containerization
 ^FO141,1496^GB609,0,8^FS
 ^FO744,30^GB0,1890,12^FS
 ^FO141,960^GB609,0,30^FS
-^FO141,566^GB609,0,8^FS
+^FO141,700^GB609,0,8^FS
 ^FO141,30^GB609,0,30^FS
 ^FO141,1890^GB609,0,30^FS
 ^FO209,44^GB0,1868,3^FS
@@ -520,16 +601,18 @@ namespace SFW.Containerization
 ^FO584,44^GB0,1868,3^FS
 ^FO659,44^GB0,1868,3^FS
 ^FO141,1136^GB609,0,8^FS
-^FO141,206^GB609,0,8^FS
-^FT875,1905^A0B,50,51^FH\^CI28^FD{ContainerObject.SalesOrderNumber}^FS^CI27
 ^FT88,197^A0B,50,51^FH\^CI28^FD{ContainerObject.Weight} LBS^FS^CI27
-^FT950,1905^A0B,50,51^FH\^CI28^FD{ContainerObject.CustomerNumber}  {ContainerObject.CustomerName}^FS^CI27
-^FT1112,1905^A0B,50,51^FH\^CI28^FD{ContainerObject.Height} x {ContainerObject.Length} x {ContainerObject.Depth}^FS^CI27
+^FT88,500^A0B,50,51^FH\^CI28^FD{ContainerObject.PalletType}^FS^CI27
+^FT1112,1905^A0B,50,51^FH\^CI28^FD{ContainerObject.Depth} x {ContainerObject.Length} x {ContainerObject.Height}^FS^CI27
 ^BY10,3,300^FT1125,995^B3B,N,,N,N
 ^FD{_cntId}^FS
 ^PQ1,0,1,Y
-^XZ ";
-                RawPrinter.SendStringToPrinter(_prtName, s, 1);
+^XZ";
+                        RawPrinter.SendStringToPrinter(_prtName, s, 1);
+                    }
+                    _lineCounter++;
+                    _counter++;
+                }
             }
         }
 
@@ -554,8 +637,8 @@ namespace SFW.Containerization
         private void CancelExecute(object parameter)
         {
             ShowResults = true;
-            NewContainer = false;            
-            SelectedProduct = ContainerView != null && ContainerView.Count > 0 ? ContainerView[5] : null;
+            NewContainer = false;
+            SelectedProduct = CollectionView != null && CollectionView.Count > 0 ? ((DataView)CollectionView.SourceCollection)[5] : null;
             OnPropertyChanged(nameof(HasContainers));
         }
 
@@ -606,7 +689,7 @@ namespace SFW.Containerization
             }
             if (_refresh)
             {
-                RefreshExecute(null);
+                Initialize();
             }
         }
 
@@ -644,7 +727,7 @@ namespace SFW.Containerization
             {
                 ProductMove((SkuContainer.Product)parameter);
             }
-            RefreshExecute(null);
+            Initialize();
         }
 
         #endregion

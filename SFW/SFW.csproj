@@ -29,8 +29,8 @@
     <ProductName>Shop Floor Workbench</ProductName>
     <PublisherName>Michael Marsh</PublisherName>
     <SuiteName>ContiTech</SuiteName>
-    <ApplicationRevision>390</ApplicationRevision>
-    <ApplicationVersion>3.0.60.390</ApplicationVersion>
+    <ApplicationRevision>435</ApplicationRevision>
+    <ApplicationVersion>3.0.80.435</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <CreateDesktopShortcut>true</CreateDesktopShortcut>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -91,6 +91,7 @@
     <Reference Include="System.DirectoryServices.AccountManagement" />
     <Reference Include="System.DirectoryServices.Protocols" />
     <Reference Include="System.Drawing" />
+    <Reference Include="System.Management" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Windows.Interactivity, Version=4.5.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Expression.Interaction.3.0.40218.0\lib\net46\System.Windows.Interactivity.dll</HintPath>
@@ -164,6 +165,7 @@
     <Compile Include="Converters\StringToBool.cs" />
     <Compile Include="Converters\FormTypeToVisibility.cs" />
     <Compile Include="Converters\TimerToView.cs" />
+    <Compile Include="Converters\IntToLaborState.cs" />
     <Compile Include="Converters\ValueToHeight.cs" />
     <Compile Include="Converters\ValueToImage.cs" />
     <Compile Include="Converters\ValueToMargin.cs" />
@@ -183,6 +185,7 @@
     <Compile Include="DynamicSplashScreen.xaml.cs">
       <DependentUpon>DynamicSplashScreen.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Enumerations\LaborState.cs" />
     <Compile Include="Enumerations\PressReportActions.cs" />
     <Compile Include="ExplicitWords.cs" />
     <Compile Include="ISplashScreen.cs" />

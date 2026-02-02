@@ -220,9 +220,9 @@
                 <Grid Grid.Row="6">
 
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="300"/>
-                        <ColumnDefinition Width="300"/>
-                        <ColumnDefinition Width="300"/>
+                        <ColumnDefinition Width="250"/>
+                        <ColumnDefinition Width="250"/>
+                        <ColumnDefinition Width="350"/>
                     </Grid.ColumnDefinitions>
 
                     <StackPanel Grid.Column="0" Orientation="Vertical">
@@ -295,6 +295,37 @@
                                    Margin="5,0,0,0"/>
 
                         </StackPanel>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="2"
+                                Orientation="Horizontal">
+
+                        <TextBlock Text="Last Sched Date:"
+                                   FontSize="18"
+                                   Margin="0,5,0,0"
+                                   TextDecorations="Underline"
+                                   VerticalAlignment="Top"
+                                   Foreground="#FF135185"/>
+
+                        <DatePicker SelectedDate="{Binding LastSchedInput, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                    FontSize="18"
+                                    Background="LightGray"
+                                    VerticalAlignment="Top"
+                                    Margin="5,1,1,1"/>
+
+                        <Button Command="{Binding CommitICommand}"
+                                Width="22"
+                                Height="22"
+                                VerticalAlignment="Top"
+                                Background="Transparent"
+                                BorderThickness="0"
+                                Margin="10,5,0,0"
+                                Style="{DynamicResource DefaultButton}">
+                            <Button.Content>
+                                <Image Source="/SFW;component/Icons/Accept.ico" />
+                            </Button.Content>
+                        </Button>
+
                     </StackPanel>
 
                 </Grid>
