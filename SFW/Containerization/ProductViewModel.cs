@@ -309,6 +309,14 @@ namespace SFW.Containerization
             {
                 CollectionView.GroupDescriptions.Add(new PropertyGroupDescription("ContainerID", new ContainerNameConverter()));
             }));
+            if (CollectionView.SortDescriptions.Count() != 0)
+            {
+                Application.Current?.Dispatcher.Invoke(new Action(delegate { CollectionView.SortDescriptions.Clear(); }));
+            }
+            Application.Current?.Dispatcher.Invoke(new Action(delegate
+            {
+                CollectionView.SortDescriptions.Add(new SortDescription("ContainerID", ListSortDirection.Ascending));
+            }));
             OnPropertyChanged(nameof(CollectionView));
             Application.Current?.Dispatcher.Invoke(new Action(delegate { CollectionView.Refresh(); }));
             CollectionView.CurrentChanged += CollectionView_ItemChanged;
@@ -430,6 +438,7 @@ namespace SFW.Containerization
             OnPropertyChanged(nameof(ContainerObject));
             OnPropertyChanged(nameof(HasContainers));
             OnPropertyChanged(nameof(ShowProduct));
+            ApplicationTimer.Pause();
         }
 
         #endregion
@@ -479,6 +488,8 @@ namespace SFW.Containerization
                     ProductMove(_product);
                 }
             }
+            CollectionView.MoveCurrentToFirst();
+            ApplicationTimer.Resume();
         }
 
         private bool SubmitCanExecute(object parameter)
@@ -568,6 +579,7 @@ namespace SFW.Containerization
             if (_result == MessageBoxResult.Yes && int.TryParse(SelectedProduct.Row.ItemArray[0].ToString(), out int i))
             {
                 SkuContainer.Delete(i, App.AppSqlCon);
+                ApplicationTimer.Resume();
             }
         }
 
@@ -601,20 +613,20 @@ namespace SFW.Containerization
             }
             if (!string.IsNullOrEmpty(_prtName))
             {
-                var _cntId = SelectedProduct.Row.SafeGetField<string>("ContainerID");
+                var _cntId = SelectedProduct.Row.SafeGetField<int>("ContainerID");
                 var _itemString = string.Empty;
                 var _lineCounter = 0;
                 var _counter = 1;
 
-                foreach (var _item in ContainerObject.ProductCollection)
+                foreach (var _item in ContainerObject.ProductCollection.Where(o => !string.IsNullOrEmpty(o.ProductId)))
                 {
                     var _custName = _item.CustomerName?.Length > 22 ? _item.CustomerName.Substring(0, 22) : _item.CustomerName;
                     _itemString += ProductZPLString(_item, _lineCounter, _custName, _prtRez);
 
-                    if (_lineCounter == 7 || _counter == ContainerObject.ProductCollection.Count())
+                    if (_lineCounter == 7 || _counter == ContainerObject.ProductCollection.Count(o => !string.IsNullOrEmpty(o.ProductId)))
                     {
                         _lineCounter = 0;
-                        var _zplStr = MainZPLString(_itemString, _cntId, _prtRez);
+                        var _zplStr = MainZPLString(_itemString, _cntId.ToString(), _prtRez);
                         RawPrinter.SendStringToPrinter(_prtName, _zplStr, 1);
                     }
 
@@ -697,7 +709,7 @@ namespace SFW.Containerization
             }
             if (_refresh)
             {
-                
+                ApplicationTimer.Resume();
             }
         }
 

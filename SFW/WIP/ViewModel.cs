@@ -623,6 +623,7 @@ namespace SFW.WIP
             var _wQty = TQty == null || TQty == 0 ? Convert.ToInt32(WipRecord.WipQty) : Convert.ToInt32(TQty);
             var _diamond = string.Empty;
             var _isStandard = false;
+            var _dpi = 0;
             System.Windows.Forms.PrintDialog prtDialog = new System.Windows.Forms.PrintDialog();
             if (prtDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
@@ -630,6 +631,10 @@ namespace SFW.WIP
                 if (prtDialog.PrinterSettings.DefaultPageSettings.PaperSize.Kind == System.Drawing.Printing.PaperKind.Letter)
                 {
                     _isStandard = true;
+                }
+                else
+                {
+                    _dpi = prtDialog.PrinterSettings.DefaultPageSettings.PrinterResolution.X;
                 }
             }
 
@@ -695,7 +700,7 @@ namespace SFW.WIP
                     }
                     else
                     {
-                        TravelCard.PrintZPL();
+                        TravelCard.PrintZPL(_dpi);
                     }
                 }
                 else

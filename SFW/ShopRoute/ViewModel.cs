@@ -1,5 +1,4 @@
-﻿using DocumentFormat.OpenXml.Office.Word;
-using M2kClient;
+﻿using M2kClient;
 using SFW.Helpers;
 using SFW.Model;
 using SFW.Model.Product;

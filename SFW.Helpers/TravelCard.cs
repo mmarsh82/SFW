@@ -308,12 +308,13 @@ namespace SFW.Helpers
         /// <summary>
         /// 
         /// </summary>
-        public static void PrintZPL()
+        public static void PrintZPL(int dpi)
         {
             var _barCode = string.IsNullOrEmpty(LotNbr) ? PartNbr : LotNbr;
             if (!string.IsNullOrEmpty(PrinterName))
             {
-                var _zpl = $@"^XA
+                var _zpl = dpi == 300 
+                    ? $@"^XA
 ^MMT
 ^PW1200
 ^LL1950
@@ -355,7 +356,36 @@ namespace SFW.Helpers
 ^FD{_barCode}^FS
 ^PQ1,0,1,Y
 
-^XZ";
+^XZ"
+                    : $@"^XA
+^MMT
+^PW812
+^LL1320
+^LS0
+^FT20,288^A0N,135,134^FH\^CI28^FD{PartNbr}^FS^CI27
+^FT20,338^A0N,34,35^FH\^CI28^FD{PartDesc}^FS^CI27
+^FO20,360^GB771,0,3^FS
+^FO20,100^GB771,0,3^FS
+^FT20,509^A0N,102,101^FH\^CI28^FD{LotNbr}^FS^CI27
+^FO20,536^GB771,0,3^FS
+^FT20,725^A0N,135,134^FH\^CI28^FD{Quantity} {Uom}^FS^CI27
+^FT658,54^A0N,34,35^FH\^CI28^FD{DiamondNbr}^FS^CI27
+^FT20,151^A0N,39,41^FH\^CI28^FDProduct:^FS^CI27
+^FT20,404^A0N,39,41^FH\^CI28^FDLot:^FS^CI27
+^FT20,587^A0N,39,41^FH\^CI28^FDQuantity:^FS^CI27
+^FO20,760^GB771,0,3^FS
+^FT20,810^A0N,39,41^FH\^CI28^FDNCR/SCAR:^FS^CI27
+^FT20,948^A0N,135,134^FH\^CI28^FD{Ncr}^FS^CI27
+^FT487,54^A0N,34,35^FH\^CI28^FDDiamond:^FS^CI27
+^SL0,1
+^FT20,54^A0N,34,33
+^FC%,{{,#
+^FH\^CI28^FD%m/%d/%Y^FS^CI27
+^BY3,3,203^FT102,1279^B3N,N,,N,N
+^FD{_barCode}^FS
+^PQ1,0,1,Y
+^XZ
+";
                 RawPrinter.SendStringToPrinter(PrinterName, _zpl, 1);
             }
         }

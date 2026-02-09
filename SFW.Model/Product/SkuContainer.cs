@@ -282,7 +282,7 @@ namespace SFW.Model.Product
                     _soNbr = value;
                     if (string.IsNullOrEmpty(SalesLineNumber))
                     {
-                        var _line = Sales.SalesOrder.GetLineNumber(value, ProductId);
+                        var _line = SalesOrder.GetLineNumber(value, ProductId);
                         if (_line != 0)
                         {
                             SalesLineNumber = _line.ToString();
@@ -1296,8 +1296,8 @@ INSERT INTO [Nexus_Main].dbo.[ContainerDetailLot] ([ContainerID], [ContainerRowI
                                 cmd.Parameters.AddWithValue("p2", product.ProductId);
                                 cmd.Parameters.AddWithValue("p3", product.Quantity);
                                 cmd.Parameters.AddWithValue("p4", product.LotId);
-                                cmd.Parameters.AddWithValue("p5", product.SalesOrderNumber);
-                                cmd.Parameters.AddWithValue("p6", product.SalesLineNumber);
+                                cmd.Parameters.AddWithValue("p5", !string.IsNullOrEmpty(product.SalesOrderNumber) ? product.SalesOrderNumber : "");
+                                cmd.Parameters.AddWithValue("p6", !string.IsNullOrEmpty(product.SalesLineNumber) ? product.SalesLineNumber : "");
                                 _revised = cmd.ExecuteNonQuery() > 0;
                             }
                         }
@@ -1312,8 +1312,8 @@ INSERT INTO [Nexus_Main].dbo.[ContainerDetailLot] ([ContainerID], [ContainerRowI
                                 cmd.Parameters.AddWithValue("p2", product.ProductId);
                                 cmd.Parameters.AddWithValue("p3", product.Quantity);
                                 cmd.Parameters.AddWithValue("p4", product.LotId);
-                                cmd.Parameters.AddWithValue("p5", product.SalesOrderNumber);
-                                cmd.Parameters.AddWithValue("p6", product.SalesLineNumber);
+                                cmd.Parameters.AddWithValue("p5", !string.IsNullOrEmpty(product.SalesOrderNumber) ? product.SalesOrderNumber : "");
+                                cmd.Parameters.AddWithValue("p6", !string.IsNullOrEmpty(product.SalesLineNumber) ? product.SalesLineNumber : "");
                                 _revised = cmd.ExecuteNonQuery() > 0;
                             }
                         }
@@ -1327,8 +1327,8 @@ INSERT INTO [Nexus_Main].dbo.[ContainerDetail] ([ContainerID], [ContainerRow], [
                             cmd.Parameters.AddWithValue("p1", product.ParentId);
                             cmd.Parameters.AddWithValue("p2", product.ProductId);
                             cmd.Parameters.AddWithValue("p3", product.QuantityInput);
-                            cmd.Parameters.AddWithValue("p4", product.SalesOrderNumber);
-                            cmd.Parameters.AddWithValue("p5", product.SalesLineNumber);
+                            cmd.Parameters.AddWithValue("p4", !string.IsNullOrEmpty(product.SalesOrderNumber) ? product.SalesOrderNumber : "");
+                            cmd.Parameters.AddWithValue("p5", !string.IsNullOrEmpty(product.SalesLineNumber) ? product.SalesLineNumber : "");
                             _revised = cmd.ExecuteNonQuery() > 0;
                         }
                     }
@@ -1382,8 +1382,8 @@ INSERT INTO [Nexus_Main].dbo.[ContainerDetail] ([ContainerID], [ContainerRow], [
                     {
                         using (SqlCommand cmd = new SqlCommand($@"UPDATE [Nexus_Main].dbo.[ContainerDetail] SET [OrderNumber]=@p1, [LineNumber]=@p2 WHERE [ItemNumber]=@p3 AND [ContainerID]=@p4", sqlCon))
                         {
-                            cmd.Parameters.AddWithValue("p1", product.SalesOrderNumber);
-                            cmd.Parameters.AddWithValue("p2", product.SalesLineNumber);
+                            cmd.Parameters.AddWithValue("p1", !string.IsNullOrEmpty(product.SalesOrderNumber) ? product.SalesOrderNumber : "");
+                            cmd.Parameters.AddWithValue("p2", !string.IsNullOrEmpty(product.SalesLineNumber) ? product.SalesLineNumber : "");
                             cmd.Parameters.AddWithValue("p3", product.ProductId);
                             cmd.Parameters.AddWithValue("p4", contId);
                             _revised = cmd.ExecuteNonQuery() > 0;

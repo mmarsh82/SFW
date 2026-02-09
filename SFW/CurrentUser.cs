@@ -609,6 +609,10 @@ namespace SFW
                                 break;
                         }
                     }
+                    if (groups.Count == 1)
+                    {
+                        return groups.Count(o => o == "Containers") == 1;
+                    }
                     return false;
                 }
                 else
@@ -628,7 +632,7 @@ namespace SFW
         /// <param name="userName">User Name</param>
         public static void LogIn(string userName)
         {
-            userName = "UIF89547";
+            //userName = "UIF89547";
             using (PrincipalContext pContext = GetPrincipal(userName))
             {
                 if (pContext != null)

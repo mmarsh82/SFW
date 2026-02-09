@@ -105,8 +105,13 @@
                     </MenuItem.Icon>
                 </MenuItem>
             </MenuItem>
-            <MenuItem Header="Modules"
-                      Visibility="{Binding Path=(local:CurrentUser.BasicUser), Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}">
+            <MenuItem Header="Modules">
+                <MenuItem.Visibility>
+                    <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="0|1">
+                        <Binding Path="(local:CurrentUser.BasicUser)"/>
+                        <Binding Path="(local:CurrentUser.HasContainers)"/>
+                    </MultiBinding>
+                </MenuItem.Visibility>
                 <MenuItem Header="Facility"
                           Visibility="Collapsed">
                     <MenuItem Header="Arlington"

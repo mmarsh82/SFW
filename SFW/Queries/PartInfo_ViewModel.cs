@@ -441,6 +441,7 @@ namespace SFW.Queries
                 _ncr
                 );
             var _isStandard = false;
+            var _dpi = 0;
             System.Windows.Forms.PrintDialog prtDialog = new System.Windows.Forms.PrintDialog();
             if (prtDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
@@ -448,7 +449,11 @@ namespace SFW.Queries
                 {
                     _isStandard = true;
                 }
-                TravelCard.PrinterName = prtDialog.PrinterSettings.PrinterName;
+                else
+                {
+                    _dpi = prtDialog.PrinterSettings.DefaultPageSettings.PrinterResolution.X;
+                }
+                TravelCard.PrinterName = prtDialog.PrinterSettings.PrinterName; 
             }
             if (_isStandard)
             {
@@ -464,7 +469,7 @@ namespace SFW.Queries
             }
             else
             {
-                TravelCard.PrintZPL();
+                TravelCard.PrintZPL(_dpi);
             }
         }
         private bool MPrintCanExecute(object parameter)
