@@ -57,8 +57,8 @@ namespace SFW
                     DomainUserName = user.SamAccountName;
                     DisplayName = user.DisplayName;
                     Email = user.EmailAddress;
-                    Site = user.DistinguishedName.Contains("wak1") ? "Wahpeton" : "Arlington";
-                    Facility = user.DistinguishedName.Contains("wak1") ? 1 : 2;
+                    Site = "Wahpeton";
+                    Facility = 1;
                     DirectReports = IsSupervisor && App.SiteNumber == 1 ? user.GetDirectReports() : new Dictionary<int, string>();
                     SapId = int.TryParse(((DirectoryEntry)user.GetUnderlyingObject()).Properties["global-ExtensionAttribute1"]?.Value.ToString(), out int i) ? i : 0;
                     ErpId = ModelBase.MasterDataSet == null || !ModelBase.MasterDataSet.Tables.Contains(typeof(Employee).Name) ? Employee.GetErpID(SapId, App.AppSqlCon) : Employee.GetErpID(SapId);
@@ -521,13 +521,13 @@ namespace SFW
                 DomainUserName = user.SamAccountName;
                 DisplayName = user.DisplayName;
                 Email = user.EmailAddress;
-                Site = user.DistinguishedName.Contains("wak1") ? "Wahpeton" : "Arlington";
-                Facility = user.DistinguishedName.Contains("wak1") ? 1 : 2;
+                Site = "Wahpeton";
+                Facility = 1;
                 Modules = GetModulesList();
                 DirectReports = IsSupervisor && App.SiteNumber == 1 ? user.GetDirectReports() : new Dictionary<int, string>();
                 IsLoggedIn = true;
                 CanWip = true;
-                CanLabor = App.SiteNumber == 2 || IsAdmin;
+                CanLabor = IsAdmin;
                 SapId = int.TryParse(((DirectoryEntry)user.GetUnderlyingObject()).Properties["global-ExtensionAttribute1"]?.Value.ToString(), out int i) ? i : 0;
                 ErpId = ModelBase.MasterDataSet == null || !ModelBase.MasterDataSet.Tables.Contains(typeof(Employee).Name) ? Employee.GetErpID(SapId, App.AppSqlCon) : Employee.GetErpID(SapId);
                 FirstName = user.GivenName;
@@ -732,30 +732,7 @@ namespace SFW
         /// Get the site associated with the currently logged in user
         /// </summary>
         /// <returns>Site as string</returns>
-        public static int GetSite()
-        {
-            var _user = System.Security.Principal.WindowsIdentity.GetCurrent().Name;
-            using (PrincipalContext pContext = GetPrincipal(_user))
-            {
-                using (UserPrincipal uPrincipal = UserPrincipal.FindByIdentity(pContext, _user))
-                {
-                    if (uPrincipal.DistinguishedName.Contains("arx1"))
-                    {
-                        Site = "Arlington";
-                        return 2;
-                    }
-                    else if (uPrincipal.DistinguishedName.Contains("wak1"))
-                    {
-                        Site = "Wahpeton";
-                        return 1;
-                    }
-                    else
-                    {
-                        return -1;
-                    }
-                }
-            }
-        }
+        public static int GetSite() => 1;
 
         /// <summary>
         /// Get the group memebership of a User from SQL

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Data;
 using System.Globalization;
 using System.Linq;
 using System.Windows;
@@ -40,6 +41,11 @@ namespace SFW.Converters
             else if (parameter.ToString() == "NCR")
             {
                 return $"{parameter}*{values.FirstOrDefault()}";
+            }
+            else if (parameter.ToString() == "QUE" && values[1] != DependencyProperty.UnsetValue)
+            {
+                var _rowView = (DataRowView)values[1];
+                return _rowView != null ? $"{values[0]}^{_rowView.Row.ItemArray[5]}" : "";
             }
             else if (parameter != null && values.Length > 1)
             {

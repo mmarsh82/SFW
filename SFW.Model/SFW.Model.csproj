@@ -63,10 +63,14 @@
     <Compile Include="Production\Location.cs" />
     <Compile Include="ModelBase.cs" />
     <Compile Include="Module.cs" />
-    <Compile Include="Production\BillComponent.cs" />
+    <Compile Include="Production\BillComponent.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="Production\Component.cs" />
     <Compile Include="Production\Machine.cs" />
-    <Compile Include="Production\PickComponent.cs" />
+    <Compile Include="Production\PickComponent.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="Production\Wip\Component.cs" />
     <Compile Include="Production\Wip\Lot.cs" />
     <Compile Include="Production\Wip\Receipt.cs" />

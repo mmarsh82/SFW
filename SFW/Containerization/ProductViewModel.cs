@@ -62,10 +62,6 @@ namespace SFW.Containerization
                                     {
                                         try
                                         {
-                                            if (value.Row.RowState != DataRowState.Detached)
-                                            {
-                                                Application.Current?.Dispatcher.Invoke(new Action(delegate { CollectionView.Refresh(); }));
-                                            }
                                             var _id = int.TryParse(value.Row.ItemArray[0].ToString(), out int i) ? i : 0;
                                             ContainerObject = SkuContainer.GetContainer(_id, App.AppSqlCon);
                                             OnPropertyChanged(nameof(ContainerObject));
@@ -625,9 +621,10 @@ namespace SFW.Containerization
 
                     if (_lineCounter == 7 || _counter == ContainerObject.ProductCollection.Count(o => !string.IsNullOrEmpty(o.ProductId)))
                     {
-                        _lineCounter = 0;
+                        _lineCounter = -1;
                         var _zplStr = MainZPLString(_itemString, _cntId.ToString(), _prtRez);
                         RawPrinter.SendStringToPrinter(_prtName, _zplStr, 1);
+                        _itemString = string.Empty;
                     }
 
                     _lineCounter++;

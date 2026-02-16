@@ -1,10 +1,12 @@
 ﻿using M2kClient;
 using SFW.Commands;
 using SFW.Converters;
+using SFW.Enumerations;
 using SFW.Helpers;
 using SFW.Model;
 using SFW.Model.Production;
 using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Windows;
@@ -45,6 +47,8 @@ namespace SFW.Schedule
             }
         }
 
+        public IList<QueState> QueStateList { get; set; }
+
         private RelayCommand _stateChange;
         private RelayCommand _priChange;
 
@@ -65,6 +69,8 @@ namespace SFW.Schedule
             Filter(UserConfig.BuildPriorityFilter(), 4);
             ClosedFilter = false;
             InspectionFilter = false;
+            QueStateList = Enum.GetValues(typeof(QueState)).Cast<QueState>().ToList();
+
 
             Initialize();
         }

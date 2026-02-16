@@ -11,9 +11,9 @@ namespace SFW.Converters
 
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (int.TryParse(value.ToString(), out int i) && i > 0)
+            if (int.TryParse(value.ToString(), out int i) && i >= 0)
             {
-                if (Enum.TryParse(i.ToString(), out LaborState ls))
+                if (Enum.TryParse(i.ToString(), out QueState ls))
                 {
                     return ls.ToString();
                 }

@@ -11,6 +11,7 @@
         <cmd:PartSearch x:Key="PartSearchCommand"/>
         <cmd:ClearPriority x:Key="ClearPriICommand"/>
         <cmd:M2kDeviate x:Key="DeviationICommand"/>
+        <cmd:ChangeQueState x:Key="ChangeQueStateICommand"/>
         <cvtr:BoolToVisibility x:Key="BoolToVisConverter"/>
         <cvtr:SkuMasterPrint x:Key="PartSearchConverter"/>
         <cvtr:DateToVisibility x:Key="DateToVisConverter"/>
@@ -23,6 +24,7 @@
         <cvtr:DisplayToolTip x:Key="DisplayToolTip"/>
         <cvtr:BoolToForegroundColor x:Key="BoolToForegroundConverter"/>
         <cvtr:IntToLaborState x:Key="LaborStateConverter"/>
+        <cvtr:StringConcat x:Key="StringCombineConverter"/>
 
         <ContextMenu x:Key="rowMenu">
             <MenuItem Header="Work Order State"
@@ -90,6 +92,30 @@
                         <Binding Path="Deviation"/>
                     </MultiBinding>
                 </MenuItem.Visibility>
+            </MenuItem>
+            <MenuItem Header="Que State"
+                      ItemsSource="{Binding DataContext.QueStateList, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type DataGrid}}}"
+                      FontSize="16">
+                <MenuItem.Visibility>
+                    <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="1|1">
+                        <Binding Path="(local:CurrentUser.CanSchedule)"/>
+                        <Binding Path="(local:CurrentUser.IsSupervisor)"/>
+                    </MultiBinding>
+                </MenuItem.Visibility>
+                <MenuItem.ItemContainerStyle>
+                    <Style TargetType="MenuItem">
+                        <Setter Property="Command"
+                                Value="{StaticResource ChangeQueStateICommand}" />
+                        <Setter Property="CommandParameter">
+                            <Setter.Value>
+                                <MultiBinding Converter="{StaticResource StringCombineConverter}" ConverterParameter="QUE">
+                                    <Binding />
+                                    <Binding Path="DataContext.CollectionView.CurrentItem" RelativeSource="{RelativeSource FindAncestor, AncestorType={x:Type DataGrid}}"/>
+                                </MultiBinding>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </MenuItem.ItemContainerStyle>
             </MenuItem>
         </ContextMenu>
 

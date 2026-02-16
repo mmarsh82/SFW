@@ -91,6 +91,49 @@ namespace SFW.Model.Production
             }
         }
 
+        /// <summary>
+        /// Gets a machine ID to load
+        /// </summary>
+        /// <param name="woNumber">Work Order number to check</param>
+        /// <param name="seq">Optional: Machine Name</param>
+        /// <returns>Validation as bool; true = valid, false = invalid</returns>
+        public static IReadOnlyDictionary<int, string> GetDownReasonDictionary(SqlConnection sqlCon)
+        {
+            var _rtnDict = new Dictionary<int, string>();
+            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
+            {
+                try
+                {
+                    using (SqlCommand cmd = new SqlCommand($"USE {ModelSqlCon.Database}; SELECT * FROM [dbo].[WC-CSTM_DownReasons] wdr WHERE wdr.[Status] = 1", sqlCon))
+                    {
+                        using (SqlDataReader _reader = cmd.ExecuteReader())
+                        {
+                            if (_reader.HasRows)
+                            {
+                                while (_reader.Read())
+                                {
+                                    _rtnDict.Add(_reader.SafeGetInt32("ID"), _reader.SafeGetString("Description"));
+                                }
+                            }
+                        }
+                        return _rtnDict;
+                    }
+                }
+                catch (SqlException)
+                {
+                    return null;
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception(ex.Message);
+                }
+            }
+            else
+            {
+                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
+            }
+        }
+
         #endregion
 
         /// <summary>

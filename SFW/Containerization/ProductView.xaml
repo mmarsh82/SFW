@@ -335,7 +335,7 @@
                                                 <bhvr:ExpanderState GroupName="{Binding Name}"/>
                                             </i:Interaction.Behaviors>
                                             <Expander.Header>
-                                                <Grid Width="400">
+                                                <Grid Width="500">
                                                     <TextBlock x:Name="ExpanderName" HorizontalAlignment="Left" FontWeight="Bold" Foreground="WhiteSmoke" FontSize="24" Text="{Binding Name}"/>
                                                 </Grid>
                                             </Expander.Header>
@@ -579,11 +579,11 @@
 
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="300"/>
-                    <ColumnDefinition Width="50"/>
+                    <ColumnDefinition Width="75"/>
                     <ColumnDefinition Width="20"/>
                     <ColumnDefinition Width="40"/>
                     <ColumnDefinition Width="150"/>
-                    <ColumnDefinition Width="120"/>
+                    <ColumnDefinition Width="200"/>
                     <ColumnDefinition Width="130"/>
                     <ColumnDefinition Width="100"/>
                     <ColumnDefinition Width="50"/>
@@ -642,7 +642,7 @@
                          VerticalAlignment="Center"
                          HorizontalAlignment="Left"
                          MinWidth="75"
-                         MaxWidth="130"
+                         MaxWidth="190"
                          CharacterCasing="Upper"/>
 
                 <TextBlock Grid.Column="6"

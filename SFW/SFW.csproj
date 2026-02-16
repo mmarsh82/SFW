@@ -29,8 +29,8 @@
     <ProductName>Shop Floor Workbench</ProductName>
     <PublisherName>Michael Marsh</PublisherName>
     <SuiteName>ContiTech</SuiteName>
-    <ApplicationRevision>462</ApplicationRevision>
-    <ApplicationVersion>3.0.90.462</ApplicationVersion>
+    <ApplicationRevision>490</ApplicationRevision>
+    <ApplicationVersion>3.0.96.490</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <CreateDesktopShortcut>true</CreateDesktopShortcut>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -121,6 +121,7 @@
     </Compile>
     <Compile Include="Admin\ViewModel.cs" />
     <Compile Include="AppGlobal.cs" />
+    <Compile Include="Commands\ChangeQueState.cs" />
     <Compile Include="Commands\AppReload.cs" />
     <Compile Include="Commands\ClearPriority.cs" />
     <Compile Include="Commands\LoadNcr.cs" />
@@ -185,7 +186,7 @@
     <Compile Include="DynamicSplashScreen.xaml.cs">
       <DependentUpon>DynamicSplashScreen.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Enumerations\LaborState.cs" />
+    <Compile Include="Enumerations\QueState.cs" />
     <Compile Include="Enumerations\PressReportActions.cs" />
     <Compile Include="ExplicitWords.cs" />
     <Compile Include="ISplashScreen.cs" />
@@ -251,6 +252,10 @@
     </Compile>
     <Compile Include="ShopRoute\QTask\ViewModel.cs" />
     <Compile Include="Styles\Converters\RequiredWidthCutoff.cs" />
+    <Compile Include="Tools\DownReason_View.xaml.cs">
+      <DependentUpon>DownReason_View.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Tools\DownReason_ViewModel.cs" />
     <Compile Include="Tools\Pallet_ViewModel.cs" />
     <Compile Include="Tools\Pallet_View.xaml.cs">
       <DependentUpon>Pallet_View.xaml</DependentUpon>
@@ -471,6 +476,10 @@
     <Page Include="Styles\TextBox.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Tools\DownReason_View.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
     </Page>
     <Page Include="Tools\Pallet_View.xaml">
       <Generator>MSBuild:Compile</Generator>

@@ -609,8 +609,7 @@
                                FontWeight="Bold"
                                Margin="30,0,0,0"
                                TextDecorations="Underline"
-                               Foreground="#FF135185"
-                               Visibility="{Binding FormRevision.EstimatedLoss, Converter={StaticResource IntToVisConverter}, ConverterParameter=n0}"/>
+                               Foreground="#FF135185"/>
 
                     <TextBox Text="{Binding FormRevision.EstimatedLoss, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                              MinWidth="50"
@@ -622,14 +621,8 @@
 
                     <TextBlock Text="{Binding FormRevision.EstimatedLoss}"
                                FontSize="24"
-                               Margin="10,0,0,0">
-                        <TextBlock.Visibility>
-                            <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="0*1">
-                                <Binding Path="(main:CurrentUser.IsQuality)"/>
-                                <Binding Path="FormRevision.EstimatedLoss"/>
-                            </MultiBinding>
-                        </TextBlock.Visibility>
-                    </TextBlock>
+                               Margin="10,0,0,0"
+                               Visibility="{Binding Path=(main:CurrentUser.IsQuality), Converter={StaticResource BoolToVisConverter}, ConverterParameter=i}"/>
 
                     <TextBlock Text="{Binding FormObject.Part.Uom}"
                                FontSize="24"

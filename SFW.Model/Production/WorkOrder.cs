@@ -190,6 +190,41 @@ ORDER BY
             }
         }
 
+        /// <summary>
+        /// Update the que state of a work order
+        /// </summary>
+        /// <param name="orderId">Work Order and seq</param>
+        /// <param name="state">Que state to change to</param>
+        /// <returns>Pass or Fail as bool</returns>
+        public static bool UpdateQue(string orderId, int state)
+        {
+            if (ModelSqlCon != null && ModelSqlCon.State != ConnectionState.Closed && ModelSqlCon.State != ConnectionState.Broken)
+            {
+                try
+                {
+                    using (SqlCommand cmd = new SqlCommand($"USE {ModelSqlCon.Database}; UPDATE [dbo].[WPO-INIT] SET [InQue] = @p1 WHERE [ID] = @p2", ModelSqlCon))
+                    {
+                        cmd.Parameters.AddWithValue("p1", $"{state}");
+                        cmd.Parameters.AddWithValue("p2", $"{orderId}");
+                        cmd.ExecuteNonQuery();
+                        return true;
+                    }
+                }
+                catch (SqlException)
+                {
+                    return false;
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception(ex.Message);
+                }
+            }
+            else
+            {
+                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
+            }
+        }
+
         #endregion
 
         /// <summary>
@@ -251,7 +286,7 @@ ORDER BY
                 Facility = _row.Field<int>("Site");
                 OriginStartDate = _row.Field<DateTime>("OriginalStartDate");
                 OriginDueDate = _row.Field<DateTime>("OriginalDueDate");
-                InQue = bool.TryParse(_row.Field<byte>("LaborState").ToString(), out bool b) ? b : false;
+                InQue = bool.TryParse(_row.Field<int>("LaborState").ToString(), out bool b) ? b : false;
             }
         }
 
@@ -304,7 +339,7 @@ ORDER BY
                 IsStarted = true;
                 OriginStartDate = dRow.Field<DateTime>("OriginalStartDate");
                 OriginDueDate = dRow.Field<DateTime>("OriginalDueDate");
-                InQue = bool.TryParse(dRow.Field<byte>("LaborState").ToString(), out bool b) ? b : false;
+                InQue = bool.TryParse(dRow.Field<int>("LaborState").ToString(), out bool b) ? b : false;
             }
         }
 
