@@ -84,7 +84,7 @@ namespace SFW.Schedule
         {
             try
             {
-                if (App.LoadedModule == Enumerations.UsersControls.Schedule)
+                if (App.LoadedModule == UsersControls.Schedule)
                 {
                     var _dRow = (DataRowView)CollectionView.CurrentItem;
                     if (_dRow != null)

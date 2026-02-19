@@ -98,11 +98,16 @@ namespace SFW.Model.Production
                         _tempList.Add(new BillComponent
                         {
                             ProductNumber = _row.Field<string>("ChildSkuID")
-                            ,AssemblyQuantity = _row.Field<decimal>("AssemblyQuantity")
-                            ,ProductDescription = _row.Field<string>("Description")
-                            ,ProductMasterPrint = _row.Field<string>("MasterSkuID")
-                            ,ProductUom = _row.Field<string>("Uom")
-                            ,IsLotTrace = Sku.IsLotTracable(_row.Field<string>("ChildSkuID"), 1)
+                            ,
+                            AssemblyQuantity = _row.Field<decimal>("AssemblyQuantity")
+                            ,
+                            ProductDescription = _row.Field<string>("Description")
+                            ,
+                            ProductMasterPrint = _row.Field<string>("MasterSkuID")
+                            ,
+                            ProductUom = _row.Field<string>("Uom")
+                            ,
+                            IsLotTrace = Sku.IsLotTracable(_row.Field<string>("ChildSkuID"), 1)
                         });
                     }
                 }

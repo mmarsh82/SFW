@@ -180,7 +180,7 @@
                         Margin="3"
                         Command="{Binding MPrintICommand}"
                         CommandParameter="R"
-                        Visibility="{Binding Path=(base:App.SiteNumber), Converter={StaticResource SiteToVisConverter}, ConverterParameter=Ref}"
+                        Visibility="Collapsed"
                         Style="{DynamicResource DefaultButton}" />
 
                 <Button Content="Wip Sticker"

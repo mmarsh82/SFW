@@ -57,6 +57,107 @@ namespace SFW.Model.Quality
             }
         }
 
+        /// <summary>
+        /// Get a supplier ID by product and work order IDs's
+        /// </summary>
+        /// <param name="orderId">Work Order ID</param>
+        /// <param name="productId">Product ID</param>
+        /// <param name="sqlCon">Sql Connection to use</param>
+        /// <returns>Supplier ID as int</returns>
+        public static int GetSupplierID(string orderId, string productId, SqlConnection sqlCon)
+        {
+            var _rtnVal = 0;
+            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
+            {
+                try
+                {
+                    var _type = string.Empty;
+                    using (SqlCommand _cmd = new SqlCommand($@"USE {sqlCon.Database}; SELECT im.[Class_Data] FROM [dbo].[IM-INIT] im WHERE im.[Part_Number] = @p1", sqlCon))
+                    {
+                        _cmd.Parameters.AddWithValue("p1", productId);
+                        _type = _cmd.ExecuteScalar().ToString();
+                    }
+                    if (_type != "RR" || _type != "RC")
+                    {
+                        var _partList = new List<string> { productId };
+                        while (_rtnVal == 0)
+                        {
+                            using (SqlCommand _cmd = new SqlCommand($@"USE {sqlCon.Database}; SELECT
+	im.[Part_Number] as 'ProductID'
+	,im.[Class_Data] as 'Type'
+    ,im.[Prod_Code] as 'Code'
+FROM
+	[dbo].[PS-INIT] ps
+LEFT JOIN
+	[dbo].[IM-INIT] im ON im.[Part_Number] = SUBSTRING(ps.[ID], CHARINDEX('*', ps.[ID])+1, LEN(ps.[ID]))
+WHERE
+	 im.[Class_Data] <> 'LA'", sqlCon))
+                            {
+                                if (_partList.Count == 1)
+                                {
+                                    _cmd.CommandText += " AND ps.[ID] LIKE CONCAT(@p1, '*%')";
+                                    _cmd.Parameters.AddWithValue("p1", _partList[0]);
+                                }
+                                else
+                                {
+                                    foreach (var _part in _partList)
+                                    {
+                                        var _index = _partList.IndexOf(_part);
+                                        _cmd.CommandText += $" AND ps.[ID] LIKE CONCAT(@p{_index}, '*%')";
+                                        _cmd.Parameters.AddWithValue($"p{_index}", _part);
+                                    }
+                                }
+                                _partList.Clear();
+                                using (SqlDataReader _reader = _cmd.ExecuteReader())
+                                {
+                                    if (_reader.HasRows)
+                                    {
+                                        while (_reader.Read())
+                                        {
+                                            _type = _reader.SafeGetString("Type");
+                                            var _code = _reader.SafeGetString("Code");
+                                            if (_type == "RR" || _type == "RC" || _code == "P")
+                                            {
+                                                productId = _reader.SafeGetString("ProductID");
+                                                _rtnVal = 1;
+                                                break;
+                                            }
+                                            else
+                                            {
+                                                _partList.Add(_reader.SafeGetString("ProductID"));
+                                            }
+                                        }
+                                    }
+                                    else
+                                    {
+                                        return _rtnVal;
+                                    }    
+                                }
+                            }
+                        }
+                    }
+                    using (SqlCommand _cmd = new SqlCommand($@"USE {sqlCon.Database}; SELECT TOP 1 immi.[ID2] FROM [IM-INIT_Mfgr_Info] immi WHERE immi.[ID1] = @p1 AND immi.[Primary_Vendor_Nbr] = 'P'", sqlCon))
+                    {
+                        _cmd.Parameters.AddWithValue("p1", productId);
+                        _rtnVal = int.TryParse(_cmd.ExecuteScalar()?.ToString(), out int i) ? i : 0;
+                    }
+                    return _rtnVal;
+                }
+                catch (SqlException)
+                {
+                    return 0;
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception(ex.Message);
+                }
+            }
+            else
+            {
+                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
+            }
+        }
+
         #endregion
 
         /// <summary>

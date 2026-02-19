@@ -31,8 +31,26 @@ namespace SFW.Tools
             {
                 _selReason = value;
                 OnPropertyChanged(nameof(SelectedReason));
+                OnPropertyChanged(nameof(IsDefect));
             }
         }
+
+        public bool IsDefect { get { return SelectedReason.Key == 7; } }
+
+
+        private string _ref;
+        public string Reference
+        {
+            get { return _ref; }
+            set
+            {
+                _ref = value;
+                OnPropertyChanged(nameof(Reference));
+            }
+        }
+
+        public string MachineID;
+        public string OrderID;
 
         RelayCommand _submit;
 
@@ -41,9 +59,11 @@ namespace SFW.Tools
         /// <summary>
         /// Default Constructor
         /// </summary>
-        public DownReason_ViewModel()
+        public DownReason_ViewModel(string workCenter, string orderId)
         {
             DownReason = Machine.GetDownReasonDictionary(App.AppSqlCon);
+            MachineID = workCenter;
+            OrderID = orderId;
         }
 
         #region Submit ICommand
@@ -62,10 +82,30 @@ namespace SFW.Tools
 
         private void SubmitExecute(object parameter)
         {
-            
+            var _reference = 0;
+            if (!string.IsNullOrEmpty(Reference))
+            {
+                _reference = int.TryParse(Reference, out int i) ? i : 0;
+            }
+            Machine.SubmitDownReason(MachineID, SelectedReason.Key, UserNote, CurrentUser.ErpId, OrderID, _reference, App.AppSqlCon);
             App.CloseWindow<DownReason_View>();
         }
-        private bool SubmitCanExecute(object parameter) => !string.IsNullOrEmpty(SelectedReason.Value);
+        private bool SubmitCanExecute(object parameter)
+        {
+            if (!string.IsNullOrEmpty(SelectedReason.Value))
+            {
+                if (SelectedReason.Key == 7)
+                {
+                    if (!string.IsNullOrEmpty(Reference) && int.TryParse(Reference, out int i))
+                    {
+                        return Model.Quality.QmsForm.IsValid(i);
+                    }
+                    return false;
+                }
+                return true;
+            }
+            return false;
+        }
 
         #endregion
 

@@ -45,7 +45,7 @@ namespace SFW.Converters
             else if (parameter.ToString() == "QUE" && values[1] != DependencyProperty.UnsetValue)
             {
                 var _rowView = (DataRowView)values[1];
-                return _rowView != null ? $"{values[0]}^{_rowView.Row.ItemArray[5]}" : "";
+                return _rowView != null ? $"{values[0]}^{_rowView.Row.ItemArray[5]}^{_rowView.Row.ItemArray[0]}" : "";
             }
             else if (parameter != null && values.Length > 1)
             {

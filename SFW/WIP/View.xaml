@@ -1313,7 +1313,7 @@
                         Margin="5"
                         Command="{Binding MPrintICommand}"
                         CommandParameter="R"
-                        Visibility="{Binding IsSubmitted, Converter={StaticResource SiteToVisConverter}, ConverterParameter=Ref}"
+                        Visibility="Hidden"
                         Style="{DynamicResource DefaultButton}"/>
 
                 <Button Content="WIP Stickers"

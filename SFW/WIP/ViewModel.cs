@@ -688,15 +688,7 @@ namespace SFW.WIP
                         );
                     if (_isStandard)
                     {
-                        switch (parameter.ToString())
-                        {
-                            case "T":
-                                TravelCard.PrintPDF(FormType.Portrait, App.GlobalConfig.FirstOrDefault(o => o.Site == App.Facility).MaterialCard);
-                                break;
-                            case "R":
-                                TravelCard.PrintPDF(FormType.Landscape, App.GlobalConfig.FirstOrDefault(o => o.Site == App.Facility).ReferenceCard);
-                                break;
-                        }
+                        TravelCard.PrintPDF(FormType.Portrait, App.GlobalConfig.FirstOrDefault(o => o.Site == App.Facility).MaterialCard);
                     }
                     else
                     {
@@ -740,6 +732,7 @@ namespace SFW.WIP
                     TravelCard.Display(FormType.CoC, App.GlobalConfig.FirstOrDefault(o => o.Site == "Arlington").MaterialCard);
                 }
             }
+            //Multi-WIP travel cards
             else
             {
                 if (App.SiteNumber == 1)
@@ -762,14 +755,13 @@ namespace SFW.WIP
                             WipRecord.WipWorkOrder.Product.Uom,
                             _ncr,
                             deviation:WipRecord.WipWorkOrder.IsDeviated);
-                        switch (parameter.ToString())
+                        if (_isStandard)
                         {
-                            case "T":
-                                TravelCard.PrintPDF(FormType.Portrait, App.GlobalConfig.FirstOrDefault(o => o.Site == App.Facility).MaterialCard);
-                                break;
-                            case "R":
-                                TravelCard.PrintPDF(FormType.Landscape, App.GlobalConfig.FirstOrDefault(o => o.Site == App.Facility).ReferenceCard);
-                                break;
+                            TravelCard.PrintPDF(FormType.Portrait, App.GlobalConfig.FirstOrDefault(o => o.Site == App.Facility).MaterialCard);
+                        }
+                        else
+                        {
+                            TravelCard.PrintZPL(_dpi);
                         }
                     }
                 }

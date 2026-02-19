@@ -22,9 +22,16 @@ namespace SFW.Model.Quality
                 {
                     try
                     {
-                        using (SqlDataAdapter adapter = new SqlDataAdapter($"SELECT * FROM [dbo].[SFW_NcrNotice] ncr WHERE ncr.[Site] = @p1 ORDER BY ncr.[RevisionDateTime] DESC", sqlCon))
+                        using (SqlDataAdapter adapter = new SqlDataAdapter($@"SELECT
+	*
+FROM
+	[dbo].[SFW_NcrNotice] ncr
+WHERE
+	(ncr.[FormStatus] = 'Closed' AND ncr.[RevisionDateTime] > DATEADD(month, -3, GETDATE())) OR ncr.[FormStatus] = 'Open'
+ORDER BY
+    ncr.[RevisionDateTime] DESC
+    ", sqlCon))
                         {
-                            adapter.SelectCommand.Parameters.AddWithValue("p1", site);
                             adapter.Fill(_dt);
                         }
                         using (DataTable _sdt = new DataTable())

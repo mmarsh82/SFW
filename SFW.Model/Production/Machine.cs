@@ -92,11 +92,11 @@ namespace SFW.Model.Production
         }
 
         /// <summary>
-        /// Gets a machine ID to load
+        /// Get the downtime reasons as a dictionary
         /// </summary>
-        /// <param name="woNumber">Work Order number to check</param>
-        /// <param name="seq">Optional: Machine Name</param>
-        /// <returns>Validation as bool; true = valid, false = invalid</returns>
+        /// <param name="sqlCon">Sql Connection to use</param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
         public static IReadOnlyDictionary<int, string> GetDownReasonDictionary(SqlConnection sqlCon)
         {
             var _rtnDict = new Dictionary<int, string>();
@@ -104,7 +104,7 @@ namespace SFW.Model.Production
             {
                 try
                 {
-                    using (SqlCommand cmd = new SqlCommand($"USE {ModelSqlCon.Database}; SELECT * FROM [dbo].[WC-CSTM_DownReasons] wdr WHERE wdr.[Status] = 1", sqlCon))
+                    using (SqlCommand cmd = new SqlCommand($"USE {sqlCon.Database}; SELECT * FROM [dbo].[WC-CSTM_DownReasons] wdr WHERE wdr.[Status] = 1", sqlCon))
                     {
                         using (SqlDataReader _reader = cmd.ExecuteReader())
                         {
@@ -122,6 +122,95 @@ namespace SFW.Model.Production
                 catch (SqlException)
                 {
                     return null;
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception(ex.Message);
+                }
+            }
+            else
+            {
+                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
+            }
+        }
+
+        /// <summary>
+        /// Insert a new down reason into the database
+        /// </summary>
+        /// <param name="id">Machine ID</param>
+        /// <param name="reason">Reason ID for the down time</param>
+        /// <param name="notes">Any notes attached to the down time</param>
+        /// <param name="userId">ERP User ID</param>
+        /// <param name="orderId">Full work order ID</param>
+        /// <param name="defectId">Defect ID</param>
+        /// <param name="sqlCon">Sql Connection to use</param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
+        public static bool SubmitDownReason(string id, int reason, string notes, string userId, string orderId, int defectId, SqlConnection sqlCon)
+        {
+            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
+            {
+                try
+                {
+                    using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database}; INSERT INTO [dbo].[WC-CSTM_DownInfo]
+([ID], [DownDateTime], [ReasonID], [Notes], [DownUserID], [OrderID], [DefectID])
+(@p1, @p2, @p3, @p4, @p5, @p6, @p7)", sqlCon))
+                    {
+                        cmd.Parameters.AddWithValue("p1", id);
+                        cmd.Parameters.AddWithValue("p2", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
+                        cmd.Parameters.AddWithValue("p3", reason);
+                        cmd.Parameters.AddWithValue("p4", notes);
+                        cmd.Parameters.AddWithValue("p5", userId);
+                        cmd.Parameters.AddWithValue("p6", orderId);
+                        cmd.Parameters.AddWithValue("p7", defectId);
+                        cmd.ExecuteNonQuery();
+                    }
+                    return true;
+                }
+                catch (SqlException)
+                {
+                    return false;
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception(ex.Message);
+                }
+            }
+            else
+            {
+                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
+            }
+        }
+
+        /// <summary>
+        /// Update an downtime to bring the machine back online
+        /// </summary>
+        /// <param name="userId">ERP user ID</param>
+        /// <param name="machineId"></param>
+        /// <param name="orderId">Full work order ID</param>
+        /// <param name="sqlCon">Sql Connection to use</param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
+        public static bool UpdateDownReason(string userId, string machineId, string orderId, SqlConnection sqlCon)
+        {
+            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
+            {
+                try
+                {
+                    using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database}; UPDATE [dbo].[WC-CSTM_DownInfo] SET [UpDateTime] = @p1, [UpUserID] = @p2
+WHERE [ID] = @p3 AND [OrderID] = @p4 AND [UpDateTime] IS NULL", sqlCon))
+                    {
+                        cmd.Parameters.AddWithValue("p1", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
+                        cmd.Parameters.AddWithValue("p2", userId);
+                        cmd.Parameters.AddWithValue("p3", machineId);
+                        cmd.Parameters.AddWithValue("p4", orderId);
+                        cmd.ExecuteNonQuery();
+                    }
+                    return true;
+                }
+                catch (SqlException)
+                {
+                    return false;
                 }
                 catch (Exception ex)
                 {

@@ -106,6 +106,11 @@ namespace SFW.QMS.Form
                         if (value.QmsFormType == Model.Quality.FormType.SCAR)
                         {
                             SupplierCollection = new ObservableCollection<Supplier>(Supplier.GetSupplierList(true));
+                            var _supplier = Supplier.GetSupplierID(FormObject.OrderId, FormObject.Part.SkuNumber, App.AppSqlCon);
+                            if (_supplier > 0)
+                            {
+                                SelectedSupplier = SupplierCollection.FirstOrDefault(o => o.Id == _supplier);
+                            }
                         }
                         OnPropertyChanged(nameof(SupplierCollection));
                         OnPropertyChanged(nameof(ShowSupplier));

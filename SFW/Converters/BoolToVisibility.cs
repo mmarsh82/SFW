@@ -122,7 +122,14 @@ namespace SFW.Converters
             }
             if (_param == "pri")
             {
-                return bool.Parse(values[0].ToString()) && int.Parse(values[1].ToString()) > 0 ? Visibility.Visible : Visibility.Collapsed;
+                if (values[0] != DependencyProperty.UnsetValue || values[1] != DependencyProperty.UnsetValue)
+                {
+                    return Visibility.Collapsed;
+                }
+                else
+                {
+                    return bool.Parse(values[0].ToString()) && int.Parse(values[1].ToString()) > 0 ? Visibility.Visible : Visibility.Collapsed;
+                }
             }
             var _rtnVal = true;
             if (values.Length < 3)

@@ -371,6 +371,17 @@ ORDER BY
         }
 
         /// <summary>
+        /// Get the current Que State of a work order
+        /// </summary>
+        /// <param name="orderId">Full work order ID</param>
+        /// <returns>Que State as an int</returns>
+        public static int GetQueState(string orderId)
+        {
+            var _row = MasterDataSet.Tables[typeof(WorkOrder).Name].Select($"[WorkOrder] = '{orderId}'");
+            return _row[0].Field<int>("LaborState");
+        }
+
+        /// <summary>
         /// Get the work order priority list
         /// </summary>
         /// <param name="machineName">Machine name</param>
