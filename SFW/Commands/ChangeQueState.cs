@@ -9,6 +9,8 @@ namespace SFW.Commands
 {
     public class ChangeQueState : ICommand
     {
+        public static bool IsChanged;
+
         public event EventHandler CanExecuteChanged
         {
             add { }
@@ -21,11 +23,13 @@ namespace SFW.Commands
             {
                 var _split = parameter.ToString().Split('^');
                 var _stateNumber = Enum.TryParse(_split[0], out QueState qs) ? qs : 0;
-                var _change = false;
+                var _change = true;
                 var _curState = Enum.TryParse(WorkOrder.GetQueState(_split[1]).ToString(), out qs) ? qs : 0;
                 if (_stateNumber == QueState.Down)
                 {
-                    _change = bool.TryParse(new DownReason_View(_split[1], _split[2]).ShowDialog().ToString(), out bool b) && b;
+                    IsChanged = false;
+                    new DownReason_View(_split[1], _split[2]).ShowDialog();
+                    _change = IsChanged;
                 }
                 else if (_curState == QueState.Down)
                 {
@@ -38,6 +42,7 @@ namespace SFW.Commands
                     {
                         MessageBox.Show("Unable to update the que state.", "Database error", MessageBoxButton.OK, MessageBoxImage.Error);
                     }
+                    ApplicationTimer.Resume();
                 }
             }
         }

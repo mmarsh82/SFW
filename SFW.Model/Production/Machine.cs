@@ -154,7 +154,7 @@ namespace SFW.Model.Production
                 {
                     using (SqlCommand cmd = new SqlCommand($@"USE {sqlCon.Database}; INSERT INTO [dbo].[WC-CSTM_DownInfo]
 ([ID], [DownDateTime], [ReasonID], [Notes], [DownUserID], [OrderID], [DefectID])
-(@p1, @p2, @p3, @p4, @p5, @p6, @p7)", sqlCon))
+VALUES (@p1, @p2, @p3, @p4, @p5, @p6, @p7)", sqlCon))
                     {
                         cmd.Parameters.AddWithValue("p1", id);
                         cmd.Parameters.AddWithValue("p2", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
@@ -207,6 +207,43 @@ WHERE [ID] = @p3 AND [OrderID] = @p4 AND [UpDateTime] IS NULL", sqlCon))
                         cmd.ExecuteNonQuery();
                     }
                     return true;
+                }
+                catch (SqlException)
+                {
+                    return false;
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception(ex.Message);
+                }
+            }
+            else
+            {
+                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
+            }
+        }
+
+        /// <summary>
+        /// Gets a machine ID to load
+        /// </summary>
+        /// <param name="cmmsId">CMMS ID to check</param>
+        /// <param name="mcahineId">Machine ID</param>
+        /// /// <param name="sqlCon">Sql Connection to use</param>
+        /// <returns>Validation as bool; true = valid, false = invalid</returns>
+        public static bool IsValidCMMS(int cmmsId, string machineId, SqlConnection sqlCon)
+        {
+            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
+            {
+                try
+                {
+                    using (SqlCommand cmd = new SqlCommand($@"SELECT COUNT(cmms.[WorkOrderNumber]) FROM [OMNI].[dbo].[cmmsworkorder] cmms
+	LEFT JOIN [OMNI].[dbo].[cmms_glaccounts] cg ON cg.[Description] = cmms.[WorkCenter]
+	WHERE cg.[ErpID] = @p1 AND cmms.[WorkOrderNumber] = @p2", sqlCon))
+                    {
+                        cmd.Parameters.AddWithValue("p1", machineId);
+                        cmd.Parameters.AddWithValue("p2", cmmsId);
+                        return int.TryParse(cmd.ExecuteScalar().ToString(), out int i) && i > 0;
+                    }
                 }
                 catch (SqlException)
                 {

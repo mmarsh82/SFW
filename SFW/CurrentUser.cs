@@ -754,7 +754,7 @@ namespace SFW
             {
                 try
                 {
-                    using (SqlCommand cmd = new SqlCommand("SELECT * FROM [DOMAIN_USERS].dbo.[CONTITECHWAN_SFWGroups] du WHERE du.[Identity] = @p1", App.AppSqlCon))
+                    using (SqlCommand cmd = new SqlCommand("EXEC [DOMAIN_USERS].[dbo].[Get_ADGroups_ForUser] @Username = @p1", App.AppSqlCon))
                     {
                         cmd.Parameters.AddWithValue("p1", userName);
                         using (SqlDataReader reader = cmd.ExecuteReader())
@@ -763,14 +763,7 @@ namespace SFW
                             {
                                 while (reader.Read())
                                 {
-                                    var _colList = Enumerable.Range(0, reader.FieldCount).Select(reader.GetName).ToList();
-                                    foreach (var _col in _colList.Where(o => o != "Identity"))
-                                    {
-                                        if (reader.SafeGetInt32(_col) == 1)
-                                        {
-                                            _rtnList.Add(_col);
-                                        }
-                                    }
+                                    _rtnList.Add(reader.SafeGetString("Module"));
                                 }
                             }
                         }
@@ -817,6 +810,7 @@ namespace SFW
             IsQuality = HasNotice = false;
             Planner = false;
             IsManager = false;
+            HasContainers = false;
             Modules = GetModulesList();
             ModelBase.LoadedModules = Module.GetModuleList(Modules);
             ModelBase.ModelFacility = Facility;

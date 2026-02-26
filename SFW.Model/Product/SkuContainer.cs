@@ -110,16 +110,18 @@ namespace SFW.Model.Product
                                 {
                                     _sku.SkuNumber += "|01";
                                 }
+                                MultipleLots = Lot.CheckMultiple(value);
                                 ProductId = _sku.SkuNumber;
                                 ProductDescription = _sku.SkuDescription;
                                 Quantity = Lot.GetOnHandQuantity(value);
                                 LocationInput = !NewContainer ? GetContainerLocation(int.Parse(ParentId), ModelSqlCon) : Lot.GetLocation(value);
+                                Location = Lot.GetLocation(value);
                                 QuantityInput = Quantity.ToString();
                                 LotTraceable = true;
                                 LotId = value;
                                 Validated = true;
                                 NewProduct = true;
-                                _input = string.Empty;
+                                _input = MultipleLots ? _input : string.Empty;
                                 if (Exists(ProductId, ParentId) > 0)
                                 {
                                     var _order = GetSalesOrder(ProductId, ParentId);
@@ -130,7 +132,7 @@ namespace SFW.Model.Product
                                     }
                                 }
                             }
-                            else
+                            else if (value.Length >= 10)
                             {
                                 MessageBox.Show("The lot number you entered is no longer on file.\nPlease contact IT for further assistance.", "Lot not on file", MessageBoxButton.OK, MessageBoxImage.Exclamation, MessageBoxResult.OK);
                                 _input = string.Empty;
@@ -187,6 +189,18 @@ namespace SFW.Model.Product
                 }
             }
 
+            private bool _mLot;
+            public bool MultipleLots
+            {
+                get
+                { return _mLot; }
+                set
+                {
+                    _mLot = value;
+                    OnPropertyChanged(nameof(MultipleLots));
+                }
+            }
+
             private bool _trace;
             public bool LotTraceable
             {
@@ -208,6 +222,18 @@ namespace SFW.Model.Product
                 {
                     _lot = value;
                     OnPropertyChanged(nameof(LotId));
+                }
+            }
+
+            private string _loc;
+            public string Location
+            {
+                get
+                { return _loc; }
+                set
+                {
+                    _loc = value;
+                    OnPropertyChanged(nameof(Location));
                 }
             }
 
@@ -247,14 +273,14 @@ namespace SFW.Model.Product
                 }
             }
 
-            private string _loc;
+            private string _locIn;
             public string LocationInput
             {
                 get
-                { return _loc; }
+                { return _locIn; }
                 set
                 {
-                    _loc = value;
+                    _locIn = value;
                     ValidLocation = Production.Location.Valid(value, 1);
                     OnPropertyChanged(nameof(LocationInput));
                 }
@@ -355,6 +381,7 @@ namespace SFW.Model.Product
                 Validated = ValidLocation = !newProd;
                 NewProduct = newProd;
                 NewContainer = newCont;
+                Location = "Soon";
             }
 
             /// <summary>
@@ -365,7 +392,9 @@ namespace SFW.Model.Product
             /// <returns>Number of the same products in the container</returns>
             public int Exists(string productId, string containerId)
             {
-                return MasterDataSet.Tables[typeof(SkuContainer).Name].Select($"[ProductId] = '{productId}' AND [ContainerID] = '{containerId}'").Count();
+                return !string.IsNullOrEmpty(containerId)
+                    ? MasterDataSet.Tables[typeof(SkuContainer).Name].Select($"[ProductId] = '{productId}' AND [ContainerID] = '{containerId}'").Count()
+                    : 0;
             }
 
             /// <summary>
@@ -842,6 +871,7 @@ namespace SFW.Model.Product
                                     if (_prod.LotTraceable)
                                     {
                                         _prod.LotId = reader.SafeGetString("LotId");
+                                        _prod.Location = Lot.GetLocation(reader.SafeGetString("LotId"));
                                     }
                                     _tempCon.ProductCollection.Add(_prod);
                                 }

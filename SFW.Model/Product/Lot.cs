@@ -624,6 +624,18 @@ namespace SFW.Model.Product
         }
 
         /// <summary>
+        /// Get the unit of measure this the lot number
+        /// </summary>
+        /// <param name="lotNbr">Lot Number</param>
+        /// <returns>Unit of measure as a string</returns>
+        public static bool CheckMultiple(string lotNbr)
+        {
+            lotNbr = lotNbr.Replace("|P|01", "");
+            var _rows = MasterDataSet.Tables[new Lot().GetType().Name].Select($"[LotID] LIKE '{lotNbr}%'");
+            return _rows.Length > 1;
+        }
+
+        /// <summary>
         /// Lot Constructor for DataRow array conversion
         /// </summary>
         /// <param name="dRows">DataRow array</param>

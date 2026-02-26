@@ -31,11 +31,11 @@ namespace SFW.Tools
             {
                 _selReason = value;
                 OnPropertyChanged(nameof(SelectedReason));
-                OnPropertyChanged(nameof(IsDefect));
+                OnPropertyChanged(nameof(NeedReference));
             }
         }
 
-        public bool IsDefect { get { return SelectedReason.Key == 7; } }
+        public bool NeedReference { get { return SelectedReason.Key == 1 || SelectedReason.Key == 2 || SelectedReason.Key == 7; } }
 
 
         private string _ref;
@@ -88,6 +88,7 @@ namespace SFW.Tools
                 _reference = int.TryParse(Reference, out int i) ? i : 0;
             }
             Machine.SubmitDownReason(MachineID, SelectedReason.Key, UserNote, CurrentUser.ErpId, OrderID, _reference, App.AppSqlCon);
+            Commands.ChangeQueState.IsChanged = true;
             App.CloseWindow<DownReason_View>();
         }
         private bool SubmitCanExecute(object parameter)
@@ -99,6 +100,14 @@ namespace SFW.Tools
                     if (!string.IsNullOrEmpty(Reference) && int.TryParse(Reference, out int i))
                     {
                         return Model.Quality.QmsForm.IsValid(i);
+                    }
+                    return false;
+                }
+                else if (SelectedReason.Key == 1 || SelectedReason.Key == 2)
+                {
+                    if (!string.IsNullOrEmpty(Reference) && int.TryParse(Reference, out int i))
+                    {
+                        return Machine.IsValidCMMS(i, MachineID, App.AppSqlCon);
                     }
                     return false;
                 }

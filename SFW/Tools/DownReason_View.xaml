@@ -4,7 +4,7 @@
         xmlns:local="clr-namespace:SFW.Tools"
         xmlns:cvtr="clr-namespace:SFW.Converters"
         x:Name="QueState_Window"
-        Title="Workcenter Down" Height="300" Width="520" WindowStyle="ToolWindow" Topmost="True" ResizeMode="NoResize">
+        Title="Workcenter Down" Height="300" Width="650" WindowStyle="ToolWindow" Topmost="True" ResizeMode="NoResize">
 
     <Window.Resources>
         <cvtr:BoolToVisibility x:Key="BoolToVisConverter"/>
@@ -40,7 +40,7 @@
                       Background="LightGray"
                       IsEditable="True"
                       Width="Auto"
-                      MinWidth="150"
+                      MinWidth="200"
                       Margin="2"
                       Style="{DynamicResource RequiredComboBox}"/>
 
@@ -48,12 +48,13 @@
                        FontSize="18"
                        FontWeight="Bold"
                        Margin="15,0,0,0"
+                       VerticalAlignment="Center"
                        TextDecorations="Underline"
-                       Visibility="{Binding IsDefect, Converter={StaticResource BoolToVisConverter}}"
+                       Visibility="{Binding NeedReference, Converter={StaticResource BoolToVisConverter}}"
                        Foreground="#FF135185"/>
 
             <TextBox Text="{Binding Reference, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                     Visibility="{Binding IsDefect, Converter={StaticResource BoolToVisConverter}}"
+                     Visibility="{Binding NeedReference, Converter={StaticResource BoolToVisConverter}}"
                      FontSize="18"
                      FontWeight="Bold"
                      Background="WhiteSmoke"
@@ -73,22 +74,26 @@
                    TextDecorations="Underline"
                    Foreground="#FF135185"/>
 
-        <TextBox Grid.Row="2"
-                 Text="{Binding UserNote, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                 ScrollViewer.VerticalScrollBarVisibility="Auto"
-                 MinWidth="300"
-                 MaxWidth="680"
-                 MaxLength="500"
-                 Background="WhiteSmoke"
-                 HorizontalAlignment="Left"
-                 FontSize="20"
-                 AcceptsReturn="True"
-                 AcceptsTab="True"
-                 SpellCheck.IsEnabled="True"
-                 SpellCheck.SpellingReform="PreAndPostreform"
-                 TextWrapping="WrapWithOverflow"
-                 Margin="10,0,10,0"
-                 Style="{StaticResource OptionalTextBox}"/>
+        <ScrollViewer Grid.Row="2"
+                      VerticalScrollBarVisibility="Auto"
+                      Height="150">
+            
+            <TextBox Text="{Binding UserNote, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                     MinWidth="400"
+                     MaxWidth="680"
+                     MaxLength="500"
+                     Background="WhiteSmoke"
+                     HorizontalAlignment="Left"
+                     FontSize="20"
+                     AcceptsReturn="True"
+                     AcceptsTab="True"
+                     SpellCheck.IsEnabled="True"
+                     SpellCheck.SpellingReform="PreAndPostreform"
+                     TextWrapping="WrapWithOverflow"
+                     Margin="10,0,10,0"
+                     Style="{StaticResource OptionalTextBox}"/>
+            
+        </ScrollViewer>
 
         <Button Grid.Row="3"
                 Content="Submit"

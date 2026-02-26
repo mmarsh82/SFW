@@ -1,4 +1,5 @@
-﻿using SFW.Model.Product;
+﻿using SFW.Model.Management;
+using SFW.Model.Product;
 using SFW.Model.SupplyChain;
 using System;
 using System.Collections.Generic;
@@ -43,7 +44,8 @@ namespace SFW.Model.Production
         public DateTime OriginDueDate { get; set; }
         public Sku Product { get; set; }
         public Machine WorkCenter { get; set; }
-        public bool InQue { get; set; }
+        public bool InQue { get { return QueState == 0; } }
+        public int QueState { get; set; }
 
         #endregion
 
@@ -225,6 +227,159 @@ ORDER BY
             }
         }
 
+        /// <summary>
+        /// Submit the state tracking for the work order
+        /// </summary>
+        /// <param name="orderId">Work Order and seq</param>
+        /// <param name="type"></param>
+        /// <param name="userIdList"></param>
+        /// <param name="sqlCon">Sql Connection to use</param>
+        /// <returns>Pass or Fail as bool</returns>
+        public static bool SubmitTracking(string orderId, char type, List<string> userIdList, SqlConnection sqlCon)
+        {
+            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
+            {
+                try
+                {
+                    foreach (var _userId in userIdList)
+                    {
+                        using (SqlCommand cmd = new SqlCommand($"USE {sqlCon.Database}; INSERT INTO [dbo].[WPO-CSTM_QueTracking] ([ID], [Type], [StartDateTime], [UserId]) VALUES (@p1, @p2, @p3, @p4)", sqlCon))
+                        {
+                            cmd.Parameters.AddWithValue("p1", orderId);
+                            cmd.Parameters.AddWithValue("p2", type);
+                            cmd.Parameters.AddWithValue("p3", DateTime.Now.ToString("yyyy-MM-dd HH:mm"));
+                            cmd.Parameters.AddWithValue("p4", _userId);
+                            cmd.ExecuteNonQuery();
+                        }
+                    }
+                    return true;
+                }
+                catch (SqlException)
+                {
+                    return false;
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception(ex.Message);
+                }
+            }
+            else
+            {
+                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
+            }
+        }
+
+        /// <summary>
+        /// Update the state tracking for the work order
+        /// </summary>
+        /// <param name="orderId">Work Order and seq</param>
+        /// <param name="type"></param>
+        /// <param name="sqlCon">Sql Connection to use</param>
+        /// <returns>Pass or Fail as bool</returns>
+        public static List<string> UpdateTracking(string orderId, char type, SqlConnection sqlCon)
+        {
+            var _tempList = new List<string>();
+            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
+            {
+                try
+                {
+                    using (SqlCommand _cmd = new SqlCommand($"USE {sqlCon.Database}; SELECT [UserId] FROM [dbo].[WPO-CSTM_QueTracking] WHERE [ID] = @p1 AND [Type] = @p2 AND [EndDateTime] IS NULL", sqlCon))
+                    {
+                        _cmd.Parameters.AddWithValue("p1", orderId);
+                        _cmd.Parameters.AddWithValue("p2", type);
+                        using (SqlDataReader _reader = _cmd.ExecuteReader())
+                        {
+                            if (_reader.HasRows)
+                            {
+                                while (_reader.Read())
+                                {
+                                    _tempList.Add(_reader.SafeGetString("UserId"));
+                                }
+                            }
+                        }
+                        if (_tempList.Count > 0)
+                        {
+                            _cmd.CommandText = $"USE {sqlCon.Database}; UPDATE [dbo].[WPO-CSTM_QueTracking] SET [EndDateTime] = @p4  WHERE [ID] = @p1 AND [Type] = @p2 AND [UserId] = @p3 AND [EndDateTime] IS NULL";
+                            foreach (var _userId in _tempList)
+                            {
+                                _cmd.Parameters.AddWithValue("p3", _userId);
+                                _cmd.Parameters.AddWithValue("p4", DateTime.Now.ToString("yyyy-MM-dd HH:mm"));
+                                _cmd.ExecuteNonQuery();
+                            }
+                        }
+                    }
+                    return _tempList;
+                }
+                catch (SqlException)
+                {
+                    return null;
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception(ex.Message);
+                }
+            }
+            else
+            {
+                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
+            }
+        }
+
+        /// <summary>
+        /// Delete the state tracking for the work order
+        /// </summary>
+        /// <param name="orderId">Work Order and seq</param>
+        /// <param name="type"></param>
+        /// <param name="sqlCon">Sql Connection to use</param>
+        /// <returns>Pass or Fail as bool</returns>
+        public static void DeleteTracking(string orderId, char type, SqlConnection sqlCon)
+        {
+            var _tempList = new List<string>();
+            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
+            {
+                try
+                {
+                    using (SqlCommand _cmd = new SqlCommand($"USE {sqlCon.Database}; SELECT [UserId] FROM [dbo].[WPO-CSTM_QueTracking] WHERE [ID] = @p1 AND [Type] = @p2 AND [EndDateTime] IS NULL", sqlCon))
+                    {
+                        _cmd.Parameters.AddWithValue("p1", orderId);
+                        _cmd.Parameters.AddWithValue("p2", type);
+                        using (SqlDataReader _reader = _cmd.ExecuteReader())
+                        {
+                            if (_reader.HasRows)
+                            {
+                                while (_reader.Read())
+                                {
+                                    _tempList.Add(_reader.SafeGetString("UserId"));
+                                }
+                            }
+                        }
+                        if (_tempList.Count > 0)
+                        {
+                            _cmd.CommandText = $"USE {sqlCon.Database}; DELETE FROM [dbo].[WPO-CSTM_QueTracking] WHERE [ID] = @p1 AND [Type] = @p2 AND [UserId] = @p3 AND [EndDateTime] IS NULL";
+                            foreach (var _userId in _tempList)
+                            {
+                                _cmd.Parameters.AddWithValue("p3", _userId);
+                                _cmd.Parameters.AddWithValue("p4", DateTime.Now.ToString("yyyy-MM-dd HH:mm"));
+                                _cmd.ExecuteNonQuery();
+                            }
+                        }
+                    }
+                }
+                catch (SqlException)
+                {
+                    return;
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception(ex.Message);
+                }
+            }
+            else
+            {
+                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
+            }
+        }
+
         #endregion
 
         /// <summary>
@@ -255,6 +410,7 @@ ORDER BY
                 Product.Operation = _row.Field<string>("Operation");
                 OpDesc = _row.Field<string>("Op_Desc");
                 Routing = _row.Field<string>("Routing");
+                Status = _row.Field<string>("Status");
                 State = _row.Field<string>("WO_Priority");
                 TaskType = _row.Field<string>("WO_Type");
                 StartQty = _row.Field<int>("WO_StartQty");
@@ -286,7 +442,7 @@ ORDER BY
                 Facility = _row.Field<int>("Site");
                 OriginStartDate = _row.Field<DateTime>("OriginalStartDate");
                 OriginDueDate = _row.Field<DateTime>("OriginalDueDate");
-                InQue = bool.TryParse(_row.Field<int>("LaborState").ToString(), out bool b) ? b : false;
+                QueState = _row.Field<int>("LaborState");
             }
         }
 
@@ -307,6 +463,7 @@ ORDER BY
                 Seq = dRow.Field<string>("Operation");
                 OpDesc = dRow.Field<string>("Op_Desc");
                 Routing = dRow.Field<string>("Routing");
+                Status = dRow.Field<string>("Status");
                 State = dRow.Field<string>("WO_Priority");
                 TaskType = dRow.Field<string>("WO_Type");
                 StartQty = dRow.Field<int>("WO_StartQty");
@@ -339,7 +496,7 @@ ORDER BY
                 IsStarted = true;
                 OriginStartDate = dRow.Field<DateTime>("OriginalStartDate");
                 OriginDueDate = dRow.Field<DateTime>("OriginalDueDate");
-                InQue = bool.TryParse(dRow.Field<int>("LaborState").ToString(), out bool b) ? b : false;
+                QueState = dRow.Field<int>("LaborState");
             }
         }
 
@@ -377,8 +534,31 @@ ORDER BY
         /// <returns>Que State as an int</returns>
         public static int GetQueState(string orderId)
         {
-            var _row = MasterDataSet.Tables[typeof(WorkOrder).Name].Select($"[WorkOrder] = '{orderId}'");
+            var _row = MasterDataSet.Tables[typeof(WorkOrder).Name].Select($"[WorkOrderID] = '{orderId}'");
             return _row[0].Field<int>("LaborState");
+        }
+
+        /// <summary>
+        /// Get a dictionary of current Que States of all work orders in a work center for validation checks
+        /// </summary>
+        /// <param name="machineId">Workcenter ID</param>
+        /// <returns>Que State as an int</returns>
+        public static IReadOnlyDictionary<string, int> GetQueDictionary(string machineId)
+        {
+            if (!string.IsNullOrEmpty(machineId))
+            {
+                var _rtnDict = new Dictionary<string, int>();
+                var _rows = MasterDataSet.Tables[typeof(WorkOrder).Name].Select($"[MachineNumber] = '{machineId}' AND [Status] <> 'C'");
+                if (_rows.Count() > 0)
+                {
+                    foreach (var _row in _rows.Where(o => o.Field<int>("LaborState") != -1))
+                    {
+                        _rtnDict.Add(_row.Field<string>("WorkOrderId"), _row.Field<int>("LaborState"));
+                    }
+                    return _rtnDict;
+                }
+            }
+            return null;
         }
 
         /// <summary>

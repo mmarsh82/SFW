@@ -1,6 +1,8 @@
 ﻿using M2kClient;
+using SFW.Enumerations;
 using SFW.Helpers;
 using SFW.Model;
+using SFW.Model.Management;
 using SFW.Model.Product;
 using SFW.Model.Production;
 using System;
@@ -33,6 +35,8 @@ namespace SFW.ShopRoute
                 OnPropertyChanged(nameof(CanCheckHistory));
                 OnPropertyChanged(nameof(HasFirstPiece));
                 OnPropertyChanged(nameof(SelectedOrder));
+                OnPropertyChanged(nameof(IsQued));
+                OnPropertyChanged(nameof(QueStateMessage));
             }
         }
         public string SelectedOrder { get { return ShopOrder.OrderNumber; } }
@@ -258,8 +262,97 @@ namespace SFW.ShopRoute
         }
         public ObservableCollection<WorkOrderComment> CommentCollection { get; set; }
 
+        private string _msg;
+        public string Message
+        {
+            get
+            { return _msg; }
+            set
+            {
+                _msg = value;
+                OnPropertyChanged(nameof(Message));
+            }
+        }
+
+        public string QueStateMessage
+        {
+            get
+            {
+                var _state = Enum.TryParse(ShopOrder.QueState.ToString(), out QueState qs) ? qs : QueState.Unassigned;
+                switch (_state)
+                {
+                    case QueState.Setup:
+                        return "Setup";
+                    case QueState.Inspection:
+                        return "Inspection";
+                    default:
+                        return string.Empty;
+                }
+            }
+        }
+
+        public bool IsQued
+        {
+            get
+            {
+                if (CurrentUser.IsLoggedIn)
+                {
+                    var _state = Enum.TryParse(ShopOrder.QueState.ToString(), out QueState qs) ? qs : QueState.Unassigned;
+                    if (!CurrentUser.BasicUser)
+                    {
+                        return false;
+                    }
+                    return ValidateQueState();
+                }
+                Message = "            Not Signed In\nDetailed information hidden";
+                return false;
+            }
+        }
+
+        public bool ShowView
+        {
+            get
+            {
+                if (CurrentUser.IsLoggedIn)
+                {
+                    var _state = Enum.TryParse(ShopOrder.QueState.ToString(), out QueState qs) ? qs : QueState.Unassigned;
+                    if (!CurrentUser.BasicUser || ShopOrder.Status == "C")
+                    {
+                        return true;
+                    }
+                    if (_state == QueState.Setup || _state == QueState.Inspection || _state == QueState.Running)
+                    {
+                        return true;
+                    }
+                }
+                return false;
+            }
+        }
+
+        public bool ShowComplete
+        {
+            get
+            {
+                var _state = Enum.TryParse(ShopOrder.QueState.ToString(), out QueState qs) ? qs : QueState.Unassigned;
+                return (_state == QueState.Inspection || _state == QueState.Setup) && CurrentUser.BasicUser;
+            }
+        }
+
+        public bool ShowSkip
+        {
+            get
+            {
+                var _state = Enum.TryParse(ShopOrder.QueState.ToString(), out QueState qs) ? qs : QueState.Unassigned;
+                return _state == QueState.Inspection && CurrentUser.BasicUser;
+            }
+        }
+
+        public BindingList<Employee> CrewList { get; set; }
+
         private RelayCommand _noteChange;
         private RelayCommand _modComment;
+        private RelayCommand _removeCrew;
+        private RelayCommand _queStateChange;
 
         #endregion
 
@@ -273,6 +366,8 @@ namespace SFW.ShopRoute
                 ShopOrder = new WorkOrder();
             }
             LotListLoading = false;
+            Message = string.Empty;
+            CrewList = new BindingList<Employee>();
         }
 
         /// <summary>
@@ -285,6 +380,7 @@ namespace SFW.ShopRoute
             {
                 workOrder = new WorkOrder(ModelBase.MasterDataSet.Tables[typeof(WorkOrder).Name].Rows[0]);
             }
+            Message = string.Empty;
             LotListLoading = false;
             ShopOrder = workOrder;
             IsMultiLoading = true;
@@ -294,6 +390,8 @@ namespace SFW.ShopRoute
             ComponentDefectList = new List<string>();
             IsPlan = BomOnly = ShopOrder.TaskType == "P";
             WipActive = false;
+            CrewList = new BindingList<Employee> { new Employee() { ListId = 1 } };
+            CrewList.ListChanged += CrewList_Changed;
             using (BackgroundWorker bw = new BackgroundWorker())
             {
                 try
@@ -355,7 +453,7 @@ namespace SFW.ShopRoute
                             }
                             OnPropertyChanged(nameof(IsMultiLoading));
                             OnPropertyChanged(nameof(ShopOrder));
-                            WipActive = true;
+                            WipActive = Enum.TryParse(ShopOrder.QueState.ToString(), out QueState qs) ? qs == QueState.Running || CurrentUser.IsSupervisor || CurrentUser.CanSchedule || ShopOrder.Status == "C" : false;
                         });
                     bw.RunWorkerAsync();
                 }
@@ -427,6 +525,106 @@ namespace SFW.ShopRoute
             catch (Exception)
             {
                 return string.Empty;
+            }
+        }
+
+        /// <summary>
+        /// Validate the proper message for the current que state
+        /// </summary>
+        /// <returns></returns>
+        public bool ValidateQueState()
+        {
+            var _state = Enum.TryParse(ShopOrder.QueState.ToString(), out QueState qs) ? qs : QueState.Unassigned;
+            var _queList = WorkOrder.GetQueDictionary(ShopOrder?.WorkCenter?.MachineNumber);
+            var _invalidState = QueState.Unassigned;
+            if ((_state == QueState.InQue || _state == QueState.Unassigned) && (ShopOrder.Status == "A" || ShopOrder.Status == "R"))
+            {
+                if (_queList != null)
+                {
+                    if (_queList.Count(o => o.Value == 5) > 0)
+                    {
+                        _invalidState = QueState.Down;
+                    }
+                    else if (_queList.Count(o => o.Value == 0) > 0 && _queList.Count(o => o.Key == ShopOrder.OrderID) == 0)
+                    {
+                        _invalidState = QueState.InQue;
+                    }
+                    else if (_state == QueState.Unassigned)
+                    {
+                        if (_queList.Count(o => o.Value == 3) > 0)
+                        {
+                            _invalidState = QueState.Running;
+                        }
+                        if (_queList.Count(o => o.Value == 2) > 0)
+                        {
+                            _invalidState = QueState.Inspection;
+                        }
+                    }
+                    else if (_state == QueState.Setup)
+                    {
+                        if (_queList.Count(o => o.Value == 3) > 0)
+                        {
+                            _invalidState = QueState.Running;
+                        }
+                    }
+                    if (_invalidState != QueState.Unassigned)
+                    {
+                        Message = _queList.Count(o => o.Value == (int)_invalidState) == 1 ? "Work Order " : "Work Orders ";
+                        foreach (var _order in _queList.Where(o => o.Value == (int)_invalidState))
+                        {
+                            Message += $"{_order.Key.Split('*')[0]}, ";
+                        }
+                        Message = Message.TrimEnd(' ').TrimEnd(',');
+                        Message += $"\nCurrently {_invalidState.ToString().ToUpper()}\nContact your supervisor for assitance.";
+                        return false;
+                    }
+                }
+                return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Happens when an item is added or changed in the WipInfo Binding List property
+        /// </summary>
+        /// <param name="sender">BindingList<Component> list passed without changes</param>
+        /// <param name="e">Change info</param>
+        private void CrewList_Changed(object sender, ListChangedEventArgs e)
+        {
+            var _add = false;
+            ((BindingList<Employee>)sender).RaiseListChangedEvents = false;
+            if (e.ListChangedType == ListChangedType.ItemChanged && e.PropertyDescriptor?.DisplayName == "ErpId")
+            {
+                if (Employee.ValidErpId(((BindingList<Employee>)sender)[e.NewIndex].ErpId) && ((BindingList<Employee>)sender).Count(o => o.ErpId == ((BindingList<Employee>)sender)[e.NewIndex].ErpId) == 1)
+                {
+                    var _tempCrew = new Employee(((BindingList<Employee>)sender)[e.NewIndex].ErpId, true, false);
+                    ((BindingList<Employee>)sender)[e.NewIndex].Facility = _tempCrew.Facility;
+                    ((BindingList<Employee>)sender)[e.NewIndex].IsDirect = _tempCrew.IsDirect;
+                    ((BindingList<Employee>)sender)[e.NewIndex].Name = _tempCrew.Name;
+                    ((BindingList<Employee>)sender)[e.NewIndex].Shift = _tempCrew.Shift;
+                    ((BindingList<Employee>)sender)[e.NewIndex].ShiftEnd = _tempCrew.ShiftEnd;
+                    ((BindingList<Employee>)sender)[e.NewIndex].ShiftStart = _tempCrew.ShiftStart;
+                    ((BindingList<Employee>)sender)[e.NewIndex].LaborData = _tempCrew.LaborData;
+                    ((BindingList<Employee>)sender)[e.NewIndex].SapId = _tempCrew.SapId;
+                    if (((BindingList<Employee>)sender).Count() == ((BindingList<Employee>)sender).Count(o => !string.IsNullOrEmpty(o.Name)))
+                    {
+                        _add = true;
+                    }
+                }
+                else if (!string.IsNullOrEmpty(((BindingList<Employee>)sender)[e.NewIndex].Name))
+                {
+                    //TODO: add in logic to remove the second entry when deleting the first and list only has 2 entrys
+                    ((BindingList<Employee>)sender)[e.NewIndex].Name = null;
+                    ((BindingList<Employee>)sender)[e.NewIndex].IsDirect = false;
+                    ((BindingList<Employee>)sender)[e.NewIndex].Shift = 0;
+                    ((BindingList<Employee>)sender)[e.NewIndex].Facility = null;
+                    ((BindingList<Employee>)sender)[e.NewIndex].LaborData = null;
+                }
+            }
+            ((BindingList<Employee>)sender).RaiseListChangedEvents = true;
+            if (_add)
+            {
+                ((BindingList<Employee>)sender).Add(new Employee() { ListId = ((BindingList<Employee>)sender).Count });
             }
         }
 
@@ -513,6 +711,108 @@ namespace SFW.ShopRoute
                 return !string.IsNullOrEmpty(CommentInput);
             }
             return true;
+        }
+
+        #endregion
+
+        #region Remove Crew List Item ICommand
+
+        public ICommand RemoveCrewICommand
+        {
+            get
+            {
+                if (_removeCrew == null)
+                {
+                    _removeCrew = new RelayCommand(RemoveCrewExecute);
+                }
+                return _removeCrew;
+            }
+        }
+
+        private void RemoveCrewExecute(object parameter)
+        {
+            CrewList.Remove(CrewList.FirstOrDefault(c => c.ErpId.ToString() == parameter.ToString()));
+            foreach (var _emp in CrewList)
+            {
+                _emp.ListId = CrewList.IndexOf(_emp);
+            }
+        }
+
+        #endregion
+
+        #region QueState Change ICommand
+
+        public ICommand QueStateChangeICommand
+        {
+            get
+            {
+                if (_queStateChange == null)
+                {
+                    _queStateChange = new RelayCommand(QueStateChangeExecute, QueStateChangeCanExecute);
+                }
+                return _queStateChange;
+            }
+        }
+
+        private void QueStateChangeExecute(object parameter)
+        {
+            var _state = Enum.TryParse(ShopOrder.QueState.ToString(), out QueState qs) ? qs : QueState.Unassigned;
+            var _newState = (int)_state + 1;
+            switch (parameter.ToString())
+            {
+                case "B":
+                    WorkOrder.UpdateQue(ShopOrder.OrderID, 1);
+                    _newState = 1;
+                    WorkOrder.SubmitTracking(ShopOrder.OrderID, 'S', CrewList.Where(o => !string.IsNullOrEmpty(o.Name)).Select(o => o.ErpId).ToList(), App.AppSqlCon);
+                    break;
+                case "S":
+                    _newState = _state == QueState.Unassigned ? _newState + 2 : _newState;
+                    WorkOrder.UpdateQue(ShopOrder.OrderID, _newState);
+                    if (_state == QueState.Unassigned)
+                    {
+                        WorkOrder.SubmitTracking(ShopOrder.OrderID, 'I', CrewList.Where(o => !string.IsNullOrEmpty(o.Name)).Select(o => o.ErpId).ToList(), App.AppSqlCon);
+                    }
+                    else
+                    {
+                        WorkOrder.DeleteTracking(ShopOrder.OrderID, _state.GetDescription().ToCharArray()[0], App.AppSqlCon);
+                    }
+                    break;
+                case "C":
+                    if (_state == QueState.Setup)
+                    {
+                        var _crewList = WorkOrder.UpdateTracking(ShopOrder.OrderID, _state.GetDescription().ToCharArray()[0], App.AppSqlCon);
+                        if (_crewList != null && _crewList.Count > 0)
+                        {
+                            WorkOrder.SubmitTracking(ShopOrder.OrderID, 'I', _crewList, App.AppSqlCon);
+                        }
+                    }
+                    else
+                    {
+                        var _crewList = WorkOrder.UpdateTracking(ShopOrder.OrderID, _state.GetDescription().ToCharArray()[0], App.AppSqlCon);
+                    }
+                    WorkOrder.UpdateQue(ShopOrder.OrderID, _newState);
+                    break;
+            }
+            ShopOrder.QueState = _newState;
+            OnPropertyChanged(nameof(IsQued));
+            OnPropertyChanged(nameof(ShowView));
+            OnPropertyChanged(nameof(ShowComplete));
+            OnPropertyChanged(nameof(ShowSkip));
+            OnPropertyChanged(nameof(QueStateMessage));
+            ApplicationTimer.Resume();
+        }
+
+        private bool QueStateChangeCanExecute(object parameter)
+        {
+            var _state = Enum.TryParse(ShopOrder.QueState.ToString(), out QueState qs) ? qs : QueState.Unassigned;
+            if (_state == QueState.Unassigned)
+            {
+                return CurrentUser.CanWip && CrewList.Count(o => !string.IsNullOrEmpty(o.Name)) > 0;
+            }
+            else
+            {
+                return CurrentUser.CanWip;
+            }
         }
 
         #endregion

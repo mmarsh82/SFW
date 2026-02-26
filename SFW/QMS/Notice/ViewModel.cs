@@ -228,7 +228,7 @@ namespace SFW.QMS.Notice
 
         private void ExportQmsExecute(object parameter)
         {
-            ExcelWriter.ExportData(((DataView)CollectionView.SourceCollection).ToTable());
+            ExcelWriter.ExportData(Model.Quality.Notice.GetFullTable(App.AppSqlCon));
         }
 
         #endregion
