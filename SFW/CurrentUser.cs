@@ -375,6 +375,30 @@ namespace SFW
             }
         }
 
+        private static bool _isCon;
+        public static bool IsContainerAdmin
+        {
+            get
+            { return _isCon; }
+            set
+            {
+                _isCon = value;
+                StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(IsContainerAdmin)));
+            }
+        }
+
+        private static bool _isTool;
+        public static bool IsTooling
+        {
+            get
+            { return _isTool; }
+            set
+            {
+                _isTool = value;
+                StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(IsTooling)));
+            }
+        }
+
         private static string _erp;
         public static string ErpId
         {
@@ -406,7 +430,7 @@ namespace SFW
             { return _isLocked; }
             set
             {
-                _isLocked = value;
+                _isLocked = false;
                 StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(nameof(IsLocked)));
             }
         }
@@ -564,7 +588,7 @@ namespace SFW
                         switch (_group)
                         {
                             case "Admin":
-                                CanTrain = CanSchedule = IsSupervisor = IsManager = IsInventoryControl = IsAccountsReceivable = IsAdmin = HasSalesOrderModule = IsQuality = IsEngineer = CanSplit = CanDeviate = HasNotice = Planner = HasContainers = true;
+                                CanTrain = CanSchedule = IsSupervisor = IsManager = IsInventoryControl = IsAccountsReceivable = IsAdmin = HasSalesOrderModule = IsQuality = IsEngineer = CanSplit = CanDeviate = HasNotice = Planner = HasContainers = IsTooling = true;
                                 return false;
                             case "Scheduler":
                                 CanSchedule = true;
@@ -607,6 +631,12 @@ namespace SFW
                                 break;
                             case "Containers":
                                 HasContainers = true;
+                                break;
+                            case "ContAdmin":
+                                IsContainerAdmin = true;
+                                break;
+                            case "Tooling":
+                                IsTooling = true;
                                 break;
                         }
                     }
@@ -790,27 +820,24 @@ namespace SFW
         /// </summary>
         public static void LogOff()
         {
+            var _propList = new CurrentUser().GetType().GetProperties().Where(o => o.PropertyType == typeof(bool));
+            foreach (var _prop in _propList)
+            {
+                try
+                {
+                    _prop.SetValue(new CurrentUser(), false);
+                }
+                catch
+                { }
+            }
             DomainName = null;
             DomainUserName = null;
             DisplayName = null;
             Email = null;
-            IsLoggedIn = false;
-            CanSchedule = false;
-            CanWip = false;
-            IsAdmin = false;
-            IsInventoryControl = false;
-            IsSupervisor = IsManager = false;
             ErpId = string.Empty;
             SapId = 0;
-            IsAccountsReceivable = false;
-            HasSalesOrderModule = false;
-            CanTrain = false;
             App.IsFocused = BasicUser = true;
-            IsEngineer = false;
-            IsQuality = HasNotice = false;
-            Planner = false;
-            IsManager = false;
-            HasContainers = false;
+            DirectReports = null;
             Modules = GetModulesList();
             ModelBase.LoadedModules = Module.GetModuleList(Modules);
             ModelBase.ModelFacility = Facility;

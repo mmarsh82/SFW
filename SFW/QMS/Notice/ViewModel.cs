@@ -51,6 +51,32 @@ namespace SFW.QMS.Notice
             }
         }
 
+        private bool _docFilter;
+        public bool DocumentFilter
+        {
+            get { return _docFilter; }
+            set
+            {
+                _docFilter = value;
+                if (!value)
+                {
+                    ApplicationTimer.Pause();
+                    ModelBase.MasterDataSet.RefreshTable(typeof(Model.Quality.Notice), Model.Quality.Notice.GetFullTable(App.AppSqlCon));
+                    Initialize();
+                }
+                else
+                {
+                    if (ApplicationTimer.Status == TimerState.Paused)
+                    {
+                        ApplicationTimer.Resume();
+                    }
+                }
+                OnPropertyChanged(nameof(DocumentFilter));
+                OnPropertyChanged(nameof(DocumentText));
+            }
+        }
+        public string DocumentText { get { return DocumentFilter ? "New:" : "Old:"; } }
+
         RelayCommand _newFrm;
         RelayCommand _exportQms;
 
@@ -75,6 +101,7 @@ namespace SFW.QMS.Notice
                     ,{"Open SCAR", new string[4]{ "[FormStatus] <> 'Closed'", "1", "[FormType] = 'SCAR'", "3"} }
                     ,{"Closed SCAR", new string[4]{ "[FormStatus] = 'Closed'", "1", "[FormType] = 'SCAR'", "3"} }
                 };
+                DocumentFilter = true;
                 ResetFilter();
                 Initialize();
             }

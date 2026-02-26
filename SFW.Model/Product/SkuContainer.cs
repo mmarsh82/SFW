@@ -1440,6 +1440,56 @@ INSERT INTO [Nexus_Main].dbo.[ContainerDetail] ([ContainerID], [ContainerRow], [
             }
         }
 
+        /// <summary>
+        /// Ship a container
+        /// </summary>
+        /// <param name="container"></param>
+        /// <param name="sqlCon"></param>
+        public static void Ship(this SkuContainer container, SqlConnection sqlCon)
+        {
+            if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
+            {
+                try
+                {
+                    if (sqlCon != null && sqlCon.State != ConnectionState.Closed && sqlCon.State != ConnectionState.Broken)
+                    {
+                        try
+                        {
+                            using (SqlCommand cmd = new SqlCommand($@"UPDATE [Nexus_Main].[dbo].[ContainerHeader] SET [ContainerStatus]='S' WHERE [ContainerID] = @p1", sqlCon))
+                            {
+                                cmd.Parameters.AddWithValue("p1", container.ContainerId);
+                                cmd.ExecuteNonQuery();
+                            }
+                        }
+                        catch (SqlException sqlEx)
+                        {
+                            throw new Exception(sqlEx.Message);
+                        }
+                        catch (Exception ex)
+                        {
+                            throw new Exception(ex.Message);
+                        }
+                    }
+                    else
+                    {
+                        throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
+                    }
+                }
+                catch (SqlException sqlEx)
+                {
+                    throw new Exception(sqlEx.Message);
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception(ex.Message);
+                }
+            }
+            else
+            {
+                throw new Exception("A connection could not be made to pull accurate data, please contact your administrator");
+            }
+        }
+
         #endregion
     }
 }

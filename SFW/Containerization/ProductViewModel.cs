@@ -548,10 +548,11 @@ namespace SFW.Containerization
 
         private void ShipExecute(object parameter)
         {
-            
+            ContainerObject.Ship(App.AppSqlCon);
+            ApplicationTimer.Resume();
         }
 
-        private bool ShipCanExecute(object parameter) => ContainerObject != null && int.TryParse(ContainerObject.Weight, out int w) && w > 0 && HasDims && ContainerObject.ProductCollection.Count(o => !o.ValidSalesOrder) == 0;
+        private bool ShipCanExecute(object parameter) => true;
 
         #endregion
 

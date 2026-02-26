@@ -303,8 +303,19 @@
                             <MultiDataTrigger.Conditions>
                                 <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsSelected}" Value="True"/>
                                 <Condition Binding="{Binding LotTraceable}" Value="T"/>
+                                <Condition Binding="{Binding Status}" Value="A"/>
                             </MultiDataTrigger.Conditions>
                             <Setter Property="Background" Value="LightBlue"/>
+                            <Setter Property="Foreground" Value="Black"/>
+                            <Setter Property="BorderBrush" Value="RoyalBlue" />
+                        </MultiDataTrigger>
+                        <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                                <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsSelected}" Value="True"/>
+                                <Condition Binding="{Binding LotTraceable}" Value="T"/>
+                                <Condition Binding="{Binding Status}" Value="S"/>
+                            </MultiDataTrigger.Conditions>
+                            <Setter Property="Background" Value="DarkSeaGreen"/>
                             <Setter Property="Foreground" Value="Black"/>
                             <Setter Property="BorderBrush" Value="RoyalBlue" />
                         </MultiDataTrigger>
@@ -313,8 +324,19 @@
                             <MultiDataTrigger.Conditions>
                                 <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsSelected}" Value="True"/>
                                 <Condition Binding="{Binding LotTraceable}" Value="N"/>
+                                <Condition Binding="{Binding Status}" Value="A"/>
                             </MultiDataTrigger.Conditions>
                             <Setter Property="Background" Value="Bisque"/>
+                            <Setter Property="Foreground" Value="Black"/>
+                            <Setter Property="BorderBrush" Value="RoyalBlue" />
+                        </MultiDataTrigger>
+                        <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                                <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsSelected}" Value="True"/>
+                                <Condition Binding="{Binding LotTraceable}" Value="N"/>
+                                <Condition Binding="{Binding Status}" Value="S"/>
+                            </MultiDataTrigger.Conditions>
+                            <Setter Property="Background" Value="LightCoral"/>
                             <Setter Property="Foreground" Value="Black"/>
                             <Setter Property="BorderBrush" Value="RoyalBlue" />
                         </MultiDataTrigger>
@@ -415,9 +437,10 @@
                     Command="{Binding ShipICommand}"
                     Style="{DynamicResource MenuButtonStyle}">
                 <Button.Visibility>
-                    <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="0*1">
+                    <MultiBinding Converter="{StaticResource BoolToVisConverter}" ConverterParameter="0*1*1">
                         <Binding Path="NewContainer"/>
                         <Binding Path="HasContainers"/>
+                        <Binding Path="(local:CurrentUser.IsContainerAdmin)"/>
                     </MultiBinding>
                 </Button.Visibility>
             </Button>
